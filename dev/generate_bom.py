@@ -150,12 +150,7 @@ class BomGenerator(Annotator):
       config = {
         'images': [versioned_image],
         'steps': [
-          {
-            'args': ['build', '-t', versioned_image, '-f', 'Dockerfile', '.'],
-            'dir': 'spinnaker-monitoring-daemon',
-            'env': env_vars_list,
-            'name':  'gcr.io/cloud-builders/docker'
-          }
+          __format_docker_build_step(versioned_image, env_vars_list, dir='spinnaker-monitoring-daemon')
         ],
         'timeout': '3600s'
       }
@@ -175,6 +170,7 @@ class BomGenerator(Annotator):
       versioned_image = '{reg}/{repo}:{tag}'.format(reg=self.__docker_registry,
                                                     repo=comp,
                                                     tag=gradle_version)
+      slim = comp != 'echo'
       config = {
         'images': [versioned_image],
         'steps': [
@@ -183,15 +179,25 @@ class BomGenerator(Annotator):
             'env': env_vars_list,
             'name':  self.__container_builder_base_image
           },
-          {
-            'args': ['build', '-t', versioned_image, '-f', 'Dockerfile.slim', '.'],
-            'env': env_vars_list,
-            'name':  'gcr.io/cloud-builders/docker'
-          }
+          __format_docker_build_step(versioned_image, env_vars_list, slim=slim)
         ],
         'timeout': '3600s'
       }
     return config
+
+  def __format_docker_build_step(versioned_image, env_vars_list, slim=False, dir=None):
+    """Formats a Docker build step for GCB.
+    """
+    dockerfile = 'Dockerfile.slim' if slim else 'Dockerfile'
+    step = {
+      'args': ['build', '-t', versioned_image, '-f', dockerfile, '.'],
+      'env': env_vars_list,
+      'name':  'gcr.io/cloud-builders/docker'
+    }
+    # Step should only contain a 'dir' key if we're using a non-default dir.
+    if dir:
+      step['dir'] = dir
+    return step
 
   def write_component_version_files(self):
     """Write a file containing the full version for each microservice.
