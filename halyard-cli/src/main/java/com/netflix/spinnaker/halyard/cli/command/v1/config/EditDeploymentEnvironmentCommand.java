@@ -38,7 +38,7 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--account-name",
-      description = "The Spinnaker account that Spinnaker will be deployed to, assuming you are running"
+      description = "The Spinnaker account that Spinnaker will be deployed to, assuming you are running "
           + "a deployment of Spinnaker that requires an active cloud provider."
   )
   private String accountName;
@@ -89,7 +89,7 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--vault-address",
-      description = "The address of a running Vault datastore. See https://www.vaultproject.io/."
+      description = "The address of a running Vault datastore. See https://www.vaultproject.io/. "
           + "This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration."
   )
   private String vaultAddress;
