@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
 
     GoogleCredential credential;
 
-    if (!credentialsPath.isEmpty()) {
+    if (!StringUtils.isEmpty(credentialsPath)) {
       FileInputStream stream = new FileInputStream(credentialsPath);
       credential = GoogleCredential.fromStream(stream, transport, jsonFactory)
           .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
