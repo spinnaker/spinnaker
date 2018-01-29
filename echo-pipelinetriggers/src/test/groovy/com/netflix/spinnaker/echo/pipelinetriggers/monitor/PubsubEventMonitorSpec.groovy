@@ -85,7 +85,7 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
   def monitor = new PubsubEventMonitor(pipelineCache, subscriber, registry)
 
   @Unroll
-  def "triggers pipelines for successful builds for #triggerType"() {
+  def "triggers pipelines for successful builds for Google pubsub"() {
     given:
     def pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
     pipelineCache.getPipelines() >> [pipeline]
@@ -105,26 +105,6 @@ class PubsubEventMonitorSpec extends Specification implements RetrofitStubs {
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts, [:]) | enabledGooglePubsubTrigger.withExpectedArtifactIds(goodExpectedArtifacts*.id)
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts, [:]) | enabledGooglePubsubTrigger.withExpectedArtifactIds(goodRegexExpectedArtifacts*.id)
     createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", goodArtifacts, [:]) | enabledGooglePubsubTrigger // Trigger doesn't care about artifacts.
-    // TODO(jacobkiefer): Add Kafka cases when that is implemented.
-  }
-
-  @Unroll
-  def "does not trigger #description pipelines"() {
-    given:
-    pipelineCache.getPipelines() >> [pipeline]
-
-    when:
-    monitor.processEvent(objectMapper.convertValue(event, Event))
-
-    then:
-    0 * subscriber._
-
-    where:
-    trigger                     | description
-    disabledGooglePubsubTrigger | "disabled Google pubsub trigger"
-
-    pipeline = createPipelineWith(goodExpectedArtifacts, trigger)
-    event = createPubsubEvent(PubsubSystem.GOOGLE, "projects/project/subscriptions/subscription", [], [:])
     // TODO(jacobkiefer): Add Kafka cases when that is implemented.
   }
 
