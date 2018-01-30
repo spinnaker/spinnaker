@@ -36,7 +36,8 @@ class KubernetesManifestDeleteController implements IController {
               taskMonitorBuilder: TaskMonitorBuilder,
               private $uibModalInstance: IModalServiceInstance,
               private manifestWriter: ManifestWriter,
-              private application: Application) {
+              private application: Application,
+              public manifestController: string) {
     'ngInject';
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({

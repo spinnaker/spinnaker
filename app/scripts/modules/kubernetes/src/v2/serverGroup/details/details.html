@@ -31,7 +31,7 @@
           Server Group Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li>
+          <li ng-if="ctrl.canEditServerGroup()">
             <a href ng-click="ctrl.editServerGroup()">
               Edit
             </a>
@@ -65,6 +65,16 @@
         <dd>{{ctrl.serverGroup.namespace}}</dd>
         <dt>Kind</dt>
         <dd>{{ctrl.serverGroup.kind}}</dd>
+        <dt ng-if="ctrl.manifestController()">Controller</dt>
+        <dd>
+          <a ui-sref="^.serverGroupManager({
+                        accountId: ctrl.serverGroup.account,
+                        region: ctrl.serverGroup.region,
+                        serverGroupManager: ctrl.manifestController(),
+                        provider: 'kubernetes'})">
+            {{ctrl.manifestController() | robotToHuman }}
+          </a>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">

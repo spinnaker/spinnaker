@@ -46,8 +46,36 @@ class KubernetesServerGroupDetailsController implements IController {
       .catch(() => this.autoClose());
   }
 
+  private ownerReferences(): [any] {
+    const manifest = this.serverGroup.manifest;
+    if (manifest !== null && manifest.hasOwnProperty('metadata')
+      && manifest.metadata.hasOwnProperty('ownerReferences')
+      && Array.isArray(manifest.metadata.ownerReferences)) {
+      return manifest.metadata.ownerReferences;
+    } else {
+      return [] as [any];
+    }
+  }
+
+  private ownerIsController(ownerReference: any): boolean {
+    return ownerReference.hasOwnProperty('controller') && ownerReference.controller === true;
+  }
+
+  private lowerCaseFirstLetter(s: string): string {
+    return s.charAt(0).toLowerCase() + s.slice(1);
+  }
+
+  public manifestController(): string {
+    const controller = this.ownerReferences().find(this.ownerIsController);
+    if (typeof controller === 'undefined') {
+      return null;
+    } else {
+      return this.lowerCaseFirstLetter(controller.kind) + ' ' + controller.name;
+    }
+  }
+
   public canScaleServerGroup(): boolean {
-    return this.serverGroup.kind !== 'DaemonSet';
+    return this.serverGroup.kind !== 'DaemonSet' && this.manifestController() === null;
   }
 
   public scaleServerGroup(): void {
@@ -65,6 +93,10 @@ class KubernetesServerGroupDetailsController implements IController {
         application: this.app
       }
     });
+  }
+
+  public canEditServerGroup(): boolean {
+    return this.manifestController() === null;
   }
 
   public editServerGroup(): void {
@@ -92,6 +124,7 @@ class KubernetesServerGroupDetailsController implements IController {
           namespace: this.serverGroup.namespace,
           account: this.serverGroup.account
         },
+        manifestController: () => this.manifestController(),
         application: this.app
       }
     });
