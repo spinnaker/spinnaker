@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.igor.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
@@ -26,7 +25,6 @@ import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.Task
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -49,21 +47,12 @@ public class JenkinsStage implements StageDefinitionBuilder, RestartableStage, C
 
   @Override
   void prepareStageForRestart(Stage stage) {
-    stage.startTime = null
-    stage.endTime = null
-
     if (stage.context.buildInfo) {
       if (!stage.context.restartDetails) stage.context.restartDetails = [:]
       stage.context.restartDetails["previousBuildInfo"] = stage.context.buildInfo
     }
     stage.context.remove("buildInfo")
     stage.context.remove("buildNumber")
-
-    stage.tasks.each { Task task ->
-      task.startTime = null
-      task.endTime = null
-      task.status = ExecutionStatus.NOT_STARTED
-    }
   }
 
   @Override

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.front50.pipeline;
 
-import java.util.List;
 import com.netflix.spinnaker.orca.CancellableStage;
 import com.netflix.spinnaker.orca.RestartableStage;
 import com.netflix.spinnaker.orca.front50.tasks.MonitorPipelineTask;
@@ -24,13 +23,11 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.Task;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
@@ -57,19 +54,9 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
 
   @Override
   public void prepareStageForRestart(Stage stage) {
-    stage.setStartTime(null);
-    stage.setEndTime(null);
-
     stage.getContext().remove("status");
     stage.getContext().remove("executionName");
     stage.getContext().remove("executionId");
-
-    List<Task> tasks = stage.getTasks();
-    tasks.forEach(task -> {
-      task.setStartTime(null);
-      task.setEndTime(null);
-      task.setStatus(NOT_STARTED);
-    });
   }
 
   @Override

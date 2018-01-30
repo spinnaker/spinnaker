@@ -59,16 +59,8 @@ class AcaTaskStageSpec extends Specification {
     stage.context.canary.health == null
     stage.status == ExecutionStatus.NOT_STARTED
 
-    and: "reset the tasks"
-    stage.tasks.each { task ->
-      assert task.startTime == null
-      assert task.endTime == null
-      assert task.status == ExecutionStatus.NOT_STARTED
-    }
-
     and: "the canary should be cancelled"
     1 * mineService.cancelCanary(_, _)
-
   }
 
   def "restart aca task should not cancel off the original canary if there is no canary id and clean up the stage context"() {
@@ -104,16 +96,8 @@ class AcaTaskStageSpec extends Specification {
     stage.context.canary.health == null
     stage.status == ExecutionStatus.NOT_STARTED
 
-    and: "reset the tasks"
-    stage.tasks.each { task ->
-      assert task.startTime == null
-      assert task.endTime == null
-      assert task.status == ExecutionStatus.NOT_STARTED
-    }
-
     and: "the canceled call of the canary should not be called"
     0 * mineService.cancelCanary(_, _)
-
   }
 
   def createCanary(String id) {

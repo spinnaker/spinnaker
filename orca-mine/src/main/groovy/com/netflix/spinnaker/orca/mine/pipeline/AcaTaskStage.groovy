@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
@@ -49,9 +48,6 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
 
   @Override
   void prepareStageForRestart(Stage stage) {
-    stage.startTime = null
-    stage.endTime = null
-
     if (stage.context.canary) {
       def previousCanary = stage.context.canary.clone()
       if (!stage.context.restartDetails) stage.context.restartDetails = [:]
@@ -64,16 +60,6 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
       stage.context.canary.remove("canaryResult")
       stage.context.canary.remove("status")
       stage.context.canary.remove("health")
-
-      //Canceling the canary marks the stage as CANCELED preventing it from restarting.
-      stage.setStatus(ExecutionStatus.NOT_STARTED)
-    }
-
-
-    stage.tasks.each { task ->
-      task.startTime = null
-      task.endTime = null
-      task.status = ExecutionStatus.NOT_STARTED
     }
   }
 
