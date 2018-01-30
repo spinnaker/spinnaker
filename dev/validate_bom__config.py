@@ -191,6 +191,45 @@ class S3StorageConfiguratorHelper(Configurator):
     script.append(' '.join(command))
 
 
+class GcsArtifactStorageConfiguratorHelper(Configurator):
+  """Helper class for ArtifactConfigurator to handle GCS."""
+
+  @classmethod
+  def init_argument_parser(cls, parser):
+    """Implements interface."""
+    parser.add_argument(
+        '--artifact_gcs_credentials', default=None,
+        help='Path to google credentials file to configure spinnaker artifact storage.')
+    parser.add_argument(
+        '--artifact_gcs_account_name', default=None,
+        help='Account name to use for artifact downloads.')
+
+  @classmethod
+  def validate_options(cls, options):
+    """Implements interface."""
+    pass
+
+  @classmethod
+  def add_files_to_upload(cls, options, file_set):
+    """Implements interface."""
+    if options.artifact_gcs_credentials:
+      file_set.add(options.artifact_gcs_credentials)
+
+  @classmethod
+  def add_config(cls, options, script):
+    """Implements interface."""
+    if options.artifact_gcs_account_name is not None:
+        script.append('hal -q --log=info config artifact gcs enable')
+        hal = (
+            'hal -q --log=info config artifact gcs account add {name}'
+            .format(name=options.artifact_gcs_account_name))
+        if options.artifact_gcs_credentials:
+          hal += (' --json-path ./{filename}'
+                  .format(filename=os.path.basename(
+                      options.artifact_gcs_credentials)))
+        script.append(hal)
+
+
 class GcsStorageConfiguratorHelper(Configurator):
   """Helper class for StorageConfigurator to handle GCS."""
 
@@ -255,6 +294,34 @@ class GcsStorageConfiguratorHelper(Configurator):
               .format(filename=os.path.basename(
                   options.storage_gcs_credentials)))
     script.append(hal)
+
+
+class ArtifactConfigurator(Configurator):
+  """Controls hal config artifact for Spinnaker artifact ."""
+
+  HELPERS = [
+    GcsArtifactStorageConfiguratorHelper,
+  ]
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    for helper in self.HELPERS:
+      helper.init_argument_parser(parser)
+
+  def validate_options(self, options):
+    """Implements interface."""
+    for helper in self.HELPERS:
+      helper.validate_options(options)
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    for helper in self.HELPERS:
+      helper.add_files_to_upload(options, file_set)
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    for helper in self.HELPERS:
+      helper.add_config(options, script)
 
 
 class StorageConfigurator(Configurator):
@@ -1078,6 +1145,7 @@ CONFIGURATOR_LIST = [
     LoggingConfigurator(),
     SpinnakerConfigurator(),
     StorageConfigurator(),
+    ArtifactConfigurator(),
     AwsConfigurator(),
     AppengineConfigurator(),
     AzureConfigurator(),
