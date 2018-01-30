@@ -7,6 +7,7 @@ const helpContents: {[key: string]: string} = {
   'titus.deploy.propertyFile': '<p>(Optional) Configures the name to the file used to pass in properties to later stages in the Spinnaker pipeline. The file must be saved into the /logs directory during execution</p>',
   'titus.deploy.iamProfile': 'AWS IAM instance profile to assign to this service',
   'titus.deploy.capacityGroup': 'Used by Titus to ensure capacity guarantees, defaults to the application name if not provided',
+  'titus.deploy.migrationPolicy': 'Defines how the tasks for this job will be migrated during an infrastructure change',
   'titus.deploy.network': 'Amount of networking bandwidth to allocate in Mbps',
   'titus.deploy.gpu': 'Number of GPUs to use. WARNING: only use if directed by Titus team, otherwise leave at 0',
   'titus.deploy.allocateIP': 'If selected, specifies an IP to be allocated for each of your job’s containers',

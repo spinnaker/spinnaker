@@ -46,6 +46,17 @@
                                    class="form-control input-sm no-spel"
                                    ng-model="command.capacityGroup"/></div>
     </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right"><b>Migration Policy</b>
+        <help-field key="titus.deploy.migrationPolicy"></help-field>
+      </div>
+      <div class="col-md-4">
+      <select class="form-control input-sm"
+              ng-model="command.migrationPolicy.type"
+              ng-options="option.value as option.label for option in migrationPolicyOptions">
+      </select>
+      </div>
+    </div>
     <hr/>
     <div class="form-group">
       <h4 class="col-sm-12">

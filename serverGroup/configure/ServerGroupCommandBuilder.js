@@ -58,6 +58,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         },
         securityGroups: [],
         imageId: defaults.imageId,
+        migrationPolicy: {'type': 'systemDefault'}
       };
 
       return $q.when(command);
@@ -90,6 +91,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile || application.name + 'InstanceProfile',
         capacityGroup: serverGroup.capacityGroup,
+        migrationPolicy: serverGroup.migrationPolicy ? serverGroup.migrationPolicy : {'type': 'systemDefault'},
         securityGroups: serverGroup.securityGroups || [],
         hardConstraints: (serverGroup.hardConstraints || []),
         softConstraints: (serverGroup.softConstraints || []),

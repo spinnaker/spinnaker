@@ -25,4 +25,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.parameter
       }
     });
 
+    $scope.migrationPolicyOptions = [
+      {label: 'System Default', value: 'systemDefault'},
+      {label: 'Self Managed', value: 'selfManaged'}
+    ];
+
   });
