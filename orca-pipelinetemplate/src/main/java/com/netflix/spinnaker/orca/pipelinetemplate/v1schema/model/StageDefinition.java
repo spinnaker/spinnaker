@@ -263,6 +263,7 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     this.comments = comments;
   }
 
+  @Override
   public List<String> getWhen() {
     return when;
   }

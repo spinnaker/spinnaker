@@ -61,6 +61,7 @@ public class TemplateRenderException extends RuntimeException implements Pipelin
     super(message, cause);
   }
 
+  @Override
   public Errors getErrors() {
     return errors;
   }

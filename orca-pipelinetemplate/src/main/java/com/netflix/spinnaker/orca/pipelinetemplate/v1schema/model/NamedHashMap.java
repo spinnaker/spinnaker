@@ -26,6 +26,7 @@ public class NamedHashMap extends HashMap<String, Object> implements NamedConten
     super(m);
   }
 
+  @Override
   public String getName() {
     return String.valueOf(get("name"));
   }

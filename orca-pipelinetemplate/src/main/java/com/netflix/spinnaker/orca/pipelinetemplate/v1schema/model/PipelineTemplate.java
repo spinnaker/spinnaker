@@ -146,6 +146,7 @@ public class PipelineTemplate implements VersionedSchema {
       this.nullable = nullable;
     }
 
+    @Override
     public boolean isMerge() {
       return merge;
     }
@@ -154,6 +155,7 @@ public class PipelineTemplate implements VersionedSchema {
       this.merge = merge;
     }
 
+    @Override
     public boolean isRemove() {
       return remove;
     }
