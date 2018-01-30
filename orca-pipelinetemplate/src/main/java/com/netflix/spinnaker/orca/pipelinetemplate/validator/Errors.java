@@ -66,6 +66,7 @@ public class Errors {
     WARN
   }
 
+  @SuppressWarnings("JavaLangClash")
   public static class Error {
     Severity severity = Severity.FATAL;
     String message;
