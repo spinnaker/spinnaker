@@ -9,12 +9,23 @@ import { ReactInjector } from 'core/reactShims';
 
 import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchResultPods';
 
+export interface IChildComponentProps {
+  results: ISearchResultPodData[];
+  onRemoveItem?: (categoryName: string, itemId: string) => void;
+  onRemoveProject?: (projectId: string) => void;
+}
+
+export interface IRecentlyViewedItemsProps {
+  Component: React.ComponentClass<IChildComponentProps> | React.StatelessComponent<IChildComponentProps>;
+  limit?: number;
+}
+
 export interface IRecentlyViewedItemsState {
   recentItems: ISearchResultPodData[];
 }
 
 @BindAll()
-export class RecentlyViewedItems extends React.Component<{}, IRecentlyViewedItemsState> {
+export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsProps, IRecentlyViewedItemsState> {
   public state: IRecentlyViewedItemsState = { recentItems: [] };
   private categories = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
   private recentHistoryService = ReactInjector.recentHistoryService;
@@ -38,7 +49,11 @@ export class RecentlyViewedItems extends React.Component<{}, IRecentlyViewedItem
           const config = this.search.getCategoryConfig(category);
           const items = this.recentHistoryService.getItems(category);
           const promises = items.map(item => this.getFullHistoryEntry(category, item));
-          return Promise.all(promises).then(results => ({ category, config, results }));
+          return Promise.all(promises).then(results => ({
+            category,
+            config,
+            results: this.props.limit ? results.slice(0, this.props.limit) : results
+          }));
         }));
       })
       .map(recentItems => {
@@ -70,12 +85,24 @@ export class RecentlyViewedItems extends React.Component<{}, IRecentlyViewedItem
   }
 
   public render() {
+    const { Component } = this.props;
+
     return (
-      <SearchResultPods
-        results={this.state.recentItems}
-        onRemoveItem={this.handleRemoveItem}
-        onRemoveProject={this.handleRemoveProject}
-      />
+      Component ? (
+        <Component
+          results={this.state.recentItems}
+          onRemoveItem={this.handleRemoveItem}
+          onRemoveProject={this.handleRemoveProject}
+        />
+       ) : (
+        // Once RecentlyViewedItems is no longer rendered as part of any angular
+        // templates, we can stop defaulting to SearchResultPods and require a component.
+        <SearchResultPods
+          results={this.state.recentItems}
+          onRemoveItem={this.handleRemoveItem}
+          onRemoveProject={this.handleRemoveProject}
+        />
+       )
     );
   }
 }

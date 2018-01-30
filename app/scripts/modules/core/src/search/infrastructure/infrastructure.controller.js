@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
+import { SEARCH_RANK_FILTER } from '../searchRank.filter';
 import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   SEARCH_RESULT_COMPONENT,
   PAGE_TITLE_SERVICE,
   PROJECT_SUMMARY_POD_COMPONENT,
-  require('../searchRank.filter.js').name,
+  SEARCH_RANK_FILTER,
   CLUSTER_FILTER_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,

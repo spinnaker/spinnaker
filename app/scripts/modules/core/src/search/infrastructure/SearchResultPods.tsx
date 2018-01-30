@@ -7,7 +7,7 @@ import { ISearchResultType } from 'core/search';
 import { SearchResultPod } from './SearchResultPod';
 import { ProjectSummaryPod } from './ProjectSummaryPod';
 
-export type ISearchResult = IRecentHistoryEntry & { displayName: string };
+export type ISearchResult = IRecentHistoryEntry & { displayName: string; account?: string };
 
 export interface ISearchResultPodData {
   category: string;

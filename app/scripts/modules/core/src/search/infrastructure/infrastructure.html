@@ -86,7 +86,7 @@
                    ng-repeat="result in ::category.results | searchRank: query"
                    ng-click="ctrl.clearFilters(result)"
                    href="{{ ::result.href }}">
-                  <search-result item="::result"></search-result>
+                  <search-result display-name="::result.displayName" account="::result.account"></search-result>
                 </a>
               </div>
             </div>

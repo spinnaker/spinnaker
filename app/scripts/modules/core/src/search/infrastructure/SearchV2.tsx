@@ -14,6 +14,7 @@ import { Search } from '../widgets';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchResults, SearchStatus, searchResultTypeRegistry } from '../searchResult';
+import { SearchResultPods } from '../infrastructure/SearchResultPods';
 
 // These state parameters are passed through to Gate's search API
 const API_PARAMS = ['key', 'name', 'account', 'region', 'stack'];
@@ -192,7 +193,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
           {!hasSearchQuery && (
             <div>
               <h3 style={{ textAlign: 'center' }}>Please enter a search query to get started</h3>
-              <RecentlyViewedItems/>
+              <RecentlyViewedItems Component={SearchResultPods}/>
             </div>
           )}
 

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { UISref, UISrefActive } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
+import { GlobalSearch } from '../search/global/GlobalSearch';
 
 import { NgReact } from 'core/reactShims';
 
@@ -35,7 +36,7 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
   }
 
   public render(): React.ReactElement<SpinnakerHeader> {
-    const { UserMenu, GlobalSearch, WhatsNew } = NgReact;
+    const { UserMenu, WhatsNew } = NgReact;
 
     return (
       <nav
