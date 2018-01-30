@@ -83,6 +83,11 @@ class KubernetesJobStatus implements JobStatus, Serializable {
       message = terminated.getMessage()
       reason = terminated.getReason()
 
+      // Kind of a hack, seems that jobs can have exit code 0 even when being OOMKilled
+      if (reason.equalsIgnoreCase("oomkilled")) {
+        return JobState.Failed
+      }
+
       if (exitCode == 0) {
         return JobState.Succeeded
       } else {
