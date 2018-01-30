@@ -35,7 +35,7 @@ class EnableDisablePercentageCategorizer<T> {
     }
 
     int totalSize = modified.size() + unmodified.size()
-    int newSize = (int) (totalSize * (float) (desiredPercentage / 100))
+    int newSize = (int) Math.ceil(totalSize * (float) (desiredPercentage / 100))
 
     int returnSize = modified.size() > newSize ? 0 : newSize - modified.size()
 

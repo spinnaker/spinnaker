@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.clouddriver.helpers
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 
 class EnableDisablePercentageCategorizerSpec extends Specification {
+  @Unroll
   void "should pick the right number of elements to move between lists"() {
     when:
     def output = EnableDisablePercentageCategorizer.getInstancesToModify(modified, unmodified, percent)
@@ -31,24 +33,28 @@ class EnableDisablePercentageCategorizerSpec extends Specification {
       (output.size() + modified.size()) / (modified.size() + unmodified.size()) >= (float) percent / 1000
     }
 
+    output.size() == expectedInstancesToDisableCount
+
     where:
-    modified || unmodified || percent
-    [1] * 0  || [1] * 4    || 100
-    [1] * 0  || [1] * 4    || 25
-    [1] * 0  || [1] * 7    || 10
+    modified || unmodified || percent || expectedInstancesToDisableCount
+    [1] * 0  || [1] * 4    || 100     || 4
+    [1] * 0  || [1] * 4    || 25      || 1
+    [1] * 0  || [1] * 7    || 10      || 1
 
-    [1] * 4  || [1] * 0    || 100
-    [1] * 3  || [1] * 0    || 10
-    [1] * 9  || [1] * 0    || 60
+    [1] * 4  || [1] * 0    || 100     || 0
+    [1] * 3  || [1] * 0    || 10      || 0
+    [1] * 9  || [1] * 0    || 60      || 0
 
-    [1] * 0  || [1] * 0    || 0
-    [1] * 0  || [1] * 0    || 100
-    [1] * 0  || [1] * 0    || 40
+    [1] * 0  || [1] * 0    || 0       || 0
+    [1] * 0  || [1] * 0    || 100     || 0
+    [1] * 0  || [1] * 0    || 40      || 0
 
-    [1] * 9  || [1] * 9    || 60
-    [1] * 7  || [1] * 3    || 10
-    [1] * 4  || [1] * 4    || 100
-    [1] * 5  || [1] * 10   || 0
-    [1] * 9  || [1] * 10   || 90
-}
+    [1] * 9  || [1] * 9    || 60      || 2
+    [1] * 7  || [1] * 3    || 10      || 0
+    [1] * 4  || [1] * 4    || 100     || 4
+    [1] * 5  || [1] * 10   || 0       || 0
+    [1] * 9  || [1] * 10   || 90      || 9
+
+    [1] * 0  || [1] * 3    || 33      || 1
+  }
 }
