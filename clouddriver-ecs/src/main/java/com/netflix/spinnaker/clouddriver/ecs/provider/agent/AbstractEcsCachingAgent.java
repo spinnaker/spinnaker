@@ -28,6 +28,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
 abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
   private final Logger log = LoggerFactory.getLogger(getClass());
@@ -96,6 +98,8 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
    */
   Set<String> getClusters(AmazonECS ecs, ProviderCache providerCache) {
     Set<String> clusters = providerCache.getAll(ECS_CLUSTERS.toString()).stream()
+      .filter(cacheData ->  cacheData.getAttributes().get("region").equals(region) &&
+                            cacheData.getAttributes().get("account").equals(accountName))
       .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
       .collect(Collectors.toSet());
 
@@ -140,8 +144,10 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
 
     Map<String, Collection<CacheData>> dataMap = generateFreshData(items);
 
+    //Old keys can come from different account/region, filter them to the current account/region.
     Set<String> oldKeys = providerCache.getAll(authoritativeKeyName).stream()
       .map(CacheData::getId)
+      .filter(key -> keyAccountRegionFilter(authoritativeKeyName, key))
       .collect(Collectors.toSet());
 
     Map<String, Collection<String>> evictions = computeEvictableData(dataMap.get(authoritativeKeyName), oldKeys);
@@ -159,16 +165,27 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
    * @return Key collection associated to the key namespace the the caching agent is authoritative of.
    */
   private Map<String, Collection<String>> computeEvictableData(Collection<CacheData> newData, Collection<String> oldKeys) {
+    //New data can only come from the current account and region, no need to filter.
     Set<String> newKeys = newData.stream()
       .map(CacheData::getId)
       .collect(Collectors.toSet());
+
     Set<String> evictedKeys = oldKeys.stream()
       .filter(oldKey -> !newKeys.contains(oldKey))
       .collect(Collectors.toSet());
 
     Map<String, Collection<String>> evictionsByKey = new HashMap<>();
     evictionsByKey.put(getAuthoritativeKeyName(), evictedKeys);
+
     return evictionsByKey;
+  }
+
+  protected boolean keyAccountRegionFilter(String authoritativeKeyName, String key) {
+    Map<String, String> keyParts = Keys.parse(key);
+    return keyParts != null &&
+           keyParts.get("account").equals(accountName) &&
+           //IAM role keys are not region specific, so it will be true. The region will be checked of other keys.
+           (authoritativeKeyName.equals(IAM_ROLE.ns) || keyParts.get("region").equals(region));
   }
 
   /**
@@ -176,7 +193,7 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
    * @param evictions The existing eviction map.
    * @return Eviction map with addtional keys.
    */
-  protected Map<String, Collection<String>> addExtraEvictions(Map<String, Collection<String>> evictions){
+  protected Map<String, Collection<String>> addExtraEvictions(Map<String, Collection<String>> evictions) {
     return evictions;
   }
 }

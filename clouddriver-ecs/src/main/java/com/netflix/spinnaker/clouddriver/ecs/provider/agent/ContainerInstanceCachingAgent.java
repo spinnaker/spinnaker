@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
+import com.amazonaws.services.ecs.model.Attribute;
 import com.amazonaws.services.ecs.model.ContainerInstance;
 import com.amazonaws.services.ecs.model.DescribeContainerInstancesRequest;
 import com.amazonaws.services.ecs.model.ListContainerInstancesRequest;
@@ -56,7 +57,7 @@ public class ContainerInstanceCachingAgent extends AbstractEcsOnDemandAgent<Cont
 
   @Override
   public String getAgentType() {
-    return ContainerInstanceCachingAgent.class.getSimpleName();
+    return accountName + "/" + region + "/" + getClass().getSimpleName();
   }
 
   @Override
@@ -111,10 +112,15 @@ public class ContainerInstanceCachingAgent extends AbstractEcsOnDemandAgent<Cont
     return dataMap;
   }
 
-  public static  Map<String, Object> convertContainerInstanceToAttributes(ContainerInstance containerInstance){
+  public static Map<String, Object> convertContainerInstanceToAttributes(ContainerInstance containerInstance) {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("containerInstanceArn", containerInstance.getContainerInstanceArn());
     attributes.put("ec2InstanceId", containerInstance.getEc2InstanceId());
+    for (Attribute containerAttribute : containerInstance.getAttributes()) {
+      if (containerAttribute.getName().equals("ecs.availability-zone")) {
+        attributes.put("availabilityZone", containerAttribute.getValue());
+      }
+    }
     return attributes;
   }
 }

@@ -83,7 +83,7 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
 
   @Override
   public String getAgentType() {
-    return ServiceCachingAgent.class.getSimpleName();
+    return accountName + "/" + region + "/" + getClass().getSimpleName();
   }
 
   @Override

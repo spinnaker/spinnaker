@@ -46,13 +46,24 @@ public class EcsLoadbalancerCacheClient {
     this.objectMapper = objectMapper;
   }
 
+  public List<EcsLoadBalancerCache> find(String account, String region) {
+    Set<Map<String, Object>> loadbalancerAttributes = fetchFromCache(account, region);
+    return convertToLoadbalancer(loadbalancerAttributes);
+  }
+
   public List<EcsLoadBalancerCache> findAll() {
-    String searchKey = Keys.getLoadBalancerKey("*", "*", "*", "*", "*") + "*";
+    return find("*", "*");
+  }
+
+  private Set<Map<String, Object>> fetchFromCache(String account, String region) {
+    String accountFilter = account != null ? account : "*";
+    String regionFilter = region != null ? region : "*";
+
+    String searchKey = Keys.getLoadBalancerKey("*", accountFilter, regionFilter, "*", "*") + "*";
+
     Collection<String> loadbalancerKeys = cacheView.filterIdentifiers(LOAD_BALANCERS.getNs(), searchKey);
 
-    Set<Map<String, Object>> loadbalancerAttributes = fetchLoadBalancerAttributes(loadbalancerKeys);
-
-    return convertToLoadbalancer(loadbalancerAttributes);
+    return fetchLoadBalancerAttributes(loadbalancerKeys);
   }
 
   public Set<EcsLoadBalancerCache> findWithTargetGroups(Set<String> targetGroups) {

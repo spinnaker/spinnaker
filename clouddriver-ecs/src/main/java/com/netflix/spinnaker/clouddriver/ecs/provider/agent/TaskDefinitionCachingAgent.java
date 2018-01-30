@@ -52,18 +52,24 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection(Arrays.asList(
     AUTHORITATIVE.forType(TASK_DEFINITIONS.toString())
   ));
-  private ObjectMapper mapper;
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public TaskDefinitionCachingAgent(String accountName, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry, ObjectMapper mapper) {
+  private ObjectMapper objectMapper;
+
+  public TaskDefinitionCachingAgent(String accountName, String region,
+                                    AmazonClientProvider amazonClientProvider,
+                                    AWSCredentialsProvider awsCredentialsProvider,
+                                    Registry registry,
+                                    ObjectMapper objectMapper) {
     super(accountName, region, amazonClientProvider, awsCredentialsProvider, registry);
-    this.mapper = mapper;
+    this.objectMapper = objectMapper;
   }
 
   public static Map<String, Object> convertTaskDefinitionToAttributes(TaskDefinition taskDefinition) {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("taskDefinitionArn", taskDefinition.getTaskDefinitionArn());
     attributes.put("containerDefinitions", taskDefinition.getContainerDefinitions());
+    attributes.put("taskRoleArn", taskDefinition.getTaskRoleArn());
     return attributes;
   }
 
@@ -74,13 +80,14 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
 
   @Override
   public String getAgentType() {
-    return TaskDefinitionCachingAgent.class.getSimpleName();
+    return accountName + "/" + region + "/" + getClass().getSimpleName();
   }
 
   @Override
   protected List<TaskDefinition> getItems(AmazonECS ecs, ProviderCache providerCache) {
     List<TaskDefinition> taskDefinitionList = new LinkedList<>();
     Set<String> cachedArns = providerCache.getIdentifiers(TASK_DEFINITIONS.toString()).stream()
+      .filter(id -> keyAccountRegionFilter(TASK_DEFINITIONS.toString(), id))
       .map(id -> {
         Map<String, String> keyParts = Keys.parse(id);
         return keyParts.get("taskDefinitionArn");
@@ -123,8 +130,8 @@ public class TaskDefinitionCachingAgent extends AbstractEcsOnDemandAgent<TaskDef
   }
 
   private Set<TaskDefinition> retrieveFromCache(Set<String> taskDefArns, ProviderCache providerCache) {
+    TaskDefinitionCacheClient taskDefinitionCacheClient = new TaskDefinitionCacheClient(providerCache, objectMapper);
     Set<TaskDefinition> taskDefs = new HashSet<>();
-    TaskDefinitionCacheClient taskDefinitionCacheClient = new TaskDefinitionCacheClient(providerCache, mapper);
 
     for (String taskDefArn : taskDefArns) {
       String key = Keys.getTaskDefinitionKey(accountName, region, taskDefArn);

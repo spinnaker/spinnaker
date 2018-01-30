@@ -53,7 +53,7 @@ public class EcsClusterCachingAgent extends AbstractEcsCachingAgent<String> {
 
   @Override
   public String getAgentType() {
-    return EcsClusterCachingAgent.class.getSimpleName();
+    return accountName + "/" + region + "/" + getClass().getSimpleName();
   }
 
   @Override

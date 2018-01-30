@@ -89,13 +89,14 @@ public class IamRoleCachingAgent implements CachingAgent {
     Collection<CacheData> newData = newDataMap.get(IAM_ROLE.toString());
 
     Set<String> oldKeys = providerCache.getAll(IAM_ROLE.toString()).stream()
-      .map(cache -> cache.getId()).collect(Collectors.toSet());
+      .map(CacheData::getId)
+      .filter(this::keyAccountFilter)
+      .collect(Collectors.toSet());
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
     logUpcomingActions(newDataMap, evictionsByKey);
 
-    DefaultCacheResult cacheResult = new DefaultCacheResult(newDataMap, evictionsByKey);
-    return cacheResult;
+    return new DefaultCacheResult(newDataMap, evictionsByKey);
   }
 
   private void logUpcomingActions(Map<String, Collection<CacheData>> newDataMap, Map<String, Collection<String>> evictionsByKey) {
@@ -116,7 +117,9 @@ public class IamRoleCachingAgent implements CachingAgent {
 
   private Map<String, Collection<String>> computeEvictableData(Collection<CacheData> newData, Collection<String> oldKeys) {
 
-    Set<String> newKeys = newData.stream().map(newKey -> newKey.getId()).collect(Collectors.toSet());
+    Set<String> newKeys = newData.stream()
+      .map(CacheData::getId)
+      .collect(Collectors.toSet());
 
     Set<String> evictedKeys = new HashSet<>();
     for (String oldKey : oldKeys) {
@@ -146,7 +149,7 @@ public class IamRoleCachingAgent implements CachingAgent {
   }
 
   Set<IamRole> fetchIamRoles(AmazonIdentityManagement iam, String accountName) {
-    Set<IamRole> cacheableRoles = new HashSet();
+    Set<IamRole> cacheableRoles = new HashSet<>();
     String marker = null;
     do {
       ListRolesRequest request = new ListRolesRequest();
@@ -175,10 +178,16 @@ public class IamRoleCachingAgent implements CachingAgent {
 
     return cacheableRoles;
   }
+  
+  private boolean keyAccountFilter(String key) {
+    Map<String, String> keyParts = Keys.parse(key);
+    return keyParts != null &&
+      keyParts.get("account").equals(accountName);
+  }
 
   @Override
   public String getAgentType() {
-    return IamRoleCachingAgent.class.getSimpleName();
+    return accountName + "/" + getClass().getSimpleName();
   }
 
   @Override

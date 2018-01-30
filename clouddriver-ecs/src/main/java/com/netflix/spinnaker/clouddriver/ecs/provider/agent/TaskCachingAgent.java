@@ -69,7 +69,7 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
 
   @Override
   public String getAgentType() {
-    return TaskCachingAgent.class.getSimpleName();
+    return accountName + "/" + region + "/" + getClass().getSimpleName();
   }
 
   @Override
@@ -104,7 +104,8 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
     for (CacheData onDemand : allOnDemand) {
       Map<String, String> parsedKey = Keys.parse(onDemand.getId());
       if (parsedKey != null && parsedKey.get("type") != null &&
-        (parsedKey.get("type").equals(SERVICES.toString()) || parsedKey.get("type").equals(TASKS.toString()))) {
+        (parsedKey.get("type").equals(SERVICES.toString()) || parsedKey.get("type").equals(TASKS.toString()) &&
+          parsedKey.get("account").equals(accountName) && parsedKey.get("region").equals(region))) {
 
         parsedKey.put("type", "serverGroup");
         parsedKey.put("serverGroup", parsedKey.get("serviceName"));
@@ -165,7 +166,7 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
     return dataMap;
   }
 
-  public static Map<String, Object> convertTaskToAttributes(Task task){
+  public static Map<String, Object> convertTaskToAttributes(Task task) {
     String taskId = StringUtils.substringAfterLast(task.getTaskArn(), "/");
 
     Map<String, Object> attributes = new HashMap<>();

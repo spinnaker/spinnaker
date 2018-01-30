@@ -31,11 +31,13 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS
 
 class TaskHealthCachingAgentSpec extends Specification {
   def ecs = Mock(AmazonECS)
@@ -72,7 +74,8 @@ class TaskHealthCachingAgentSpec extends Specification {
       containers           : Collections.singletonList(containerMap)
     ]
     def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
-    providerCache.getAll(Keys.Namespace.TASKS.toString()) >> Collections.singletonList(taskCacheData)
+    providerCache.filterIdentifiers(_, _) >> []
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
 
     def serviceAttributes = [
       loadBalancers        : Collections.singletonList(loadbalancerMap),
@@ -136,10 +139,10 @@ class TaskHealthCachingAgentSpec extends Specification {
 
     then:
     dataMap.keySet().size() == 1
-    dataMap.containsKey(Namespace.HEALTH.toString())
-    dataMap.get(Namespace.HEALTH.toString()).size() == taskIds.size()
+    dataMap.containsKey(HEALTH.toString())
+    dataMap.get(HEALTH.toString()).size() == taskIds.size()
 
-    for (CacheData cacheData : dataMap.get(Namespace.HEALTH.toString())) {
+    for (CacheData cacheData : dataMap.get(HEALTH.toString())) {
       def attributes = cacheData.getAttributes()
       keys.contains(cacheData.getId())
       taskIds.contains(attributes.get('taskId'))

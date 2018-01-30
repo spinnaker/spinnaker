@@ -30,11 +30,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskHealthCacheClient
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS
 
 class TaskHealthCacheSpec extends Specification {
   def ecs = Mock(AmazonECS)
@@ -73,7 +75,8 @@ class TaskHealthCacheSpec extends Specification {
       containers          : Collections.singletonList(containerMap)
     ]
     def taskCacheData = new DefaultCacheData(taskKey, taskAttributes, Collections.emptyMap())
-    providerCache.getAll(Keys.Namespace.TASKS.toString()) >> Collections.singletonList(taskCacheData)
+    providerCache.filterIdentifiers(_, _) >> []
+    providerCache.getAll(TASKS.toString(), _) >> Collections.singletonList(taskCacheData)
 
     def serviceAttributes = [
       loadBalancers        : Collections.singletonList(loadbalancerMap),
@@ -97,14 +100,14 @@ class TaskHealthCacheSpec extends Specification {
     )
 
     amazonloadBalancing.describeTargetHealth(_) >> describeTargetHealthResult
-    providerCache.getAll(Namespace.HEALTH.toString()) >> []
+    providerCache.getAll(HEALTH.toString()) >> []
 
     when:
     def cacheResult = agent.loadData(providerCache)
-    providerCache.get(Namespace.HEALTH.toString(), healthKey) >> cacheResult.getCacheResults().get(Namespace.HEALTH.toString()).iterator().next()
+    providerCache.get(HEALTH.toString(), healthKey) >> cacheResult.getCacheResults().get(HEALTH.toString()).iterator().next()
 
     then:
-    def cacheData = cacheResult.getCacheResults().get(Namespace.HEALTH.toString())
+    def cacheData = cacheResult.getCacheResults().get(HEALTH.toString())
     def taskHealth = client.get(healthKey)
 
     cacheData != null
