@@ -29,6 +29,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,7 +58,7 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
   @Override
   public PipelineTemplate load(URI uri) {
     try (InputStream is = uri.toURL().openConnection().getInputStream();
-         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+         BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
          Stream<String> stream = reader.lines()) {
       ObjectMapper objectMapper = isJson(uri) ? jsonObjectMapper : yamlObjectMapper;
 

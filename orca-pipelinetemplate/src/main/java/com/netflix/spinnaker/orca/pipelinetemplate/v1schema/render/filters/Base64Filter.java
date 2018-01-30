@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class Base64Filter implements Filter {
       );
     }
 
-    return new String(Base64.getEncoder().encode(value.toString().getBytes()));
+    return Base64.getEncoder().encodeToString(value.toString().getBytes(StandardCharsets.UTF_8));
   }
 
   @Override
