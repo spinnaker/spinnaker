@@ -109,5 +109,6 @@ class StageData {
   static class PipelineBeforeCleanup {
     String application
     String pipelineId
+    Map<String, Object> pipelineParameters = [:]
   }
 }
