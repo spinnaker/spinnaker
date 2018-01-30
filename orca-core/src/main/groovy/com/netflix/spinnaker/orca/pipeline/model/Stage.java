@@ -357,13 +357,30 @@ public class Stage implements Serializable {
         .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly().stream()).collect(toList()))
         .build();
     } else if (parentStageId != null) {
-      return execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst()
-        .<List<Stage>>map(parent -> ImmutableList
-          .<Stage>builder()
-          .add(parent)
-          .addAll(parent.ancestorsOnly())
-          .build())
-        .orElse(emptyList());
+      List<Stage> ancestors = new ArrayList<>();
+      if (getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER) {
+        ancestors.addAll(
+          execution
+            .getStages()
+            .stream()
+            .filter(it ->
+              parentStageId.equals(it.parentStageId) && it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE
+            )
+            .collect(toList())
+        );
+      }
+
+      ancestors.addAll(
+        execution.getStages().stream().filter(it -> it.id.equals(parentStageId)).findFirst()
+          .<List<Stage>>map(parent -> ImmutableList
+            .<Stage>builder()
+            .add(parent)
+            .addAll(parent.ancestorsOnly())
+            .build())
+          .orElse(emptyList())
+      );
+
+      return ancestors;
     } else {
       return emptyList();
     }

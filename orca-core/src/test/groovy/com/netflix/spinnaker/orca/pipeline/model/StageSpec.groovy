@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.pipeline.model.Stage.topologicalSort
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 import static java.util.stream.Collectors.toList
@@ -150,5 +150,34 @@ class StageSpec extends Specification {
     then:
     def e = thrown(IllegalStateException)
     println e.message
+  }
+
+  def "ancestors of a STAGE_AFTER stage should include STAGE_BEFORE siblings"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "1"
+        type = "test"
+        stage {
+          refId = "1<1"
+          syntheticStageOwner = STAGE_BEFORE
+        }
+        stage {
+          refId = "1<2"
+          syntheticStageOwner = STAGE_AFTER
+        }
+      }
+    }
+
+    def syntheticBeforeStage = pipeline.stages.find { it.syntheticStageOwner == STAGE_BEFORE }
+    def syntheticAfterStage = pipeline.stages.find { it.syntheticStageOwner == STAGE_AFTER }
+
+    when:
+    def syntheticBeforeStageAncestors = syntheticBeforeStage.ancestors()
+    def syntheticAfterStageAncestors = syntheticAfterStage.ancestors()
+
+    then:
+    syntheticBeforeStageAncestors*.refId == ["1<1", "1"]
+    syntheticAfterStageAncestors*.refId == ["1<2", "1<1", "1"]
   }
 }
