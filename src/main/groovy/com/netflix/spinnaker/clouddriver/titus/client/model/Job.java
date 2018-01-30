@@ -270,6 +270,13 @@ public class Job {
         instancesMin = serviceSpec.getCapacity().getMin();
         instancesMax = serviceSpec.getCapacity().getMax();
         instancesDesired = serviceSpec.getCapacity().getDesired();
+        migrationPolicy = new MigrationPolicy();
+        com.netflix.titus.grpc.protogen.MigrationPolicy policy = serviceSpec.getMigrationPolicy();
+        if(policy.getPolicyCase().equals(com.netflix.titus.grpc.protogen.MigrationPolicy.PolicyCase.SELFMANAGED)){
+          migrationPolicy.setType("selfManaged");
+        } else {
+          migrationPolicy.setType("systemDefault");
+        }
       }
 
       labels = grpcJob.getJobDescriptor().getAttributesMap();
