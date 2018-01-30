@@ -20,11 +20,13 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.CONTAINER_INSTANCES;
 
+@Component
 public class ContainerInstanceCacheClient extends AbstractCacheClient<ContainerInstance> {
 
   @Autowired
@@ -38,6 +40,7 @@ public class ContainerInstanceCacheClient extends AbstractCacheClient<ContainerI
     Map<String, Object> attributes = cacheData.getAttributes();
     containerInstance.setArn((String) attributes.get("containerInstanceArn"));
     containerInstance.setEc2InstanceId((String) attributes.get("ec2InstanceId"));
+    containerInstance.setAvailabilityZone((String) attributes.get("availabilityZone"));
 
     return containerInstance;
   }

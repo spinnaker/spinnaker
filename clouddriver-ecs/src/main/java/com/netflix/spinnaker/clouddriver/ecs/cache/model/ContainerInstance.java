@@ -22,4 +22,5 @@ import lombok.Data;
 public class ContainerInstance {
   String arn;
   String ec2InstanceId;
+  String availabilityZone;
 }
