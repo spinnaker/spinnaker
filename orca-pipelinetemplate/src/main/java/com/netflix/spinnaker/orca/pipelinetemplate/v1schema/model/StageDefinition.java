@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Splitter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +29,7 @@ import java.util.Set;
 import java.util.LinkedHashSet;
 
 public class StageDefinition implements Identifiable, Conditional, Cloneable {
-
+  private static final Splitter ON_DOTS = Splitter.on(".");
   private String id;
   private String name;
   private InjectionRule inject;
@@ -308,8 +309,9 @@ public class StageDefinition implements Identifiable, Conditional, Cloneable {
     if (type == null) {
       return null;
     }
-    String[] bits = type.split("\\.");
-    return bits[bits.length - 1];
+
+    List<String> bits =  ON_DOTS.splitToList(type);
+    return bits.get(bits.size() - 1);
   }
 
   public PartialDefinitionContext getPartialDefinitionContext() {

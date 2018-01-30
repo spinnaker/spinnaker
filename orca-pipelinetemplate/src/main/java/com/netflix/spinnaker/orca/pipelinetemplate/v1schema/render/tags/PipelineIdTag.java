@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags;
+import com.google.common.base.Splitter;
 import com.hubspot.jinjava.interpret.Context;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
 import com.hubspot.jinjava.interpret.TemplateSyntaxException;
@@ -34,6 +35,7 @@ import java.util.Optional;
 public class PipelineIdTag implements Tag {
   private static final String APPLICATION = "application";
   private static final String NAME = "name";
+  private static final Splitter ON_EQUALS = Splitter.on("=");
 
   private final Front50Service front50Service;
 
@@ -50,12 +52,12 @@ public class PipelineIdTag implements Tag {
 
     Map<String, String> paramPairs = new HashMap<>();
     helper.forEach(p -> {
-      String[] parts = p.split("=");
-      if (parts.length != 2) {
+      List<String> parts = ON_EQUALS.splitToList(p);
+      if (parts.size() != 2) {
         throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'pipelineId' expects parameters to be in a 'key=value' format: " + helper, tagNode.getLineNumber());
       }
 
-      paramPairs.put(parts[0], parts[1]);
+      paramPairs.put(parts.get(0), parts.get(1));
     });
 
     Context context = interpreter.getContext();

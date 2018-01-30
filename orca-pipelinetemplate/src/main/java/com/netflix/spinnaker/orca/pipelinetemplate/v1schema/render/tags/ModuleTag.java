@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Splitter;
 import com.hubspot.jinjava.interpret.Context;
 import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
@@ -45,6 +46,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class ModuleTag implements Tag {
+  private static final Splitter ON_EQUALS = Splitter.on("=");
 
   private Renderer renderer;
   private ObjectMapper objectMapper;
@@ -91,11 +93,11 @@ public class ModuleTag implements Tag {
     // Assign parameters into the context
     Map<String, String> paramPairs = new HashMap<>();
     helper.subList(1, helper.size()).forEach(p -> {
-      String[] parts = p.split("=");
-      if (parts.length != 2) {
+      List<String> parts = ON_EQUALS.splitToList(p);
+      if (parts.size() != 2) {
         throw new TemplateSyntaxException(tagNode.getMaster().getImage(), "Tag 'module' expects parameters to be in a 'key=value' format: " + helper, tagNode.getLineNumber());
       }
-      paramPairs.put(parts[0], parts[1]);
+      paramPairs.put(parts.get(0), parts.get(1));
     });
 
     List<String> missing = new ArrayList<>();
