@@ -150,7 +150,7 @@ class BomGenerator(Annotator):
       config = {
         'images': [versioned_image],
         'steps': [
-          __format_docker_build_step(versioned_image, env_vars_list, dir='spinnaker-monitoring-daemon')
+          self.__format_docker_build_step(versioned_image, env_vars_list, dir='spinnaker-monitoring-daemon')
         ],
         'timeout': '3600s'
       }
@@ -179,13 +179,13 @@ class BomGenerator(Annotator):
             'env': env_vars_list,
             'name':  self.__container_builder_base_image
           },
-          __format_docker_build_step(versioned_image, env_vars_list, slim=slim)
+          self.__format_docker_build_step(versioned_image, env_vars_list, slim=slim)
         ],
         'timeout': '3600s'
       }
     return config
 
-  def __format_docker_build_step(versioned_image, env_vars_list, slim=False, dir=None):
+  def __format_docker_build_step(self, versioned_image, env_vars_list, slim=False, dir=None):
     """Formats a Docker build step for GCB.
     """
     dockerfile = 'Dockerfile.slim' if slim else 'Dockerfile'
