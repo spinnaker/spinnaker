@@ -10,6 +10,5 @@
       "waitTime": 5
     }
   ],
-  "limitConcurrent": true,
-  "appConfig": {}
+  "limitConcurrent": true
 }

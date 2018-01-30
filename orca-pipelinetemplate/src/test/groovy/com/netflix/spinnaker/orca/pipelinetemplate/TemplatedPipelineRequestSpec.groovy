@@ -46,8 +46,7 @@ class TemplatedPipelineRequestSpec extends Specification {
           type: 'wait',
           waitTime: 5
         ],
-        limitConcurrent: true,
-        appConfig: [:]
+        limitConcurrent: true
       ],
       [
         application: 'spindemo',
@@ -57,7 +56,6 @@ class TemplatedPipelineRequestSpec extends Specification {
           waitTime: 5
         ],
         limitConcurrent: true,
-        appConfig: [:],
         config: null
       ],
       [
@@ -68,7 +66,6 @@ class TemplatedPipelineRequestSpec extends Specification {
           waitTime: 5
         ],
         limitConcurrent: true,
-        appConfig: [:],
         config: [:]
       ]
     ]

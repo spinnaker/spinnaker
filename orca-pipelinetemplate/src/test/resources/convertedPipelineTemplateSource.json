@@ -1,5 +1,4 @@
 {
-  "appConfig": {},
   "description": "This is my favorite pipeline!",
   "lastModifiedBy": "example@example.com",
   "limitConcurrent": true,
