@@ -2,7 +2,7 @@ import { IComponentOptions, IController, module } from 'angular';
 
 import { IKubernetesManifestCommand, IKubernetesManifestCommandMetadata } from '../manifestCommandBuilder.service';
 
-import './manifestEntry.less'
+import './manifestEntry.less';
 
 class KubernetesManifestCtrl implements IController {
   public command: IKubernetesManifestCommand;
@@ -17,7 +17,8 @@ class KubernetesManifestEntryComponent implements IComponentOptions {
   public template = `
     <div class="container-fluid form-horizontal">
       <ng-form name="manifest">
-        <div class="form-group">
+        <div class="form-group" ng-class="{ 'kubernetes-manifest-error': ctrl.metadata.yamlError }">
+          <div style="" class="kubernetes-manifest-yaml-error-message">Invalid YAML</div>
           <textarea class="code form-control kubernetes-manifest-entry" ng-model="ctrl.metadata.manifestText" ng-change="ctrl.change()" rows="40"></textarea>
         </div>
       </ng-form>

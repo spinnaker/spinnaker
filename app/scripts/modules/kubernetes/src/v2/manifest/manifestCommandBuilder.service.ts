@@ -23,6 +23,7 @@ export interface IKubernetesManifestCommand {
 
 export interface IKubernetesManifestCommandMetadata {
   manifestText: string;
+  yamlError: boolean;
   backingData: any;
 }
 

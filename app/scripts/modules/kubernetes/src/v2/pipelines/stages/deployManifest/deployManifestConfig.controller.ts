@@ -42,8 +42,11 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
   }
 
   public change() {
+    this.$scope.ctrl.metadata.yamlError = false;
     try {
       this.$scope.stage.manifest = load(this.metadata.manifestText);
-    } catch (e) {}
+    } catch (e) {
+      this.$scope.ctrl.metadata.yamlError = true;
+    }
   }
 }
