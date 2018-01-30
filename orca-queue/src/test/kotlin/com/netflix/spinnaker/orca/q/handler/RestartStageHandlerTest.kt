@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.spek.shouldEqual
+import com.netflix.spinnaker.spek.shouldNotEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -349,6 +350,50 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         .forEach {
           verify(repository).removeStage(pipeline, it)
         }
+    }
+  }
+
+  describe("restarting a synthetic stage restarts its parent") {
+    val pipeline = pipeline {
+      application = "foo"
+      status = SUCCEEDED
+      startTime = clock.instant().minus(1, HOURS).toEpochMilli()
+      endTime = clock.instant().minus(30, MINUTES).toEpochMilli()
+      stage {
+        refId = "1"
+        stageWithSyntheticBefore.plan(this)
+        status = SUCCEEDED
+        startTime = clock.instant().minus(1, HOURS).toEpochMilli()
+        endTime = clock.instant().minus(59, MINUTES).toEpochMilli()
+      }
+    }
+
+    val syntheticStage = pipeline.stages.first { it.parentStageId == pipeline.stageByRef("1").id }
+    val message = RestartStage(pipeline.type, pipeline.id, "foo", syntheticStage.id, "fzlem@netflix.com")
+
+    beforeGroup {
+      whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+    }
+
+    afterGroup(::resetMocks)
+
+    action("the handler receives a message") {
+      subject.handle(message)
+    }
+
+    it("removes the original synthetic stage") {
+      verify(repository).removeStage(pipeline, syntheticStage.id)
+    }
+
+    it("runs the parent stage") {
+      verify(queue).push(check<StartStage> {
+        it.stageId shouldEqual pipeline.stageByRef("1").id
+        it.stageId shouldNotEqual syntheticStage.id
+        it.stageId shouldNotEqual message.stageId
+        it.executionType shouldEqual message.executionType
+        it.executionId shouldEqual message.executionId
+        it.application shouldEqual message.application
+      })
     }
   }
 })

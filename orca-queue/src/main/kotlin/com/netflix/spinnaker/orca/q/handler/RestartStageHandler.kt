@@ -40,11 +40,14 @@ class RestartStageHandler(
 
   override fun handle(message: RestartStage) {
     message.withStage { stage ->
-      if (stage.status.isComplete) {
-        stage.addRestartDetails(message.user)
-        stage.reset()
-        repository.updateStatus(stage.execution.id, RUNNING)
-        queue.push(StartStage(message))
+      // If RestartStage is requested for a synthetic stage, operate on its parent
+      val topStage = stage.topLevelStage
+      val startMessage = StartStage(message.executionType, message.executionId, message.application, topStage.id)
+      if (topStage.status.isComplete) {
+        topStage.addRestartDetails(message.user)
+        topStage.reset()
+        repository.updateStatus(topStage.execution.id, RUNNING)
+        queue.push(StartStage(startMessage))
       }
     }
   }
