@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
+package com.netflix.spinnaker.clouddriver.ecs.deploy.converters
 
-import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.ecs.deploy.ops.DestroyServiceAtomicOperation
+import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
-@EcsOperation(AtomicOperations.DESTROY_SERVER_GROUP)
-@Component("destroyServiceAtomicOperationValidator")
-public class DestroyServiceAtomicOperationValidator extends ServerGroupDescriptionValidator {
-  public DestroyServiceAtomicOperationValidator() {
-    super("destroyServiceAtomicOperation");
+class DestroyServiceAtomicOperationConverterSpec extends ModifyServiceAtomicOperationConverterSpec<DestroyServiceAtomicOperation> {
+  @Override
+  AbstractAtomicOperationsCredentialsSupport getConverter() {
+    new DestroyServiceAtomicOperationConverter(objectMapper: new ObjectMapper())
   }
 }

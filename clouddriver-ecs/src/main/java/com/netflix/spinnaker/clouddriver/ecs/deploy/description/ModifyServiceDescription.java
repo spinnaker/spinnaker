@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.ecs.deploy.validators;
+package com.netflix.spinnaker.clouddriver.ecs.deploy.description;
 
-import com.netflix.spinnaker.clouddriver.ecs.EcsOperation;
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import org.springframework.stereotype.Component;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@EcsOperation(AtomicOperations.DESTROY_SERVER_GROUP)
-@Component("destroyServiceAtomicOperationValidator")
-public class DestroyServiceAtomicOperationValidator extends ServerGroupDescriptionValidator {
-  public DestroyServiceAtomicOperationValidator() {
-    super("destroyServiceAtomicOperation");
-  }
+@Data
+@EqualsAndHashCode(callSuper = false)
+public class ModifyServiceDescription extends AbstractECSDescription {
+  String serverGroupName;
 }
