@@ -1,19 +1,18 @@
-# Spinnaker on Docker Compose
+# Spinnaker on Docker Compose (Version 2)
 
-This is an experimental integration of Spinnaker and Docker Compose using docker images for Spinnaker published on the Docker Hub. It requires no installation of any software aside from the Docker Toolbox to test out Spinnaker.
+This is an experimental integration of Spinnaker and Docker Compose using docker images for Spinnaker published on Quay.io. It requires no installation of any software aside from the Docker For Mac to test out Spinnaker.
 
-*Note: These instructions have been tested on Mac OS 10.11.1 and Docker Toolbox 1.9.0b, but might require slight tweaking if you are using a different platform.*
+*Note: These instructions have been tested on Mac OS 10.12.5 and Docker for Mac 17.03.1-ce-mac12, and might require slight tweaking if you are using a different platform.*
 
 ## Limitations
 
 * The docker compose project is intended as a 'try Spinnaker now' tool. It's not intended for production use.
-* Since we use an in-memory Cassandra and an in-memory Redis, changes to applications and pipelines will not be persisted across restarts.
+* Since we use an in-memory S3 (via Minio) and an in-memory Redis, changes to applications and pipelines will not be persisted across restarts.
 * We only support Amazon credentials set via the .aws directory or via environment variables.
 
 ## Requirements
 
-* Install the [Docker Toolbox](https://www.docker.com/docker-toolbox).
-* Navigate to the config directory at the root of this project (one directory up from the experimental folder). Copy the `default-spinnaker-local.yml` file into a file called `spinnaker-local.yml`. Edit spinnaker-local.yml to fit your configuration.
+* Install the [Docker For Mac](https://www.docker.com/docker-mac).
 * If you're using AWS, create a directory called aws under the config directory. Copy over your credentials from the .aws directory into this directory. If you don't have a .aws directory, follow the instructions [here](http://spinnaker.io/documentation/getting_started.html#step-1-set-up-your-target-deployment-environment) to create those credentials.
 * If you're using Google Compute Platform, create a directory called gcp under the config directory. Copy your json credentials into this directory as gcp.json. Set your jsonPath for google in spinnaker-local.yml to be `/root/.gcp/gcp.json`.
 * If you're using docker-machine locally, you will still need to move your config directory to the docker-machine host as stated in the [cloud guide](https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose#2-copy-configuration-files-to-the-remote-docker-machine-instance).  Otherwise, you will not see your accounts when using Spinnaker.
@@ -22,7 +21,7 @@ This is an experimental integration of Spinnaker and Docker Compose using docker
 
 1. Open Kitematic and click on **'DOCKER CLI'** at the bottom.
 2. Make sure you are under the experimental/docker-compose directory.
-3. Run ```DOCKER_IP=`docker-machine ip default` docker-compose up -d```, this will pull all the images needed to run Spinnaker from Docker Hub.
+3. Run ```docker-compose up -d```, this will pull all the images needed to run Spinnaker from Docker Hub.
 4. You should see all the containers for your microservice come up, one by one in Kitematic.
 
 Note ( if you're running the docker app, you can replace any instance of DOCKER_IP in this document with DOCKER_IP=docker.local ) 
@@ -36,7 +35,7 @@ Under Kitematic, click on **'deck' -> settings -> ports**. Click on the link to 
 Alternatively, you can just enter
 
 ```
-open http://`docker-machine ip default`:9000
+open http://localhost:9000
 ```
 
 ## Using locally built images
@@ -63,13 +62,13 @@ docker-compose -f docker-compose.dev.yml build
 *Start a service*
 
 ```
-DOCKER_IP=`docker-machine ip default` docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up [service name]
+docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up [service name]
 ```
 
 *Start all services*
 
 ```
-DOCKER_IP=`docker-machine ip default` docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up -d
+docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.dev.yml up -d
 ```
 
 *Note: It might be useful to create an alias for your docker dev environment in your shell, see the tips section at the end of this document.*
@@ -209,12 +208,6 @@ Go to your Azure portal and select your spinnakerremote instance (under Virtual 
 * Click on Manage ACL for each of these endpoints and add a permit ACL for your local workstation (you can find the ip address of your local workstation via `curl myip4.com`).
 
 ## 4. Launch Spinnaker via Docker Compose
-
-Now that everything is set up, you should switch to using the spinnakerremote docker machine
-
-```
-eval "$(docker-machine env spinnakerremote)"
-```
 
 Launch docker-compose using the remote configuration and the remote host ip
 

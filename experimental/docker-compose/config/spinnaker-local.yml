@@ -1,0 +1,368 @@
+# This file is intended to override the default configuration in the
+# spinnaker.yml file while providing guidance on the mostly likely
+# configuration parameters to be changed.
+#
+# In order for Spinnaker to discover it, it must be copied to a file named
+# "spinnaker-local.yml" and placed in /opt/spinnaker/config
+# (or when running from source code, in the $HOME/.spinnaker directory.)
+#
+# A better practice could be to create the spinnaker-local.yml file by
+# hand with only the particular attributes that you want to override
+# and use the spinnaker.yml file as your guide since it is spinnaker.yml
+# that we are overriding here in the first place.
+
+logging:
+  level:
+    com.netflix.spinnaker.front50.security: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+
+global:
+  spinnaker:
+    timezone: 'America/Los_Angeles'
+
+providers:
+  # See http://www.spinnaker.io/v1.0/docs/target-deployment-setup
+  # for general information about configuring spinnaker platform providers.
+
+  # Each of the following providers can be enabled independent of all other
+  # providers unless otherwise noted.
+  #
+  # Each provider can be enabled by setting its 'enabled' attribute to true.
+  # As a rule of thumb, each provider defines a 'primaryCredentials' block
+  # that configures a default account for Spinnaker to use on that platform.
+  # If additional accounts are desired, then add those accounts to a
+  # custom clouddriver-local.yml file and consult clouddriver.yml for more
+  # information on what to add there.
+
+  aws:
+    # For more information on configuring Amazon Web Services (aws), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-amazon-web-services-setup
+
+    enabled: ${SPINNAKER_AWS_ENABLED:false}
+    defaultRegion: ${SPINNAKER_AWS_DEFAULT_REGION:us-west-2}
+    defaultIAMRole: BaseIAMRole
+    primaryCredentials:
+      name: my-aws-account
+      # Store actual credentials in $HOME/.aws/credentials. See spinnaker.yml
+      # for more information, including alternatives.
+
+    # {{name}} will be interpolated with the aws account name (e.g. "my-aws-account-keypair").
+    defaultKeyPairTemplate: "{{name}}-keypair"
+
+  azure:
+    # For more information on configuring Microsoft Azure (azure), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-azure-cloud-platform-setup
+
+    enabled: ${SPINNAKER_AZURE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_AZURE_DEFAULT_REGION:westus}
+    primaryCredentials:
+      name: my-azure-account
+
+      # To set Azure credentials, enter your Azure supscription values for:
+      # clientId, appKey, tenantId, subscriptionId, and objectId.
+      clientId:
+      appKey:
+      tenantId:
+      subscriptionId:
+      objectId:
+      packerResourceGroup:
+      packerStorageAccount:
+      defaultResourceGroup:
+      defaultKeyVault:
+
+  google:
+    # For more information on configuring Google Cloud Platform (google), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-google-cloud-platform-setup
+
+    enabled: ${SPINNAKER_GOOGLE_ENABLED:false}
+    defaultRegion: ${SPINNAKER_GOOGLE_DEFAULT_REGION:us-central1}
+    defaultZone: ${SPINNAKER_GOOGLE_DEFAULT_ZONE:us-central1-f}
+
+    primaryCredentials:
+      name: my-google-account
+      # The project is the Google Project ID for the project to manage with
+      # Spinnaker.
+      # The jsonPath is a path to the JSON service credentials downloaded
+      # from the Google Developer's Console.
+      project: ${SPINNAKER_GOOGLE_PROJECT_ID:}
+      jsonPath: ${SPINNAKER_GOOGLE_PROJECT_CREDENTIALS_PATH:}
+      consul:
+        enabled: ${SPINNAKER_GOOGLE_CONSUL_ENABLED:false}
+
+  cf:
+    # For more information on configuring Cloud Foundry (cf) support, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-cloud-foundry-platform-setup
+
+    enabled: false
+    defaultOrg: spinnaker-cf-org
+    defaultSpace: spinnaker-cf-space
+
+    primaryCredentials:
+      name: my-cf-account
+      api: my-cf-api-uri
+      console: my-cf-console-base-url
+      # Either uncomment and plugin credentials here, or supply as
+      # environment variables for maximum security.
+      # account:
+      #   name: my-cf-username
+      #   password: my-cf-password
+
+  kubernetes:
+    # For more information on configuring Kubernetes clusters (kubernetes), see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-setup#section-kubernetes-cluster-setup
+
+    # NOTE: enabling kubernetes also requires enabling dockerRegistry.
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+    primaryCredentials:
+      # These credentials use authentication information at ~/.kube/config
+      # by default.
+      name: my-kubernetes-account
+      dockerRegistryAccount: ${providers.dockerRegistry.primaryCredentials.name}
+
+  dockerRegistry:
+    # For more information on configuring Docker registries, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-docker-registry
+
+    # NOTE: Enabling dockerRegistry is independent of other providers.
+    # However, for convienience, we tie docker and kubernetes together
+    # since kubernetes (and only kubernetes) depends on this docker provider
+    # configuration.
+    enabled: ${SPINNAKER_KUBERNETES_ENABLED:false}
+
+    primaryCredentials:
+      name: my-docker-registry
+      address: ${SPINNAKER_DOCKER_REGISTRY:https://index.docker.io/}
+      repository: ${SPINNAKER_DOCKER_REPOSITORY:}
+      username: ${SPINNAKER_DOCKER_USERNAME:}
+      # A path to a plain text file containing the user's password
+      passwordFile: ${SPINNAKER_DOCKER_PASSWORD_FILE:}
+
+  openstack:
+    # For more information on configuring Openstack clusters, see
+    # http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack
+    # To obtain the correct settings log into your OpenStack UI (Horizon), click on "Access and Security" on the left
+    # sidebar, click on the API access tab and finally click on "Download Openstack RC file V3". The rc file
+    # contains the correct settings.
+
+    enabled: ${SPINNAKER_OPENSTACK_ENABLED:false}
+    primaryCredentials:
+      name: my-openstack-account
+      authUrl: ${OS_AUTH_URL}
+      username: ${OS_USERNAME}
+      password: ${OS_PASSWORD}
+      projectName: ${OS_PROJECT_NAME}
+      domainName: ${OS_USER_DOMAIN_NAME}
+      regions: ${OS_REGION_NAME:RegionOne}
+      # Enable this if your OpenStack Installation uses a self-signed certificate (use with caution)
+      # insecure: true
+
+  appengine:
+    enabled: ${SPINNAKER_APPENGINE_ENABLED:false}
+
+    primaryCredentials:
+      name: my-appengine-account
+      # The project is the Google Project ID for the project to manage with
+      # Spinnaker.
+      project: ${SPINNAKER_APPENGINE_PROJECT_ID:}
+      # The jsonPath is a path to the JSON service credentials downloaded
+      # from the Google Developer's Console.
+      jsonPath: ${SPINNAKER_APPENGINE_PROJECT_CREDENTIALS_PATH:}
+      # The path and password to an SSH private key to be used when connecting with
+      # a remote git repository over SSH (optional).
+      sshPrivateKeyFilePath: ${SPINNAKER_APPENGINE_PRIVATE_KEY_FILE_PATH:}
+      sshPrivateKeyPassphrase: ${SPINNAKER_APPENGINE_PRIVATE_KEY_PASSPHRASE:}
+      # The username and password to be used when connecting with a remote git repository over HTTPS (optional).
+      gitHttpsUsername: ${SPINNAKER_APPENGINE_GIT_HTTPS_USERNAME:}
+      gitHttpsPassword: ${SPINNAKER_APPENGINE_GIT_HTTPS_PASSWORD:}
+      # The OAuth token provided by Github to be used when connecting with a remote git repository over HTTPS (optional).
+      # See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
+      githubOAuthAccessToken: ${SPINNAKER_APPENGINE_GITHUB_OAUTH_ACCESS_TOKEN:}
+
+services:
+  default:
+    # These defaults can be modified to change all the spinnaker subsystems
+    # (clouddriver, gate, etc) at once, but not external systems (jenkins, etc).
+    # Individual systems can still be overridden using their own section entry
+    # directly under 'services'.
+    protocol: http    # Assume all spinnaker subsystems are using http
+    host: localhost   # Assume all spinnaker subsystems are on localhost
+
+  redis:
+    # If you are using a remote redis server, you can set the host here.
+    # If the remote server is on a different port or url, you can add
+    # a "port" or "baseUrl" field here instead.
+    host: redis
+    port: 6379
+    connection: redis://${services.redis.host}:${services.redis.port} 
+
+  cassandra:
+    # If you are using a remote cassandra server, you can set the host here.
+    # If the remote server is on a different port or url, you can add
+    # a "port" or "baseUrl" field here instead. You may also need to set
+    # the cluster name. See the main spinnaker.yml file for more attributes.
+    host: localhost
+
+  docker:
+    # This target repository is used by the bakery to publish baked docker images.
+    # Do not include http://.
+    targetRepository: # Optional, but expected in spinnaker-local.yml if specified.
+
+  jenkins:
+    # If you are integrating Jenkins, set its location here using the baseUrl
+    # field and provide the username/password credentials.
+    # You must also enable the "igor" service listed separately.
+    #
+    # If you have multiple jenkins servers, you will need to list
+    # them in an igor-local.yml. See jenkins.masters in config/igor.yml.
+    #
+    # Note that jenkins is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    enabled: ${services.igor.enabled:false}
+    defaultMaster:
+      name: Jenkins # The display name for this server
+      baseUrl:
+      username:
+      password:
+
+  travis:
+    # If you are integrating Travis, set its location here using the baseUrl
+    # and adress fields and provide the githubToken for authentication.
+    # You must also enable the "igor" service listed separately.
+    #
+    # If you have multiple travis servers, you will need to list
+    # them in an igor-local.yml. See travis.masters in config/igor.yml.
+    #
+    # Note that travis is not installed with Spinnaker so you must obtain this
+    # on your own if you are interested.
+    enabled: false
+    defaultMaster:
+      name: ci # The display name for this server. Gets prefixed with "travis-"
+      baseUrl: https://travis-ci.com
+      address: https://api.travis-ci.org
+      githubToken: # GitHub scopes currently required by Travis is required.
+
+
+  spectator:
+    webEndpoint:
+      enabled: true
+
+  stackdriver:
+    enabled: false
+
+  clouddriver:
+    host: clouddriver
+    port: 7002
+    baseUrl: ${services.default.protocol}://${services.clouddriver.host}:${services.clouddriver.port}
+    aws:
+      udf:
+        # Controls whether UserDataProviders are used to populate user data of
+        # new server groups. If false, user data is copied over from ancestor
+        # server groups on both CopyLastAsgAtomicOperation and
+        # ModifyAsgLaunchConfigurationOperation (only if no user data is
+        # provided on the given request).
+        enabled: true
+
+  igor:
+    # If you are integrating Jenkins then you must also enable Spinnaker's
+    # "igor" subsystem.
+    enabled: false
+
+  deck:
+    # Frontend configuration.
+    # If you are proxying Spinnaker behind a single host, you may want to
+    # override these values. Remember to run `reconfigure_spinnaker.sh` after.
+    #baseUrl: http://spinnaker.mydomain.com
+    #gateUrl: ${services.deck.baseUrl}/gate
+    #bakeryUrl: ${services.deck.baseUrl}/rosco
+    auth:
+      enabled: false
+
+  rosco:
+    # You need to provide the fully-qualified path to the directory containing
+    # the packer templates.
+    # They typically live in rosco's config/packer directory.
+    configDir: /opt/rosco/config/packer
+    host: rosco
+    port: 8087
+    baseUrl: ${services.default.protocol}://${services.rosco.host}:${services.front50.port}
+
+  fiat:
+    enabled: false
+
+  chaos:
+    enabled: false
+
+  front50:
+    host: front50
+    port: 8080
+    baseUrl: ${services.default.protocol}://${services.front50.host}:${services.front50.port}
+    cassandra:
+      enabled: false
+    redis:
+      enabled: false
+
+    # To use a cloud storage bucket on Amazon S3 or Google Cloud Storage instead
+    # of cassandra, set the storage_bucket, disable cassandra, and enable one of
+    # the service providers.
+    storage_bucket: spinfront50
+    bucket_root: front50
+    gcs:
+      enabled: false
+    s3:
+      enabled: true
+      endpoint: http://minio:9000
+      region: us-east-1
+
+    # To use an Azure storage account instead of Cassandra:
+    # Disable Cassandra above, enable azs, and set the storage account name and key
+    azs:
+      enabled: false
+      storageAccountName:
+      storageAccountKey:
+      storageContainerName: front50
+      
+  orca:
+    host: orca
+    port: 8083
+    baseUrl: ${services.default.protocol}://${services.orca.host}:${services.orca.port}
+
+  echo:
+    host: echo
+    port: 8089
+    baseUrl: ${services.default.protocol}://${services.echo.host}:${services.echo.port}
+    # Persistence mechanism to use
+    cassandra:
+      enabled: false
+    inMemory:
+      enabled: true
+
+    cron:
+      # Allow pipeline triggers to run periodically via cron expressions.
+      enabled: true
+
+    notifications:
+      # The following blocks can enable Spinnaker to send notifications
+      # using the corresponding mechanism.
+      # See http://www.spinnaker.io/docs/notifications-and-events-guide
+      # for more information.
+      mail:
+        enabled: false
+        host: # the smtp host
+        fromAddress: #the address for which emails are sent from
+      hipchat:
+        enabled: false
+        url: # the hipchat server to connect to
+        token: #the hipchat auth token
+        botName: # the username of the bot
+      sms:
+        enabled: false
+        account: # twilio account id
+        token: # twilio auth token
+        from: # phone number by which sms messages are sent
+      slack:
+        # See https://api.slack.com/bot-users for details about using bots
+        # and how to create your own bot user.
+        enabled: false
+        token: # the API token for the bot
+        botName: # the username of the bot
