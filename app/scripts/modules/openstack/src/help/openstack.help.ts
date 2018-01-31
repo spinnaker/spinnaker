@@ -17,7 +17,9 @@ const helpContents: {[key: string]: string} = {
   'openstack.network.floatingip': '<p>Whether or not each instance in the server group should be assigned a floating ip.</p><p>Default: <b>No</b></p>',
   'openstack.network.floatpool': 'The network from which to allocate a floating ip',
   'openstack.serverGroup.userData': '<p>Provides a script that will run when each server group instance starts.</p>',
+  'openstack.serverGroup.availabilityZones': 'Creates a Senlin Zone Placement Policy that balances equally across the selected zones.',
   'openstack.serverGroup.tags': '<p>Key-value pairs of metadata that will be associate to each server group instance.</p>',
+  'openstack.serverGroup.schedulerHints': '<p>Key-value pairs for server scheduling hints</p>'
 };
 
 export const OPENSTACK_HELP = 'spinnaker.openstack.help.contents';
