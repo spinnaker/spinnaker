@@ -46,6 +46,16 @@ class V2CanaryService {
     }).execute() as List
   }
 
+  List listMetricsServiceMetadata(String filter, String metricsAccountName) {
+    return HystrixFactory.newListCommand(HYSTRIX_GROUP, "listMetricsServiceMetadata", {
+      try {
+        return kayentaService.listMetricsServiceMetadata(filter, metricsAccountName)
+      } catch (RetrofitError error) {
+        throw classifyError(error)
+      }
+    }).execute() as List
+  }
+
   List listJudges() {
     return HystrixFactory.newListCommand(HYSTRIX_GROUP, "listCanaryJudges", {
       try {

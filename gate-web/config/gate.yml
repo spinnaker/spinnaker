@@ -78,6 +78,7 @@ swagger:
     - .*bakery.*
     - .*executions.*
     - .*webhooks.*
+    - /v2/.*
 
 hystrix:
   command:

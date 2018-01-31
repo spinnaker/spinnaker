@@ -40,6 +40,13 @@ class V2CanaryController {
     v2CanaryService.getCredentials()
   }
 
+  @ApiOperation(value = 'Retrieve a list of descriptors for use in populating the canary config ui')
+  @RequestMapping(value = '/metadata/metricsService', method = RequestMethod.GET)
+  List listMetricsServiceMetadata(@RequestParam(required = false) final String filter,
+                                  @RequestParam(required = false) final String metricsAccountName) {
+    v2CanaryService.listMetricsServiceMetadata(filter, metricsAccountName)
+  }
+
   @ApiOperation(value = 'Retrieve a list of all configured canary judges')
   @RequestMapping(value = '/judges', method = RequestMethod.GET)
   List listJudges() {
