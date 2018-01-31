@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.discovery.DiscoveryActivated
+import com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.slf4j.MDC
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
-import com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID
 
 @Component
 class QueueProcessor(
@@ -44,7 +44,7 @@ class QueueProcessor(
   private val pollSkippedNoCapacity = registry.createId("orca.nu.worker.pollSkippedNoCapacity")
   private val pollRejectedMessage = registry.createId("orca.nu.worker.pollRejectedMessage")
 
-  @Scheduled(fixedDelayString = "\${queue.poll.frequency.ms:10}")
+  @Scheduled(fixedDelayString = "\${queue.poll.frequency.ms:500}")
   fun pollOnce() =
     ifEnabled {
       if (!queueExecutor.hasCapacity()) {
