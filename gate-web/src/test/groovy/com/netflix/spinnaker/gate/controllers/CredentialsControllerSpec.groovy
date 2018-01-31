@@ -33,7 +33,7 @@ import spock.lang.Unroll
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
-class CredentialsControllerTest extends Specification {
+class CredentialsControllerSpec extends Specification {
 
   MockMvc mockMvc
   ClouddriverService clouddriverService
@@ -67,7 +67,7 @@ class CredentialsControllerTest extends Specification {
   def "should accept account names with dots"() {
     given:
     1 * clouddriverServiceSelector.select(_) >> clouddriverService
-    1 * clouddriverService.getAccount(account) >> ["accountName": account]
+    1 * clouddriverService.getAccount(account) >> ["name": account]
 
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/credentials/${account}")
@@ -75,7 +75,7 @@ class CredentialsControllerTest extends Specification {
 
     then:
     response.status == 200
-    response.contentAsString == "{\"accountName\":\"${expectedAccount}\"}"
+    response.contentAsString == "{\"name\":\"${expectedAccount}\",\"requiredGroupMembership\":[]}"
 
     where:
     account    || expectedAccount

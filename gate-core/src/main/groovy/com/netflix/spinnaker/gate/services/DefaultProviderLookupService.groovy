@@ -21,6 +21,7 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -38,14 +39,14 @@ class DefaultProviderLookupService implements ProviderLookupService, AccountLook
 
   private final ClouddriverService clouddriverService
 
-  private final LoadingCache<String, List<ClouddriverService.Account>> accountsCache = CacheBuilder.newBuilder()
+  private final LoadingCache<String, List<AccountDetails>> accountsCache = CacheBuilder.newBuilder()
     .initialCapacity(1)
     .maximumSize(1)
     .refreshAfterWrite(2, TimeUnit.SECONDS)
-    .build(new CacheLoader<String, List<ClouddriverService.Account>>() {
+    .build(new CacheLoader<String, List<AccountDetails>>() {
         @Override
-        List<ClouddriverService.Account> load(String key) throws Exception {
-          return clouddriverService.accounts
+        List<AccountDetails> load(String key) throws Exception {
+          return clouddriverService.getAccountDetails()
         }
       })
 
@@ -64,7 +65,8 @@ class DefaultProviderLookupService implements ProviderLookupService, AccountLook
   }
 
   @Override
-  public List<ClouddriverService.Account> getAccounts() {
+  public List<AccountDetails> getAccounts() {
     return accountsCache.get(ACCOUNTS_KEY)
   }
+
 }

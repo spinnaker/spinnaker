@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -118,9 +119,9 @@ class LdapAuthSpec extends Specification {
     AccountLookupService accountLookupService() {
       return new AccountLookupService() {
         @Override
-        List<ClouddriverService.Account> getAccounts() {
+        List<AccountDetails> getAccounts() {
           return [
-              new ClouddriverService.Account(name: "foo")
+              new AccountDetails(name: "foo")
           ]
         }
       }

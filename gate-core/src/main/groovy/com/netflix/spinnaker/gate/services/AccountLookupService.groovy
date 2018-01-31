@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 
 interface AccountLookupService {
-  List<ClouddriverService.Account> getAccounts()
+  List<AccountDetails> getAccounts()
 }

@@ -17,10 +17,11 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.fiat.model.Authorization
-import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService.Account
+import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,16 +49,12 @@ class CredentialsService {
     getAccounts(userRoles)*.name
   }
 
-  Collection<ClouddriverService.Account> getAccounts() {
-    getAccounts([])
-  }
-
   /**
    * Returns all account names that a user with the specified list of userRoles has access to.
    */
-  List<ClouddriverService.Account> getAccounts(Collection<String> userRoles) {
+  List<AccountDetails> getAccounts(Collection<String> userRoles) {
     HystrixFactory.newListCommand(GROUP, "getAccounts") {
-      return accountLookupService.accounts.findAll { ClouddriverService.Account account ->
+      return accountLookupService.getAccounts().findAll { AccountDetails account ->
         if (fiatConfig.enabled) {
           return true // Returned list is filtered later.
         }
@@ -83,7 +80,7 @@ class CredentialsService {
     } execute()
   }
 
-  Map getAccount(String account, String selectorKey) {
+  AccountDetails getAccount(String account, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getAccount") {
       clouddriverServiceSelector.select(selectorKey).getAccount(account)
     } execute()

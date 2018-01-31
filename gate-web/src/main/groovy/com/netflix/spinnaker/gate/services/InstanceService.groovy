@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
@@ -38,10 +39,13 @@ class InstanceService {
   @Autowired
   ProviderLookupService providerLookupService
 
+  @Autowired
+  ObjectMapper objectMapper
+
   Map getForAccountAndRegion(String account, String region, String instanceId, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getInstancesForAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       def service = clouddriverServiceSelector.select(selectorKey)
-      def accountDetails = service.getAccount(account)
+      def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
       def instanceDetails = service.getInstanceDetails(account, region, instanceId)
       def instanceContext = instanceDetails.collectEntries {
         return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
