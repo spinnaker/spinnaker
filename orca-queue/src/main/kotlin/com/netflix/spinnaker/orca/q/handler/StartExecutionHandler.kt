@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -44,25 +42,26 @@ class StartExecutionHandler(
   override fun handle(message: StartExecution) {
     message.withExecution { execution ->
       if (execution.status == NOT_STARTED && !execution.isCanceled) {
-        repository.updateStatus(message.executionId, RUNNING)
-
         val initialStages = execution.initialStages()
         if (initialStages.isEmpty()) {
           log.warn("No initial stages found (executionId: ${message.executionId})")
+          repository.updateStatus(message.executionId, TERMINAL)
+          publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, TERMINAL))
+          return@withExecution
         }
 
+        repository.updateStatus(message.executionId, RUNNING)
         initialStages
           .forEach {
             queue.push(StartStage(message, it.id))
           }
-
         publisher.publishEvent(ExecutionStarted(this, message.executionType, message.executionId))
       } else {
         if (execution.status == CANCELED || execution.isCanceled) {
           publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, execution.status))
         } else {
           log.warn("Execution (type: ${message.executionType}, id: {}, status: ${execution.status}, application: {})" +
-            " cannot bes started unless state is NOT_STARTED. Ignoring StartExecution message.",
+            " cannot be started unless state is NOT_STARTED. Ignoring StartExecution message.",
             value("executionId", message.executionId),
             value("application", message.application))
         }

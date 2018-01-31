@@ -176,5 +176,41 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         }
       }
     }
+
+    context("with no initial stages") {
+      val pipeline = pipeline {
+        stage {
+          type = singleTaskStage.type
+          requisiteStageRefIds = listOf("1")
+        }
+        stage {
+          type = singleTaskStage.type
+          requisiteStageRefIds = listOf("1")
+        }
+      }
+      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+
+      beforeGroup {
+        whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("marks the execution as TERMINAL") {
+        verify(repository, times(1)).updateStatus(pipeline.id, ExecutionStatus.TERMINAL)
+      }
+
+      it("publishes an event with TERMINAL status") {
+        verify(publisher).publishEvent(check<ExecutionComplete> {
+          it.executionType shouldEqual message.executionType
+          it.executionId shouldEqual message.executionId
+          it.status shouldEqual ExecutionStatus.TERMINAL
+        })
+      }
+    }
   }
 })
