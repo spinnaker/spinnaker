@@ -215,7 +215,7 @@ module(HELP_CONTENTS, [])
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the image to use in this pipeline.',
     'pipeline.config.findAmi.imageNamePattern': 'A regex used to match the name of the image. Must result in exactly one match to succeed. Empty is treated as match any.',
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
-    'pipeline.config.parallel.cancel.queue': '<p>If concurrent pipeline execution is disabled, then the pipelines that are in the waiting queue will get canceled by default. <br><br>Check this box if you want to keep them in the queue.</p>',
+    'pipeline.config.parallel.cancel.queue': '<p>If concurrent pipeline execution is disabled, then the pipelines that are in the waiting queue will get canceled when the next execution starts. <br><br>Check this box if you want to keep them in the queue.</p>',
     'pipeline.config.timeout': `
         <p>Allows you to override the amount of time the stage can run before failing.</p>
         <p><b>Note:</b> this represents the overall time the stage has to complete (the sum of all the task times).</p>`,
