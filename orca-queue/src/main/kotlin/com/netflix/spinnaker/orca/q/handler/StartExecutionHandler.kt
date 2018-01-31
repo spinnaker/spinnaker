@@ -46,8 +46,12 @@ class StartExecutionHandler(
       if (execution.status == NOT_STARTED && !execution.isCanceled) {
         repository.updateStatus(message.executionId, RUNNING)
 
-        execution
-          .initialStages()
+        val initialStages = execution.initialStages()
+        if (initialStages.isEmpty()) {
+          log.warn("No initial stages found (executionId: ${message.executionId})")
+        }
+
+        initialStages
           .forEach {
             queue.push(StartStage(message, it.id))
           }

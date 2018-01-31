@@ -526,8 +526,10 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
           stage.setSyntheticStageOwner(SyntheticStageOwner.valueOf(map.get(prefix + "syntheticStageOwner")));
         }
         stage.setParentStageId(map.get(prefix + "parentStageId"));
-        if (map.get(prefix + "requisiteStageRefIds") != null) {
-          stage.setRequisiteStageRefIds(Arrays.asList(map.get(prefix + "requisiteStageRefIds").split(",")));
+
+        String requisiteStageRefIds = map.get(prefix + "requisiteStageRefIds");
+        if (StringUtils.isNotEmpty(requisiteStageRefIds)) {
+          stage.setRequisiteStageRefIds(Arrays.asList(requisiteStageRefIds.split(",")));
         } else {
           stage.setRequisiteStageRefIds(emptySet());
         }
