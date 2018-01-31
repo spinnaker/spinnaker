@@ -4,6 +4,9 @@ parameters:
   flavor:
     type: string
     description: Flavor used by the web servers
+  floating_network_id:
+    type: string
+    description: Network used to allocate a floating IP for each server.
   image:
     type: string
     description: Image used for servers
@@ -100,6 +103,7 @@ resources:
         type: servergroup_resource.yaml
         properties:
           flavor: {get_param: flavor}
+          floating_network_id: {get_param: floating_network_id}
           image: {get_param: image}
           # metering.stack is used by ceilometer to autoscale against instances that are part of this stack
           # the others are user-specified
@@ -160,7 +164,7 @@ outputs:
   # of obtaining it from a stack
   servergroup_resource:
     description: servergroup_resource.yaml template value
-    value: {get_file: servergroup_resource.yaml }
+    value: {get_file: "servergroup_resource.yaml" }
   # we need to store subtemplate in servergroup output from create, as it is required to do an update and there is no native way
   # of obtaining it from a stack
   servergroup_resource_member:

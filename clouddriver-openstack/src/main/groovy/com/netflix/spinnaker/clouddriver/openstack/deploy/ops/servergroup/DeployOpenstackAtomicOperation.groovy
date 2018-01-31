@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
@@ -55,6 +57,8 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
   DeployOpenstackAtomicOperationDescription description
 
   static final Map<String, String> templateMap = new ConcurrentHashMap<>()
+
+  private ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory())
 
   DeployOpenstackAtomicOperation(DeployOpenstackAtomicOperationDescription description) {
     this.description = description
@@ -115,12 +119,14 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
       def stackName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
       task.updateStatus BASE_PHASE, "Heat stack name chosen to be ${stackName}."
 
-      Map<String, String> subtemplates = [:]
-      String template = getTemplateFile(ServerGroupConstants.TEMPLATE_FILE)
-      String resourceFilename = ServerGroupConstants.SUBTEMPLATE_FILE
+      Map<String, Map> templates = [
+        main: objectMapper.readValue(getTemplateFile(ServerGroupConstants.TEMPLATE_FILE), Map)
+      ]
 
       if (description.serverGroupParameters.floatingNetworkId) {
-        template = getTemplateFile(ServerGroupConstants.TEMPLATE_FILE_FLOAT)
+        templates.main.parameters.floating_network_id = [type: "string", description: "Network used to allocate a floating IP for each server."]
+        templates.main.resources.servergroup.properties.resource.properties.floating_network_id = [get_param: "floating_network_id"]
+
       }
       if (description.serverGroupParameters.loadBalancers && !description.serverGroupParameters.loadBalancers.isEmpty()) {
         //look up all load balancer listeners -> pool ids and internal ports
@@ -128,33 +134,38 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
         List<MemberData> memberDataList = buildMemberData(description.credentials, description.region, description.serverGroupParameters.subnetId, description.serverGroupParameters.loadBalancers, this.&parseListenerKey)
         task.updateStatus BASE_PHASE, "Finished getting load balancer details for load balancers $description.serverGroupParameters.loadBalancers."
 
+        templates[ServerGroupConstants.SUBTEMPLATE_FILE] = objectMapper.readValue(getTemplateFile(ServerGroupConstants.SUBTEMPLATE_FILE), Map)
         //check for floating ip
         if (description.serverGroupParameters.floatingNetworkId) {
-          resourceFilename = ServerGroupConstants.SUBTEMPLATE_FILE_FLOAT
+          templates[ServerGroupConstants.SUBTEMPLATE_FILE].parameters.floating_network_id = [type: "string", description: "Network used to allocate a floating IP for each server."]
+          templates[ServerGroupConstants.SUBTEMPLATE_FILE].resources.server_floating_ip = [
+            type: "OS::Neutron::FloatingIP",
+            properties: [
+              floating_network_id: [get_param: "floating_network_id"],
+              port_id: [get_attr: ["server", "addresses", [get_param: "network_id"], 0, "port"]]
+            ]
+          ]
         }
 
         task.updateStatus BASE_PHASE, "Loading lbaas subtemplates..."
-        String subtemplate = getTemplateFile(resourceFilename)
-        if (subtemplate) {
-          subtemplates << [(resourceFilename): subtemplate]
-          if (subtemplate.contains(ServerGroupConstants.MEMBERTEMPLATE_FILE)) {
-            subtemplates << [(ServerGroupConstants.MEMBERTEMPLATE_FILE): buildPoolMemberTemplate(memberDataList)]
-          }
+        if (objectMapper.writeValueAsString(templates[ServerGroupConstants.SUBTEMPLATE_FILE]).contains(ServerGroupConstants.MEMBERTEMPLATE_FILE)) {
+          templates[ServerGroupConstants.MEMBERTEMPLATE_FILE] = buildPoolMemberTemplate(memberDataList)
         }
         task.updateStatus BASE_PHASE, "Finished loading lbaas templates."
       } else {
         task.updateStatus BASE_PHASE, "Loading subtemplates..."
 
         //check for floating ip
+        templates[ServerGroupConstants.SUBTEMPLATE_FILE] = objectMapper.readValue(getTemplateFile(ServerGroupConstants.SUBTEMPLATE_SERVER_FILE), Map)
         if (description.serverGroupParameters.floatingNetworkId) {
-          resourceFilename = ServerGroupConstants.SUBTEMPLATE_SERVER_FILE_FLOAT
-        } else {
-          resourceFilename = ServerGroupConstants.SUBTEMPLATE_SERVER_FILE
-        }
-
-        String subtemplate = getTemplateFile(resourceFilename)
-        if (subtemplate) {
-          subtemplates << [(resourceFilename): subtemplate]
+          templates[ServerGroupConstants.SUBTEMPLATE_FILE].parameters.floating_network_id = [type: "string", description: "Network used to allocate a floating IP for each server."]
+          templates[ServerGroupConstants.SUBTEMPLATE_FILE].resources.server_floating_ip = [
+            type: "OS::Neutron::FloatingIP",
+            properties: [
+              floating_network_id: [get_param: "floating_network_id"],
+              port_id: [get_attr: ["server", "addresses", [get_param: "network_id"], 0, "port"]]
+            ]
+          ]
         }
         task.updateStatus BASE_PHASE, "Finished loading templates."
       }
@@ -166,15 +177,24 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
 
       String userData = getUserData(provider, stackName)
 
+      if (description.serverGroupParameters.zones) {
+        task.updateStatus BASE_PHASE, "Creating zone policy for ${description.serverGroupParameters.zones.size()} zones"
+        addZonePlacementPolicy(description.serverGroupParameters.zones, templates.main, templates[ServerGroupConstants.SUBTEMPLATE_FILE])
+      }
+
       task.updateStatus BASE_PHASE, "Creating heat stack $stackName..."
       ServerGroupParameters params = description.serverGroupParameters.identity {
         it.networkId = subnet.networkId
         it.rawUserData = userData
         it.sourceUserDataType = description.userDataType
         it.sourceUserData = description.userData
-        it.resourceFilename = resourceFilename
         it
       }
+
+      def template = objectMapper.writeValueAsString(templates.main)
+      //drop the primary template and convert everything to string
+      def subtemplates = (Map<String, String>) templates.findAll { it.key != "main"}.collectEntries {k, v -> [(k): objectMapper.writeValueAsString(v)]}
+
       provider.deploy(description.region, stackName, template, subtemplates, params,
         description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName."
@@ -227,5 +247,39 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
       templateMap.put(filename, template)
       template ?: ""
     }
+  }
+
+  private static void addZonePlacementPolicy(List<String> zones, Map mainTemplate, Map resourceTemplate) {
+    def placementList = zones.collect { zone ->
+      [
+          name: zone,
+          weight: 100
+      ]
+    }
+    mainTemplate.resources.zone_policy = [
+        type: "OS::Senlin::Policy",
+        properties: [
+            type: "senlin.policy.zone_placement",
+            version: "1.0",
+            properties: [
+              regions: placementList
+            ]
+        ]
+    ]
+    mainTemplate.resources.zone_policy_group = [
+        type: "OS::Nova::ServerGroup",
+        properties: [
+          policies: [
+              [
+                  get_resource: "zone_policy"
+              ]
+          ]
+        ]
+    ]
+    resourceTemplate.resources.server.properties.scheduler_hints = [
+        group: [
+            get_resource: "zone_policy_group"
+        ]
+    ]
   }
 }

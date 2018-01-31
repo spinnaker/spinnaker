@@ -1,5 +1,5 @@
 heat_template_version: 2016-04-08
-description: A load balanced server for Spinnaker.
+description: An auto-scaled server for Spinnaker without any load balancer association.
 parameters:
   flavor:
     type: string
@@ -24,7 +24,11 @@ parameters:
     description: Subnet used to allocate a fixed IP for each server.
   user_data:
     type: string
-    description: String that will execute upon server boot, if cloud-init is installed.
+    description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed.
+  scheduler_hints:
+    type: json
+    description: Key/Value pairs in json format for scheduler_hints
+    default: {}
 resources:
   server:
     type: OS::Nova::Server
@@ -36,24 +40,15 @@ resources:
         - subnet: {get_param: subnet_id}
       security_groups: {get_param: security_groups}
       user_data: {get_param: user_data}
+      scheduler_hints: {get_param: scheduler_hints}
       user_data_format: RAW
   server_floating_ip:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network_id: {get_param: floating_network_id}
       port_id: {get_attr: [server, addresses, {get_param: network_id}, 0, port]}
-  member:
-    type: OS::Heat::ResourceGroup
-    properties:
-      resource_def:
-        # this is dynamically generated to associate a load balancer pool member from each listener to each server
-        type: servergroup_resource_member.yaml
-        properties:
-          address: {get_attr: [server, first_address]}
+
 outputs:
   server_ip:
     description: IP Address of the load-balanced server
     value: { get_attr: [server, first_address] }
-  lb_member:
-    description: LB member details
-    value: { get_attr: [member, show] }

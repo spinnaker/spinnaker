@@ -87,7 +87,6 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       scaleup: scaleup,
       scaledown: scaledown,
       tags: ['foo':'bar'],
-      resourceFilename: 'servergroup_resource',
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK,
@@ -118,7 +117,6 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       scaleup: scaleup,
       scaledown: scaledown,
       tags: ["foo":"barbar"],
-      resourceFilename: 'servergroup_resource'
     )
     new DeployOpenstackAtomicOperationDescription(
       stack: STACK_N,
@@ -255,7 +253,6 @@ class CloneOpenstackAtomicOperationSpec extends Specification {
       scaledown: scaledown,
       tags: ['foo':'bar'],
       floatingNetworkId: UUID.toString(),
-      resourceFilename: 'servergroup_resource',
     )
     def ancestor = new DeployOpenstackAtomicOperationDescription(
       stack: STACK,

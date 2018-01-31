@@ -96,7 +96,6 @@ class CloneOpenstackAtomicOperation implements AtomicOperation<DeploymentResult>
       scaleup = description.serverGroupParameters?.scaleup ?: ancestorParams.scaleup
       scaledown = description.serverGroupParameters?.scaledown ?: ancestorParams.scaledown
       tags = description.serverGroupParameters?.tags ?: ancestorParams.tags
-      resourceFilename = description.serverGroupParameters?.resourceFilename ?: ancestorParams.resourceFilename
 
       // Lack of floatingNetworkId means to not set one, so can't pull this value from the ancestorParams
       floatingNetworkId = description.serverGroupParameters?.floatingNetworkId

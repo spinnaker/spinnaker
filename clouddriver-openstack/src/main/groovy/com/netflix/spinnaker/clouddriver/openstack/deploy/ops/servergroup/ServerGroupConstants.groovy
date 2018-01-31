@@ -41,11 +41,11 @@ class ServerGroupConstants {
 
   //this is the name of the subtemplate referenced by the template,
   //and needs to be loaded into memory as a String
-  final static String SUBTEMPLATE_FILE = "${SUBTEMPLATE_OUTPUT}.yaml"
+  final static String SUBTEMPLATE_FILE = "${SUBTEMPLATE_OUTPUT}.yaml".toString()
   //with floating ip for each instance
-  final static String SUBTEMPLATE_FILE_FLOAT = "${SUBTEMPLATE_OUTPUT_FLOAT}.yaml"
+  final static String SUBTEMPLATE_FILE_FLOAT = "${SUBTEMPLATE_OUTPUT_FLOAT}.yaml".toString()
 
   //this is the name of the member template referenced by the subtemplate,
   //and is contructed on the fly
-  final static String MEMBERTEMPLATE_FILE = "${MEMBERTEMPLATE_OUTPUT}.yaml"
+  final static String MEMBERTEMPLATE_FILE = "${MEMBERTEMPLATE_OUTPUT}.yaml".toString()
 }

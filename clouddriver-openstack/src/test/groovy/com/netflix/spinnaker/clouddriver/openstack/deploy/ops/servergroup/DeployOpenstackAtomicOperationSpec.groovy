@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
@@ -25,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergrou
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.UserDataType
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
-import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.OpenstackUserDataProvider
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import org.openstack4j.model.heat.Stack
@@ -35,6 +36,7 @@ import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.openstack.networking.domain.ext.ListItem
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DeployOpenstackAtomicOperationSpec extends Specification {
   String accountName = 'myaccount'
@@ -83,7 +85,6 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     // Add the computed parts to the server group params
     expectedServerGroupParams = serverGroupParams.clone()
     expectedServerGroupParams.with {
-      it.resourceFilename = 'servergroup_resource.yaml'
       it.networkId = '1234'
       it.rawUserData = ''
     }
@@ -222,6 +223,77 @@ class DeployOpenstackAtomicOperationSpec extends Specification {
     1 * provider.deploy(region, createdStackName, _ as String, _ as Map<String,String>, expectedServerGroupParams, _ as Boolean, _ as Long, tags) >> { throw throwable }
     Throwable actual = thrown(OpenstackOperationException)
     actual.cause == throwable
+  }
+
+  @Unroll
+  def "creates HEAT template: #type"() {
+    given:
+    def mapper = new ObjectMapper(new YAMLFactory())
+    @Subject def operation = new DeployOpenstackAtomicOperation(description)
+    String createdStackName = 'app-stack-details-v000'
+    if (fip) {
+      description.serverGroupParameters.floatingNetworkId = "net-9876"
+    }
+
+    if (!loadBalancers) {
+      description.serverGroupParameters.loadBalancers = []
+      tags = []
+    }
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * provider.listStacks(region) >> []
+    if (loadBalancers) {
+      1 * provider.getLoadBalancer(region, lbId) >> mockLb
+      1 * provider.getListener(region, listenerId) >> mockListener
+    }
+    1 * provider.getSubnet(region, subnetId) >> mockSubnet
+    1 * provider.deploy(region, createdStackName, { assertTemplate(it, mainTemplate) }, { assertTemplates(it, subtemplates)}, { params(it) }, _ as Boolean, _ as Long, tags)
+    noExceptionThrown()
+
+    where:
+    type                        | fip   | loadBalancers || mainTemplate                              | subtemplates                                                                                                                                      | params
+    "no fip, no load balancers" | false | false || exampleTemplate("servergroup.yaml")       | ["servergroup_resource.yaml": exampleTemplate("servergroup_server.yaml")]                                                                   | { ServerGroupParameters params -> true }
+    "fip, no load balancers"    | true  | false || exampleTemplate("servergroup_float.yaml") | ["servergroup_resource.yaml": exampleTemplate("servergroup_server_float.yaml")]                                                             | { ServerGroupParameters params -> true }
+    "no fip, load balancers"    | false | true  || exampleTemplate("servergroup.yaml")       | ["servergroup_resource.yaml": exampleTemplate("servergroup_resource.yaml"), "servergroup_resource_member.yaml": memberDataTemplate()]       | { ServerGroupParameters params -> true }
+    "fip, load balancers"       | true  | true  || exampleTemplate("servergroup_float.yaml") | ["servergroup_resource.yaml": exampleTemplate("servergroup_resource_float.yaml"), "servergroup_resource_member.yaml": memberDataTemplate()] | { ServerGroupParameters params -> true }
+  }
+
+  private boolean assertTemplate(String actual, String expected) {
+    def mapper = new ObjectMapper(new YAMLFactory())
+    return mapper.readValue(actual, Map) == mapper.readValue(expected, Map)
+  }
+
+  private boolean assertTemplates(Map actual, Map expected) {
+    def mapper = new ObjectMapper(new YAMLFactory())
+    return actual.collectEntries {k, v -> [(k): mapper.readValue(v, Map)]} == expected.collectEntries { k, v -> [(k): mapper.readValue(v, Map)] }
+  }
+
+  private String exampleTemplate(String name) {
+    DeployOpenstackAtomicOperationSpec.class.getResource(name).getText("utf-8")
+  }
+
+  private String memberDataTemplate() {
+    return """\
+---
+heat_template_version: "2016-04-08"
+description: "Pool members for autoscaling group resource"
+parameters:
+  address:
+    type: "string"
+    description: "Server address for autoscaling group resource"
+resources:
+  member-mockpool-99-null-null:
+    type: "OS::Neutron::LBaaS::PoolMember"
+    properties:
+      address:
+        get_param: "address"
+      pool: "8888"
+      protocol_port: null
+      subnet: "1234"
+"""
   }
 
 }

@@ -4,9 +4,6 @@ parameters:
   flavor:
     type: string
     description: Flavor used by the web servers
-  floating_network_id:
-    type: string
-    description: Network used to allocate a floating IP for each server.
   image:
     type: string
     description: Image used for servers
@@ -25,6 +22,10 @@ parameters:
   load_balancers:
     type: comma_delimited_list
     description: Comma-separated string of load balancers to associate to the stack. This is not used in the stack and is defined for auditing purposes.
+    default: []
+  zones:
+    type: comma_delimited_list
+    description: Comma-separated string of availability zones
     default: []
   security_groups:
     type: comma_delimited_list
@@ -84,9 +85,10 @@ parameters:
     type: string
     description: Raw base64-encoded string that will execute upon server boot, if cloud-init is installed
     default: ""
-  resource_filename:
-    type: string
-    description: Member resource file name (i.e. servergroup_resource.yaml)
+  scheduler_hints:
+    type: json
+    description: Key/Value pairs in json format for scheduler_hints
+    default: {}
 resources:
   servergroup:
     type: OS::Heat::AutoScalingGroup
@@ -95,10 +97,9 @@ resources:
       max_size: {get_param: max_size}
       desired_capacity: {get_param: desired_size}
       resource:
-        type: {get_param: resource_filename}
+        type: servergroup_resource.yaml
         properties:
           flavor: {get_param: flavor}
-          floating_network_id: {get_param: floating_network_id}
           image: {get_param: image}
           # metering.stack is used by ceilometer to autoscale against instances that are part of this stack
           # the others are user-specified
@@ -111,6 +112,7 @@ resources:
           security_groups: {get_param: security_groups}
           subnet_id: {get_param: subnet_id}
           user_data: {get_param: user_data}
+          scheduler_hints: {get_param: scheduler_hints}
   web_server_scaleup_policy:
     type: OS::Heat::ScalingPolicy
     properties:
@@ -157,8 +159,8 @@ outputs:
   # we need to store subtemplate in servergroup output from create, as it is required to do an update and there is no native way
   # of obtaining it from a stack
   servergroup_resource:
-    description: resource_filename template value
-    value: {get_file: {get_param: resource_filename} }
+    description: servergroup_resource.yaml template value
+    value: {get_file: servergroup_resource.yaml }
   # we need to store subtemplate in servergroup output from create, as it is required to do an update and there is no native way
   # of obtaining it from a stack
   servergroup_resource_member:

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import org.openstack4j.model.network.ext.ListenerV2
@@ -69,8 +67,7 @@ trait StackPoolMemberAware {
    * @param memberData
    * @return
    */
-  String buildPoolMemberTemplate(List<MemberData> memberData) {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory())
+  Map buildPoolMemberTemplate(List<MemberData> memberData) {
     Map<String, Object> parameters = [address: [type: "string", description: "Server address for autoscaling group resource"]]
     Map<String, Object> resources = memberData.collectEntries {
       [
@@ -90,6 +87,6 @@ trait StackPoolMemberAware {
       description          : "Pool members for autoscaling group resource",
       parameters           : parameters,
       resources            : resources]
-    mapper.writeValueAsString(memberTemplate)
+    return memberTemplate
   }
 }

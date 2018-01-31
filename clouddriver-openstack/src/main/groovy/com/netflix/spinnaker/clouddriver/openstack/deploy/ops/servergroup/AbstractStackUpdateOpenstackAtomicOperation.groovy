@@ -96,34 +96,27 @@ abstract class AbstractStackUpdateOpenstackAtomicOperation implements AtomicOper
       //pre update ops
       preUpdate(stack)
 
-      //we need to store subtemplate in server group output from create, as it is required to do an update and there is no native way of
-      //obtaining it from a stack
-      String resourceFileName = stack.parameters?.get(ServerGroupConstants.SUBTEMPLATE_FILENAME)
+      String resourceFileName = ServerGroupConstants.SUBTEMPLATE_FILE
 
-      if (resourceFileName) {
-        List<Map<String, Object>> outputs = stack.outputs
-        String resourceSubtemplate = outputs.find { m -> m.get("output_key") == ServerGroupConstants.SUBTEMPLATE_OUTPUT }.get("output_value")
-        String memberTemplate = outputs.find { m -> m.get("output_key") == ServerGroupConstants.MEMBERTEMPLATE_OUTPUT }.get("output_value")
-        task.updateStatus phaseName, "Successfully fetched server group $foundServerGroupName"
+      List<Map<String, Object>> outputs = stack.outputs
+      String resourceSubtemplate = outputs.find { m -> m.get("output_key") == ServerGroupConstants.SUBTEMPLATE_OUTPUT }.get("output_value")
+      String memberTemplate = outputs.find { m -> m.get("output_key") == ServerGroupConstants.MEMBERTEMPLATE_OUTPUT }.get("output_value")
+      task.updateStatus phaseName, "Successfully fetched server group $foundServerGroupName"
 
-        //get the current template from the stack
-        task.updateStatus phaseName, "Fetching current template for server group $foundServerGroupName"
-        String template = provider.getHeatTemplate(description.region, stack.name, stack.id)
-        task.updateStatus phaseName, "Successfully fetched current template for server group $foundServerGroupName"
+      //get the current template from the stack
+      task.updateStatus phaseName, "Fetching current template for server group $foundServerGroupName"
+      String template = provider.getHeatTemplate(description.region, stack.name, stack.id)
+      task.updateStatus phaseName, "Successfully fetched current template for server group $foundServerGroupName"
 
-        Map<String, String> templateMap = [(resourceFileName): resourceSubtemplate]
-        if (memberTemplate) {
-          templateMap << [(ServerGroupConstants.MEMBERTEMPLATE_FILE): memberTemplate]
-        }
-
-        //update stack
-        task.updateStatus phaseName, "Updating server group $stack.name"
-        provider.updateStack(description.region, stack.name, stack.id, template, templateMap, buildServerGroupParameters(stack), stack.tags)
-        task.updateStatus phaseName, "Successfully updated server group $stack.name"
-      } else {
-        task.updateStatus phaseName, "Missing resource filename in parameters list- ${stack.parameters}"
-        throw new OpenstackOperationException("Missing resource filename in HEAT template")
+      Map<String, String> templateMap = [(resourceFileName): resourceSubtemplate]
+      if (memberTemplate) {
+        templateMap << [(ServerGroupConstants.MEMBERTEMPLATE_FILE): memberTemplate]
       }
+
+      //update stack
+      task.updateStatus phaseName, "Updating server group $stack.name"
+      provider.updateStack(description.region, stack.name, stack.id, template, templateMap, buildServerGroupParameters(stack), stack.tags)
+      task.updateStatus phaseName, "Successfully updated server group $stack.name"
 
       //post update ops
       postUpdate(stack)
