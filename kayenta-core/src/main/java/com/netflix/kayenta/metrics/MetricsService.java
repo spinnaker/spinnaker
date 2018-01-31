@@ -21,7 +21,9 @@ import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public interface MetricsService {
   String getType();
@@ -32,4 +34,8 @@ public interface MetricsService {
                                CanaryConfig canaryConfig,
                                CanaryMetricConfig canaryMetricConfig,
                                CanaryScope canaryScope) throws IOException;
+
+  default List<Map> getMetadata(String metricsAccountName, String filter) throws IOException {
+    return Collections.emptyList();
+  }
 }

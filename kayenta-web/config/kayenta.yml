@@ -82,6 +82,7 @@ swagger:
     - /fetch.*
     - /health
     - /judges.*
+    - /metadata.*
     - /metricSetList.*
     - /metricSetPairList.*
     - /pipeline.*

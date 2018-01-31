@@ -17,8 +17,10 @@
 package com.netflix.kayenta.stackdriver.metrics;
 
 import com.google.api.services.monitoring.v3.Monitoring;
+import com.google.api.services.monitoring.v3.model.ListMetricDescriptorsResponse;
 import com.google.api.services.monitoring.v3.model.ListTimeSeriesResponse;
 import com.google.api.services.monitoring.v3.model.Metric;
+import com.google.api.services.monitoring.v3.model.MetricDescriptor;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
@@ -30,8 +32,11 @@ import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfi
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
+import com.netflix.kayenta.stackdriver.config.StackdriverConfigurationProperties;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import freemarker.template.Configuration;
@@ -42,6 +47,7 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -56,6 +62,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -73,6 +80,11 @@ public class StackdriverMetricsService implements MetricsService {
 
   @Autowired
   private final Registry registry;
+
+  @Autowired
+  private final StackdriverConfigurationProperties stackdriverConfigurationProperties;
+
+  private List<MetricDescriptor> metricDescriptorsCache = Collections.emptyList();
 
   @Override
   public String getType() {
@@ -327,5 +339,49 @@ public class StackdriverMetricsService implements MetricsService {
     log.debug("Expanded: customFilter={}", customFilter);
 
     return customFilter;
+  }
+
+  @Override
+  public List<Map> getMetadata(String metricsAccountName, String filter) throws IOException {
+    if (!StringUtils.isEmpty(filter)) {
+      String lowerCaseFilter = filter.toLowerCase();
+
+      return metricDescriptorsCache
+        .stream()
+        .filter(metricDescriptor -> metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
+        .collect(Collectors.toList());
+    } else {
+      return metricDescriptorsCache
+        .stream()
+        .collect(Collectors.toList());
+    }
+  }
+
+  @Scheduled(fixedDelayString = "#{@stackdriverConfigurationProperties.metadataCachingIntervalMS}")
+  public void updateMetricDescriptorsCache() throws IOException {
+    Set<AccountCredentials> accountCredentialsSet =
+      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+
+    for (AccountCredentials credentials : accountCredentialsSet) {
+      if (credentials instanceof GoogleNamedAccountCredentials) {
+        GoogleNamedAccountCredentials stackdriverCredentials = (GoogleNamedAccountCredentials)credentials;
+        ListMetricDescriptorsResponse listMetricDescriptorsResponse =
+          stackdriverCredentials
+            .getMonitoring()
+            .projects()
+            .metricDescriptors()
+            .list("projects/" + stackdriverCredentials.getProject())
+            .execute();
+        List<MetricDescriptor> metricDescriptors = listMetricDescriptorsResponse.getMetricDescriptors();
+
+        if (!CollectionUtils.isEmpty(metricDescriptors)) {
+          metricDescriptorsCache = metricDescriptors;
+
+          log.debug("Updated cache with {} metric descriptors via account {}.", metricDescriptors.size(), stackdriverCredentials.getName());
+        } else {
+          log.debug("While updating cache, found no metric descriptors via account {}.", stackdriverCredentials.getName());
+        }
+      }
+    }
   }
 }
