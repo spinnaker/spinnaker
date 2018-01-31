@@ -103,7 +103,11 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         monitor.then(() => this.setState({ triggeringExecution: false }));
         this.setState({ poll: monitor });
       },
-      () => this.setState({ triggeringExecution: false }));
+      () => {
+        const monitor = this.props.application.executions.refresh();
+        monitor.then(() => this.setState({ triggeringExecution: false }));
+        this.setState({ poll: monitor });
+      });
   }
 
   public triggerPipeline(): void {

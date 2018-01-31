@@ -436,4 +436,60 @@ describe('Service: executionService', () => {
     });
 
   });
+
+  describe('waitUntilNewTriggeredPipelineAppears', () => {
+    const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
+    const executionId = 'abc';
+    const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+
+    it('resolves when the pipeline exists', () => {
+      let succeeded = false;
+
+      $httpBackend.expectGET(url).respond(200, {});
+
+      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId)
+        .then(() => succeeded = true);
+
+      expect(succeeded).toBe(false);
+
+      $httpBackend.flush();
+      expect(succeeded).toBe(true);
+    });
+
+    it('does not resolve when the pipeline does not exist', () => {
+      let succeeded = false;
+
+      $httpBackend.expectGET(url).respond(404, {});
+
+      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId)
+        .then(() => succeeded = true);
+
+      expect(succeeded).toBe(false);
+
+      $httpBackend.flush();
+      expect(succeeded).toBe(false);
+    });
+
+    it('resolves when the pipeline exists on a later poll', () => {
+      let succeeded = false;
+
+      $httpBackend.expectGET(url).respond(404, {});
+
+      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId)
+        .then(() => succeeded = true);
+
+      expect(succeeded).toBe(false);
+
+      $httpBackend.flush();
+
+      expect(succeeded).toBe(false);
+
+      // return success on the second GET request
+      $httpBackend.expectGET(url).respond(200, {});
+      timeout.flush();
+      $httpBackend.flush();
+
+      expect(succeeded).toBe(true);
+    });
+  })
 });
