@@ -416,7 +416,11 @@ public class KubectlJobExecutor {
 
   private List<String> kubectlAuthPrefix(KubernetesV2Credentials credentials) {
     List<String> command = new ArrayList<>();
-    command.add(executable);
+    if (StringUtils.isNotEmpty(credentials.getKubectlExecutable())) {
+      command.add(credentials.getKubectlExecutable());
+    } else {
+      command.add(executable);
+    }
 
     if (credentials.isDebug()) {
       command.add("-v");

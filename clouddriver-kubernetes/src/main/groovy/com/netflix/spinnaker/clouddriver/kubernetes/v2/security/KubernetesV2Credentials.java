@@ -55,6 +55,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   // remove when kubectl is no longer a dependency
   @Getter
+  private final String kubectlExecutable;
+
+  // remove when kubectl is no longer a dependency
+  @Getter
   private final String kubeconfigFile;
 
   // remove when kubectl is no longer a dependency
@@ -95,6 +99,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     String accountName;
     String kubeconfigFile;
     String context;
+    String kubectlExecutable;
     String oAuthServiceAccount;
     List<String> oAuthScopes;
     String userAgent;
@@ -111,6 +116,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     public Builder kubeconfigFile(String kubeconfigFile) {
       this.kubeconfigFile = kubeconfigFile;
+      return this;
+    }
+
+    public Builder kubectlExecutable(String kubectlExecutable) {
+      this.kubectlExecutable = kubectlExecutable;
       return this;
     }
 
@@ -185,6 +195,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           omitNamespaces,
           registry,
           kubeconfigFile,
+          kubectlExecutable,
           context,
           oAuthServiceAccount,
           oAuthScopes,
@@ -199,6 +210,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       @NotNull List<String> omitNamespaces,
       @NotNull Registry registry,
       String kubeconfigFile,
+      String kubectlExecutable,
       String context,
       String oAuthServiceAccount,
       List<String> oAuthScopes,
@@ -210,7 +222,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.omitNamespaces = omitNamespaces;
     this.jobExecutor = jobExecutor;
     this.debug = debug;
-
+    this.kubectlExecutable = kubectlExecutable;
     this.kubeconfigFile = kubeconfigFile;
     this.context = context;
     this.oAuthServiceAccount = oAuthServiceAccount;

@@ -50,6 +50,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   final private String user;
   final private String userAgent;
   final private String kubeconfigFile;
+  final private String kubectlExecutable;
   final private Boolean serviceAccount;
   private List<String> namespaces;
   private List<String> omitNamespaces;
@@ -71,6 +72,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
                                     String cluster,
                                     String user,
                                     String kubeconfigFile,
+                                    String kubectlExecutable,
                                     Boolean serviceAccount,
                                     List<String> namespaces,
                                     List<String> omitNamespaces,
@@ -89,6 +91,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     this.user = user;
     this.userAgent = userAgent;
     this.kubeconfigFile = kubeconfigFile;
+    this.kubectlExecutable = kubectlExecutable;
     this.serviceAccount = serviceAccount;
     this.namespaces = namespaces;
     this.omitNamespaces = omitNamespaces;
@@ -130,6 +133,10 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     return credentials;
   }
 
+  public String getKubectlExecutable() {
+    return kubectlExecutable;
+  }
+
   @Override
   public String getCloudProvider() {
     return cloudProvider;
@@ -164,6 +171,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     String user;
     String userAgent;
     String kubeconfigFile;
+    String kubectlExecutable;
     Boolean serviceAccount;
     Boolean configureImagePullSecrets;
     List<String> namespaces;
@@ -231,6 +239,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
     Builder kubeconfigFile(String kubeconfigFile) {
       this.kubeconfigFile = kubeconfigFile;
+      return this;
+    }
+
+    Builder kubectlExecutable(String kubectlExecutable) {
+      this.kubectlExecutable = kubectlExecutable;
       return this;
     }
 
@@ -333,6 +346,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           return (C) new KubernetesV2Credentials.Builder()
               .accountName(name)
               .kubeconfigFile(kubeconfigFile)
+              .kubectlExecutable(kubectlExecutable)
               .context(context)
               .oAuthServiceAccount(oAuthServiceAccount)
               .oAuthScopes(oAuthScopes)
@@ -394,6 +408,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           cluster,
           user,
           kubeconfigFile,
+          kubectlExecutable,
           serviceAccount,
           namespaces,
           omitNamespaces,
