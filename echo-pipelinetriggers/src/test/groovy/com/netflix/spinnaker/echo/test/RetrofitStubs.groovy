@@ -89,6 +89,7 @@ trait RetrofitStubs {
     def res = new WebhookEvent()
     res.details = new Metadata([type: WebhookEvent.TYPE, source: source])
     res.payload = payload
+    res.content = payload
     return res
   }
 

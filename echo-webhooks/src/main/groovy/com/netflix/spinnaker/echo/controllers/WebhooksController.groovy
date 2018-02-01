@@ -59,8 +59,9 @@ class WebhooksController {
     event.details.requestHeaders = headers
     event.rawContent = rawPayload
 
-    Map postedEvent = mapper.readValue(rawPayload, Map)
+    Map postedEvent = mapper.readValue(rawPayload, Map) ?: [:]
     event.content = postedEvent
+    event.payload = postedEvent
 
     if (type == 'git') {
       if (source == 'stash') {

@@ -14,9 +14,6 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
-import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
-import static java.util.Collections.emptyList;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -28,11 +25,6 @@ import com.netflix.spinnaker.echo.model.trigger.WebhookEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -40,6 +32,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+import static java.util.Collections.emptyList;
 
 @Component @Slf4j
 public class WebhookEventMonitor extends TriggerMonitor {
@@ -83,9 +84,15 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
-    Map payload = event.getPayload();
-    Map parameters = payload.containsKey("parameters") ? (Map) payload.get("parameters") : new HashMap();
-    return trigger -> pipeline.withTrigger(trigger.atParameters(parameters).atPayload(payload));
+    WebhookEvent webhookEvent = objectMapper.convertValue(event, WebhookEvent.class);
+    Map content = webhookEvent.getContent();
+    Map payload = webhookEvent.getPayload();
+    Map parameters = content.containsKey("parameters") ? (Map) content.get("parameters") : new HashMap();
+    List<Artifact> artifacts = objectMapper.convertValue(content.getOrDefault("artifacts", emptyList()), ARTIFACT_LIST);
+
+    return trigger -> pipeline
+        .withReceivedArtifacts(artifacts)
+        .withTrigger(trigger.atParameters(parameters).atPayload(payload));
   }
 
   @Override
@@ -95,16 +102,15 @@ public class WebhookEventMonitor extends TriggerMonitor {
 
   @Override
   protected Predicate<Trigger> matchTriggerFor(final TriggerEvent event, final Pipeline pipeline) {
-    String type = event.getDetails().getType();
-    String source = event.getDetails().getSource();
-
-    Map payload = event.getPayload();
-    List<Artifact> messageArtifacts =
-        objectMapper.convertValue(payload.getOrDefault("artifacts", emptyList()), ARTIFACT_LIST);
+    WebhookEvent webhookEvent = objectMapper.convertValue(event, WebhookEvent.class);
+    final String type = webhookEvent.getDetails().getType();
+    final String source = webhookEvent.getDetails().getSource();
+    final Map content = webhookEvent.getContent();
+    final List<Artifact> messageArtifacts = objectMapper.convertValue(content.getOrDefault("artifacts", emptyList()), ARTIFACT_LIST);
 
     return trigger ->
-        trigger.getType().equalsIgnoreCase(type) &&
-        trigger.getSource().equals(source) &&
+        trigger.getType() != null && trigger.getType().equalsIgnoreCase(type) &&
+        trigger.getSource() != null && trigger.getSource().equals(source) &&
         (
             // The Constraints in the Trigger could be null. That's OK.
             trigger.getPayloadConstraints() == null ||
