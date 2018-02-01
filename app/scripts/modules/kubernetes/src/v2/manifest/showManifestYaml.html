@@ -1,0 +1,14 @@
+<div modal-page>
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h3>{{manifestTitle}}</h3>
+  </div>
+  <form role="form">
+    <div class="modal-body">
+      <textarea readonly="readonly" rows="15" class="code">{{manifestData}}</textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" ng-click="$close()">Close</button>
+    </div>
+  </form>
+</div>

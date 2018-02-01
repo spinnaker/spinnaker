@@ -2,8 +2,6 @@ import { copy, IComponentOptions, IController, IRootScopeService, module } from 
 import { IModalService } from 'angular-ui-bootstrap';
 import { dump } from 'js-yaml';
 
-import { ServerGroupTemplates } from '@spinnaker/core';
-
 class KubernetesShowManifestYaml implements IController {
   public manifest: any;
   public text: string;
@@ -19,10 +17,10 @@ class KubernetesShowManifestYaml implements IController {
 
   public openYaml() {
     const scope = this.$rootScope.$new();
-    scope.userDataModalTitle = this.title;
-    scope.userData = this.text;
+    scope.manifestTitle = this.title;
+    scope.manifestData = this.text;
     this.$uibModal.open({
-      templateUrl: ServerGroupTemplates.userData,
+      templateUrl: require('./showManifestYaml.html'),
       scope: scope
     });
   }
