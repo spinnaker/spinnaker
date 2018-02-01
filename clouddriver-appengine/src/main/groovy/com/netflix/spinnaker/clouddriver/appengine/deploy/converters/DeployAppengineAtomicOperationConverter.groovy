@@ -46,6 +46,9 @@ class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCr
       switch (description.artifact.type) {
         case 'gcs/object':
           description.repositoryUrl = description.artifact.reference;
+          if (!description.repositoryUrl.startsWith('gs://')) {
+            description.repositoryUrl = "gs://${description.repositoryUrl}"
+          }
           break
         case 'docker/image':
           description.containerImageUrl = description.artifact.name;
@@ -53,10 +56,6 @@ class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCr
         default:
           throw new AppengineDescriptionConversionException("Invalid artifact type for Appengine deploy: ${description.artifact.type}")
       }
-    }
-
-    if (description.repositoryUrl && !description.repositoryUrl.startsWith('gs://')) {
-      description.repositoryUrl = "gs://${description.repositoryUrl}"
     }
 
     return description
