@@ -39,7 +39,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 import redis.clients.util.Pool;
-import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static redis.clients.jedis.Protocol.DEFAULT_DATABASE;
 
 @Configuration
@@ -142,7 +142,7 @@ public class RedisConfiguration {
     String host = redisConnection.getHost();
     int port = redisConnection.getPort() == -1 ? Protocol.DEFAULT_PORT : redisConnection.getPort();
 
-    String redisConnectionPath = redisConnection.getPath() != null ? redisConnection.getPath() : format("/%s", DEFAULT_DATABASE);
+    String redisConnectionPath = isNotEmpty(redisConnection.getPath()) ? redisConnection.getPath() : "/" + DEFAULT_DATABASE;
     int database = Integer.parseInt(redisConnectionPath.split("/", 2)[1]);
 
     String password = redisConnection.getUserInfo() != null ? redisConnection.getUserInfo().split(":", 2)[1] : null;
