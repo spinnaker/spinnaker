@@ -58,7 +58,6 @@ interface ClouddriverService {
   static class AccountDetails extends Account {
     String accountType
     String environment
-    Collection<Map> regions
     Boolean challengeDestructiveActions
     Boolean primaryAccount
     String cloudProvider
