@@ -53,7 +53,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
   /**
    * Default connect timeout in milliseconds
    */
-  private static final long DEFAULT_CONNECT_TIMEOUT = 5000;
+  private static final long DEFAULT_CONNECT_TIMEOUT = 60000;
 
   /**
    * Default read timeout in milliseconds
