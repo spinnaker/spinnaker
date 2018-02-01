@@ -389,6 +389,324 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     result.update(kwargs)
     return result
+  def create_statefulset_pipeline(self):
+      bindings = self.bindings
+
+      payload = self.agent.make_json_payload_from_kwargs(
+          job=[{
+              'type': 'manual',
+              'user': '[anonymous]'
+          }],
+          description='Create StatefulSet in Application ' + self.TEST_APP,
+          application=self.TEST_APP)
+      builder = kube.KubeContractBuilder(self.kube_observer)
+      (builder.new_clause_builder('StatefulSet Added', retryable_for_secs=60)
+       .get_resources(
+          'statefulsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
+       .contains_path_value('kind', 'StatefulSet'))
+      return st.OperationContract(
+          self.new_post_operation(
+              title='create_statefulset', data=payload, path='pipelines/' + self.TEST_APP + '/statefulset-pipeline',
+              status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
+
+  def save_statefulset_pipeline(self):
+      deploy_stage = self.make_deploy_stage_statefulset()
+      job = dict(
+          keepWaitingPipelines='false',
+          application=self.TEST_APP,
+          name='statefulset-pipeline',
+          lastModifiedBy='anonymous',
+          limitConcurrent='true',
+          parallel='true',
+          stages=[deploy_stage]
+      )
+      payload = self.agent.make_json_payload_from_kwargs(**job)
+      expect_match = {key: jp.EQUIVALENT(value)
+                      for key, value in job.items()}
+      expect_match['stages'] = jp.LIST_MATCHES(
+          [
+              jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                               for key, value in deploy_stage.items()})])
+
+      builder = st.HttpContractBuilder(self.agent)
+      (builder.new_clause_builder('Has Pipeline',
+                                  retryable_for_secs=15)
+       .get_url_path(
+          'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+       .contains_match(expect_match))
+      return st.OperationContract(self.new_post_operation(title='create_statefulset', data=payload, path='pipelines',
+                                                          status_class=st.SynchronousHttpOperationStatus),
+                                  contract=builder.build())
+
+  def create_daemonset_pipeline(self):
+      bindings = self.bindings
+      payload = self.agent.make_json_payload_from_kwargs(
+          job=[{
+              'type': 'manual',
+              'user': '[anonymous]'
+          }],
+          description='Create Daemonset in Application' + self.TEST_APP,
+          application=self.TEST_APP)
+      builder = kube.KubeContractBuilder(self.kube_observer)
+      (builder.new_clause_builder('Daemonset Added', retryable_for_secs=15)
+       .get_resources(
+          'daemonsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
+       .contains_path_value('kind', 'DaemonSet'))
+      return st.OperationContract(
+          self.new_post_operation(
+              title='Create_daemonset', data=payload, path='pipelines/' + self.TEST_APP + '/daemonset-pipeline',
+              status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
+
+  def save_daemonset_pipeline(self):
+      deploy_stage = self.make_deploy_stage_daemonset()
+      job = dict(
+          keepWaitingPipelines='false',
+          application=self.TEST_APP,
+          name='daemonset-pipeline',
+          lastModifiedBy='anonymous',
+          limitConcurrent='true',
+          parallel='true',
+          stages=[deploy_stage]
+      )
+      payload = self.agent.make_json_payload_from_kwargs(**job)
+      expect_match = {key: jp.EQUIVALENT(value)
+                      for key, value in job.items()}
+      expect_match['stages'] = jp.LIST_MATCHES(
+          [
+              jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                               for key, value in deploy_stage.items()})])
+
+      builder = st.HttpContractBuilder(self.agent)
+      (builder.new_clause_builder('Has Pipeline',
+                                  retryable_for_secs=15)
+       .get_url_path(
+          'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+       .contains_match(expect_match))
+      builder = kube.KubeContractBuilder(self.kube_observer)
+      return st.OperationContract(self.new_post_operation(title='Save Daemonset', data=payload, path='pipelines',
+                                                          status_class=st.SynchronousHttpOperationStatus),
+                                  contract=builder.build())
+
+  def make_deploy_stage_daemonset(self, **kwargs):
+      bindings = self.bindings
+      result = {
+          'refId': '1',
+          'type': 'deploy',
+          'name': 'Deploy',
+          'clusters': [
+              {
+                  'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+                  'application': self.TEST_APP+'tstv001',
+                  'targetSize': 1,
+                  'cloudProvider': 'kubernetes',
+                  'namespace': self.TEST_NAMESPACE,
+                  'containers': [
+                      {
+                          'name': 'daemonset-pipeline',
+                          'imageDescription': {
+                              'repository': 'nginx'
+                          },
+                          'imagePullPolicy': 'ALWAYS',
+                          'limits': {
+                              'memory': '200Mi'
+                          },
+                          'name': 'nginx',
+                          'requests': {
+                              'cpu': '100m',
+                              'memory': '200Mi'
+                          }}
+                  ],
+                  'kind': 'DaemonSet',
+                  'volumeSources': [],
+                  'provider': 'kubernetes',
+                  'regions': [self.TEST_NAMESPACE],
+                  'region': self.TEST_NAMESPACE
+              }
+          ]
+      }
+      result.update(kwargs)
+      return result
+
+  def make_deploy_stage_statefulset(self, **kwargs):
+      bindings = self.bindings
+      result = {
+          'refId': '1',
+          'type': 'deploy',
+          'name': 'Deploy',
+          'clusters': [
+              {
+                  'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+                  'application': self.TEST_APP+'tstv001',
+                  'targetSize': 1,
+                  'cloudProvider': 'kubernetes',
+                  'namespace': self.TEST_NAMESPACE,
+                  'containers': [
+                      {
+                          'name': 'Statefulset-Pipeline',
+                          'imageDescription': {
+                              'repository': 'nginx'
+                          },
+                          'imagePullPolicy': 'ALWAYS',
+                          'limits': {
+                              'memory': '200Mi'
+                          },
+                          'name': 'nginx',
+                          'requests': {
+                              'cpu': '100m',
+                              'memory': '200Mi'
+                          }}
+                  ],
+                  'kind': 'StatefulSet',
+                  'volumeSources': [],
+                  'provider': 'kubernetes',
+                  'regions': [self.TEST_NAMESPACE],
+                  'region': self.TEST_NAMESPACE
+              }
+          ]
+      }
+      result.update(kwargs)
+      return result
+
+  def save_delete_statefulset_pipeline(self):
+      deploy_stage = self.make_delete_stage_statefulset()
+      job = dict(
+          appConfig={},
+          keepWaitingPipelines='false',
+          application=self.TEST_APP,
+          name='statefulset-delete-pipeline',
+          lastModifiedBy='anonymous',
+          limitConcurrent='true',
+          parallel='true',
+          stages=[deploy_stage]
+      )
+      payload = self.agent.make_json_payload_from_kwargs(**job)
+      expect_match = {key: jp.EQUIVALENT(value)
+                      for key, value in job.items()}
+      expect_match['stages'] = jp.LIST_MATCHES(
+          [
+              jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                               for key, value in deploy_stage.items()})])
+
+      builder = st.HttpContractBuilder(self.agent)
+      (builder.new_clause_builder('Has Pipeline',
+                                  retryable_for_secs=15)
+       .get_url_path(
+          'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+       .contains_match(expect_match))
+      return st.OperationContract(self.new_post_operation(title='create_delete statefulset', data=payload, path='pipelines',
+                                                          status_class=st.SynchronousHttpOperationStatus),
+                                  contract=builder.build())
+
+  def save_delete_daemonset_pipeline(self):
+      deploy_stage = self.make_delete_stage_daemonset()
+      job = dict(
+          appConfig={},
+          keepWaitingPipelines='false',
+          application=self.TEST_APP,
+          name='daemonset-delete-pipeline',
+          lastModifiedBy='anonymous',
+          limitConcurrent='true',
+          parallel='true',
+          stages=[deploy_stage]
+      )
+      payload = self.agent.make_json_payload_from_kwargs(**job)
+      expect_match = {key: jp.EQUIVALENT(value)
+                      for key, value in job.items()}
+      expect_match['stages'] = jp.LIST_MATCHES(
+          [
+              jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                               for key, value in deploy_stage.items()})])
+
+      builder = st.HttpContractBuilder(self.agent)
+      (builder.new_clause_builder('Has Pipeline',
+                                  retryable_for_secs=15)
+       .get_url_path(
+          'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
+       .contains_match(expect_match))
+      return st.OperationContract(self.new_post_operation(title='create_delete daemonset', data=payload, path='pipelines',
+                                                          status_class=st.SynchronousHttpOperationStatus),
+                                  contract=builder.build())
+
+  def make_delete_stage_daemonset(self, **kwargs):
+      bindings = self.bindings
+      result = {
+          'refId': '1',
+          'type': 'destroyServerGroup',
+          'cloudProvider': 'kubernetes',
+		  'cloudProviderType': 'kubernetes',
+		  'cluster': self.TEST_APP+'tstv001',
+		  'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+          'interestingHealthProviderNames': ['KubernetesService'],
+		  'kind': 'DaemonSet',
+		  'name': 'Destroy Server Group',
+                  'target': 'current_asg_dynamic',
+		  'namespaces': ['default'],
+		  'preCondition': 'true'
+      }
+      result.update(kwargs)
+      return result
+
+  def make_delete_stage_statefulset(self, **kwargs):
+      bindings = self.bindings
+      result = {
+          'refId': '1',
+          'type': 'destroyServerGroup',
+          'cloudProvider': 'kubernetes',
+		  'cloudProviderType': 'kubernetes',
+		  'cluster': self.TEST_APP+'tstv001',
+		  'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+          'interestingHealthProviderNames': ['KubernetesService'],
+		  'kind': 'StatefulSet',
+                  'target': 'current_asg_dynamic',
+		  'name': 'Destroy Server Group',
+		  'namespaces': ['default'],
+		  'preCondition': 'true'
+      }
+      result.update(kwargs)
+      return result
+
+  def execute_delete_daemonset_pipeline(self):
+      bindings = self.bindings
+      payload = self.agent.make_json_payload_from_kwargs(
+          job=[{
+              'type': 'manual',
+              'user': '[anonymous]'
+          }],
+          description='Delete Daemonset in Application' + self.TEST_APP,
+          application=self.TEST_APP)
+      builder = kube.KubeContractBuilder(self.kube_observer)
+      (builder.new_clause_builder('Daemonset Deleted', retryable_for_secs=15)
+       .get_resources(
+          'daemonsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
+       .contains_path_value('kind', 'DaemonSet'))
+      return st.OperationContract(
+          self.new_post_operation(
+              title='Delete_daemonset', data=payload, path='pipelines/' + self.TEST_APP + '/daemonset-delete-pipeline',
+              status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
+
+  def execute_delete_statefulset_pipeline(self):
+      bindings = self.bindings
+      payload = self.agent.make_json_payload_from_kwargs(
+          job=[{
+              'type': 'manual',
+              'user': '[anonymous]'
+          }],
+          description='Delete StatefulSet in Application' + self.TEST_APP,
+          application=self.TEST_APP)
+      builder = kube.KubeContractBuilder(self.kube_observer)
+      (builder.new_clause_builder('StatefulSet Deleted', retryable_for_secs=15)
+       .get_resources(
+          'statefulsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
+       .contains_path_value('kind', 'StatefulSet'))
+      return st.OperationContract(
+          self.new_post_operation(
+              title='Delete_StatefulSet', data=payload, path='pipelines/' + self.TEST_APP + '/statefulset-delete-pipeline',
+              status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
+
 
   def create_find_image_pipeline(self):
     name = 'findImagePipeline'
@@ -529,6 +847,31 @@ class KubeSmokeTest(st.AgentTestCase):
 
   def test_e_run_find_image_pipeline(self):
     self.run_test_case(self.scenario.run_find_image_pipeline())
+
+  def test_e_1_save_statefulset_pipeline(self):
+    self.run_test_case(self.scenario.save_statefulset_pipeline())
+
+  def test_e_2_create_statefulset_pipeline(self):
+    self.run_test_case(self.scenario.create_statefulset_pipeline())
+
+  def test_f_1_save_daemonset_pipeline(self):
+    self.run_test_case(self.scenario.save_daemonset_pipeline())
+
+  def test_f_2_create_daemonset_pipeline(self):
+    self.run_test_case(self.scenario.create_daemonset_pipeline())
+
+  def test_g_1_save_delete_daemonset_pipeline(self):
+    self.run_test_case(self.scenario.save_delete_daemonset_pipeline())
+
+  def test_g_2_execute_delete_daemonset_pipeline(self):
+    self.run_test_case(self.scenario.execute_delete_daemonset_pipeline())
+
+  def test_g_1_save_delete_statefulset_pipeline(self):
+    self.run_test_case(self.scenario.save_delete_statefulset_pipeline())
+
+  def test_g_2_execute_delete_statefulset_pipeline(self):
+    self.run_test_case(self.scenario.execute_delete_statefulset_pipeline())
+
 
   def test_x1_delete_server_group(self):
     self.run_test_case(self.scenario.delete_server_group('v000'), max_retries=2)
