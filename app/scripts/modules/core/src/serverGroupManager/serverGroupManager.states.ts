@@ -1,9 +1,9 @@
-import { ITemplateCacheService, module } from 'angular';
-import { StateParams } from '@uirouter/angularjs';
+import { module } from 'angular';
 
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
 import { INestedState } from 'core/navigation';
-import { VersionedCloudProviderService } from 'core/cloudProvider';
+
+import { ServerGroupManagerDetails } from './ServerGroupManagerDetails';
 
 export interface IServerGroupManagerStateParams {
   provider: string;
@@ -20,23 +20,12 @@ module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER])
       url: '/serverGroupManagerDetails/:provider/:accountId/:region/:serverGroupManager',
       views: {
         'detail@../insight': {
-          templateProvider: ['$templateCache', '$stateParams', 'versionedCloudProviderService',
-            ($templateCache: ITemplateCacheService,
-             $stateParams: StateParams,
-             versionedCloudProviderService: VersionedCloudProviderService) => {
-              return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroupManager.detailsTemplateUrl').then(templateUrl =>
-                $templateCache.get(templateUrl)
-              );
-            }],
-          controllerProvider: ['$stateParams', 'versionedCloudProviderService',
-            ($stateParams: StateParams,
-             versionedCloudProviderService: VersionedCloudProviderService) => {
-              return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'serverGroupManager.detailsController');
-            }],
-          controllerAs: 'ctrl'
+          component: ServerGroupManagerDetails,
+          $type: 'react',
         }
       },
       resolve: {
+        accountId: ['$stateParams', ($stateParams: IServerGroupManagerStateParams) => $stateParams.accountId],
         serverGroupManager: ['$stateParams', ($stateParams: IServerGroupManagerStateParams) => $stateParams]
       },
       data: {

@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
+import { UIView } from '@uirouter/react';
 
 import { Application } from 'core/application';
-import { ApplicationIcon, IApplicationIconProps } from './ApplicationIcon';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { Tooltip } from 'core/presentation';
 import { Refresher } from 'core/presentation/refresher/Refresher';
-import { Tooltip } from 'core/presentation/Tooltip';
-import { UIView } from '@uirouter/react';
+import { NgReact, ReactInjector } from 'core/reactShims';
 import { DebugWindow } from 'core/utils/consoleDebug';
 
+import { ApplicationIcon } from './ApplicationIcon';
 import './application.less';
 
 export interface IApplicationComponentProps {
@@ -87,9 +87,6 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
   }
 
   public render() {
-    // Get overridden application icon renderer
-    const Icon: React.ComponentClass<IApplicationComponentProps> = ReactInjector.overrideRegistry.getComponent<IApplicationIconProps>('applicationIcon') || ApplicationIcon;
-
     const { ApplicationNav, ApplicationNavSecondary } = NgReact;
 
     const NotFound = this.props.app.notFound ? (
@@ -101,7 +98,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
     const Found = !this.props.app.notFound ? (
       <h2>
-        <Icon app={this.props.app} />
+        <ApplicationIcon app={this.props.app} />
         <span className="application-name">{this.props.app.name}</span>
         <Refresher
           refreshing={this.state.refreshing}

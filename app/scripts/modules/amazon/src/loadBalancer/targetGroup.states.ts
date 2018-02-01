@@ -1,7 +1,9 @@
 import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, CloudProviderRegistry, INestedState } from '@spinnaker/core';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, INestedState } from '@spinnaker/core';
+
+import { TargetGroupDetails } from './TargetGroupDetails';
 
 export const TARGET_GROUP_STATES = 'spinnaker.amazon.loadBalancer.targetGroup.states';
 module(TARGET_GROUP_STATES, [
@@ -19,21 +21,12 @@ module(TARGET_GROUP_STATES, [
     },
     views: {
       'detail@../insight': {
-        templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry',
-          ($templateCache: ng.ITemplateCacheService,
-           $stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'loadBalancer.targetGroupDetailsTemplateUrl'));
-        }],
-        controllerProvider: ['$stateParams', 'cloudProviderRegistry',
-          ($stateParams: StateParams,
-           cloudProviderRegistry: CloudProviderRegistry) => {
-            return cloudProviderRegistry.getValue($stateParams.provider, 'loadBalancer.targetGroupDetailsController');
-        }],
-        controllerAs: 'ctrl'
+        component: TargetGroupDetails,
+        $type: 'react',
       }
     },
     resolve: {
+      accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId ],
       targetGroup: ['$stateParams', ($stateParams: StateParams) => {
         return {
           loadBalancerName: $stateParams.loadBalancerName,

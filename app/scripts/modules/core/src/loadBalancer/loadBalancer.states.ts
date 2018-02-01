@@ -1,21 +1,18 @@
 import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 
-import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
+import { INestedState, StateConfigProvider } from 'core/navigation';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
 import { filterModelConfig } from 'core/loadBalancer/filter/loadBalancerFilter.model';
 import { LoadBalancers } from 'core/loadBalancer/LoadBalancers';
-import {
-  VERSIONED_CLOUD_PROVIDER_SERVICE,
-  VersionedCloudProviderService
-} from 'core/cloudProvider/versionedCloudProvider.service';
+import { VERSIONED_CLOUD_PROVIDER_SERVICE } from 'core/cloudProvider';
 
+import { LoadBalancerDetails } from './LoadBalancerDetails';
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [
   APPLICATION_STATE_PROVIDER,
   VERSIONED_CLOUD_PROVIDER_SERVICE,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
-
   const loadBalancerDetails: INestedState = {
     name: 'loadBalancerDetails',
     url: '/loadBalancerDetails/:provider/:accountId/:region/:vpcId/:name',
@@ -27,23 +24,12 @@ module(LOAD_BALANCER_STATES, [
     },
     views: {
       'detail@../insight': {
-        templateProvider: ['$templateCache', '$stateParams', 'versionedCloudProviderService',
-          ($templateCache: ng.ITemplateCacheService,
-           $stateParams: StateParams,
-           versionedCloudProviderService: VersionedCloudProviderService) => {
-            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'loadBalancer.detailsTemplateUrl').then(templateUrl =>
-              $templateCache.get(templateUrl)
-            );
-          }],
-        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
-          ($stateParams: StateParams,
-           versionedCloudProviderService: VersionedCloudProviderService) => {
-            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'loadBalancer.detailsController');
-        }],
-        controllerAs: 'ctrl'
+        component: LoadBalancerDetails,
+        $type: 'react',
       }
     },
     resolve: {
+      accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
       loadBalancer: ['$stateParams', ($stateParams: StateParams) => {
         return {
           name: $stateParams.name,
