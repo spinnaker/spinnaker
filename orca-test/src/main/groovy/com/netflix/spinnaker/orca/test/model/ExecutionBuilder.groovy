@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.test.model
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
@@ -36,6 +37,7 @@ class ExecutionBuilder {
     @DelegatesTo(value = Execution, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
     def pipeline = Execution.newPipeline("covfefe")
+    pipeline.trigger = new ManualTrigger(null, null, [:], [], [])
     pipeline.buildTime = currentTimeMillis()
 
     builder.delegate = pipeline

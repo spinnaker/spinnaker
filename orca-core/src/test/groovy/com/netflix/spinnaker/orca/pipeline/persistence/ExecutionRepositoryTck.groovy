@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence
 
-import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
-
-import java.rmi.registry.Registry
 import java.util.concurrent.CountDownLatch
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import redis.clients.jedis.Jedis
@@ -36,6 +33,8 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
+import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.JenkinsArtifact
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
@@ -135,7 +134,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     def pipeline = pipeline {
       application = "orca"
       name = "dummy-pipeline"
-      trigger.putAll(name: "some-jenkins-job", lastBuildLabel: 1)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], new BuildInfo("name", 1, null, [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], null, false, "SUCCESS"), null, [:], [])
       stage {
         type = "one"
         context = [foo: "foo"]
@@ -432,8 +431,9 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "should return task ref for currently running orchestration by correlation id"() {
     given:
-    def execution = orchestration()
-    execution.trigger['correlationId'] = 'covfefe'
+    def execution = orchestration {
+      trigger = new ManualTrigger('covfefe', null, [:], [], [])
+    }
     repository.store(execution)
     repository.updateStatus(execution.id, RUNNING)
 
@@ -454,8 +454,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
   def "parses the parent execution of a pipeline trigger"() {
     given:
     def execution = pipeline {
-      trigger["type"] = "pipeline"
-      trigger["parentExecution"] = pipeline()
+      trigger = new PipelineTrigger(pipeline(), [:])
     }
     repository.store(execution)
 

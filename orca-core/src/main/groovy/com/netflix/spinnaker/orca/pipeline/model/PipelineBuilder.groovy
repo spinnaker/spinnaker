@@ -35,10 +35,9 @@ class PipelineBuilder {
     pipeline = Execution.newPipeline(application)
   }
 
-  PipelineBuilder withTrigger(Map<String, Object> trigger = [:]) {
-    pipeline.trigger.clear()
+  PipelineBuilder withTrigger(Trigger trigger = null) {
     if (trigger) {
-      pipeline.trigger.putAll(trigger)
+      pipeline.trigger = trigger
     }
     return this
   }

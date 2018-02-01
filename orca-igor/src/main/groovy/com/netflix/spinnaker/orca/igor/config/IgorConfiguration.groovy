@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.orca.igor.config
 
+import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
@@ -32,7 +35,6 @@ import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.JacksonConverter
-
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
@@ -44,6 +46,7 @@ class IgorConfiguration {
 
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
+  @Autowired ObjectMapper objectMapper
 
   @Bean
   Endpoint igorEndpoint(
@@ -63,4 +66,8 @@ class IgorConfiguration {
       .create(IgorService)
   }
 
+  @PostConstruct
+  void registerTriggers() {
+    objectMapper.registerSubtypes(JenkinsTrigger, GitTrigger)
+  }
 }

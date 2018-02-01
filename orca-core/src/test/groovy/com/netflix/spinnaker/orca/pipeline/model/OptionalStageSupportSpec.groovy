@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class OptionalStageSupportSpec extends Specification {
 
@@ -31,19 +34,21 @@ class OptionalStageSupportSpec extends Specification {
   @Unroll
   def "should support expression-based optionality #desc"() {
     given:
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.trigger.parameters = [
-        "p1": "v1"
-    ]
-    pipeline.stages << new Stage(pipeline, "", "Test1", [:])
-    pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
-
-    pipeline.stages << new Stage(pipeline, "", "Test2", [:])
-    pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
+    def pipeline = pipeline {
+      trigger.parameters.p1 = "v1"
+      stage {
+        name = "Test1"
+        status = FAILED_CONTINUE
+      }
+      stage {
+        name = "Test2"
+        status = SUCCEEDED
+      }
+    }
 
     and:
     def stage = new Stage(pipeline, "", [
-        stageEnabled: optionalConfig
+      stageEnabled: optionalConfig
     ])
 
     expect:
@@ -66,19 +71,19 @@ class OptionalStageSupportSpec extends Specification {
   @Unroll
   def "should check optionality of parent stages"() {
     given:
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.trigger.parameters = [
-        "p1": "v1"
-    ]
-    pipeline.stages << new Stage(pipeline, "", "Test1", [
-        stageEnabled: optionalConfig
-    ])
-    pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
-
-    pipeline.stages << new Stage(pipeline, "", "Test2", [:])
-    pipeline.stages[1].status = ExecutionStatus.SUCCEEDED
-    pipeline.stages[1].syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
-    pipeline.stages[1].parentStageId = pipeline.stages[0].id
+    def pipeline = pipeline {
+      trigger.parameters.p1 = "v1"
+      stage {
+        name = "Test1"
+        context.stageEnabled = optionalConfig
+        status = FAILED_CONTINUE
+        stage {
+          name = "Test2"
+          status = SUCCEEDED
+          syntheticStageOwner = STAGE_AFTER
+        }
+      }
+    }
 
     expect:
     OptionalStageSupport.isOptional(pipeline.stages[1], contextParameterProcessor) == expectedOptionality

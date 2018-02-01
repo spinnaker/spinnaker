@@ -23,7 +23,9 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGr
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
@@ -162,7 +164,7 @@ class CreateServerGroupTaskSpec extends Specification {
 
     def childPipeline = pipeline {
       name = "child"
-      trigger.parentExecution = parentPipeline
+      trigger = new PipelineTrigger(parentPipeline, [:])
     }
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
@@ -216,6 +218,7 @@ class CreateServerGroupTaskSpec extends Specification {
     ]
     // Building these as maps instead of using the pipeline model objects since this configuration was observed in testing.
     def parentTrigger = [
+      type           : "pipeline",
       isPipeline     : true,
       parentExecution: mapper.convertValue(pipeline {
         name = "grandparent"
@@ -228,15 +231,16 @@ class CreateServerGroupTaskSpec extends Specification {
     ]
 
     def childTrigger = [
+      type: "pipeline",
       isPipeline     : true,
       parentExecution: pipeline {
         name = "parent"
-        trigger.putAll(parentTrigger)
+        trigger = mapper.convertValue(parentTrigger, Trigger)
       }
     ]
     def childPipeline = pipeline {
       name = "child"
-      trigger.putAll(childTrigger)
+      trigger = mapper.convertValue(childTrigger, Trigger)
     }
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
@@ -288,11 +292,12 @@ class CreateServerGroupTaskSpec extends Specification {
     makeChildOf(bakeSynthetic1, bakeStage1)
 
     def childTrigger = [
+      type: "pipeline",
       parentExecution: parentPipeline
     ]
     def childPipeline = pipeline {
       name = "child"
-      trigger.putAll(childTrigger)
+      trigger = mapper.convertValue(childTrigger, Trigger)
     }
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
@@ -347,19 +352,21 @@ class CreateServerGroupTaskSpec extends Specification {
     makeChildOf(bakeSynthetic1, bakeStage1)
 
     def parentTrigger = [
+      type: "pipeline",
       parentExecution: grandparentPipeline
     ]
     def parentPipeline = pipeline {
       name = "parent"
-      trigger.putAll(parentTrigger)
+      trigger = mapper.convertValue(parentTrigger, Trigger)
     }
 
     def childTrigger = [
+      type: "pipeline",
       parentExecution: parentPipeline
     ]
     def childPipeline = pipeline {
       name = "child"
-      trigger.putAll(childTrigger)
+      trigger = mapper.convertValue(childTrigger, Trigger)
     }
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
@@ -419,12 +426,13 @@ class CreateServerGroupTaskSpec extends Specification {
     def pipelineStage = buildStageForPipeline(parentPipeline, "pipeline")
 
     def childTrigger = [
+      type: "pipeline",
       parentExecution      : parentPipeline,
       parentPipelineStageId: pipelineStage.id
     ]
     def childPipeline = pipeline {
       name = "child"
-      trigger.putAll(childTrigger)
+      trigger = mapper.convertValue(childTrigger, Trigger)
     }
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 
@@ -494,12 +502,13 @@ class CreateServerGroupTaskSpec extends Specification {
     makeDependentOn(pipelineStageA, bakeStage1)
 
     def childTriggerA = [
+      type: "pipeline",
       parentExecution      : parentPipeline,
       parentPipelineStageId: pipelineStageA.id
     ]
     def childPipelineA = pipeline {
       name = "child"
-      trigger.putAll(childTriggerA)
+      trigger = mapper.convertValue(childTriggerA, Trigger)
     }
     def manualJudgmentStageA = buildStageForPipeline(childPipelineA, "manualJudgment")
 
@@ -513,12 +522,13 @@ class CreateServerGroupTaskSpec extends Specification {
     makeDependentOn(pipelineStageB, bakeStage2)
 
     def childTriggerB = [
+      type: "pipeline",
       parentExecution      : parentPipeline,
       parentPipelineStageId: pipelineStageB.id
     ]
     def childPipelineB = pipeline {
       name = "child"
-      trigger.putAll(childTriggerB)
+      trigger = mapper.convertValue(childTriggerB, Trigger)
     }
     def manualJudgmentStageB = buildStageForPipeline(childPipelineB, "manualJudgment")
 

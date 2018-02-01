@@ -229,10 +229,14 @@ public class Execution implements Serializable {
     this.origin = origin;
   }
 
-  private final Map<String, Object> trigger = new HashMap<>();
+  private Trigger trigger = null;
 
-  public @Nonnull Map<String, Object> getTrigger() {
+  public @Nonnull Trigger getTrigger() {
     return trigger;
+  }
+
+  public void setTrigger(@Nonnull Trigger trigger) {
+    this.trigger = trigger;
   }
 
   private String description;
@@ -310,10 +314,12 @@ public class Execution implements Serializable {
     return result;
   }
 
+  @Deprecated
   public static Execution newOrchestration(String application) {
     return new Execution(ORCHESTRATION, application);
   }
 
+  @Deprecated
   public static Execution newPipeline(String application) {
     return new Execution(PIPELINE, application);
   }

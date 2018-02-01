@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -128,17 +129,9 @@ trait DeploymentDetailsAware {
 
   private Execution getParentPipelineExecution(Execution execution) {
     // The initial stage execution is a Pipeline, and the ancestor executions are Maps.
-    if (execution.type == PIPELINE) {
-      if (execution.trigger.parentExecution instanceof Execution) {
-        return execution.trigger.parentExecution
-      } else if (execution.trigger?.isPipeline) {
-        if (execution.trigger.parentExecution.type == null) {
-          execution.trigger.parentExecution.type = PIPELINE.name()
-        }
-        return pipelineObjectMapper.convertValue(execution.trigger.parentExecution, Execution)
-      }
+    if (execution.type == PIPELINE && execution.trigger instanceof PipelineTrigger) {
+      return execution.trigger.parentExecution
     }
-
     return null
   }
 

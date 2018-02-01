@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -40,9 +41,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import javax.servlet.http.HttpServletResponse
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
@@ -127,7 +125,7 @@ class OperationsControllerSpec extends Specification {
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
-      trigger.buildInfo == buildInfo
+      trigger.buildInfo.result == buildInfo.result
     }
 
     where:
@@ -194,8 +192,6 @@ class OperationsControllerSpec extends Specification {
 
     and:
     with(startedPipeline.trigger) {
-      parentPipelineName == parentPipeline.name
-      parentStatus == 'CANCELED'
       parentExecution != null
       parentExecution.id == "12345"
     }
@@ -204,7 +200,7 @@ class OperationsControllerSpec extends Specification {
     requestedPipeline = [
       application: "covfefe",
       trigger    : [
-        type            : "manual",
+        type            : "pipeline",
         parentPipelineId: "12345"
       ]
     ]
@@ -224,9 +220,6 @@ class OperationsControllerSpec extends Specification {
       status = SUCCEEDED
       id = "12345"
       application = "covfefe"
-      trigger << [
-        type: "travis"
-      ]
     }
 
     when:
@@ -234,7 +227,7 @@ class OperationsControllerSpec extends Specification {
 
     then:
     1 * pipelineTemplateService.retrievePipelineOrNewestExecution("12345", _) >> previousExecution
-    orchestration.trigger.type == "travis"
+    orchestration.trigger.type == "manual"
 
     where:
     requestedPipeline = [
@@ -267,7 +260,7 @@ class OperationsControllerSpec extends Specification {
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
-      trigger.buildInfo == buildInfo
+      trigger.buildInfo.result == buildInfo.result
       trigger.user == expectedUser
     }
 
@@ -339,13 +332,12 @@ class OperationsControllerSpec extends Specification {
 
     Map requestedPipeline = [
       trigger: [
-        type      : "manual",
+        type      : "jenkins",
         properties: [
           key1        : 'val1',
           key2        : 'val2',
           replaceValue: ['val3']
-        ],
-        replaceMe : '${trigger.properties.replaceValue}'
+        ]
       ],
       id     : '${trigger.properties.key1}',
       name   : '${trigger.properties.key2}'
@@ -357,8 +349,6 @@ class OperationsControllerSpec extends Specification {
     then:
     startedPipeline.id == 'val1'
     startedPipeline.name == 'val2'
-    startedPipeline.trigger.replaceMe instanceof ArrayList
-    startedPipeline.trigger.replaceMe.first() == 'val3'
   }
 
   def "processes pipeline parameters"() {
@@ -370,6 +360,7 @@ class OperationsControllerSpec extends Specification {
 
     Map requestedPipeline = [
       trigger: [
+        type: "manual",
         parameters: [
           key1: 'value1',
           key2: 'value2'
@@ -485,9 +476,7 @@ class OperationsControllerSpec extends Specification {
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
-      trigger.buildInfo.artifacts == expectedArtifacts.collect {
-        [fileName: it]
-      }
+      trigger.buildInfo.artifacts.fileName == expectedArtifacts
     }
 
     where:

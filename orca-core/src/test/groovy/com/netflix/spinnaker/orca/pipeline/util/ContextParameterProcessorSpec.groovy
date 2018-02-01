@@ -22,11 +22,14 @@ import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionTransform
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionsSupport
 import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import org.springframework.expression.spel.SpelEvaluationException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
+import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.SourceControl
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -286,12 +289,26 @@ class ContextParameterProcessorSpec extends Specification {
     result.branch == expectedBranch
 
     where:
-    context                                                                                                 | expectedBranch
-    [:]                                                                                                     | '${scmInfo.branch}'
-    [trigger: [buildInfo: [scm: [[branch: 'branch1']]]]]                                                    | 'branch1'
-    [trigger: [buildInfo: [scm: [[branch: 'branch1'], [branch: 'master']]]]]                                | 'branch1'
-    [trigger: [buildInfo: [scm: [[branch: 'develop'], [branch: 'master']]]]]                                | 'develop'
-    [trigger: [buildInfo: [scm: [[branch: 'jenkinsBranch']]]], buildInfo: [scm: [[branch: 'buildBranch']]]] | 'buildBranch'
+    scm                                                                                    | expectedBranch
+    []                                                                                     | '${scmInfo.branch}'
+    [new SourceControl("", "branch1", "")]                                                 | 'branch1'
+    [new SourceControl("", "branch1", ""), new SourceControl("", "master", "")]            | 'branch1'
+    [new SourceControl("", "develop", ""), new SourceControl("", "master", "")]            | 'develop'
+    [new SourceControl("", "buildBranch", ""), new SourceControl("", "jenkinsBranch", "")] | 'buildBranch'
+
+    context = [
+      trigger: new JenkinsTrigger(
+        "master",
+        "job",
+        1,
+        null,
+        [:],
+        new BuildInfo("name", 1, null, [], scm, "name", false, "SUCCESS"),
+        "user",
+        [:],
+        []
+      )
+    ]
   }
 
   def "ignores deployment details that have not yet ran"() {

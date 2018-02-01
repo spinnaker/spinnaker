@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import com.google.common.collect.ForwardingMap;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.util.stream.Collectors.toList;
 
 public class StageContext extends ForwardingMap<String, Object> {
@@ -47,13 +45,8 @@ public class StageContext extends ForwardingMap<String, Object> {
     return delegate;
   }
 
-  private Map<String, Object> getTrigger() {
-    Execution execution = stage.getExecution();
-    if (execution.getType() == PIPELINE) {
-      return execution.getTrigger();
-    } else {
-      return Collections.emptyMap();
-    }
+  private Trigger getTrigger() {
+    return stage.getExecution().getTrigger();
   }
 
   @Override public Object get(@Nullable Object key) {
@@ -86,9 +79,8 @@ public class StageContext extends ForwardingMap<String, Object> {
       result.add(0, delegate.get(key));
     }
 
-    Map<String, Object> trigger = getTrigger();
-    if (trigger.containsKey(key)) {
-      result.add(trigger.get(key));
+    if (key.equals("artifacts")) {
+      result.add(getTrigger().getArtifacts());
     }
 
     return result;

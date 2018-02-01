@@ -18,10 +18,15 @@ package com.netflix.spinnaker.orca.pipeline.util
 import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
+import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.JenkinsArtifact
 import static com.netflix.spinnaker.orca.pipeline.util.PackageType.DEB
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
@@ -56,12 +61,13 @@ class PackageInfoSpec extends Specification {
   def "If no artifacts in current build info or ancestor stages, code should execute as normal"() {
 
     given:
-    def quipStage = new Stage(
-      execution: pipeline {
-        trigger.putAll("buildInfo": ["artifacts": [["fileName": "testFileName"]]])
-      },
-      context: [buildInfo: [name: "someName"], package: "testPackageName"]
-    )
+    def execution = pipeline {
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], new BuildInfo("name", 1, null, [new JenkinsArtifact("testFileName", ".")], [], null, false, "SUCCESS"), null, [:], [])
+      stage {
+        context = [buildInfo: [name: "someName"], package: "testPackageName"]
+      }
+    }
+    def quipStage = execution.stages.first()
 
     def packageType = DEB
     def packageInfo =
@@ -321,7 +327,7 @@ class PackageInfoSpec extends Specification {
   def "findTargetPackage: allowing unmatched packages is guarded by the allowMissingPackageInstallation flag"() {
     given:
     def pipeline = pipeline {
-      trigger["buildInfo"] = [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], new BuildInfo("name", 1, null, [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], null, false, "SUCCESS"), null, [:], [])
       stage {
         refId = "1"
         context["package"] = "another_package"
@@ -350,16 +356,18 @@ class PackageInfoSpec extends Specification {
     where:
     allowMissingPackageInstallation || expectedException || expectedMessage
     true                            || false             || null
-    false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in null and [[fileName:api_1.1.1-h01.sha123_all.deb]]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
+    false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in null and [api_1.1.1-h01.sha123_all.deb]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
 
   def "findTargetPackage: stage execution instance of Pipeline with trigger and no buildInfo"() {
     given:
-    Stage quipStage = new Stage()
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.trigger << [buildInfo: [artifacts: [[fileName: "api_2.2.2-h02.sha321_all.deb"]]]]
-    quipStage.execution = pipeline
-    quipStage.context = [package: 'api']
+    def pipeline = pipeline {
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], new BuildInfo("name", 1, null, [new JenkinsArtifact("api_2.2.2-h02.sha321_all.deb", ".")], [], null, false, "SUCCESS"), null, [:], [])
+      stage {
+        context = [package: 'api']
+      }
+    }
+    def quipStage = pipeline.stages.first()
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -394,7 +402,7 @@ class PackageInfoSpec extends Specification {
 
     then:
     def exception = thrown(IllegalStateException)
-    exception.message == "Unable to find deployable artifact starting with [foo_, bar_] and ending with .deb in [] and [[fileName:test-package_1.0.0.deb]]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
+    exception.message == "Unable to find deployable artifact starting with [foo_, bar_] and ending with .deb in [] and [test-package_1.0.0.deb]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
 
   @Unroll
@@ -441,11 +449,13 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "findTargetPackage: get packageVersion from trigger and parentExecution.trigger"() {
     given:
-    Stage quipStage = new Stage()
-    def pipeline = Execution.newPipeline("orca")
-    pipeline.trigger << trigger
-    quipStage.execution = pipeline
-    quipStage.context = ['package': "api"]
+    def pipeline = pipeline {
+      trigger = pipelineTrigger
+      stage {
+        context = [package: 'api']
+      }
+    }
+    def quipStage = pipeline.stages.first()
 
     PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
@@ -458,16 +468,12 @@ class PackageInfoSpec extends Specification {
     targetPkg.packageVersion == packageVersion
 
     where:
-    trigger     || packageVersion
-    [parentExecution: [
-      trigger: [
-        buildInfo: [
-          artifacts: [
-            [fileName: "api_1.1.1-h01.sha123_all.deb"]
-          ]]]]] || "1.1.1-h01.sha123"
-    [buildInfo: [
-      artifacts: [
-        [fileName: "api_1.1.1-h01.sha123_all.deb"]
-      ]]]       || "1.1.1-h01.sha123"
+    packageVersion = "1.1.1-h01.sha123"
+    pipelineTrigger << [
+      new PipelineTrigger(ExecutionBuilder.pipeline {
+        trigger = new JenkinsTrigger("master", "job", 1, null, [:], new BuildInfo("name", 1, null, [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], null, false, "SUCCESS"), null, [:], [])
+      }, [:]),
+      new JenkinsTrigger("master", "job", 1, null, [:], new BuildInfo("name", 1, null, [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], null, false, "SUCCESS"), null, [:], [])
+    ]
   }
 }

@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.pipeline.tasks
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class ExpressionPreconditionTaskSpec extends Specification {
   @Unroll
   def "should evaluate expression precondition against stage context at execution time"() {
     given:
     def task = new ExpressionPreconditionTask(new ContextParameterProcessor())
-    def stage = new Stage(Execution.newPipeline("orca"), "Expression", [
-      param1 : param1,
-      context: [
+    def stage = stage {
+      name = "Expression"
+      context.param1 = param1
+      context.context = [
         expression: expression
       ]
-    ])
-    stage.execution.trigger.put("triggerKey", "triggerVal")
+
+    }
+    stage.execution.trigger.parameters.put("triggerKey", "triggerVal")
 
     when:
     def taskResult = task.execute(stage)
@@ -48,11 +49,11 @@ class ExpressionPreconditionTaskSpec extends Specification {
     ]
 
     where:
-    expression                           | param1  || expressionResult         || taskResultStatus
-    "param1 == 'true'"                   | 'true'  || 'true'                   || ExecutionStatus.SUCCEEDED
-    "param1 == 'true'"                   | 'false' || 'false'                  || ExecutionStatus.TERMINAL
-    "param1 == 'true'"                   | null    || 'false'                  || ExecutionStatus.TERMINAL
-    "param1.xxx() == 'true'"             | null    || "param1.xxx() == 'true'" || ExecutionStatus.TERMINAL
-    "trigger.triggerKey == 'triggerVal'" | null    || 'true'                   || ExecutionStatus.SUCCEEDED
+    expression                                      | param1  || expressionResult         || taskResultStatus
+    "param1 == 'true'"                              | 'true'  || 'true'                   || SUCCEEDED
+    "param1 == 'true'"                              | 'false' || 'false'                  || TERMINAL
+    "param1 == 'true'"                              | null    || 'false'                  || TERMINAL
+    "param1.xxx() == 'true'"                        | null    || "param1.xxx() == 'true'" || TERMINAL
+    "trigger.parameters.triggerKey == 'triggerVal'" | null    || 'true'                   || SUCCEEDED
   }
 }

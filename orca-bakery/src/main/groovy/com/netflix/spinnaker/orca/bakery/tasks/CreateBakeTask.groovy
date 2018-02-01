@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Component
 @CompileStatic
@@ -70,9 +69,9 @@ class CreateBakeTask implements RetryableTask {
       def bakeStatus = bakery.createBake(region, bake, rebake).toBlocking().single()
 
       def stageOutputs = [
-        status          : bakeStatus,
-        bakePackageName : bake.packageName ?: "",
-        previouslyBaked : bakeStatus.state == BakeStatus.State.COMPLETED
+        status         : bakeStatus,
+        bakePackageName: bake.packageName ?: "",
+        previouslyBaked: bakeStatus.state == BakeStatus.State.COMPLETED
       ] as Map<String, ? extends Object>
 
       if (bake.buildInfoUrl) {
@@ -114,11 +113,7 @@ class CreateBakeTask implements RetryableTask {
     if (stage.context.rebake == true) {
       return true
     }
-    if (stage.execution.type == PIPELINE) {
-      Map trigger = stage.execution.trigger
-      return trigger?.rebake == true
-    }
-    return false
+    return stage.execution.trigger?.rebake
   }
 
   @CompileDynamic
@@ -126,7 +121,7 @@ class CreateBakeTask implements RetryableTask {
     PackageType packageType
     if (roscoApisEnabled) {
       def baseImage = bakery.getBaseImage(stage.context.cloudProviderType as String,
-                                          stage.context.baseOs as String).toBlocking().single()
+        stage.context.baseOs as String).toBlocking().single()
       packageType = baseImage.packageType as PackageType
     } else {
       OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs as String)
@@ -134,11 +129,11 @@ class CreateBakeTask implements RetryableTask {
     }
 
     PackageInfo packageInfo = new PackageInfo(stage,
-                                              packageType.packageType,
-                                              packageType.versionDelimiter,
-                                              extractBuildDetails,
-                                              false /* extractVersion */,
-                                              mapper)
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false /* extractVersion */,
+      mapper)
 
     Map requestMap = packageInfo.findTargetPackage(allowMissingPackageInstallation)
 

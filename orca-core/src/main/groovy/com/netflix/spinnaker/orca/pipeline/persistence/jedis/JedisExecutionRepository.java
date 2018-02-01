@@ -26,10 +26,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.*;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionSerializationException;
 import com.netflix.spinnaker.orca.pipeline.persistence.StageSerializationException;
@@ -425,9 +423,9 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
     } else if (execution.getType() == ORCHESTRATION) {
       map.put("description", execution.getDescription());
     }
-    if (execution.getTrigger().containsKey("correlationId")) {
+    if (execution.getTrigger() instanceof ManualTrigger && ((ManualTrigger)execution.getTrigger()).getCorrelationId() != null) {
       tx.set(
-        format("correlation:%s", execution.getTrigger().get("correlationId")),
+        format("correlation:%s", ((ManualTrigger)execution.getTrigger()).getCorrelationId()),
         execution.getId()
       );
     }
@@ -500,13 +498,7 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
       }
       execution.setKeepWaitingPipelines(Boolean.parseBoolean(map.get("keepWaitingPipelines")));
       execution.setOrigin(map.get("origin"));
-      if (map.get("trigger") != null) {
-        Map<String, Object> trigger = mapper.readValue(map.get("trigger"), Map.class);
-        if (trigger.containsKey("parentExecution")) {
-          trigger.put("parentExecution", mapper.convertValue(trigger.get("parentExecution"), Execution.class));
-        }
-        execution.getTrigger().putAll(trigger);
-      }
+      execution.setTrigger(mapper.readValue(map.get("trigger"), Trigger.class));
     } catch (Exception e) {
       throw new ExecutionSerializationException("Failed serializing execution json", e);
     }

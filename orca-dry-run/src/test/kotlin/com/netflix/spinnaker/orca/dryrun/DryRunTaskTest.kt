@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.dryrun
 import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
+import com.netflix.spinnaker.orca.pipeline.model.DryRunTrigger
 import com.netflix.spinnaker.orca.q.pipeline
 import com.netflix.spinnaker.orca.q.stage
 import com.nhaarman.mockito_kotlin.*
@@ -53,8 +54,9 @@ object DryRunTaskTest : Spek({
         type = "bake"
         refId = "4"
       }
-      trigger["type"] = "dryrun"
-      trigger["outputs"] = mapOf("2" to mapOf("foo" to "bar"), "4" to mapOf("foo" to "bar"))
+      trigger = DryRunTrigger(
+        mapOf("2" to mapOf("foo" to "bar"), "4" to mapOf("foo" to "bar"))
+      )
     }
 
     given("a stage with no outputs in the trigger and no output stub") {

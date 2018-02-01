@@ -81,7 +81,7 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   protected Collection<Map<String, Object>> parallelContexts(Stage stage) {
     if (stage.execution.type == PIPELINE) {
       Map trigger = stage.execution.trigger
-      if (trigger.parameters?.strategy == true) {
+      if (trigger?.parameters?.strategy == true) {
         Stage parentStage = trigger.parentExecution.stages.find {
           it.id == trigger.parameters.parentStageId
         }
@@ -149,7 +149,7 @@ class ParallelDeployStage implements StageDefinitionBuilder {
     if (stage.execution.type == PIPELINE) {
       Map trigger = stage.execution.trigger
 
-      if (trigger.parameters?.clone == true) {
+      if (trigger?.parameters?.clone == true) {
         return true
       }
     }

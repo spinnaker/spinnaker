@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -647,8 +648,7 @@ class GetCommitsTaskSpec extends Specification {
     def childStage = new Stage(childPipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks" : katoMap])
 
     parentPipeline.stages << parentStage
-    childStage.execution.trigger.put("parentPipelineId", parentStage.execution.id)
-    childStage.execution.trigger.put("parentExecution", parentStage.execution)
+    childStage.execution.trigger = new PipelineTrigger(parentStage.execution, [:])
 
     when:
     def result = task.execute(childStage)

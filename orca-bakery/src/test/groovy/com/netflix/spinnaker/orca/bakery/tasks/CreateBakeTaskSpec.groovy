@@ -21,7 +21,9 @@ import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -32,6 +34,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.COMPLETED
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
+import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
@@ -87,93 +90,80 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
-  def buildInfo = [
-    artifacts: [
-      [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm'],
-      [fileName: 'hodor.1.1.nupkg']
-    ]
-  ]
+  def buildInfo = new BuildInfo(
+    "name", 0, null, [
+    new JenkinsArtifact("hodor_1.1_all.deb", "."),
+    new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+    new JenkinsArtifact("hodor.1.1.nupkg", ".")
+  ], [], "name#0", false, "SUCCESS"
+  )
 
   @Shared
-  def buildInfoWithUrl = [
-    url      : "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
-    artifacts: [
-      [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm'],
-      [fileName: 'hodor.1.1.nupkg']
-    ]
-  ]
+  def buildInfoWithUrl = new BuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    [
+      new JenkinsArtifact("hodor_1.1_all.deb", "."),
+      new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+      new JenkinsArtifact("hodor.1.1.nupkg", ".")
+    ], [], "name#0", false, "SUCCESS"
+  )
 
   @Shared
-  def buildInfoWithFoldersUrl = [
-    url      : "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/",
-    artifacts: [
-      [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm'],
-      [fileName: 'hodor.1.1.nupkg']
-    ]
-  ]
+  def buildInfoWithFoldersUrl = new BuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/folder/job/SPINNAKER-package-echo/69/".toURI(),
+    [
+      new JenkinsArtifact("hodor_1.1_all.deb", "."),
+      new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+      new JenkinsArtifact("hodor.1.1.nupkg", ".")
+    ], [], "name#0", false, "SUCCESS"
+  )
 
   @Shared
-  def buildInfoWithUrlAndSCM = [
-    url      : "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
-    artifacts: [
-      [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm'],
-      [fileName: 'hodor.1.1.nupkg']
-    ],
-    scm      : [
-      [name  : "refs/remotes/origin/master",
-       sha1  : "f83a447f8d02a40fa84ec9d4d0dccd263d51782d",
-       branch: "master"]
-    ]
-  ]
+  def buildInfoWithUrlAndSCM = new BuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    [
+      new JenkinsArtifact("hodor_1.1_all.deb", "."),
+      new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+      new JenkinsArtifact("hodor.1.1.nupkg", ".")
+    ], [
+    new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d")
+  ], "name#0", false, "SUCCESS"
+  )
 
   @Shared
-  def buildInfoWithUrlAndTwoSCMs = [
-    url      : "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
-    artifacts: [
-      [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm'],
-      [fileName: 'hodor.1.1.nupkg']
-    ],
-    scm      : [
-      [name  : "refs/remotes/origin/master",
-       sha1  : "f83a447f8d02a40fa84ec9d4d0dccd263d51782d",
-       branch: "master"],
-      [name  : "refs/remotes/origin/some-feature",
-       sha1  : "1234567f8d02a40fa84ec9d4d0dccd263d51782d",
-       branch: "some-feature"]
-    ]
-  ]
+  def buildInfoWithUrlAndTwoSCMs = new BuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    [
+      new JenkinsArtifact("hodor_1.1_all.deb", "."),
+      new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+      new JenkinsArtifact("hodor.1.1.nupkg", ".")
+    ], [
+    new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
+    new SourceControl("refs/remotes/origin/some-feature", "some-feature", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
+  ], "name#0", false, "SUCCESS"
+  )
 
   @Shared
-  def buildInfoWithUrlAndMasterAndDevelopSCMs = [
-    url      : "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
-    artifacts: [
-      [fileName: 'hodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm'],
-      [fileName: 'hodor.1.1.nupkg']
-    ],
-    scm      : [
-      [name  : "refs/remotes/origin/master",
-       sha1  : "f83a447f8d02a40fa84ec9d4d0dccd263d51782d",
-       branch: "master"],
-      [name  : "refs/remotes/origin/develop",
-       sha1  : "1234567f8d02a40fa84ec9d4d0dccd263d51782d",
-       branch: "develop"]
-    ]
-  ]
+  def buildInfoWithUrlAndMasterAndDevelopSCMs = new BuildInfo(
+    "name", 0, "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/".toURI(),
+    [
+      new JenkinsArtifact("hodor_1.1_all.deb", "."),
+      new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+      new JenkinsArtifact("hodor.1.1.nupkg", ".")
+    ], [
+    new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
+    new SourceControl("refs/remotes/origin/develop", "develop", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
+  ], "name#0", false, "SUCCESS"
+  )
 
   @Shared
-  def buildInfoNoMatch = [
-    artifacts: [
-      [fileName: 'hodornodor_1.1_all.deb'],
-      [fileName: 'hodor-1.1.noarch.rpm'],
-      [fileName: 'hodor.1.1.nupkg']
-    ]
-  ]
+  def buildInfoNoMatch = new BuildInfo(
+    "name", 0, null, [
+    new JenkinsArtifact("hodornodor_1.1_all.deb", "."),
+    new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
+    new JenkinsArtifact("hodor.1.1.nupkg", ".")
+  ], [], "name#0", false, "SUCCESS"
+  )
 
   @Shared
   def invalidArtifactList = [
@@ -247,7 +237,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -283,7 +273,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -303,7 +293,6 @@ class CreateBakeTaskSpec extends Specification {
     null                | buildInfoNoMatch
     buildInfoNoMatch    | null
     buildInfoNoMatch    | buildInfoNoMatch
-    buildInfoNoMatch    | invalidArtifactList
     invalidArtifactList | buildInfoNoMatch
   }
 
@@ -318,7 +307,7 @@ class CreateBakeTaskSpec extends Specification {
       ]
     ]
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: buildInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], buildInfo, null, null, null)
       stage {
         type = "bake"
         context = bakeConfig
@@ -368,7 +357,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -403,7 +392,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -436,10 +425,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
-        context = bakeConfig
+        context = mapper.convertValue(bakeConfig, Map)
       }
     }
 
@@ -467,12 +456,12 @@ class CreateBakeTaskSpec extends Specification {
   @Unroll
   def "build info with url and master and develop scms yields bake stage output containing build host, job, build number and first commit hash"() {
     given:
-    bakeConfig.buildInfo = contextInfo
+    bakeConfig.buildInfo = mapper.convertValue(contextInfo, Map)
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
-        context = bakeConfig
+        context = mapper.convertValue(bakeConfig, Map)
       }
     }
 
@@ -502,7 +491,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -537,7 +526,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -575,7 +564,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -612,7 +601,7 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger.putAll(buildInfo: triggerInfo)
+      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
       stage {
         type = "bake"
         context = bakeConfig
@@ -718,9 +707,7 @@ class CreateBakeTaskSpec extends Specification {
   def "sets rebake query parameter to #queryParameter when trigger is #trigger"() {
     given:
     def pipeline = pipeline {
-      if (triggerConfig) {
-        trigger.putAll(triggerConfig)
-      }
+        trigger = mapper.convertValue(triggerConfig, Trigger)
       stage {
         type = "bake"
         context = bakeConfig
@@ -760,10 +747,10 @@ class CreateBakeTaskSpec extends Specification {
     0 * _
 
     where:
-    triggerConfig   | queryParameter
-    [rebake: true]  | "1"
-    [rebake: false] | null
-    null            | null
+    triggerConfig                                                 | queryParameter
+    [type: "jenkins", master: "master", job: "job", buildNumber: 1, rebake: true]  | "1"
+    [type: "jenkins", master: "master", job: "job", buildNumber: 1, rebake: false] | null
+    [type: "jenkins", master: "master", job: "job", buildNumber: 1]                | null
   }
 
 }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
@@ -57,37 +58,14 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     User principal = getUser(parentPipeline)
 
-    pipelineConfig.trigger = [
-      type                     : "pipeline",
-      user                     : principal?.username ?: user ?: '[anonymous]',
-      parentPipelineId         : parentPipeline.id,
-      parentPipelineApplication: parentPipeline.application,
-      parentStatus             : parentPipeline.status,
-      parentExecution          : parentPipeline,
-      isPipeline               : false
-    ]
+    pipelineConfig.trigger = new PipelineTrigger(
+      parentPipeline,
+      parentPipelineStageId,
+      principal?.username ?: user ?: "[anonymous]",
+      buildParameters(pipelineConfig, suppliedParameters),
+      []
+    )
 
-    if (parentPipelineStageId) {
-      pipelineConfig.trigger.parentPipelineStageId = parentPipelineStageId
-    }
-
-    if (parentPipeline?.type == PIPELINE) {
-      pipelineConfig.trigger.parentPipelineName = parentPipeline.name
-      pipelineConfig.trigger.isPipeline = true
-    }
-
-    if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
-      if (!pipelineConfig.trigger.parameters) {
-        pipelineConfig.trigger.parameters = [:]
-      }
-      def pipelineParameters = suppliedParameters ?: [:]
-      pipelineConfig.parameterConfig.each {
-        pipelineConfig.trigger.parameters[it.name] = pipelineParameters.containsKey(it.name) ? pipelineParameters[it.name] : it.default
-      }
-      suppliedParameters.each{ k, v ->
-        pipelineConfig.trigger.parameters[k] = pipelineConfig.trigger.parameters[k] ?: suppliedParameters[k]
-      }
-    }
     def trigger = pipelineConfig.trigger //keep the trigger as the preprocessor removes it.
 
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
@@ -125,6 +103,20 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline
+  }
+
+  private Map<String, Object> buildParameters(Map pipelineConfig, Map suppliedParameters) {
+    def result = [:]
+    if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
+      def pipelineParameters = suppliedParameters ?: [:]
+      pipelineConfig.parameterConfig.each {
+        result[it.name] = pipelineParameters.containsKey(it.name) ? pipelineParameters[it.name] : it.default
+      }
+      suppliedParameters.each { k, v ->
+        result.parameters[k] = pipelineConfig.trigger.parameters[k] ?: suppliedParameters[k]
+      }
+    }
+    return result
   }
 
   // There are currently two sources-of-truth for the user:

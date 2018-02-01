@@ -16,8 +16,11 @@
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
@@ -40,6 +43,8 @@ public class PipelineTemplateService {
   private final ExecutionRepository executionRepository;
 
   private final Renderer renderer;
+
+  private final ObjectMapper mapper = OrcaObjectMapper.newInstance();
 
   @Autowired
   public PipelineTemplateService(TemplateLoader templateLoader, ExecutionRepository executionRepository, Renderer renderer) {
@@ -95,7 +100,7 @@ public class PipelineTemplateService {
   }
 
   private String render(String templateString, Execution pipeline) {
-    DefaultRenderContext rc = new DefaultRenderContext(pipeline.getApplication(), null, pipeline.getTrigger());
+    DefaultRenderContext rc = new DefaultRenderContext(pipeline.getApplication(), null, mapper.convertValue(pipeline.getTrigger(), Map.class));
     return renderer.render(templateString, rc);
   }
 

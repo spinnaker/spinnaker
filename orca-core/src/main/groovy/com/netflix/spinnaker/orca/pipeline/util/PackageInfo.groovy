@@ -58,10 +58,10 @@ class PackageInfo {
     requestMap.putAll(stage.context)
 
     if (stage.execution.type == PIPELINE) {
-      Map trigger = stage.execution.trigger
+      Map trigger = mapper.convertValue(stage.execution.trigger, Map)
       Map buildInfo = null
       if (requestMap.buildInfo) { // package was built as part of the pipeline
-        buildInfo = mapper.convertValue(requestMap.buildInfo, HashMap)
+        buildInfo = mapper.convertValue(requestMap.buildInfo, Map)
       }
 
       if (!buildInfo?.artifacts) {
@@ -94,7 +94,7 @@ class PackageInfo {
     }
 
     if (!buildInfo || (buildInfo && !buildArtifacts)) {
-      if (!triggerArtifacts && (trigger.buildInfo != null || trigger.parentExecution?.trigger?.buildInfo != null)) {
+      if (!triggerArtifacts && (trigger?.buildInfo != null || trigger?.parentExecution?.trigger?.buildInfo != null)) {
         throw new IllegalStateException("Jenkins job detected but no artifacts found, please archive the packages in your job and try again.")
       }
     }
@@ -167,7 +167,7 @@ class PackageInfo {
 
     // If it hasn't been possible to match a package and allowMissingPackageInstallation is false raise an exception.
     if (missingPrefixes && !allowMissingPackageInstallation) {
-      throw new IllegalStateException("Unable to find deployable artifact starting with ${missingPrefixes} and ending with ${fileExtension} in ${buildArtifacts} and ${triggerArtifacts}. Make sure your deb package file name complies with the naming convention: name_version-release_arch.")
+      throw new IllegalStateException("Unable to find deployable artifact starting with ${missingPrefixes} and ending with ${fileExtension} in ${buildArtifacts} and ${triggerArtifacts?.fileName}. Make sure your deb package file name complies with the naming convention: name_version-release_arch.")
     }
 
     request.put('package', requestPackages.join(" "))

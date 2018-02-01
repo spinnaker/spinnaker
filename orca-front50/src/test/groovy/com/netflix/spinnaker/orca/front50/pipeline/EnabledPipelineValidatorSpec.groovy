@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.front50.pipeline
 
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator.PipelineValidationFailed
+import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -26,7 +28,7 @@ class EnabledPipelineValidatorSpec extends Specification {
 
   def front50Service = Stub(Front50Service)
   @Subject
-  def validator = new EnabledPipelineValidator(new Optional<>(front50Service))
+  def validator = new EnabledPipelineValidator(Optional.of(front50Service))
 
   def "allows one-off pipeline to run"() {
     given:
@@ -99,7 +101,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger.putAll(type: "pipeline", parameters: [strategy: true])
+      trigger = new PipelineTrigger(null, [strategy: true])
     }
   }
 
@@ -119,7 +121,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger.putAll(type: "pipeline", parameters: [strategy: true])
+      trigger = new PipelineTrigger(null, [strategy: true])
     }
   }
 
@@ -139,7 +141,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger.putAll(type: "manual", parameters: [strategy: "kthxbye"])
+      trigger = new ManualTrigger(null, "fzlem", [strategy: "kthxbye"], [], [])
     }
   }
 }

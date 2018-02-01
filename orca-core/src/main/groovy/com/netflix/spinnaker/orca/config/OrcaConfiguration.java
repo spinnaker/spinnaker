@@ -53,7 +53,6 @@ import org.springframework.core.annotation.Order;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 @Configuration
 @ComponentScan({

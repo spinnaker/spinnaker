@@ -22,12 +22,12 @@ import java.util.Optional;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import static java.lang.String.format;
-import static java.util.Collections.emptyMap;
 
 @Component
 public class EnabledPipelineValidator implements PipelineValidator {
@@ -59,10 +59,10 @@ public class EnabledPipelineValidator implements PipelineValidator {
   }
 
   private boolean isStrategy(Execution pipeline) {
-    Map<String, Object> trigger = pipeline.getTrigger();
-    Object strategy = ((Map<String, Object>) trigger.getOrDefault("parameters", emptyMap()))
+    Trigger trigger = pipeline.getTrigger();
+    Object strategy = trigger.getParameters()
       .getOrDefault("strategy", false);
-    return "pipeline".equals(trigger.get("type")) && Boolean.TRUE.equals(strategy);
+    return "pipeline".equals(trigger.getType()) && Boolean.TRUE.equals(strategy);
   }
 
   static class PipelineIsDisabled extends PipelineValidationFailed {

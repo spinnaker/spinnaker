@@ -20,7 +20,9 @@ import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import groovy.util.logging.Slf4j
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -79,16 +81,20 @@ class ContextParameterProcessor {
   }
 
   Map<String, Object> precomputeValues(Map<String, Object> context) {
-    if (context.trigger?.parameters) {
-      context.parameters = context.trigger.parameters
+    Trigger trigger = context.trigger
+    if (trigger?.parameters) {
+      context.parameters = trigger.parameters
     }
 
-    context.scmInfo = context.buildInfo?.scm ?: context.trigger?.buildInfo?.scm ?: null
+    context.scmInfo = context.buildInfo?.scm
+    if (!context.scmInfo && trigger instanceof JenkinsTrigger) {
+      context.scmInfo = trigger.buildInfo?.scm
+    }
     if (context.scmInfo && context.scmInfo.size() >= 2) {
       def scmInfo = context.scmInfo.find { it.branch != 'master' && it.branch != 'develop' }
       context.scmInfo = scmInfo ?: context.scmInfo?.first()
     } else {
-      context.scmInfo = context.scmInfo?.first()
+      context.scmInfo = context.scmInfo?.size() > 0 ? context.scmInfo.first() : null
     }
 
     context

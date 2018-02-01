@@ -42,7 +42,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
                 credentials      : "abc",
                 image            : "testImageId",
                 zone             : "north-pole-1",
-                trigger          : [:],
+                trigger          : null,
                 deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
             ],
         ]
@@ -61,7 +61,7 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
                 credentials      : "abc",
                 image            : "testImageId",
                 zone             : "south-pole-1",
-                trigger          : [:],
+                trigger          : null,
                 deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
             ],
         ]

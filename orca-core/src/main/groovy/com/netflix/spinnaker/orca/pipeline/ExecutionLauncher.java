@@ -19,9 +19,7 @@ package com.netflix.spinnaker.orca.pipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
-import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.*;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
@@ -117,17 +115,19 @@ public class ExecutionLauncher {
       return null;
     }
 
-    if (!execution.getTrigger().containsKey("correlationId")) {
+    if (!(execution.getTrigger() instanceof ManualTrigger) || ((ManualTrigger) execution.getTrigger()).getCorrelationId() == null) {
       return null;
     }
 
+    ManualTrigger trigger = (ManualTrigger) execution.getTrigger();
+
     try {
       Execution o = executionRepository.retrieveOrchestrationForCorrelationId(
-        execution.getTrigger().get("correlationId").toString()
+        trigger.getCorrelationId()
       );
       log.info("Found pre-existing Orchestration by correlation id (id: " +
         o.getId() + ", correlationId: " +
-        execution.getTrigger().get("correlationId") +
+        trigger.getCorrelationId() +
         ")");
       return o;
     } catch (ExecutionNotFoundException e) {
@@ -180,7 +180,7 @@ public class ExecutionLauncher {
       .orElseGet(() -> new PipelineBuilder(getString(config, "application")))
       .withName(getString(config, "name"))
       .withPipelineConfigId(getString(config, "id"))
-      .withTrigger((Map<String, Object>) config.get("trigger"))
+      .withTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class))
       .withStages((List<Map<String, Object>>) config.get("stages"))
       .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
       .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
@@ -214,7 +214,7 @@ public class ExecutionLauncher {
     }
 
     if (config.get("trigger") != null) {
-      orchestration.getTrigger().putAll((Map<String, Object>) config.get("trigger"));
+      orchestration.setTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class));
     }
 
     orchestration.setBuildTime(clock.millis());

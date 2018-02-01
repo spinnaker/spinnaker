@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import spock.lang.Specification
@@ -36,8 +37,12 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
 
     when:
     def syntheticStages = supportStage.composeTargets(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    def beforeStages = syntheticStages.findAll {
+      it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE
+    }
+    def afterStages = syntheticStages.findAll {
+      it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER
+    }
 
     then:
     beforeStages.size() == stageNamesBefore.size()
@@ -60,8 +65,12 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
 
     when:
     def syntheticStages = supportStage.composeTargets(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    def beforeStages = syntheticStages.findAll {
+      it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE
+    }
+    def afterStages = syntheticStages.findAll {
+      it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER
+    }
 
     then:
     beforeStages.size() == 1
@@ -81,8 +90,12 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
 
     when:
     def syntheticStages = supportStage.composeTargets(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    def beforeStages = syntheticStages.findAll {
+      it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE
+    }
+    def afterStages = syntheticStages.findAll {
+      it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER
+    }
 
     then:
     beforeStages.size() == 0
@@ -120,12 +133,14 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     def stage = new Stage(Execution.newPipeline("orca"), "test", [:])
     supportStage.targetReferenceSupport = targetReferenceSupport
 
-    stage.execution.trigger.parameters = [
-      strategy   : true,
-      region     : 'us-west-1',
-      credentials: 'test',
-      cluster    : 'myappcluster'
-    ]
+    stage.execution.trigger = new PipelineTrigger(
+      Execution.newPipeline("orca"),
+      [
+        strategy   : true,
+        region     : 'us-west-1',
+        credentials: 'test',
+        cluster    : 'myappcluster'
+      ])
 
     when:
     supportStage.composeTargets(stage)

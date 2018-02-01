@@ -443,9 +443,9 @@ public class Stage implements Serializable {
   @SuppressWarnings("unchecked")
   public void resolveStrategyParams() {
     if (execution.getType() == PIPELINE) {
-      Map<String, Object> parameters = (Map<String, Object>) execution.getTrigger().get("parameters");
+      Map<String, Object> parameters = Optional.ofNullable(execution.getTrigger()).map(Trigger::getParameters).orElse(emptyMap());
       boolean strategy = false;
-      if (parameters != null && parameters.get("strategy") != null) {
+      if (parameters.get("strategy") != null) {
         strategy = (boolean) parameters.get("strategy");
       }
       if (strategy) {

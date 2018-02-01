@@ -23,8 +23,9 @@ import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -77,7 +78,7 @@ class OperationsController {
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
     parsePipelineTrigger(executionRepository, buildService, pipeline)
-    Map trigger = pipeline.trigger
+    Trigger trigger = objectMapper.convertValue(pipeline.trigger, Trigger)
 
     boolean plan = pipeline.plan ?: false
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
@@ -124,7 +125,7 @@ class OperationsController {
         // dynamic parameters in jinja expressions
         try {
           def previousExecution = pipelineTemplateService.retrievePipelineOrNewestExecution(pipeline.executionId, pipeline.id)
-          pipeline.trigger = previousExecution.trigger
+          pipeline.trigger = objectMapper.convertValue(previousExecution.trigger, Map)
           pipeline.executionId = previousExecution.id
         } catch (ExecutionNotFoundException | IllegalArgumentException _) {
           log.info("Could not initialize pipeline template config from previous execution context.")

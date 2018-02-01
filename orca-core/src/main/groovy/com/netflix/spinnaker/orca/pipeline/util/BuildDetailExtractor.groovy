@@ -111,7 +111,6 @@ class BuildDetailExtractor {
 
     abstract boolean tryToExtractBuildDetails(Map buildInfo, Map request)
 
-
     void extractCommitHash(Map buildInfo, Map request) {
       // buildInfo.scm contains a list of maps. Each map contains these keys: name, sha1, branch.
       // If the list contains more than one entry, prefer the first one that is not master and is not develop.
@@ -122,8 +121,8 @@ class BuildDetailExtractor {
           it.branch != "master" && it.branch != "develop"
         }?.sha1
       }
-      if (!commitHash) {
-        commitHash = buildInfo.scm?.first()?.sha1
+      if (!commitHash && buildInfo.scm) {
+        commitHash = buildInfo.scm.first().sha1
       }
       if (commitHash) {
         request.put('commitHash', commitHash)
