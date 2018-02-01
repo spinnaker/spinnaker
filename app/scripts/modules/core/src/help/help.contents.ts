@@ -274,6 +274,9 @@ module(HELP_CONTENTS, [])
         <p>By default, the bakery will <b>not</b> create a new image if the contents of the package have not changed;
           instead, it will return the previously baked image.</p>
         <p>Select this option to force the bakery to create a new image, regardless of whether or not the selected package exists.</p>`,
+    'execution.dryRun': `
+        <p>Select this option to run the pipeline without <em>really</em> executing anything.</p>
+        <p>This is a good way to test parameter-driven behavior, expressions, optional stages, etc.</p>`,
     'user.verification': `
         Typing into this verification field is annoying! But it serves as a reminder that you are
         changing something in an account deemed important, and prevents you from accidentally changing something

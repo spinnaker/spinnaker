@@ -48,6 +48,7 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
     this.command = {
       pipeline: pipeline,
       trigger: null,
+      dryRunEnabled: false,
       notificationEnabled: false,
       notification: {
         type: 'email',
@@ -135,7 +136,7 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
       angular.extend(selectedTrigger, this.command.extraFields);
 
       command.pipelineName = pipeline.name;
-      selectedTrigger.type = 'manual';
+      selectedTrigger.type = this.command.dryRunEnabled ? 'dryrun' : 'manual';
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;
