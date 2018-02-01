@@ -233,7 +233,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
           tags: Object.assign({}, serverGroup.tags, existingTags),
           targetGroups: serverGroup.targetGroups,
           useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
-          copySourceCustomBlockDeviceMappings: false, // default to using block device mappings from current instance type
+          copySourceCustomBlockDeviceMappings: mode === 'clone', // default to using block device mappings if not cloning
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             useAllImageSelection: false,
