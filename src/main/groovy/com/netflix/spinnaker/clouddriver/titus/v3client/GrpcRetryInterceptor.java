@@ -129,8 +129,8 @@ public class GrpcRetryInterceptor implements ClientInterceptor {
       }
 
       // retries all methods that start with find but nothing else
-      if (extractSimpleMethodName(method.getFullMethodName()).startsWith("find") ||
-        extractSimpleMethodName(method.getFullMethodName()).startsWith("get")) {
+      if (!extractSimpleMethodName(method.getFullMethodName()).startsWith("find") &&
+        !extractSimpleMethodName(method.getFullMethodName()).startsWith("get")) {
         AttemptListener latest = latestResponse;
         if (latest != null) {
           useResponse(latest);
