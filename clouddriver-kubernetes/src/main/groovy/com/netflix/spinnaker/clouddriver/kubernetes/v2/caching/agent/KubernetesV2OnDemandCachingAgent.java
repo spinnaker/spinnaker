@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.moniker.Namer;
@@ -90,7 +91,13 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     reloadNamespaces();
 
     Long start = System.currentTimeMillis();
-    List<KubernetesManifest> primaryResource = loadPrimaryResourceList();
+    List<KubernetesManifest> primaryResource;
+    try {
+      primaryResource = loadPrimaryResourceList();
+    } catch (KubectlJobExecutor.NoResourceTypeException e) {
+      log.warn(getAgentType() + ": resource for this caching agent is not supported for this cluster");
+      return new DefaultCacheResult(new HashMap<>());
+    }
 
     List<String> primaryKeys = primaryResource.stream()
         .map(rs -> objectMapper.convertValue(rs, KubernetesManifest.class))

@@ -78,7 +78,13 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   public CacheResult loadData(ProviderCache providerCache) {
     log.info(getAgentType() + " is starting");
     reloadNamespaces();
-    return buildCacheResult(loadPrimaryResourceList());
+
+    try {
+      return buildCacheResult(loadPrimaryResourceList());
+    } catch (KubectlJobExecutor.NoResourceTypeException e) {
+      log.warn(getAgentType() + ": resource for this caching agent is not supported for this cluster");
+      return new DefaultCacheResult(new HashMap<>());
+    }
   }
 
   protected CacheResult buildCacheResult(KubernetesManifest resource) {

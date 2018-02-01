@@ -61,6 +61,8 @@ public class KubectlJobExecutor {
   @Value("${kubernetes.oAuth.executable:oauth2l}")
   String oAuthExecutable;
 
+  private final static String NO_RESOURCE_TYPE_ERROR = "doesn't have a resource type";
+
   private final JobExecutor jobExecutor;
 
   private final Gson gson = new Gson();
@@ -313,6 +315,8 @@ public class KubectlJobExecutor {
     if (status.getResult() != JobStatus.Result.SUCCESS) {
       if (status.getStdErr().contains("(NotFound)")) {
         return null;
+      } else if (status.getStdErr().contains(NO_RESOURCE_TYPE_ERROR)) {
+        throw new NoResourceTypeException(status.getStdErr());
       }
 
       throw new KubectlException("Failed to read " + kind + " from " + namespace + ": " + status.getStdErr());
@@ -333,7 +337,11 @@ public class KubectlJobExecutor {
     JobStatus status = backoffWait(jobId, credentials.isDebug());
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
-      throw new KubectlException("Failed to read " + kind + " from " + namespace + ": " + status.getStdErr());
+      if (status.getStdErr().contains(NO_RESOURCE_TYPE_ERROR)) {
+        throw new NoResourceTypeException(status.getStdErr());
+      } else {
+        throw new KubectlException("Failed to read " + kind + " from " + namespace + ": " + status.getStdErr());
+      }
     }
 
     if (status.getStdErr().contains("No resources found")) {
@@ -500,6 +508,12 @@ public class KubectlJobExecutor {
       throw new KubectlException("Could not fetch OAuth token: " + status.getStdErr());
     }
     return status.getStdOut();
+  }
+
+  public static class NoResourceTypeException extends RuntimeException {
+    public NoResourceTypeException(String message) {
+      super(message);
+    }
   }
 
   public static class KubectlException extends RuntimeException {
