@@ -34,6 +34,7 @@ include "orca-extensionpoint",
   "orca-applications",
   "orca-queue",
   "orca-queue-redis",
+  "orca-queue-tck",
   "orca-pipelinetemplate",
   "orca-validation"
 

@@ -18,7 +18,11 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.ResumeExecution
+import com.netflix.spinnaker.orca.q.ResumeStage
+import com.netflix.spinnaker.orca.q.pipeline
+import com.netflix.spinnaker.orca.q.stage
+import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it

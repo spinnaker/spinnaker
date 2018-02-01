@@ -45,7 +45,6 @@ import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.DummyTask
 import com.netflix.spinnaker.orca.q.InvalidExecutionId
 import com.netflix.spinnaker.orca.q.InvalidStageId
-import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.SkipStage
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.StartTask
@@ -65,6 +64,7 @@ import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
 import com.netflix.spinnaker.orca.q.webhookStage
 import com.netflix.spinnaker.orca.q.zeroTaskStage
 import com.netflix.spinnaker.orca.time.fixedClock
+import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.shouldAllEqual
 import com.netflix.spinnaker.spek.shouldEqual

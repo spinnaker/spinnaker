@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.orca.q.redis.migration
 
-import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
@@ -29,26 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELIN
 
 internal const val PIPELINE_CLASS_NAME = "com.netflix.spinnaker.orca.pipeline.model.Pipeline"
 internal const val ORCHESTRATION_CLASS_NAME = "com.netflix.spinnaker.orca.pipeline.model.Orchestration"
-
-class ExecutionTypeSerializer : JsonSerializer<ExecutionType>() {
-  override fun handledType(): Class<ExecutionType> = ExecutionType::class.java
-
-  override fun serialize(
-    value: ExecutionType,
-    gen: JsonGenerator,
-    serializers: SerializerProvider
-  ) {
-    when (value) {
-      PIPELINE -> {
-        gen.writeString(PIPELINE_CLASS_NAME)
-      }
-      ORCHESTRATION -> {
-        gen.writeString(ORCHESTRATION_CLASS_NAME)
-      }
-    }
-
-  }
-}
 
 class ExecutionTypeDeserializer : JsonDeserializer<ExecutionType>() {
   override fun handledType(): Class<*> = ExecutionType::class.java

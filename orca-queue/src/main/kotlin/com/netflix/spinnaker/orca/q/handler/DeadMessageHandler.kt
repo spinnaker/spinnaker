@@ -16,9 +16,17 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
-import com.netflix.spinnaker.orca.q.*
-import com.netflix.spinnaker.orca.q.Message.*
+import com.netflix.spinnaker.orca.q.AbortStage
+import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.CompleteTask
+import com.netflix.spinnaker.orca.q.ExecutionLevel
+import com.netflix.spinnaker.orca.q.StageLevel
+import com.netflix.spinnaker.orca.q.TaskLevel
+import com.netflix.spinnaker.q.Attribute
+import com.netflix.spinnaker.q.Message
+import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -35,7 +43,7 @@ import org.springframework.stereotype.Component
   }
 
   private fun terminationMessageFor(message: Message): Message? {
-    if (message.hasAttribute<DeadMessageAttribute>()) {
+    if (message.getAttribute<DeadMessageAttribute>() != null) {
       log.warn("Already sent $message to DLQ")
       return null
     }
@@ -51,4 +59,4 @@ import org.springframework.stereotype.Component
   }
 }
 
-internal object DeadMessageAttribute : Attribute
+@JsonTypeName("deadMessage") internal object DeadMessageAttribute : Attribute

@@ -19,11 +19,13 @@ package com.netflix.spinnaker.orca.q.metrics
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.ApplicationAware
-import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.q.Queue
+import com.netflix.spinnaker.q.metrics.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.context.event.EventListener
 import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -40,17 +42,18 @@ import javax.annotation.PostConstruct
 @ConditionalOnBean(MonitorableQueue::class)
 class AtlasQueueMonitor
 @Autowired constructor(
-  @Qualifier("queueImpl") private val queue: MonitorableQueue,
+  private val queue: MonitorableQueue,
   private val registry: Registry,
   private val clock: Clock
-) : ApplicationListener<QueueEvent> {
+) {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  override fun onApplicationEvent(event: QueueEvent) {
+  @EventListener
+  fun onQueueEvent(event: QueueEvent) {
     when (event) {
-      is QueuePolled -> _lastQueuePoll.set(event.instant)
-      is RetryPolled -> _lastRetryPoll.set(event.instant)
+      is QueuePolled -> _lastQueuePoll.set(clock.instant())
+      is RetryPolled -> _lastRetryPoll.set(clock.instant())
       is MessagePushed -> event.counter.increment()
       is MessageAcknowledged -> event.counter.increment()
       is MessageRetried -> event.counter.increment()
@@ -67,7 +70,8 @@ class AtlasQueueMonitor
     _lastState.set(queue.readState())
   }
 
-  @PostConstruct fun registerGauges() {
+  @PostConstruct
+  fun registerGauges() {
     log.info("Monitorable queue implementation $queue found. Exporting metrics to Atlas.")
 
     registry.gauge("queue.depth", this, {
@@ -119,7 +123,7 @@ class AtlasQueueMonitor
    */
   private val MessagePushed.counter: Counter
     get() = when (payload) {
-      is ApplicationAware -> registry.counter("queue.pushed.messages", "application", payload.application)
+      is ApplicationAware -> registry.counter("queue.pushed.messages", "application", (payload as ApplicationAware).application)
       else -> registry.counter("queue.pushed.messages")
     }
 

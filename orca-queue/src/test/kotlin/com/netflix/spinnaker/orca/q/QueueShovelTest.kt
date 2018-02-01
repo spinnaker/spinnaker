@@ -17,6 +17,9 @@ package com.netflix.spinnaker.orca.q
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import com.netflix.spinnaker.q.Activator
+import com.netflix.spinnaker.q.Queue
+import com.netflix.spinnaker.q.QueueCallback
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -29,16 +32,18 @@ class QueueShovelTest : SubjectSpek<QueueShovel>({
   val queue: Queue = mock()
   val previousQueue: Queue = mock()
   val registry = NoopRegistry()
+  val activator = object : Activator {
+    override val enabled = true
+  }
 
   subject(CachingMode.GROUP) {
-    QueueShovel(queue, previousQueue, registry)
+    QueueShovel(queue, previousQueue, registry, activator)
   }
 
   describe("polling the previous queue") {
     val message = StartExecution(PIPELINE, "1", "spinnaker")
 
     beforeGroup {
-      subject.enabled.set(true)
       whenever(previousQueue.poll(any())) doAnswer {
         it.getArgument<QueueCallback>(0)(message, {})
       }

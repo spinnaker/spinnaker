@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.q.trafficshaping
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.QueueCallback
 import com.netflix.spinnaker.orca.q.StartStage
-import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
+import com.netflix.spinnaker.q.Queue
+import com.netflix.spinnaker.q.QueueCallback
+import com.netflix.spinnaker.q.memory.InMemoryQueue
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it

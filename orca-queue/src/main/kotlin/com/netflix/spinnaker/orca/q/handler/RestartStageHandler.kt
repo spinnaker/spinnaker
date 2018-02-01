@@ -21,10 +21,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.MessageHandler
-import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.q.Queue
 import org.springframework.stereotype.Component
 import java.time.Clock
 
@@ -34,7 +33,7 @@ class RestartStageHandler(
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   private val clock: Clock
-) : MessageHandler<RestartStage>, StageBuilderAware {
+) : OrcaMessageHandler<RestartStage>, StageBuilderAware {
 
   override val messageType = RestartStage::class.java
 

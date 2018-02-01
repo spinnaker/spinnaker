@@ -18,7 +18,10 @@ package com.netflix.spinnaker.orca.dryrun
 
 import com.natpryce.hamkrest.greaterThan
 import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.spinnaker.orca.q.handler.plan
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.q.buildSyntheticStages
+import com.netflix.spinnaker.orca.q.buildTasks
 import com.netflix.spinnaker.orca.q.multiTaskStage
 import com.netflix.spinnaker.orca.q.pipeline
 import com.netflix.spinnaker.orca.q.singleTaskStage
@@ -34,6 +37,12 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 
 object DryRunStageTest : Spek({
+
+  fun StageDefinitionBuilder.plan(stage: Stage) {
+    stage.type = type
+    buildTasks(stage)
+    buildSyntheticStages(stage)
+  }
 
   setOf(zeroTaskStage, singleTaskStage, multiTaskStage, stageWithSyntheticBefore, stageWithSyntheticBeforeAndNoTasks).forEach { proxiedStage ->
     describe("building tasks for a ${proxiedStage.type}") {

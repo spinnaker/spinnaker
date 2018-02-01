@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.q.Queue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -31,7 +32,7 @@ class ContinueParentStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long
-) : MessageHandler<ContinueParentStage> {
+) : OrcaMessageHandler<ContinueParentStage> {
 
   private val log: Logger = LoggerFactory.getLogger(javaClass)
   private val retryDelay = Duration.ofMillis(retryDelayMs)

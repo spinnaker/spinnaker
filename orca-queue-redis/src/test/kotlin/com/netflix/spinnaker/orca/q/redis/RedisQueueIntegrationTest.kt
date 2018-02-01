@@ -16,40 +16,28 @@
 
 package com.netflix.spinnaker.orca.q.redis
 
-import com.netflix.spinnaker.config.RedisQueueConfiguration
+import com.netflix.spinnaker.config.RedisOrcaQueueConfiguration
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
-import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.junit.runner.RunWith
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit4.SpringRunner
-import redis.clients.jedis.Jedis
-import redis.clients.util.Pool
 
 /**
- * This just runs [QueueIntegrationTest] with a [RedisQueue] instead of an
- * [InMemoryQueue].
+ * This just runs [QueueIntegrationTest] with a [com.netflix.spinnaker.q.redis.RedisQueue].
  */
 @RunWith(SpringRunner::class)
 @SpringBootTest(
   classes = [
     EmbeddedRedisConfiguration::class,
-    RedisQueueConfiguration::class,
-    RedisQueuePoolFixery::class,
-    TestConfig::class
+    TestConfig::class,
+    RedisOrcaQueueConfiguration::class
   ],
-  properties = arrayOf(
+  properties = [
     "queue.retry.delay.ms=10",
     "logging.level.root=ERROR",
     "logging.level.org.springframework.test=ERROR",
     "logging.level.com.netflix.spinnaker=FATAL"
-  ))
+  ])
 class RedisQueueIntegrationTest : QueueIntegrationTest()
-
-@Configuration
-class RedisQueuePoolFixery {
-  @Bean(name = ["queueJedisPool"]) fun redisQueue(pool: Pool<Jedis>) = pool
-}

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.config
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import java.lang.reflect.Field
 import groovy.transform.CompileStatic
 import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
@@ -36,19 +37,17 @@ import org.springframework.context.annotation.Primary
 import redis.clients.jedis.*
 import redis.clients.util.Pool
 
-import java.lang.reflect.Field
-
 @Configuration
 @CompileStatic
 class RedisConfiguration {
 
   @Bean
-  @ConfigurationProperties('redis')
+  @ConfigurationProperties("redis")
   GenericObjectPoolConfig redisPoolConfig() {
     new GenericObjectPoolConfig(maxTotal: 100, maxIdle: 100, minIdle: 25)
   }
 
-  @Bean(name="jedisPool")
+  @Bean(name = "jedisPool")
   @Primary
   Pool<Jedis> jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection,
                         @Value('${redis.timeout:2000}') int timeout,
@@ -81,7 +80,7 @@ class RedisConfiguration {
   @Bean
   HealthIndicator redisHealth(@Qualifier("jedisPool") Pool<Jedis> jedisPool) {
     final Pool<Jedis> src = jedisPool
-    final Field poolAccess = Pool.getDeclaredField('internalPool')
+    final Field poolAccess = Pool.getDeclaredField("internalPool")
     poolAccess.setAccessible(true)
     new HealthIndicator() {
       @Override
@@ -90,7 +89,7 @@ class RedisConfiguration {
         Health.Builder health = null
         try {
           jedis = src.getResource()
-          if ('PONG'.equals(jedis.ping())) {
+          if ("PONG".equals(jedis.ping())) {
             health = Health.up()
           } else {
             health = Health.down()
@@ -101,11 +100,11 @@ class RedisConfiguration {
           jedis?.close()
         }
         GenericObjectPool<Jedis> internal = (GenericObjectPool<Jedis>) poolAccess.get(jedisPool)
-        health.withDetail('maxIdle', internal.maxIdle)
-        health.withDetail('minIdle', internal.minIdle)
-        health.withDetail('numActive', internal.numActive)
-        health.withDetail('numIdle', internal.numIdle)
-        health.withDetail('numWaiters', internal.numWaiters)
+        health.withDetail("maxIdle", internal.maxIdle)
+        health.withDetail("minIdle", internal.minIdle)
+        health.withDetail("numActive", jedisPool.numActive)
+        health.withDetail("numIdle", jedisPool.numIdle)
+        health.withDetail("numWaiters", jedisPool.numWaiters)
 
         return health.build()
       }
@@ -119,19 +118,11 @@ class RedisConfiguration {
     int port = redisConnection.port == -1 ? Protocol.DEFAULT_PORT : redisConnection.port
 
     String redisConnectionPath = redisConnection.path ?: "/${Protocol.DEFAULT_DATABASE}"
-    int database = Integer.parseInt(redisConnectionPath.split('/', 2)[1])
+    int database = Integer.parseInt(redisConnectionPath.split("/", 2)[1])
 
-    String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
+    String password = redisConnection.userInfo ? redisConnection.userInfo.split(":", 2)[1] : null
 
     JedisPool jedisPool = new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, null)
-    final Field poolAccess = Pool.getDeclaredField('internalPool')
-    poolAccess.setAccessible(true)
-    GenericObjectPool<Jedis> pool = (GenericObjectPool<Jedis>) poolAccess.get(jedisPool)
-    registry.gauge(registry.createId("redis.connectionPool.maxIdle", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMaxIdle()).doubleValue() })
-    registry.gauge(registry.createId("redis.connectionPool.minIdle", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMinIdle()).doubleValue() })
-    registry.gauge(registry.createId("redis.connectionPool.numActive", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getNumActive()).doubleValue() })
-    registry.gauge(registry.createId("redis.connectionPool.numIdle", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMaxIdle()).doubleValue() })
-    registry.gauge(registry.createId("redis.connectionPool.numWaiters", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMaxIdle()).doubleValue() })
     return jedisPool
   }
 }

@@ -19,7 +19,6 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.q.ApplicationAware
-import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.TotalThrottleTimeAttribute
 import com.netflix.spinnaker.orca.q.trafficshaping.InterceptorType
 import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptor
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptorCall
 import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimit
 import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitBackend
 import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitContext
+import com.netflix.spinnaker.q.Message
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -70,7 +70,7 @@ class GlobalRateLimitQueueInterceptor(
       if (rateLimit.enforcing) {
         log.info("Throttling message: $message")
         return { queue, msg, ack ->
-          msg.setAttribute(msg.getAttribute<TotalThrottleTimeAttribute>(TotalThrottleTimeAttribute())).add(rateLimit.duration.toMillis())
+          msg.setAttribute(msg.getAttribute() ?: TotalThrottleTimeAttribute()).add(rateLimit.duration.toMillis())
           queue.push(message, rateLimit.duration)
           ack.invoke()
           val app = when (msg) {

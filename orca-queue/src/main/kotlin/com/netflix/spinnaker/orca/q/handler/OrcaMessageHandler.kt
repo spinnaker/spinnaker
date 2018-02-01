@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.q
+package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -23,30 +23,17 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.q.Message
+import com.netflix.spinnaker.q.MessageHandler
 
-/**
- * Implementations handle a single message type from the queue.
- */
-interface MessageHandler<M : Message> : (Message) -> Unit {
-
-  val messageType: Class<M>
-  val queue: Queue
+internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
   val repository: ExecutionRepository
-
-  override fun invoke(message: Message): Unit =
-    if (messageType.isAssignableFrom(message.javaClass)) {
-      @Suppress("UNCHECKED_CAST")
-      handle(message as M)
-    } else {
-      throw IllegalArgumentException("Unsupported message type ${message.javaClass.simpleName}")
-    }
 
   fun Collection<ExceptionHandler>.shouldRetry(ex: Exception, taskName: String?): ExceptionHandler.Response? {
     val exceptionHandler = find { it.handles(ex) }
     return exceptionHandler?.handle(taskName ?: "unspecified", ex)
   }
-
-  fun handle(message: M): Unit
 
   fun TaskLevel.withTask(block: (Stage, Task) -> Unit) =
     withStage { stage ->

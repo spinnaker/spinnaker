@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.time.fixedClock
+import com.netflix.spinnaker.q.metrics.*
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
@@ -70,38 +71,38 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when the queue is polled") {
       afterGroup(::resetMocks)
 
-      val event = QueuePolled(queue)
+      val event = QueuePolled()
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("updates the last poll time") {
-        subject.lastQueuePoll shouldEqual event.instant
+        subject.lastQueuePoll shouldEqual clock.instant()
       }
     }
 
     describe("when the retry queue is polled") {
       afterGroup(::resetMocks)
 
-      val event = RetryPolled(queue)
+      val event = RetryPolled()
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("updates the last poll time") {
-        subject.lastRetryPoll shouldEqual event.instant
+        subject.lastRetryPoll shouldEqual clock.instant()
       }
     }
 
     describe("when a message is pushed") {
       afterGroup(::resetMocks)
 
-      val event = MessagePushed(queue, StartExecution(PIPELINE, "1", "covfefe"))
+      val event = MessagePushed(StartExecution(PIPELINE, "1", "covfefe"))
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("increments a counter") {
@@ -112,10 +113,10 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is acknowledged") {
       afterGroup(::resetMocks)
 
-      val event = MessageAcknowledged(queue)
+      val event = MessageAcknowledged()
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("increments a counter") {
@@ -126,10 +127,10 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is retried") {
       afterGroup(::resetMocks)
 
-      val event = MessageRetried(queue)
+      val event = MessageRetried()
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("increments a counter") {
@@ -140,10 +141,10 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is dead") {
       afterGroup(::resetMocks)
 
-      val event = MessageDead(queue)
+      val event = MessageDead()
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("increments a counter") {
@@ -154,10 +155,10 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a duplicate message is pushed") {
       afterGroup(::resetMocks)
 
-      val event = MessageDuplicate(queue, StartExecution(PIPELINE, "1", "covfefe"))
+      val event = MessageDuplicate(StartExecution(PIPELINE, "1", "covfefe"))
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("increments a counter") {
@@ -168,10 +169,10 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when an instance fails to lock a message") {
       afterGroup(::resetMocks)
 
-      val event = LockFailed(queue)
+      val event = LockFailed()
 
       on("receiving a ${event.javaClass.simpleName} event") {
-        subject.onApplicationEvent(event)
+        subject.onQueueEvent(event)
       }
 
       it("increments a counter") {

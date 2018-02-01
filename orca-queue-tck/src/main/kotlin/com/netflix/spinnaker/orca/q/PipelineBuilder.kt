@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import java.lang.System.currentTimeMillis
-import kotlin.reflect.jvm.jvmName
 
 /**
  * Build a pipeline.
@@ -71,7 +70,7 @@ fun Stage.stage(init: Stage.() -> Unit): Stage {
  */
 fun Stage.task(init: Task.() -> Unit): Task {
   val task = Task()
-  task.implementingClass = DummyTask::class.jvmName
+  task.implementingClass = DummyTask::class.java.name
   task.name = "dummy"
   tasks.add(task)
   task.init()

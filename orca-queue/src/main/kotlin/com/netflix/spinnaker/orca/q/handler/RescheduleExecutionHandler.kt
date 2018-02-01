@@ -19,17 +19,16 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.MessageHandler
-import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.q.Queue
 import org.springframework.stereotype.Component
 
 @Component
 class RescheduleExecutionHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository
-) : MessageHandler<RescheduleExecution> {
+) : OrcaMessageHandler<RescheduleExecution> {
 
   override val messageType = RescheduleExecution::class.java
 

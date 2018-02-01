@@ -30,7 +30,22 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.CompleteStage
+import com.netflix.spinnaker.orca.q.SkipStage
+import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.StartTask
+import com.netflix.spinnaker.orca.q.allUpstreamStagesComplete
+import com.netflix.spinnaker.orca.q.anyUpstreamStagesFailed
+import com.netflix.spinnaker.orca.q.buildSyntheticStages
+import com.netflix.spinnaker.orca.q.buildTasks
+import com.netflix.spinnaker.orca.q.firstAfterStages
+import com.netflix.spinnaker.orca.q.firstBeforeStages
+import com.netflix.spinnaker.orca.q.firstTask
+import com.netflix.spinnaker.q.AttemptsAttribute
+import com.netflix.spinnaker.q.MaxAttemptsAttribute
+import com.netflix.spinnaker.q.Queue
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -45,13 +60,13 @@ class StartStageHandler(
   override val stageNavigator: StageNavigator,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   override val contextParameterProcessor: ContextParameterProcessor,
-  private val publisher: ApplicationEventPublisher,
+  @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
   private val exceptionHandlers: List<ExceptionHandler>,
-  private val objectMapper: ObjectMapper,
+  @Qualifier("mapper") private val objectMapper: ObjectMapper,
   private val clock: Clock,
   private val registry: Registry,
   @Value("\${queue.retry.delay.ms:15000}") retryDelayMs: Long
-) : MessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
+) : OrcaMessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
   private val retryDelay = Duration.ofMillis(retryDelayMs)
 
@@ -79,6 +94,7 @@ class StartStageHandler(
             stage.start()
 
             publisher.publishEvent(StageStarted(this, stage))
+            trackResult(stage)
           } catch(e: Exception) {
             val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
             if (exceptionDetails?.shouldRetry == true) {

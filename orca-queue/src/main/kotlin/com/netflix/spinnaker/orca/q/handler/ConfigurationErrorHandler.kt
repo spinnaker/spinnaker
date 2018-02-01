@@ -20,8 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.ConfigurationError
 import com.netflix.spinnaker.orca.q.InvalidExecutionId
-import com.netflix.spinnaker.orca.q.MessageHandler
-import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -29,7 +28,7 @@ import org.springframework.stereotype.Component
 class ConfigurationErrorHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository
-) : MessageHandler<ConfigurationError> {
+) : OrcaMessageHandler<ConfigurationError> {
 
   override val messageType = ConfigurationError::class.java
 

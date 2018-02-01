@@ -16,11 +16,10 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.discovery.DiscoveryActivated
-import org.slf4j.Logger
+import com.netflix.spinnaker.q.Activator
+import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
 
@@ -35,11 +34,10 @@ import javax.annotation.PostConstruct
 class QueueShovel(
   private val queue: Queue,
   private val previousQueue: Queue,
-  private val registry: Registry
-) : DiscoveryActivated {
-
-  override val log: Logger = LoggerFactory.getLogger(javaClass)
-  override val enabled = AtomicBoolean(false)
+  private val registry: Registry,
+  private val activator: Activator
+) {
+  private val log = LoggerFactory.getLogger(javaClass)
 
   private val pollOpsRateId = registry.createId("orca.nu.shovel.pollOpsRate")
   private val shoveledMessageId = registry.createId("orca.nu.shovel.pushedMessageRate")
@@ -47,7 +45,7 @@ class QueueShovel(
 
   @Scheduled(fixedDelayString = "\${queue.shovel.pollFrequency.ms:500}")
   fun migrateOne() {
-    ifEnabled {
+    activator.ifEnabled {
       registry.counter(pollOpsRateId).increment()
       previousQueue.poll { message, ack ->
         try {

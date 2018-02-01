@@ -30,6 +30,8 @@ import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
+import com.netflix.spinnaker.q.Message
+import com.netflix.spinnaker.q.Queue
 import org.apache.commons.lang.time.DurationFormatUtils
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -49,7 +51,7 @@ class RunTaskHandler(
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
   private val registry: Registry
-) : MessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
+) : OrcaMessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
 
   override fun handle(message: RunTask) {
     message.withTask { stage, taskModel, task ->

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.q
+apply from: "$rootDir/gradle/kotlin.gradle"
 
-import java.util.concurrent.Executor
+dependencies {
+  compile "com.nhaarman:mockito-kotlin:1.5.0"
+  compile "com.natpryce:hamkrest:1.4.2.0"
 
-abstract class QueueExecutor<out T : Executor>(
-  protected val executor: T
-) : Executor by executor {
-  abstract fun hasCapacity(): Boolean
+  compile "org.springframework.boot:spring-boot-test:${spinnaker.version('springBoot')}"
+  compile "com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion"
+  compile project(":orca-test")
 }

@@ -32,6 +32,12 @@ bakery:
 redis:
   connection: ${REDIS_URL:redis://localhost:6379}
 
+keiko:
+  queue:
+    redis:
+      queueName: orca.task.queue
+      deadLetterQueueName: orca.task.deadLetterQueue
+
 tasks:
   useWaitForAllNetflixAWSInstancesDownTask: false
 
@@ -72,3 +78,6 @@ logging:
 #      description: This is also a webhook stage, but it has no properties set
 #      type: anotherCustomWebhook
 #      enabled: false
+
+dryrun:
+  pipelineIds:

@@ -20,17 +20,16 @@ import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.MessageHandler
-import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.ResumeTask
 import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.q.Queue
 import org.springframework.stereotype.Component
 
 @Component
 class ResumeTaskHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository
-) : MessageHandler<ResumeTask> {
+) : OrcaMessageHandler<ResumeTask> {
 
   override val messageType = ResumeTask::class.java
 
