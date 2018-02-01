@@ -50,8 +50,7 @@ describe('Controller: azureCreateLoadBalancerCtrl', function () {
   it('makes the expected REST calls for data for a new loadbalancer', function() {
     $http.when('GET', API.baseUrl + '/networks').respond([]);
     $http.when('GET', API.baseUrl + '/securityGroups').respond({});
-    $http.when('GET', API.baseUrl + '/credentials').respond([]);
-    $http.when('GET', API.baseUrl + '/credentials/azure-test').respond([]);
+    $http.when('GET', API.baseUrl + '/credentials?expand=true').respond([]);
     $http.when('GET', API.baseUrl + '/subnets').respond([]);
 
     $http.flush();

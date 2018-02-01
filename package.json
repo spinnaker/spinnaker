@@ -170,5 +170,8 @@
     "webpack": "3.8.1",
     "webpack-dev-server": "2.7.1",
     "webpack-node-externals": "^1.6.0"
+  },
+  "optionalDependencies": {
+    "fsevents": "^1.1.3"
   }
 }

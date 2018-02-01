@@ -1,4 +1,4 @@
-import { mock, IComponentControllerService, IScope, IQService, IRootScopeService, IPromise } from 'angular';
+import { mock, IComponentControllerService, IScope, IQService, IRootScopeService } from 'angular';
 
 import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController } from './chaosMonkeyExceptions.component';
 import { AccountService } from 'core/account/account.service';
@@ -40,16 +40,12 @@ describe('Controller: ChaosMonkeyExceptions', () => {
   describe('data initialization', () => {
 
     it('gets all accounts, then adds wildcard and regions per account to vm', () => {
-      const accounts = [ { name: 'prod' }, { name: 'test' } ];
-      const details: any = {
-        prod: { name: 'prod', regions: [ { name: 'us-east-1' }, { name: 'us-west-1' }] },
-        test: { name: 'test', regions: [ { name: 'us-west-2' }, { name: 'eu-west-1' }] }
-      };
+      const accounts: any = [
+        { name: 'prod', regions: [ { name: 'us-east-1' }, { name: 'us-west-1' }] },
+        { name: 'test', regions: [ { name: 'us-west-2' }, { name: 'eu-west-1' }] }
+      ];
 
       spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
-      spyOn(accountService, 'getAccountDetails').and.callFake((accountName: string): IPromise<any> => {
-        return $q.when(details[accountName]);
-      });
 
       initializeController(null);
       $ctrl.application =
@@ -59,7 +55,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
       $ctrl.$onInit();
       $scope.$digest();
 
-      expect($ctrl.accounts).toEqual([details.prod, details.test]);
+      expect($ctrl.accounts).toEqual([accounts[0], accounts[1]]);
       expect($ctrl.regionsByAccount).toEqual({
         prod: [ '*', 'us-east-1', 'us-west-1'],
         test: [ '*', 'us-west-2', 'eu-west-1']

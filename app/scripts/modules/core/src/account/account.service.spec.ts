@@ -28,7 +28,7 @@ describe('Service: accountService', () => {
   afterEach(SETTINGS.resetToOriginal);
 
   it('should filter the list of accounts by provider when supplied', () => {
-    $http.expectGET(`${API.baseUrl}/credentials`).respond(200, [
+    $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(200, [
       { name: 'test', type: 'aws' },
       { name: 'prod', type: 'aws' },
       { name: 'prod', type: 'gce' },
@@ -46,13 +46,10 @@ describe('Service: accountService', () => {
   describe('getAllAccountDetailsForProvider', () => {
 
     it('should return details for each account', function () {
-      $http.expectGET(API.baseUrl + '/credentials').respond(200, [
+      $http.expectGET(API.baseUrl + '/credentials?expand=true').respond(200, [
         { name: 'test', type: 'aws' },
         { name: 'prod', type: 'aws' },
       ]);
-
-      $http.expectGET(API.baseUrl + '/credentials/test').respond(200, { a: 1 });
-      $http.expectGET(API.baseUrl + '/credentials/prod').respond(200, { a: 2 });
 
       let details: any = null;
       accountService.getAllAccountDetailsForProvider('aws').then((results: any) => {
@@ -61,12 +58,12 @@ describe('Service: accountService', () => {
 
       $http.flush();
       expect(details.length).toBe(2);
-      expect(details[0].a).toBe(1);
-      expect(details[1].a).toBe(2);
+      expect(details[0].name).toBe('test');
+      expect(details[1].name).toBe('prod');
     });
 
     it('should fall back to an empty array if an exception occurs when listing accounts', () => {
-      $http.expectGET(`${API.baseUrl}/credentials`).respond(429, null);
+      $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(429, null);
 
       let details: any[] = null;
       accountService.getAllAccountDetailsForProvider('aws').then((results: any[]) => {
@@ -77,24 +74,6 @@ describe('Service: accountService', () => {
       expect(details).toEqual([]);
     });
 
-    it('should fall back to an empty array if an exception occurs when getting details for an account', () => {
-      $http.expectGET(`${API.baseUrl}/credentials`).respond(200, [
-        { name: 'test', type: 'aws' },
-        { name: 'prod', type: 'aws' },
-      ]);
-
-      $http.expectGET(API.baseUrl + '/credentials/test').respond(500, null);
-      $http.expectGET(API.baseUrl + '/credentials/prod').respond(200, { a: 2 });
-
-      let details: any = null;
-      accountService.getAllAccountDetailsForProvider('aws').then((results: any) => {
-        details = results;
-      });
-
-      $http.flush();
-
-      expect(details).toEqual([]);
-    });
   });
 
   describe('listProviders', () => {
@@ -102,7 +81,7 @@ describe('Service: accountService', () => {
     let registeredProviders: string[];
     beforeEach(() => {
       registeredProviders = ['aws', 'gce', 'cf'];
-      $http.whenGET(`${API.baseUrl}/credentials`).respond(200,
+      $http.whenGET(`${API.baseUrl}/credentials?expand=true`).respond(200,
         [{ type: 'aws' }, { type: 'gce' }, { type: 'cf' }]
       );
 

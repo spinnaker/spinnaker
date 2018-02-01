@@ -1,5 +1,5 @@
 import { chain, intersection, zipObject } from 'lodash';
-import { module } from 'angular';
+import { ILogService, IPromise, IQResolveReject, IQService, module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { API_SERVICE, Api } from 'core/api/api.service';
@@ -51,15 +51,15 @@ export interface IAccountZone {
 
 export class AccountService {
 
-  constructor(private $log: ng.ILogService,
-              private $q: ng.IQService,
+  constructor(private $log: ILogService,
+              private $q: IQService,
               private cloudProviderRegistry: CloudProviderRegistry,
               private API: Api) {
     'ngInject';
   }
 
-  public challengeDestructiveActions(account: string): ng.IPromise<boolean> {
-    return this.$q((resolve: ng.IQResolveReject<boolean>) => {
+  public challengeDestructiveActions(account: string): IPromise<boolean> {
+    return this.$q((resolve: IQResolveReject<boolean>) => {
       if (account) {
         this.getAccountDetails(account)
           .then((details: IAccountDetails) => {
@@ -76,46 +76,39 @@ export class AccountService {
     });
   }
 
-  public getArtifactAccounts(): ng.IPromise<IAccount[]> {
+  public getArtifactAccounts(): IPromise<IAccount[]> {
     return this.API.one('artifacts')
       .one('credentials')
       .useCache()
       .get();
   }
 
-  public getAccountDetails(account: string): ng.IPromise<IAccountDetails> {
-    return this.API.one('credentials')
-      .one(account)
-      .useCache()
-      .get();
+  public getAccountDetails(account: string): IPromise<IAccountDetails> {
+    return this.listAccounts().then(accounts => accounts.find(a => a.name === account));
   }
 
-  public getAllAccountDetailsForProvider(provider: string, providerVersion: string = null): ng.IPromise<IAccountDetails[]> {
+  public getAllAccountDetailsForProvider(provider: string, providerVersion: string = null): IPromise<IAccountDetails[]> {
     return this.listAccounts(provider, providerVersion)
-      .then((accounts: IAccount[]) => this.$q.all(accounts.map((account: IAccount) => this.getAccountDetails(account.name))))
       .catch((error: any) => {
         this.$log.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
         return [];
       });
   }
 
-  public getAvailabilityZonesForAccountAndRegion(provider: string, account: string, region: string): ng.IPromise<string[]> {
+  public getAvailabilityZonesForAccountAndRegion(provider: string, account: string, region: string): IPromise<string[]> {
     return this.getPreferredZonesByAccount(provider)
       .then((result: IAccountZone) => result[account] ? result[account][region] : []);
   }
 
-  public getCredentialsKeyedByAccount(provider: string = null): ng.IPromise<IAggregatedAccounts> {
+  public getCredentialsKeyedByAccount(provider: string = null): IPromise<IAggregatedAccounts> {
     return this.listAccounts(provider)
-      .then((accounts: IAccount[]) => {
-        const requests: ng.IPromise<IAccountDetails>[] =
-          accounts.map((account: IAccount) => this.getAccountDetails(account.name));
+      .then((accounts: IAccountDetails[]) => {
         const names: string[] = accounts.map((account: IAccount) => account.name);
-        return this.$q.all(requests)
-          .then((credentials: IAccountDetails[]): IAggregatedAccounts => zipObject<IAccountDetails, IAggregatedAccounts>(names, credentials));
+        return zipObject<IAccountDetails, IAggregatedAccounts>(names, accounts);
       });
   }
 
-  public getPreferredZonesByAccount(provider: string): ng.IPromise<IAccountZone> {
+  public getPreferredZonesByAccount(provider: string): IPromise<IAccountZone> {
     const preferred: IAccountZone = {};
     return this.getAllAccountDetailsForProvider(provider)
       .then((accounts: IAccountDetails[]) => {
@@ -135,12 +128,12 @@ export class AccountService {
       });
   }
 
-  public getRegionsForAccount(account: string): ng.IPromise<IRegion[]> {
+  public getRegionsForAccount(account: string): IPromise<IRegion[]> {
     return this.getAccountDetails(account)
       .then((details: IAccountDetails) => details ? details.regions : []);
   }
 
-  public getUniqueAttributeForAllAccounts(provider: string, attribute: string): ng.IPromise<string[]> {
+  public getUniqueAttributeForAllAccounts(provider: string, attribute: string): IPromise<string[]> {
     return this.getCredentialsKeyedByAccount(provider)
       .then((credentials: IAggregatedAccounts) => {
         return chain(credentials)
@@ -152,29 +145,8 @@ export class AccountService {
       });
   }
 
-  public getUniqueGceZonesForAllAccounts(provider: string): ng.IPromise<IZone> {
-    return this.getCredentialsKeyedByAccount(provider)
-      .then((regions: IAggregatedAccounts) => {
-        return chain(regions)
-          .map('regions')
-          .flatten()
-          .reduce((zone: IZone, object: IZone) => {
-            Object.keys(object).forEach((key: string) => {
-              if (zone[key]) {
-                zone[key] = Array.from(new Set([...zone[key], ...object[key]]));
-              } else {
-                zone[key] = object[key];
-              }
-            });
-
-            return zone;
-          }, {})
-          .value();
-      });
-  }
-
-  public listAccounts(provider: string = null, providerVersion: string = null): ng.IPromise<IAccount[]> {
-    let result: ng.IPromise<IAccount[]> = this.API.one('credentials').useCache().get();
+  public listAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
+    let result: IPromise<IAccountDetails[]> = this.API.one('credentials').useCache().withParams({ expand: true }).get();
     if (provider) {
       result = result.then((accounts) => accounts.filter((account) => account.type === provider));
     }
@@ -186,7 +158,7 @@ export class AccountService {
     return result;
   }
 
-  public listProviders(application: Application = null): ng.IPromise<string[]> {
+  public listProviders(application: Application = null): IPromise<string[]> {
     return this.listAccounts()
       .then((accounts: IAccount[]) => {
         const all: string[] = Array.from(new Set(accounts.map((account: IAccount) => account.type)));
