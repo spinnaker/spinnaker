@@ -114,6 +114,8 @@ public class CanaryJudgeTask implements RetryableTask {
       canaryJudge = canaryJudges.get(0);
     }
 
+    String application = (String)context.get("application");
+    String parentPipelineExecutionId = (String)context.get("parentPipelineExecutionId");
     String canaryExecutionRequestJSON = (String)context.get("canaryExecutionRequest");
     CanaryExecutionRequest canaryExecutionRequest = null;
     try {
@@ -127,6 +129,8 @@ public class CanaryJudgeTask implements RetryableTask {
     String canaryJudgeResultId = UUID.randomUUID() + "";
 
     CanaryResult canaryResult = CanaryResult.builder()
+      .application(application)
+      .parentPipelineExecutionId(parentPipelineExecutionId)
       .judgeResult(result)
       .config(canaryConfig)
       .canaryExecutionRequest(canaryExecutionRequest)

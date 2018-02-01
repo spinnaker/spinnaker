@@ -26,6 +26,11 @@ import java.util.Map;
 @Builder
 public class CanaryExecutionStatusResponse {
 
+  // These are here (in addition to CanaryResult) so we can still correlate runs while the canary execution is in-flight,
+  // or in the case where it never reaches the judging stage.
+  protected String application;
+  protected String parentPipelineExecutionId;
+
   @NotNull
   protected Map<String, String> stageStatus;
 

@@ -84,6 +84,7 @@ public class StackdriverMetricsService implements MetricsService {
   @Autowired
   private final StackdriverConfigurationProperties stackdriverConfigurationProperties;
 
+  @Builder.Default
   private List<MetricDescriptor> metricDescriptorsCache = Collections.emptyList();
 
   @Override

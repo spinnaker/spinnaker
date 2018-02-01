@@ -39,6 +39,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +48,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/canary")
@@ -58,6 +60,7 @@ public class CanaryController {
   private final String REFID_FETCH_EXPERIMENT_PREFIX = "fetchExperiment";
   private final String REFID_MIX_METRICS = "mixMetrics";
   private final String REFID_JUDGE = "judge";
+  private final String AD_HOC = "ad-hoc";
 
   private final String currentInstanceId;
   private final ExecutionLauncher executionLauncher;
@@ -99,7 +102,9 @@ public class CanaryController {
   // TODO(duftler): Allow for user to be passed in.
   @ApiOperation(value = "Initiate a canary pipeline")
   @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = RequestMethod.POST)
-  public CanaryExecutionResponse initiateCanary(@RequestParam(required = false) final String metricsAccountName,
+  public CanaryExecutionResponse initiateCanary(@RequestParam(required = false) final String application,
+                                                @RequestParam(required = false) final String parentPipelineExecutionId,
+                                                @RequestParam(required = false) final String metricsAccountName,
                                                 @RequestParam(required = false) final String configurationAccountName,
                                                 @RequestParam(required = false) final String storageAccountName,
                                                 @ApiParam @RequestBody final CanaryExecutionRequest canaryExecutionRequest,
@@ -120,7 +125,9 @@ public class CanaryController {
         .orElseThrow(() -> new IllegalArgumentException("No configuration service was configured."));
     CanaryConfig canaryConfig = configurationService.loadObject(resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
 
-    return buildExecution(canaryConfigId,
+    return buildExecution(application,
+                          parentPipelineExecutionId,
+                          canaryConfigId,
                           canaryConfig,
                           resolvedConfigurationAccountName,
                           resolvedMetricsAccountName,
@@ -134,10 +141,9 @@ public class CanaryController {
   // TODO(duftler): Allow for user to be passed in.
   @ApiOperation(value = "Initiate a canary pipeline with CanaryConfig provided")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
-  public CanaryExecutionResponse initiateCanaryWithConfig(
-    @RequestParam(required = false) final String metricsAccountName,
-    @RequestParam(required = false) final String storageAccountName,
-    @ApiParam @RequestBody final CanaryAdhocExecutionRequest canaryAdhocExecutionRequest) throws JsonProcessingException {
+  public CanaryExecutionResponse initiateCanaryWithConfig(@RequestParam(required = false) final String metricsAccountName,
+                                                          @RequestParam(required = false) final String storageAccountName,
+                                                          @ApiParam @RequestBody final CanaryAdhocExecutionRequest canaryAdhocExecutionRequest) throws JsonProcessingException {
 
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
@@ -153,7 +159,9 @@ public class CanaryController {
       throw new IllegalArgumentException("executionRequest must be provided for ad-hoc requests");
     }
 
-    return buildExecution("ad-hoc",
+    return buildExecution(AD_HOC,
+                          AD_HOC,
+                          AD_HOC,
                           canaryAdhocExecutionRequest.getCanaryConfig(),
                           null,
                           resolvedMetricsAccountName,
@@ -167,17 +175,23 @@ public class CanaryController {
   @ApiOperation(value = "Retrieve status and results for a canary run")
   @RequestMapping(value = "/{canaryExecutionId:.+}", method = RequestMethod.GET)
   public CanaryExecutionStatusResponse getCanaryResults(@RequestParam(required = false) final String storageAccountName,
-                                                        @PathVariable String canaryExecutionId) throws JsonProcessingException {
+                                                        @PathVariable String canaryExecutionId) {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
+    Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
 
+    return getCanaryResults(resolvedStorageAccountName, pipeline);
+  }
+
+  private CanaryExecutionStatusResponse getCanaryResults(String storageAccountName, Execution pipeline) {
     StorageService storageService =
       storageServiceRepository
-        .getOne(resolvedStorageAccountName)
+        .getOne(storageAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to retrieve results."));
 
-    Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
+    String canaryExecutionId = pipeline.getId();
+
     Stage judgeStage = pipeline.getStages().stream()
       .filter(stage -> stage.getRefId().equals(REFID_JUDGE))
       .findFirst()
@@ -196,7 +210,10 @@ public class CanaryController {
       .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_MIX_METRICS + "' in pipeline ID '" + canaryExecutionId + "'"));
     Map<String, Object> mixerContext = mixerStage.getContext();
 
-    CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder canaryExecutionStatusResponseBuilder = CanaryExecutionStatusResponse.builder();
+    CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder canaryExecutionStatusResponseBuilder =
+      CanaryExecutionStatusResponse.builder()
+        .application((String)contextContext.get("application"))
+        .parentPipelineExecutionId((String)contextContext.get("parentPipelineExecutionId"));
 
     Map<String, String> stageStatus = pipeline.getStages()
       .stream()
@@ -204,32 +221,37 @@ public class CanaryController {
 
     Boolean isComplete = pipeline.getStatus().isComplete();
     String pipelineStatus = pipeline.getStatus().toString().toLowerCase();
-    canaryExecutionStatusResponseBuilder.stageStatus(stageStatus);
-    canaryExecutionStatusResponseBuilder.complete(isComplete);
-    canaryExecutionStatusResponseBuilder.status(pipelineStatus);
+
+    canaryExecutionStatusResponseBuilder
+      .stageStatus(stageStatus)
+      .complete(isComplete)
+      .status(pipelineStatus);
 
     Long buildTime = pipeline.getBuildTime();
     if (buildTime != null) {
-      canaryExecutionStatusResponseBuilder.buildTimeMillis(buildTime);
-      canaryExecutionStatusResponseBuilder.buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
+      canaryExecutionStatusResponseBuilder
+        .buildTimeMillis(buildTime)
+        .buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
     }
 
     Long startTime = pipeline.getStartTime();
     if (startTime != null) {
-      canaryExecutionStatusResponseBuilder.startTimeMillis(startTime);
-      canaryExecutionStatusResponseBuilder.startTimeIso(Instant.ofEpochMilli(startTime) + "");
+      canaryExecutionStatusResponseBuilder
+        .startTimeMillis(startTime)
+        .startTimeIso(Instant.ofEpochMilli(startTime) + "");
     }
 
     Long endTime = pipeline.getEndTime();
     if (endTime != null) {
-      canaryExecutionStatusResponseBuilder.endTimeMillis(endTime);
-      canaryExecutionStatusResponseBuilder.endTimeIso(Instant.ofEpochMilli(endTime) + "");
+      canaryExecutionStatusResponseBuilder
+        .endTimeMillis(endTime)
+        .endTimeIso(Instant.ofEpochMilli(endTime) + "");
     }
 
     if (isComplete && pipelineStatus.equals("succeeded")) {
       if (judgeOutputs.containsKey("canaryJudgeResultId")) {
         String canaryJudgeResultId = (String)judgeOutputs.get("canaryJudgeResultId");
-        canaryExecutionStatusResponseBuilder.result(storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId));
+        canaryExecutionStatusResponseBuilder.result(storageService.loadObject(storageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId));
       }
     }
 
@@ -246,7 +268,9 @@ public class CanaryController {
     return canaryExecutionStatusResponseBuilder.build();
   }
 
-  private CanaryExecutionResponse buildExecution(@NotNull String canaryConfigId,
+  private CanaryExecutionResponse buildExecution(String application,
+                                                 String parentPipelineExecutionId,
+                                                 @NotNull String canaryConfigId,
                                                  @NotNull CanaryConfig canaryConfig,
                                                  String resolvedConfigurationAccountName,
                                                  @NotNull String resolvedMetricsAccountName,
@@ -268,17 +292,28 @@ public class CanaryController {
       throw new IllegalArgumentException("Canary metrics require scopes which were not provided in the execution request: " + requiredScopes);
     }
 
+    // TODO: Will non-spinnaker users need to know what application to pass (probably should pass something, or else how will they group their runs)?
+    if (StringUtils.isEmpty(application)) {
+      application = "kayenta-" + currentInstanceId;
+    }
+
+    if (StringUtils.isEmpty(parentPipelineExecutionId)) {
+      parentPipelineExecutionId = "no-parent-pipeline-execution";
+    }
+
     HashMap<String, Object> setupCanaryContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
           .put("refId", REFID_SET_CONTEXT)
           .put("user", "[anonymous]")
+          .put("application", application)
+          .put("parentPipelineExecutionId", parentPipelineExecutionId)
           .put("canaryConfigId", canaryConfigId)
           .build());
     if (resolvedConfigurationAccountName != null) {
       setupCanaryContext.put("configurationAccountName", resolvedConfigurationAccountName);
     }
-    if (canaryConfigId.equalsIgnoreCase("adhoc")) {
+    if (canaryConfigId.equalsIgnoreCase(AD_HOC)) {
       setupCanaryContext.put("canaryConfig", canaryConfig);
     }
 
@@ -329,25 +364,28 @@ public class CanaryController {
           .put("storageAccountName", resolvedStorageAccountName)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
+          .put("application", application)
+          .put("parentPipelineExecutionId", parentPipelineExecutionId)
           .put("canaryExecutionRequest", canaryExecutionRequestJSON)
           .build());
 
+    String canaryPipelineConfigId = application + "-standard-canary-pipeline";
     PipelineBuilder pipelineBuilder =
-      new PipelineBuilder("kayenta-" + currentInstanceId)
+      new PipelineBuilder(application)
         .withName("Standard Canary Pipeline")
-        .withPipelineConfigId(UUID.randomUUID() + "")
+        .withPipelineConfigId(canaryPipelineConfigId)
         .withStage("setupCanary", "Setup Canary", setupCanaryContext)
         .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)
         .withStage("canaryJudge", "Perform Analysis", canaryJudgeContext);
 
     controlFetchContexts.forEach((context) ->
-                                   pipelineBuilder.withStage((String)context.get("stageType"),
-                                                             (String)context.get("refId"),
-                                                             context));
+                                 pipelineBuilder.withStage((String)context.get("stageType"),
+                                                           (String)context.get("refId"),
+                                                           context));
     fetchExperimentContexts.forEach((context) ->
-                                      pipelineBuilder.withStage((String)context.get("stageType"),
-                                                                (String)context.get("refId"),
-                                                                context));
+                                    pipelineBuilder.withStage((String)context.get("stageType"),
+                                                              (String)context.get("refId"),
+                                                              context));
 
     Execution pipeline = pipelineBuilder
       .withLimitConcurrent(false)
@@ -433,5 +471,43 @@ public class CanaryController {
             .put("canaryScope", scopeJson)
             .build());
       }).collect(Collectors.toList());
+  }
+
+  @ApiOperation(value = "Retrieve a list of an application's canary results")
+  @RequestMapping(value = "/executions", method = RequestMethod.GET)
+  List<CanaryExecutionStatusResponse> getCanaryResultsByApplication(@RequestParam(required = false) String application,
+                                                                    @RequestParam(value = "limit", defaultValue = "20") int limit,
+                                                                    @RequestParam(value = "statuses", required = false) String statuses,
+                                                                    @RequestParam(required = false) final String storageAccountName) {
+    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
+                                                                                     AccountCredentials.Type.OBJECT_STORE,
+                                                                                     accountCredentialsRepository);
+
+    if (StringUtils.isEmpty(statuses)) {
+      statuses = Stream.of(ExecutionStatus.values())
+        .map(s -> s.toString())
+        .collect(Collectors.joining(","));
+    }
+
+    List<String> statusesList = Stream.of(statuses.split(","))
+      .map(s -> s.trim())
+      .filter(s -> !StringUtils.isEmpty(s))
+      .collect(Collectors.toList());
+    ExecutionRepository.ExecutionCriteria executionCriteria = new ExecutionRepository.ExecutionCriteria()
+      .setLimit(limit)
+      .setStatuses(statusesList);
+
+    // Users of the ad-hoc endpoint can either omit application or pass 'ad-hoc' explicitly.
+    if (StringUtils.isEmpty(application)) {
+      application = AD_HOC;
+    }
+
+    String canaryPipelineConfigId = application + "-standard-canary-pipeline";
+    List<Execution> executions = executionRepository.retrievePipelinesForPipelineConfigId(canaryPipelineConfigId, executionCriteria).toList().toBlocking().single();
+
+    return executions
+      .stream()
+      .map(execution -> getCanaryResults(resolvedStorageAccountName, execution))
+      .collect(Collectors.toList());
   }
 }

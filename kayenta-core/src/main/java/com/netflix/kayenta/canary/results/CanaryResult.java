@@ -30,6 +30,13 @@ import java.time.Duration;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CanaryResult {
 
+  // These are here (in addition to CanaryExecutionStatusResponse) so we can still correlate runs even if we lose
+  // the persisted execution.
+  @Getter
+  String application;
+  @Getter
+  String parentPipelineExecutionId;
+
   @Getter
   CanaryJudgeResult judgeResult;
 
