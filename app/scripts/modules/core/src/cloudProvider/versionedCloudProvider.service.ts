@@ -70,6 +70,22 @@ export class VersionedCloudProviderService {
     });
   }
 
+  public getAccountForInstance(cloudProvider: string, instanceId: string, app: Application): IPromise<string> {
+    return app.ready().then(() => {
+      const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
+      const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];
+      const loadBalancerServerGroups = loadBalancers.map(lb => lb.serverGroups).reduce((acc, sg) => acc.concat(sg), []);
+
+      const hasInstance = (obj: IServerGroup | ILoadBalancer) => {
+        return obj.cloudProvider === cloudProvider && (obj.instances || []).some(instance => instance.id === instanceId);
+      };
+
+      const all: (IServerGroup | ILoadBalancer)[] = [].concat(serverGroups).concat(loadBalancers).concat(loadBalancerServerGroups);
+      const found = all.find(hasInstance);
+      return found && found.account;
+    });
+  }
+
   public getAccounts(): IPromise<IAccountDetails[]> {
     if (!SETTINGS.feature.versionedProviders) {
       return this.$q.resolve([]);
