@@ -137,11 +137,6 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     }
   }
 
-  private toggleInstanceSelect(event: React.ChangeEvent<any>): void {
-    event.stopPropagation();
-    this.MultiselectModel.toggleInstance(this.props.serverGroup, event.target.getAttribute('data-instance-id'));
-  }
-
   private renderRow(instance: IInstance): JSX.Element {
     const { hasLoadBalancers, hasDiscovery } = this.props;
     const showProviderHealth = !hasLoadBalancers && !hasDiscovery;
@@ -176,7 +171,6 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
             <input
               type="checkbox"
               checked={this.state.selectedInstanceIds.includes(instance.id)}
-              onClick={this.toggleInstanceSelect}
             />
           </td>
         )}
