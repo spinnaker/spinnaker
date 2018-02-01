@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @EqualsAndHashCode
@@ -38,7 +39,7 @@ public class KubernetesApiVersion {
 
   protected KubernetesApiVersion(String name) {
     if (values == null) {
-      values = new ArrayList<>();
+      values = Collections.synchronizedList(new ArrayList<>());
     }
 
     this.name = name;
@@ -56,6 +57,6 @@ public class KubernetesApiVersion {
     return values.stream()
         .filter(v -> v.name.equalsIgnoreCase(name))
         .findAny()
-        .orElseThrow(() -> new IllegalArgumentException("API version " + name + " is not yet supported."));
+        .orElse(new KubernetesApiVersion(name));
   }
 }

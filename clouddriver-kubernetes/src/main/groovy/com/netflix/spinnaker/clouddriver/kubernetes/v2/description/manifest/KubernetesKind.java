@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class KubernetesKind {
@@ -44,7 +45,7 @@ public class KubernetesKind {
 
   protected KubernetesKind(String name, String alias) {
     if (values == null) {
-      values = new ArrayList<>();
+      values = Collections.synchronizedList(new ArrayList<>());
     }
 
     this.name = name;
@@ -67,6 +68,6 @@ public class KubernetesKind {
     return values.stream()
         .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
         .findAny()
-        .orElseThrow(() -> new IllegalArgumentException("Kubernetes kind '" + name + "' is not supported."));
+        .orElse(new KubernetesKind(name));
   }
 }
