@@ -98,11 +98,9 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     Artifact artifact = converter.toArtifact(provider, manifest);
     Moniker moniker = description.getMoniker();
-    KubernetesManifestSpinnakerRelationships relationships = description.getRelationships();
 
     getTask().updateStatus(OP_NAME, "Annotating manifest with artifact, relationships & moniker...");
     KubernetesManifestAnnotater.annotateManifest(manifest, artifact);
-    KubernetesManifestAnnotater.annotateManifest(manifest, relationships);
     namer.applyMoniker(manifest, moniker);
 
     getTask().updateStatus(OP_NAME, "Setting a resource name...");

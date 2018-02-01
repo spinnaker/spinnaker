@@ -81,8 +81,9 @@ public class KubernetesManifestAnnotater {
 
     try {
       return objectMapper.readValue(value, typeReference);
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Illegally annotated resource for '" + key + "': " + e);
+    } catch (Exception e) {
+      log.warn("Illegally annotated resource for '" + key + "': " + e);
+      return null;
     }
   }
 
