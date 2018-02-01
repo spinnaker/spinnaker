@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kayenta.KayentaService
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,7 +50,10 @@ class RunKayentaCanaryTask implements Task {
         marginal: scoreThresholds?.marginal
       ]
     ]
+    Execution execution = stage.getExecution()
     String canaryPipelineExecutionId = kayentaService.create(canaryConfigId,
+                                                             execution.application,
+                                                             execution.id,
                                                              metricsAccountName,
                                                              storageAccountName /* configurationAccountName */, // TODO(duftler): Propagate configurationAccountName properly.
                                                              storageAccountName,

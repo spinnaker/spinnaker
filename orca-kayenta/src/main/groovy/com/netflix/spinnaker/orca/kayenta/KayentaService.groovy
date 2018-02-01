@@ -23,6 +23,8 @@ interface KayentaService {
 
   @POST("/canary/{canaryConfigId}")
   Map create(@Path("canaryConfigId") String canaryConfigId,
+             @Query("application") String application,
+             @Query("parentPipelineExecutionId") String parentPipelineExecutionId,
              @Query("metricsAccountName") String metricsAccountName,
              @Query("configurationAccountName") String configurationAccountName,
              @Query("storageAccountName") String storageAccountName,
