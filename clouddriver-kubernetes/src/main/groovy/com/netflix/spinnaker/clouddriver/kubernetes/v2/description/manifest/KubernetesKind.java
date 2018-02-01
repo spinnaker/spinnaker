@@ -29,6 +29,7 @@ public class KubernetesKind {
   public static KubernetesKind CONTROLLER_REVISION = new KubernetesKind("controllerRevision");
   public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds");
   public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy");
+  public static KubernetesKind HORIZONTAL_POD_AUTOSCALER = new KubernetesKind("horizontalpodautoscaler", "hpa");
   public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
   public static KubernetesKind POD = new KubernetesKind("pod", "po");
   public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs");
