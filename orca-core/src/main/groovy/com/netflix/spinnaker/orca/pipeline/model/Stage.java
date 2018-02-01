@@ -462,6 +462,17 @@ public class Stage implements Serializable {
   }
 
   /**
+   * Returns the parent of this stage or null if it is a top-level stage.
+   */
+  @JsonIgnore public @Nullable Stage getParent() {
+    if (parentStageId == null) {
+      return null;
+    } else {
+      return execution.stageById(parentStageId);
+    }
+  }
+
+  /**
    * Returns the top-most stage.
    */
   @JsonIgnore public Stage getTopLevelStage() {

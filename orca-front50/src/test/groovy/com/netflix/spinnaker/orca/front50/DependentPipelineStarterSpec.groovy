@@ -124,4 +124,37 @@ class DependentPipelineStarterSpec extends Specification {
     gotMDC["X-SPINNAKER-USER"] == "parentUser"
     gotMDC["X-SPINNAKER-ACCOUNTS"] == "acct1,acct2"
   }
+
+  def "should not do anything if parent was a dry run execution"() {
+    given:
+    def triggeredPipelineConfig = [name: "triggered", id: "triggered"]
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger.type = "dryrun"
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+      objectMapper: mapper,
+      applicationContext: applicationContext,
+      contextParameterProcessor: new ContextParameterProcessor()
+    )
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+      triggeredPipelineConfig,
+      null /*user*/,
+      parentPipeline,
+      [:],
+      "parent"
+    )
+
+    then:
+    result == null
+
+    and:
+    0 * executionLauncher._
+  }
 }

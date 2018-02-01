@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
 import com.netflix.spinnaker.orca.q.pipeline
-import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.orca.q.stage
-import com.netflix.spinnaker.spek.shouldEqual
+import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -29,236 +31,142 @@ import org.jetbrains.spek.api.dsl.on
 
 object DryRunTaskTest : Spek({
 
-  val subject = DryRunTask()
+  val outputStub: OutputStub = mock()
+  val subject = DryRunTask(listOf(outputStub))
 
   describe("running the task") {
-    given("a stage that will evaluate successfully") {
-      val realPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["something"] = "covfefe"
-          context["fromConfig"] = "covfefe"
-          outputs["result"] = "covfefe"
-          status = SUCCEEDED
-        }
+
+    val pipeline = pipeline {
+      stage {
+        type = "deploy"
+        refId = "1"
       }
-      val realStage = realPipeline.stageByRef("1")
-
-      val testPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["fromConfig"] = "covfefe"
-        }
-        trigger["lastSuccessfulExecution"] = realPipeline
+      stage {
+        type = "deploy"
+        refId = "2"
       }
-      val stage = testPipeline.stageByRef("1")
+      stage {
+        type = "bake"
+        refId = "3"
+      }
+      stage {
+        type = "bake"
+        refId = "4"
+      }
+      trigger["type"] = "dryrun"
+      trigger["outputs"] = mapOf("2" to mapOf("foo" to "bar"), "4" to mapOf("foo" to "bar"))
+    }
 
-      on("running the stage") {
-        val result = subject.execute(stage)
+    given("a stage with no outputs in the trigger and no output stub") {
 
-        it("returns the same status as the real stage") {
-          result.status shouldEqual realStage.status
-        }
+      beforeGroup {
+        whenever(outputStub.supports(any())) doReturn false
+      }
 
-        it("duplicates the outputs of the real stage") {
-          result.outputs shouldEqual realStage.outputs
-        }
+      afterGroup {
+        reset(outputStub)
+      }
 
-        it("replicates the stage context after execution") {
-          result.context shouldEqual realStage.context
-        }
+      var result: TaskResult? = null
+
+      on("running the task") {
+        result = subject.execute(pipeline.stageByRef("1"))
+      }
+
+      it("should return success") {
+        assertThat(result!!.status).isEqualTo(SUCCEEDED)
+      }
+
+      it("should create no outputs") {
+        assertThat(result!!.outputs).isEmpty()
+      }
+
+      it("should not try to stub output") {
+        verify(outputStub, never()).outputs(any())
       }
     }
 
-    given("a mismatch in context values") {
-      val realPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["something"] = "covfefe"
-          status = SUCCEEDED
-        }
+    given("a stage with outputs overridden in the trigger") {
+
+      beforeGroup {
+        whenever(outputStub.supports(any())) doReturn false
       }
 
-      val testPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["something"] = "dotard"
-        }
-        trigger["lastSuccessfulExecution"] = realPipeline
+      afterGroup {
+        reset(outputStub)
       }
-      val stage = testPipeline.stageByRef("1")
 
-      on("running the stage") {
-        val result = subject.execute(stage)
+      var result: TaskResult? = null
 
-        it("fails") {
-          result.status shouldEqual TERMINAL
-        }
+      on("running the task") {
+        result = subject.execute(pipeline.stageByRef("2"))
+      }
 
-        it("puts the new value in the context") {
-          result.context["something"] shouldEqual stage.context["something"]
-        }
+      it("should return success") {
+        assertThat(result!!.status).isEqualTo(SUCCEEDED)
+      }
 
-        it("adds an error to the stage outputs") {
-          result.outputs["dryRunResult"] shouldEqual mapOf(
-            "context" to mapOf(
-              "something" to "Expected \"covfefe\" but found \"dotard\"."
-            )
-          )
-        }
+      it("should copy outputs from the trigger") {
+        assertThat(result!!.outputs).isEqualTo(mapOf("foo" to "bar"))
+      }
+
+      it("should not try to stub output") {
+        verify(outputStub, never()).outputs(any())
       }
     }
 
-    given("a mismatch in context values in a blacklisted key") {
-      val realPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["amiSuffix"] = "1234"
-          status = SUCCEEDED
-        }
+    given("a stage with an output stub") {
+
+      val stubOutput = mapOf("negative" to "covfefe")
+      beforeGroup {
+        whenever(outputStub.supports("bake")) doReturn true
+        whenever(outputStub.outputs(pipeline.stageByRef("3"))) doReturn stubOutput
       }
 
-      val testPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["amiSuffix"] = "5678"
-        }
-        trigger["lastSuccessfulExecution"] = realPipeline
+      afterGroup {
+        reset(outputStub)
       }
-      val stage = testPipeline.stageByRef("1")
 
-      on("running the stage") {
-        val result = subject.execute(stage)
+      var result: TaskResult? = null
 
-        it("succeeds") {
-          result.status shouldEqual SUCCEEDED
-        }
+      on("running the task") {
+        result = subject.execute(pipeline.stageByRef("3"))
+      }
+
+      it("should return success") {
+        assertThat(result!!.status).isEqualTo(SUCCEEDED)
+      }
+
+      it("should have stubbed outputs") {
+        assertThat(result!!.outputs).isEqualTo(stubOutput)
       }
     }
 
-    given("a mismatch in context values in a key matching a blacklisted pattern") {
-      val realPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["kato.whatever"] = "1234"
-          status = SUCCEEDED
-        }
+    given("a stage with an output stub and trigger data") {
+
+      val stubOutput = mapOf("negative" to "covfefe", "foo" to "baz")
+      beforeGroup {
+        whenever(outputStub.supports("bake")) doReturn true
+        whenever(outputStub.outputs(pipeline.stageByRef("4"))) doReturn stubOutput
       }
 
-      val testPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["kato.whatever"] = "5678"
-        }
-        trigger["lastSuccessfulExecution"] = realPipeline
-      }
-      val stage = testPipeline.stageByRef("1")
-
-      on("running the stage") {
-        val result = subject.execute(stage)
-
-        it("succeeds") {
-          result.status shouldEqual SUCCEEDED
-        }
-      }
-    }
-
-    given("a mismatch between a null and a missing key") {
-      val realPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["whatever"] = mapOf("foo" to "bar", "baz" to null)
-          status = SUCCEEDED
-        }
+      afterGroup {
+        reset(outputStub)
       }
 
-      val testPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["whatever"] = mapOf("foo" to "bar")
-        }
-        trigger["lastSuccessfulExecution"] = realPipeline
-      }
-      val stage = testPipeline.stageByRef("1")
+      var result: TaskResult? = null
 
-      on("running the stage") {
-        val result = subject.execute(stage)
-
-        it("succeeds") {
-          result.status shouldEqual SUCCEEDED
-        }
-      }
-    }
-
-    given("a mismatch between a deeply nested null and a missing key") {
-      val realPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["whatever"] = listOf(mapOf("foo" to "bar", "baz" to null))
-          status = SUCCEEDED
-        }
+      on("running the task") {
+        result = subject.execute(pipeline.stageByRef("4"))
       }
 
-      val testPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          context["whatever"] = listOf(mapOf("foo" to "bar"))
-        }
-        trigger["lastSuccessfulExecution"] = realPipeline
-      }
-      val stage = testPipeline.stageByRef("1")
-
-      on("running the stage") {
-        val result = subject.execute(stage)
-
-        it("succeeds") {
-          result.status shouldEqual SUCCEEDED
-        }
-      }
-    }
-
-    given("a stage that was skipped previously") {
-      val realPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-          status = SKIPPED
-        }
+      it("should return success") {
+        assertThat(result!!.status).isEqualTo(SUCCEEDED)
       }
 
-      val testPipeline = pipeline {
-        stage {
-          refId = "1"
-          type = singleTaskStage.type
-        }
-        trigger["lastSuccessfulExecution"] = realPipeline
-      }
-      val stage = testPipeline.stageByRef("1")
-
-      on("running the stage") {
-        val result = subject.execute(stage)
-
-        it("fails") {
-          result.status shouldEqual TERMINAL
-        }
-
-        it("adds an error to the stage outputs") {
-          result.outputs["dryRunResult"] shouldEqual mapOf(
-            "errors" to listOf("Expected stage to be skipped.")
-          )
-        }
+      it("trigger outputs take precedence") {
+        assertThat(result!!.outputs["negative"]).isEqualTo("covfefe")
+        assertThat(result!!.outputs["foo"]).isEqualTo("bar")
       }
     }
   }

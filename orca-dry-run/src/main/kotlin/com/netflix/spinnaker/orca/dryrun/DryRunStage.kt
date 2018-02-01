@@ -20,12 +20,11 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import kotlin.reflect.KClass
 
 class DryRunStage(private val delegate: StageDefinitionBuilder) : StageDefinitionBuilder {
 
   override fun taskGraph(stage: Stage, builder: Builder) {
-    builder.withTask("dry run", DryRunTask::class)
+    builder.withTask<DryRunTask>("dry run")
   }
 
   override fun aroundStages(stage: Stage): List<Stage>
@@ -36,6 +35,6 @@ class DryRunStage(private val delegate: StageDefinitionBuilder) : StageDefinitio
 
   override fun getType() = delegate.type
 
-  private fun Builder.withTask(name: String, type: KClass<out Task>) =
-    withTask(name, type.java)
+  private inline fun <reified T : Task> Builder.withTask(name: String) =
+    withTask(name, T::class.java)
 }

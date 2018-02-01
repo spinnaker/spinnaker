@@ -16,115 +16,38 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature.WRITE_NULL_MAP_VALUES
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class DryRunTask : Task {
-  private val blacklistKeyPatterns =
-    setOf(
-      "amiSuffix",
-      "kato\\..*",
-      "spelEvaluator",
-      "stageDetails",
-      "useSourceCapacity"
-    )
-      .map(String::toRegex)
+class DryRunTask(
+  private val outputStubs: List<OutputStub>
+) : Task {
 
   override fun execute(stage: Stage): TaskResult =
-    stage
-      .execution
-      .let { execution ->
-        if (execution.type == PIPELINE) {
-          realStage(execution, stage)
-            .let { realStage ->
-              stage.evaluateStage(realStage)
-            }
-        } else {
-          log.error("Dry run is only supported for pipelines")
-          TaskResult(TERMINAL)
-        }
+    stage.generateOutputs().let { outputs ->
+      stage.execution.also { execution ->
+        log.info("Dry run of ${execution.application} ${execution.name} ${execution.id} stage ${stage.type} ${stage.refId} outputting $outputs")
       }
-
-  private fun Stage.evaluateStage(realStage: Stage): TaskResult {
-    val dryRunResult = mutableMapOf<String, Any>()
-    var status: ExecutionStatus? = null
-
-    val diff = context.removeNulls().diffKeys(realStage.context.removeNulls())
-
-    if (diff.isNotEmpty()) {
-      dryRunResult["context"] = diff
-        .mapValues { (key, value) ->
-          "Expected \"${realStage.context[key]}\" but found \"$value\"."
-        }
-      status = TERMINAL
+      TaskResult(SUCCEEDED, emptyMap<String, Any>(), outputs)
     }
 
-    if (realStage.status == SKIPPED) {
-      dryRunResult["errors"] = listOf("Expected stage to be skipped.")
-      status = TERMINAL
-    }
+  private fun Stage.generateOutputs(): Map<String, Any> =
+    stubOutputs() + triggerOutputs()
 
-    return TaskResult(
-      status ?: realStage.status,
-      realStage.context + diff,
-      realStage.outputs + if (dryRunResult.isNotEmpty()) mapOf("dryRunResult" to dryRunResult) else emptyMap()
-    )
+  private fun Stage.triggerOutputs(): Map<String, Any> {
+    val outputs = execution.trigger["outputs"] as Map<String, Map<String, Any>>?
+      ?: emptyMap()
+    return outputs[refId] ?: emptyMap()
   }
 
-  private fun Map<String, *>.removeNulls() =
-    // this is a quick way to remove nested null values
-    mapper.writeValueAsString(this).let { json ->
-      mapper.readValue<Map<String, *>>(json)
-    }
-
-  private inline fun <reified T> ObjectMapper.readValue(src: String): T = readValue(src, T::class.java)
-
-  private fun Map<String, *>.diffKeys(other: Map<String, *>): Map<String, Any?> =
-    filterKeys { key ->
-      blacklistKeyPatterns.none(key::matches)
-    }
-      .filter { (key, value) ->
-        value != other[key]
-      }
-
-  private fun realStage(execution: Execution, stage: Stage): Stage {
-    return execution
-      .trigger["lastSuccessfulExecution"]
-      .let { realPipeline ->
-        when (realPipeline) {
-          is Execution -> realPipeline
-          is Map<*, *> -> mapper.convertValue(realPipeline)
-          else -> throw IllegalStateException("No triggering pipeline execution found")
-        }
-      }
-      .stageByRef(stage.refId)
-  }
-
-  private val mapper = OrcaObjectMapper
-    .newInstance()
-    .apply {
-      disable(WRITE_NULL_MAP_VALUES)
-      SimpleModule()
-        .addSerializer(RoundingFloatSerializer())
-        .addSerializer(RoundingDoubleSerializer())
-        .let(this::registerModule)
-    }
+  private fun Stage.stubOutputs(): Map<String, Any> =
+    outputStubs.find { it.supports(type) }?.outputs(this) ?: emptyMap()
 
   private val log = LoggerFactory.getLogger(javaClass)
-
-  private inline fun <reified T> ObjectMapper.convertValue(fromValue: Any): T =
-    convertValue(fromValue, T::class.java)
 }
