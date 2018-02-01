@@ -108,6 +108,11 @@ export interface IDataSourceConfig {
   optional?: boolean;
 
   /**
+   * (Optional) whether this data source is visible in the UI (used only for early access/beta testing)
+   */
+  hidden?: boolean;
+
+  /**
    * (Optional) Determines whether the data source is listed directly to the left of the application name
    */
   primary?: boolean;
@@ -208,6 +213,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public requireConfiguredApp = false;
   public sref: string;
   public visible = true;
+  public hidden = false;
 
   /**
    * State flag that indicates whether the data source has been loaded. If the data source does not have a declared

@@ -32,7 +32,7 @@ export class DataSourceEditorController implements IController {
     if (!this.application.attributes.dataSources) {
       this.application.attributes.dataSources = { enabled: [], disabled: [] };
     }
-    this.dataSources = this.application.dataSources.filter(ds => ds.visible && ds.optional);
+    this.dataSources = this.application.dataSources.filter(ds => ds.visible && ds.optional && !ds.hidden);
     this.explicitlyEnabled = this.application.attributes.dataSources.enabled;
     this.explicitlyDisabled = this.application.attributes.dataSources.disabled;
     this.dataSources.forEach(ds => {
