@@ -63,14 +63,11 @@
 
   .actions {
     display: flex;
-    align-items: stretch;
-    justify-content: space-between;
-    .dropdown, .btn {
-      display: inline-block;
-      flex: 0 0 auto;
-    }
-    .push-right {
-      margin-left: auto;
+    flex-flow: row wrap;
+
+    margin: 0 -4px;
+    .dropdown {
+      margin: 4px;
     }
   }
 
@@ -140,20 +137,6 @@
       }
     }
     .actions {
-      &.insights {
-        .dropdown {
-          &:first-child {
-            margin-bottom: 5px;
-          }
-          @media(min-width: 1400px) {
-            .pull-left;
-            &:first-child {
-              margin: 0 15px 0 0;
-            }
-          }
-        }
-      }
-
       .uib-dropdown-menu {
         min-width: 80px;
       }
