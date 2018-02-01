@@ -55,6 +55,12 @@ interface KayentaService {
   Map getCanaryResult(@Path("canaryExecutionId") String canaryExecutionId,
                       @Query("storageAccountName") String storageAccountName)
 
+  @GET("/canary/executions")
+  List getCanaryResultsByApplication(@Query("application") String application,
+                                     @Query("limit") int limit,
+                                     @Query("statuses") String statuses,
+                                     @Query("storageAccountName") String storageAccountName)
+
   @GET("/metricSetPairList/{metricSetPairListId}")
   List getMetricSetPairList(@Path("metricSetPairListId") metricSetPairListId,
                             @Query("accountName") String storageAccountName)

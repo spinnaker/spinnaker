@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.V2CanaryService
 import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.web.bind.annotation.PathVariable
@@ -53,6 +54,8 @@ class V2CanaryController {
     v2CanaryService.listJudges()
   }
 
+  // TODO: Add endpoint for initiating a canary run.
+
   @ApiOperation(value = 'Retrieve a canary result')
   @RequestMapping(value = '/canary/{canaryConfigId}/{canaryExecutionId}', method = RequestMethod.GET)
   Map getCanaryResult(@PathVariable String canaryConfigId,
@@ -61,6 +64,15 @@ class V2CanaryController {
     v2CanaryService.getCanaryResults(canaryExecutionId, storageAccountName)
   }
 
+  @ApiOperation(value = 'Retrieve a list of an application\'s canary results')
+  @RequestMapping(value = '/{application}/executions', method = RequestMethod.GET)
+  List getCanaryResultsByApplication(@PathVariable String application,
+                                     @RequestParam(value='limit') int limit,
+                                     @ApiParam('Comma-separated list of statuses, e.g.: RUNNING, SUCCEEDED, TERMINAL')
+                                     @RequestParam(value='statuses', required = false) String statuses,
+                                     @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
+    v2CanaryService.getCanaryResultsByApplication(application, limit, statuses, storageAccountName)
+  }
 
   // TODO(dpeach): remove this endpoint when a Kayenta endpoint for
   // retrieving a single metric set pair exists.
