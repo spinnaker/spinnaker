@@ -183,9 +183,7 @@ export class ExecutionService {
 
     public waitUntilNewTriggeredPipelineAppears(application: Application, triggeredPipelineId: string): IPromise<any> {
       return this.getExecution(triggeredPipelineId).then(() => {
-        const deferred = this.$q.defer();
-        application.executions.refresh().then(deferred.resolve);
-        return deferred.promise;
+        return application.executions.refresh();
       }).catch(() => {
         return this.$timeout(() => {
           return this.waitUntilNewTriggeredPipelineAppears(application, triggeredPipelineId);
