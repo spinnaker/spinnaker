@@ -11,6 +11,7 @@ export interface IAsg {
   minSize: number;
   maxSize: number;
   desiredCapacity: number;
+  tags?: any[];
 }
 
 export interface IServerGroup {
@@ -23,9 +24,12 @@ export interface IServerGroup {
   cloudProvider: string;
   cluster: string;
   clusterEntityTags?: IEntityTags[];
+  createdTime?: number;
   detachedInstances?: IInstance[];
   detail?: string;
+  disabledDate?: number;
   entityTags?: IEntityTags;
+  insightActions?: { url: string, label: string }[];
   instanceCounts: IInstanceCounts;
   instances: IInstance[];
   instanceType?: string;

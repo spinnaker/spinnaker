@@ -11,12 +11,8 @@ import { JAR_DIFF_COMPONENT, IJarDiff } from './jarDiff.component';
 export interface IViewChangesConfig {
   buildInfo?: IBuildDiffInfo;
   commits?: ICommit[];
-  jarDiffs: IJarDiff;
+  jarDiffs?: IJarDiff;
   metadata?: ICreationMetadataTag;
-}
-
-export interface INameItem {
-  name: string;
 }
 
 class ViewChangesModalController {
@@ -29,7 +25,7 @@ class ViewChangesModalController {
               public commits: ICommit[],
               public hasJarChanges: boolean,
               public jarDiffs: IJarDiff,
-              public nameItem: INameItem) {
+              public nameItem: { name: string }) {
     'ngInject';
 
     if (buildInfo.jenkins) {
@@ -57,7 +53,7 @@ class ViewChangesLinkController implements IController {
   public changeConfig: IViewChangesConfig;
   public viewType: string;
   public linkText = 'View Changes';
-  public nameItem: INameItem;
+  public nameItem: { name: string };
 
   public changesAvailable = false;
   public hasJarChanges = false;
@@ -160,10 +156,21 @@ class ViewChangesLink implements IComponentOptions {
   `;
 }
 
+export class ViewChangesLinkWrapper implements IComponentOptions {
+  public bindings: any = {
+    changeConfig: '<',
+    viewType: '<',
+    linkText: '<?',
+    nameItem: '<',
+  }
+  public tempate = `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`;
+}
+
 export const VIEW_CHANGES_LINK = 'spinnaker.diffs.view.changes.link';
 module(VIEW_CHANGES_LINK, [
   COMMIT_HISTORY_COMPONENT,
   JAR_DIFF_COMPONENT,
   EXECUTION_SERVICE
 ])
-  .component('viewChangesLink', new ViewChangesLink());
+  .component('viewChangesLink', new ViewChangesLink())
+  .component('viewChangesLinkWrapper', new ViewChangesLinkWrapper());

@@ -8,6 +8,7 @@ import { Placement, Tooltip } from 'core/presentation';
 import './healthCounts.less';
 
 export interface IHealthCountsProps {
+  className?: string;
   container: IInstanceCounts;
   additionalLegendText?: string;
   legendPlacement?: Placement;
@@ -140,7 +141,7 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
       );
     } else if (container.outOfService) {
       return (
-        <div className="health-counts">
+        <div className={`health-counts ${this.props.className ? this.props.className : ''}`}>
           <Tooltip template={legend}>
             <span className="counter instance-health-counts">
               <span>

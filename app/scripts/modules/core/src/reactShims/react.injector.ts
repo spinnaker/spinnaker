@@ -14,6 +14,7 @@ import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
 import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
+import { ClusterTargetBuilder } from '../entityTag/clusterTargetBuilder.service';
 import { CollapsibleSectionStateCache } from '../cache/collapsibleSectionStateCache';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { EntityTagWriter } from '../entityTag';
@@ -46,6 +47,9 @@ import { RecentHistoryService } from 'core/history/recentHistory.service'
 import { SchedulerFactory } from '../scheduler/scheduler.factory';
 import { ScrollToService } from '../utils/scrollTo/scrollTo.service';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
+import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
+import { ServerGroupWarningMessageService } from '../serverGroup/details/serverGroupWarningMessage.service';
+import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
 import { StateEvents } from './state.events';
 import { SubnetReader } from '../subnet/subnet.read.service';
 import { TaskExecutor } from '../task/taskExecutor';
@@ -92,6 +96,7 @@ export class CoreReactInject extends ReactInject {
   public get cloudProviderRegistry() { return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry; }
   public get clusterFilterModel() { return this.$injector.get('clusterFilterModel') as ClusterFilterModel; }
   public get clusterFilterService() { return this.$injector.get('clusterFilterService') as ClusterFilterService; }
+  public get clusterTargetBuilder() { return this.$injector.get('clusterTargetBuilder') as ClusterTargetBuilder; }
   public get collapsibleSectionStateCache() { return this.$injector.get('collapsibleSectionStateCache') as CollapsibleSectionStateCache; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get entityTagWriter() { return this.$injector.get('entityTagWriter') as EntityTagWriter; }
@@ -126,6 +131,9 @@ export class CoreReactInject extends ReactInject {
   public get schedulerFactory() { return this.$injector.get('schedulerFactory') as SchedulerFactory; }
   public get scrollToService() { return this.$injector.get('scrollToService') as ScrollToService; }
   public get securityGroupReader() { return this.$injector.get('securityGroupReader') as SecurityGroupReader; }
+  public get serverGroupReader() { return this.$injector.get('serverGroupReader') as ServerGroupReader; }
+  public get serverGroupWarningMessageService() { return this.$injector.get('serverGroupWarningMessageService') as ServerGroupWarningMessageService; }
+  public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }
   public get subnetReader() { return this.$injector.get('subnetReader') as SubnetReader; }
   public get recentHistoryService() { return this.$injector.get('recentHistoryService') as RecentHistoryService; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }

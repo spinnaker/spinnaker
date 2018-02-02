@@ -4,5 +4,6 @@ export * from './Markdown';
 export * from './ModalService';
 export * from './Placement';
 export * from './Tooltip';
+export * from './collapsibleSection/CollapsibleSection';
 export * from './formsy';
 export * from './robotToHumanFilter/robotToHuman.filter';

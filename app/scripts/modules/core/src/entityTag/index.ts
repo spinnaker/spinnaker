@@ -1,3 +1,4 @@
+export * from './AddEntityTagLinks';
 export * from './EntityTagEditor';
 export * from './clusterTargetBuilder.service';
 export * from './entityTags.read.service';

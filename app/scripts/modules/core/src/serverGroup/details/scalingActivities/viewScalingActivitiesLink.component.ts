@@ -19,9 +19,9 @@ class ViewScalingActivitiesLinkCtrl implements IController {
   }
 }
 
-class ViewScalingActivitiesLink implements IComponentOptions {
+export class ViewScalingActivitiesLink implements IComponentOptions {
   public bindings: any = {
-    serverGroup: '='
+    serverGroup: '<'
   };
   public controller: any = ViewScalingActivitiesLinkCtrl;
   public template = `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`;

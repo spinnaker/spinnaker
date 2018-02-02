@@ -8,7 +8,7 @@ import {
 import { Application } from 'core/application/application.model';
 import { filterModelConfig } from 'core/cluster/filter/clusterFilter.model';
 
-import { ServerGroupDetails } from './details/ServerGroupDetails';
+import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
 
 export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
 module(SERVER_GROUP_STATES, [
@@ -54,7 +54,7 @@ module(SERVER_GROUP_STATES, [
     name: 'serverGroup',
     url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
     views: {
-      'detail@../insight': { component: ServerGroupDetails, $type: 'react' },
+      'detail@../insight': { component: ServerGroupDetailsWrapper, $type: 'react' },
     },
     resolve: {
       serverGroup: ['$stateParams', ($stateParams: StateParams) => {

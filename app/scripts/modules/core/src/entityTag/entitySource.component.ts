@@ -43,10 +43,10 @@ class EntitySourceCtrl implements IController {
 
 }
 
-class EntitySourceComponent implements ng.IComponentOptions {
+export class EntitySourceComponent implements ng.IComponentOptions {
   public bindings: any = {
-    metadata: '=',
-    relativePath: '=?',
+    metadata: '<',
+    relativePath: '<?',
   };
   public controller: any = EntitySourceCtrl;
   public template = `

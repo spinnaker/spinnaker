@@ -1,85 +1,125 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
-import { $q, $templateCache } from 'ngimport';
+import { UISref } from '@uirouter/react';
+import { Subject } from 'rxjs';
 
-import { Application } from 'core/application';
-import { AngularJSAdapter, ReactInjector } from 'core/reactShims';
+import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
+import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
+import { IServerGroup } from 'core/domain';
+import { ReactInjector } from 'core/reactShims';
+import { SETTINGS } from 'core/config/settings';
+import { Spinner } from 'core/widgets/spinners/Spinner';
+import { timestamp } from 'core/utils/timeFormatters';
 
-
-export interface IServerGroupDetailsStateParams {
-  provider: string;
-  accountId: string;
-  region: string;
-  serverGroup: string;
-}
-
-export interface IServerGroupDetailsProps {
-  app: Application;
-  serverGroup: {
-    name: string;
-    accountId: string;
-    region: string;
-  };
-}
-
-export interface IServerGroupDetailsState {
-  angular: {
-    template: string,
-    controller: string,
-  };
-  ServerGroupDetailsComponent: React.ComponentClass<IServerGroupDetailsProps>,
-  accountId: string;
-  provider: string;
-  region: string;
-}
+import { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGroupDetailsWrapper';
+import { RunningTasks } from './RunningTasks';
+import { ServerGroupInsightActions } from './ServerGroupInsightActions';
 
 @BindAll()
 export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps, IServerGroupDetailsState> {
+  private destroy$ = new Subject();
+
   constructor(props: IServerGroupDetailsProps) {
     super(props);
 
-    const $stateParams: IServerGroupDetailsStateParams = ReactInjector.$stateParams as any;
-
     this.state = {
-      accountId: $stateParams.accountId,
-      provider: $stateParams.provider,
-      region: $stateParams.region,
-      angular: {
-        template: undefined,
-        controller: undefined,
-      },
-      ServerGroupDetailsComponent: undefined,
+      loading: true,
+      serverGroup: undefined,
     };
   }
 
+  private autoClose(): void {
+    ReactInjector.$state.params.allowModalToStayOpen = true;
+    ReactInjector.$state.go('^', null, { location: 'replace' });
+  }
+
+  private updateServerGroup(serverGroup: IServerGroup): void {
+    this.setState({ serverGroup, loading: false });
+  }
+
   public componentDidMount(): void {
-    const { provider, accountId } = this.state;
-    const { versionedCloudProviderService } = ReactInjector;
-    $q.all([
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsComponent'),
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsController'),
-    ]).then((values: [React.ComponentClass<IServerGroupDetailsProps>, string, string]) => {
-      const [ component, templateUrl, controller ] = values;
-      const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
-      this.setState({ angular: { template, controller }, ServerGroupDetailsComponent: component });
-    });
+    this.props.detailsGetter(this.props, this.autoClose)
+      .takeUntil(this.destroy$)
+      .subscribe(this.updateServerGroup);
+    this.props.app.serverGroups.onRefresh(null, () => this.props.detailsGetter(this.props, this.autoClose).takeUntil(this.destroy$).subscribe(this.updateServerGroup));
+  }
+
+  public componentWillReceiveProps(nextProps: IServerGroupDetailsProps): void {
+    if (nextProps.serverGroup !== this.props.serverGroup) {
+      this.props.detailsGetter(nextProps, this.autoClose).takeUntil(this.destroy$).subscribe(this.updateServerGroup);
+    }
+  }
+
+  public componentWillUnmount(): void {
+    this.destroy$.next();
   }
 
   public render() {
-    const { app, serverGroup } = this.props;
-    const { angular: { template, controller }, ServerGroupDetailsComponent } = this.state;
+    const { Actions, app, sections } = this.props;
+    const {
+      loading,
+      serverGroup,
+    } = this.state;
 
-    if (ServerGroupDetailsComponent) {
-      // react
-      return <ServerGroupDetailsComponent app={app} serverGroup={serverGroup} />;
-    }
+    const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
+    const hasInsightActions = serverGroup && serverGroup.insightActions && serverGroup.insightActions.length > 0;
 
-    // angular
-    if (template && controller) {
-      return <AngularJSAdapter className="detail-content flex-container-h" template={template} controller={`${controller} as ctrl`} locals={{ app, serverGroup }} />
-    }
+    const CloseButton = (
+      <div className="close-button">
+        <UISref to="^">
+          <span className="glyphicon glyphicon-remove"/>
+        </UISref>
+      </div>
+    );
 
-    return null;
+    // TODO: Move most of this to a BaseServerGroupDetails.tsx component that you just pass the things (retrieveServerGroup function, sections, ServerGroupActions)
+    return (
+      <div className={`details-panel ${serverGroup && serverGroup.isDisabled ? 'disabled' : ''}`}>
+        {loading && (
+          <div className="header">
+            {CloseButton}
+            <div className="horizontal center middle">
+              <Spinner size="small" />
+            </div>
+        </div>
+        )}
+
+        {!loading && (
+          <div className="header">
+            {CloseButton}
+            <div className="header-text">
+              <CloudProviderLogo provider={serverGroup.type} height="36px" width="36px"/>
+              <h3>
+                {serverGroup.name}
+                {showEntityTags && (
+                  <EntityNotifications
+                    entity={serverGroup}
+                    application={app}
+                    placement="bottom"
+                    hOffsetPercent="90%"
+                    entityType="serverGroup"
+                    pageLocation="details"
+                    onUpdate={app.serverGroups.refresh}
+                  />
+              )}
+              </h3>
+            </div>
+            <div>
+              <div className={`actions ${hasInsightActions ? 'insights' : ''}`}>
+                <Actions app={app} serverGroup={serverGroup} />
+                <ServerGroupInsightActions serverGroup={serverGroup} />
+              </div>
+            </div>
+          </div>
+        )}
+        {serverGroup && serverGroup.isDisabled && <div className="band band-info">Disabled {timestamp(serverGroup.disabledDate)}</div>}
+        {!loading && (
+          <div className="content">
+            <RunningTasks serverGroup={serverGroup} application={app} />
+            {sections.map((Section, index) => <Section key={index} app={app} serverGroup={serverGroup} />)}
+          </div>
+        )}
+      </div>
+    );
   }
 }

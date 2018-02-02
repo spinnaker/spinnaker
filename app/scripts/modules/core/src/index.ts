@@ -22,6 +22,8 @@ export * from './entityTag';
 export * from './entityTag/notifications/EntityNotifications';
 export * from './artifact';
 
+export * from './diffs';
+
 export * from './event/EventBus';
 
 export * from './filterModel';
