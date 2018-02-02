@@ -11,19 +11,19 @@ export interface ISearchResultGridProps {
 }
 
 const NoQuery = () => (
-  <div className="flex-fill vertical center middle">
+  <div className="flex-grow vertical center middle">
     <h2>Please enter a search query to get started</h2>
   </div>
 );
 
 const Searching = () => (
-  <div className="flex-fill vertical center middle">
+  <div className="flex-grow vertical center middle">
     <Spinner size="large" message="Fetching search results ..."/>
   </div>
 );
 
 const NoResults = ({ resultSet }: { resultSet: ISearchResultSet }) => (
-  <div className="flex-fill vertical center middle">
+  <div className="flex-grow vertical center middle">
     <h3>No {resultSet.type.displayName} found for the specified search query</h3>
   </div>
 );
@@ -43,7 +43,7 @@ const Results = ({ resultSet }: { resultSet: ISearchResultSet }) => {
 };
 
 const FetchError = ({ resultSet }: { resultSet: ISearchResultSet }) => (
-  <div className="flex-fill vertical center middle">
+  <div className="flex-grow vertical center middle">
     <h4 className="error-message">Could not fetch {resultSet.type.displayName}</h4>
     <div className="error-message">{resultSet && resultSet.error && resultSet.error.toString()}</div>
   </div>
