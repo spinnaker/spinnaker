@@ -108,4 +108,48 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     operationContext.extraOutput.regions == ["us-east-1"]
     operationContext.extraOutput.originalTags == ["my-ami": ["my-ami-00001": [tag1: "originalValue1"]]]
   }
+
+  def "should apply regions based on AMI data from Clouddriver"() {
+    given:
+    def stage = new Stage(Execution.newOrchestration("orca"), "", [
+      imageNames: ["my-ami-1", "my-ami-2"],
+      tags      : [
+        "tag1"      : "value1"
+      ]
+    ])
+
+    when:
+    def operationContext = imageTagger.getOperationContext(stage)
+
+    then:
+    1 * oortService.findImage("aws", "my-ami-1", null, null, null) >> {
+      [
+        [imageName: "my-ami-1", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]]
+      ]
+    }
+    1 * oortService.findImage("aws", "my-ami-2", null, null, null) >> {
+      [
+        [imageName: "my-ami-2", accounts: ["test"], amis: ["us-west-1": ["my-ami-00001"]]]
+      ]
+    }
+
+    operationContext.operations.size() == 2
+    operationContext.operations[0]["upsertImageTags"] == [
+      amiName    : "my-ami-1",
+      tags       : [
+        "tag1": "value1"
+      ],
+      regions    : ["us-east-1"] as Set<String>,
+      credentials: imageTagger.defaultBakeAccount
+    ]
+    operationContext.operations[1]["upsertImageTags"] == [
+      amiName    : "my-ami-2",
+      tags       : [
+        "tag1": "value1"
+      ],
+      regions    : ["us-west-1"] as Set<String>,
+      credentials: imageTagger.defaultBakeAccount
+    ]
+    operationContext.extraOutput.regions == ["us-east-1", "us-west-1"]
+  }
 }

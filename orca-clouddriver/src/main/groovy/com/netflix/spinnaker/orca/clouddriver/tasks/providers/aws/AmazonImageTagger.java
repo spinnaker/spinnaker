@@ -70,10 +70,11 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
     List<Map<String, Map>> operations = new ArrayList<>();
 
     for (MatchedImage matchedImage : matchedImages) {
+      Collection<String> regions = matchedImage.amis.keySet();
       Image targetImage = new Image(
         matchedImage.imageName,
         defaultBakeAccount,
-        stageData.regions,
+        regions,
         tags
       );
       targetImages.add(targetImage);
@@ -96,7 +97,7 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
       matchedImage.accounts.stream()
         .filter(account -> !account.equalsIgnoreCase(defaultBakeAccount))
         .forEach(account -> {
-          stageData.regions.forEach(region ->
+          regions.forEach(region ->
             operations.add(
               ImmutableMap.<String, Map>builder()
                 .put(ALLOW_LAUNCH_OPERATION, ImmutableMap.builder()
