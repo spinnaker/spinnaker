@@ -75,7 +75,9 @@
     </div>
   </div>
   <div class="content" ng-if="!state.loading">
-    <h4 class="text-center" ng-if="serverGroup.isDisabled">[TITUS JOB IS DISABLED]</h4>
+    <div class="band band-info" ng-if="serverGroup.isDisabled">
+      Job is Disabled
+    </div>
     <server-group-running-tasks-details server-group="serverGroup" application="ctrl.application"></server-group-running-tasks-details>
     <collapsible-section heading="Titus Job Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
