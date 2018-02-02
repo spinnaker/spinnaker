@@ -52,7 +52,6 @@ export class NgReactInjector extends ReactInject {
   public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                         = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;
   public DiffView: React.ComponentClass<DiffViewProps>                                        = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;
   public EntitySource: React.ComponentClass<IEntitySourceProps>                               = angular2react('entitySource', new EntitySourceComponent(), this.$injectorProxy) as any;
-  public GlobalSearch: React.ComponentClass<{}>                                               = angular2react('globalSearch', {}, this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                                     = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                             = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
   public InstanceList: React.ComponentClass<IInstanceListProps>                               = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;

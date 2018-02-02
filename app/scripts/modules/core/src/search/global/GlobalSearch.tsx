@@ -9,7 +9,7 @@ import { SETTINGS } from 'core/config/settings';
 import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';
 import { ISearchResult } from 'core/search/search.service';
 import { ReactInjector } from 'core/reactShims';
-import { Tooltip } from '../../presentation/Tooltip';
+import { Tooltip } from 'core/presentation/Tooltip';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { SearchResult } from 'core/search/infrastructure/SearchResult';
 import { searchRank } from 'core/search/searchRank.filter';
