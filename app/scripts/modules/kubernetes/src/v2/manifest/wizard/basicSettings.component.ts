@@ -56,16 +56,14 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
             <i>Stack</i>
             <help-field key="kubernetes.manifest.stackdetail"></help-field>
           </div>
-          <div class="col-md-3"><input required
-                                       type="text"
+          <div class="col-md-3"><input type="text"
                                        class="form-control input-sm"
                                        name="stack"
                                        ng-model="ctrl.command.moniker.stack"/></div>
           <div class="col-md-1 sm-label-right">
             <i>Detail</i>
           </div>
-          <div class="col-md-3"><input required
-                                       type="text"
+          <div class="col-md-3"><input type="text"
                                        class="form-control input-sm"
                                        name="detail"
                                        ng-model="ctrl.command.moniker.detail"/></div>
