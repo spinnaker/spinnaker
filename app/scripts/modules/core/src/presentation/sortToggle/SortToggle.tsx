@@ -13,7 +13,6 @@ export interface ISortToggleProps {
 
 @BindAll()
 export class SortToggle extends React.Component<ISortToggleProps> {
-
   public static defaultProps: Partial<ISortToggleProps> = {
     onChange: noop,
   };

@@ -7,3 +7,4 @@ export * from './Tooltip';
 export * from './collapsibleSection/CollapsibleSection';
 export * from './formsy';
 export * from './robotToHumanFilter/robotToHuman.filter';
+export * from './sortToggle';

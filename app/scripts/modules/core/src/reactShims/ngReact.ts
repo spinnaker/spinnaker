@@ -6,7 +6,6 @@ import { AccountSelectFieldWrapperComponent } from '../account/accountSelectFiel
 import { AddEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
 import { ApplicationNavComponent } from 'core/application/nav/applicationNav.component';
 import { ApplicationNavSecondaryComponent } from 'core/application/nav/applicationNavSecondary.component';
-import { ApplicationsComponent } from 'core/application/applications.component';
 import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
 import { DiffViewProps } from '../pipeline/config/actions/history/DiffView';
@@ -47,7 +46,6 @@ export class NgReactInjector extends ReactInject {
   public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                     = angular2react('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent(), this.$injectorProxy) as any;
   public ApplicationNav: React.ComponentClass<IApplicationNavProps>                           = angular2react('applicationNav', new ApplicationNavComponent(), this.$injectorProxy) as any;
   public ApplicationNavSecondary: React.ComponentClass<IApplicationNavSecondaryProps>         = angular2react('applicationNavSecondary', new ApplicationNavSecondaryComponent(), this.$injectorProxy) as any;
-  public Applications: React.ComponentClass<{}>                                               = angular2react('applications', new ApplicationsComponent(), this.$injectorProxy) as any;
   public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>                 = angular2react('buttonBusyIndicator', new ButtonBusyIndicatorComponent(), this.$injectorProxy) as any;
   public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                         = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;
   public DiffView: React.ComponentClass<DiffViewProps>                                        = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;

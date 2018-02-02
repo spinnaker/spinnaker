@@ -2,13 +2,11 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { pickBy, isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
-import { MenuItem, DropdownButton, ButtonToolbar } from 'react-bootstrap';
 
 import { ITag } from 'core/widgets';
 import { ReactInjector } from 'core/reactShims';
-import { Application } from 'core/application';
-import { IProject } from 'core/domain';
 import { IQueryParams } from 'core/navigation';
+import { InsightMenu } from 'core/insight/InsightMenu';
 
 import { Search } from '../widgets';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
@@ -28,13 +26,9 @@ export interface ISearchV2State {
 
 @BindAll()
 export class SearchV2 extends React.Component<{}, ISearchV2State> {
-  private $rootScope = ReactInjector.$rootScope;
   private $state = ReactInjector.$state;
-  private $uibModal = ReactInjector.modalService;
   private $uiRouter = ReactInjector.$uiRouter;
   private infrastructureSearchServiceV2 = ReactInjector.infrastructureSearchServiceV2;
-  private cacheInitializer = ReactInjector.cacheInitializer;
-  private overrideRegistry = ReactInjector.overrideRegistry;
 
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
@@ -106,48 +100,6 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     this.destroy$.next();
   }
 
-  private createProject() {
-    this.$uibModal.open({
-      scope: this.$rootScope.$new(),
-      templateUrl: require('../../projects/configure/configureProject.modal.html'),
-      controller: 'ConfigureProjectModalCtrl',
-      controllerAs: 'ctrl',
-      size: 'lg',
-      resolve: {
-        projectConfig: () => {
-          return {};
-        },
-      }
-    }).result.then(this.routeToProject).catch(() => {});
-  };
-
-  private routeToProject(project: IProject) {
-    this.$state.go('home.project.dashboard', { project: project.name });
-  }
-
-  private createApplication() {
-    this.$uibModal.open({
-      scope: this.$rootScope.$new(),
-      templateUrl: this.overrideRegistry.getTemplate('createApplicationModal', require('../../application/modal/newapplication.html')),
-      controller: this.overrideRegistry.getController('CreateApplicationModalCtrl'),
-      controllerAs: 'newAppModal'
-    }).result.then(this.routeToApplication).catch(() => {});
-  };
-
-  private routeToApplication(app: Application) {
-    this.$state.go('home.applications.application.insight.clusters', { application: app.name });
-  }
-
-  private refreshAllCaches() {
-    if (this.state.refreshingCache) {
-      return;
-    }
-
-    this.setState({ refreshingCache: true });
-    this.cacheInitializer.refreshCaches().then(() => {
-      this.setState({ refreshingCache: false })
-    });
-  }
 
   public handleFilterChange(filters: ITag[]) {
     const blankApiParams = API_PARAMS.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
@@ -159,21 +111,6 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     const { params, resultSets, selectedTab } = this.state;
     const hasSearchQuery = Object.keys(params).length > 0;
 
-    const DropdownActions = () => {
-      const refreshText = this.state.refreshingCache ?
-          <span><span className="fa fa-refresh fa-spin"/> Refreshing...</span> :
-          <span>Refresh all caches</span>;
-
-      return (
-        <ButtonToolbar>
-          <DropdownButton pullRight={true} bsSize="large" title="Actions" id="dropdown-size-large">
-            <MenuItem href="javascript:void(0)" onClick={this.createApplication}>Create Application</MenuItem>
-            <MenuItem href="javascript:void(0)" onClick={this.createProject}>Create Project</MenuItem>
-            <MenuItem href="javascript:void(0)" onClick={this.refreshAllCaches}>{refreshText}</MenuItem>
-          </DropdownButton>
-        </ButtonToolbar>
-      )
-    };
 
     return (
       <div className="infrastructure">
@@ -185,7 +122,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
               </div>
             </h2>
             <div className="header-actions">
-              <DropdownActions/>
+              <InsightMenu />
             </div>
           </div>
         </div>
