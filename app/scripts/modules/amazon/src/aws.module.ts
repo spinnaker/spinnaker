@@ -21,6 +21,24 @@ import './deploymentStrategy/rollingPush.strategy';
 import './logo/aws.logo.less';
 import { AmazonLoadBalancerChoiceModal } from './loadBalancer/configure/AmazonLoadBalancerChoiceModal';
 
+import { AmazonServerGroupActions } from './serverGroup/details/AmazonServerGroupActions';
+import { amazonServerGroupDetailsGetter } from './serverGroup/details/amazonServerGroupDetailsGetter';
+
+import {
+  AdvancedSettingsDetailsSection,
+  AmazonInfoDetailsSection,
+  CapacityDetailsSection,
+  HealthDetailsSection,
+  LaunchConfigDetailsSection,
+  LogsDetailsSection,
+  PackageDetailsSection,
+  ScalingPoliciesDetailsSection,
+  ScalingProcessesDetailsSection,
+  ScheduledActionsDetailsSection,
+  SecurityGroupsDetailsSection,
+  TagsDetailsSection,
+} from './serverGroup/details/sections';
+
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -74,8 +92,22 @@ module(AMAZON_MODULE, [
     },
     serverGroup: {
       transformer: 'awsServerGroupTransformer',
-      detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
-      detailsController: 'awsServerGroupDetailsCtrl',
+      detailsActions: AmazonServerGroupActions,
+      detailsGetter: amazonServerGroupDetailsGetter,
+      detailsSections: [
+        AmazonInfoDetailsSection,
+        CapacityDetailsSection,
+        HealthDetailsSection,
+        LaunchConfigDetailsSection,
+        SecurityGroupsDetailsSection,
+        ScalingProcessesDetailsSection,
+        ScalingPoliciesDetailsSection,
+        ScheduledActionsDetailsSection,
+        TagsDetailsSection,
+        PackageDetailsSection,
+        AdvancedSettingsDetailsSection,
+        LogsDetailsSection,
+      ],
       cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
       cloneServerGroupController: 'awsCloneServerGroupCtrl',
       commandBuilder: 'awsServerGroupCommandBuilder',

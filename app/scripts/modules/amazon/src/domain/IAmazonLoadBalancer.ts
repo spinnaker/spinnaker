@@ -1,5 +1,6 @@
 import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
-import { ILoadBalancer, ILoadBalancerDeleteCommand, ILoadBalancerUpsertCommand, IInstance, IInstanceCounts, IServerGroup, ISubnet } from '@spinnaker/core';
+import { ILoadBalancer, ILoadBalancerDeleteCommand, ILoadBalancerUpsertCommand, IInstance, IInstanceCounts, ISubnet } from '@spinnaker/core';
+import { IAmazonServerGroup } from './IAmazonServerGroup';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
 export type ALBListenerProtocol = 'HTTP' | 'HTTPS';
@@ -11,6 +12,7 @@ export interface IAmazonLoadBalancer extends ILoadBalancer {
   elb?: IAmazonLoadBalancerSourceData;
   isInternal?: boolean;
   regionZones: string[];
+  serverGroups: IAmazonServerGroup[];
   subnets?: string[];
   subnetDetails?: ISubnet[];
   subnetType?: string;
@@ -103,7 +105,7 @@ export interface ITargetGroup {
   protocol: string;
   provider?: string;
   region: string; // returned from clouddriver
-  serverGroups?: IServerGroup[];
+  serverGroups?: IAmazonServerGroup[];
   type: string; // returned from clouddriver
   vpcId?: string;
   vpcName?: string;

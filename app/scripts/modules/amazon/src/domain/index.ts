@@ -6,4 +6,5 @@ export * from './IAmazonScalingPolicy';
 export * from './IAmazonServerGroup';
 export * from './IKeyPair';
 export * from './IScalingPolicy';
+export * from './IScalingProcess';
 export * from './ITargetTrackingPolicy';

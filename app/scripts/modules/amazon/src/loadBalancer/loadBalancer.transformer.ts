@@ -17,6 +17,7 @@ import {
   IALBListenerCertificate,
   IAmazonClassicLoadBalancer,
   IAmazonLoadBalancer,
+  IAmazonServerGroup,
   IApplicationLoadBalancerSourceData,
   IClassicListenerDescription,
   IClassicLoadBalancerSourceData,
@@ -117,7 +118,7 @@ export class AwsLoadBalancerTransformer {
     if ((loadBalancer as IAmazonApplicationLoadBalancer).targetGroups) {
       const appLoadBalancer = loadBalancer as IAmazonApplicationLoadBalancer;
       appLoadBalancer.targetGroups.forEach((targetGroup) => this.normalizeTargetGroup(targetGroup));
-      serverGroups = flatten<IServerGroup>(map(appLoadBalancer.targetGroups, 'serverGroups'));
+      serverGroups = flatten<IAmazonServerGroup>(map(appLoadBalancer.targetGroups, 'serverGroups'));
     }
 
     const activeServerGroups = filter(serverGroups, { isDisabled: false });
