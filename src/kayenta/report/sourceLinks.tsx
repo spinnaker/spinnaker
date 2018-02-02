@@ -26,12 +26,20 @@ const SourceLinks = ({ reportUrl, metricListUrl }: ISourceJsonStateProps) => {
 const resolveReportUrl = (state: ICanaryState): string => {
   const canaryConfigId = serializedCanaryConfigSelector(state).id;
   const canaryRunId = runSelector(state).id;
-  return `${SETTINGS.gateUrl}/v2/canaries/canary/${canaryConfigId}/${canaryRunId}?storageAccountName=${CanarySettings.storageAccountName}`;
+  let url = `${SETTINGS.gateUrl}/v2/canaries/canary/${canaryConfigId}/${canaryRunId}`;
+  if (CanarySettings.storageAccountName) {
+    url += `?storageAccountName=${CanarySettings.storageAccountName}`;
+  }
+  return url;
 };
 
 const resolveMetricListUrl = (state: ICanaryState): string => {
   const metricSetPairListId = runSelector(state).result.metricSetPairListId;
-  return `${SETTINGS.gateUrl}/v2/canaries/metricSetPairList/${metricSetPairListId}?storageAccountName=${CanarySettings.storageAccountName}`;
+  let url = `${SETTINGS.gateUrl}/v2/canaries/metricSetPairList/${metricSetPairListId}`;
+  if (CanarySettings.storageAccountName) {
+    url += `?storageAccountName=${CanarySettings.storageAccountName}`;
+  }
+  return url;
 };
 
 const mapStateToProps = (state: ICanaryState): ISourceJsonStateProps => {
