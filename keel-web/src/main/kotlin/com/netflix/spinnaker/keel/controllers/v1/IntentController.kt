@@ -22,15 +22,12 @@ import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
-import com.netflix.spinnaker.keel.event.AfterIntentDeleteEvent
-import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
@@ -50,7 +47,6 @@ class IntentController
   private val intentRepository: IntentRepository,
   private val intentActivityRepository: IntentActivityRepository,
   private val traceRepository: TraceRepository,
-  private val applicationEventPublisher: ApplicationEventPublisher,
   private val keelProperties: KeelProperties
 ) {
 
@@ -90,7 +86,6 @@ class IntentController
       }
 
       intentList.add(UpsertIntentResponse(intent.id(), intent.status))
-      applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(intent))
     }
 
     return intentList
@@ -104,7 +99,6 @@ class IntentController
       .takeIf { it != null }
       ?.run {
         intentRepository.deleteIntent(id, soft)
-        applicationEventPublisher.publishEvent(AfterIntentDeleteEvent(this))
       }
   }
 

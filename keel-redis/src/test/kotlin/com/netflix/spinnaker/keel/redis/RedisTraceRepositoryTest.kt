@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
+import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
 import com.netflix.spinnaker.keel.test.TestIntent
-import com.netflix.spinnaker.keel.test.TestIntentSpec
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
@@ -60,14 +60,14 @@ object RedisTraceRepositoryTest {
 
   @Test
   fun `listing traces for an intent returns ordered traces`() {
-    traceRepository.record(Trace(emptyMap(), TestIntent(TestIntentSpec("1", mapOf("placement" to 1)), emptyMap(), emptyList()), null))
-    traceRepository.record(Trace(emptyMap(), TestIntent(TestIntentSpec("1", mapOf("placement" to 2)), emptyMap(), emptyList()), null))
-    traceRepository.record(Trace(emptyMap(), TestIntent(TestIntentSpec("2", mapOf("placement" to 3)), emptyMap(), emptyList()), null))
+    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("1", mapOf("placement" to 1)), emptyMap(), emptyList()), null))
+    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("1", mapOf("placement" to 2)), emptyMap(), emptyList()), null))
+    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("2", mapOf("placement" to 3)), emptyMap(), emptyList()), null))
 
     traceRepository.getForIntent("test:1").let { result ->
       result.size shouldMatch equalTo(2)
       result
-        .map { it.intent.spec as TestIntentSpec }
+        .map { it.intent.spec as GenericTestIntentSpec }
         .map { it.data["placement"] } == listOf(1, 2)
     }
   }

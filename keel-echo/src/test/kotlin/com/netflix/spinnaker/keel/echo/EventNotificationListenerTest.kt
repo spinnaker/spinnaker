@@ -24,7 +24,7 @@ import com.netflix.spinnaker.keel.policy.NotificationPolicySpec
 import com.netflix.spinnaker.keel.policy.NotificationSeverity
 import com.netflix.spinnaker.keel.policy.SlackNotificationSpec
 import com.netflix.spinnaker.keel.test.TestIntent
-import com.netflix.spinnaker.keel.test.TestIntentSpec
+import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
@@ -47,7 +47,7 @@ object EventNotificationListenerTest {
   fun `should send notifications for each subscription`() {
     val event = AfterIntentUpsertEvent(
       TestIntent(
-        TestIntentSpec("test:1", mapOf()),
+        GenericTestIntentSpec("test:1", mapOf()),
         policies = listOf(
           element = NotificationPolicy(
             NotificationPolicySpec(

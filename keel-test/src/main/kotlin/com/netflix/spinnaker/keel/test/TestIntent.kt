@@ -17,8 +17,10 @@ package com.netflix.spinnaker.keel.test
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
+import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
@@ -38,7 +40,18 @@ class TestIntent
   @JsonIgnore override val defaultId = "test:${spec.id}"
 }
 
-data class TestIntentSpec(
-  val id: String,
+// Using minimal class for ease in testing
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)
+abstract class TestIntentSpec: IntentSpec {
+  abstract val id: String
+}
+
+data class GenericTestIntentSpec(
+  override val id: String,
   val data: Map<String, Any> = mapOf()
-) : IntentSpec
+) : TestIntentSpec()
+
+data class ApplicationAwareTestIntentSpec(
+  override val id: String,
+  override val application: String
+) : TestIntentSpec(), ApplicationAwareIntentSpec

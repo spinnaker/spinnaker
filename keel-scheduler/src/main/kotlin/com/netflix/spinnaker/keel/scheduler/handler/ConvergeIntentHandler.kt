@@ -22,12 +22,11 @@ import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.event.BeforeIntentConvergeEvent
 import com.netflix.spinnaker.keel.event.IntentConvergeFailureEvent
+import com.netflix.spinnaker.keel.event.IntentConvergeNotFoundEvent
 import com.netflix.spinnaker.keel.event.IntentConvergeSuccessEvent
 import com.netflix.spinnaker.keel.event.IntentConvergeTimeoutEvent
-import com.netflix.spinnaker.keel.event.IntentNotFoundEvent
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
-import com.netflix.spinnaker.keel.scheduler.MonitorOrchestrations
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import net.logstash.logback.argument.StructuredArguments.value
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
-import java.time.Duration
 
 private const val CANCELLATION_REASON_NOT_FOUND = "notFound"
 private const val CANCELLATION_REASON_TIMEOUT = "timeout"
@@ -71,7 +69,7 @@ class ConvergeIntentHandler
     val intent = getIntent(message)
     if (intent == null) {
       log.warn("Intent no longer exists, canceling converge for {}", value("intent", message.intent.id()))
-      applicationEventPublisher.publishEvent(IntentNotFoundEvent(message.intent.id()))
+      applicationEventPublisher.publishEvent(IntentConvergeNotFoundEvent(message.intent.id()))
 
       registry.counter(canceledId.withTags("kind", message.intent.kind, "reason", CANCELLATION_REASON_NOT_FOUND))
       return

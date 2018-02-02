@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.com.netflix.spinnaker.keel.filter
+package com.netflix.spinnaker.keel.filter
 
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.attribute.ExecutionWindow
 import com.netflix.spinnaker.keel.attribute.ExecutionWindowAttribute
 import com.netflix.spinnaker.keel.attribute.TimeWindow
-import com.netflix.spinnaker.keel.filter.ExecutionWindowFilter
-import com.netflix.spinnaker.keel.filter.HourMinute
 import com.netflix.spinnaker.keel.test.TestIntent
-import com.netflix.spinnaker.keel.test.TestIntentSpec
+import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -46,7 +44,7 @@ class ExecutionWindowFilterTest {
       ExecutionWindowFilter.Configuration(),
       Clock.fixed(scheduledTime, systemDefault())
     )
-    val intent = TestIntent(TestIntentSpec("1", emptyMap()), emptyMap(), listOf(
+    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), emptyMap(), listOf(
       ExecutionWindowAttribute(ExecutionWindow(emptyList(), timeWindows))
     ))
 
@@ -65,7 +63,7 @@ class ExecutionWindowFilterTest {
       ExecutionWindowFilter.Configuration(),
       Clock.fixed(scheduledTime, systemDefault())
     )
-    val intent = TestIntent(TestIntentSpec("1", emptyMap()), emptyMap(), listOf(
+    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), emptyMap(), listOf(
       ExecutionWindowAttribute(ExecutionWindow(days, timeWindows))
     ))
 
@@ -84,7 +82,7 @@ class ExecutionWindowFilterTest {
       ExecutionWindowFilter.Configuration(),
       Clock.fixed(scheduledTime, systemDefault())
     )
-    val intent = TestIntent(TestIntentSpec("1", emptyMap()), emptyMap(), listOf(
+    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), emptyMap(), listOf(
       ExecutionWindowAttribute(ExecutionWindow(days, timeWindows))
     ))
 

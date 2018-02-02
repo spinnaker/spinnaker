@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
 import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
 import com.netflix.spinnaker.keel.test.TestIntent
-import com.netflix.spinnaker.keel.test.TestIntentSpec
+import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
@@ -49,8 +49,8 @@ object ScheduleConvergeHandlerTest {
   fun `should push converge messages for each active intent`() {
     val message = ScheduleConvergence()
 
-    val intent1 = TestIntent(TestIntentSpec("1", emptyMap()))
-    val intent2 = TestIntent(TestIntentSpec("2", emptyMap()))
+    val intent1 = TestIntent(GenericTestIntentSpec("1", emptyMap()))
+    val intent2 = TestIntent(GenericTestIntentSpec("2", emptyMap()))
     whenever(intentRepository.getIntents(any())) doReturn listOf(intent1, intent2)
 
     subject.handle(message)

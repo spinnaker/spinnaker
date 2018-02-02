@@ -22,13 +22,16 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonValue
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
+import org.springframework.context.ApplicationEvent
 
 enum class EventKind(val kind: String) {
+  BEFORE_INTENT_UPSERT("beforeIntentUpsert"),
   AFTER_INTENT_UPSERT("afterIntentUpsert"),
+  BEFORE_INTENT_DELETE("beforeIntentDelete"),
   AFTER_INTENT_DELETE("afterIntentDelete"),
   BEFORE_INTENT_CONVERGE("beforeIntentConverge"),
   INTENT_CONVERGE_TIMEOUT("intentConvergeTimeout"),
-  INTENT_NOT_FOUND("intentNotFound"),
+  INTENT_CONVERGE_NOT_FOUND("intentConvergeNotFound"),
   INTENT_CONVERGE_SUCCESS("intentConvergeSuccess"),
   INTENT_CONVERGE_FAILURE("intentConvergeFailure");
 
@@ -50,23 +53,34 @@ enum class EventKind(val kind: String) {
   Type(AfterIntentDeleteEvent::class),
   Type(BeforeIntentConvergeEvent::class),
   Type(IntentConvergeTimeoutEvent::class),
-  Type(IntentNotFoundEvent::class),
+  Type(IntentConvergeNotFoundEvent::class),
   Type(IntentConvergeSuccessEvent::class),
   Type(IntentConvergeFailureEvent::class)
 )
-abstract class KeelEvent {
+abstract class KeelEvent : ApplicationEvent("internal") {
   abstract val kind: EventKind
-  val timestamp: Long = System.currentTimeMillis()
 }
 
-abstract class IntentAwareEvent : KeelEvent() {
+abstract class IntentAwareEvent() : KeelEvent() {
   abstract val intent: Intent<IntentSpec>
+}
+
+data class BeforeIntentUpsertEvent(
+  override val intent: Intent<IntentSpec>
+) : IntentAwareEvent() {
+  override val kind = EventKind.BEFORE_INTENT_UPSERT
 }
 
 data class AfterIntentUpsertEvent(
   override val intent: Intent<IntentSpec>
 ) : IntentAwareEvent() {
   override val kind = EventKind.AFTER_INTENT_UPSERT
+}
+
+data class BeforeIntentDeleteEvent(
+  override val intent: Intent<IntentSpec>
+) : IntentAwareEvent() {
+  override val kind = EventKind.BEFORE_INTENT_DELETE
 }
 
 data class AfterIntentDeleteEvent(
@@ -87,10 +101,10 @@ data class IntentConvergeTimeoutEvent(
   override val kind = EventKind.INTENT_CONVERGE_TIMEOUT
 }
 
-data class IntentNotFoundEvent(
+data class IntentConvergeNotFoundEvent(
   val intentId: String
 ) : KeelEvent() {
-  override val kind = EventKind.INTENT_NOT_FOUND
+  override val kind = EventKind.INTENT_CONVERGE_NOT_FOUND
 }
 
 data class IntentConvergeSuccessEvent(

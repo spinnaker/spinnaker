@@ -39,7 +39,7 @@ class SecurityGroupIntent
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-abstract class SecurityGroupSpec : ApplicationAwareIntentSpec() {
+abstract class SecurityGroupSpec : ApplicationAwareIntentSpec {
   abstract val name: String
   abstract val cloudProvider: String
   abstract val accountName: String

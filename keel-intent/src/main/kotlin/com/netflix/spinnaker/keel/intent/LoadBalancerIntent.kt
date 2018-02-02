@@ -23,7 +23,7 @@ class LoadBalancerIntent(spec: LoadBalancerSpec) : Intent<LoadBalancerSpec>(
 }
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = KIND_PROPERTY)
-abstract class LoadBalancerSpec : ApplicationAwareIntentSpec() {
+abstract class LoadBalancerSpec : ApplicationAwareIntentSpec {
   abstract val name: String
   abstract val accountName: String
 

@@ -50,7 +50,7 @@ data class PipelineSpec(
   val notifications: List<Map<String, Any?>>,
   val flags: PipelineFlags,
   val properties: PipelineProperties
-) : ApplicationAwareIntentSpec()
+) : ApplicationAwareIntentSpec
 
 class PipelineFlags : HashMap<String, Boolean>() {
 

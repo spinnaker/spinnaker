@@ -23,7 +23,7 @@ import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.orca.OrcaLaunchedIntentResult
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
 import com.netflix.spinnaker.keel.test.TestIntent
-import com.netflix.spinnaker.keel.test.TestIntentSpec
+import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -58,7 +58,7 @@ object ConvergeIntentHandlerTest {
 
   @Test
   fun `should timeout intent if after timeout ttl`() {
-    val message = ConvergeIntent(TestIntent(TestIntentSpec("1", emptyMap())), 30000, 30000)
+    val message = ConvergeIntent(TestIntent(GenericTestIntentSpec("1", emptyMap())), 30000, 30000)
 
     subject.handle(message)
 
@@ -68,7 +68,7 @@ object ConvergeIntentHandlerTest {
   @Test
   fun `should cancel converge if intent is stale and no longer exists`() {
     val message = ConvergeIntent(
-      TestIntent(TestIntentSpec("1", emptyMap())),
+      TestIntent(GenericTestIntentSpec("1", emptyMap())),
       clock.instant().minusSeconds(30).toEpochMilli(),
       clock.instant().plusSeconds(30).toEpochMilli()
     )
@@ -83,12 +83,12 @@ object ConvergeIntentHandlerTest {
   fun `should refresh intent state if stale`() {
 
     val message = ConvergeIntent(
-      TestIntent(TestIntentSpec("1", mapOf("refreshed" to false))),
+      TestIntent(GenericTestIntentSpec("1", mapOf("refreshed" to false))),
       clock.instant().minusSeconds(30).toEpochMilli(),
       clock.instant().plusSeconds(30).toEpochMilli()
     )
 
-    val refreshedIntent = TestIntent(TestIntentSpec("1", mapOf("refreshed" to true)))
+    val refreshedIntent = TestIntent(GenericTestIntentSpec("1", mapOf("refreshed" to true)))
     whenever(intentRepository.getIntent("test:1")) doReturn refreshedIntent
     whenever(orcaIntentLauncher.launch(refreshedIntent)) doReturn
       OrcaLaunchedIntentResult(listOf("one"), ChangeSummary("foo"))

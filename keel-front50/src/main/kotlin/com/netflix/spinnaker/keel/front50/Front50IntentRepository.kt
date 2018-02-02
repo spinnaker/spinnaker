@@ -23,8 +23,13 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.event.AfterIntentDeleteEvent
+import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
+import com.netflix.spinnaker.keel.event.BeforeIntentDeleteEvent
+import com.netflix.spinnaker.keel.event.BeforeIntentUpsertEvent
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
@@ -33,6 +38,7 @@ import java.util.concurrent.TimeUnit
 class Front50IntentRepository(
   private val front50Service: Front50Service,
   private val registry: Registry,
+  private val applicationEventPublisher: ApplicationEventPublisher,
   front50RateLimitProperties: Front50RateLimitProperties
 ): IntentRepository {
 
@@ -46,8 +52,14 @@ class Front50IntentRepository(
     log.info("Using ${javaClass.simpleName}")
   }
 
-  override fun upsertIntent(intent: Intent<IntentSpec>) =
-    rateLimited { front50Service.upsertIntent(intent) }
+  override fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec> {
+    applicationEventPublisher.publishEvent(BeforeIntentUpsertEvent(intent))
+    return rateLimited {
+      front50Service.upsertIntent(intent)
+    }.also {
+      applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(it))
+    }
+  }
 
   override fun getIntents() = rateLimited { front50Service.getIntents() }
 
@@ -58,13 +70,15 @@ class Front50IntentRepository(
   @Suppress("IMPLICIT_CAST_TO_ANY")
   override fun deleteIntent(id: String, preserveHistory: Boolean) {
     rateLimited {
-      if (preserveHistory) {
-        getIntent(id).also {
-          it.status = IntentStatus.DELETED
-          upsertIntent(it)
+      getIntent(id).also { intent ->
+        applicationEventPublisher.publishEvent(BeforeIntentDeleteEvent(intent))
+        if (preserveHistory) {
+          intent.status = IntentStatus.DELETED
+          upsertIntent(intent)
+        } else {
+          front50Service.deleteIntent(id)
         }
-      } else {
-        front50Service.deleteIntent(id)
+        applicationEventPublisher.publishEvent(AfterIntentDeleteEvent(intent))
       }
     }
   }
