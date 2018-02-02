@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.IamTrustRelationship;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
+@Component
 public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
 
   @Autowired

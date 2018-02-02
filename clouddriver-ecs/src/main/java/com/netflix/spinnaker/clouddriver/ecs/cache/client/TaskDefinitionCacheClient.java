@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS;
 
+@Component
 public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinition> {
   private ObjectMapper objectMapper;
 
@@ -45,6 +47,7 @@ public class TaskDefinitionCacheClient extends AbstractCacheClient<TaskDefinitio
     Map<String, Object> attributes = cacheData.getAttributes();
 
     taskDefinition.setTaskDefinitionArn((String) attributes.get("taskDefinitionArn"));
+    taskDefinition.setTaskRoleArn((String) attributes.get("taskRoleArn"));
 
     if (attributes.containsKey("containerDefinitions")) {
       List<Map<String, Object>> containerDefinitions = (List<Map<String, Object>>) attributes.get("containerDefinitions");

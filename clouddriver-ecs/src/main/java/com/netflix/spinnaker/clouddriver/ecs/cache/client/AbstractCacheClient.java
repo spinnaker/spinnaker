@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 abstract class AbstractCacheClient<T> {
 
@@ -80,11 +81,9 @@ abstract class AbstractCacheClient<T> {
    * @return A collection of generic typ objects.
    */
   private Collection<T> convertAll(Collection<CacheData> cacheData) {
-    Set<T> itemSet = new HashSet<>();
-    for (CacheData cacheDatum : cacheData) {
-      itemSet.add(convert(cacheDatum));
-    }
-    return itemSet;
+    return cacheData.stream()
+      .map(this::convert)
+      .collect(Collectors.toList());
   }
 
   /**
