@@ -279,8 +279,9 @@ class ContextParameterProcessorSpec extends Specification {
 
   @Unroll
   def "correctly compute scmInfo attribute"() {
-
     given:
+    context.trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [], scm, false, "SUCCESS")
+
     def source = ['branch': '${scmInfo.branch}']
 
     when:
@@ -303,8 +304,6 @@ class ContextParameterProcessorSpec extends Specification {
         "job",
         1,
         null,
-        [:],
-        new BuildInfo("name", 1, null, [], scm, "name", false, "SUCCESS"),
         "user",
         [:],
         []

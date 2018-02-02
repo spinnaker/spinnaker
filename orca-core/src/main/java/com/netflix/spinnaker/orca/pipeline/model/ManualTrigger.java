@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import static java.util.Collections.emptyList;
 
 @JsonTypeName("manual")
 public class ManualTrigger extends Trigger {
@@ -37,12 +38,13 @@ public class ManualTrigger extends Trigger {
     @Nullable @JsonProperty("correlationId") String correlationId,
     @Nonnull @JsonProperty("user") String user,
     @Nonnull @JsonProperty("parameters") Map<String, Object> parameters,
-    @Nonnull @JsonProperty("notifications") List<Map<String, Object>> notifications,
+    @Nullable @JsonProperty("notifications")
+      List<Map<String, Object>> notifications,
     @Nullable @JsonProperty("artifacts") List<Artifact> artifacts
   ) {
     super(user, parameters, artifacts);
     this.correlationId = correlationId;
-    this.notifications = notifications;
+    this.notifications = notifications == null ? emptyList() : notifications;
   }
 
   public @Nonnull List<Map<String, Object>> getNotifications() {

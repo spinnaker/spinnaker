@@ -140,7 +140,7 @@ class OperationsControllerSpec extends Specification {
         buildNumber: buildNumber
       ]
     ]
-    buildInfo = [result: "SUCCESS"]
+    buildInfo = [name: job, number: buildNumber, result: "SUCCESS", url: "http://jenkins"]
   }
 
   def "should not get pipeline execution details from trigger if provided"() {
@@ -230,9 +230,9 @@ class OperationsControllerSpec extends Specification {
 
     where:
     requestedPipeline = [
-      id: "54321",
-      plan: true,
-      type: "templatedPipeline",
+      id         : "54321",
+      plan       : true,
+      type       : "templatedPipeline",
       executionId: "12345"
     ]
   }
@@ -281,7 +281,7 @@ class OperationsControllerSpec extends Specification {
         user       : triggerUser
       ]
     ]
-    buildInfo = [result: "SUCCESS"]
+    buildInfo = [name: job, number: buildNumber, result: "SUCCESS", url: "http://jenkins"]
 
   }
 
@@ -293,7 +293,7 @@ class OperationsControllerSpec extends Specification {
       startedPipeline.id = UUID.randomUUID().toString()
       startedPipeline
     }
-    buildService.getBuild(buildNumber, master, job) >> [result: "SUCCESS"]
+    buildService.getBuild(buildNumber, master, job) >> [name: job, number: buildNumber, result: "SUCCESS", url: "http://jenkins"]
     buildService.getPropertyFile(buildNumber, propertyFile, master, job) >> propertyFileContent
 
     when:
@@ -332,7 +332,9 @@ class OperationsControllerSpec extends Specification {
     Map requestedPipeline = [
       trigger: [
         type      : "jenkins",
-        buildInfo : [:],
+        master    : "master",
+        job       : "jon",
+        number    : 1,
         properties: [
           key1        : 'val1',
           key2        : 'val2',
@@ -360,7 +362,7 @@ class OperationsControllerSpec extends Specification {
 
     Map requestedPipeline = [
       trigger: [
-        type: "manual",
+        type      : "manual",
         parameters: [
           key1: 'value1',
           key2: 'value2'
@@ -500,15 +502,15 @@ class OperationsControllerSpec extends Specification {
         user       : 'foo'
       ]
     ]
-    buildInfo = [result: "SUCCESS", artifacts: [
-      [fileName: 'foo1.deb'],
-      [fileName: 'foo2.rpm'],
-      [fileName: 'foo3.properties'],
-      [fileName: 'foo4.yml'],
-      [fileName: 'foo5.json'],
-      [fileName: 'foo6.xml'],
-      [fileName: 'foo7.txt'],
-      [fileName: 'foo8.nupkg'],
+    buildInfo = [name: job, number: buildNumber, url: "http://jenkins", result: "SUCCESS", artifacts: [
+      [fileName: 'foo1.deb', relativePath: "."],
+      [fileName: 'foo2.rpm', relativePath: "."],
+      [fileName: 'foo3.properties', relativePath: "."],
+      [fileName: 'foo4.yml', relativePath: "."],
+      [fileName: 'foo5.json', relativePath: "."],
+      [fileName: 'foo6.xml', relativePath: "."],
+      [fileName: 'foo7.txt', relativePath: "."],
+      [fileName: 'foo8.nupkg', relativePath: "."],
     ]]
   }
 
@@ -528,10 +530,10 @@ class OperationsControllerSpec extends Specification {
   def "should throw validation exception when templated pipeline contains errors"() {
     given:
     def pipelineConfig = [
-      plan  : true,
-      type  : "templatedPipeline",
+      plan       : true,
+      type       : "templatedPipeline",
       executionId: "12345",
-      errors: [
+      errors     : [
         'things broke': 'because of the way it is'
       ]
     ]
@@ -542,7 +544,9 @@ class OperationsControllerSpec extends Specification {
 
     then:
     thrown(InvalidRequestException)
-    1 * pipelineTemplateService.retrievePipelineOrNewestExecution("12345", null) >> { throw new ExecutionNotFoundException("Not found") }
+    1 * pipelineTemplateService.retrievePipelineOrNewestExecution("12345", null) >> {
+      throw new ExecutionNotFoundException("Not found")
+    }
     0 * executionLauncher.start(*_)
   }
 

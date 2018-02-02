@@ -54,10 +54,10 @@ class BuildDetailExtractorSpec extends Specification {
     result == expectedResult
 
     where:
-    buildInfo                                                                                 | result | expectedResult
-    ["url": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/"]        | [:]    | ["job": "SPINNAKER-package-echo", "buildNumber": "69", "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
-    ["url": "http://spinnaker.jenkis.test.netflix.net/job/folderSPINNAKER/job/SPINNAKER/69/"] | [:]    | ["job": "folderSPINNAKER/job/SPINNAKER", "buildNumber": "69", "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/folderSPINNAKER/job/SPINNAKER/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
-    ["url": "http://jenkins.com/job/folder/job/job name/123"]                                 | [:]    | ["job": "folder/job/job name", "buildNumber": "123", "buildInfoUrl": "http://jenkins.com/job/folder/job/job name/123", "buildHost": "http://jenkins.com/"]
+    buildInfo                                                                                                          | result | expectedResult
+    [name: "SPINNAKER-package-echo", "url": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/"] | [:]    | ["job": "SPINNAKER-package-echo", "buildNumber": "69", "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
+    [name: "SPINNAKER", "url": "http://spinnaker.jenkis.test.netflix.net/job/folderSPINNAKER/job/SPINNAKER/69/"]       | [:]    | ["job": "folderSPINNAKER/job/SPINNAKER", "buildNumber": "69", "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/folderSPINNAKER/job/SPINNAKER/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
+    [name: "job name", "url": "http://jenkins.com/job/folder/job/job name/123"]                                        | [:]    | ["job": "folder/job/job name", "buildNumber": "123", "buildInfoUrl": "http://jenkins.com/job/folder/job/job name/123", "buildHost": "http://jenkins.com/"]
   }
 
   @Unroll
@@ -70,11 +70,11 @@ class BuildDetailExtractorSpec extends Specification {
     result == expectedResult
 
     where:
-    buildInfo                                                                                               | result | expectedResult
-    ["name": "SPINNAKER", "url": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/"] | [:]    | ["job": "SPINNAKER-package-echo", "buildNumber": "69", "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
-    ["name": "compose/SPINNAKER", "number": "9001", "url": null]                                            | [:]    | [:]
-    ["number": "9001"]                                                                                      | [:]    | [:]
-    [:]                                                                                                     | [:]    | [:]
-    null                                                                                                    | [:]    | [:]
+    buildInfo                                                                                           | result | expectedResult
+    [name: "SPINNAKER", url: "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/"] | [:]    | ["job": "SPINNAKER-package-echo", "buildNumber": "69", "buildInfoUrl": "http://spinnaker.jenkis.test.netflix.net/job/SPINNAKER-package-echo/69/", "buildHost": "http://spinnaker.jenkis.test.netflix.net/"]
+    [name: "compose/SPINNAKER", number: "9001", url: null]                                              | [:]    | [:]
+    [number: "9001", artifacts: [], scm: []]                                                            | [:]    | [:]
+    [:]                                                                                                 | [:]    | [:]
+    null                                                                                                | [:]    | [:]
   }
 }

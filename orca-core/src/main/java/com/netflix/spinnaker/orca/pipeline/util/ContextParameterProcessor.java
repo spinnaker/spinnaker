@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ExpressionEvaluationVersion.V2;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
@@ -101,7 +102,7 @@ public class ContextParameterProcessor {
 
     context.put("scmInfo", Optional.ofNullable((BuildInfo) context.get("buildInfo")).map(BuildInfo::getScm).orElse(null));
     if (context.get("scmInfo") == null && trigger instanceof JenkinsTrigger) {
-      context.put("scmInfo", ((JenkinsTrigger) trigger).getBuildInfo().getScm());
+      context.put("scmInfo", Optional.ofNullable(((JenkinsTrigger) trigger).getBuildInfo()).map(BuildInfo::getScm).orElse(emptyList()));
     }
     if (context.get("scmInfo") != null && ((List) context.get("scmInfo")).size() >= 2) {
       List<SourceControl> scmInfos = (List<SourceControl>) context.get("scmInfo");

@@ -33,8 +33,6 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
-import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
-import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.JenkinsArtifact
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
@@ -134,7 +132,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     def pipeline = pipeline {
       application = "orca"
       name = "dummy-pipeline"
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], new BuildInfo("name", 1, null, [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], null, false, "SUCCESS"), null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
       stage {
         type = "one"
         context = [foo: "foo"]

@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -31,9 +30,7 @@ class ParallelDeployStageSpec extends Specification {
   def "should build contexts corresponding to cluster configuration(s)"() {
     given:
     def pipeline = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], new JenkinsTrigger.BuildInfo(
-        "job", 1, "http://url", [], [], "job", false, "result"
-      ), "user@example.com", [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, "user@example.com", [:], [])
       application = "orca"
     }
     def bakeStage = new Stage(pipeline, "deploy", "Deploy!", stageContext)
@@ -60,9 +57,7 @@ class ParallelDeployStageSpec extends Specification {
   def "pipeline strategy should #data.scenario"() {
     given:
     def parentPipeline = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], new JenkinsTrigger.BuildInfo(
-        "job", 1, "http://url", [], [], "job", false, "result"
-      ), "user@example.com", [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, "user@example.com", [:], [])
       application = "orca"
       stage {
         name = "parent stage"

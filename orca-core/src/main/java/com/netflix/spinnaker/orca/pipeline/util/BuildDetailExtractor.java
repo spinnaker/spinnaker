@@ -45,7 +45,11 @@ public class BuildDetailExtractor {
 
   @Deprecated
   public boolean tryToExtractBuildDetails(Map<String, Object> buildInfo, Map<String, Object> request) {
-    return tryToExtractBuildDetails(mapper.convertValue(buildInfo, BuildInfo.class), request);
+    try {
+      return tryToExtractBuildDetails(mapper.convertValue(buildInfo, BuildInfo.class), request);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
   }
 
   //Legacy Details extractor for Jenkins. It parses the url to fill the request build parameters

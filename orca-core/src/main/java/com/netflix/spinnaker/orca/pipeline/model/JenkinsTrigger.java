@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 @JsonTypeName("jenkins")
 public class JenkinsTrigger extends Trigger {
@@ -33,8 +35,9 @@ public class JenkinsTrigger extends Trigger {
   private final String job;
   private final int buildNumber;
   private final String propertyFile;
-  private final Map<String, Object> properties;
-  private final BuildInfo buildInfo;
+
+  private Map<String, Object> properties;
+  private BuildInfo buildInfo;
 
   @JsonCreator
   public JenkinsTrigger(
@@ -42,8 +45,6 @@ public class JenkinsTrigger extends Trigger {
     @JsonProperty("job") @Nonnull String job,
     @JsonProperty("buildNumber") int buildNumber,
     @JsonProperty("propertyFile") @Nullable String propertyFile,
-    @JsonProperty("properties") @Nonnull Map<String, Object> properties,
-    @JsonProperty("buildInfo") @Nonnull BuildInfo buildInfo,
     @JsonProperty("user") @Nullable String user,
     @JsonProperty("parameters") @Nullable Map<String, Object> parameters,
     @JsonProperty("artifacts") @Nullable List<Artifact> artifacts
@@ -53,8 +54,6 @@ public class JenkinsTrigger extends Trigger {
     this.job = job;
     this.buildNumber = buildNumber;
     this.propertyFile = propertyFile;
-    this.properties = properties;
-    this.buildInfo = buildInfo;
   }
 
   public @Nonnull String getMaster() {
@@ -73,12 +72,22 @@ public class JenkinsTrigger extends Trigger {
     return propertyFile;
   }
 
-  public Map<String, Object> getProperties() {
-    return properties;
+  @JsonProperty("properties")
+  public @Nonnull Map<String, Object> getProperties() {
+    return properties == null ? emptyMap() : properties;
   }
 
-  public @Nonnull BuildInfo getBuildInfo() {
+  public void setProperties(Map<String, Object> properties) {
+    this.properties = properties;
+  }
+
+  @JsonProperty("buildInfo")
+  public @Nullable BuildInfo getBuildInfo() {
     return buildInfo;
+  }
+
+  public void setBuildInfo(@Nonnull BuildInfo buildInfo) {
+    this.buildInfo = buildInfo;
   }
 
   @Override public boolean equals(Object o) {
@@ -87,12 +96,11 @@ public class JenkinsTrigger extends Trigger {
     return buildNumber == that.buildNumber &&
       Objects.equals(master, that.master) &&
       Objects.equals(job, that.job) &&
-      Objects.equals(propertyFile, that.propertyFile) &&
-      Objects.equals(buildInfo, that.buildInfo);
+      Objects.equals(propertyFile, that.propertyFile);
   }
 
   @Override public int hashCode() {
-    return Objects.hash(super.hashCode(), master, job, buildNumber, propertyFile, buildInfo);
+    return Objects.hash(super.hashCode(), master, job, buildNumber, propertyFile);
   }
 
   @Override public String toString() {
@@ -112,7 +120,6 @@ public class JenkinsTrigger extends Trigger {
     private final String url;
     private final List<JenkinsArtifact> artifacts;
     private final List<SourceControl> scm;
-    private final String fullDisplayName;
     private final boolean building;
     private final String result;
 
@@ -121,18 +128,16 @@ public class JenkinsTrigger extends Trigger {
       @JsonProperty("name") @Nonnull String name,
       @JsonProperty("number") int number,
       @JsonProperty("url") @Nonnull String url,
-      @JsonProperty("artifacts") @Nonnull List<JenkinsArtifact> artifacts,
-      @JsonProperty("scm") @Nonnull List<SourceControl> scm,
-      @JsonProperty("fullDisplayName") @Nonnull String fullDisplayName,
+      @JsonProperty("artifacts") @Nullable List<JenkinsArtifact> artifacts,
+      @JsonProperty("scm") @Nullable List<SourceControl> scm,
       @JsonProperty("building") boolean building,
       @JsonProperty("result") @Nullable String result
     ) {
       this.name = name;
       this.number = number;
       this.url = url;
-      this.artifacts = artifacts;
-      this.scm = scm;
-      this.fullDisplayName = fullDisplayName;
+      this.artifacts = artifacts == null ? emptyList() : artifacts;
+      this.scm = scm == null ? emptyList() : scm;
       this.building = building;
       this.result = result;
     }
@@ -158,7 +163,7 @@ public class JenkinsTrigger extends Trigger {
     }
 
     public @Nonnull String getFullDisplayName() {
-      return fullDisplayName;
+      return name + " #" + number;
     }
 
     public boolean isBuilding() {
@@ -179,12 +184,11 @@ public class JenkinsTrigger extends Trigger {
         Objects.equals(url, buildInfo.url) &&
         Objects.equals(artifacts, buildInfo.artifacts) &&
         Objects.equals(scm, buildInfo.scm) &&
-        Objects.equals(fullDisplayName, buildInfo.fullDisplayName) &&
         Objects.equals(result, buildInfo.result);
     }
 
     @Override public int hashCode() {
-      return Objects.hash(name, number, url, artifacts, scm, fullDisplayName, building, result);
+      return Objects.hash(name, number, url, artifacts, scm, building, result);
     }
   }
 

@@ -91,11 +91,11 @@ class CreateBakeTaskSpec extends Specification {
 
   @Shared
   def buildInfo = new BuildInfo(
-    "name", 0, null, [
+    "name", 0, "http://jenkins", [
     new JenkinsArtifact("hodor_1.1_all.deb", "."),
     new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
     new JenkinsArtifact("hodor.1.1.nupkg", ".")
-  ], [], "name#0", false, "SUCCESS"
+  ], [], false, "SUCCESS"
   )
 
   @Shared
@@ -105,7 +105,7 @@ class CreateBakeTaskSpec extends Specification {
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
-    ], [], "name#0", false, "SUCCESS"
+    ], [], false, "SUCCESS"
   )
 
   @Shared
@@ -115,7 +115,7 @@ class CreateBakeTaskSpec extends Specification {
       new JenkinsArtifact("hodor_1.1_all.deb", "."),
       new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
-    ], [], "name#0", false, "SUCCESS"
+    ], [], false, "SUCCESS"
   )
 
   @Shared
@@ -127,7 +127,7 @@ class CreateBakeTaskSpec extends Specification {
       new JenkinsArtifact("hodor.1.1.nupkg", ".")
     ], [
     new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d")
-  ], "name#0", false, "SUCCESS"
+  ], false, "SUCCESS"
   )
 
   @Shared
@@ -140,7 +140,7 @@ class CreateBakeTaskSpec extends Specification {
     ], [
     new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
     new SourceControl("refs/remotes/origin/some-feature", "some-feature", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
-  ], "name#0", false, "SUCCESS"
+  ], false, "SUCCESS"
   )
 
   @Shared
@@ -153,16 +153,16 @@ class CreateBakeTaskSpec extends Specification {
     ], [
     new SourceControl("refs/remotes/origin/master", "master", "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"),
     new SourceControl("refs/remotes/origin/develop", "develop", "1234567f8d02a40fa84ec9d4d0dccd263d51782d")
-  ], "name#0", false, "SUCCESS"
+  ], false, "SUCCESS"
   )
 
   @Shared
   def buildInfoNoMatch = new BuildInfo(
-    "name", 0, null, [
+    "name", 0, "http://jenkins", [
     new JenkinsArtifact("hodornodor_1.1_all.deb", "."),
     new JenkinsArtifact("hodor-1.1.noarch.rpm", "."),
     new JenkinsArtifact("hodor.1.1.nupkg", ".")
-  ], [], "name#0", false, "SUCCESS"
+  ], [], false, "SUCCESS"
   )
 
   @Shared
@@ -237,7 +237,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
@@ -273,7 +276,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
@@ -307,7 +313,8 @@ class CreateBakeTaskSpec extends Specification {
       ]
     ]
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], buildInfo, null, null, null)
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, null, null)
+      trigger.buildInfo = buildInfo
       stage {
         type = "bake"
         context = bakeConfig
@@ -357,7 +364,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
@@ -392,7 +402,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
@@ -425,7 +438,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = mapper.convertValue(bakeConfig, Map)
@@ -458,7 +474,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = mapper.convertValue(contextInfo, Map)
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = mapper.convertValue(bakeConfig, Map)
@@ -491,7 +510,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
@@ -526,7 +548,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
@@ -564,7 +589,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
@@ -601,7 +629,10 @@ class CreateBakeTaskSpec extends Specification {
     given:
     bakeConfig.buildInfo = contextInfo
     def pipelineWithTrigger = pipeline {
-      trigger = new JenkinsTrigger("master", "job", 1, null, [:], triggerInfo, null, [:], [])
+      trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
+      if (triggerInfo != null) {
+        trigger.buildInfo = triggerInfo
+      }
       stage {
         type = "bake"
         context = bakeConfig
