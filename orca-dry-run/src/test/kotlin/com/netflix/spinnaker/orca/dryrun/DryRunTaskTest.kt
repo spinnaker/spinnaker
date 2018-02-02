@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.dryrun
 import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
-import com.netflix.spinnaker.orca.pipeline.model.DryRunTrigger
+import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
 import com.netflix.spinnaker.orca.q.pipeline
 import com.netflix.spinnaker.orca.q.stage
 import com.nhaarman.mockito_kotlin.*
@@ -43,20 +43,10 @@ object DryRunTaskTest : Spek({
         refId = "1"
       }
       stage {
-        type = "deploy"
+        type = "bake"
         refId = "2"
       }
-      stage {
-        type = "bake"
-        refId = "3"
-      }
-      stage {
-        type = "bake"
-        refId = "4"
-      }
-      trigger = DryRunTrigger(
-        mapOf("2" to mapOf("foo" to "bar"), "4" to mapOf("foo" to "bar"))
-      )
+      trigger = ManualTrigger(null, "fzlem@netflix.com", emptyMap(), emptyList(), emptyList())
     }
 
     given("a stage with no outputs in the trigger and no output stub") {
@@ -88,10 +78,12 @@ object DryRunTaskTest : Spek({
       }
     }
 
-    given("a stage with outputs overridden in the trigger") {
+    given("a stage with an output stub") {
 
+      val stubOutput = mapOf("negative" to "covfefe")
       beforeGroup {
-        whenever(outputStub.supports(any())) doReturn false
+        whenever(outputStub.supports("bake")) doReturn true
+        whenever(outputStub.outputs(pipeline.stageByRef("2"))) doReturn stubOutput
       }
 
       afterGroup {
@@ -108,67 +100,8 @@ object DryRunTaskTest : Spek({
         assertThat(result!!.status).isEqualTo(SUCCEEDED)
       }
 
-      it("should copy outputs from the trigger") {
-        assertThat(result!!.outputs).isEqualTo(mapOf("foo" to "bar"))
-      }
-
-      it("should not try to stub output") {
-        verify(outputStub, never()).outputs(any())
-      }
-    }
-
-    given("a stage with an output stub") {
-
-      val stubOutput = mapOf("negative" to "covfefe")
-      beforeGroup {
-        whenever(outputStub.supports("bake")) doReturn true
-        whenever(outputStub.outputs(pipeline.stageByRef("3"))) doReturn stubOutput
-      }
-
-      afterGroup {
-        reset(outputStub)
-      }
-
-      var result: TaskResult? = null
-
-      on("running the task") {
-        result = subject.execute(pipeline.stageByRef("3"))
-      }
-
-      it("should return success") {
-        assertThat(result!!.status).isEqualTo(SUCCEEDED)
-      }
-
       it("should have stubbed outputs") {
         assertThat(result!!.outputs).isEqualTo(stubOutput)
-      }
-    }
-
-    given("a stage with an output stub and trigger data") {
-
-      val stubOutput = mapOf("negative" to "covfefe", "foo" to "baz")
-      beforeGroup {
-        whenever(outputStub.supports("bake")) doReturn true
-        whenever(outputStub.outputs(pipeline.stageByRef("4"))) doReturn stubOutput
-      }
-
-      afterGroup {
-        reset(outputStub)
-      }
-
-      var result: TaskResult? = null
-
-      on("running the task") {
-        result = subject.execute(pipeline.stageByRef("4"))
-      }
-
-      it("should return success") {
-        assertThat(result!!.status).isEqualTo(SUCCEEDED)
-      }
-
-      it("trigger outputs take precedence") {
-        assertThat(result!!.outputs["negative"]).isEqualTo("covfefe")
-        assertThat(result!!.outputs["foo"]).isEqualTo("bar")
       }
     }
   }

@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
-import com.netflix.spinnaker.orca.pipeline.model.DryRunTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -39,19 +38,6 @@ class DryRunTask(
     }
 
   private fun Stage.generateOutputs(): Map<String, Any> =
-    stubOutputs() + triggerOutputs()
-
-  private fun Stage.triggerOutputs(): Map<String, Any> {
-    val trigger = execution.trigger
-    if (trigger is DryRunTrigger) {
-      val outputs = trigger.outputs ?: emptyMap()
-      return outputs[refId] ?: emptyMap()
-    } else {
-      return emptyMap()
-    }
-  }
-
-  private fun Stage.stubOutputs(): Map<String, Any> =
     outputStubs.find { it.supports(type) }?.outputs(this) ?: emptyMap()
 
   private val log = LoggerFactory.getLogger(javaClass)

@@ -48,7 +48,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
   List<PipelinePreprocessor> pipelinePreprocessors
 
   Execution trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
-    if (parentPipeline.trigger.type == "dryrun") {
+    if (parentPipeline.trigger.isDryRun()) {
       log.info("Not triggering dependent pipeline {}:{} as parent execution was a dry run", pipelineConfig.id, json)
       return
     }

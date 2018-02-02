@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.Persister
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -37,15 +36,12 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
   private final Front50Service front50Service
   private final ObjectMapper objectMapper
   private final ContextParameterProcessor contextParameterProcessor
-  private final Set<String> dryRunPipelineIds
 
   EchoNotifyingExecutionListener(
     EchoService echoService,
     Front50Service front50Service,
     ObjectMapper objectMapper,
-    ContextParameterProcessor contextParameterProcessor,
-    Set<String> dryRunPipelineIds) {
-    this.dryRunPipelineIds = dryRunPipelineIds
+    ContextParameterProcessor contextParameterProcessor) {
     this.echoService = echoService
     this.front50Service = front50Service
     this.objectMapper = objectMapper
@@ -82,7 +78,6 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
       if (execution.status != ExecutionStatus.SUSPENDED) {
         if (execution.type == PIPELINE) {
           addApplicationNotifications(execution)
-          addDryRunNotifications(execution)
         }
         echoService.recordEvent(
           details: [
@@ -129,18 +124,6 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
           }
         }
       }
-    }
-  }
-
-  /**
-   * Adds a notification for dry run enabled pipelines.
-   * @param pipeline
-   */
-  @CompileDynamic
-  private void addDryRunNotifications(Execution pipeline) {
-    if (pipeline.pipelineConfigId in dryRunPipelineIds) {
-      log.info("Sending dry run notification for $pipeline.application $pipeline.name")
-      pipeline.notifications << [type: "dryrun", when: "pipeline.complete"]
     }
   }
 

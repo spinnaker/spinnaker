@@ -58,4 +58,21 @@ abstract class AbstractTriggerSpec<T extends Trigger> extends Specification {
     expect:
     mapper.readValue(asJson, Trigger) == trigger
   }
+
+  def "does not dry run by default"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Trigger)
+
+    expect:
+    !trigger.dryRun
+  }
+
+  def "can dry run a pipeline"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Map)
+    trigger.dryRun = true
+
+    expect:
+    mapper.convertValue(trigger, Trigger).dryRun
+  }
 }

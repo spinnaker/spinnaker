@@ -35,7 +35,6 @@ import static java.util.Objects.hash;
 @JsonSubTypes({
   @Type(CronTrigger.class),
   @Type(DockerTrigger.class),
-  @Type(DryRunTrigger.class),
   @Type(GitTrigger.class),
   @Type(JenkinsTrigger.class),
   @Type(ManualTrigger.class),
@@ -83,6 +82,11 @@ public abstract class Trigger {
   @JsonIgnore
   public final boolean isRebake() {
     return Boolean.parseBoolean(otherProperties.getOrDefault("rebake", "false").toString());
+  }
+
+  @JsonIgnore
+  public final boolean isDryRun() {
+    return Boolean.parseBoolean(otherProperties.getOrDefault("dryRun", "false").toString());
   }
 
   /**

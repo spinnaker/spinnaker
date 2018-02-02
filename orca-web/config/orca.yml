@@ -78,6 +78,3 @@ logging:
 #      description: This is also a webhook stage, but it has no properties set
 #      type: anotherCustomWebhook
 #      enabled: false
-
-dryrun:
-  pipelineIds:

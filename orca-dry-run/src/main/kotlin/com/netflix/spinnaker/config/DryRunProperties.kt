@@ -20,5 +20,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("dryrun")
 class DryRunProperties {
-  val pipelineIds: MutableList<String> = mutableListOf()
 }

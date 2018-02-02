@@ -30,7 +30,7 @@ class DryRunStageDefinitionBuilderFactory(
       super.builderFor(stage).let {
         if (stage.isExpressionPreconditionStage()) {
           it
-        } else if (execution.trigger.type == "dryrun") {
+        } else if (execution.trigger.isDryRun) {
           DryRunStage(it)
         } else {
           it
