@@ -51,7 +51,7 @@ public class ExpressionTransform {
   }
 
   /**
-   * Traverses & attempts to evaluate expressions
+   * Traverses and attempts to evaluate expressions
    * Failures can either be INFO (for a simple unresolved expression) or ERROR when an exception is thrown
    *
    * @param source
