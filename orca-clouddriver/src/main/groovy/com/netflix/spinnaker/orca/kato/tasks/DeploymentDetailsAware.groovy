@@ -97,7 +97,7 @@ trait DeploymentDetailsAware {
       def parentPipelineExecution = getParentPipelineExecution(execution)
 
       if (parentPipelineExecution) {
-        String parentPipelineStageId = execution.trigger?.parentPipelineStageId
+        String parentPipelineStageId = (execution.trigger as PipelineTrigger).parentPipelineStageId
         Stage parentPipelineStage = parentPipelineExecution.stages?.find {
           it.type == "pipeline" && it.id == parentPipelineStageId
         }
@@ -130,7 +130,7 @@ trait DeploymentDetailsAware {
   private Execution getParentPipelineExecution(Execution execution) {
     // The initial stage execution is a Pipeline, and the ancestor executions are Maps.
     if (execution.type == PIPELINE && execution.trigger instanceof PipelineTrigger) {
-      return execution.trigger.parentExecution
+      return (execution.trigger as PipelineTrigger).parentExecution
     }
     return null
   }

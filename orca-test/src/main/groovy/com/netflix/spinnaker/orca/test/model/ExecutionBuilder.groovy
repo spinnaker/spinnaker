@@ -39,7 +39,7 @@ class ExecutionBuilder {
     @DelegatesTo(value = Execution, strategy = DELEGATE_FIRST)
       Closure builder = {}) {
     def pipeline = Execution.newPipeline("covfefe")
-    pipeline.trigger = new ManualTrigger(null, null, [:], [], [])
+    pipeline.trigger = new ManualTrigger(null, "user@example.com", [:], [], [])
     pipeline.buildTime = currentTimeMillis()
 
     builder.delegate = pipeline

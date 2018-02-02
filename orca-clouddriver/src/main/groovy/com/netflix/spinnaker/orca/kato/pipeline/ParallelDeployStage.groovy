@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -24,11 +23,16 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGr
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
@@ -50,8 +54,7 @@ class ParallelDeployStage implements StageDefinitionBuilder {
     builder.withTask("completeParallelDeploy", CompleteParallelDeployTask)
   }
 
-  @Nonnull List<Stage> parallelStages(
-    @Nonnull Stage stage) {
+  @Nonnull List<Stage> parallelStages(@Nonnull Stage stage) {
     parallelContexts(stage).collect { context ->
       def type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
       newStage(stage.execution, type, context.name as String, context, stage, STAGE_BEFORE)
@@ -59,29 +62,10 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   }
 
   @CompileDynamic
-  protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
-    def type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
-
-    if (cluster.providerType && !(cluster.providerType in ['aws', 'titus'])) {
-      type += "_$cluster.providerType"
-    }
-
-    String baseName = isClone(stage) ? 'Clone' : 'Deploy'
-    String name = cluster.region ? "$baseName in ${cluster.region}" : "$baseName in ${(cluster.availabilityZones as Map).keySet()[0]}"
-
-    return defaultStageContext + [
-      account: cluster.account ?: cluster.credentials ?: stage.context.account ?: stage.context.credentials,
-      cluster: cluster,
-      type   : type,
-      name   : name
-    ]
-  }
-
-  @CompileDynamic
   protected Collection<Map<String, Object>> parallelContexts(Stage stage) {
     if (stage.execution.type == PIPELINE) {
-      Map trigger = stage.execution.trigger
-      if (trigger?.parameters?.strategy == true) {
+      Trigger trigger = stage.execution.trigger
+      if (trigger?.parameters?.strategy == true && trigger instanceof PipelineTrigger) {
         Stage parentStage = trigger.parentExecution.stages.find {
           it.id == trigger.parameters.parentStageId
         }
@@ -96,6 +80,10 @@ class ParallelDeployStage implements StageDefinitionBuilder {
         }
         // the strategy can set it's own enable / disable traffic settings to override the one in advanced settings
         if (stage.context.trafficOptions && stage.context.trafficOptions != 'inherit') {
+          if (!cluster.containsKey("suspendedProcesses")) {
+            cluster.suspendedProcesses = []
+          }
+
           String addToLoadBalancer = 'AddToLoadBalancer'.toString()
           if (stage.context.trafficOptions == 'enable') {
             // explicitly enable traffic
@@ -145,9 +133,28 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   }
 
   @CompileDynamic
+  protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
+    def type = isClone(stage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
+
+    if (cluster.providerType && !(cluster.providerType in ['aws', 'titus'])) {
+      type += "_$cluster.providerType"
+    }
+
+    String baseName = isClone(stage) ? 'Clone' : 'Deploy'
+    String name = cluster.region ? "$baseName in ${cluster.region}" : "$baseName in ${(cluster.availabilityZones as Map).keySet()[0]}"
+
+    return defaultStageContext + [
+      account: cluster.account ?: cluster.credentials ?: stage.context.account ?: stage.context.credentials,
+      cluster: cluster,
+      type   : type,
+      name   : name
+    ]
+  }
+
+  @CompileDynamic
   private boolean isClone(Stage stage) {
     if (stage.execution.type == PIPELINE) {
-      Map trigger = stage.execution.trigger
+      Trigger trigger = stage.execution.trigger
 
       if (trigger?.parameters?.clone == true) {
         return true
