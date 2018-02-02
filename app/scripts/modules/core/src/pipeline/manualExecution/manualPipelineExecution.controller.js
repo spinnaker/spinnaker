@@ -136,7 +136,8 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
       angular.extend(selectedTrigger, this.command.extraFields);
 
       command.pipelineName = pipeline.name;
-      selectedTrigger.type = this.command.dryRunEnabled ? 'dryrun' : 'manual';
+      selectedTrigger.type = 'manual';
+      selectedTrigger.dryRun = this.command.dryRunEnabled;
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;

@@ -159,7 +159,7 @@ describe('Controller: ManualPipelineExecution', function () {
       this.initializeController(application, application.pipelineConfigs.data[0], this.modalInstance);
 
       this.ctrl.execute();
-      expect(this.command.trigger).toEqual({type: 'manual'});
+      expect(this.command.trigger).toEqual({type: 'manual', dryRun: false});
     });
 
     it('performs a dry run if option is selected', function () {
@@ -173,7 +173,7 @@ describe('Controller: ManualPipelineExecution', function () {
 
       this.ctrl.command.dryRunEnabled = true;
       this.ctrl.execute();
-      expect(this.command.trigger).toEqual({type: 'dryrun'});
+      expect(this.command.trigger).toEqual({type: 'manual', dryRun: true});
     });
 
     it('adds parameters if configured', function () {
