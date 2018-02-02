@@ -94,72 +94,76 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
     Map<String, List<String>> instancesByStackId = getInstanceIdsByStack(region, stacks)
 
     stacks?.each { Stack stack ->
-      String serverGroupName = stack.name
-      Names names = Names.parseName(serverGroupName)
-      if (!names && !names.app && !names.cluster) {
-        log.info("Skipping server group ${serverGroupName}")
-      } else {
-        String applicationName = names.app
-        String clusterName = names.cluster
-
-        String serverGroupKey = Keys.getServerGroupKey(serverGroupName, accountName, region)
-        String clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
-        String appKey = Keys.getApplicationKey(applicationName)
-
-        cacheResultBuilder.namespace(APPLICATIONS.ns).keep(appKey).with {
-          attributes.name = applicationName
-          relationships[CLUSTERS.ns].add(clusterKey)
-        }
-
-        cacheResultBuilder.namespace(CLUSTERS.ns).keep(clusterKey).with {
-          attributes.name = clusterName
-          attributes.accountName = accountName
-          relationships[APPLICATIONS.ns].add(appKey)
-          relationships[SERVER_GROUPS.ns].add(serverGroupKey)
-        }
-
-        Stack detail = clientProvider.getStack(region, stack.name)
-        Set<String> loadBalancerKeys = [].toSet()
-        Set<LoadBalancerV2Status> statuses = [].toSet()
-        if (detail && detail.parameters) {
-          statuses = ServerGroupParameters.fromParamsMap(detail.parameters).loadBalancers?.collect { loadBalancerId ->
-            LoadBalancerV2Status status = null
-            try {
-              status = clientProvider.getLoadBalancerStatusTree(region, loadBalancerId)?.loadBalancerV2Status
-              if (status) {
-                String loadBalancerKey = Keys.getLoadBalancerKey(status.name, status.id, accountName, region)
-                cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
-                  relationships[SERVER_GROUPS.ns].add(serverGroupKey)
-                }
-                loadBalancerKeys << loadBalancerKey
-              }
-            } catch (OpenstackProviderException e) {
-              //Do nothing ... Load balancer not found.
-            }
-            status
-          }?.findAll()?.toSet()
-        }
-
-        List<String> instanceKeys = []
-        instancesByStackId[stack.id]?.each { String id ->
-          String instanceKey = Keys.getInstanceKey(id, accountName, region)
-          cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
-          instanceKeys.add(instanceKey)
-        }
-
-        OpenstackServerGroup openstackServerGroup = buildServerGroup(providerCache, detail, statuses, instanceKeys)
-
-        if (shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)) {
-          moveOnDemandDataToNamespace(objectMapper, typeReference, cacheResultBuilder, serverGroupKey)
+      try {
+        String serverGroupName = stack.name
+        Names names = Names.parseName(serverGroupName)
+        if (!names && !names.app && !names.cluster) {
+          log.info("Skipping server group ${serverGroupName}")
         } else {
-          cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
-            attributes = objectMapper.convertValue(openstackServerGroup, ATTRIBUTES)
-            relationships[APPLICATIONS.ns].add(appKey)
+          String applicationName = names.app
+          String clusterName = names.cluster
+
+          String serverGroupKey = Keys.getServerGroupKey(serverGroupName, accountName, region)
+          String clusterKey = Keys.getClusterKey(accountName, applicationName, clusterName)
+          String appKey = Keys.getApplicationKey(applicationName)
+
+          cacheResultBuilder.namespace(APPLICATIONS.ns).keep(appKey).with {
+            attributes.name = applicationName
             relationships[CLUSTERS.ns].add(clusterKey)
-            relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
-            relationships[INSTANCES.ns].addAll(instanceKeys)
+          }
+
+          cacheResultBuilder.namespace(CLUSTERS.ns).keep(clusterKey).with {
+            attributes.name = clusterName
+            attributes.accountName = accountName
+            relationships[APPLICATIONS.ns].add(appKey)
+            relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+          }
+
+          Stack detail = clientProvider.getStack(region, stack.name)
+          Set<String> loadBalancerKeys = [].toSet()
+          Set<LoadBalancerV2Status> statuses = [].toSet()
+          if (detail && detail.parameters) {
+            statuses = ServerGroupParameters.fromParamsMap(detail.parameters).loadBalancers?.collect { loadBalancerId ->
+              LoadBalancerV2Status status = null
+              try {
+                status = clientProvider.getLoadBalancerStatusTree(region, loadBalancerId)?.loadBalancerV2Status
+                if (status) {
+                  String loadBalancerKey = Keys.getLoadBalancerKey(status.name, status.id, accountName, region)
+                  cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
+                    relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+                  }
+                  loadBalancerKeys << loadBalancerKey
+                }
+              } catch (OpenstackProviderException e) {
+                //Do nothing ... Load balancer not found.
+              }
+              status
+            }?.findAll()?.toSet()
+          }
+
+          List<String> instanceKeys = []
+          instancesByStackId[stack.id]?.each { String id ->
+            String instanceKey = Keys.getInstanceKey(id, accountName, region)
+            cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).relationships[SERVER_GROUPS.ns].add(serverGroupKey)
+            instanceKeys.add(instanceKey)
+          }
+
+          OpenstackServerGroup openstackServerGroup = buildServerGroup(providerCache, detail, statuses, instanceKeys)
+
+          if (shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)) {
+            moveOnDemandDataToNamespace(objectMapper, typeReference, cacheResultBuilder, serverGroupKey)
+          } else {
+            cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
+              attributes = objectMapper.convertValue(openstackServerGroup, ATTRIBUTES)
+              relationships[APPLICATIONS.ns].add(appKey)
+              relationships[CLUSTERS.ns].add(clusterKey)
+              relationships[LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
+              relationships[INSTANCES.ns].addAll(instanceKeys)
+            }
           }
         }
+      } catch (Exception e) {
+        log.error("Error building cache for stack ${stack}", e)
       }
     }
 
@@ -236,14 +240,16 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       if (appVersionKey) {
         AppVersion appVersion = AppVersion.parseName(appVersionKey)
 
-        result.packageName = appVersion.packageName
-        result.version = appVersion.version
-        result.commit = appVersion.commit
+        if (appVersion) {
+          result.packageName = appVersion.packageName
+          result.version = appVersion.version
+          result.commit = appVersion.commit
+        }
 
         String buildHost = properties.get('build_host')
         String buildInfoUrl = properties.get('build_info_url')
 
-        if (appVersion.buildJobName) {
+        if (appVersion && appVersion.buildJobName) {
           Map<String, String> jenkinsMap = [name: appVersion.buildJobName, number: appVersion.buildNumber]
           if (buildHost) {
             jenkinsMap.put('host', buildHost)
