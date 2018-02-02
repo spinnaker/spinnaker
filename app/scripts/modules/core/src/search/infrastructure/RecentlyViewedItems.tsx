@@ -1,8 +1,7 @@
 import { IPromise } from 'angular';
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject } from 'rxjs';
 
 import { IRecentHistoryEntry } from 'core/history';
 import { ReactInjector } from 'core/reactShims';

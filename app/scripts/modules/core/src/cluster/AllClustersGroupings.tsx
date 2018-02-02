@@ -2,7 +2,7 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 import { IClusterSubgroup } from 'core/cluster/filter/clusterFilter.service';
 import { BindAll } from 'lodash-decorators';
 import * as React from 'react';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
 

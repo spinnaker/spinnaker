@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { ReactInjector } from 'core/reactShims';
 import { robotToHuman } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';

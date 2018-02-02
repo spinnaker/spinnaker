@@ -3,7 +3,7 @@ import * as ReactGA from 'react-ga';
 import { has, get } from 'lodash';
 import * as classNames from 'classnames';
 import { BindAll } from 'lodash-decorators';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { CloudProviderLogo } from 'core/cloudProvider';
