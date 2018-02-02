@@ -57,8 +57,10 @@
   <h4 class="text-center">There was an error loading the clusters for this application. We'll try again shortly.</h4>
 </div>
 
+<!-- overflow-y is set to avoid flickering when scrollbars are set to always show (react virtualized thing) -->
 <all-clusters-groupings
   class="content"
   app="ctrl.application"
   initialized="ctrl.initialized"
+  style="overflow-y: hidden"
 ></all-clusters-groupings>
