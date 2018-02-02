@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { BindAll } from 'lodash-decorators';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 import { get, find, filter } from 'lodash';
 
@@ -11,6 +12,7 @@ export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps
   serverGroup: IAmazonServerGroupView;
 }
 
+@BindAll()
 export class AmazonServerGroupActions extends React.Component<IAmazonServerGroupActionsProps> {
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {

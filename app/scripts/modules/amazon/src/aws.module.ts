@@ -10,6 +10,7 @@ import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.
 import { VPC_MODULE } from './vpc/vpc.module';
 import { SUBNET_RENDERER } from './subnet/subnet.renderer';
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
+import { SERVER_GROUP_CONFIGURE_MODULE } from './serverGroup/configure/serverGroup.configure.aws.module';
 import { COMMON_MODULE } from './common/common.module';
 import { AMAZON_HELP } from './help/amazon.help';
 
@@ -73,6 +74,7 @@ module(AMAZON_MODULE, [
   AWS_LOAD_BALANCER_MODULE,
   require('./instance/details/instance.details.controller').name,
   AWS_SECURITY_GROUP_MODULE,
+  SERVER_GROUP_CONFIGURE_MODULE,
   SUBNET_RENDERER,
   VPC_MODULE,
   require('./image/image.reader').name,
