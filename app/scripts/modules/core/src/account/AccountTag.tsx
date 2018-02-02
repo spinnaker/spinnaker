@@ -36,7 +36,7 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
     const { cache } = AccountTag;
     if (!cache.hasOwnProperty(account)) {
       cache[account] = ReactInjector.accountService.challengeDestructiveActions(account)
-        .then(result => cache[account] = result);
+        .then(result => cache[account] = !!result);
     }
 
     const cachedVal: boolean | IPromise<boolean> = cache[account];
