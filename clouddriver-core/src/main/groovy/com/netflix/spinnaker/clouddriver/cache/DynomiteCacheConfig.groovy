@@ -65,7 +65,7 @@ class DynomiteCacheConfig {
   @Bean
   @ConfigurationProperties("dynomite.connectionPool")
   ConnectionPoolConfigurationImpl connectionPoolConfiguration(DynomiteConfigurationProperties dynomiteConfigurationProperties) {
-    new ConnectionPoolConfigurationImpl(dynomiteConfigurationProperties.applicationName)
+    new ConnectionPoolConfigurationImpl(dynomiteConfigurationProperties.applicationName).withHashtag("{}")
   }
 
   @Bean
@@ -91,13 +91,13 @@ class DynomiteCacheConfig {
         .withCPConfig(connectionPoolConfiguration)
     }).orElseGet({
       connectionPoolConfiguration
-          .withTokenSupplier(new StaticTokenMapSupplier(dynomiteConfigurationProperties.dynoHostTokens))
-          .setLocalDataCenter(dynomiteConfigurationProperties.localDataCenter)
-          .setLocalRack(dynomiteConfigurationProperties.localRack)
+        .withTokenSupplier(new StaticTokenMapSupplier(dynomiteConfigurationProperties.dynoHostTokens))
+        .setLocalDataCenter(dynomiteConfigurationProperties.localDataCenter)
+        .setLocalRack(dynomiteConfigurationProperties.localRack)
 
       builder
-          .withHostSupplier(new StaticHostSupplier(dynomiteConfigurationProperties.dynoHosts))
-          .withCPConfig(connectionPoolConfiguration)
+        .withHostSupplier(new StaticHostSupplier(dynomiteConfigurationProperties.dynoHosts))
+        .withCPConfig(connectionPoolConfiguration)
     }).build()
   }
 

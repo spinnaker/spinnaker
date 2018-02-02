@@ -34,7 +34,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Protocol
 
@@ -56,7 +55,7 @@ class DynomiteConfig {
   @Bean
   @ConfigurationProperties("dynomite.connectionPool")
   ConnectionPoolConfigurationImpl connectionPoolConfiguration(DynomiteConfigurationProperties dynomiteConfigurationProperties) {
-    new ConnectionPoolConfigurationImpl(dynomiteConfigurationProperties.applicationName)
+    new ConnectionPoolConfigurationImpl(dynomiteConfigurationProperties.applicationName).withHashtag("{}")
   }
 
   @Bean(destroyMethod = "stopClient")
