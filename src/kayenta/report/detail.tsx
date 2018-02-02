@@ -8,7 +8,7 @@ import MetricResults from './metricResults';
 * Layout for report detail view.
 * */
 export default () => (
-  <div>
+  <div className="vertical flex-1">
     <ReportHeader/>
     <ReportScores/>
     <MetricResults/>

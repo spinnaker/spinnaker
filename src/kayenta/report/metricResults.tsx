@@ -8,8 +8,6 @@ import MetricResultsList from './metricResultsList';
 import MetricResultDetail from './metricResultDetail';
 import { judgeResultSelector } from '../selectors/index';
 
-import './metricResults.less';
-
 interface IMetricResultsStateProps {
   metricResults: ICanaryAnalysisResult[];
   selectedMetricResult: ICanaryAnalysisResult;
@@ -22,10 +20,12 @@ const MetricResults = ({ metricResults, selectedMetricResult }: IMetricResultsSt
   return (
     <ListDetail
       list={list}
+      listClass="vertical"
       listWidth={5}
       detail={detail}
+      detailClass="vertical"
       detailWidth={9}
-      className="metric-results"
+      className="metric-results flex-1"
     />
   );
 };

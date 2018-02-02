@@ -60,14 +60,15 @@ const buildRowForMetricWithMultipleResults = (row: IMetricResultsTableRow) => {
 const ResultsList = ({ results, select, selectedMetric }: IResultsListOwnProps & IResultsListDispatchProps & IResultsListStateProps) => {
   const rows = buildTableRows(results);
   return (
-    <section className="vertical metric-results-list">
+    <section className="vertical metric-results-list flex-1">
       <Table
         rowKey={r => r.metricName}
-        tableBodyClassName="list-unstyled tabs-vertical"
+        tableBodyClassName="list-unstyled tabs-vertical flex-1"
         rowClassName={r => classNames('horizontal', { selected: r.results[0].id === selectedMetric })}
         rows={rows}
         columns={metricResultsColumns}
         onRowClick={r => select(r.results[0].id)}
+        className="flex-1 vertical"
         customRow={buildRowForMetricWithMultipleResults}
       />
     </section>

@@ -51,9 +51,9 @@ export default class Canary extends React.Component<ICanaryProps> {
   public render() {
     const noWrap = { wrap: false };
     return (
-      <Styleguide className="kayenta-root">
+      <Styleguide className="kayenta-root vertical">
         <Provider store={this.store}>
-          <div>
+          <div className="vertical flex-1">
             <CanaryHeader tabs={canaryTabs} title="Canary"/>
             <UIView {...noWrap} name="canary"/>
           </div>

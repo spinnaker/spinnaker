@@ -14,8 +14,8 @@ export default function CanaryConfigEdit() {
   const noWrap = { wrap: false };
   const Detail = <UIView {...noWrap} name="detail"/>;
   return (
-    <div>
-      <ListDetail list={List} detail={Detail}/>
+    <div className="vertical flex-1">
+      <ListDetail list={List} detail={Detail} className="flex-1" detailClass="vertical flex-1"/>
       <Footer>
         <UIView {...noWrap} name="footer"/>
       </Footer>
