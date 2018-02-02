@@ -1,25 +1,14 @@
-import { Application } from '@spinnaker/core';
-
-import { IAmazonLoadBalancer, IAmazonLoadBalancerUpsertCommand } from 'amazon';
+import { ILoadBalancerModalProps } from '@spinnaker/core';
 
 import { CreateApplicationLoadBalancer } from './application/CreateApplicationLoadBalancer';
 import { CreateClassicLoadBalancer } from './classic/CreateClassicLoadBalancer';
-
-export interface IAmazonLoadBalancerModalProps {
-  app: Application;
-  forPipelineConfig?: boolean;
-  loadBalancer: IAmazonLoadBalancer;
-  show: boolean;
-  showCallback: (show: boolean) => void;
-  onComplete?: (loadBalancerCommand: IAmazonLoadBalancerUpsertCommand) => void;
-}
 
 export interface IAmazonLoadBalancerConfig {
   type: string;
   label: string;
   sublabel: string;
   description: string;
-  component: React.ComponentClass<IAmazonLoadBalancerModalProps>;
+  component: React.ComponentClass<ILoadBalancerModalProps>;
 }
 
 export const LoadBalancerTypes: IAmazonLoadBalancerConfig[] = [

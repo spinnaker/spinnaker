@@ -2,7 +2,9 @@ import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { BindAll } from 'lodash-decorators';
 
-import { IAmazonLoadBalancerConfig, IAmazonLoadBalancerModalProps, LoadBalancerTypes } from './LoadBalancerTypes';
+import { ILoadBalancerModalProps } from '@spinnaker/core';
+
+import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 
 export interface IAmazonLoadBalancerChoiceModalState {
   choices: IAmazonLoadBalancerConfig[];
@@ -11,8 +13,8 @@ export interface IAmazonLoadBalancerChoiceModalState {
 }
 
 @BindAll()
-export class AmazonLoadBalancerChoiceModal extends React.Component<IAmazonLoadBalancerModalProps, IAmazonLoadBalancerChoiceModalState> {
-  constructor(props: IAmazonLoadBalancerModalProps) {
+export class AmazonLoadBalancerChoiceModal extends React.Component<ILoadBalancerModalProps, IAmazonLoadBalancerChoiceModalState> {
+  constructor(props: ILoadBalancerModalProps) {
     super(props);
     this.state = {
       choices: LoadBalancerTypes,

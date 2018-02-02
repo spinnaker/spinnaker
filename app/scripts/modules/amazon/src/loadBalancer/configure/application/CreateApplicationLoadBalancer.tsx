@@ -6,7 +6,7 @@ import { IDeferred, IPromise } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q } from 'ngimport';
 
-import { ReactInjector, TaskMonitor, WizardModal } from '@spinnaker/core';
+import { ILoadBalancerModalProps, ReactInjector, TaskMonitor, WizardModal } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
@@ -14,13 +14,12 @@ import { AwsReactInjector } from 'amazon/reactShims';
 
 import { ALBListeners } from './ALBListeners';
 import { TargetGroups } from './TargetGroups';
-import { IAmazonLoadBalancerModalProps } from '../LoadBalancerTypes';
 import { SecurityGroups } from '../common/SecurityGroups';
 import { LoadBalancerLocation } from '../common/LoadBalancerLocation';
 
 import '../common/configure.less';
 
-export interface ICreateApplicationLoadBalancerProps extends IAmazonLoadBalancerModalProps {
+export interface ICreateApplicationLoadBalancerProps extends ILoadBalancerModalProps {
   loadBalancer: IAmazonApplicationLoadBalancer;
 }
 
