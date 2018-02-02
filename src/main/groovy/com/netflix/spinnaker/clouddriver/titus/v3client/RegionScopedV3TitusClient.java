@@ -137,7 +137,8 @@ public class RegionScopedV3TitusClient implements TitusClient {
       .putFilteringCriteria("jobType", "SERVICE")
       .putFilteringCriteria("attributes", "source:spinnaker,name:" + jobName)
       .putFilteringCriteria("attributes.op", "and");
-    return getJobs(jobQuery).get(0);
+    List<Job> results = getJobs(jobQuery);
+    return results.isEmpty() ? null : results.get(0);
   }
 
   @Override

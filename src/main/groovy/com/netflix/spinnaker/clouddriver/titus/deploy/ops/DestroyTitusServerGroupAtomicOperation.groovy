@@ -19,7 +19,10 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.ops
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.events.DeleteServerGroupEvent
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateJobRequest
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusServerGroupDescription
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
@@ -32,6 +35,7 @@ class DestroyTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String PHASE = "DESTROY_TITUS_SERVER_GROUP"
   private final TitusClientProvider titusClientProvider
   private final DestroyTitusServerGroupDescription description
+  private final Collection<DeleteServerGroupEvent> events = []
 
   DestroyTitusServerGroupAtomicOperation(TitusClientProvider titusClientProvider,
                                          DestroyTitusServerGroupDescription description) {
@@ -45,7 +49,10 @@ class DestroyTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
     TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
     Job job = titusClient.findJobByName(description.serverGroupName)
     if (job) {
-      titusClient.terminateJob(new TerminateJobRequest().withJobId(job.id).withUser(description.user))
+      titusClient.terminateJob((TerminateJobRequest) new TerminateJobRequest().withJobId(job.id).withUser(description.user))
+      events << new DeleteServerGroupEvent(
+        TitusCloudProvider.ID, description.credentials.name, description.region, description.serverGroupName
+      )
       task.updateStatus PHASE, "Successfully issued terminate job request to titus for ${job.id} which corresponds to ${description.serverGroupName}"
     } else {
       task.updateStatus PHASE, "No titus job found for ${description.serverGroupName}"
@@ -53,6 +60,11 @@ class DestroyTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus PHASE, "Completed destroy server group operation for ${description.serverGroupName}"
     null
+  }
+
+  @Override
+  Collection<OperationEvent> getEvents() {
+    return events
   }
 
   private static Task getTask() {

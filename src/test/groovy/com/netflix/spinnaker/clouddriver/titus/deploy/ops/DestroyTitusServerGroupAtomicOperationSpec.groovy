@@ -62,5 +62,9 @@ class DestroyTitusServerGroupAtomicOperationSpec extends Specification {
 
     then:
     titusClient.terminateJob(new TerminateJobRequest().withJobId('1234'))
+    atomicOperation.events.size() == 1
+    atomicOperation.events[0].accountId == 'test'
+    atomicOperation.events[0].region == 'us-east-1'
+    atomicOperation.events[0].name == 'api-test-v000'
   }
 }
