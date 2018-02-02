@@ -72,7 +72,7 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
   public onAccountChange(): void {
     const account = this.findAccountInBackingData();
     if (account) {
-      this.$scope.command.gitCredentialType = account.supportedGitCredentialTypes[0];
+      this.$scope.command.gitCredentialType = this.getSupportedGitCredentialTypes()[0];
       this.$scope.command.region = account.region;
     } else {
       this.$scope.command.gitCredentialType = 'NONE';
@@ -82,7 +82,7 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
 
   public getSupportedGitCredentialTypes(): GitCredentialType[] {
     const account = this.findAccountInBackingData();
-    if (account) {
+    if (account && account.supportedGitCredentialsTypes) {
       return account.supportedGitCredentialTypes;
     } else {
       return ['NONE'];
