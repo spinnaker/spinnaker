@@ -166,7 +166,7 @@ class OperationsController {
     }
 
     if (!pipeline.plan) {
-      artifactResolver?.resolveArtifacts(executionRepository, pipeline)
+      artifactResolver?.resolveArtifacts(pipeline)
     }
   }
 

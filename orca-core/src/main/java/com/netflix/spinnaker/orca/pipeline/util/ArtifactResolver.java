@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
-import java.util.*;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
@@ -34,12 +32,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-@Component public class ArtifactResolver {
+@Component
+public class ArtifactResolver {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -52,66 +63,76 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
     this.executionRepository = executionRepository;
   }
 
-  public @Nonnull List<Artifact> getArtifacts(@Nonnull Stage stage) {
+  public @Nonnull
+  List<Artifact> getArtifacts(@Nonnull Stage stage) {
     if (stage.getContext() instanceof StageContext) {
-      return ((StageContext) stage.getContext()).getAll("artifacts");
+      return (List<Artifact>) Optional.ofNullable((List) ((StageContext) stage.getContext()).getAll("artifacts"))
+          .map(list -> list.stream()
+            .map(it -> objectMapper.convertValue(it, new TypeReference<List<Artifact>>() {}))
+            .filter(Objects::nonNull)
+            .flatMap(it -> ((List) it).stream())
+            .collect(Collectors.toList()))
+          .orElse(emptyList());
     } else {
       log.warn("Unable to read artifacts from unknown context type: {} ({})", stage.getContext().getClass(), stage.getExecution().getId());
       return emptyList();
     }
   }
 
-  public @Nullable Artifact getBoundArtifactForId(
-    @Nonnull Stage stage, @Nullable String id) {
+  public @Nullable
+  Artifact getBoundArtifactForId(
+      @Nonnull Stage stage, @Nullable String id) {
     if (isEmpty(id)) {
       return null;
     }
 
     List<ExpectedArtifact> expectedArtifacts;
     if (stage.getContext() instanceof StageContext) {
-      expectedArtifacts = ((StageContext) stage.getContext()).getAll("resolvedExpectedArtifacts");
+      expectedArtifacts = (List<ExpectedArtifact>) Optional.ofNullable((List) ((StageContext) stage.getContext()).getAll("resolvedExpectedArtifacts"))
+          .map(list -> list.stream()
+              .map(it -> objectMapper.convertValue(it, new TypeReference<List<ExpectedArtifact>>() {}))
+              .filter(Objects::nonNull)
+              .flatMap(it -> ((List) it).stream())
+              .collect(Collectors.toList()))
+          .orElse(emptyList());
     } else {
       log.warn("Unable to read resolved expected artifacts from unknown context type: {} ({})", stage.getContext().getClass(), stage.getExecution().getId());
       expectedArtifacts = new ArrayList<>();
     }
 
     return expectedArtifacts
-      .stream()
-      .filter(e -> e.getId().equals(id))
-      .findFirst()
-      .map(ExpectedArtifact::getBoundArtifact)
-      .orElse(null);
+        .stream()
+        .filter(e -> e.getId().equals(id))
+        .findFirst()
+        .map(ExpectedArtifact::getBoundArtifact)
+        .orElse(null);
   }
 
-  public @Nonnull List<Artifact> getArtifactsForPipelineId(
-    @Nonnull String pipelineId,
-    @Nonnull ExecutionCriteria criteria
+  public @Nonnull
+  List<Artifact> getArtifactsForPipelineId(
+      @Nonnull String pipelineId,
+      @Nonnull ExecutionCriteria criteria
   ) {
     return executionRepository
-      .retrievePipelinesForPipelineConfigId(pipelineId, criteria)
-      .subscribeOn(Schedulers.io())
-      .toSortedList(startTimeOrId)
-      .toBlocking()
-      .single()
-      .stream()
-      .map(Execution::getTrigger)
-      .map(Trigger::getArtifacts)
-      .findFirst()
-      .orElse(emptyList());
+        .retrievePipelinesForPipelineConfigId(pipelineId, criteria)
+        .subscribeOn(Schedulers.io())
+        .toSortedList(startTimeOrId)
+        .toBlocking()
+        .single()
+        .stream()
+        .map(Execution::getTrigger)
+        .map(Trigger::getArtifacts)
+        .findFirst()
+        .orElse(emptyList());
   }
 
-  public void resolveArtifacts(
-    @Nonnull ExecutionRepository repository,
-    @Nonnull Map pipeline
-  ) {
-    List<ExpectedArtifact> expectedArtifacts = Optional.
-      ofNullable((List<ExpectedArtifact>) pipeline.get("expectedArtifacts"))
-      .map(list -> list.stream().map(it -> objectMapper.convertValue(it, ExpectedArtifact.class)).collect(toList()))
-      .orElse(emptyList());
-    List<Artifact> receivedArtifacts = Optional.
-      ofNullable((List<ExpectedArtifact>) pipeline.get("receivedArtifacts"))
-      .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
-      .orElse(emptyList());
+  public void resolveArtifacts(@Nonnull Map pipeline) {
+    List<ExpectedArtifact> expectedArtifacts = (List<ExpectedArtifact>) Optional.ofNullable((List) pipeline.get("expectedArtifacts"))
+        .map(list -> list.stream().map(it -> objectMapper.convertValue(it, ExpectedArtifact.class)).collect(toList()))
+        .orElse(emptyList());
+    List<Artifact> receivedArtifacts = (List<Artifact>) Optional.ofNullable((List) pipeline.get("receivedArtifacts"))
+        .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
+        .orElse(emptyList());
 
     if (expectedArtifacts.isEmpty()) {
       return;
@@ -148,9 +169,9 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
   public Artifact resolveSingleArtifact(ExpectedArtifact expectedArtifact, List<Artifact> possibleMatches) {
     List<Artifact> matches = possibleMatches
-      .stream()
-      .filter(expectedArtifact::matches)
-      .collect(toList());
+        .stream()
+        .filter(expectedArtifact::matches)
+        .collect(toList());
     switch (matches.size()) {
       case 0:
         return null;

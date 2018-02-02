@@ -41,6 +41,8 @@ dependencies {
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${spinnaker.version('jackson')}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version('jackson')}"
 
+  compileOnly spinnaker.dependency("lombok")
+
   testCompile project(":orca-test")
   testCompile spinnaker.dependency("korkJedisTest")
 }

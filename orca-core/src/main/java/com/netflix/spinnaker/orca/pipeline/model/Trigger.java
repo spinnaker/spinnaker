@@ -27,6 +27,10 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import lombok.Getter;
+import lombok.Setter;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.hash;
@@ -51,6 +55,10 @@ public abstract class Trigger {
   private final Map<String, Object> parameters;
   private final List<Artifact> artifacts;
   private final String type;
+
+  @Getter
+  @Setter
+  private List<ExpectedArtifact> resolvedExpectedArtifacts;
 
   protected Trigger(
     @Nullable String user,

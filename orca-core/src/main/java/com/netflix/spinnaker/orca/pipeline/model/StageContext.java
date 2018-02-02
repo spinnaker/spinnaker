@@ -82,6 +82,8 @@ public class StageContext extends ForwardingMap<String, Object> {
 
     if (key.equals("artifacts")) {
       result.add((E) getTrigger().getArtifacts());
+    } else if (key.equals("resolvedExpectedArtifacts")) {
+      result.add((E) getTrigger().getResolvedExpectedArtifacts());
     }
 
     return result;
