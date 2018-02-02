@@ -2,9 +2,9 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { UISref, UISrefActive } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
-import { GlobalSearch } from '../search/global/GlobalSearch';
 
 import { NgReact } from 'core/reactShims';
+import { GlobalSearch } from 'core/search/global/GlobalSearch';
 
 import './SpinnakerHeader.css';
 

@@ -1,27 +1,29 @@
 import * as React from 'react';
-import { BindAll, Debounce } from 'lodash-decorators';
-import { flatten, range } from 'lodash';
-import * as ReactGA from 'react-ga';
-import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { SETTINGS } from 'core/config/settings';
+import { BindAll, Debounce } from 'lodash-decorators';
+import { flatten } from 'lodash';
+import * as ReactGA from 'react-ga';
+import { Observable, Subject } from 'rxjs';
+
 import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';
 import { ISearchResult } from 'core/search/search.service';
 import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { SearchResult } from 'core/search/infrastructure/SearchResult';
 import { searchRank } from 'core/search/searchRank.filter';
-import { RecentlyViewedItems } from 'core/search/infrastructure/RecentlyViewedItems';
+import { RecentlyViewedItems, IChildComponentProps } from 'core/search/infrastructure/RecentlyViewedItems';
+
+import { GlobalSearchResults } from './GlobalSearchResults';
+import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 
 const SLASH_KEY = 191;
+const MIN_SEARCH_LENGTH = 3;
 
 const isQuestionMark = ({ which, shiftKey }: KeyboardEvent) => which === SLASH_KEY && shiftKey;
 
 export interface IGlobalSearchState {
-  showSearchResults: boolean;
-  showRecentItems: boolean;
+  showDropdown: boolean;
   showMinLengthWarning: boolean;
   query: string;
   querying: boolean;
@@ -36,26 +38,58 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   private searchField: HTMLInputElement;
   private resultRefs: HTMLElement[][];
 
+  private query$ = new Subject<string>();
+  private destroy$ = new Subject();
+
   constructor() {
     super();
     this.state = {
-      showSearchResults: false,
-      showRecentItems: false,
+      showDropdown: false,
       showMinLengthWarning: false,
       query: '',
       querying: false,
-      categories: []
+      categories: null
     };
   }
 
   public componentDidMount() {
     window.addEventListener('keyup', this.handleWindowKeyup);
     window.addEventListener('click', this.handleWindowClick);
+
+    const { infrastructureSearchService } = ReactInjector;
+    const search = infrastructureSearchService.getSearcher();
+
+    this.query$
+      .debounceTime(300)
+      .do((query) => {
+        ReactGA.event({ category: 'Global Search', action: 'Query', label: query });
+        this.setState({ querying: true });
+      })
+      .switchMap((query: string) => (
+        Observable.fromPromise(search.query(query))
+      ))
+      .map((result) => (
+        result
+          .filter(({ results }) => results.length)
+          .map((category) => ({
+            ...category,
+            results: searchRank(category.results).slice(0, 5)
+          }))
+          .sort((a, b) => a.type.order - b.type.order)
+      ))
+      .takeUntil(this.destroy$)
+      .subscribe((categories) => {
+        this.resultRefs = categories.map(() => []);
+
+        this.setState({ querying: false, categories });
+      });
   }
 
   public componentWillUnmount() {
-    window.addEventListener('keyup', this.handleWindowKeyup);
-    window.addEventListener('click', this.handleWindowClick);
+    window.removeEventListener('keyup', this.handleWindowKeyup);
+    window.removeEventListener('click', this.handleWindowClick);
+
+    this.destroy$.next();
   }
 
   private handleWindowKeyup(event: KeyboardEvent) {
@@ -74,18 +108,18 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
   private handleWindowClick(event: MouseEvent) {
     if (!this.container.contains((event.target as Node))) {
-      this.hideResults();
+      this.hideDropdown();
     }
   }
 
   private searchFieldBlurred({ relatedTarget }: React.FocusEvent<HTMLInputElement>) {
     if (!this.container.contains((relatedTarget as Node))) {
-      this.hideResults();
+      this.hideDropdown();
     }
   }
 
   private searchFieldKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (!this.state.showSearchResults && !this.state.showRecentItems) {
+    if (!this.state.showDropdown) {
       return;
     }
 
@@ -93,7 +127,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
     if (which === 27) { // escape
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'escape (from input)' });
-      return this.reset();
+      return this.searchField.blur();
     }
     if (which === 40) { // down
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'arrow down (from input)' });
@@ -126,28 +160,24 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     refToFocus && refToFocus.focus();
   }
 
-  private queryChanged({ target }: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ query: target.value }, () => {
-      if (this.state.query.length >= 3) {
-        this.executeQuery();
-      } else {
-        this.considerMinLengthWarning();
-      }
-    });
-  }
-
-  private navigateResult(event: React.KeyboardEvent<HTMLAnchorElement>) {
+  private navigateResult(event: React.KeyboardEvent<HTMLElement>) {
     const { which, target } = event;
     if (which === 27) { // escape
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'escape (from result)' });
-      this.reset();
+      this.setState({
+        showDropdown: false,
+        showMinLengthWarning: false,
+        query: '',
+        querying: false,
+        categories: null
+       });
     }
     if (which === 9) { // tab - let it navigate automatically, but close menu if on the last result
       const flattenedRefs = flatten(this.resultRefs);
       const lastResultRef = flattenedRefs[flattenedRefs.length - 1];
       if (target === lastResultRef) {
         ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'tab (from result)' });
-        this.hideResults();
+        this.hideDropdown();
         return;
       }
     }
@@ -171,94 +201,81 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     }
   }
 
-  @Debounce(300)
-  private executeQuery() {
-    const { infrastructureSearchService } = ReactInjector;
-    const search = infrastructureSearchService.getSearcher();
+  private queryChanged({ target }: React.ChangeEvent<HTMLInputElement>) {
+    const query = target.value;
+    const { showMinLengthWarning } = this.state;
+    // If the query is still too short and we've already shown a warning
+    // (via the debounced considerMinLengthWarning()), keep the warning visible
+    // rather than hiding it only to re-show.
+    const shouldKeepWarningVisible = !!query && query.length < MIN_SEARCH_LENGTH && showMinLengthWarning;
 
-    ReactGA.event({ category: 'Global Search', action: 'Query', label: this.state.query });
-    this.setState({ querying: true, showMinLengthWarning: false });
-
-    search.query(this.state.query).then((result) => {
-      const showMinLengthWarning = !!this.state.query && this.state.query.length < 3;
-
-      const categories = result
-        .filter(({ results }) => results.length)
-        .map((category) => ({
-          ...category,
-          results: searchRank(category.results).slice(0, 5)
-        }))
-        .sort((a, b) => a.type.order - b.type.order);
-
-      this.resultRefs = range(categories.length).map(() => []);
-
-      this.setState({
-        querying: false,
-        showSearchResults: !!this.state.query && !showMinLengthWarning,
-        categories,
-        showMinLengthWarning
-      });
+    this.setState({
+      query,
+      querying: false,
+      showMinLengthWarning: shouldKeepWarningVisible,
+      categories: null
+    }, () => {
+      if (query.length >= MIN_SEARCH_LENGTH) {
+        this.query$.next(query);
+      } else if (!shouldKeepWarningVisible) {
+        this.considerMinLengthWarning();
+      }
     });
   }
 
+  // Rather than add a jarring warning message as someone is typing a query —
+  // for which a warning might not even be necessary — we wait until typing has finished
+  // to determine whether a warning will be useful.
   @Debounce(300)
   private considerMinLengthWarning() {
     const { query } = this.state;
-    this.setState({ showMinLengthWarning: !!query && query.length < 3 });
+    this.setState({ showMinLengthWarning: !!query && query.length < MIN_SEARCH_LENGTH });
   }
 
-  private showResults() {
-    const { query } = this.state;
-    if (query) {
-      const showMinLengthWarning = query.length < 3;
-      this.setState({
-        showSearchResults: !showMinLengthWarning,
-        showRecentItems: false,
-        showMinLengthWarning
-      });
-    } else {
-      this.showRecentItems();
-    }
+  private showDropdown() {
+    this.setState({ showDropdown: true });
   }
 
-  private hideResults() {
-    this.setState({
-      showSearchResults: false,
-      showRecentItems: false,
-      showMinLengthWarning: false
-    });
-  }
-
-  private reset() {
-    this.setState({
-      showSearchResults: false,
-      showRecentItems: false,
-      showMinLengthWarning: false,
-      query: '',
-      querying: false,
-      categories: []
-    });
-  }
-
-  private showRecentItems() {
-    this.setState({ showRecentItems: true });
+  private hideDropdown() {
+    this.setState({ showDropdown: false });
   }
 
   private clearFilters(result: ISearchResult) {
     ReactInjector.clusterFilterService.overrideFiltersForUrl(result);
   }
 
-  public render() {
+  private renderDropdown() {
     const {
-      showSearchResults,
-      showRecentItems,
-      showMinLengthWarning,
       query,
       querying,
+      showMinLengthWarning,
       categories
     } = this.state;
 
-    const { searchVersion } = SETTINGS;
+    const {
+      SpinnerDropdown,
+      MinLengthWarning,
+      SearchResults,
+      RecentlyViewed
+    } = this;
+
+    if (!query) {
+      return <RecentlyViewed/>;
+    }
+    if (querying) {
+      return <SpinnerDropdown/>;
+    }
+    if (query.length < MIN_SEARCH_LENGTH && showMinLengthWarning) {
+      return <MinLengthWarning/>;
+    } else if (categories) {
+      return <SearchResults/>;
+    }
+
+    return null;
+  }
+
+  public render() {
+    const { showDropdown, query } = this.state;
 
     return (
       <li
@@ -275,7 +292,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
                 placeholder="Search"
                 value={query}
                 onBlur={this.searchFieldBlurred}
-                onFocus={this.showResults}
+                onFocus={this.showDropdown}
                 onChange={this.queryChanged}
                 onKeyUp={this.searchFieldKeyUp}
               />
@@ -290,120 +307,78 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
             </div>
           </div>
         </form>
-        {!!query && !querying && showMinLengthWarning &&
-          <ul className="dropdown-menu" role="menu">
-            <li className="horizontal middle center spinner-section">
-              <span className="error-message">Please enter at least 3 characters</span>
-            </li>
-          </ul>
-        }
-        {!!query && querying &&
-          <ul className="dropdown-menu" role="menu">
-            <li className="horizontal middle center spinner-section">
-              <Spinner size="small"/>
-            </li>
-          </ul>
-        }
-        {!query && showRecentItems &&
-          <RecentlyViewedItems
-            limit={5}
-            Component={({ results: recentCategories }) => {
-              if (!recentCategories.length) {
-                return null;
-              }
-
-              this.resultRefs = range(recentCategories.length).map(() => []);
-
-              return (
-                <ul className="dropdown-menu" role="menu">
-                  {recentCategories.map((category, categoryIndex) => ([
-                    <li key={category.category} className="category-heading">
-                      <div className="category-heading">Recent {category.category}</div>
-                    </li>,
-                    ...category.results.map((result, index) => {
-                      const params = result.params || {};
-                      const account = result.account || params.account || params.accountId || params.accountName;
-
-                      return (
-                        <li
-                          key={result.id}
-                          className="result"
-                          onClick={() => {
-                            this.hideResults();
-                            ReactGA.event({ category: 'Global Search', action: 'Recent Item Selected' });
-                          }}
-                        >
-                          <UISref to={result.state} params={result.params}>
-                            <a
-                              ref={(ref) => {
-                                if (this.resultRefs[categoryIndex]) {
-                                  this.resultRefs[categoryIndex][index] = ref;
-                                }
-                              }}
-                              onKeyDown={this.navigateResult}
-                            >
-                              <SearchResult displayName={result.displayName} account={account} />
-                            </a>
-                          </UISref>
-                        </li>
-                      );
-                    })
-                  ]))}
-                </ul>
-              );
-            }}
-          />
-        }
-        {!!query && !querying && showSearchResults &&
-          <ul className="dropdown-menu" role="menu">
-            {categories.map((category, categoryIndex) => ([
-              <li key={category.type.id} className="category-heading">
-                <div className="category-heading">{category.type.displayName}</div>
-              </li>,
-              category.results.map((result, index) => (
-                <li key={result.id} className="result">
-                  <a
-                    onKeyDown={this.navigateResult}
-                    onClick={() => {
-                      ReactGA.event({ category: 'Global Search', action: 'Result Selected' });
-                      this.hideResults();
-                      this.clearFilters(result);
-                    }}
-                    ref={(ref) => {
-                      if (this.resultRefs[categoryIndex]) {
-                        this.resultRefs[categoryIndex][index] = ref;
-                      }
-                    }}
-                    // TODO: probably worth moving these (and the href for 'see more results') over to a UISRef at some point
-                    href={result.href}
-                  >
-                    <SearchResult displayName={result.displayName} account={(result as any).account} />
-                  </a>
-                </li>
-              ))
-            ]))}
-            {!!categories.length && [
-              <li key="divider" className="divider"/>,
-              <li key="seeMore" className="result">
-                <a
-                  href={searchVersion === 2 ? `#/search?key=${query}` : `#/infrastructure?q=${query}`}
-                  className="expand-results"
-                  onClick={() => {
-                    ReactGA.event({ category: 'Global Search', action: 'See more results selected' });
-                  }}
-                >
-                  See more results
-                </a>
-              </li>
-            ]}
-            {!categories.length &&
-              <li className="result">
-                <a>No matches</a>
-              </li>
-            }
-          </ul>
-        }
+        {showDropdown && this.renderDropdown()}
       </li>
     );
   }
+
+  private SpinnerDropdown = () => (
+    <ul className="dropdown-menu" role="menu">
+      <li className="horizontal middle center spinner-section">
+        <Spinner size="small" />
+      </li>
+    </ul>
+  );
+
+  private MinLengthWarning = () => (
+    <ul className="dropdown-menu" role="menu">
+      <li className="horizontal middle center spinner-section">
+        <span className="error-message">Please enter at least {MIN_SEARCH_LENGTH} characters</span>
+      </li>
+    </ul>
+  );
+
+  private RecentlyViewed = () => (
+    <RecentlyViewedItems
+      limit={5}
+      Component={({ results }: IChildComponentProps) => {
+        this.resultRefs = results.map(() => []);
+
+        return (
+          <GlobalSearchRecentItems
+            categories={results}
+            onItemKeyDown={this.navigateResult}
+            onResultClick={() => {
+              this.hideDropdown();
+              ReactGA.event({ category: 'Global Search', action: 'Recent Item Selected' });
+            }}
+            resultRef={(categoryIndex, resultIndex, ref) => {
+              if (this.resultRefs[categoryIndex]) {
+                this.resultRefs[categoryIndex][resultIndex] = ref;
+              }
+            }}
+          />
+        );
+      }}
+    />
+  );
+
+  private SearchResults = () => {
+    const { query, categories } = this.state;
+
+    return (
+      <GlobalSearchResults
+        categories={categories}
+        query={query}
+        onItemKeyDown={this.navigateResult}
+        onResultClick={(result: ISearchResult) => {
+          ReactGA.event({ category: 'Global Search', action: 'Result Selected' });
+          this.hideDropdown();
+          this.clearFilters(result);
+        }}
+        onSeeMoreClick={() => {
+          ReactGA.event({ category: 'Global Search', action: 'See more results selected' });
+        }}
+        resultRef={(categoryIndex, resultIndex, ref) => {
+          if (this.resultRefs[categoryIndex]) {
+            this.resultRefs[categoryIndex][resultIndex] = ref;
+          }
+        }}
+        seeMoreRef={(ref) => {
+          // Make sure keyboard handling works even though this isn't part of the actual results
+          this.resultRefs[categories.length] = [ref];
+        }}
+      />
+    );
+  };
 }
