@@ -82,7 +82,7 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
 
   public getSupportedGitCredentialTypes(): GitCredentialType[] {
     const account = this.findAccountInBackingData();
-    if (account && account.supportedGitCredentialsTypes) {
+    if (account && account.supportedGitCredentialTypes) {
       return account.supportedGitCredentialTypes;
     } else {
       return ['NONE'];
