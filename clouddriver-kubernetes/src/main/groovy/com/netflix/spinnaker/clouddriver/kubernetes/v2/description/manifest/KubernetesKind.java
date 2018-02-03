@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class KubernetesKind {
   public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
@@ -66,9 +67,11 @@ public class KubernetesKind {
 
   @JsonCreator
   public static KubernetesKind fromString(String name) {
-    return values.stream()
+    Optional<KubernetesKind> kindOptional = values.stream()
         .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
-        .findAny()
-        .orElse(new KubernetesKind(name));
+        .findAny();
+
+    // separate from the above chain to avoid concurrent modification of the values list
+    return kindOptional.orElseGet(() -> new KubernetesKind(name));
   }
 }

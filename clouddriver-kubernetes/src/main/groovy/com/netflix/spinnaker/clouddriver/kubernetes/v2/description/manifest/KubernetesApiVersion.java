@@ -24,6 +24,7 @@ import lombok.EqualsAndHashCode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @EqualsAndHashCode
 public class KubernetesApiVersion {
@@ -54,9 +55,11 @@ public class KubernetesApiVersion {
 
   @JsonCreator
   public static KubernetesApiVersion fromString(String name) {
-    return values.stream()
+    Optional<KubernetesApiVersion> versionOptional = values.stream()
         .filter(v -> v.name.equalsIgnoreCase(name))
-        .findAny()
-        .orElse(new KubernetesApiVersion(name));
+        .findAny();
+
+    // separate from the above chain to avoid concurrent modification of the values list
+    return versionOptional.orElseGet(() -> new KubernetesApiVersion(name));
   }
 }
