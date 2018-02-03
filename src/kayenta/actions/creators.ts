@@ -73,3 +73,4 @@ export const deleteTemplate = createAction<{name: string}>(Actions.DELETE_TEMPLA
 export const selectTemplate = createAction<{name: string}>(Actions.SELECT_TEMPLATE);
 export const updateMetricScopeName = createAction<{scopeName: string}>(Actions.UPDATE_METRIC_SCOPE_NAME);
 export const changeMetricGroup = createAction<{id: string}>(Actions.CHANGE_METRIC_GROUP);
+export const updateCanaryExecutions = createAction<{executions: ICanaryExecutionStatusResult[]}>(Actions.UPDATE_CANARY_EXECUTIONS);

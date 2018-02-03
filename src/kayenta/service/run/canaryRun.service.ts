@@ -6,6 +6,7 @@ import { liveCanaryRunService } from './liveCanaryRun.service';
 export interface ICanaryRunService {
   getCanaryRun: (configId: string, canaryExecutionId: string) => Promise<ICanaryExecutionStatusResult>;
   getMetricSetPair: (metricSetPairListId: string, metricSetPairId: string) => Promise<IMetricSetPair>;
+  listCanaryExecutions: (application: string, limit: number, statuses?: string, storageAccountName?: string) => Promise<ICanaryExecutionStatusResult[]>;
 }
 
 let runService: ICanaryRunService;
@@ -25,3 +26,6 @@ export const getCanaryRun = (configId: string, canaryExecutionId: string): Promi
 
 export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): Promise<IMetricSetPair> =>
   runService.getMetricSetPair(metricSetPairListId, metricSetPairId);
+
+export const listCanaryExecutions = (application: string, limit: number, statuses?: string, storageAccountName?: string): Promise<ICanaryExecutionStatusResult[]> =>
+  runService.listCanaryExecutions(application, limit, statuses, storageAccountName);

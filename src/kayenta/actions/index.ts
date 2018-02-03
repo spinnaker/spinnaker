@@ -60,3 +60,4 @@ export const EDIT_TEMPLATE_NAME = 'edit_template_name';
 export const EDIT_TEMPLATE_VALUE = 'edit_template_value';
 export const DELETE_TEMPLATE = 'delete_template';
 export const SELECT_TEMPLATE = 'select_template';
+export const UPDATE_CANARY_EXECUTIONS = 'update_canary_executions';

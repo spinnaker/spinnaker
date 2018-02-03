@@ -34,6 +34,15 @@ export class LiveCanaryRunService implements ICanaryRunService {
           list.find(pair => pair.id === metricSetPairId)
       );
   }
+
+  public listCanaryExecutions(application: string, limit: number, statuses?: string, storageAccountName?: string): Promise<ICanaryExecutionStatusResult[]> {
+    return ReactInjector.API
+      .one('v2/canaries')
+      .one(application)
+      .one('executions')
+      .withParams({ limit, statuses, storageAccountName })
+      .get();
+  }
 }
 
 export const liveCanaryRunService = new LiveCanaryRunService();

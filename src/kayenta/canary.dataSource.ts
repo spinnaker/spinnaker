@@ -11,6 +11,8 @@ import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.ser
 import { ICanaryConfigSummary, IJudge } from './domain/index';
 import { canaryStore } from './canary';
 import * as Creators from './actions/creators';
+import { listCanaryExecutions } from './service/run/canaryRun.service';
+import { ICanaryExecutionStatusResult } from './domain/ICanaryExecutionStatusResult';
 
 export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
 module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
@@ -64,6 +66,29 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       loader: loadCanaryJudges,
       onLoad: judgesLoaded,
       afterLoad: afterJudgesLoad,
+      lazy: false,
+      visible: false,
+    });
+
+    const loadCanaryExecutions = (application: Application) => {
+      return $q.resolve(listCanaryExecutions(application.name, 20));
+    };
+
+    const canaryExecutionsLoaded = (_application: Application, executions: ICanaryExecutionStatusResult[]) => {
+      return $q.resolve(executions);
+    };
+
+    const afterCanaryExecutionsLoaded = (application: Application) => {
+      canaryStore.dispatch(Creators.updateCanaryExecutions({
+        executions: application.getDataSource('canaryExecutions').data as ICanaryExecutionStatusResult[],
+      }));
+    };
+
+    applicationDataSourceRegistry.registerDataSource({
+      key: 'canaryExecutions',
+      loader: loadCanaryExecutions,
+      onLoad: canaryExecutionsLoaded,
+      afterLoad: afterCanaryExecutionsLoaded,
       lazy: false,
       visible: false,
     });
