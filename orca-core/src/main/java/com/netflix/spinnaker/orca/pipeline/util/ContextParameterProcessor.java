@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator;
@@ -42,6 +44,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 public class ContextParameterProcessor {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
+
+  private final static ObjectMapper mapper = new ObjectMapper();
 
   private ExpressionEvaluator expressionEvaluator;
 
@@ -95,7 +99,14 @@ public class ContextParameterProcessor {
   }
 
   private Map<String, Object> precomputeValues(Map<String, Object> context) {
-    Trigger trigger = (Trigger) context.get("trigger");
+    Object rawTrigger = context.get("trigger");
+    Trigger trigger;
+    if (rawTrigger != null && !(rawTrigger instanceof Trigger)) {
+      trigger = mapper.convertValue(rawTrigger, Trigger.class);
+    } else {
+      trigger = (Trigger) rawTrigger;
+    }
+
     if (trigger != null && !trigger.getParameters().isEmpty()) {
       context.put("parameters", trigger.getParameters());
     }

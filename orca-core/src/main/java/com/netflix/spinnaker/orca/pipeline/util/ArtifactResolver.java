@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -152,8 +153,12 @@ public class ArtifactResolver {
     }
 
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
-    trigger.put("artifacts", resolvedArtifacts);
-    trigger.put("resolvedExpectedArtifacts", expectedArtifacts);// Add the actual expectedArtifacts we included in the ids.
+    try {
+      trigger.put("artifacts", objectMapper.readValue(objectMapper.writeValueAsString(resolvedArtifacts), List.class));
+      trigger.put("resolvedExpectedArtifacts", objectMapper.readValue(objectMapper.writeValueAsString(expectedArtifacts), List.class)); // Add the actual expectedArtifacts we included in the ids.
+    } catch (IOException e) {
+      throw new ArtifactResolutionException("Failed to store artifacts in trigger: " + e.getMessage(), e);
+    }
   }
 
   public Artifact resolveSingleArtifact(ExpectedArtifact expectedArtifact, List<Artifact> possibleMatches) {
@@ -190,6 +195,10 @@ public class ArtifactResolver {
   private static class ArtifactResolutionException extends RuntimeException {
     ArtifactResolutionException(String message) {
       super(message);
+    }
+
+    ArtifactResolutionException(String message, Throwable cause) {
+      super(message, cause);
     }
   }
 

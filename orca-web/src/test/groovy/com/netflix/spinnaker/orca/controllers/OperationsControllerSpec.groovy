@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import rx.Observable
+
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -456,6 +458,69 @@ class OperationsControllerSpec extends Specification {
 
     then:
     startedPipeline.pipelineConfigId == ''
+  }
+
+  def "provided trigger can evaluate spel"() {
+    given:
+    Execution startedPipeline = null
+    executionLauncher.start(*_) >> { ExecutionType type, String json ->
+      startedPipeline = mapper.readValue(json, Execution)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
+    }
+    executionRepository.retrievePipelinesForPipelineConfigId(*_) >> Observable.empty()
+    ArtifactResolver realArtifactResolver = new ArtifactResolver(mapper, executionRepository)
+
+    // can't use @subject, since we need to test the behavior of otherwise mocked-out 'artifactResolver'
+    def tempController = new OperationsController(
+        objectMapper: mapper,
+        buildService: buildService,
+        buildArtifactFilter: buildArtifactFilter,
+        executionRepository: executionRepository,
+        pipelineTemplateService: pipelineTemplateService,
+        executionLauncher: executionLauncher,
+        contextParameterProcessor: new ContextParameterProcessor(),
+        webhookService: webhookService,
+        artifactResolver: new ArtifactResolver(mapper, executionRepository)
+    )
+
+    def reference = 'gs://bucket'
+    def name = 'name'
+    def id = 'id'
+
+    Map requestedPipeline = [
+        pipelineConfigId: "some-id",
+
+
+        expectedArtifacts: [[
+            id: id,
+
+            matchArtifact: [
+                name: "not $name".toString(),
+                reference: "not $reference".toString()
+            ],
+
+            defaultArtifact: [
+                reference: '${parameters.reference}'
+            ],
+
+            useDefaultArtifact: true
+        ]],
+
+        trigger         : [
+            parameters: [
+                reference: reference
+            ],
+
+            expectedArtifactIds: [ id ]
+        ],
+    ]
+
+    when:
+    tempController.orchestrate(requestedPipeline, Mock(HttpServletResponse))
+
+    then:
+    startedPipeline.getTrigger().resolvedExpectedArtifacts[0].boundArtifact.reference == reference
   }
 
   @Unroll

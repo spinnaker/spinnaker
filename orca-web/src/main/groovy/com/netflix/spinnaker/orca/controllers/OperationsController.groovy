@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import javax.servlet.http.HttpServletResponse
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -38,6 +37,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+
+import javax.servlet.http.HttpServletResponse
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static net.logstash.logback.argument.StructuredArguments.value
@@ -94,27 +96,23 @@ class OperationsController {
 
     def augmentedContext = [trigger: pipeline.trigger]
     def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
+    processedPipeline.trigger = objectMapper.convertValue(processedPipeline.trigger, Trigger)
 
     if (pipelineError == null) {
       startPipeline(processedPipeline)
     } else {
+      throw pipelineError
+      log.error("Failed to run pipeline:", pipelineError)
       markPipelineFailed(processedPipeline, pipelineError)
       throw pipelineError
     }
   }
 
   private void parseAndValidatePipeline(Map pipeline) {
-    try {
-      parsePipelineTrigger(executionRepository, buildService, pipeline)
+    parsePipelineTrigger(executionRepository, buildService, pipeline)
 
-      for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
-        pipeline = preprocessor.process(pipeline)
-      }
-    } finally {
-      // Even if an exception is thrown above, we need to convert pipeline.trigger to
-      // a Trigger object, as the code to log the error to the execution history is
-      // expecting this.
-      pipeline.trigger = objectMapper.convertValue(pipeline.trigger, Trigger)
+    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
+      pipeline = preprocessor.process(pipeline)
     }
 
     def json = objectMapper.writeValueAsString(pipeline)
