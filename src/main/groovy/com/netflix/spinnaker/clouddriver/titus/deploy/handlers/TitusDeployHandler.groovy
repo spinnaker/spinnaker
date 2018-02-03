@@ -138,7 +138,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           }
           sourceJob.labels.each{ k, v -> description.labels.put(k, v)}
         }
-        description.inService = description.inService ?: sourceJob.inService
+        if (description.inService == null) {
+          description.inService = sourceJob.inService
+        }
         description.migrationPolicy = description.migrationPolicy ?: sourceJob.migrationPolicy
         description.jobType = description.jobType ?: "service"
         if (!description.hardConstraints) description.hardConstraints = []
