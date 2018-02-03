@@ -53,8 +53,8 @@ class StartScriptTask implements Task {
     String repoUrl = stage.context.repoUrl
     String repoBranch = stage.context.repoBranch
 
-    if (stage.execution.trigger.parameters?.strategy == true) {
-      Map trigger = stage.execution.trigger
+    if (stage.execution.trigger.strategy) {
+      def trigger = stage.execution.trigger
       image = image ?: trigger.parameters.amiName ?: trigger.parameters.imageId ?: ''
       cluster = cluster ?: trigger.parameters.cluster ?: ''
       account = account ?: trigger.parameters.credentials ?: ''

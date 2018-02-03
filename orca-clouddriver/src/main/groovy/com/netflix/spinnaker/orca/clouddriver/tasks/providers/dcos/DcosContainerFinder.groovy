@@ -44,7 +44,7 @@ class DcosContainerFinder {
 
     if (imageDescription.fromTrigger) {
       if (stage.execution.type == PIPELINE) {
-        Map trigger = stage.execution.trigger
+        def trigger = stage.execution.trigger
 
         if (trigger?.account == imageDescription.account && trigger?.repository == imageDescription.repository) {
           imageDescription.tag = trigger.tag

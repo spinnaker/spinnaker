@@ -82,7 +82,7 @@ class KubernetesContainerFinder {
 
       if (container.imageDescription.fromTrigger) {
         if (stage.execution.type == PIPELINE) {
-          Map trigger = stage.execution.trigger
+          def trigger = stage.execution.trigger
 
           if (trigger?.account == container.imageDescription.account && trigger?.repository == container.imageDescription.repository) {
             container.imageDescription.tag = trigger.tag

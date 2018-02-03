@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -23,16 +24,12 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGr
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
-
-import javax.annotation.Nonnull
-
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
@@ -65,7 +62,7 @@ class ParallelDeployStage implements StageDefinitionBuilder {
   protected Collection<Map<String, Object>> parallelContexts(Stage stage) {
     if (stage.execution.type == PIPELINE) {
       Trigger trigger = stage.execution.trigger
-      if (trigger?.parameters?.strategy == true && trigger instanceof PipelineTrigger) {
+      if (trigger.strategy) {
         Stage parentStage = trigger.parentExecution.stages.find {
           it.id == trigger.parameters.parentStageId
         }

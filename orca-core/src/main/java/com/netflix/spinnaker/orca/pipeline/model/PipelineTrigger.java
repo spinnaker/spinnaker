@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import static java.lang.Boolean.parseBoolean;
 
 /**
  * The trigger used when a pipeline is triggered by another pipeline completing.
@@ -56,6 +57,10 @@ public final class PipelineTrigger extends Trigger {
 
   public @Nonnull Execution getParentExecution() {
     return parentExecution;
+  }
+
+  @Override public boolean isStrategy() {
+    return parseBoolean(getParameters().getOrDefault("strategy", "false").toString());
   }
 
   @JsonIgnore

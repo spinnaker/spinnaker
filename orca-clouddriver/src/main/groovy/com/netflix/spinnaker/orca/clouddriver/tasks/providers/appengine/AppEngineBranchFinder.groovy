@@ -17,18 +17,20 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
 import java.util.regex.Pattern
+import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 class AppEngineBranchFinder {
   static String findInStage(Map operation, Stage stage) {
     if (operation.fromTrigger && operation.trigger && stage.execution.type == PIPELINE) {
-      Map trigger = stage.execution.trigger
+      def trigger = stage.execution.trigger
 
-      if (trigger.type == "git") {
-        return fromGitTrigger(operation, trigger)
+      if (trigger instanceof GitTrigger) {
+        return fromGitTrigger(operation, (GitTrigger) trigger)
       } else if (trigger.type == "jenkins" || (trigger.type == "manual" && trigger.master && trigger.job)) {
-        return fromJenkinsTrigger(operation, trigger)
+        return fromJenkinsTrigger(operation, (JenkinsTrigger) trigger)
       } else {
         throw new IllegalArgumentException("Trigger type '${trigger.type}' not supported " +
                                            "for resolving App Engine deployment details dynamically.")
@@ -36,7 +38,7 @@ class AppEngineBranchFinder {
     }
   }
 
-  static String fromGitTrigger(Map operation, Map trigger) {
+  static String fromGitTrigger(Map operation, GitTrigger trigger) {
     def matchConditions = [
       trigger.source == operation.trigger.source,
       trigger.project == operation.trigger.project,
@@ -58,7 +60,8 @@ class AppEngineBranchFinder {
   * This method throws an error if it does not resolve exactly one branch from a Jenkin trigger's SCM details.
   * A user can provide a regex to help narrow down the list of branches.
   * */
-  static String fromJenkinsTrigger(Map operation, Map trigger) {
+
+  static String fromJenkinsTrigger(Map operation, JenkinsTrigger trigger) {
     def matchConditions = [
       trigger.master == operation.trigger.master,
       trigger.job == operation.trigger.job

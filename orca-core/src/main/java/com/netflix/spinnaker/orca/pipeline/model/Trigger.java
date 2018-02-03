@@ -30,7 +30,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import lombok.Getter;
 import lombok.Setter;
-
+import static java.lang.Boolean.parseBoolean;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.hash;
@@ -89,12 +89,17 @@ public abstract class Trigger {
 
   @JsonIgnore
   public final boolean isRebake() {
-    return Boolean.parseBoolean(otherProperties.getOrDefault("rebake", "false").toString());
+    return parseBoolean(otherProperties.getOrDefault("rebake", "false").toString());
   }
 
   @JsonIgnore
   public final boolean isDryRun() {
-    return Boolean.parseBoolean(otherProperties.getOrDefault("dryRun", "false").toString());
+    return parseBoolean(otherProperties.getOrDefault("dryRun", "false").toString());
+  }
+
+  @JsonIgnore
+  public boolean isStrategy() {
+    return false;
   }
 
   /**
