@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.controllers
 
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -46,6 +47,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static java.lang.String.format
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 class OperationsControllerSpec extends Specification {
@@ -60,7 +62,7 @@ class OperationsControllerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def pipelineTemplateService = Mock(PipelineTemplateService)
   def webhookService = Mock(WebhookService)
-  def artifactResolver = new ArtifactResolver(mapper, executionRepository)
+  def artifactResolver = Mock(ArtifactResolver)
 
   def env = new MockEnvironment()
   def buildArtifactFilter = new BuildArtifactFilter(environment: env)
@@ -548,6 +550,56 @@ class OperationsControllerSpec extends Specification {
       throw new ExecutionNotFoundException("Not found")
     }
     0 * executionLauncher.start(*_)
+  }
+
+  def "should log and re-throw validation error for non-templated pipeline"() {
+    given:
+    def pipelineConfig = [
+      type: PIPELINE,
+      errors: [
+        'things broke': 'because of the way it is'
+      ]
+    ]
+    def response = Mock(HttpServletResponse)
+    Execution startedPipeline = null
+    executionLauncher.fail(*_) >> { ExecutionType type, String json, Throwable t ->
+      startedPipeline = mapper.readValue(json, Execution)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
+    }
+
+    when:
+    controller.orchestrate(pipelineConfig, response)
+
+    then:
+    thrown(ValidationException)
+    0 * executionLauncher.start(*_)
+
+  }
+
+  def "should log and re-throw missing artifact error"() {
+    given:
+    def pipelineConfig = [
+      type: PIPELINE
+    ]
+    def response = Mock(HttpServletResponse)
+    artifactResolver.resolveArtifacts(*_) >> { Map pipeline ->
+      throw new IllegalStateException(format("Unmatched expected artifact could not be resolved."))
+    }
+    Execution startedPipeline = null
+    executionLauncher.fail(*_) >> { ExecutionType type, String json, Throwable t ->
+      startedPipeline = mapper.readValue(json, Execution)
+      startedPipeline.id = UUID.randomUUID().toString()
+      startedPipeline
+    }
+
+    when:
+    controller.orchestrate(pipelineConfig, response)
+
+    then:
+    thrown(IllegalStateException)
+    0 * executionLauncher.start(*_)
+
   }
 
   def "should return empty list if webhook stage is not enabled"() {

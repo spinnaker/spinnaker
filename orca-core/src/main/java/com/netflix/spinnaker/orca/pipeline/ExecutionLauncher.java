@@ -92,6 +92,22 @@ public class ExecutionLauncher {
     return execution;
   }
 
+  /**
+   * Log that an execution failed; useful if a pipeline failed validation and we want to persist the
+   * failure to the execution history but don't actually want to attempt to run the execution.
+   *
+   * @param e the exception that was thrown during pipeline validation
+   */
+  public Execution fail(ExecutionType type, String configJson, Exception e) throws Exception {
+    final Execution execution = parse(type, configJson);
+
+    persistExecution(execution);
+
+    handleStartupFailure(execution, e);
+
+    return execution;
+  }
+
   private void checkRunnable(Execution execution) {
     if (execution.getType() == PIPELINE) {
       pipelineValidator.ifPresent(it -> it.checkRunnable(execution));

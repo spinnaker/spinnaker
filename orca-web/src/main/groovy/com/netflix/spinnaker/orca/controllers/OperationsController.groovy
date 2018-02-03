@@ -77,15 +77,45 @@ class OperationsController {
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
-    parsePipelineTrigger(executionRepository, buildService, pipeline)
-    Trigger trigger = objectMapper.convertValue(pipeline.trigger, Trigger)
-
-    boolean plan = pipeline.plan ?: false
-    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
-      pipeline = preprocessor.process(pipeline)
+    Exception pipelineError = null
+    try {
+      parseAndValidatePipeline(pipeline)
+    } catch (Exception e) {
+      pipelineError = e
     }
 
-    pipeline.trigger = trigger
+    if (pipeline.plan) {
+      log.info('Not starting pipeline (plan: true): {}', value("pipelineId", pipeline.id))
+      if (pipelineError != null) {
+        throw pipelineError
+      }
+      return pipeline
+    }
+
+    def augmentedContext = [trigger: pipeline.trigger]
+    def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
+
+    if (pipelineError == null) {
+      startPipeline(processedPipeline)
+    } else {
+      markPipelineFailed(processedPipeline, pipelineError)
+      throw pipelineError
+    }
+  }
+
+  private void parseAndValidatePipeline(Map pipeline) {
+    try {
+      parsePipelineTrigger(executionRepository, buildService, pipeline)
+
+      for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
+        pipeline = preprocessor.process(pipeline)
+      }
+    } finally {
+      // Even if an exception is thrown above, we need to convert pipeline.trigger to
+      // a Trigger object, as the code to log the error to the execution history is
+      // expecting this.
+      pipeline.trigger = objectMapper.convertValue(pipeline.trigger, Trigger)
+    }
 
     def json = objectMapper.writeValueAsString(pipeline)
     log.info('received pipeline {}:{}', value("pipelineId", pipeline.id), json)
@@ -99,22 +129,9 @@ class OperationsController {
       convertLinearToParallel(pipeline)
     }
 
-    if (plan) {
-      log.info('not starting pipeline (plan: true): {}', value("pipelineId", pipeline.id))
-      if (pipeline.errors != null) {
-        throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
-      }
-      return pipeline
-    }
-
-    def augmentedContext = [trigger: pipeline.trigger]
-    def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
-
     if (pipeline.errors != null) {
       throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
     }
-
-    startPipeline(processedPipeline)
   }
 
   private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, Map pipeline) {
@@ -247,6 +264,16 @@ class OperationsController {
     log.info('requested pipeline: {}', json)
 
     def pipeline = executionLauncher.start(PIPELINE, json)
+
+    [ref: "/pipelines/${pipeline.id}".toString()]
+  }
+
+  private Map<String, String> markPipelineFailed(Map config, Exception e) {
+    injectPipelineOrigin(config)
+    def json = objectMapper.writeValueAsString(config)
+    log.info('requested pipeline: {}', json)
+
+    def pipeline = executionLauncher.fail(PIPELINE, json, e)
 
     [ref: "/pipelines/${pipeline.id}".toString()]
   }
