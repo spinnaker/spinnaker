@@ -55,7 +55,6 @@ export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage): React.
     private handleWrappedRef(wrappedComponent: any) {
       if (wrappedComponent) {
         this.validate = wrappedComponent.validate;
-        this.setState({ label: wrappedComponent.LABEL })
       }
     }
 
