@@ -1309,7 +1309,7 @@ babel-runtime@^6.11.6, babel-runtime@^6.22.0:
     core-js "^2.4.0"
     regenerator-runtime "^0.10.0"
 
-babel-runtime@^6.18.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
+babel-runtime@^6.18.0, babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   dependencies:
@@ -5895,7 +5895,7 @@ prop-types@15.5.10, prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6,
     fbjs "^0.8.9"
     loose-envify "^1.3.1"
 
-prop-types@^15.5.7:
+prop-types@^15.5.7, prop-types@^15.6.0:
   version "15.6.0"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
   dependencies:
@@ -6147,15 +6147,15 @@ react-virtualized-select@3.1.0, react-virtualized-select@^3.1.0:
     react-select "^1.0.0-rc.2"
     react-virtualized "^9.0.0"
 
-react-virtualized@9.12.0:
-  version "9.12.0"
-  resolved "https://registry.yarnpkg.com/react-virtualized/-/react-virtualized-9.12.0.tgz#1b4d3e5ab197ed1d832df8e6688b1b18f725b6c5"
+react-virtualized@9.18.5:
+  version "9.18.5"
+  resolved "https://registry.yarnpkg.com/react-virtualized/-/react-virtualized-9.18.5.tgz#42dd390ebaa7ea809bfcaf775d39872641679b89"
   dependencies:
-    babel-runtime "^6.23.0"
+    babel-runtime "^6.26.0"
     classnames "^2.2.3"
     dom-helpers "^2.4.0 || ^3.0.0"
     loose-envify "^1.3.0"
-    prop-types "^15.5.4"
+    prop-types "^15.6.0"
 
 react-virtualized@^9.0.0:
   version "9.9.0"

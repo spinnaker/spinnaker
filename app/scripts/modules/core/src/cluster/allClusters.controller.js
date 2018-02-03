@@ -11,7 +11,6 @@ import { CLUSTER_FILTER_MODEL } from '../cluster/filter/clusterFilter.model';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { VERSION_SELECTION_SERVICE } from 'core/cloudProvider/versionSelection/versionSelection.service';
-import { ScrollToService } from 'core/utils';
 
 import './rollups.less';
 
@@ -29,9 +28,8 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   INSIGHT_NGMODULE.name,
   require('angular-ui-bootstrap'),
   CLOUD_PROVIDER_REGISTRY,
-  require('@uirouter/angularjs').default,
 ])
-  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService, $state, scrollToService, $stateParams,
+  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService,
                                           clusterFilterModel, MultiselectModel, insightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry,
                                           versionSelectionService) {
 
@@ -52,14 +50,6 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
         () => {
           insightFilterStateModel.filtersHidden = false;
           updateClusterGroups();
-          // Automatically scrolls server group into view if deep linked;
-          // $timeout because the updateClusterGroups method is debounced by 25ms
-          $timeout(() => {
-            if ($state.$current.name.endsWith('serverGroup')) {
-              const key = ['serverGroup', $stateParams.accountId, $stateParams.region, $stateParams.serverGroup].join('-');
-              scrollToService.scrollTo('#' + ScrollToService.toDomId(key), 'all-clusters-groupings', 270, 0);
-            }
-          }, 50);
         },
         () => this.clustersLoadError()
       );
