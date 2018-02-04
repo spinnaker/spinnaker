@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
-import { ISearchResultType } from './searchResultsType.registry';
+import { SearchResultType } from './searchResultType';
 import { SearchResultGrid } from './SearchResultGrid';
 import { SearchResultTabs } from './SearchResultTabs';
 
@@ -17,15 +17,15 @@ export interface ISearchResultsProps {
 }
 
 export interface ISearchResultsState {
-  active: ISearchResultType;
+  active: SearchResultType;
 }
 
 export class SearchResults extends React.Component<ISearchResultsProps, ISearchResultsState> {
-  public state = { active: null as ISearchResultType };
+  public state = { active: null as any };
 
   public componentWillReceiveProps(newProps: ISearchResultsProps): void {
     const { resultSets, selectedTab } = newProps;
-    const active: ISearchResultType = resultSets.map(x => x.type).find(type => type.id === selectedTab);
+    const active: SearchResultType = resultSets.map(x => x.type).find(type => type.id === selectedTab);
     this.setState({ active });
   }
 

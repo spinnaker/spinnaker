@@ -6,9 +6,6 @@ import { SERVER_GROUP_DATA_SOURCE } from './serverGroup.dataSource';
 import './serverGroupSearchResultType';
 import { VIEW_SCALING_ACTIVITIES_LINK } from './details/scalingActivities/viewScalingActivitiesLink.component';
 import { DEPLOY_INITIALIZER_COMPONENT } from './configure/common/deployInitializer.component';
-import { SearchResultHydratorRegistry } from 'core/search/searchResult/SearchResultHydratorRegistry';
-import { ServerGroupSearchResultHydrator } from './ServerGroupSearchResultHydrator';
-import { ApplicationReader } from 'core/application/service/application.read.service';
 
 export const SERVERGROUP_MODULE = 'spinnaker.core.serverGroup';
 module(SERVERGROUP_MODULE, [
@@ -23,8 +20,4 @@ module(SERVERGROUP_MODULE, [
   SERVER_GROUP_STATES,
   VIEW_SCALING_ACTIVITIES_LINK,
   DEPLOY_INITIALIZER_COMPONENT
-])
-  .run((applicationReader: ApplicationReader) => {
-    'ngInject';
-    SearchResultHydratorRegistry.register('serverGroups', new ServerGroupSearchResultHydrator(applicationReader))
-  });
+]);

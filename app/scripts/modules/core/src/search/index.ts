@@ -1,4 +1,3 @@
-export * from './externalSearch.registry';
 export * from './global/GlobalSearch';
 export * from './infrastructure/infrastructureSearch.service';
 export * from './search.service';

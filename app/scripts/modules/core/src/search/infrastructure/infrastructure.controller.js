@@ -71,8 +71,8 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
         return;
       }
       $scope.viewState.searching = true;
-      search.query(query).then(function(result) {
-        let allResults = _.flatten(result.map(r => r.results));
+      search.query(query).then(function(resultSets) {
+        let allResults = _.flatten(resultSets.map(r => r.results));
         if (allResults.length === 1 && autoNavigate) {
           $location.url(allResults[0].href.substring(1));
         } else {
@@ -80,9 +80,11 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
           // surprise them by navigating to it
           autoNavigate = false;
         }
-        $scope.categories = result.filter((category) => category.category !== 'Projects' && category.results.length);
-        $scope.projects = result.filter((category) => category.category === 'Projects' && category.results.length);
-        $scope.moreResults = _.sumBy(result, function(resultSet) {
+        $scope.categories = resultSets
+          .filter((resultSet) => resultSet.type.id !== 'projects' && resultSet.results.length)
+          .sort((a, b) => a.type.id - b.type.id);
+        $scope.projects = resultSets.filter((resultSet) => resultSet.type.id === 'projects' && resultSet.results.length);
+        $scope.moreResults = _.sumBy(resultSets, function(resultSet) {
           return resultSet.results.length;
         }) === $scope.pageSize;
         updateLocation();

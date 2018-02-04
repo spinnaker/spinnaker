@@ -1,9 +1,8 @@
 import * as React from 'react';
 
 import {
-  searchResultTypeRegistry, BasicCell, HrefCell, ISearchResult, HeaderCell, ISearchResultType,
-  SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
-  TableBody, TableHeader, TableRow, ISearchColumn,
+  searchResultTypeRegistry, BasicCell, HrefCell, ISearchResult, HeaderCell, DefaultSearchResultTab,
+  TableBody, TableHeader, TableRow, ISearchColumn, SearchResultType, ISearchResultSet,
 } from 'core/search';
 import { IProjectConfig } from 'core/domain';
 
@@ -25,53 +24,52 @@ export interface IProjectSearchResult extends ISearchResult {
   url: string;
 }
 
-const cols: { [key: string]: ISearchColumn } = {
-  NAME: { key: 'name' },
-  EMAIL: { key: 'email' },
-};
+class ProjectsSearchResultType extends SearchResultType<IProjectSearchResult> {
+  public id = 'projects';
+  public order = 0;
+  public displayName = 'Projects';
+  public iconClass = 'fa fa-folder-o';
 
-const iconClass = 'fa fa-folder-o';
-const displayName = 'Projects';
+  private cols: { [key: string]: ISearchColumn } = {
+    NAME: { key: 'name' },
+    EMAIL: { key: 'email' },
+  };
 
-const itemKeyFn = (item: IProjectSearchResult) => item.id;
-const itemSortFn = (a: IProjectSearchResult, b: IProjectSearchResult) =>
-  a.name.localeCompare(b.name);
+  public TabComponent = DefaultSearchResultTab;
 
-const SearchResultsHeader: SearchResultsHeaderComponent = () => (
-  <TableHeader>
-    <HeaderCell col={cols.NAME}/>
-    <HeaderCell col={cols.EMAIL}/>
-  </TableHeader>
-);
+  public HeaderComponent = () => (
+    <TableHeader>
+      <HeaderCell col={this.cols.NAME}/>
+      <HeaderCell col={this.cols.EMAIL}/>
+    </TableHeader>
+  );
 
-const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
-  <TableBody>
-    {results.slice().sort(itemSortFn).map(item => (
-      <TableRow key={itemKeyFn(item)}>
-        <HrefCell item={item} col={cols.NAME} />
-        <BasicCell item={item} col={cols.EMAIL} />
-      </TableRow>
-    ))}
-  </TableBody>
-);
+  public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<IProjectSearchResult> }) => {
+    const itemKeyFn = (item: IProjectSearchResult) => item.id;
+    const itemSortFn = (a: IProjectSearchResult, b: IProjectSearchResult) =>
+      a.name.localeCompare(b.name);
 
-const projectsSearchResultType: ISearchResultType = {
-  id: 'projects',
-  order: 0,
-  iconClass,
-  displayName,
-  displayFormatter: (searchResult: IProjectSearchResult) => {
+    const results = resultSet.results.slice().sort(itemSortFn);
+
+    return (
+      <TableBody>
+        {results.slice().sort(itemSortFn).map(item => (
+          <TableRow key={itemKeyFn(item)}>
+            <HrefCell item={item} col={this.cols.NAME} />
+            <BasicCell item={item} col={this.cols.EMAIL} />
+          </TableRow>
+        ))}
+      </TableBody>
+    );
+  };
+
+  public displayFormatter(searchResult: IProjectSearchResult) {
     const applications = searchResult.config && searchResult.config.applications ?
       ` (${searchResult.config.applications.join(', ')})` :
       '';
     const project = searchResult.name || searchResult.project;
     return project + applications;
-  },
-  components: {
-    SearchResultTab: DefaultSearchResultTab,
-    SearchResultsHeader,
-    SearchResultsData,
-  },
-};
+  }
+}
 
-searchResultTypeRegistry.register(projectsSearchResultType);
+searchResultTypeRegistry.register(new ProjectsSearchResultType());

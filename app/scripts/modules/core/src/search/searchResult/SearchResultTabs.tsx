@@ -2,12 +2,12 @@ import * as React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { ISearchResultType } from './searchResultsType.registry';
+import { SearchResultType } from './searchResultType';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 
 export interface ISearchResultTabsProps {
   resultSets: ISearchResultSet[]
-  activeSearchResultType: ISearchResultType;
+  activeSearchResultType: SearchResultType;
 }
 
 @UIRouterContext
@@ -20,12 +20,12 @@ export class SearchResultTabs extends React.Component<ISearchResultTabsProps> {
       <ul className="search-groups nostyle">
         {resultSets.map(resultSet => {
           const { type } = resultSet;
-          const { SearchResultTab } = type.components;
+          const { TabComponent } = type;
           const active = type === activeSearchResultType;
 
           return (
             <UISref key={type.id} to="." params={{ tab: type.id }}>
-              <li><SearchResultTab resultSet={resultSet} isActive={active} /></li>
+              <li><TabComponent resultSet={resultSet} isActive={active} /></li>
             </UISref>
           );
         })}

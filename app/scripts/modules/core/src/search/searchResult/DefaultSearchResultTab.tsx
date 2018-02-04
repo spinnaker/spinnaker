@@ -4,15 +4,10 @@ import { Spinner } from 'core/widgets';
 import { Tooltip } from 'core/presentation';
 
 import { SearchService } from '../search.service';
-import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchStatus } from './SearchResults';
+import { ISearchResultTabProps } from './searchResultType';
 
-export interface ISearchResultTabProps {
-  resultSet: ISearchResultSet;
-  isActive: boolean;
-}
-
-export class DefaultSearchResultTab extends React.Component<ISearchResultTabProps> {
+export class DefaultSearchResultTab extends React.Component<ISearchResultTabProps<any>> {
   public render() {
     const { isActive, resultSet } = this.props;
     const { type, results, status, error } = resultSet;

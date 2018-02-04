@@ -1,9 +1,8 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn, ISearchResultType,
-  SearchResultsHeaderComponent, SearchResultsDataComponent, DefaultSearchResultTab,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow,
+  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn, DefaultSearchResultTab,
+  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, SearchResultType, ISearchResultSet,
 } from 'core/search';
 
 export interface ILoadBalancerSearchResult extends ISearchResult {
@@ -22,60 +21,58 @@ export interface ILoadBalancerSearchResult extends ISearchResult {
   vpcId: string;
 }
 
-const cols: { [key: string]: ISearchColumn } = {
-  LOADBALANCER: { key: 'loadBalancer', label: 'Name' },
-  ACCOUNT: { key: 'account' },
-  REGION: { key: 'region' },
-  TYPE: { key: 'loadBalancerType', label: 'Type' },
-};
+class LoadBalancersSearchResultType extends SearchResultType<ILoadBalancerSearchResult> {
+  public id = 'loadBalancers';
+  public order = 5;
+  public displayName = 'Load Balancers';
+  public iconClass = 'fa fa-sitemap';
 
-const iconClass = 'fa fa-sitemap';
-const displayName = 'Load Balancers';
+  private cols: { [key: string]: ISearchColumn } = {
+    LOADBALANCER: { key: 'loadBalancer', label: 'Name' },
+    ACCOUNT: { key: 'account' },
+    REGION: { key: 'region' },
+    TYPE: { key: 'loadBalancerType', label: 'Type' },
+  };
 
-const itemKeyFn = (item: ILoadBalancerSearchResult) =>
-  [item.loadBalancer, item.account, item.region].join('|');
-const itemSortFn = (a: ILoadBalancerSearchResult, b: ILoadBalancerSearchResult) => {
-  const order: number = a.loadBalancer.localeCompare(b.loadBalancer);
-  return order !== 0 ? order : a.region.localeCompare(b.region);
-};
+  public TabComponent = DefaultSearchResultTab;
 
-const SearchResultsHeader: SearchResultsHeaderComponent = () => (
-  <TableHeader>
-    <HeaderCell col={cols.LOADBALANCER}/>
-    <HeaderCell col={cols.ACCOUNT}/>
-    <HeaderCell col={cols.REGION}/>
-    <HeaderCell col={cols.TYPE}/>
-  </TableHeader>
-);
+  public HeaderComponent = () => (
+    <TableHeader>
+      <HeaderCell col={this.cols.LOADBALANCER}/>
+      <HeaderCell col={this.cols.ACCOUNT}/>
+      <HeaderCell col={this.cols.REGION}/>
+      <HeaderCell col={this.cols.TYPE}/>
+    </TableHeader>
+  );
 
-const SearchResultsData: SearchResultsDataComponent = ({ results }) => (
-  <TableBody>
-    {results.slice().sort(itemSortFn).map(item => (
-      <TableRow key={itemKeyFn(item)}>
-        <HrefCell item={item} col={cols.LOADBALANCER} />
-        <AccountCell item={item} col={cols.ACCOUNT} />
-        <BasicCell item={item} col={cols.REGION} />
-        <BasicCell item={item} col={cols.TYPE} />
-      </TableRow>
-    ))}
-  </TableBody>
-);
+  public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<ILoadBalancerSearchResult> }) => {
+    const itemKeyFn = (item: ILoadBalancerSearchResult) =>
+      [item.loadBalancer, item.account, item.region].join('|');
+    const itemSortFn = (a: ILoadBalancerSearchResult, b: ILoadBalancerSearchResult) => {
+      const order: number = a.loadBalancer.localeCompare(b.loadBalancer);
+      return order !== 0 ? order : a.region.localeCompare(b.region);
+    };
 
-const loadBalancersSearchResultType: ISearchResultType = {
-  id: 'loadBalancers',
-  iconClass,
-  displayName,
-  order: 5,
+    const results = resultSet.results.slice().sort(itemSortFn);
 
-  displayFormatter: (searchResult: ILoadBalancerSearchResult, fromRoute: boolean) => {
+    return (
+      <TableBody>
+        {results.slice().sort(itemSortFn).map(item => (
+          <TableRow key={itemKeyFn(item)}>
+            <HrefCell item={item} col={this.cols.LOADBALANCER} />
+            <AccountCell item={item} col={this.cols.ACCOUNT} />
+            <BasicCell item={item} col={this.cols.REGION} />
+            <BasicCell item={item} col={this.cols.TYPE} />
+          </TableRow>
+        ))}
+      </TableBody>
+    );
+  };
+
+  public displayFormatter(searchResult: ILoadBalancerSearchResult, fromRoute: boolean) {
     const name = fromRoute ? (searchResult as any).name : searchResult.loadBalancer;
     return `${name} (${searchResult.region})`;
-  },
-  components: {
-    SearchResultTab: DefaultSearchResultTab,
-    SearchResultsHeader,
-    SearchResultsData,
-  },
-};
+  }
+}
 
-searchResultTypeRegistry.register(loadBalancersSearchResultType);
+searchResultTypeRegistry.register(new LoadBalancersSearchResultType());

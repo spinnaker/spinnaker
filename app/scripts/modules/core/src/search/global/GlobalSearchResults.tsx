@@ -44,7 +44,7 @@ export const GlobalSearchResults = ({
           <div className="category-heading">{category.type.displayName}</div>
         </li>,
         category.results.map((result, index) => (
-          <li key={result.id} className="result">
+          <li key={result.href} className="result">
             <a
               onKeyDown={onItemKeyDown}
               onClick={() => onResultClick(result)}

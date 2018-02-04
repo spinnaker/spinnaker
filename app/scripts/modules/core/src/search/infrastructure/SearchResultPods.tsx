@@ -2,7 +2,7 @@ import * as React from 'react';
 import { get } from 'lodash';
 
 import { IRecentHistoryEntry } from 'core/history';
-import { ISearchResultType } from 'core/search';
+import { SearchResultType } from 'core/search';
 
 import { SearchResultPod } from './SearchResultPod';
 import { ProjectSummaryPod } from './ProjectSummaryPod';
@@ -11,7 +11,7 @@ export type ISearchResult = IRecentHistoryEntry & { displayName: string; account
 
 export interface ISearchResultPodData {
   category: string;
-  config: ISearchResultType;
+  config: SearchResultType;
   results: ISearchResult[];
 }
 

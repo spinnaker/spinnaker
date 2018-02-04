@@ -3,6 +3,8 @@ import * as React from 'react';
 
 import { AccountTag } from 'core/account';
 
+import './searchResult.less';
+
 export interface ISearchResultProps {
   account?: string;
   displayName: string;

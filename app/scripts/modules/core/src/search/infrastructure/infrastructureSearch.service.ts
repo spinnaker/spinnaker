@@ -1,65 +1,46 @@
 import { module, IDeferred, IPromise, IQService } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
-import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation';
+import { URL_BUILDER_SERVICE } from 'core/navigation';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider';
 
-import { getFallbackResults, ISearchResult, ISearchResults, SearchService, SEARCH_SERVICE } from '../search.service';
-import { IResultDisplayFormatter, ISearchResultType, searchResultTypeRegistry, } from '../searchResult/searchResultsType.registry';
-import { externalSearchRegistry } from '../externalSearch.registry';
+import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
+import { ISearchResult, SEARCH_SERVICE } from '../search.service';
+import { SearchResultType, searchResultTypeRegistry, } from '../searchResult';
 import { SearchStatus } from '../searchResult/SearchResults';
 
-export interface ISearchResultSet<T extends ISearchResult = any> {
-  type: ISearchResultType;
+export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {
+  type: SearchResultType;
   results: T[];
   status: SearchStatus;
   error?: any;
 }
 
 export interface IProviderResultFormatter {
-  [category: string]: IResultDisplayFormatter,
+  [category: string]: (entry: ISearchResult, fromRoute?: boolean) => string;
 }
 
 export class InfrastructureSearcher {
   private deferred: IDeferred<ISearchResultSet[]>;
   public querySubject: Subject<string> = new Subject<string>();
 
-  constructor(private $q: IQService, private providerServiceDelegate: ProviderServiceDelegate, searchService: SearchService, urlBuilderService: UrlBuilderService) {
-    this.querySubject.switchMap(
-      (query: string) => {
+  constructor(
+    private $q: IQService,
+    private providerServiceDelegate: ProviderServiceDelegate,
+    infrastructureSearchServiceV2: InfrastructureSearchServiceV2,
+  ) {
+    this.querySubject
+      .switchMap((query: string) => {
         if (!query || query.trim() === '') {
-          return Observable.of(getFallbackResults());
+          const fallbackResults = searchResultTypeRegistry.getAll()
+            .map(type => ({ type, results: [], status: SearchStatus.INITIAL } as ISearchResultSet));
+          return Observable.of(fallbackResults);
         }
-        return Observable.zip(
-          searchService.search({ q: query, type: searchResultTypeRegistry.getSearchCategories() }),
-          externalSearchRegistry.search({ q: query }).toArray(),
-          (s1: ISearchResults<any>, s2: ISearchResultSet[]) => {
-            s1.results = s2.reduce((acc, srs: ISearchResultSet) => acc.concat(srs.results), s1.results);
-            return s1;
-          }
-        )
+        return infrastructureSearchServiceV2.search({ key: query }).toArray();
       })
-      .subscribe((result: ISearchResults<ISearchResult>) => {
-        const categorizedSearchResults: { [type: string]: ISearchResult[] } = result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {
-          this.formatResult(entry.type, entry).then((name) => entry.displayName = name);
-          entry.href = urlBuilderService.buildFromMetadata(entry);
-          if (!categories[entry.type]) {
-            categories[entry.type] = [];
-          }
-          categories[entry.type].push(entry);
-          return categories;
-        }, {});
-
-        const searchResults: ISearchResultSet[] = Object.keys(categorizedSearchResults)
-          .filter(c => searchResultTypeRegistry.get(c))
-          .map(category => {
-            const type = searchResultTypeRegistry.get(category);
-            const results = categorizedSearchResults[category];
-            return { type, results, status: SearchStatus.FINISHED };
-          });
-
-        this.deferred.resolve(searchResults);
-      });
+      .subscribe((result: ISearchResultSet[]) => {
+        this.deferred.resolve(result);
+      })
   }
 
   public query(q: string): IPromise<ISearchResultSet[]> {
@@ -68,7 +49,7 @@ export class InfrastructureSearcher {
     return this.deferred.promise;
   }
 
-  public getCategoryConfig(category: string): ISearchResultType {
+  public getCategoryConfig(category: string): SearchResultType {
     return searchResultTypeRegistry.get(category);
   }
 
@@ -77,11 +58,11 @@ export class InfrastructureSearcher {
   }
 
   private formatResult(category: string, entry: ISearchResult, fromRoute = false): IPromise<string> {
-    const config = searchResultTypeRegistry.get(category);
-    if (!config) {
+    const type = searchResultTypeRegistry.get(category);
+    if (!type) {
       return this.$q.when('');
     }
-    let formatter = config.displayFormatter;
+    let formatter = type.displayFormatter;
 
     if (this.providerServiceDelegate.hasDelegate(entry.provider, 'search.resultFormatter')) {
       const providerFormatter: IProviderResultFormatter = this.providerServiceDelegate.getDelegate<IProviderResultFormatter>(entry.provider, 'search.resultFormatter');
@@ -94,11 +75,14 @@ export class InfrastructureSearcher {
 }
 
 export class InfrastructureSearchService {
-  constructor(private $q: IQService, private providerServiceDelegate: any, private searchService: SearchService, private urlBuilderService: UrlBuilderService) {
+  constructor(private $q: IQService,
+              private providerServiceDelegate: any,
+              private infrastructureSearchServiceV2: InfrastructureSearchServiceV2) {
+    'ngInject';
   }
 
   public getSearcher(): InfrastructureSearcher {
-    return new InfrastructureSearcher(this.$q, this.providerServiceDelegate, this.searchService, this.urlBuilderService);
+    return new InfrastructureSearcher(this.$q, this.providerServiceDelegate, this.infrastructureSearchServiceV2);
   }
 }
 

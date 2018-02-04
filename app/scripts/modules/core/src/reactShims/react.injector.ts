@@ -44,6 +44,7 @@ import { PipelineConfigValidator } from '../pipeline/config/validation/pipelineC
 import { PipelineTemplateService } from '../pipeline/config/templates/pipelineTemplate.service';
 import { ProviderSelectionService } from '../cloudProvider/providerSelection/providerSelection.service';
 import { RecentHistoryService } from 'core/history/recentHistory.service'
+import { SearchService } from '../search/search.service';
 import { SchedulerFactory } from '../scheduler/scheduler.factory';
 import { ScrollToService } from '../utils/scrollTo/scrollTo.service';
 import { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
@@ -136,6 +137,7 @@ export class CoreReactInject extends ReactInject {
   public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }
   public get subnetReader() { return this.$injector.get('subnetReader') as SubnetReader; }
   public get recentHistoryService() { return this.$injector.get('recentHistoryService') as RecentHistoryService; }
+  public get searchService() { return this.$injector.get('searchService') as SearchService; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
   public get taskExecutor() { return this.$injector.get('taskExecutor') as TaskExecutor; }
   public get taskReader() { return this.$injector.get('taskReader') as TaskReader; }
