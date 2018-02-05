@@ -146,7 +146,7 @@ class JobExecutorLocal implements JobExecutor {
         jobStatus.stdErr = errors
         return jobStatus
       } else {
-        // This instance is not managing the job
+        // This instance is not managing the job, it has timed out, or it was cancelled.
         return null
       }
     } catch (Exception e) {

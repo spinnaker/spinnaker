@@ -41,9 +41,12 @@ class AppengineJobExecutor {
   void waitForJobCompletion(String jobId) {
     sleep(sleepMs)
     JobStatus jobStatus = jobExecutor.updateJob(jobId)
-    while (jobStatus.state == JobStatus.State.RUNNING) {
+    while (jobStatus != null && jobStatus.state == JobStatus.State.RUNNING) {
       sleep(sleepMs)
       jobStatus = jobExecutor.updateJob(jobId)
+    }
+    if (jobStatus == null) {
+      throw new RuntimeException("job timed out or was cancelled")
     }
     if (jobStatus.result == JobStatus.Result.FAILURE && jobStatus.stdOut) {
       throw new IllegalArgumentException("$jobStatus.stdOut + $jobStatus.stdErr")
