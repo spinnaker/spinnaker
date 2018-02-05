@@ -16,19 +16,25 @@
 package com.netflix.spinnaker.keel
 
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.config.ApplicationIntentGuardProperties
+import com.netflix.spinnaker.config.KindIntentGuardProperties
+import com.netflix.spinnaker.keel.event.BeforeIntentConvergeEvent
 import com.netflix.spinnaker.keel.event.BeforeIntentDeleteEvent
 import com.netflix.spinnaker.keel.event.BeforeIntentUpsertEvent
 import com.netflix.spinnaker.keel.event.IntentAwareEvent
 import com.netflix.spinnaker.keel.exceptions.GuardConditionFailed
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.ApplicationListener
-import org.springframework.stereotype.Component
+import org.springframework.context.event.EventListener
+
+open class WhitelistingIntentGuardProperties {
+  var enabled: Boolean = true
+  var whitelist: MutableList<String> = mutableListOf()
+}
 
 // TODO rz - account guard
 abstract class WhitelistingIntentGuard(
   private val properties: WhitelistingIntentGuardProperties
-) : ApplicationListener<IntentAwareEvent> {
+) {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -42,18 +48,16 @@ abstract class WhitelistingIntentGuard(
     }
   }
 
-  abstract protected val supportedEvents: List<Class<out IntentAwareEvent>>
+  protected abstract val supportedEvents: List<Class<out IntentAwareEvent>>
 
-  abstract protected fun extractValue(event: IntentAwareEvent): String?
+  protected abstract fun extractValue(event: IntentAwareEvent): String?
 
-  override fun onApplicationEvent(obj: IntentAwareEvent) {
-    if (properties.enabled && matchesEventTypes(obj)) {
-      val value = extractValue(obj)?.trim()?.toLowerCase()
+  @EventListener(IntentAwareEvent::class)
+  fun onIntentAwareEvent(event: IntentAwareEvent) {
+    if (properties.enabled && matchesEventTypes(event)) {
+      val value = extractValue(event)?.trim()?.toLowerCase()
       if (value != null && !whitelist.contains(value)) {
-        throw GuardConditionFailed(
-          javaClass.simpleName,
-          "Whitelist does not contain '$value' in $obj"
-        )
+        throw GuardConditionFailed(javaClass.simpleName, "Whitelist does not contain '$value' in $event")
       }
     }
   }
@@ -63,29 +67,33 @@ abstract class WhitelistingIntentGuard(
     supportedEvents.isEmpty() || supportedEvents.any { it.isInstance(event) }
 }
 
-open class WhitelistingIntentGuardProperties {
-  var enabled: Boolean = true
-  var whitelist: List<String> = listOf()
-}
-
-@Component
 class ApplicationIntentGuard(
-  @Value("\${intentGuards.application}") properties: WhitelistingIntentGuardProperties
-) : WhitelistingIntentGuard(properties) {
+  applicationGuardProperties: ApplicationIntentGuardProperties
+) : WhitelistingIntentGuard(applicationGuardProperties) {
 
-  override val supportedEvents = listOf(BeforeIntentUpsertEvent::class.java, BeforeIntentDeleteEvent::class.java)
+  override val supportedEvents = listOf(
+    BeforeIntentUpsertEvent::class.java,
+    BeforeIntentDeleteEvent::class.java,
+    BeforeIntentConvergeEvent::class.java
+  )
 
-  override fun extractValue(event: IntentAwareEvent) =
-    (event.intent.spec as? ApplicationAwareIntentSpec)?.application
+  override fun extractValue(event: IntentAwareEvent): String? {
+    if (event.intent.spec is ApplicationAwareIntentSpec) {
+      return (event.intent.spec as ApplicationAwareIntentSpec).application
+    }
+    return null
+  }
 }
 
-@Component
 class KindIntentGuard(
-  @Value("\${intentGuards.kind}") properties: WhitelistingIntentGuardProperties
-) : WhitelistingIntentGuard(properties) {
+  kindGuardProperties: KindIntentGuardProperties
+) : WhitelistingIntentGuard(kindGuardProperties) {
 
-  override val supportedEvents: List<Class<out IntentAwareEvent>>
-    get() = listOf()
+  override val supportedEvents = listOf(
+    BeforeIntentUpsertEvent::class.java,
+    BeforeIntentDeleteEvent::class.java,
+    BeforeIntentConvergeEvent::class.java
+  )
 
   override fun extractValue(event: IntentAwareEvent) = event.intent.kind
 }

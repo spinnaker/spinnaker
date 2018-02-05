@@ -17,11 +17,12 @@ package com.netflix.spinnaker.keel.intent
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
+import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
 import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.annotation.Computed
 import com.netflix.spinnaker.keel.state.ComputedPropertyProvider
 
@@ -42,7 +43,8 @@ class ApplicationIntent
 // Using an abstract class here so that we can override the spec with Netflix-specific values and continue to use the
 // same intent & processor.
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
-abstract class BaseApplicationSpec : IntentSpec {
+@JsonIgnoreProperties("application")
+abstract class BaseApplicationSpec : ApplicationAwareIntentSpec {
   abstract val name: String
   abstract val description: String?
   abstract val email: String
@@ -62,6 +64,9 @@ abstract class BaseApplicationSpec : IntentSpec {
   abstract val platformHealthOnlyShowOverride: Boolean
   abstract val platformHealthOnly: Boolean
   abstract val notifications: NotificationSpec?
+
+  override val application: String
+    get() = name
 }
 
 data class ChaosMonkeySpec(

@@ -23,10 +23,21 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
-import com.netflix.spinnaker.keel.intent.*
-import com.netflix.spinnaker.keel.intent.processor.converter.ApplicationConverter
+import com.netflix.spinnaker.keel.intent.ApplicationIntent
+import com.netflix.spinnaker.keel.intent.ApplicationSpec
+import com.netflix.spinnaker.keel.intent.ChaosMonkeySpec
+import com.netflix.spinnaker.keel.intent.DataSourcesSpec
+import com.netflix.spinnaker.keel.intent.NotificationSpec
+import com.netflix.spinnaker.keel.intent.ParrotIntent
+import com.netflix.spinnaker.keel.intent.ParrotSpec
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import retrofit.RetrofitError.httpError
@@ -76,7 +87,7 @@ object ApplicationIntentProcessorTest {
 
     result.orchestrations.size shouldMatch equalTo(1)
     result.orchestrations[0].name shouldMatch equalTo("Update application")
-    result.orchestrations[0].job[0]["application"] as Map<Any, Any> shouldMatch hasEntry("description", equalTo<Any>("my updated description"))
+    result.orchestrations[0].job[0]["application"] as Map<Any, Any> shouldMatch hasEntry("description", equalTo("my updated description"))
 
     verify(traceRepository).record(any())
   }

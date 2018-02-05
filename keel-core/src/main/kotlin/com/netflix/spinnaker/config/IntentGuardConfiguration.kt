@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.config
 
-/**
- * A typed model of an Intent's configuration.
- */
-interface IntentSpec
+import com.netflix.spinnaker.keel.WhitelistingIntentGuardProperties
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-interface ApplicationAwareIntentSpec : IntentSpec {
-  val application: String
-}
+@ConfigurationProperties("intentGuard.application")
+open class ApplicationIntentGuardProperties : WhitelistingIntentGuardProperties()
+
+@ConfigurationProperties("intentGuard.kind")
+open class KindIntentGuardProperties : WhitelistingIntentGuardProperties()

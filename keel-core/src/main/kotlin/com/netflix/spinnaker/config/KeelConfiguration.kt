@@ -28,6 +28,8 @@ import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.findAllSubtypes
+import com.netflix.spinnaker.keel.ApplicationIntentGuard
+import com.netflix.spinnaker.keel.KindIntentGuard
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
 import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
@@ -44,8 +46,15 @@ import org.springframework.context.annotation.Configuration
 import java.time.Clock
 
 @Configuration
-@EnableConfigurationProperties(KeelProperties::class)
-@ComponentScan(basePackages = ["com.netflix.spinnaker.keel.dryrun", "com.netflix.spinnaker.keel.filter"])
+@EnableConfigurationProperties(
+  KeelProperties::class,
+  ApplicationIntentGuardProperties::class,
+  KindIntentGuardProperties::class
+)
+@ComponentScan(basePackages = [
+  "com.netflix.spinnaker.keel.dryrun",
+  "com.netflix.spinnaker.keel.filter"
+])
 open class KeelConfiguration {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -106,4 +115,10 @@ open class KeelConfiguration {
 
   @Bean open fun attributeSubTypeLocator() =
     KeelSubTypeLocator(Attribute::class.java, properties.attributePackages)
+
+  @Bean open fun applicationIntentGuard(properties: ApplicationIntentGuardProperties) =
+    ApplicationIntentGuard(properties)
+
+  @Bean open fun kindIntentGuard(properties: KindIntentGuardProperties) =
+    KindIntentGuard(properties)
 }
