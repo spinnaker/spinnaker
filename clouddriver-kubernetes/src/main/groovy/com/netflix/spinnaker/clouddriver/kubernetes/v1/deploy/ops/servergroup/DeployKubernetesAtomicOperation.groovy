@@ -95,8 +95,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     if (description.kind) {
-      def controllerName = description.sequence ? serverGroupNameResolver.generateServerGroupName(description.application, description.stack, description.freeFormDetails, description.sequence, false) : clusterName
-      return deployController(credentials, controllerName, clusterName, namespace)
+      return deployController(credentials, serverGroupNameResolver, clusterName, namespace)
     }
 
     task.updateStatus BASE_PHASE, "Looking up next sequence index for cluster ${clusterName}..."
@@ -174,16 +173,22 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     return replicaSet
   }
 
-  HasMetadata deployController(KubernetesV1Credentials credentials, String controllerName, String clusterName, String namespace) {
+  HasMetadata deployController(KubernetesV1Credentials credentials, def serverGroupNameResolver, String clusterName, String namespace) {
     def controllerSet
-    def canUpdated = KubernetesClientApiConverter.canUpdated(description)
+    def isUpdateControllerEnabled = KubernetesClientApiConverter.isUpdateControllerEnabled(description)
+    def controllerName
+    if (KubernetesClientApiConverter.validateSequence(description)) {
+      controllerName = serverGroupNameResolver.generateServerGroupName(description.application, description.stack, description.freeFormDetails, description.sequence.intValue(), false)
+    } else {
+      controllerName = clusterName
+    }
 
     switch(description.kind) {
       case KubernetesUtil.CONTROLLERS_STATEFULSET_KIND:
-        controllerSet = deployStatefulSet(credentials, controllerName, clusterName, namespace, canUpdated)
+        controllerSet = deployStatefulSet(credentials, controllerName, namespace, isUpdateControllerEnabled)
         break
       case KubernetesUtil.CONTROLLERS_DAEMONSET_KIND:
-        controllerSet = deployDaemonSet(credentials, controllerName, clusterName, namespace, canUpdated)
+        controllerSet = deployDaemonSet(credentials, controllerName, namespace, isUpdateControllerEnabled)
         break
       default:
         throw new KubernetesOperationException("Controller type $description.kind is not support.")
@@ -192,10 +197,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     return KubernetesClientApiConverter.toKubernetesController(controllerSet)
   }
 
-  def deployStatefulSet(KubernetesV1Credentials credentials, String controllerName, String clusterName, String namespace,  Boolean canUpdated) {
+  def deployStatefulSet(KubernetesV1Credentials credentials, String controllerName, String namespace,  Boolean isUpdateControllerEnabled) {
     task.updateStatus BASE_PHASE, "Building stateful set..."
     def controllerSet = KubernetesClientApiConverter.toStatefulSet(description, controllerName)
-    if (canUpdated) {
+    if (isUpdateControllerEnabled) {
       def deployedControllerSet = credentials.clientApiAdaptor.getStatefulSet(controllerName, namespace)
       if (deployedControllerSet) {
         task.updateStatus BASE_PHASE, "Update stateful set ${controllerName}"
@@ -226,10 +231,10 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     return controllerSet
   }
 
-  def deployDaemonSet(KubernetesV1Credentials credentials, String controllerName, String clusterName, String namespace, boolean canUpdated) {
+  def deployDaemonSet(KubernetesV1Credentials credentials, String controllerName, String namespace, Boolean isUpdateControllerEnabled) {
     task.updateStatus BASE_PHASE, "Building daemon set..."
     def controllerSet = KubernetesClientApiConverter.toDaemonSet(description, controllerName)
-    if (canUpdated) {
+    if (isUpdateControllerEnabled) {
       def deployedControllerSet = credentials.clientApiAdaptor.getDaemonSet(controllerName, namespace)
       if (deployedControllerSet) {
         task.updateStatus BASE_PHASE, "Update daemon set ${controllerName}"

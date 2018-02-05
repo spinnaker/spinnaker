@@ -52,12 +52,6 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
     def autoscalerName = description.serverGroupName
     def parsedName = Names.parseName(description.serverGroupName)
 
-    if (description.kind) {
-      if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND || description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
-        return destroyController(credentials, namespace, description.serverGroupName, autoscalerName)
-      }
-    }
-
     def deploymentName = parsedName.cluster
     def deployment = credentials.apiAdaptor.getDeployment(namespace, deploymentName)
     def replicaSet = credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)
@@ -95,13 +89,21 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
     } else if (replicaSet) {
       task.updateStatus BASE_PHASE, "Underlying kind is 'ReplicaSet'..."
       credentials.apiAdaptor.hardDestroyReplicaSet(namespace, description.serverGroupName)
+    } else {
+      if (description.kind) {
+        destroyController(credentials, namespace, description.serverGroupName, autoscalerName)
+      }  else {
+        log.error("Unable delete $description.serverGroupName in $description.namespace because kind has been presented in the request.")
+      }
     }
 
     task.updateStatus BASE_PHASE, "Successfully destroyed server group $description.serverGroupName."
   }
 
-  void destroyController(KubernetesV1Credentials credentials, String namespace, String serverGroupName, String autoscalerName) {
-    switch(description.kind) {
+  void destroyController(KubernetesV1Credentials credentials, String namespace, String controllerName, String autoscalerName) {
+    def controllerKind = description.kind
+
+    switch (controllerKind) {
       case KubernetesUtil.CONTROLLERS_STATEFULSET_KIND:
         if (credentials.apiClientAdaptor.getAutoscaler(namespace, autoscalerName)) {
           task.updateStatus BASE_PHASE, "Destroying autoscaler..."
@@ -109,16 +111,13 @@ class DestroyKubernetesAtomicOperation implements AtomicOperation<Void> {
             throw new KubernetesOperationException("Failed to delete associated autoscaler $autoscalerName in $namespace.")
           }
         }
-        credentials.apiClientAdaptor.hardDestroyStatefulSet(serverGroupName, namespace, null, null, null)
+        credentials.apiClientAdaptor.hardDestroyStatefulSet(controllerName, namespace, null, null, null)
         break
       case KubernetesUtil.CONTROLLERS_DAEMONSET_KIND:
-        credentials.apiClientAdaptor.hardDestroyDaemonSet(serverGroupName, namespace, null, null, null)
+        credentials.apiClientAdaptor.hardDestroyDaemonSet(controllerName, namespace, null, null, null)
         break
       default:
-        throw new KubernetesOperationException("Controller type $description.kind is not support.")
         break
     }
-
-    task.updateStatus BASE_PHASE, "Successfully destroyed server group $description.serverGroupName."
   }
 }

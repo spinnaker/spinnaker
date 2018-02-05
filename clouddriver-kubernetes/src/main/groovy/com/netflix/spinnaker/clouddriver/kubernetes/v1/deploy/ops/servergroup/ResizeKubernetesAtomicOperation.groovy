@@ -58,10 +58,8 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Setting size to $size..."
 
-    if (description.kind) {
-      if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND || description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
-        return resizeController(credentials, namespace, name, size)
-      }
+    if (resizeController(credentials, namespace, name, size)) {
+      return
     }
 
     def desired = null
@@ -110,17 +108,25 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Completed resize operation."
   }
 
-  void resizeController(KubernetesV1Credentials credentials, String namespace, String serverGroupName, int size) {
-    if (description.kind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND) {
+  boolean resizeController(KubernetesV1Credentials credentials, String namespace, String serverGroupName, int size) {
+    boolean isStatefulSetOrDaemonSet = false
+    def controllerKind = description.kind
+    if (!description.kind) {
+      controllerKind = credentials.clientApiAdaptor.getControllerKind(serverGroupName, namespace, null)
+    }
+
+    if (controllerKind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND) {
       def deployedControllerSet = credentials.clientApiAdaptor.getStatefulSet(serverGroupName, namespace)
       if (deployedControllerSet) {
         credentials.apiClientAdaptor.resizeStatefulSet(serverGroupName, namespace, size)
       }
-    } else if (description.kind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
-      throw new KubernetesOperationException("Not support resizing DaemoneSet.")
+      isStatefulSetOrDaemonSet = true
+    } else if (controllerKind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
+      throw new KubernetesOperationException("Does not support resizing DaemoneSet.")
     }
 
     task.updateStatus BASE_PHASE, "Completed resize operation."
+    return isStatefulSetOrDaemonSet
   }
 }
 

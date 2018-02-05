@@ -970,7 +970,11 @@ class KubernetesClientApiConverter {
     return daemonset
   }
 
-  static boolean canUpdated(DeployKubernetesAtomicOperationDescription description) {
+  static Boolean isUpdateControllerEnabled(DeployKubernetesAtomicOperationDescription description) {
     return description.updateController?.enabled
+  }
+
+  static Boolean validateSequence(DeployKubernetesAtomicOperationDescription description) {
+    return description.sequence?.intValue() >= 0
   }
 }

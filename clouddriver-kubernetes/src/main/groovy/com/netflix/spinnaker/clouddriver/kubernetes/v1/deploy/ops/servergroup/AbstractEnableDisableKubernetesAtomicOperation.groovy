@@ -25,7 +25,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.KubernetesV1ClusterProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
@@ -34,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+@Slf4j
 abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicOperation<Void> {
   abstract String getBasePhase() // Either 'ENABLE' or 'DISABLE'.
   abstract String getAction() // Either 'true' or 'false', for Enable or Disable respectively.
@@ -53,9 +56,6 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
 
   @Override
   Void operate(List priorOutputs) {
-    if (!supportsEnableDisable()) {
-      return
-    }
     task.updateStatus basePhase, "Initializing ${basePhase.toLowerCase()} operation..."
     task.updateStatus basePhase, "Looking up provided namespace..."
 
@@ -70,6 +70,9 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
     def replicaSet = credentials.apiAdaptor.getReplicaSet(namespace, description.serverGroupName)
 
     if (!replicationController && !replicaSet) {
+      if (!supportsEnableDisable(credentials, description.serverGroupName, namespace)) {
+        return
+      }
       throw new KubernetesOperationException("Only support operation for replication controller or replica set $description.serverGroupName in $namespace.")
     }
 
@@ -171,13 +174,19 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
     null // Return nothing from void
   }
 
-  Boolean supportsEnableDisable() {
-    switch(description.kind) {
+  boolean supportsEnableDisable(KubernetesV1Credentials credentials, String serverGroupName, String namespace) {
+    def controllerKind = description.kind
+    if (!description.kind) {
+      controllerKind = credentials.clientApiAdaptor.getControllerKind(serverGroupName, namespace, null)
+    }
+    switch (controllerKind) {
       //disable/enable statefulset and daemonset server group operations are not support
       case KubernetesUtil.CONTROLLERS_STATEFULSET_KIND:
+        log.info("Skip disable/enable StatefuSet server group $description.serverGroupName in $description.namespace because not applicible.")
         task.updateStatus basePhase, "Skip disable/enable StatefuSet server group $description.serverGroupName in $description.namespace."
         return false
       case KubernetesUtil.CONTROLLERS_DAEMONSET_KIND:
+        log.info("Skip disable/enable DaemonSet server group $description.serverGroupName in $description.namespace because not applicible.")
         task.updateStatus basePhase, "Skip disable/enable DaemonSet server group $description.serverGroupName in $description.namespace."
         return false
       case KubernetesUtil.SERVER_GROUP_KIND:

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.fge.jsonpatch.diff.JsonDiff
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesClientOperationException
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesApiClientConfig
 import io.kubernetes.client.ApiClient
@@ -258,8 +259,8 @@ class KubernetesClientApiAdapter {
         return apiInstance.readNamespacedStatefulSet(statefulSetName, namespace, API_CALL_RESULT_FORMAT, null, null)
       } catch (Exception e) {
         log.debug(e.message)
+        return null
       }
-      return null
     }
   }
 
@@ -304,8 +305,8 @@ class KubernetesClientApiAdapter {
         return extApi.readNamespacedDaemonSet(name, namespace, API_CALL_RESULT_FORMAT, true, false)
       } catch (Exception e) {
         log.debug(e.message)
+        return null
       }
-      return null
     }
   }
 
@@ -352,13 +353,31 @@ class KubernetesClientApiAdapter {
   }
 
   V1Pod getPodStatus(String name, String namespace) {
-    exceptionWrapper("pods.status", "Ge pod status ${name}", namespace) {
+    exceptionWrapper("pods.status", "Get pod status ${name}", namespace) {
       V1Pod pod
       try {
         pod = coreApi.readNamespacedPodStatus(name, namespace, API_CALL_RESULT_FORMAT)
       } catch (Exception e) {
         log.debug(e.message)
       }
+    }
+  }
+
+  String getControllerKind(String name, String namespace, String controllerKind) {
+    exceptionWrapper("getControllerType", "Get controller type ${name}", namespace) {
+      def deployedControllerSet
+      if (controllerKind == KubernetesUtil.CONTROLLERS_STATEFULSET_KIND) {
+        deployedControllerSet = getStatefulSet(name, namespace)
+      } else if (controllerKind == KubernetesUtil.CONTROLLERS_DAEMONSET_KIND) {
+        deployedControllerSet = getDaemonSet(name, namespace)
+      } else {
+        deployedControllerSet = getStatefulSet(name, namespace)
+        if (!deployedControllerSet) {
+          deployedControllerSet = getDaemonSet(name, namespace)
+        }
+      }
+
+      return deployedControllerSet?.kind
     }
   }
 }
