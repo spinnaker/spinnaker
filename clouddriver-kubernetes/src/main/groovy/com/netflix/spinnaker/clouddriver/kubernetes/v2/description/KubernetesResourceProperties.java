@@ -17,8 +17,11 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CustomKubernetesHandlerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +35,19 @@ import lombok.NoArgsConstructor;
 public class KubernetesResourceProperties {
   KubernetesHandler handler;
   boolean versioned;
-  KubernetesVersionedArtifactConverter versionedConverter;
-  KubernetesUnversionedArtifactConverter unversionedConverter;
+  KubernetesVersionedArtifactConverter versionedConverter = new KubernetesVersionedArtifactConverter();
+  KubernetesUnversionedArtifactConverter unversionedConverter = new KubernetesUnversionedArtifactConverter();
+
+  public static KubernetesResourceProperties fromCustomResource(CustomKubernetesResource customResource) {
+    KubernetesHandler handler = CustomKubernetesHandlerFactory.create(KubernetesKind.fromString(customResource.getKubernetesKind()),
+        KubernetesSpinnakerKindMap.SpinnakerKind.fromString(customResource.getSpinnakerKind()),
+        customResource.isVersioned());
+
+    return KubernetesResourceProperties.builder()
+        .handler(handler)
+        .versioned(customResource.isVersioned())
+        .versionedConverter(new KubernetesVersionedArtifactConverter())
+        .unversionedConverter(new KubernetesUnversionedArtifactConverter())
+        .build();
+  }
 }

@@ -99,6 +99,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .spectatorRegistry(spectatorRegistry)
           .jobExecutor(jobExecutor)
           .namer(namerRegistry.getNamingStrategy(managedAccount.namingStrategy))
+          .customResources(managedAccount.customResources)
           .debug(managedAccount.debug)
           .build()
 

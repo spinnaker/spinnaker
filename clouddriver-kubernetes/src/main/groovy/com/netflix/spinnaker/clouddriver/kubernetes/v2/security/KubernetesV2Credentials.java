@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -52,6 +53,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final ObjectMapper mapper = new ObjectMapper();
   private final List<String> namespaces;
   private final List<String> omitNamespaces;
+
+  @Getter
+  private final List<CustomKubernetesResource> customResources;
 
   // remove when kubectl is no longer a dependency
   @Getter
@@ -107,6 +111,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<String> omitNamespaces = new ArrayList<>();
     Registry registry;
     KubectlJobExecutor jobExecutor;
+    List<CustomKubernetesResource> customResources;
     boolean debug;
 
     public Builder accountName(String accountName) {
@@ -154,6 +159,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder customResources(List<CustomKubernetesResource> customResources) {
+      this.customResources = customResources;
+      return this;
+    }
+
     public Builder debug(boolean debug) {
       this.debug = debug;
       return this;
@@ -187,6 +197,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
+      customResources = customResources == null ? new ArrayList<>() : customResources;
 
       return new KubernetesV2Credentials(
           accountName,
@@ -199,6 +210,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           context,
           oAuthServiceAccount,
           oAuthScopes,
+          customResources,
           debug
       );
     }
@@ -214,6 +226,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       String context,
       String oAuthServiceAccount,
       List<String> oAuthScopes,
+      @NotNull List<CustomKubernetesResource> customResources,
       boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
@@ -227,6 +240,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.context = context;
     this.oAuthServiceAccount = oAuthServiceAccount;
     this.oAuthScopes = oAuthScopes;
+    this.customResources = customResources;
   }
 
   @Override

@@ -99,7 +99,7 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
 
     artifactProvider.getArtifacts(type, name, location) >> artifacts
 
-    def converter = new KubernetesVersionedArtifactConverter(new ObjectMapper())
+    def converter = new KubernetesVersionedArtifactConverter()
 
     then:
     converter.getVersion(artifactProvider, type, name, location, manifest1) == version1

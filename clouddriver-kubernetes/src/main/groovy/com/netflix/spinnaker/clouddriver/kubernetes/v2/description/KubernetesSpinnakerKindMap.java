@@ -54,7 +54,7 @@ public class KubernetesSpinnakerKindMap {
       return Arrays.stream(values())
           .filter(k -> k.toString().equalsIgnoreCase(name))
           .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException("No matching kind with name " + name + " exists"));
+          .orElse(UNCLASSIFIED);
     }
   }
 

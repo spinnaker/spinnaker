@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSpinnakerRelationships;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -51,6 +50,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   private final ArtifactProvider provider;
   private final Namer namer;
   private final KubernetesResourcePropertyRegistry registry;
+  private final String accountName;
   private static final String OP_NAME = "DEPLOY_KUBERNETES_MANIFEST";
 
   public KubernetesDeployManifestOperation(KubernetesDeployManifestDescription description, KubernetesResourcePropertyRegistry registry, ArtifactProvider provider) {
@@ -58,9 +58,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.registry = registry;
     this.provider = provider;
+    this.accountName = description.getCredentials().getName();
     this.namer = NamerRegistry.lookup()
         .withProvider(KubernetesCloudProvider.getID())
-        .withAccount(description.getCredentials().getName())
+        .withAccount(accountName)
         .withResource(KubernetesManifest.class);
   }
 
@@ -119,7 +120,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     }
 
     getTask().updateStatus(OP_NAME, "Submitting manifest to kubernetes master...");
-    OperationResult result = deployer.deployAugmentedManifest(credentials, manifest);
+    OperationResult result = deployer.deploy(credentials, manifest);
 
     result.getCreatedArtifacts().add(artifact);
     result.getBoundArtifacts().addAll(boundArtifacts);
@@ -130,6 +131,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   private KubernetesResourceProperties findResourceProperties(KubernetesManifest manifest) {
     KubernetesKind kind = manifest.getKind();
     getTask().updateStatus(OP_NAME, "Finding deployer for " + kind + "...");
-    return registry.get(kind);
+    return registry.get(accountName, kind);
   }
 }

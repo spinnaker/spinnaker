@@ -34,11 +34,13 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
   private final KubernetesPauseRolloutManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final KubernetesResourcePropertyRegistry registry;
+  private final String accountName;
   private static final String OP_NAME = "PAUSE_ROLLOUT_KUBERNETES_MANIFEST";
 
   public KubernetesPauseRolloutManifestOperation(KubernetesPauseRolloutManifestDescription description, KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
+    this.accountName = description.getCredentials().getName();
     this.registry = registry;
   }
 
@@ -52,7 +54,7 @@ public class KubernetesPauseRolloutManifestOperation implements AtomicOperation<
     KubernetesCoordinates coordinates = description.getPointCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
-    KubernetesResourceProperties properties = registry.get(coordinates.getKind());
+    KubernetesResourceProperties properties = registry.get(accountName, coordinates.getKind());
     KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanPauseRollout)) {

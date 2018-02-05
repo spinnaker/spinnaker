@@ -36,11 +36,13 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
   private final KubernetesDeleteManifestDescription description;
   private final KubernetesV2Credentials credentials;
   private final KubernetesResourcePropertyRegistry registry;
+  private final String accountName;
   private static final String OP_NAME = "DELETE_KUBERNETES_MANIFEST";
 
   public KubernetesDeleteManifestOperation(KubernetesDeleteManifestDescription description, KubernetesResourcePropertyRegistry registry) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
+    this.accountName = description.getCredentials().getName();
     this.registry = registry;
   }
 
@@ -62,7 +64,7 @@ public class KubernetesDeleteManifestOperation implements AtomicOperation<Operat
     OperationResult result = new OperationResult();
     coordinates.forEach(c -> {
       getTask().updateStatus(OP_NAME, "Looking up resource properties for " + c.getKind() + "...");
-      KubernetesResourceProperties properties = registry.get(c.getKind());
+      KubernetesResourceProperties properties = registry.get(accountName, c.getKind());
       KubernetesHandler deployer = properties.getHandler();
 
       if (!(deployer instanceof CanDelete)) {

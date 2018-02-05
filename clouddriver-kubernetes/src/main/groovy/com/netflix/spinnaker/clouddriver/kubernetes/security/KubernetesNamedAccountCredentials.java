@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -185,6 +186,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     AccountCredentialsRepository accountCredentialsRepository;
     KubectlJobExecutor jobExecutor;
     Namer namer;
+    List<CustomKubernetesResource> customResources;
     boolean debug;
 
     Builder name(String name) {
@@ -320,6 +322,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
       return this;
     }
 
+    Builder customResources(List<CustomKubernetesResource> customResources) {
+      this.customResources = customResources;
+      return this;
+    }
+
     private C buildCredentials() {
       switch (providerVersion) {
         case v1:
@@ -354,6 +361,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
               .namespaces(namespaces)
               .omitNamespaces(omitNamespaces)
               .registry(spectatorRegistry)
+              .customResources(customResources)
               .debug(debug)
               .jobExecutor(jobExecutor)
               .build();

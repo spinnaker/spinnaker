@@ -92,20 +92,19 @@ metadata:
     credentials.deploy(_, _) >> null
 
     def replicaSetDeployer = new KubernetesReplicaSetHandler()
-    replicaSetDeployer.objectMapper = new ObjectMapper()
     replicaSetDeployer.versioned() >> true
     replicaSetDeployer.kind() >> KIND
     def versionedArtifactConverterMock = Mock(KubernetesVersionedArtifactConverter)
     versionedArtifactConverterMock.getDeployedName(_) >> "$NAME-$VERSION"
     versionedArtifactConverterMock.toArtifact(_, _) >> new Artifact()
     def registry = new KubernetesResourcePropertyRegistry(Collections.singletonList(replicaSetDeployer),
-        new KubernetesSpinnakerKindMap(),
-        versionedArtifactConverterMock,
-        new KubernetesUnversionedArtifactConverter())
+        new KubernetesSpinnakerKindMap())
 
     NamerRegistry.lookup().withProvider(KubernetesCloudProvider.ID)
       .withAccount(ACCOUNT)
       .setNamer(KubernetesManifest.class, new KubernetesManifestNamer())
+
+    registry.get("any", KubernetesKind.REPLICA_SET).versionedConverter = versionedArtifactConverterMock
     
     def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry, null)
 

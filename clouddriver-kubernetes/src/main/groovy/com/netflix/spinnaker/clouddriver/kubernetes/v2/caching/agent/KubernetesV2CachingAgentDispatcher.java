@@ -24,16 +24,17 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAge
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -49,47 +50,18 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
 
   @Override
   public List<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
-    return IntStream.range(0, credentials.getCacheThreads())
+    List<KubernetesCachingAgent> result = new ArrayList<>();
+    IntStream.range(0, credentials.getCacheThreads())
         .boxed()
-        .map(i -> propertyRegistry.values()
+        .forEach(i -> propertyRegistry.values()
             .stream()
             .map(KubernetesResourceProperties::getHandler)
-            .map(KubernetesHandler::cachingAgentClass)
             .filter(Objects::nonNull)
-            .map(c -> {
-                  try {
-                    return c.getDeclaredConstructor(
-                        KubernetesNamedAccountCredentials.class,
-                        ObjectMapper.class,
-                        Registry.class,
-                        int.class,
-                        int.class
-                    );
-                  } catch (NoSuchMethodException e) {
-                    log.warn("Missing canonical constructor", e);
-                    return null;
-                  }
-                }
-            )
+            .map(h -> h.buildCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()))
             .filter(Objects::nonNull)
-            .map(c -> {
-                  try {
-                    return (KubernetesV2CachingAgent) c.newInstance(
-                        credentials,
-                        objectMapper,
-                        registry,
-                        i,
-                        credentials.getCacheThreads()
-                    );
-                  } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    log.warn("Can't invoke caching agent constructor", e);
-                    return null;
-                  }
-                }
-            )
-            .filter(Objects::nonNull)
-        )
-        .flatMap(s -> s)
-        .collect(Collectors.toList());
+            .forEach(c -> result.add((KubernetesCachingAgent) c))
+        );
+
+    return result;
   }
 }

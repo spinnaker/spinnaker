@@ -34,8 +34,8 @@ public abstract class KubernetesCachingAgent<C extends KubernetesCredentials> im
   final protected C credentials;
   final protected ObjectMapper objectMapper;
 
-  final private int agentIndex;
-  final private int agentCount;
+  final protected int agentIndex;
+  final protected int agentCount;
 
   protected List<String> namespaces;
 

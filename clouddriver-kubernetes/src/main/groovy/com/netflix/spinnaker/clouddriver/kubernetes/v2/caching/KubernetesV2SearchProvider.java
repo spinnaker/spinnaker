@@ -129,7 +129,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
       Keys.InfrastructureCacheKey infraKey = (Keys.InfrastructureCacheKey) parsedKey;
       type = kindMap.translateKubernetesKind(infraKey.getKubernetesKind()).toString();
 
-      KubernetesResourceProperties properties = registry.get(infraKey.getKubernetesKind());
+      KubernetesResourceProperties properties = registry.get(infraKey.getAccount(), infraKey.getKubernetesKind());
       if (properties == null) {
         log.warn("No hydrator for type {}, this is possibly a developer error", infraKey.getKubernetesKind());
         return null;

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.config
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.ToString
@@ -44,6 +45,7 @@ class KubernetesConfigurationProperties {
     Permissions.Builder permissions = new Permissions.Builder()
     String namingStrategy = "kubernetesAnnotations"
     Boolean debug = false
+    List<CustomKubernetesResource> customResources;
   }
 
   List<ManagedAccount> accounts = []
@@ -53,4 +55,11 @@ class KubernetesConfigurationProperties {
 class LinkedDockerRegistryConfiguration {
   String accountName
   List<String> namespaces
+}
+
+@ToString(includeNames = true)
+class CustomKubernetesResource {
+  String kubernetesKind
+  String spinnakerKind = KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED.toString()
+  boolean versioned = false
 }

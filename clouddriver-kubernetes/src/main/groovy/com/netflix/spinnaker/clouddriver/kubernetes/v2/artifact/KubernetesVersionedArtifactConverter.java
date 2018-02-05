@@ -31,15 +31,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
 @Slf4j
 public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConverter {
-  final private ObjectMapper objectMapper;
-
-  @Autowired
-  public KubernetesVersionedArtifactConverter(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-  }
+  final private static ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
   public Artifact toArtifact(ArtifactProvider provider, KubernetesManifest manifest) {
