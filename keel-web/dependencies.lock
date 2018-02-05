@@ -36,6 +36,12 @@
             ],
             "locked": "1.0.28"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -99,7 +105,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -181,8 +187,8 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -191,15 +197,15 @@
             "locked": "1.7.25"
         },
         "org.springframework.boot:spring-boot-starter-actuator": {
-            "locked": "1.5.9.RELEASE",
+            "locked": "1.5.10.RELEASE",
             "requested": "1.5.+"
         },
         "org.springframework.boot:spring-boot-starter-data-rest": {
-            "locked": "1.5.9.RELEASE",
+            "locked": "1.5.10.RELEASE",
             "requested": "1.5+"
         },
         "org.springframework.boot:spring-boot-starter-web": {
-            "locked": "1.5.9.RELEASE",
+            "locked": "1.5.10.RELEASE",
             "requested": "1.5.+"
         },
         "redis.clients:jedis": {
@@ -246,6 +252,12 @@
             ],
             "locked": "1.0.28"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -309,7 +321,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -391,8 +403,8 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -456,6 +468,12 @@
             ],
             "locked": "1.0.28"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -519,7 +537,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -601,8 +619,8 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -639,14 +657,14 @@
     },
     "kapt": {
         "org.jetbrains.kotlin:kotlin-annotation-processing-gradle": {
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         }
     },
     "kaptTest": {
         "org.jetbrains.kotlin:kotlin-annotation-processing-gradle": {
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         }
     },
     "runtime": {
@@ -686,6 +704,12 @@
             ],
             "locked": "1.0.28"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -749,7 +773,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -831,8 +855,8 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -896,6 +920,12 @@
             ],
             "locked": "1.0.28"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -959,7 +989,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -1041,8 +1071,8 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -1110,6 +1140,12 @@
             "locked": "1.4.2.2",
             "requested": "+"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1173,7 +1209,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -1259,19 +1295,19 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -1340,6 +1376,12 @@
             "locked": "1.4.2.2",
             "requested": "+"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1403,7 +1445,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -1489,19 +1531,19 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -1570,6 +1612,12 @@
             "locked": "1.4.2.2",
             "requested": "+"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1633,7 +1681,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -1719,27 +1767,27 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -1808,6 +1856,12 @@
             "locked": "1.4.2.2",
             "requested": "+"
         },
+        "com.netflix.awsobjectmapper:awsobjectmapper": {
+            "firstLevelTransitive": [
+                "com.netflix.spinnaker.keel:keel-intent-aws"
+            ],
+            "locked": "1.11.251"
+        },
         "com.netflix.spinnaker.keel:keel-clouddriver": {
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-intent",
@@ -1871,7 +1925,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "2.1.2"
+            "locked": "2.1.3"
         },
         "com.netflix.spinnaker.kork:kork-core": {
             "firstLevelTransitive": [
@@ -1957,27 +2011,27 @@
                 "com.netflix.spinnaker.keel:keel-retrofit",
                 "com.netflix.spinnaker.keel:keel-scheduler"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {

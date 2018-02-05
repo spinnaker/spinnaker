@@ -111,8 +111,8 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -239,8 +239,8 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -367,8 +367,8 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -393,14 +393,14 @@
     },
     "kapt": {
         "org.jetbrains.kotlin:kotlin-annotation-processing-gradle": {
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         }
     },
     "kaptTest": {
         "org.jetbrains.kotlin:kotlin-annotation-processing-gradle": {
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         }
     },
     "runtime": {
@@ -515,8 +515,8 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -643,8 +643,8 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.slf4j:slf4j-api": {
             "firstLevelTransitive": [
@@ -779,19 +779,19 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -927,19 +927,19 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -1075,27 +1075,27 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -1231,27 +1231,27 @@
                 "com.netflix.spinnaker.keel:keel-core",
                 "com.netflix.spinnaker.keel:keel-retrofit"
             ],
-            "locked": "1.2.20",
-            "requested": "1.2.20"
+            "locked": "1.2.21",
+            "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-M1",
+            "locked": "5.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-M1",
+            "locked": "1.1.0-RC1",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
