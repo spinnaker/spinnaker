@@ -1,35 +1,57 @@
 import * as React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
+import { BindAll } from 'lodash-decorators';
 
 import { Placement } from 'core/presentation';
 
 export interface ITooltipProps {
+  id?: string;
   value?: string;
   template?: JSX.Element;
   placement?: Placement;
   delayShow?: number;
 }
 
+@BindAll()
 export class Tooltip extends React.Component<ITooltipProps> {
   public static defaultProps: Partial<ITooltipProps> = {
     placement: 'top',
     value: ''
   };
 
-  public shouldComponentUpdate(nextProps: ITooltipProps) {
-    return !!nextProps.template
-      || nextProps.value !== this.props.value
-      || nextProps.placement !== this.props.placement;
+  private popover: any; // OverlayTrigger does not expose hide() in it's type definition
+
+  private handleRef(popover: OverlayTrigger): void {
+    if (popover) {
+      this.popover = popover;
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: ITooltipProps): void {
+    if (this.popover) {
+      if (this.props.value && !nextProps.value) {
+        this.popover.hide();
+      }
+      if (!this.props.value && nextProps.value) {
+        this.popover.show();
+      }
+    }
   }
 
   public render() {
-    let tooltip = <BSTooltip id={this.props.value}>{this.props.value}</BSTooltip>;
-    if (this.props.template) {
-      tooltip = <BSTooltip id={this.props.value}>{this.props.template}</BSTooltip>;
+    const { delayShow, id, placement, template, value } = this.props;
+    const useId = id || value || 'tooltip';
+
+    let tooltip = <BSTooltip id={useId}>{value}</BSTooltip>;
+    if (template) {
+      tooltip = <BSTooltip id={useId}>{template}</BSTooltip>;
     }
 
+    const hasValue = (value && value.length > 0) || template;
+    const trigger = hasValue ? ['hover', 'focus'] : [];
+
     return (
-      <OverlayTrigger delayShow={this.props.delayShow} placement={this.props.placement} overlay={tooltip}>
+      <OverlayTrigger ref={this.handleRef} delayShow={delayShow} placement={placement} overlay={tooltip} trigger={trigger}>
         {this.props.children}
       </OverlayTrigger>
     );
