@@ -92,6 +92,8 @@ const helpContents: {[key: string]: string} = {
         for the selected instance type will be used.</p>`,
   'aws.blockDeviceMappings.useAMI': '<p>Spinnaker will use the block device mappings from the selected AMI when deploying a new server group.</p>',
   'aws.blockDeviceMappings.useDefaults': '<p>Spinnaker will use the <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/BlockDeviceConfig.groovy">default block device mappings</a> for the selected instance type when deploying a new server group.</p>',
+  'aws.targetGroup.protocol': 'The protocol to use for routing traffic to the targets. Cannot be edited after being saved; if you want to use a different protocol, create a new target group, save the load balancer, move your targets, and then delete this target group.',
+  'aws.targetGroup.port': 'The port on which the targets receive traffic. Cannot be edited after being saved; if you want to use a different port, create a new target group, save the load balancer, move your targets, and then delete this target group.',
   'aws.targetGroup.attributes.deregistrationDelay': 'The amount of time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.',
   'aws.targetGroup.attributes.stickinessEnabled': ' Indicates whether sticky sessions are enabled.',
   'aws.targetGroup.attributes.stickinessType': 'The type of sticky sessions. The only current possible value is <code>lb_cookie</code>.',

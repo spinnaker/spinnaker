@@ -13,11 +13,13 @@ import {
 
 export interface ITargetGroupsProps {
   app: Application;
+  isNew: boolean;
   loadBalancer: IAmazonApplicationLoadBalancer;
 }
 
 export interface ITargetGroupsState {
   existingTargetGroupNames: string[];
+  oldTargetGroupCount: number;
 }
 
 @BindAll()
@@ -29,8 +31,11 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
 
   constructor(props: ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>) {
     super(props);
+
+    const oldTargetGroupCount = !props.isNew ? props.initialValues.targetGroups.length : 0;
     this.state = {
       existingTargetGroupNames: [],
+      oldTargetGroupCount,
     };
   }
 
@@ -126,7 +131,12 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
 
   private removeTargetGroup(index: number): void {
     const { setFieldValue, values } = this.props;
+    const { oldTargetGroupCount } = this.state;
     values.targetGroups.splice(index, 1);
+
+    if (index < oldTargetGroupCount) {
+      this.setState({ oldTargetGroupCount: oldTargetGroupCount - 1 })
+    }
     setFieldValue('targetGroups', values.targetGroups);
   }
 
@@ -141,6 +151,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
 
   public render() {
     const { app, errors, values } = this.props;
+    const { oldTargetGroupCount } = this.state;
 
     const ProtocolOptions = this.protocols.map((p) => <option key={p}>{p}</option>);
 
@@ -173,23 +184,25 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                     <div className="wizard-pod-row-contents">
                       <div className="wizard-pod-row-data">
                         <span className="wizard-pod-content">
-                          <label>Protocol </label>
+                          <label>Protocol </label><HelpField id="aws.targetGroup.protocol"/>{' '}
                           <select
                             className="form-control input-sm inline-number"
                             value={targetGroup.protocol}
                             onChange={(event) => this.targetGroupFieldChanged(index, 'protocol', event.target.value)}
+                            disabled={index < oldTargetGroupCount}
                           >
                             {ProtocolOptions}
                           </select>
                         </span>
                         <span className="wizard-pod-content">
-                          <label>Port </label>
+                          <label>Port </label><HelpField id="aws.targetGroup.port"/>{' '}
                           <input
                             className="form-control input-sm inline-number"
                             value={targetGroup.port}
                             onChange={(event) => this.targetGroupFieldChanged(index, 'port', event.target.value)}
                             type="text"
                             required={true}
+                            disabled={index < oldTargetGroupCount}
                           />
                         </span>
                       </div>

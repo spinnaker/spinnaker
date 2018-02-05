@@ -234,7 +234,7 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
         >
           <LoadBalancerLocation app={app} isNew={isNew} forPipelineConfig={forPipelineConfig} loadBalancer={loadBalancer} />
           <SecurityGroups done={true} />
-          <TargetGroups app={app} loadBalancer={loadBalancer} done={true} />
+          <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
           <ALBListeners done={true} />
         </ApplicationLoadBalancerModal>
     );
