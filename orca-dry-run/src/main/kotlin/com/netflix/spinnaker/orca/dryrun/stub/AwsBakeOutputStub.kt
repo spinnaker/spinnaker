@@ -20,9 +20,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
-class BakeOutputStub : OutputStub {
+class AwsBakeOutputStub : OutputStub {
 
-  override fun supports(stageType: String) = stageType == "bake"
+  override fun supports(stage: Stage) =
+    stage.type == "bake" && stage.context["cloudProviderType"] == "aws"
 
   override fun outputs(stage: Stage) =
     if (stage.parent?.type == "bake") {

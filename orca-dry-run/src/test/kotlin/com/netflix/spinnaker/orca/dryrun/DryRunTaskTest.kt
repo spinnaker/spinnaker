@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.dryrun.stub.OutputStub
 import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.q.pipeline
 import com.netflix.spinnaker.orca.q.stage
 import com.nhaarman.mockito_kotlin.*
@@ -82,7 +83,7 @@ object DryRunTaskTest : Spek({
 
       val stubOutput = mapOf("negative" to "covfefe")
       beforeGroup {
-        whenever(outputStub.supports("bake")) doReturn true
+        whenever(outputStub.supports(any())) doAnswer { it.getArgument<Stage>(0).type == "bake" }
         whenever(outputStub.outputs(pipeline.stageByRef("2"))) doReturn stubOutput
       }
 

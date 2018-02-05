@@ -38,7 +38,7 @@ class DryRunTask(
     }
 
   private fun Stage.generateOutputs(): Map<String, Any> =
-    outputStubs.find { it.supports(type) }?.outputs(this) ?: emptyMap()
+    outputStubs.find { it.supports(this) }?.outputs(this) ?: emptyMap()
 
   private val log = LoggerFactory.getLogger(javaClass)
 }

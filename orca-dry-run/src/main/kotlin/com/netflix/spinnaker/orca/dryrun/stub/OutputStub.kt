@@ -26,9 +26,9 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 interface OutputStub {
 
   /**
-   * Return `true` if a stage type is supported by this stub.
+   * Return `true` if a stage is supported by this stub.
    */
-  fun supports(stageType: String): Boolean
+  fun supports(stage: Stage): Boolean
 
   /**
    * Generate stub output. This can be based on things in the stage context if

@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class FindImageOutputStub : OutputStub {
-  override fun supports(stageType: String) = stageType == "findImage"
+  override fun supports(stage: Stage) = stage.type == "findImage"
 
   override fun outputs(stage: Stage): Map<String, Any> = mapOf(
     "deploymentDetails" to stage.regions.map { region ->
