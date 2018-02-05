@@ -16,7 +16,7 @@ const NoQuery = () => (
   </div>
 );
 
-const Searching = () => (
+export const Searching = () => (
   <div className="flex-grow vertical center middle">
     <Spinner size="large" message="Fetching search results ..."/>
   </div>

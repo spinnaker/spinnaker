@@ -19,7 +19,7 @@ module(INFRASTRUCTURE_STATES, [
       q:       { dynamic: true, value: null },
       region:  { dynamic: true, value: null },
       stack:   { dynamic: true, value: null },
-      tab:     { dynamic: true, value: 'applications' },
+      tab:     { dynamic: true, value: null },
     },
     views: {
       'main@': {

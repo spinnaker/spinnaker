@@ -21,6 +21,7 @@ export interface ISearchV2State {
   selectedTab: string;
   params: { [key: string]: any };
   resultSets: ISearchResultSet[];
+  isSearching: boolean;
   refreshingCache: boolean;
 }
 
@@ -41,9 +42,10 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     super(props);
 
     this.state = {
-      selectedTab: this.$state.params.tab || 'applications',
+      selectedTab: this.$state.params.tab,
       params: {},
       resultSets: this.INITIAL_RESULTS,
+      isSearching: false,
       refreshingCache: false,
     };
 
@@ -68,7 +70,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       .map(stateParams => this.getApiFilterParams(stateParams))
       .do((params: IQueryParams) => this.setState({ params }))
       .distinctUntilChanged((a, b) => API_PARAMS.every(key => a[key] === b[key]))
-      .do(() => this.setState({ resultSets: this.INITIAL_RESULTS }))
+      .do(() => this.setState({ resultSets: this.INITIAL_RESULTS, isSearching: true }))
       // Got new params... fire off new queries for each backend
       // Use switchMap so new queries cancel any pending previous queries
       .switchMap((params: IQueryParams): Observable<ISearchResultSet[]> => {
@@ -87,13 +89,37 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
           }, this.INITIAL_RESULTS)
       })
       .takeUntil(this.destroy$)
-      .subscribe(resultSets => this.setState({ resultSets }));
+      .subscribe(resultSets => {
+        if (!this.state.selectedTab) {
+          this.selectTab(resultSets);
+        }
+        this.setState({ resultSets })
+      }, null, () => this.setState({ isSearching: false }));
 
     this.$uiRouter.globals.params$
       .map(params => params.tab)
       .distinctUntilChanged()
       .takeUntil(this.destroy$)
       .subscribe(selectedTab => this.setState({ selectedTab }));
+  }
+
+  /** Select the first tab with results */
+  private selectTab(resultSets: ISearchResultSet[]): void {
+    // Prioritize applications tab over all others
+    const order = (rs: ISearchResultSet) => rs.type.id === 'applications' ? -1 : rs.type.order;
+    const tabs = resultSets.slice().sort((a, b) => order(a) - order(b));
+
+    // Scan all tabs in order.  Find the first tab that has results.  Stop scanning when a tab with unfinished results is encountered.
+    const found = tabs.reduce((previous, tab) => {
+      const resultAlreadyFound = previous.tabId || previous.unfinished;
+      const unfinished = tab.status !== SearchStatus.FINISHED;
+      const tabId = tab.results.length ? tab.type.id : null;
+      return resultAlreadyFound ? previous : { ...previous, unfinished, tabId };
+    }, { tabId: null, unfinished: false });
+
+    if (found.tabId) {
+      this.$state.go('.', { tab: found.tabId });
+    }
   }
 
   public componentWillUnmount() {
@@ -108,7 +134,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   }
 
   public render() {
-    const { params, resultSets, selectedTab } = this.state;
+    const { params, resultSets, selectedTab, isSearching } = this.state;
     const hasSearchQuery = Object.keys(params).length > 0;
 
 
@@ -136,7 +162,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
 
           {hasSearchQuery && (
             <div className="flex-fill">
-              <SearchResults selectedTab={selectedTab} resultSets={resultSets} />
+              <SearchResults selectedTab={selectedTab} resultSets={resultSets} isSearching={isSearching} />
             </div>
           )}
         </div>

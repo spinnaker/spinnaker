@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchResultType } from './searchResultType';
-import { SearchResultGrid } from './SearchResultGrid';
+import { Searching, SearchResultGrid } from './SearchResultGrid';
 import { SearchResultTabs } from './SearchResultTabs';
 
 import './searchResults.less';
@@ -14,6 +14,7 @@ export enum SearchStatus {
 export interface ISearchResultsProps {
   selectedTab: string;
   resultSets: ISearchResultSet[];
+  isSearching: boolean;
 }
 
 export interface ISearchResultsState {
@@ -30,14 +31,15 @@ export class SearchResults extends React.Component<ISearchResultsProps, ISearchR
   }
 
   public render() {
-    const { resultSets } = this.props;
+    const { resultSets, isSearching } = this.props;
     const { active } = this.state;
     const activeResultSet = active && resultSets.find(resultSet => resultSet.type === active);
 
     return (
       <div className="search-results">
         <SearchResultTabs resultSets={resultSets} activeSearchResultType={active} />
-        <SearchResultGrid resultSet={activeResultSet} />
+        {activeResultSet && <SearchResultGrid resultSet={activeResultSet} />}
+        {!activeResultSet && isSearching && <Searching />}
       </div>
     );
   }
