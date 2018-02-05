@@ -13,6 +13,7 @@ var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : fals
 var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
 var canaryEnabled = process.env.CANARY_ENABLED === 'true';
 var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
+var dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -150,5 +151,6 @@ window.spinnakerSettings = {
     pipelineTemplates: false,
     artifacts: false,
     versionedProviders: true,
+    dryRunEnabled: dryRunEnabled,
   },
 };

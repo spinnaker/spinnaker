@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import { AUTHENTICATION_SERVICE } from 'core/authentication/authentication.service';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { SETTINGS } from 'core/config/settings';
 
 import './manualPipelineExecution.less';
 
@@ -48,7 +49,7 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
     this.command = {
       pipeline: pipeline,
       trigger: null,
-      dryRunEnabled: false,
+      dryRun: false,
       notificationEnabled: false,
       notification: {
         type: 'email',
@@ -59,6 +60,8 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
         ]
       }
     };
+
+    this.dryRunEnabled = SETTINGS.feature.dryRunEnabled;
 
     let addTriggers = () => {
       let pipeline = this.command.pipeline;
@@ -137,7 +140,7 @@ module.exports = angular.module('spinnaker.core.pipeline.manualPipelineExecution
 
       command.pipelineName = pipeline.name;
       selectedTrigger.type = 'manual';
-      selectedTrigger.dryRun = this.command.dryRunEnabled;
+      selectedTrigger.dryRun = this.command.dryRun;
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         selectedTrigger.parameters = this.parameters;
