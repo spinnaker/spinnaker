@@ -626,11 +626,11 @@ class OperationsControllerSpec extends Specification {
       ]
     ]
     def response = Mock(HttpServletResponse)
-    Execution startedPipeline = null
-    executionLauncher.fail(*_) >> { ExecutionType type, String json, Throwable t ->
-      startedPipeline = mapper.readValue(json, Execution)
-      startedPipeline.id = UUID.randomUUID().toString()
-      startedPipeline
+    Execution failedPipeline = null
+    1 * executionLauncher.fail(*_) >> { ExecutionType type, String json, Throwable t ->
+      failedPipeline = mapper.readValue(json, Execution)
+      failedPipeline.id = UUID.randomUUID().toString()
+      failedPipeline
     }
 
     when:
@@ -639,7 +639,6 @@ class OperationsControllerSpec extends Specification {
     then:
     thrown(ValidationException)
     0 * executionLauncher.start(*_)
-
   }
 
   def "should log and re-throw missing artifact error"() {
@@ -651,11 +650,11 @@ class OperationsControllerSpec extends Specification {
     artifactResolver.resolveArtifacts(*_) >> { Map pipeline ->
       throw new IllegalStateException(format("Unmatched expected artifact could not be resolved."))
     }
-    Execution startedPipeline = null
-    executionLauncher.fail(*_) >> { ExecutionType type, String json, Throwable t ->
-      startedPipeline = mapper.readValue(json, Execution)
-      startedPipeline.id = UUID.randomUUID().toString()
-      startedPipeline
+    Execution failedPipeline = null
+    1 * executionLauncher.fail(*_) >> { ExecutionType type, String json, Throwable t ->
+      failedPipeline = mapper.readValue(json, Execution)
+      failedPipeline.id = UUID.randomUUID().toString()
+      failedPipeline
     }
 
     when:
@@ -664,7 +663,6 @@ class OperationsControllerSpec extends Specification {
     then:
     thrown(IllegalStateException)
     0 * executionLauncher.start(*_)
-
   }
 
   def "should return empty list if webhook stage is not enabled"() {
