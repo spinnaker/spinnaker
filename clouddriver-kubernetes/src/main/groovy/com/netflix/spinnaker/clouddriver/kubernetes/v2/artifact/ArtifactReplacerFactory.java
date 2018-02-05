@@ -19,11 +19,14 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.Replacer;
 
+import java.util.regex.Pattern;
+
 public class ArtifactReplacerFactory {
   public static Replacer dockerImageReplacer() {
     return Replacer.builder()
         .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
         .findPath("$.spec.template.spec.containers.*.image")
+        .namePattern(Pattern.compile("([0-9A-Za-z./]+).*"))
         .type(ArtifactTypes.DOCKER_IMAGE)
         .build();
   }

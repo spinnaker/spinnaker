@@ -42,6 +42,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -104,6 +106,7 @@ public class ArtifactReplacer {
                     .map(s -> Artifact.builder()
                         .type(r.getType().toString())
                         .reference(s)
+                        .name(r.getNameFromReference(s))
                         .build()
                     );
               } catch (Exception e) {
@@ -122,6 +125,8 @@ public class ArtifactReplacer {
   public static class Replacer {
     private final String replacePath;
     private final String findPath;
+    private final Pattern namePattern; // the first group should be the artifact name
+
     @Getter
     private final ArtifactTypes type;
 
@@ -140,6 +145,19 @@ public class ArtifactReplacer {
 
     ArrayNode findAll(DocumentContext obj) {
        return obj.read(findPath);
+    }
+
+    String getNameFromReference(String reference) {
+      if (namePattern == null) {
+        return null;
+      }
+
+      Matcher m = namePattern.matcher(reference);
+      if (m.find() && m.groupCount() > 0 && StringUtils.isNotEmpty(m.group(1))) {
+        return m.group(1);
+      } else {
+        return null;
+      }
     }
 
     boolean replaceIfPossible(DocumentContext obj, Artifact artifact) {
