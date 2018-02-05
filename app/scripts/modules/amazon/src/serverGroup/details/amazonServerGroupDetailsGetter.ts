@@ -77,7 +77,7 @@ export function amazonServerGroupDetailsGetter(props: IServerGroupDetailsProps, 
             } else {
               autoClose();
             }
-          });
+          }, autoClose);
         }, autoClose
       );
   });
