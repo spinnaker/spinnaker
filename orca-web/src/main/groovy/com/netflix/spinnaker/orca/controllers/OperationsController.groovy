@@ -101,8 +101,6 @@ class OperationsController {
     if (pipelineError == null) {
       startPipeline(processedPipeline)
     } else {
-      throw pipelineError
-      log.error("Failed to run pipeline:", pipelineError)
       markPipelineFailed(processedPipeline, pipelineError)
       throw pipelineError
     }
