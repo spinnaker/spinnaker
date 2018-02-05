@@ -9,6 +9,7 @@ import { IJudge } from '../domain/IJudge';
 import { IMetricSetPair } from '../domain/IMetricSetPair';
 import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
 import { IUpdateListPayload } from '../layout/list';
+import { IMetricsServiceMetadata } from '../domain/IMetricsServiceMetadata';
 
 export interface IKayentaAction<T> extends Action {
   payload: T;
@@ -74,3 +75,8 @@ export const selectTemplate = createAction<{name: string}>(Actions.SELECT_TEMPLA
 export const updateMetricScopeName = createAction<{scopeName: string}>(Actions.UPDATE_METRIC_SCOPE_NAME);
 export const changeMetricGroup = createAction<{id: string}>(Actions.CHANGE_METRIC_GROUP);
 export const updateCanaryExecutions = createAction<{executions: ICanaryExecutionStatusResult[]}>(Actions.UPDATE_CANARY_EXECUTIONS);
+export const loadMetricsServiceMetadataRequest = createAction<{filter: string}>(Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST);
+export const loadMetricsServiceMetadataSuccess = createAction<{data: IMetricsServiceMetadata}>(Actions.LOAD_METRICS_SERVICE_METADATA_SUCCESS);
+export const loadMetricsServiceMetadataFailure = createAction<{error: Error}>(Actions.LOAD_METRICS_SERVICE_METADATA_FAILURE);
+export const updateStackdriverMetricDescriptorFilter = createAction<{filter: string}>(Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER);
+export const updateStackdriverMetricType = createAction<{metricType: string}>(Actions.UPDATE_STACKDRIVER_METRIC_TYPE);

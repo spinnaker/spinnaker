@@ -19,6 +19,7 @@ import {
 } from '../service/run/canaryRun.service';
 import { runSelector } from '../selectors/index';
 import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
+import { listMetricsServiceMetadata } from '../service/metricsServiceMetadata.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -98,6 +99,22 @@ const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: Middlew
         .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
     });
 
+const updateStackdriverMetricDescriptionFilterEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(typeMatches(Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER))
+    .filter(action => action.payload.filter && action.payload.filter.length > 2)
+    .debounceTime(200 /* milliseconds */)
+    .map(action => Creators.loadMetricsServiceMetadataRequest({ filter: action.payload.filter }));
+
+const loadMetricsServiceMetadataEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(typeMatches(Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST))
+    .concatMap(action => {
+      return Observable.fromPromise(listMetricsServiceMetadata(action.payload.filter))
+        .map(data => Creators.loadMetricsServiceMetadataSuccess({ data }))
+        .catch((error: Error) => Observable.of(Creators.loadMetricsServiceMetadataFailure({ error })));
+    });
+
 const rootEpic = combineEpics(
   loadConfigEpic,
   selectConfigEpic,
@@ -106,6 +123,8 @@ const rootEpic = combineEpics(
   deleteConfigSuccessEpic,
   loadCanaryRunRequestEpic,
   loadMetricSetPairEpic,
+  updateStackdriverMetricDescriptionFilterEpic,
+  loadMetricsServiceMetadataEpic,
 );
 
 export const epicMiddleware: EpicMiddleware<Action & any, ICanaryState> = createEpicMiddleware(rootEpic);

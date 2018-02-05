@@ -61,3 +61,7 @@ export const EDIT_TEMPLATE_VALUE = 'edit_template_value';
 export const DELETE_TEMPLATE = 'delete_template';
 export const SELECT_TEMPLATE = 'select_template';
 export const UPDATE_CANARY_EXECUTIONS = 'update_canary_executions';
+export const LOAD_METRICS_SERVICE_METADATA_REQUEST = 'load_metrics_service_metadata_request';
+export const LOAD_METRICS_SERVICE_METADATA_SUCCESS = 'load_metrics_service_metadata_success';
+export const LOAD_METRICS_SERVICE_METADATA_FAILURE = 'load_metrics_service_metadata_failure';
+export const UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER = 'update_stackdriver_metric_descriptor_filter';

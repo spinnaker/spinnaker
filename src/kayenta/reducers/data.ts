@@ -9,6 +9,13 @@ import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
+import { IMetricsServiceMetadata } from '../domain/IMetricsServiceMetadata';
+import { AsyncRequestState } from './asyncRequest';
+
+interface IMetricsServiceMetadataState {
+  load: AsyncRequestState;
+  data: IMetricsServiceMetadata[];
+}
 
 export interface IDataState {
   application: Application;
@@ -16,6 +23,7 @@ export interface IDataState {
   configs: ICanaryConfig[];
   judges: IJudge[];
   executions: ICanaryExecutionStatusResult[]
+  metricsServiceMetadata: IMetricsServiceMetadataState;
 }
 
 export const application = handleActions({
@@ -45,10 +53,31 @@ const judges = handleActions({
   [Actions.UPDATE_JUDGES]: (_state: IJudge[], action: Action & any): IJudge[] => action.payload.judges,
 }, null);
 
+
 const executions = handleActions({
   [Actions.UPDATE_CANARY_EXECUTIONS]:
     (_state: ICanaryExecutionStatusResult[], action: Action & any) => action.payload.executions,
 }, []);
+
+const metricsServiceMetadata = combineReducers<IMetricsServiceMetadataState>({
+  load: handleActions({
+    [Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST]: () => AsyncRequestState.Requesting,
+    [Actions.LOAD_METRICS_SERVICE_METADATA_SUCCESS]: () => AsyncRequestState.Fulfilled,
+    [Actions.LOAD_METRICS_SERVICE_METADATA_FAILURE]: () => AsyncRequestState.Failed,
+  }, AsyncRequestState.Fulfilled),
+  data: handleActions({
+    [Actions.LOAD_METRICS_SERVICE_METADATA_SUCCESS]:
+      (_state: IMetricsServiceMetadata[], action: Action & any) => action.payload.data,
+    [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]:
+      (state: IMetricsServiceMetadata, action: Action & any) => {
+        // When the user clears the Stackdriver metric type dropdown,
+        // clear the backing set of metric descriptors, since they
+        // no longer apply to the filter.
+        return action.payload.metricType ? state : [];
+      },
+    [Actions.EDIT_METRIC_BEGIN]: () => [],
+  }, []),
+});
 
 export const data: Reducer<IDataState> = combineReducers<IDataState>({
   application,
@@ -56,4 +85,5 @@ export const data: Reducer<IDataState> = combineReducers<IDataState>({
   judges,
   configs,
   executions,
+  metricsServiceMetadata,
 });

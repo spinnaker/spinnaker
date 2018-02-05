@@ -13,6 +13,10 @@ const createValidationReducer = (validator: IConfigValidator) => {
     }
 
     const error = validator(state);
+    if (!error) {
+      return state;
+    }
+
     return {
       ...state,
       selectedConfig: {

@@ -6,10 +6,9 @@ import { get } from 'lodash';
 import FormRow from 'kayenta/layout/formRow';
 import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
-import { getMetricTypes } from './metricType.service';
 import { IUpdateListPayload, List } from 'kayenta/layout/list';
-import * as Actions from 'kayenta/actions';
 import * as Creators from 'kayenta/actions/creators';
+import StackdriverMetricTypeSelector from './metricTypeSelector';
 
 interface IStackdriverMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;
@@ -24,22 +23,11 @@ interface IStackdriverMetricConfigurerDispatchProps {
 * Component for configuring a Stackdriver metric.
 * */
 function StackdriverMetricConfigurer({ editingMetric, updateMetricType, updateGroupBy }: IStackdriverMetricConfigurerStateProps & IStackdriverMetricConfigurerDispatchProps) {
-  // TODO(dpeach): finish this.
-  // Will probably have to load these asynchronously somewhere else.
-  const metricTypeOptions: Select.Option[] = getMetricTypes().map(type =>
-    ({
-      label: type.split('/').slice(1).join('/'), // Omit API prefix.
-      value: type
-    })
-  );
-
   return (
     <section>
       <FormRow label="Metric Type">
-        <Select
+        <StackdriverMetricTypeSelector
           value={get(editingMetric, 'query.metricType', '')}
-          options={metricTypeOptions}
-          clearable={false}
           onChange={updateMetricType}
         />
       </FormRow>
@@ -62,10 +50,9 @@ function mapStateToProps(state: ICanaryState): IStackdriverMetricConfigurerState
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IStackdriverMetricConfigurerDispatchProps {
   return {
     updateMetricType: (option: Select.Option): void => {
-      dispatch({
-        type: Actions.UPDATE_STACKDRIVER_METRIC_TYPE,
-        metricType: option.value,
-      });
+      dispatch(Creators.updateStackdriverMetricType({
+        metricType: (option ? option.value : null) as string,
+      }));
     },
     updateGroupBy: payload => dispatch(Creators.updateStackdriverGroupBy(payload)),
   };
