@@ -60,6 +60,7 @@ public class JobDescription {
   private String capacityGroup;
   private Efs efs;
   private MigrationPolicy migrationPolicy;
+  private Map<String, String> securityAttributes;
 
   //Soft/Hard constraints
 
@@ -103,6 +104,7 @@ public class JobDescription {
     gpu = request.getGpu();
     retries = request.getRetries();
     runtimeLimitSecs = request.getRuntimeLimitSecs();
+    securityAttributes = new HashMap<String, String>();
   }
 
   public String getName() {
@@ -365,6 +367,11 @@ public class JobDescription {
   }
 
   @JsonIgnore
+  public Map<String, String> getSecurityAttributes() {
+    return securityAttributes;
+  }
+
+  @JsonIgnore
   public JobDescriptor getGrpcJobDescriptor() {
 
     // trying to keep the same order as in the proto definition https://stash.corp.netflix.com/projects/TN/repos/titus-api-definitions/browse/src/main/proto/netflix/titus/titus_job_api.proto
@@ -426,6 +433,10 @@ public class JobDescription {
 
     if (iamProfile != null) {
       securityProfile.setIamRole(iamProfile);
+    }
+
+    if (!securityAttributes.isEmpty()){
+      securityProfile.putAllAttributes(securityAttributes);
     }
 
     containerBuilder.setSecurityProfile(securityProfile);
