@@ -4,7 +4,7 @@ import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
-import { Application, HelpField, IWizardPageProps, ValidationError, wizardPage } from '@spinnaker/core';
+import { Application, HelpField, IWizardPageProps, SpInput, ValidationError, spelNumberCheck, wizardPage } from '@spinnaker/core';
 
 import {
   IAmazonApplicationLoadBalancer,
@@ -54,7 +54,12 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
         tgErrors.name = 'Target group name is automatically prefixed with the application name and cannot exceed 32 characters in length.';
       }
 
-      ['name', 'protocol', 'port', 'healthCheckInterval', 'healthCheckPath', 'healthCheckPort', 'healthCheckProtocol'].forEach((key) => {
+      ['port', 'healthCheckInterval', 'healthCheckPort', 'healthyThreshold', 'unhealthyThreshold'].forEach((key) => {
+        const err = spelNumberCheck(targetGroup[key]);
+        if (err) { tgErrors[key] = err; }
+      });
+
+      ['name', 'protocol', 'port', 'healthCheckInterval', 'healthCheckPath', 'healthCheckPort', 'healthCheckProtocol', 'healthyThreshold', 'unhealthyThreshold'].forEach((key) => {
         if (!targetGroup[key]) { tgErrors[key] = 'Required'; }
       })
 
@@ -159,180 +164,189 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
       <div className="container-fluid form-horizontal">
         <div className="form-group">
           <div className="col-md-12">
-            {values.targetGroups.map((targetGroup, index) => (
-              <div key={index} className="wizard-pod">
-                <div>
-                  <div className="wizard-pod-row header">
-                    <div className="wizard-pod-row-title">Group Name</div>
-                    <div className="wizard-pod-row-contents">
-                      <div className="wizard-pod-row-data">
-                        <span className="group-name-prefix">{app.name}-</span>
-                        <input
-                          className="form-control input-sm target-group-name"
-                          type="text"
-                          value={targetGroup.name}
-                          onChange={(event) => this.targetGroupFieldChanged(index, 'name', event.target.value)}
-                          required={true}
-                        />
-                        <a className="sm-label clickable" onClick={() => this.removeTargetGroup(index)}><span className="glyphicon glyphicon-trash"/></a>
-                      </div>
-                      {errors.targetGroups && errors.targetGroups[index].name && <div className="wizard-pod-row-errors"><ValidationError message={errors.targetGroups[index].name}/></div>}
-                    </div>
-                  </div>
-                  <div className="wizard-pod-row">
-                    <div className="wizard-pod-row-title">Backend Connection</div>
-                    <div className="wizard-pod-row-contents">
-                      <div className="wizard-pod-row-data">
-                        <span className="wizard-pod-content">
-                          <label>Protocol </label><HelpField id="aws.targetGroup.protocol"/>{' '}
-                          <select
-                            className="form-control input-sm inline-number"
-                            value={targetGroup.protocol}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'protocol', event.target.value)}
-                            disabled={index < oldTargetGroupCount}
-                          >
-                            {ProtocolOptions}
-                          </select>
-                        </span>
-                        <span className="wizard-pod-content">
-                          <label>Port </label><HelpField id="aws.targetGroup.port"/>{' '}
+            {values.targetGroups.map((targetGroup, index) => {
+              const tgErrors = (errors.targetGroups && errors.targetGroups[index]) || {};
+              return (
+                <div key={index} className="wizard-pod">
+                  <div>
+                    <div className="wizard-pod-row header">
+                      <div className="wizard-pod-row-title">Group Name</div>
+                      <div className="wizard-pod-row-contents">
+                        <div className="wizard-pod-row-data">
+                          <span className="group-name-prefix">{app.name}-</span>
                           <input
-                            className="form-control input-sm inline-number"
-                            value={targetGroup.port}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'port', event.target.value)}
+                            className="form-control input-sm target-group-name"
                             type="text"
+                            value={targetGroup.name}
+                            onChange={(event) => this.targetGroupFieldChanged(index, 'name', event.target.value)}
                             required={true}
-                            disabled={index < oldTargetGroupCount}
                           />
-                        </span>
+                          <a className="sm-label clickable" onClick={() => this.removeTargetGroup(index)}><span className="glyphicon glyphicon-trash"/></a>
+                        </div>
+                        {tgErrors.name && <div className="wizard-pod-row-errors"><ValidationError message={tgErrors.name}/></div>}
                       </div>
                     </div>
-                  </div>
-                  <div className="wizard-pod-row">
-                    <div className="wizard-pod-row-title">Healthcheck</div>
-                    <div className="wizard-pod-row-contents">
-                      <div className="wizard-pod-row-data">
-                        <span className="wizard-pod-content">
-                          <label>Protocol </label>
-                          <select
-                            className="form-control input-sm inline-number"
-                            value={targetGroup.healthCheckProtocol}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckProtocol', event.target.value)}
-                          >
-                            {ProtocolOptions}
-                          </select>
-                        </span>
-                        <span className="wizard-pod-content">
-                          <label>Port </label>
-                          <input
-                            className="form-control input-sm inline-number"
-                            type="text"
-                            required={true}
-                            value={targetGroup.healthCheckPort}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckPort', event.target.value)}
-                          />
-                        </span>
-                        <span className="wizard-pod-content">
-                          <label>Path </label>
-                          <input
-                            className="form-control input-sm inline-text"
-                            type="text"
-                            required={true}
-                            value={targetGroup.healthCheckPath}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckPath', event.target.value)}
-                          />
-                        </span>
-                        <span className="wizard-pod-content">
-                          <label>Timeout </label>
-                          <input
-                            className="form-control input-sm inline-number"
-                            type="text"
-                            required={true}
-                            value={targetGroup.healthCheckTimeout}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckTimeout', event.target.value)}
-                          />
-                        </span>
-                        <span className="wizard-pod-content">
-                          <label>Interval </label>
-                          <input
-                            className="form-control input-sm inline-number"
-                            type="text"
-                            required={true}
-                            value={targetGroup.healthCheckInterval}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckInterval', event.target.value)}
-                          />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="wizard-pod-row">
-                    <div className="wizard-pod-row-title">Healthcheck Threshold</div>
-                    <div className="wizard-pod-row-contents">
-                      <div className="wizard-pod-row-data">
-                        <span className="wizard-pod-content">
-                          <label>Healthy </label>
-                          <input
-                            className="form-control input-sm inline-number"
-                            type="number"
-                            required={true}
-                            value={targetGroup.healthyThreshold}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'healthyThreshold', event.target.value)}
-                          />
-                        </span>
-                        <span className="wizard-pod-content">
-                          <label>Unhealthy </label>
-                          <input
-                            className="form-control input-sm inline-number"
-                            type="number"
-                            required={true}
-                            value={targetGroup.unhealthyThreshold}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'unhealthyThreshold', event.target.value)}
-                          />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="wizard-pod-row">
-                    <div className="wizard-pod-row-title">Attributes</div>
-                    <div className="wizard-pod-row-contents">
-                      <div className="wizard-pod-row-data">
-                        <span className="wizard-pod-content">
-                          <label>Dereg. Delay</label><HelpField id="aws.targetGroup.attributes.deregistrationDelay"/>{' '}
-                          <input
-                            className="form-control input-sm inline-number"
-                            type="number"
-                            value={targetGroup.attributes.deregistrationDelay}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.deregistrationDelay', event.target.value)}
-                          />
-                        </span>
-                        <span className="wizard-pod-content">
-                          <label className="checkbox-inline" style={{ paddingTop: '2px' }}>
-                            <input
-                              type="checkbox"
-                              value={targetGroup.attributes.stickinessEnabled ? 'true' : 'false'}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.stickinessEnabled', event.target.checked)}
-                            />
-                              {' '}<label>Sticky</label><HelpField id="aws.targetGroup.attributes.stickinessEnabled"/>
-                          </label>
-                        </span>
-                        {targetGroup.attributes.stickinessEnabled && (
+                    <div className="wizard-pod-row">
+                      <div className="wizard-pod-row-title">Backend Connection</div>
+                      <div className="wizard-pod-row-contents">
+                        <div className="wizard-pod-row-data">
                           <span className="wizard-pod-content">
-                            <label>Duration </label><HelpField id="aws.targetGroup.attributes.stickinessDuration"/>
-                            {' '}
+                            <label>Protocol </label><HelpField id="aws.targetGroup.protocol"/>{' '}
+                            <select
+                              className="form-control input-sm inline-number"
+                              value={targetGroup.protocol}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'protocol', event.target.value)}
+                              disabled={index < oldTargetGroupCount}
+                            >
+                              {ProtocolOptions}
+                            </select>
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label>Port </label><HelpField id="aws.targetGroup.port"/>{' '}
                             <input
                               className="form-control input-sm inline-number"
-                              value={targetGroup.attributes.stickinessDuration}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.stickinessDuration', event.target.value)}
-                              type="number"
+                              value={targetGroup.port}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'port', event.target.value)}
+                              type="text"
+                              required={true}
+                              disabled={index < oldTargetGroupCount}
                             />
                           </span>
-                        )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="wizard-pod-row">
+                      <div className="wizard-pod-row-title">Healthcheck</div>
+                      <div className="wizard-pod-row-contents">
+                        <div className="wizard-pod-row-data">
+                          <span className="wizard-pod-content">
+                            <label>Protocol </label>
+                            <select
+                              className="form-control input-sm inline-number"
+                              value={targetGroup.healthCheckProtocol}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckProtocol', event.target.value)}
+                            >
+                              {ProtocolOptions}
+                            </select>
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label>Port </label>
+                            <SpInput
+                              className="form-control input-sm inline-number"
+                              error={tgErrors.healthCheckPort}
+                              name="healthCheckPort"
+                              required={true}
+                              value={targetGroup.healthCheckPort}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckPort', event.target.value)}
+                            />
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label>Path </label>
+                            <SpInput
+                              className="form-control input-sm inline-text"
+                              error={tgErrors.healthCheckPath}
+                              name="healthCheckPath"
+                              required={true}
+                              value={targetGroup.healthCheckPath}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckPath', event.target.value)}
+                            />
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label>Timeout </label>
+                            <SpInput
+                              className="form-control input-sm inline-number"
+                              error={tgErrors.healthCheckTimeout}
+                              name="healthCheckTimeout"
+                              required={true}
+                              value={targetGroup.healthCheckTimeout}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckTimeout', event.target.value)}
+                            />
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label>Interval </label>
+                            <SpInput
+                              className="form-control input-sm inline-number"
+                              error={tgErrors.healthCheckInterval}
+                              name="healthCheckInterval"
+                              required={true}
+                              value={targetGroup.healthCheckInterval}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckInterval', event.target.value)}
+                            />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="wizard-pod-row">
+                      <div className="wizard-pod-row-title">Healthcheck Threshold</div>
+                      <div className="wizard-pod-row-contents">
+                        <div className="wizard-pod-row-data">
+                          <span className="wizard-pod-content">
+                            <label>Healthy </label>
+                            <SpInput
+                              className="form-control input-sm inline-number"
+                              error={tgErrors.healthyThreshold}
+                              name="healthyThreshold"
+                              type="text"
+                              value={targetGroup.healthyThreshold}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthyThreshold', event.target.value)}
+                            />
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label>Unhealthy </label>
+                            <SpInput
+                              className="form-control input-sm inline-number"
+                              error={tgErrors.unhealthyThreshold}
+                              name="unhealthyThreshold"
+                              required={true}
+                              value={targetGroup.unhealthyThreshold}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'unhealthyThreshold', event.target.value)}
+                            />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="wizard-pod-row">
+                      <div className="wizard-pod-row-title">Attributes</div>
+                      <div className="wizard-pod-row-contents">
+                        <div className="wizard-pod-row-data">
+                          <span className="wizard-pod-content">
+                            <label>Dereg. Delay</label><HelpField id="aws.targetGroup.attributes.deregistrationDelay"/>{' '}
+                            <input
+                              className="form-control input-sm inline-number"
+                              type="text"
+                              value={targetGroup.attributes.deregistrationDelay}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.deregistrationDelay', event.target.value)}
+                            />
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label className="checkbox-inline" style={{ paddingTop: '2px' }}>
+                              <input
+                                type="checkbox"
+                                value={targetGroup.attributes.stickinessEnabled ? 'true' : 'false'}
+                                onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.stickinessEnabled', event.target.checked)}
+                              />
+                                {' '}<label>Sticky</label><HelpField id="aws.targetGroup.attributes.stickinessEnabled"/>
+                            </label>
+                          </span>
+                          {targetGroup.attributes.stickinessEnabled && (
+                            <span className="wizard-pod-content">
+                              <label>Duration </label><HelpField id="aws.targetGroup.attributes.stickinessDuration"/>
+                              {' '}
+                              <input
+                                className="form-control input-sm inline-number"
+                                value={targetGroup.attributes.stickinessDuration}
+                                onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.stickinessDuration', event.target.value)}
+                                type="text"
+                              />
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <table className="table table-condensed packed">
               <tbody>
                 <tr>
