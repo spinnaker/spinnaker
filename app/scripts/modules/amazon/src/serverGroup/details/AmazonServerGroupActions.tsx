@@ -194,41 +194,37 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
     const entityTagTargets: IOwnerOption[] = ReactInjector.clusterTargetBuilder.buildClusterTargets(serverGroup);
 
-    if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
-      return (
-        <Dropdown className="dropdown" id="server-group-actions-dropdown">
-          <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
-            Server Group Actions
-          </Dropdown.Toggle>
-          <Dropdown.Menu className="dropdown-menu">
-            {!serverGroup.isDisabled && <li><a className="clickable" onClick={this.rollbackServerGroup}>Rollback</a></li>}
-            {!serverGroup.isDisabled && <li role="presentation" className="divider"/>}
-            <li><a className="clickable" onClick={this.resizeServerGroup}>Resize</a></li>
-            {!serverGroup.isDisabled && <li><a className="clickable" onClick={this.disableServerGroup}>Disable</a></li>}
-            {this.hasDisabledInstances() && this.isEnableLocked() && <li><a className="clickable" onClick={this.enableServerGroup}>Enable</a></li>}
-            {this.isEnableLocked() && (
-              <li className="disabled">
-                <Tooltip value="Cannot enable this server group until resize operation completes" placement="left">
-                  <a><span className="small glyphicon glyphicon-lock"/>{' '}Enable</a>
-                </Tooltip>
-              </li>
-            )}
-            <li><a className="clickable" onClick={this.destroyServerGroup}>Destroy</a></li>
-            <li><a className="clickable" onClick={this.cloneServerGroup}>Clone</a></li>
-            {showEntityTags && (
-              <AddEntityTagLinks
-                component={serverGroup}
-                application={app}
-                entityType="serverGroup"
-                ownerOptions={entityTagTargets}
-                onUpdate={app.serverGroups.refresh}
-              />
-            )}
-          </Dropdown.Menu>
-        </Dropdown>
-      );
-    }
-
-    return null;
+    return (
+      <Dropdown className="dropdown" id="server-group-actions-dropdown">
+        <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">
+          Server Group Actions
+        </Dropdown.Toggle>
+        <Dropdown.Menu className="dropdown-menu">
+          {!serverGroup.isDisabled && <li><a className="clickable" onClick={this.rollbackServerGroup}>Rollback</a></li>}
+          {!serverGroup.isDisabled && <li role="presentation" className="divider"/>}
+          <li><a className="clickable" onClick={this.resizeServerGroup}>Resize</a></li>
+          {!serverGroup.isDisabled && <li><a className="clickable" onClick={this.disableServerGroup}>Disable</a></li>}
+          {this.hasDisabledInstances() && this.isEnableLocked() && <li><a className="clickable" onClick={this.enableServerGroup}>Enable</a></li>}
+          {this.isEnableLocked() && (
+            <li className="disabled">
+              <Tooltip value="Cannot enable this server group until resize operation completes" placement="left">
+                <a><span className="small glyphicon glyphicon-lock"/>{' '}Enable</a>
+              </Tooltip>
+            </li>
+          )}
+          <li><a className="clickable" onClick={this.destroyServerGroup}>Destroy</a></li>
+          <li><a className="clickable" onClick={this.cloneServerGroup}>Clone</a></li>
+          {showEntityTags && (
+            <AddEntityTagLinks
+              component={serverGroup}
+              application={app}
+              entityType="serverGroup"
+              ownerOptions={entityTagTargets}
+              onUpdate={app.serverGroups.refresh}
+            />
+          )}
+        </Dropdown.Menu>
+      </Dropdown>
+    );
   }
 }
