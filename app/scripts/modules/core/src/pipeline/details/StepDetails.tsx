@@ -65,10 +65,12 @@ export class StepDetails extends React.Component<IStepDetailsProps, IStepDetails
     return (
       <div className="stage-details">
         <div className="stage-details-heading">
-          <h5>
-            <StatusGlyph item={stage} />
-            {robotToHuman(stage.name || stage.type)}
-          </h5>
+          {stage && (
+            <h5>
+              <StatusGlyph item={stage} />
+              {robotToHuman(stage.name || stage.type)}
+            </h5>
+          )}
         </div>
         {sourceUrl && <StepExecutionDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} configSections={configSections} />}
         {executionDetailsSections && <StepExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />}
