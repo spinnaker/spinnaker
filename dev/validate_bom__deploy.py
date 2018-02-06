@@ -151,6 +151,11 @@ class BaseValidateBomDeployer(object):
     script = list(init_script)
     self.add_install_hal_script_statements(script)
     self.add_platform_deploy_script_statements(script)
+    if self.options.halyard_config_bucket_credentials:
+      files_to_upload.add(self.options.halyard_config_bucket_credentials)
+      self.add_inject_halyard_application_default_credentials(
+          self.options.halyard_config_bucket_credentials, script)
+    self.add_platform_deploy_script_statements(script)
 
     # Add the version first to avoid warnings or facilitate checks
     # with the configuration commands
@@ -237,13 +242,34 @@ class BaseValidateBomDeployer(object):
     """Hook for specialized platforms to implement the concrete undeploy()."""
     raise NotImplementedError(self.__class__.__name__)
 
+  def add_inject_halyard_application_default_credentials(self, local_path, script):
+    """Inject google application credentials into halyards startup script.
+
+    This is only so we can install halyard against a halyard test repo.
+    We're doing this injection because halyard does not explicitly support this
+    use case from installation, though does support the use of application default
+    credentials.
+    """
+    script.append('first=$(head -1 /opt/halyard/bin/halyard)')
+    script.append('inject="export GOOGLE_APPLICATION_DEFAULT_CREDENTIALS={path}"'
+                  .format(path='$(pwd)/' + os.path.basename(local_path)))
+    script.append('remaining=$(tail -n +2 /opt/halyard/bin/halyard)')
+    script.append('cat <<EOF | sudo tee /opt/halyard/bin/halyard\n'
+                  '$first\n$inject\n$remaining\n'
+                  'EOF')
+    script.append('sudo chmod 755 /opt/halyard/bin/halyard')
+    script.append('sudo service halyard restart')
+    script.append('for i in `seq 1 30`; do'
+                  ' if nc localhost 8064 -w 1; then break; fi;'
+                  ' sleep 1; done')
+
   def add_install_hal_script_statements(self, script):
     """Adds the sequence of Bash statements to fetch and install halyard."""
     options = self.options
     script.append('curl -s -O {url}'.format(url=options.halyard_install_script))
     install_params = ['-y']
     if options.halyard_config_bucket:
-      install_params.extend(['--config_bucket', options.halyard_config_bucket])
+      install_params.extend(['--config-bucket', options.halyard_config_bucket])
     if options.halyard_repository:
       install_params.extend(['--repository', options.halyard_repository])
     if options.halyard_version:
@@ -1156,6 +1182,11 @@ def init_argument_parser(parser):
   parser.add_argument(
       '--halyard_config_bucket', default=None,
       help='The global halyard configuration bucket to override, if any.')
+
+  parser.add_argument(
+      '--halyard_config_bucket_credentials', default=None,
+      help='If specified, give these credentials to halyard'
+           ' in order to access the global halyard GCS bucket.')
 
   parser.add_argument(
       '--spinnaker_repository',
