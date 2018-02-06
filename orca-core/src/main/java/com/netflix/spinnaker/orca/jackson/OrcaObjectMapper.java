@@ -18,8 +18,11 @@ package com.netflix.spinnaker.orca.jackson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
 
 public class OrcaObjectMapper {
   private OrcaObjectMapper() {}
@@ -28,6 +31,9 @@ public class OrcaObjectMapper {
     ObjectMapper instance = new ObjectMapper();
     instance.registerModule(new Jdk8Module());
     instance.registerModule(new GuavaModule());
+    instance.registerModule(new JavaTimeModule());
+    instance.disable(READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
+    instance.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     instance.disable(FAIL_ON_UNKNOWN_PROPERTIES);
     instance.setSerializationInclusion(NON_NULL);
     return instance;

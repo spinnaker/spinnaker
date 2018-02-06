@@ -42,7 +42,7 @@ class WaitTaskSpec extends Specification {
 
     then:
     result.status == RUNNING
-    result.context.waitTaskState.startTime > 1
+    result.context.startTime != null
     stage.context.putAll(result.context)
 
     when:
@@ -53,7 +53,7 @@ class WaitTaskSpec extends Specification {
 
     then:
     result.status == SUCCEEDED
-    result.context.waitTaskState.size() == 0
+    result.context.startTime == null
 
   }
 
