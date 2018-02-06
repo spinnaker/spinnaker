@@ -21,27 +21,32 @@ import time
 
 
 class Metric(object):
-  """A metric."""
+  """A metric with unique combination of name and bindings."""
 
   @property
   def family(self):
-    """The metric family this instance belongs to."""
+    """The metric family this instance belongs to.
+
+    Members of a family share the same name but different label bindings.
+    """
     return self.__family
 
   @property
+  def name(self):
+    return self.__family.name
+
+  @property
+  def labels(self):
+    return self.__labels
+
+  @property
   def last_modified(self):
-    """Time metric was last modified."""
+    """In real seconds."""
     return self.__last_modified
 
   @property
   def mutex(self):
-    """Mutex for this instance."""
     return self.__mutex
-
-  @property
-  def labels(self):
-    """Return bound labels."""
-    return self.__labels
 
   def __init__(self, family, labels):
     self.__mutex = threading.Lock()
@@ -57,7 +62,6 @@ class Metric(object):
 
 
 class Counter(Metric):
-  """A counter."""
 
   @property
   def count(self):
@@ -69,18 +73,14 @@ class Counter(Metric):
     self.__count = 0
 
   def inc(self, amount=1, utc=None):
-    """Increment the counter"""
     with self.mutex:
       self.__count += amount
       self.touch(utc=utc)
 
 
 class Gauge(Metric):
-  """A gauge."""
-
   @property
   def value(self):
-    """The current gauge value."""
     return self.__compute()
 
   def __init__(self, family, labels, compute=None):
@@ -98,7 +98,7 @@ class Gauge(Metric):
       self.dec()
 
   def set(self, value, utc=None):
-    """Set the gauge value."""
+    """Set the gauge to an absolute value."""
     with self.mutex:
       self.__value = value
       self.touch(utc=utc)
@@ -114,68 +114,6 @@ class Gauge(Metric):
     with self.mutex:
       self.__value -= amount
       self.touch(utc=utc)
-
-
-class MetricFamily(object):
-  """A Factory for a counter or Gauge metric with specifically bound labels."""
-
-  GAUGE = 'GAUGE'
-  COUNTER = 'COUNTER'
-  TIMER = 'TIMER'
-
-  @property
-  def start_time(self):
-    """The start time values are relative to."""
-    return self.__registry.start_time
-
-  @property
-  def name(self):
-    """The abstract name for this family."""
-    return self.__name
-
-  @property
-  def description(self):
-    """The documentation for this metric."""
-    return self.__description
-
-  @property
-  def registry(self):
-    """The MetricsRegistry containing this family."""
-    return self.__registry
-
-  @property
-  def family_type(self):
-    """Returns the type of metrics in this family (GAUGE, COUNTER, TIMER)."""
-    return self.__family_type
-
-  @property
-  def mutex(self):
-    """Returns lock for this family."""
-    return self.__mutex
-
-  @property
-  def instance_list(self):
-    """Return all the label binding metric variatiosn within this family."""
-    return self.__instances.values()
-
-  def __init__(self, registry, name, description, factory, family_type):
-    self.__mutex = threading.Lock()
-    self.__name = name
-    self.__description = description
-    self.__factory = factory
-    self.__instances = {}
-    self.__registry = registry
-    self.__family_type = family_type
-
-  def get(self, labels):
-    """Returns a metric instance with bound labels."""
-    key = ''.join('{0}={1}'.format(key, value) for key, value in labels.items())
-    with self.__mutex:
-      got = self.__instances.get(key)
-      if got is None:
-        got = self.__factory(self, labels)
-        self.__instances[key] = got
-      return got
 
 
 class Timer(Metric):
@@ -204,6 +142,68 @@ class Timer(Metric):
       self.touch(utc=utc)
 
 
+class MetricFamily(object):
+  """A Factory for a counter or Gauge metric with specifically bound labels."""
+
+  GAUGE = 'GAUGE'
+  COUNTER = 'COUNTER'
+  TIMER = 'TIMER'
+
+  @property
+  def start_time(self):
+    """The start time values are relative to."""
+    return self.__registry.start_time
+
+  @property
+  def name(self):
+    """The name for this family will be the name of its Metric instances."""
+    return self.__name
+
+  @property
+  def description(self):
+    """The documentation for this metric."""
+    return self.__description
+
+  @property
+  def registry(self):
+    """The MetricsRegistry containing this family."""
+    return self.__registry
+
+  @property
+  def family_type(self):
+    """Returns the type of metrics in this family (GAUGE, COUNTER, TIMER)."""
+    return self.__family_type
+
+  @property
+  def mutex(self):
+    """Returns lock for this family."""
+    return self.__mutex
+
+  @property
+  def instance_list(self):
+    """Return all the label binding metric variations within this family."""
+    return self.__instances.values()
+
+  def __init__(self, registry, name, description, factory, family_type):
+    self.__mutex = threading.Lock()
+    self.__name = name
+    self.__description = description
+    self.__factory = factory
+    self.__instances = {}
+    self.__registry = registry
+    self.__family_type = family_type
+
+  def get(self, labels):
+    """Returns a metric instance with bound labels."""
+    key = ''.join('{0}={1}'.format(key, value) for key, value in labels.items())
+    with self.__mutex:
+      got = self.__instances.get(key)
+      if got is None:
+        got = self.__factory(self, labels)
+        self.__instances[key] = got
+      return got
+
+
 class BaseMetricsRegistry(object):
   """Provides base class interface for metrics management.
 
@@ -215,6 +215,7 @@ class BaseMetricsRegistry(object):
   case of short lived batch jobs so there's going to be a lot of maintainence
   here and trials of different systems making this investment more appealing.
   """
+  # pylint: disable=too-many-public-methods
 
   @property
   def options(self):
@@ -235,128 +236,112 @@ class BaseMetricsRegistry(object):
     """Constructs registry with options from init_argument_parser."""
     self.__start_time = datetime.datetime.utcnow()
     self.__options = options
-    self.__mutex = threading.Lock()
     self.__pusher_thread = None
     self.__pusher_thread_event = threading.Event()
     self.__metric_families = {}
+    self.__family_mutex = threading.Lock()
     self.__updated_metrics = set([])
+    self.__update_mutex = threading.Lock()
 
-  def queue_update(self, metric):
-    """Add metric to list of metrics to push out."""
-    with self.__mutex:
-      self.__updated_metrics.add(metric)
-
-  def register_counter(self, name, description, label_names, value_type=long):
-    """Defines a counter metric."""
-    return self.__register_family(name, self._do_make_counter_family,
-                                  description, label_names, value_type)
-  def _do_make_counter_family(
-      self, name, description, label_names, value_type):
-    """Creates new metric-system specific counter family.
-
-    Args:
-      name: [string] Metric name.
-      description: [string] Metric help description.
-      label_names: [list of string] The labels used to distinguish instances.
-      value_type: [type] int, long, or float
-
-    Returns:
-      CounterFamily
-    """
-    raise NotImplementedError()
-
-  def counter(self, name, labels):
-    """Returns the specified counter."""
-    family = self.__metric_families[name]
-    if family.family_type != family.COUNTER:
-      raise TypeError('{have} is not a Counter'.format(have=family))
-    return family.get(labels)
-
-  def inc(self, name, labels, amount=1):
-    """Increment the implied counter."""
-    self.counter(name, labels).inc(amount=amount)
-
-  def register_gauge(self, name, description, label_names, value_type=long):
-    """Defines a gauge metric."""
-    return self.__register_family(name, self._do_make_gauge_family,
-                                  description, label_names, value_type)
-  def _do_make_gauge_family(
-      self, name, description, label_names, value_type):
+  def _do_make_family(
+      self, family_type, name, description, label_names):
     """Creates new metric-system specific gauge family.
 
     Args:
+      family_type: MetricFamily.COUNTER, GUAGE, or TIMER
       name: [string] Metric name.
       description: [string] Metric help description.
       label_names: [list of string] The labels used to distinguish instances.
-      value_type: [type] int, long, or float
 
     Returns:
-      GaugeFamily
+      specialized MetricFamily for the given type and registry implementation.
     """
     raise NotImplementedError()
 
-  def gauge(self, name, labels):
-    """Returns the specified gauge."""
-    family = self.__metric_families[name]
-    if family.family_type != family.GAUGE:
-      raise TypeError('{have} is not a Gauge'.format(have=family))
-    return family.get(labels)
+  def queue_update(self, metric):
+    """Add metric to list of metrics to push out."""
+    with self.__update_mutex:
+      self.__updated_metrics.add(metric)
 
-  def set(self, name, labels, value):
+  def inc_counter(self, name, labels, description, **kwargs):
+    """Track number of completed calls to the given function."""
+    family = self.__ensure_family(
+        MetricFamily.COUNTER, name, labels, description)
+    counter = family.get(labels)
+    counter.inc(**kwargs)
+    return counter
+
+  def count_call(self, name, labels, description,
+                 func, *pos_args, **kwargs):
+    """Track number of completed calls to the given function."""
+    labels = dict(labels)
+    success = False
+    try:
+      result = func(*pos_args, **kwargs)
+      success = True
+      return result
+    finally:
+      labels['success'] = success
+      self.inc_counter(name, labels, description, **kwargs)
+
+  def set(self, name, labels, description, value):
     """Sets the implied gauge with the specified value."""
-    self.gauge(name, labels).set(value)
+    family = self.__ensure_family(
+        MetricFamily.GAUGE, name, labels, description)
+    gauge = family.get(labels)
+    gauge.set(value)
+    return gauge
 
-  def track(self, name, labels, func, *pos_args, **kwargs):
+  def track_call(self, name, labels, description, func, *pos_args, **kwargs):
     """Track number of active calls to the given function."""
-    self.gauge(name, labels).track(func, *pos_args, **kwargs)
+    family = self.__ensure_family(
+        MetricFamily.GAUGE, name, labels, description)
+    gauge = family.get(labels)
+    return gauge.track(func, *pos_args, **kwargs)
 
-  def _do_make_timer_family(self, name, description, label_names):
-    """Creates new metric-system specific timer family.
+  def observe_timer(self, name, labels, description, seconds):
+    """Add an observation to the specified timer."""
+    family = self.__ensure_family(
+        MetricFamily.TIMER, name, labels, description)
+    timer = family.get(labels)
+    timer.observe(seconds)
+    return timer
 
-    Args:
-      name: [string] Metric name.
-      description: [string] Metric help description.
-      label_names: [list of string] The labels used to distinguish instances.
+  def time_call(self, name, labels, description,
+                func, *pos_args, **kwargs):
+    """Track number of completed calls to the given function."""
+    family = self.__ensure_family(
+        MetricFamily.TIMER, name, labels, description)
+    timer = family.get(labels)
 
-    Returns:
-      TimerFamily
-    """
-    raise NotImplementedError()
+    try:
+      start_time = time.time()
+      return func(*pos_args, **kwargs)
+    finally:
+      timer.observe(time.time() - start_time)
 
-  def register_timer(self, name, description, label_names):
-    """Defines a summary metric."""
-    return self.__register_family(name, self._do_make_timer_family,
-                                  description, label_names)
+  def lookup_family_or_none(self, name):
+    return self.__metric_families.get(name)
 
-  def timer(self, name, labels):
-    """Returns the specified counter."""
-    family = self.__metric_families[name]
-    if family.family_type != family.TIMER:
-      raise TypeError('{have} is not a Timer'.format(have=family))
-    return family.get(labels)
-
-  def time(self, name, labels, func, *pos_args, **kwargs):
-    """Time a call to the given function."""
-    timer = self.timer(name, labels)
-    with timer.mutex:
-      try:
-        start_time = time.time()
-        return func(*pos_args, **kwargs)
-      finally:
-        timer.observe(time.time() - start_time)
-
-  def __register_family(
-      self, name, family_factory, description, label_names, *pos_args):
+  def __ensure_family(
+      self, family_type, name, labels, description, *pos_args):
     """Find family with given name if it exists already, otherwise make one."""
     family = self.__metric_families.get(name)
     if family:
+      if family.family_type != family_type:
+        raise TypeError('{have} is not a {want}'.format(
+            have=family, want=family_type))
       return family
-    with self.__mutex:
-      self.__metric_families[name] = family_factory(
-          name, description, label_names, *pos_args)
+
+    family = self._do_make_family(
+        family_type, name, description, labels.keys(), *pos_args)
+    with self.__family_mutex:
+      if name not in self.__metric_families:
+        self.__metric_families[name] = family
+    return family
 
   def instrument_track_and_outcome(
-      self, name, description, base_labels, outcome_labels_func,
+      self, name, description, track_labels, outcome_labels_func,
       result_func, *pos_args, **kwargs):
     """Call the function with the given arguments while instrumenting it.
 
@@ -366,16 +351,17 @@ class BaseMetricsRegistry(object):
     start = time.time()
     try:
       tracking_name = name + '_InProgress'
-      self.register_gauge(tracking_name, description, base_labels.keys())
-      tracking_gauge = self.gauge(tracking_name, base_labels)
-      return tracking_gauge.track(result_func, *pos_args, **kwargs)
+      result = self.track_call(tracking_name, track_labels, description,
+                               result_func, *pos_args, **kwargs)
+      outcome_labels = outcome_labels_func()
+      return result
+    except:
+      outcome_labels = outcome_labels_func()
+      raise
     finally:
       seconds = max(0, time.time() - start)
       outcome_name = name + '_Outcome'
-      outcome_labels = outcome_labels_func()
-      self.register_timer(outcome_name, description, outcome_labels.keys())
-      outcome_timer = self.timer(outcome_name, outcome_labels)
-      outcome_timer.observe(seconds)
+      self.observe_timer(outcome_name, outcome_labels, description, seconds)
 
   def start_pusher_thread(self):
     """Starts thread for pushing metrics."""
@@ -384,13 +370,8 @@ class BaseMetricsRegistry(object):
       # pylint: disable=broad-except
       try:
         if self.__pusher_thread:
-          # Remove noisy logging once satisified there isnt a deadlock.
-          logging.debug('Pusher thread wait %s',
-                        self.options.monitoring_flush_frequency)
           self.__pusher_thread_event.wait(
               self.options.monitoring_flush_frequency)
-          logging.debug('Pusher thread returning %s',
-                        self.__pusher_thread is not None)
           return self.__pusher_thread is not None
       except Exception as ex:
         logging.error('Pusher thread delay func caught %s', ex)
@@ -403,20 +384,20 @@ class BaseMetricsRegistry(object):
   def stop_pusher_thread(self):
     """Stop thread for pushing metrics."""
     logging.debug('Signaling pusher thread %s', self.__pusher_thread)
+    pusher_thread = self.__pusher_thread
     self.__pusher_thread = None
     self.__pusher_thread_event.set()
 
-    # Thread will remain around until it awakes and sees it should exit the
-    # loop, though there is a race condition in which we might restart the
-    # loop again before the old one wakes up, but in practice restarts are
-    # not an expected use case.
+    # Give a chance for the thread to self-terminate before we continue.
+    # It's ok if this times out, but logging is cleaner to give it a chance.
+    pusher_thread.join(2)
 
   def flush_every_loop(self, ready_func):
     """Start a loop that pushes while the ready_func is true."""
-    logging.info('Starting loop to push metrics...')
+    logging.debug('Starting loop to push metrics...')
     while ready_func():
       self.flush_updated_metrics()
-    logging.info('Ending loop to push metrics...')
+    logging.debug('Ending loop to push metrics...')
 
   def _do_flush_updated_metrics(self, updated_metrics):
     """Writes metrics to the server."""
@@ -435,8 +416,7 @@ class BaseMetricsRegistry(object):
       logging.warning('Monitoring disabled -- dont push final metrics.')
       return
 
-    with self.__mutex:
-      self._do_flush_final_metrics()
+    self._do_flush_final_metrics()
 
   def flush_updated_metrics(self):
     """Push incremental metrics to the metrics server."""
@@ -444,6 +424,7 @@ class BaseMetricsRegistry(object):
       logging.warning('Monitoring disabled -- dont push incremental metrics.')
       return
 
-    with self.__mutex:
-      self._do_flush_updated_metrics(self.__updated_metrics)
+    with self.__update_mutex:
+      updated_metrics = self.__updated_metrics
       self.__updated_metrics = set([])
+    self._do_flush_updated_metrics(updated_metrics)
