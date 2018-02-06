@@ -3,23 +3,18 @@
 # Regen locally with `dot -O -Tpng dev/build_and_publish.dot`
 
 digraph Flow_Build {
-
-    Trigger [shape=Msquare];
     labeljust=l
 	style=filled;
 	color=lightgrey;
-
-
-
     node [style=filled,color=white];
 
+    Trigger [shape=Msquare];
     Trigger -> build_bom
     bom_built -> build_containers
     bom_built -> build_debians
     bom_built -> build_rpms
     bom_built -> build_changelog
     bom_built -> build_apidocs
-
 
     subgraph cluster_0 {
         label = "Build BOM"
@@ -36,7 +31,6 @@ digraph Flow_Build {
 		}
 		look_backwards_for_SEMVAR_tag -> bom_built
     }
-
 
 	subgraph cluster_10 {
 		label = "Containers";
@@ -68,7 +62,6 @@ digraph Flow_Build {
 		}
 	}
 	gradle_buildDeb_20 -> publish_nightly_bom;
-
 
 	subgraph cluster_30 {
 		label = "RPMs";
@@ -112,7 +105,6 @@ digraph Flow_Build {
 		generate_swagger_docs_to_file -> shutdown_gate;
 	}
 	shutdown_gate -> publish_nightly_bom;
-
 
 	subgraph cluster_60 {
 		label = "Publish";
