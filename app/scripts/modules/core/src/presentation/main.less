@@ -1,9 +1,23 @@
 @import "~core/presentation/less/imports/commonImports.less";
 @import "stickyHeader";
-@import '~react-select/less/select';
 
 @fixed-header-z-index: 1030;
-@select-input-height: 30px;
+
+/* Resets for React select */
+.Select--multi .Select-multi-value-wrapper,
+.Select-control,
+.Select-input {
+  height: 30px;
+}
+
+.Select-input {
+  font-size: 12px;
+}
+
+.Select-placeholder {
+  line-height: 30px;
+  height: inherit;
+}
 
 /* Space out content a bit */
 body {
