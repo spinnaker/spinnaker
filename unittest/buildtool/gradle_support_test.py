@@ -16,19 +16,17 @@
 
 import textwrap
 import unittest
-from buildtool.build_commands import GradleMetricsUpdater
-import buildtool.metrics
-import buildtool.git
 
-class SimpleNamespace(object):
-  def __init__(self):
-    self.metric_name_scope = 'unittest'
-    self.monitoring_flush_frequency = -1
-    self.monitoring_system = 'file'
-    self.monitoring_enabled = True
+from buildtool import (
+    GitRepositorySpec,
+    MetricsManager)
 
-REPOSITORY = buildtool.git.RemoteGitRepository('testRepo', '/path/to/repo', None)
+from buildtool.gradle_support import GradleMetricsUpdater
 
+from test_util import init_runtime
+
+
+REPOSITORY = GitRepositorySpec('testRepo')
 
 BINTRAY_ERROR_OUTPUT = textwrap.dedent("""\
      :echo-web:publishBuildDeb
@@ -39,7 +37,7 @@ BINTRAY_ERROR_OUTPUT = textwrap.dedent("""\
      -----------
      * What went wrong:
      Execution failed for task ':echo-core:bintrayUpload'.
-     > Could not upload to 'https://api.bintray.com/content/spinnaker-releases/ewiseblatt-maven/echo/1.542.0/com/netflix/spinnaker/echo/echo-core/1.542.0/echo-core-1.542.0.jar': HTTP/1.1 409 Conflict [message:Unable to upload files: An artifact with the path 'com/netflix/spinnaker/echo/echo-core/1.542.0/echo-core-1.542.0.jar' already exists]
+     > GOLDEN TESTING ERROR EXAMPLE Could not upload to 'https://api.bintray.com/content/spinnaker-releases/ewiseblatt-maven/echo/1.542.0/com/netflix/spinnaker/echo/echo-core/1.542.0/echo-core-1.542.0.jar': HTTP/1.1 409 Conflict [message:Unable to upload files: An artifact with the path 'com/netflix/spinnaker/echo/echo-core/1.542.0/echo-core-1.542.0.jar' already exists]
      
      * Try:
      Run with --info or --debug option to get more log output.
@@ -48,7 +46,7 @@ BINTRAY_ERROR_OUTPUT = textwrap.dedent("""\
 
 class TestGradleMetricsUpdater(unittest.TestCase):
   def setUp(self):
-      self.metrics = buildtool.metrics.MetricsManager.singleton()
+    self.metrics = MetricsManager.singleton()
 
   def test_ok(self):
     updater = GradleMetricsUpdater(self.metrics, REPOSITORY, 'TestWhatThing')
@@ -80,11 +78,5 @@ class TestGradleMetricsUpdater(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  import logging
-  logging.basicConfig(
-      format='%(levelname).1s %(asctime)s.%(msecs)03d %(message)s',
-      datefmt='%H:%M:%S',
-      level=logging.DEBUG)
-
-  buildtool.metrics.MetricsManager.startup_metrics(SimpleNamespace())
+  init_runtime()
   unittest.main(verbosity=2)

@@ -17,7 +17,7 @@
 This module is reponsible for determining the configuration
 then acquiring and dispatching commands.
 
-Commands are introduced into modules, and modules are explciitly
+Commands are introduced into modules, and modules are explicitly
 plugged into the command_modules[] list in main() where they
 will be initialized and their commands registered into the registry.
 From there this module will be able to process arguments and
@@ -27,14 +27,16 @@ dispatch commands.
 import argparse
 import datetime
 import logging
+import os
 import sys
+import time
 import yaml
 
-from buildtool.git import GitRunner
 from buildtool.metrics import MetricsManager
-from buildtool.util import (
+from buildtool import (
     add_parser_argument,
-    maybe_log_exception)
+    maybe_log_exception,
+    GitRunner)
 
 
 STANDARD_LOG_LEVELS = {
@@ -44,7 +46,11 @@ STANDARD_LOG_LEVELS = {
     'error': logging.ERROR
 }
 
-def init_standard_parser(parser, defaults):
+# This is so tests can disable it
+CHECK_HOME_FOR_CONFIG = True
+
+
+def add_standard_parser_args(parser, defaults):
   """Init argparser with command-independent options.
 
   Args:
@@ -57,29 +63,29 @@ def init_standard_parser(parser, defaults):
 
   add_parser_argument(
       parser, 'default_args_file', defaults, None,
-      help='path to YAML file containing default command-line options')
+      help='Path to YAML file containing command-line option overrides.'
+           ' The default is $HOME/.spinnaker/buildtool.yml if present.'
+           ' This parameter will overload the defaults. Embedded'
+           ' default_args_file will also be read at a lower precedence than'
+           ' the containing file.')
 
   add_parser_argument(
       parser, 'log_level', defaults, 'info',
       choices=STANDARD_LOG_LEVELS.keys(),
       help='Set the logging level')
   add_parser_argument(
-      parser, 'root_path', defaults, 'build_source',
-      help='Path to directory to put source code to build in.')
-  add_parser_argument(
-      parser, 'scratch_dir', defaults, 'scratch',
+      parser, 'output_dir', defaults, 'output',
       help='Directory to write working files.')
   add_parser_argument(
-      parser, 'logs_dir', defaults, None,
-      help='Override director to write logfiles.'
-      ' The default is <scratch_dir>/log.')
+      parser, 'input_dir', defaults, 'source_code',
+      help='Directory to cache input files, such as cloning git repos.')
   add_parser_argument(
-      parser, 'build_number', defaults,
-      '{:%Y%m%d%H%M%S}'.format(datetime.datetime.utcnow()),
-      help='Build number is used when generating artifacts.')
-  add_parser_argument(
-      parser, 'one_at_a_time', defaults, False, action='store_true',
+      parser, 'one_at_a_time', defaults, False, type=bool,
       help='Do not perform applicable concurrency, for debugging.')
+  add_parser_argument(
+      parser, 'parent_invocation_id', defaults,
+      '{:%y%m%d}.{}'.format(datetime.datetime.utcnow(), os.getpid()),
+      help='For identifying the context of the metrics data to be produced.')
 
 
 def __load_defaults_from_path(path, visited=None):
@@ -98,6 +104,7 @@ def __load_defaults_from_path(path, visited=None):
     # the override file references the default one
     # and the CLI argument points to the override file.
     base_defaults_file = defaults.get('default_args_file')
+
     if base_defaults_file:
       base_defaults = __load_defaults_from_path(base_defaults_file)
       base_defaults.update(defaults)  # base is lower precedence.
@@ -121,11 +128,18 @@ def preprocess_args(args):
   parser.add_argument('--default_args_file', default=None)
 
   options, args = parser.parse_known_args(args)
-  if not options.default_args_file:
-    defaults = {}
+
+  home_path = os.path.join(os.environ['HOME'], '.spinnaker', 'buildtool.yml')
+  if CHECK_HOME_FOR_CONFIG and os.path.exists(home_path):
+    defaults = __load_defaults_from_path(home_path)
+    defaults['default_args_file'] = home_path
   else:
-    defaults = __load_defaults_from_path(options.default_args_file)
-    defaults['default_args_file'] = options.default_args_file
+    defaults = {}
+
+  if options.default_args_file:
+    override_defaults = __load_defaults_from_path(options.default_args_file)
+    override_defaults['default_args_file'] = options.default_args_file
+    defaults.update(override_defaults)
 
   return args, defaults
 
@@ -171,33 +185,36 @@ def init_options_and_registry(args, command_modules):
   args, defaults = preprocess_args(args)
 
   parser = argparse.ArgumentParser(prog='buildtool.sh')
-  init_standard_parser(parser, defaults)
+  add_standard_parser_args(parser, defaults)
   MetricsManager.init_argument_parser(parser, defaults)
 
   registry = make_registry(command_modules, parser, defaults)
-  return parser.parse_args(args), registry
+  options = parser.parse_args(args)
+  return options, registry
 
 
 def main():
   """The main command dispatcher."""
 
-  GitRunner.stash_and_clear_auth_env_vars()
+  start_time = time.time()
 
-  import buildtool.source_commands
-  import buildtool.build_commands
-  import buildtool.bom_commands
-  import buildtool.changelog_commands
-  import buildtool.apidocs_commands
-  import buildtool.image_commands
+  from importlib import import_module
   command_modules = [
-      buildtool.source_commands,
-      buildtool.build_commands,
-      buildtool.bom_commands,
-      buildtool.changelog_commands,
-      buildtool.apidocs_commands,
-      buildtool.image_commands
-  ]
+      import_module(name + '_commands') for name in [
+          'apidocs',
+          'bom',
+          'changelog',
+          'container',
+          'debian',
+          'halyard',
+          'image',
+          'rpm',
+          'source',
+          'spinnaker',
+          'inspection',
+      ]]
 
+  GitRunner.stash_and_clear_auth_env_vars()
   options, command_registry = init_options_and_registry(
       sys.argv[1:], command_modules)
 
@@ -218,10 +235,17 @@ def main():
     return -1
 
   MetricsManager.startup_metrics(options)
+  labels = {'command': options.command}
+  success = False
   try:
     command = factory.make_command(options)
     command()
+    success = True
   finally:
+    labels['success'] = success
+    MetricsManager.singleton().observe_timer(
+        'BuildTool_Outcome', labels, 'Program Execution',
+        time.time() - start_time)
     MetricsManager.shutdown_metrics()
 
   return 0
@@ -237,22 +261,27 @@ def dump_threads():
   import threading
   threads = []
   for thread in threading.enumerate():
-    threads.append('  name={name} daemon={d} alive={a} id={id}'.format(
-        name=thread.name, d=thread.daemon, a=thread.is_alive(),
-        id=thread.ident))
+    threads.append('  name={name} daemon={d} id={id}'.format(
+        name=thread.name, d=thread.daemon, id=thread.ident))
 
-  logging.info('The following threads still running:\n%s', '\n'.join(threads))
+  if len(threads) > 1:
+    logging.info('The following threads still running:\n%s', '\n'.join(threads))
 
 
-if __name__ == '__main__':
+def wrapped_main():
+  """Run main and dump outstanding threads when done."""
   # pylint: disable=broad-except
   try:
     retcode = main()
-    dump_threads()
-    sys.exit(retcode)
   except Exception as ex:
     sys.stdout.flush()
     maybe_log_exception('main()', ex, action_msg='Terminating')
     logging.error("FAILED")
-    dump_threads()
-    sys.exit(-1)
+    retcode = -1
+
+  dump_threads()
+  return retcode
+
+
+if __name__ == '__main__':
+  sys.exit(wrapped_main())

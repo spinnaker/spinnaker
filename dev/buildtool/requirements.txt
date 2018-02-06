@@ -1,9 +1,8 @@
 PyYAML
-google-cloud-monitoring
-prometheus_client
 
 # This is for testing
 python-dateutil
+mock
 
 # This is to satisfy gsutil
 google_compute_engine

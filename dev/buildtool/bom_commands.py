@@ -12,130 +12,114 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Implements generate_bom command for buildtool."""
+"""Implements build_bom command for buildtool."""
 
 import datetime
 import logging
 import os
-import urllib2
+import shutil
 import yaml
 
-import buildtool.build_commands
+import buildtool.container_commands
+import buildtool.debian_commands
 import buildtool.image_commands
-import buildtool.source_commands
 
-from buildtool.command import (
-    CommandFactory,
-    CommandProcessor,
+from buildtool import (
+    DEFAULT_BUILD_NUMBER,
+
+    SPINNAKER_BOM_REPOSITORY_NAMES,
+
+    BomSourceCodeManager,
+    BranchSourceCodeManager,
     RepositoryCommandFactory,
-    RepositoryCommandProcessor)
+    RepositoryCommandProcessor,
 
-from buildtool.source_code_manager import SPINNAKER_BOM_REPOSITORIES
-from buildtool.util import (
+    HalRunner,
     check_subprocess,
-    write_to_path)
+
+    check_path_exists,
+    ensure_dir_exists,
+    raise_and_log_error,
+    write_to_path,
+    ConfigError)
 
 
-# pylint: disable=fixme
-# TODO(ewiseblatt):
-# Need a way to maintain this automatically and collect it.
-DEFAULT_BOM_DEPENDENCIES = {
-    name: {'version': version}
-    for name, version in [
-        ('consul', '0.7.5'),
-        ('redis', '2:2.8.4-2'),
-        ('vault', '0.7.0')]
-}
+def _determine_bom_path(command_processor):
+  if command_processor.options.bom_path:
+    return command_processor.options.bom_path
+
+  options = command_processor.options
+  filename = '{branch}-{buildnum}.yml'.format(
+      branch=options.git_branch or 'NOBRANCH', buildnum=options.build_number)
+  return os.path.join(command_processor.get_output_dir(command='build_bom'),
+                      filename)
 
 
-def _url_prefix(url):
-  """Determine url up to the terminal path component."""
-  # We're assuming no query parameter/fragment since these are git URLs.
-  # otherwise we need to parse the url and extract the path
-  return url[:url.rfind('/')]
+def now():
+  """Hook for easier mocking."""
+  return datetime.datetime.utcnow()
 
 
-def _determine_bom_path(options):
-  if options.bom_path:
-    return options.bom_path
+class BomBuilder(object):
+  """Helper class for BuildBomCommand that constructs the bom specification."""
 
-  filename = 'bom-{branch}-{buildnumber}.yml'.format(
-      branch=options.git_branch or 'NOBRANCH', buildnumber=options.build_number)
-  return os.path.join(options.scratch_dir, filename)
+  @staticmethod
+  def new_from_bom(options, scm, bom):
+    return BomBuilder(options, scm, base_bom=bom)
 
+  @property
+  def base_bom(self):
+    return self.__base_bom
 
-class GenerateBomCommand(RepositoryCommandProcessor):
-  """Implements the generate_bom."""
-
-  def _do_determine_source_repositories(self):
-    """Implements RepositoryCommand interface."""
-    local_repository = {name: os.path.join(self.options.root_path, name)
-                        for name in SPINNAKER_BOM_REPOSITORIES.keys()}
-    return {name: self.git.determine_remote_git_repository(git_dir)
-            for name, git_dir in local_repository.items()}
-
-  def _do_repository(self, repository):
-    """Collect the summary for the given repository."""
-    scm = self.source_code_manager
-    git_dir = scm.get_local_repository_path(repository.name)
-    return scm.git.collect_repository_summary(git_dir)
-
-  def _do_postprocess(self, result_dict):
-    """Construct the bom from the collected summary, then write it out."""
-    path = _determine_bom_path(self.options)
-    summary_table = result_dict
-
-    bom = self.construct_bom(summary_table, DEFAULT_BOM_DEPENDENCIES)
-    bom_text = yaml.dump(bom, default_flow_style=False)
-    write_to_path(bom_text, path)
-    logging.info('Wrote bom to %s', path)
-
-  def to_build_version(self, version):
-    """Return version decorated with build number."""
-    build_number = self.options.build_number
-    return '{version}-{build}'.format(version=version, build=build_number)
-
-  def make_bom_services_spec(
-      self, repositories, summary_table, default_source_prefix):
-    """Create the 'services' block for a BOM.
+  def __init__(self, options, scm, base_bom=None):
+    """Construct new builder.
 
     Args:
-      repositories: [dict] The {<name>: <RemoteGitRepository>}.
-         Only those referenced in the summary_table are considered.
-      summary_table: [dict] The {<name>: <RepositorySummary>} to count.
-      default_source_prefix: [string] The repository.url prefix assumed.
+      base_bom[dict]: If defined, this is a bom to start with.
+                      It is intended to support a "refresh" use case where
+                      only a subset of entires are updated within t.
     """
-    services = {}
-    for name, summary in summary_table.items():
-      repository = repositories[name]
-      source_prefix = _url_prefix(repository.url)
+    self.__options = options
+    self.__scm = scm
+    self.__services = {}
+    self.__repositories = {}
+    self.__base_bom = base_bom or {}
+    if not base_bom and not options.bom_dependencies_path:
+      self.__bom_dependencies_path = os.path.join(
+          os.path.dirname(__file__), 'bom_dependencies.yml')
+    else:
+      self.__bom_dependencies_path = options.bom_dependencies_path
 
-      version_info = {
-          'commit': summary.commit_id,
-          'version': self.to_build_version(summary.version)
-      }
-      if source_prefix != default_source_prefix:
-        version_info['source'] = repository.url
+    if self.__bom_dependencies_path:
+      check_path_exists(self.__bom_dependencies_path, "bom_dependencies_path")
 
-      if name == ' spinnaker-monitoring':
-        services['monitoring-third-party'] = version_info
-        services['monitoring-daemon'] = version_info
-        continue
-      services[name] = version_info
-    return services
+  def to_url_prefix(self, url):
+    """Determine url up to the terminal path component."""
+    # We're assuming no query parameter/fragment since these are git URLs.
+    # otherwise we need to parse the url and extract the path
+    return url[:url.rfind('/')]
 
-  def determine_most_common_prefix(self, repositories, summary_table):
-    """Determine which of repositories url's is most commonly used.
+  def add_repository(self, repository, source_info):
+    """Helper function for determining the repository's BOM entry."""
+    version_info = {
+        'commit': source_info.summary.commit_id,
+        'version': source_info.to_build_version()
+    }
 
-    Args:
-      repositories: [dict] The {<name>: <RemoteGitRepository>}.
-         Only those referenced in the summary_table are considered.
-      summary_table: [dict] The {<name>: <RepositorySummary>} to count.
-    """
+    service_name = self.__scm.repository_name_to_service_name(repository.name)
+    self.__services[service_name] = version_info
+    self.__repositories[service_name] = repository
+    if service_name == 'monitoring-daemon':
+      # Dont use the same actual object because having the repeated
+      # value reference causes the generated yaml to be invalid.
+      self.__services['monitoring-third-party'] = dict(version_info)
+      self.__repositories['monitoring-third-party'] = repository
+
+  def determine_most_common_prefix(self):
+    """Determine which of repositories url's is most commonly used."""
     prefix_count = {}
-    for name in summary_table.keys():
-      repository = repositories[name]
-      url_prefix = _url_prefix(repository.url)
+    for repository in self.__repositories.values():
+      url_prefix = self.to_url_prefix(repository.origin)
       prefix_count[url_prefix] = prefix_count.get(url_prefix, 0) + 1
     default_prefix = None
     max_count = 0
@@ -144,123 +128,182 @@ class GenerateBomCommand(RepositoryCommandProcessor):
         default_prefix, max_count = prefix, count
     return default_prefix
 
-  def construct_bom(self, summary_table, dependencies):
-    """Create a BOM specification.
+  def build(self):
+    options = self.__options
 
-    Args:
-      summary_table: [dict] The {<name>: <RepositorySummary>} to include.
-      dependencies: [dict] Inject as the 'Dependencies' section of the BOM.
-    """
-    repositories = self.source_code_manager.source_repositories
-    default_source_prefix = self.determine_most_common_prefix(
-        repositories, summary_table)
+    if self.__bom_dependencies_path:
+      logging.debug('Loading bom dependencies from %s',
+                    self.__bom_dependencies_path)
+      with open(self.__bom_dependencies_path, 'r') as stream:
+        dependencies = yaml.load(stream.read())
+        logging.debug('Loaded %s', dependencies)
+    else:
+      dependencies = None
+    if not dependencies:
+      dependencies = self.__base_bom.get('dependencies')
 
-    services = self.make_bom_services_spec(
-        repositories, summary_table, default_source_prefix)
+    if not dependencies:
+      raise_and_log_error(ConfigError('No BOM dependencies found'))
 
-    options = self.options
+    base_sources = self.__base_bom.get('artifactSources', {})
+    default_source_prefix = (base_sources.get('gitPrefix', None)
+                             or self.determine_most_common_prefix())
+    for name, version_info in self.__services.items():
+      repository = self.__repositories[name]
+      origin = repository.origin
+      source_prefix = self.to_url_prefix(origin)
+      if source_prefix != default_source_prefix:
+        version_info['gitPrefix'] = source_prefix
+
     branch = options.git_branch or 'master'
     artifact_sources = {
         'gitPrefix': default_source_prefix,
-        'gitBranch': branch
     }
-    build_debian_repository = (
+    debian_repository = (
         None
-        if options.build_bintray_repository is None
-        else 'https://dl.bintray.com/{repo}'.format(
-            repo=options.build_bintray_repository))
+        if options.bintray_debian_repository is None
+        else 'https://dl.bintray.com/{org}/{repo}'.format(
+            org=options.bintray_org,
+            repo=options.bintray_debian_repository))
 
     artifact_sources.update({
         name: source
         for name, source in [
-            ('debianRepository', build_debian_repository),
-            ('dockerRegistry', options.build_docker_registry),
+            ('debianRepository', debian_repository),
+            ('dockerRegistry', options.docker_registry),
             ('googleImageProject', options.publish_gce_image_project)
         ]
         if source
     })
 
-    now = datetime.datetime.utcnow()
-    timestamp_decorator = '{:%Y-%m-%d}'.format(now)
-    branch_version = '{branch}-{timestamp}'.format(
-        branch=branch, timestamp=timestamp_decorator)
+    services = dict(self.__base_bom.get('services', {}))
+    services.update(self.__services)
 
     return {
         'artifactSources': artifact_sources,
         'dependencies': dependencies,
         'services': services,
-        'version': self.to_build_version(branch_version),
-        'timestamp': '{:%Y-%m-%d %H:%M:%S}'.format(now)
+        'version': '%s-%s' % (branch, options.build_number),
+        'timestamp': '{:%Y-%m-%d %H:%M:%S}'.format(now())
     }
 
 
-class GenerateBomCommandFactory(RepositoryCommandFactory):
-  """Generates bom files."""
+class BuildBomCommand(RepositoryCommandProcessor):
+  """Implements build_bom."""
 
+  def __init__(self, factory, options, *pos_args, **kwargs):
+    super(BuildBomCommand, self).__init__(factory, options, *pos_args, **kwargs)
+
+    if options.refresh_from_bom_path and options.refresh_from_bom_version:
+      raise_and_log_error(
+          ConfigError('Cannot specify both --refresh_from_bom_path="{0}"'
+                      ' and --refresh_from_bom_version="{1}"'
+                      .format(options.refresh_from_bom_path,
+                              options.refresh_from_bom_version)))
+    if options.refresh_from_bom_path:
+      logging.debug('Using base bom from path "%s"',
+                    options.refresh_from_bom_path)
+      check_path_exists(options.refresh_from_bom_path,
+                        "refresh_from_bom_path")
+      with open(options.refresh_from_bom_path, 'r') as stream:
+        base_bom = yaml.load(stream.read())
+    elif options.refresh_from_bom_version:
+      logging.debug('Using base bom version "%s"',
+                    options.refresh_from_bom_version)
+      base_bom = HalRunner(options).retrieve_bom_version(
+          options.refresh_from_bom_version)
+    else:
+      base_bom = None
+    if base_bom:
+      logging.info('Creating new bom based on version "%s"',
+                   base_bom.get('version', 'UNKNOWN'))
+    self.__builder = BomBuilder(self.options, self.scm, base_bom=base_bom)
+
+  def _do_repository(self, repository):
+    source_info = self.scm.lookup_source_info(repository)
+    self.__builder.add_repository(repository, source_info)
+
+  def _do_postprocess(self, _):
+    """Construct BOM and write it to the configured path."""
+    bom = self.__builder.build()
+    bom_text = yaml.dump(bom, default_flow_style=False)
+
+    path = _determine_bom_path(self)
+    write_to_path(bom_text, path)
+    logging.info('Wrote bom to %s', path)
+
+
+class BuildBomCommandFactory(RepositoryCommandFactory):
   def __init__(self, **kwargs):
-    super(GenerateBomCommandFactory, self).__init__(
-        'generate_bom', GenerateBomCommand, 'Generate a BOM file.',
+    super(BuildBomCommandFactory, self).__init__(
+        'build_bom', BuildBomCommand, 'Build a BOM file.',
+        BranchSourceCodeManager,
+        source_repository_names=SPINNAKER_BOM_REPOSITORY_NAMES,
         **kwargs)
 
-  def _do_init_argparser(self, parser, defaults):
-    """Adds command-specific arguments."""
-    super(GenerateBomCommandFactory, self)._do_init_argparser(parser, defaults)
-    buildtool.build_commands.add_bom_parser_args(parser, defaults)
+  def init_argparser(self, parser, defaults):
+    super(BuildBomCommandFactory, self).init_argparser(parser, defaults)
+    buildtool.container_commands.add_bom_parser_args(parser, defaults)
+    buildtool.debian_commands.add_bom_parser_args(parser, defaults)
     buildtool.image_commands.add_bom_parser_args(parser, defaults)
-    buildtool.source_commands.FetchSourceCommandFactory.add_fetch_parser_args(
-        parser, defaults)
 
     self.add_argument(
+        parser, 'build_number', defaults, DEFAULT_BUILD_NUMBER,
+        help='The build number for this specific bom.')
+    self.add_argument(
         parser, 'bom_path', defaults, None,
-        help='Generate the BOM and write it to the given path.')
+        help='The path to the local BOM file copy to write out.')
+    self.add_argument(
+        parser, 'bom_dependencies_path', defaults, None,
+        help='The path to YAML file specifying the BOM dependencies section'
+             ' if overriding.')
+    self.add_argument(
+        parser, 'refresh_from_bom_path', defaults, None,
+        help='If specified then use the existing bom_path as a prototype'
+             ' to refresh. Use with --only_repositories to create a new BOM.'
+             ' using only the new versions and build numbers for select repos'
+             ' while keeping the existing versions and build numbers for'
+             ' others.')
+    self.add_argument(
+        parser, 'refresh_from_bom_version', defaults, None,
+        help='Similar to refresh_from_bom_path but using a version obtained.'
+             ' from halyard.')
+    self.add_argument(
+        parser, 'git_fallback_branch', defaults, None,
+        help='The branch to pull for the BOM if --git_branch isnt found.'
+             ' This is intended only for speculative development where'
+             ' some repositories are being modified and the remaing are'
+             ' to come from a release branch.')
 
 
-class PublishBomCommand(CommandProcessor):
+class PublishBomCommand(RepositoryCommandProcessor):
   """Implements publish_bom"""
 
-  def _check_property(self, config, name, want):
-    """Check a configuration property meets our needs."""
-    have = config[name]
-    if have == want:
-      logging.debug('Confirmed Halyard server is configured with %s="%s"',
-                    name, have)
-    else:
-      raise ValueError(
-          'Halyard server is not configured to support this request.\n'
-          'It is using {name}={have!r} rather than {want!r}.\n'
-          'You will need to modify /opt/spinnaker/config/halyard-local.yml'
-          ' and restart the halyard server.'
-          .format(name=name, have=have, want=want))
+  def __init__(self, factory, options, **kwargs):
+    options.github_disable_upstream_push = True
+    super(PublishBomCommand, self).__init__(factory, options, **kwargs)
+    self.__hal_runner = HalRunner(options)
+    logging.debug('Verifying halyard server is consistent')
 
-  def _verify_config(self):
-    """Verify halyard is configured the way we think it is."""
     # Halyard is configured with fixed endpoints, however when we
     # pubish we want to be explicit about where we are publishing to.
     # There isnt a way to control this in halyard on a per-request basis
     # so make sure halyard was configured consistent with where we want
     # these BOMs to go.
+    self.__hal_runner.check_property(
+        'spinnaker.config.input.bucket', options.halyard_bom_bucket)
 
-    logging.debug('Verifying halyard server is consistent')
-    url = 'http://localhost:8064/resolvedEnv'
-    response = urllib2.urlopen(url)
-    if response.getcode() >= 300:
-      raise ValueError('{url}: {code}\n{body}'.format(
-          url=url, code=response.getcode(), body=response.read()))
-    config = yaml.load(response)
+  def _do_repository(self, repository):
+    """Implements RepositoryCommandProcessor interface."""
+    self.source_code_manager.ensure_local_repository(repository)
+    self.__collect_halconfig_files(repository)
 
-    self._check_property(
-        config, 'spinnaker.config.input.writerEnabled', 'true')
-    self._check_property(
-        config, 'spinnaker.config.input.bucket',
-        self.options.halyard_bom_bucket)
-
-  def _do_command(self):
-    """Implements CommandProcessor interface."""
+  def _do_postprocess(self, _):
+    """Implements RepositoryCommandProcessor interface."""
     options = self.options
-    self._verify_config()
-    bom_path = _determine_bom_path(options)
-    logging.info('Publishing bom from %s', bom_path)
-    self._publish_path(bom_path)
+    bom_path = _determine_bom_path(self)
+    self.__hal_runner.publish_bom_path(bom_path)
+    self.__publish_configs(bom_path)
 
     if options.bom_alias:
       logging.info('Publishing bom alias %s = %s',
@@ -268,46 +311,94 @@ class PublishBomCommand(CommandProcessor):
       with open(bom_path, 'r') as stream:
         bom = yaml.load(stream)
 
-      alias_path = os.path.join(options.scratch_dir, options.bom_alias)
+      alias_path = os.path.join(os.path.dirname(bom_path), options.bom_alias)
       with open(alias_path, 'w') as stream:
         bom['version'] = options.bom_alias
         yaml.dump(bom, stream, default_flow_style=False)
-      self._publish_path(alias_path)
+      self.__hal_runner.publish_bom_path(alias_path)
+      self.__publish_configs(alias_path)
 
-  def _publish_path(self, path):
-    """Publish a bom path via halyard."""
+  def __publish_configs(self, bom_path):
+    """Publish each of the halconfigs for the bom at the given path."""
+    def publish_repo_config(repository):
+      """Helper function to publish individual repository."""
+      name = self.scm.repository_name_to_service_name(repository.name)
+      config_dir = os.path.join(self.get_output_dir(), 'halconfig', name)
+      if not os.path.exists(config_dir):
+        logging.warning('No profiles for %s', name)
+        return
 
-    cmd = '{hal} admin publish bom --color false --bom-path {path}'.format(
-        hal=self.options.hal_path, path=os.path.abspath(path))
-    check_subprocess(cmd)
+      logging.debug('Publishing profiles for %s', name)
+      for profile in os.listdir(config_dir):
+        profile_path = os.path.join(config_dir, profile)
+        self.__hal_runner.publish_profile(name, profile_path, bom_path)
+
+    logging.info('Publishing halyard configs...')
+    self.source_code_manager.foreach_source_repository(
+        self.source_repositories, publish_repo_config)
+
+  def __collect_halconfig_files(self, repository):
+    """Gets the component config files and writes them into the output_dir."""
+    name = repository.name
+    if (name not in SPINNAKER_BOM_REPOSITORY_NAMES
+        or name in ['spinnaker']):
+      logging.debug('%s does not use config files -- skipping', name)
+      return
+
+    if name == 'spinnaker-monitoring':
+      config_root = os.path.join(
+          repository.git_dir, 'spinnaker-monitoring-daemon')
+    else:
+      config_root = repository.git_dir
+
+    service_name = self.scm.repository_name_to_service_name(repository.name)
+    target_dir = os.path.join(self.get_output_dir(), 'halconfig', service_name)
+    ensure_dir_exists(target_dir)
+
+    config_path = os.path.join(config_root, 'halconfig')
+    logging.info('Copying configs from %s...', config_path)
+    for profile in os.listdir(config_path):
+      profile_path = os.path.join(config_path, profile)
+      if os.path.isfile(profile_path):
+        shutil.copyfile(profile_path, os.path.join(target_dir, profile))
+        logging.debug('Copied profile to %s', profile_path)
+      elif not os.path.isdir(profile_path):
+        logging.warning('%s is neither file nor directory -- ignoring',
+                        profile_path)
+        continue
+      else:
+        tar_path = os.path.join(
+            target_dir, '{profile}.tar.gz'.format(profile=profile))
+        file_list = ' '.join(os.listdir(profile_path))
+
+        # NOTE: For historic reasons this is not actually compressed
+        # even though the tar_path says ".tar.gz"
+        check_subprocess(
+            'tar cf {path} -C {profile} {file_list}'.format(
+                path=tar_path, profile=profile_path, file_list=file_list))
+        logging.debug('Copied profile to %s', tar_path)
 
 
-class PublishBomCommandFactory(CommandFactory):
-  """Publishes local bom file to halyard."""
-
+class PublishBomCommandFactory(RepositoryCommandFactory):
   def __init__(self, **kwargs):
     super(PublishBomCommandFactory, self).__init__(
         'publish_bom', PublishBomCommand, 'Publish a BOM file to Halyard.',
+        BomSourceCodeManager,
+        source_repository_names=SPINNAKER_BOM_REPOSITORY_NAMES,
         **kwargs)
 
-  def _do_init_argparser(self, parser, defaults):
-    """Adds command-specific arguments."""
-    super(PublishBomCommandFactory, self)._do_init_argparser(parser, defaults)
-    self.add_argument(
-        parser, 'bom_path', defaults, None,
-        help='Publish the BOM from the given path.')
-    self.add_argument(
-        parser, 'bom_alias', defaults, None,
-        help='Also publish the BOM using this alias name.')
+  def init_argparser(self, parser, defaults):
+    super(PublishBomCommandFactory, self).init_argparser(parser, defaults)
+    HalRunner.add_parser_args(parser, defaults)
+
     self.add_argument(
         parser, 'halyard_bom_bucket', defaults, 'halconfig',
         help='The bucket manaing halyard BOMs and config profiles.')
     self.add_argument(
-        parser, 'hal_path', defaults, '/usr/local/bin/hal',
-        help='Path to local Halyard "hal" CLI.')
+        parser, 'bom_alias', defaults, None,
+        help='Also publish the BOM using this alias name.')
 
 
 def register_commands(registry, subparsers, defaults):
-  """Registers all the commands for this module."""
-  GenerateBomCommandFactory().register(registry, subparsers, defaults)
+  BuildBomCommandFactory().register(registry, subparsers, defaults)
   PublishBomCommandFactory().register(registry, subparsers, defaults)

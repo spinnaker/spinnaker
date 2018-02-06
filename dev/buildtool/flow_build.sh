@@ -14,8 +14,8 @@
 # limitations under the License.
 
 
-# Usage:  spinnaker/dev/buildtool/flow_generate.sh <defaults-file>
-#   e.g.  spinnaker/dev/buildtool/flow_generate.sh ga-defaults.yml
+# Usage:  spinnaker/dev/buildtool/flow_build.sh <defaults-file>
+#   e.g.  spinnaker/dev/buildtool/flow_build.sh ga-defaults.yml
 #
 # Note: This can be run from any directory, however root_dir path
 #       in the <defaults-file> will be relative to the CWD so it
@@ -28,45 +28,28 @@ source $(dirname $0)/support_functions.sh
 
 
 ########################################################
-# Fetches the main sources (wait for completion)
+# Build all the release artifacts (wait for completion)
 #
-#   Some specialized source repositories might not be
-#   included here, particularly if they are only used
-#   by individual command modules.
-########################################################
-function run_fetch_flow() {
-  start_command_unless NO_FETCH "fetch_source"
-
-  # Synchronize here so we have source before we continue.
-  wait_for_commands_or_die "Fetch"
-}
-
-
-########################################################
-# Generate all the release artifacts (wait for completion)
-#
-#    This flow generates all the artifacts so they can
+#    This flow builds all the artifacts so they can
 #    be verified and validated. It does not publish any
 #    of them beyond the needs for validation processes.
 ########################################################
-function run_generate_flow() {
-  start_command_unless NO_HALYARD "build_halyard"
+function run_build_flow() {
+  start_command_unless NO_BOM_BUILD "build_bom" \
+      $BOM_BRANCH_ARG
+
+  # Synchronize here so we have a bom before we continue.
+  wait_for_commands_or_die "Bom"
+
   start_command_unless NO_CONTAINERS "build_bom_containers"
-  start_command_unless NO_CHANGELOG "generate_changelog"
-  start_command_unless NO_BOM "generate_bom"
+  start_command_unless NO_DEBIANS    "build_debians" "--max_local_builds=6"
+  start_command_unless NO_HALYARD    "build_halyard"
+  start_command_unless NO_CHANGELOG  "build_changelog"
 
   # Allow a lot of time because machine is starved of resources at this point
-  start_command_unless NO_APIDOCS "generate_api_docs" --max_wait_secs_startup=90
+  start_command_unless NO_APIDOCS "build_apidocs" --max_wait_secs_startup=300
 
-  # Avoid a race condition where different jobs are git cloning into the
-  # scratch directory
-  echo "$(timestamp): PAUSING flow 15s to avoid a potential git race condition"
-  sleep 15
-  echo "$(timestamp): RESUMING"
-
-  start_command_unless NO_DEBIANS "build_debians" "--max_local_builds=6"
-
-  # Synchronize here so we have all the artifacts generated before we continue.
+  # Synchronize here so we have all the artifacts build before we continue.
   wait_for_commands_or_die "Build"
 
   # Only publish the bom for this build if the build succeeded.
@@ -76,7 +59,8 @@ function run_generate_flow() {
   # (e.g. if we have VMs but not containers or vice-versa)
   # However for the time being, this is all or none. We dont want to publish
   # if nothing succeeded.
-  start_command_unless NO_BOM "publish_bom"
+  start_command_unless NO_BOM_PUBLISH "publish_bom" $BOM_ALIAS
+  wait_for_commands_or_die "PublishBom"
 }
 
 
@@ -94,20 +78,20 @@ function process_args() {
       local key="$1"
       shift
       case $key in
-        --no_fetch)
-          NO_FETCH=true
-          ;;
-        --no_debians)
-          NO_DEBIANS=true
+        --no_bom_build)
+          NO_BOM_BUILD=true
           ;;
         --no_containers)
           NO_CONTAINERS=true
           ;;
+        --no_debians)
+          NO_DEBIANS=true
+          ;;
         --no_halyard)
           NO_HALYARD=true
           ;;
-        --no_bom)
-          NO_BOM=true
+        --no_bom_publish)
+          NO_BOM_PUBLISH=true
           ;;
         --no_changelog)
           NO_CHANGELOG=true
@@ -115,10 +99,31 @@ function process_args() {
         --no_apidocs)
           NO_APIDOCS=true
           ;;
+        --output|--output_dir)
+          OUTPUT_DIR=$1
+          BUILDTOOL_ARGS="$BUILDTOOL_ARGS --output_dir=$OUTPUT_DIR"
+          shift
+          ;;
         --logs|--logs_dir)
           LOGS_DIR=$1
           shift
           ;;
+        --bom_branch)
+          local branch=$1
+          BOM_BRANCH_ARG="--git_branch $1"
+          BOM_ALIAS="$1-latest-unvalidated"
+          shift
+          ;;
+        --hal_branch)
+          local branch=$1
+          HAL_BRANCH_ARG="--git_branch $1"
+          shift
+          ;;
+        --parent_invocation_id)
+          PARENT_INVOCATION_ID=$1
+          shift
+          ;;
+
         *)
           >&2 echo "Unexpeced argument '$key'"
           exit -1
@@ -128,7 +133,6 @@ function process_args() {
 
 
 process_args "$@"
-run_fetch_flow
-run_generate_flow
+run_build_flow
 
 echo "$(timestamp): FINISHED"

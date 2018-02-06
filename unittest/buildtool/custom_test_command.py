@@ -39,8 +39,8 @@ class TestCommandFactory(buildtool.command.CommandFactory):
     super(TestCommandFactory, self).__init__(
         COMMAND, TestCommand, 'My Test Command')
 
-  def _do_init_argparser(self, parser, defaults):
-    super(TestCommandFactory, self)._do_init_argparser(parser, defaults)
+  def init_argparser(self, parser, defaults):
+    super(TestCommandFactory, self).init_argparser(parser, defaults)
     TestCommandFactory.add_argument(
         parser, CUSTOM_ARG_NAME, defaults, CUSTOM_ARG_DEFAULT_VALUE)
 

@@ -15,30 +15,47 @@
 """Implements changelog commands for buildtool."""
 
 import collections
+import copy
 import datetime
 import logging
 import os
 import re
 import textwrap
 
-import buildtool.source_commands
 
+from buildtool import (
+    SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
 
-from buildtool.command import (
-    PullRequestCommandFactory,
-    PullRequestCommandProcessor,
     RepositoryCommandFactory,
-    RepositoryCommandProcessor)
-from buildtool.git import (
-    CommitMessage)
-from buildtool.source_code_manager import (
-    SPINNAKER_BOM_REPOSITORIES,
-    SPINNAKER_GITHUB_IO_REPOSITORY)
-from buildtool.util import (
+    RepositoryCommandProcessor,
+
+    BomSourceCodeManager,
+    BranchSourceCodeManager,
+
+    CommitMessage,
+    GitRunner,
+
+    UnexpectedError,
+    check_kwargs_empty,
+    check_options_set,
+    check_path_exists,
+    raise_and_log_error,
     write_to_path)
 
 
+BUILD_CHANGELOG_COMMAND = 'build_changelog'
 TITLE_LINE_MATCHER = re.compile(r'\W*\w+\(([^\)]+)\)\s*[:-]?(.*)')
+
+
+def make_options_with_fallback(options):
+  """A hack for now, using git_fallback_branch to support spinnaker.github.io
+
+  That repo does not use the release branches, rather master.
+  So if creating a release, it will fallback to master for that repo.
+  """
+  options_copy = copy.copy(options)
+  options_copy.git_fallback_branch = 'master'
+  return options_copy
 
 
 class ChangelogRepositoryData(
@@ -133,13 +150,11 @@ class ChangelogBuilder(object):
   STRIP_GITHUB_ID_MATCHER = re.compile(r'^(.*?)\s*\(#\d+\)$')
 
   def __init__(self, **kwargs):
-    """Constructor."""
     self.__entries = []
     self.__with_partition = kwargs.pop('with_partition', True)
     self.__with_detail = kwargs.pop('with_detail', False)
+    check_kwargs_empty(kwargs)
     self.__sort_partitions = True
-    if kwargs:
-      raise KeyError('Unrecognized arguments: {0}'.format(kwargs.keys()))
 
   def clean_message(self, text):
     """Remove trailing "(#<id>)" from first line of message titles"""
@@ -210,7 +225,7 @@ class ChangelogBuilder(object):
       return report
 
     one_liner = TITLE_LINE_MATCHER
-    base_url = entry.repository.url
+    base_url = entry.repository.origin
     level_marker = '#' * 4
     for title, commit_messages in partitioned_commits.items():
       report.append('{level} {title}'.format(level=level_marker, title=title))
@@ -244,7 +259,7 @@ class ChangelogBuilder(object):
 
     report = []
     report.append('### Changes by Sequence')
-    base_url = entry.repository.url
+    base_url = entry.repository.origin
     for msg in entry.normalized_messages:
       clean_text = self.clean_message(msg.message)
       link = '[{short_hash}]({base_url}/commit/{full_hash})'.format(
@@ -256,93 +271,140 @@ class ChangelogBuilder(object):
     return report
 
 
-class GenerateChangelogCommand(RepositoryCommandProcessor):
-  """Implements the generate_changelog."""
+class BuildChangelogCommand(RepositoryCommandProcessor):
+  """Implements the build_changelog."""
 
-  def _do_determine_source_repositories(self):
-    """Implements RepositoryCommand interface."""
-    upstream = self.filter_repositories(SPINNAKER_BOM_REPOSITORIES)
-    options = self.options
-    local_repository = {name: os.path.join(options.root_path, name)
-                        for name in upstream.keys()}
-
-    return {name: self.git.determine_remote_git_repository(git_dir)
-            for name, git_dir in local_repository.items()}
+  def __init__(self, factory, options, **kwargs):
+    # Use own repository to avoid race conditions when commands are
+    # running concurrently.
+    options_copy = copy.copy(options)
+    options_copy.github_disable_upstream_push = True
+    super(BuildChangelogCommand, self).__init__(factory, options_copy, **kwargs)
 
   def _do_repository(self, repository):
     """Collect the summary for the given repository."""
-    scm = self.source_code_manager
-    git_dir = scm.get_local_repository_path(repository.name)
-    return self.git.collect_repository_summary(git_dir)
+    return self.git.collect_repository_summary(repository.git_dir)
 
   def _do_postprocess(self, result_dict):
     """Construct changelog from the collected summary, then write it out."""
     options = self.options
-    summary_table = result_dict
-    path = (options.changelog_path
-            or os.path.join(options.scratch_dir, 'changelog.md'))
+    path = os.path.join(self.get_output_dir(), 'changelog.md')
 
     builder = ChangelogBuilder(with_detail=options.include_changelog_details)
-    for name, summary in summary_table.items():
-      builder.add_repository(self.source_repositories[name], summary)
+    repository_map = {repository.name: repository
+                      for repository in self.source_repositories}
+    for name, summary in result_dict.items():
+      builder.add_repository(repository_map[name], summary)
     changelog_text = builder.build()
     write_to_path(changelog_text, path)
     logging.info('Wrote changelog to %s', path)
 
 
-class GenerateChangelogCommandFactory(RepositoryCommandFactory):
-  """Generates changelog files."""
+class BuildChangelogFactory(RepositoryCommandFactory):
+  """Builds changelog files."""
   def __init__(self, **kwargs):
-    super(GenerateChangelogCommandFactory, self).__init__(
-        'generate_changelog', GenerateChangelogCommand,
-        'Generate a git changelog and write it out to a file.',
-        **kwargs)
+    super(BuildChangelogFactory, self).__init__(
+        BUILD_CHANGELOG_COMMAND, BuildChangelogCommand,
+        'Build a git changelog and write it out to a file.',
+        BomSourceCodeManager, **kwargs)
 
-  def _do_init_argparser(self, parser, defaults):
+  def init_argparser(self, parser, defaults):
     """Adds command-specific arguments."""
-    super(GenerateChangelogCommandFactory, self)._do_init_argparser(
+    super(BuildChangelogFactory, self).init_argparser(
         parser, defaults)
-    buildtool.source_commands.FetchSourceCommandFactory.add_fetch_parser_args(
-        parser, defaults)
-
     self.add_argument(
         parser, 'include_changelog_details', defaults, False,
         action='store_true',
-        help='Include the full commit messages in the changelog.')
+        help='Include a "details" section with the full commit messages'
+             ' in time sequence in the changelog.')
 
+
+class PublishChangelogFactory(RepositoryCommandFactory):
+  def __init__(self, **kwargs):
+    super(PublishChangelogFactory, self).__init__(
+        'publish_changelog', PublishChangelogCommand,
+        'Publish Spinnaker version Changelog to spinnaker.github.io.',
+        BranchSourceCodeManager, **kwargs)
+
+  def init_argparser(self, parser, defaults):
+    super(PublishChangelogFactory, self).init_argparser(
+        parser, defaults)
+    GitRunner.add_parser_args(parser, defaults)
+    GitRunner.add_publishing_parser_args(parser, defaults)
     self.add_argument(
-        parser, 'changelog_path', defaults, None,
-        help='Write the changelog to the given path.'
-             ' The default is <scratch_dir>/changelog.md')
+        parser, 'spinnaker_version', defaults, None,
+        help='The version of spinnaker this documentation is for.')
 
 
-class PublishChangelogCommand(PullRequestCommandProcessor):
+class PublishChangelogCommand(RepositoryCommandProcessor):
   """Implements publish_changelog."""
 
   def __init__(self, factory, options, **kwargs):
     super(PublishChangelogCommand, self).__init__(
-        factory, options, SPINNAKER_GITHUB_IO_REPOSITORY, 'changelog',
+        factory, make_options_with_fallback(options),
+        source_repository_names=[SPINNAKER_GITHUB_IO_REPOSITORY_NAME],
         **kwargs)
+    check_options_set(options, ['spinnaker_version'])
+    self.__markdown_path = os.path.join(
+        self.get_output_dir(command=BUILD_CHANGELOG_COMMAND),
+        'changelog.md')
+    check_path_exists(self.__markdown_path,
+                      why='output from "%s"' % BUILD_CHANGELOG_COMMAND)
 
-  def _do_add_local_repository_files(self):
-    """Write generated changelog into local SPINNAKER_GITHUB_IO_REPOSITORY.
+  def _do_repository(self, repository):
+    if repository.name != SPINNAKER_GITHUB_IO_REPOSITORY_NAME:
+      raise_and_log_error(UnexpectedError('Got "%s"' % repository.name))
 
-    This is a separate step to make it easier to test.
+    base_branch = 'master'
+    self.scm.ensure_git_path(repository, branch=base_branch)
+    version = self.options.spinnaker_version
+    if self.options.git_allow_publish_master_branch:
+      branch_flag = ''
+      head_branch = 'master'
+    else:
+      branch_flag = '-b'
+      head_branch = version + '-changelog'
 
-    Returns:
-      The path of the added changelog file relative to the git_dir.
-    """
-    source_path = os.path.join(self.options.scratch_dir, 'changelog.md')
-    with open(source_path) as f:
+    files_added = self.prepare_local_repository_files(repository)
+    git_dir = repository.git_dir
+    message = 'doc(changelog): Spinnaker Version ' + version
+
+    local_git_commands = [
+        # These commands are accomodating to a branch already existing
+        # because the branch is on the version, not build. A rejected
+        # build for some reason that is re-tried will have the same version
+        # so the branch may already exist from the earlier attempt.
+        'checkout ' + base_branch,
+        'checkout {flag} {branch}'.format(
+            flag=branch_flag, branch=head_branch),
+        'add ' + ' '.join([os.path.abspath(path) for path in files_added]),
+        'commit -m "{msg}"'.format(msg=message),
+    ]
+    logging.debug('Commiting changes into local repository "%s" branch=%s',
+                  repository.git_dir, head_branch)
+    git = self.git
+    git.check_run_sequence(git_dir, local_git_commands)
+
+    logging.info('Pushing branch="%s" into "%s"',
+                 head_branch, repository.origin)
+    git.push_branch_to_origin(git_dir, branch=head_branch)
+
+  def prepare_local_repository_files(self, repository):
+    if repository.name != SPINNAKER_GITHUB_IO_REPOSITORY_NAME:
+      raise_and_log_error(UnexpectedError('Got "%s"' % repository.name))
+
+    with open(self.__markdown_path) as f:
       detail = f.read()
 
     # Use the original capture time
-    utc = datetime.datetime.fromtimestamp(os.path.getmtime(source_path))
+    utc = datetime.datetime.fromtimestamp(
+        os.path.getmtime(self.__markdown_path))
     timestamp = '{:%Y-%m-%d %H:%M:%S %Z}'.format(utc)
 
     version = self.options.spinnaker_version
     changelog_filename = '{version}-changelog.md'.format(version=version)
-    target_path = os.path.join(self.git_dir, '_changelogs', changelog_filename)
+    target_path = os.path.join(repository.git_dir,
+                               '_changelogs', changelog_filename)
     major, minor, _ = version.split('.')
     logging.debug('Adding changelog file %s', target_path)
     with open(target_path, 'w') as f:
@@ -364,17 +426,8 @@ class PublishChangelogCommand(PullRequestCommandProcessor):
 
     return [target_path]
 
-  def _do_get_commit_message(self):
-    return 'doc(changelog): Version "{version}"'.format(
-        version=self.options.spinnaker_version)
-
 
 def register_commands(registry, subparsers, defaults):
   """Registers all the commands for this module."""
-  publish_changelog_factory = PullRequestCommandFactory(
-      'publish_changelog', PublishChangelogCommand,
-      'Push changelog to the spinnaker.github.io repository ORIGIN'
-      ' and submit a Github Pull Request on it.')
-
-  GenerateChangelogCommandFactory().register(registry, subparsers, defaults)
-  publish_changelog_factory.register(registry, subparsers, defaults)
+  BuildChangelogFactory().register(registry, subparsers, defaults)
+  PublishChangelogFactory().register(registry, subparsers, defaults)
