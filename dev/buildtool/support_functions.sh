@@ -19,6 +19,7 @@
 # The path to the buildtool program we're going to run.
 BUILDTOOL=$(dirname $0)/../buildtool.sh
 BUILDTOOL_ARGS=
+export BUILD_NUMBER=${BUILD_NUMBER:-$(date +'%Y%m%d%H%M%S')}
 
 # An associative array of jobs we are running asynchronously.
 # This is keyed by the command name, with the program PID as the value.
@@ -33,6 +34,12 @@ GOOD_COMMANDS=()
 
 # The accumulated skipped commands.
 SKIPPED_COMMANDS=()
+
+# The original PID for this job is used to decorate
+# the command logfiles
+JOBPID=$BASHPID
+
+PARENT_INVOCATION_ID=
 
 
 ########################################################
@@ -57,7 +64,7 @@ function command_log_path() {
       logs_dir="$LOGS_DIR";
   fi
   mkdir -p $logs_dir
-  echo "${logs_dir}/${command_name}-command.log"
+  echo "${logs_dir}/${command_name}-command-$JOBPID.log"
 }
 
 
@@ -103,19 +110,45 @@ function start_command() {
     extra_args="$@"
   fi
 
-  local logs_dir_arg=""
-  if [[ "${LOGS_DIR}" != "" ]]; then
-      logs_dir_arg=("--logs_dir" "${LOGS_DIR}")
-  fi
-
   local logfile=$(command_log_path $command)
   mkdir -p $(dirname logfile)
   echo "$(timestamp): Start $command"
 
-  $BUILDTOOL $BUILDTOOL_ARGS ${logs_dir_arg[@]} $command ${extra_args[@]} \
-      >& $logfile &
+  # Create traceable id to relate metrics later if needed.
+  local program=$(echo $(basename $0 | cut -f 1 -d .))
+  local invocation_id="$program-$JOBPID"
+  local parent_id
+  if [[ $PARENT_INVOCATION_ID == "" ]]; then
+      parent_id="$(date +'%y%m%d')-${invocation_id}"
+  else
+      parent_id="${PARENT_INVOCATION_ID}+${invocation_id}"
+  fi
+  local args="--parent_invocation_id=$parent_id $BUILDTOOL_ARGS"
+
+  echo "$(timestamp): $BUILDTOOL $args $command ${extra_args[@]}" \
+      &> $logfile
+  $BUILDTOOL $args $command ${extra_args[@]} \
+      &>> $logfile &
   COMMAND_TO_PID[$command]=$!
   echo "$(timestamp): Started $command as pid=${COMMAND_TO_PID[$command]} to $logfile"
+}
+
+
+##############################################################
+# Figure out how long the longest outstanding command name is
+#
+#    This is so we can pad the table showing them.
+##############################################################
+function _determine_max_command_length() {
+  local list="$1"
+  local max=0
+  for command in "${list}[@]"; do
+    local len=${#command}
+    if [[ $len -gt $max ]]; then
+      max=$len
+    fi
+  done
+  echo "$max"
 }
 
 
@@ -140,6 +173,7 @@ function wait_for_commands() {
   fi
 
   local last_count=0
+  local command_format="%$(_determine_max_command_length ${!COMMAND_TO_PID[@]})s"
   while true; do
     if [[ ${#COMMAND_TO_PID[@]} -eq 0 ]]; then
       break
@@ -149,7 +183,7 @@ function wait_for_commands() {
       last_count=${#COMMAND_TO_PID[@]}
       echo "$(timestamp): Still $last_count remaining ${description}:"
       for command in "${!COMMAND_TO_PID[@]}"; do
-        echo "  ${COMMAND_TO_PID[$command]}  $command   $(command_log_path $command)"
+        printf "  ${COMMAND_TO_PID[$command]}  $command_format   $(command_log_path $command)\n" "$command"
       done
       echo -n "$(timestamp): Waiting on ${description}..."
     fi
@@ -166,13 +200,19 @@ function wait_for_commands() {
             echo "$(timestamp): $command finished OK"
             GOOD_COMMANDS=(${GOOD_COMMANDS[@]} $command)
           else
-            >&2 echo "$(timestamp): $command FAILED.\n"
-            >&2 tail -10 $(command_log_path $command)
-            >&2 echo "    See $(command_log_path $command) for details"
-            >&2 echo ""
+            >&2 echo "$(timestamp): $command FAILED with output:\n"
+            >&2 echo "$(cat $(command_log_path $command) | sed 's/^/   >>>   /g')"
+            >&2 echo "See $(command_log_path $command) for details"
             BAD_COMMANDS=(${BAD_COMMANDS[@]} $command)
+            mkdir -p errors
+            cp $(command_log_path $command) "errors"
           fi
           unset COMMAND_TO_PID[$command]
+
+          if [[ "$OUTPUT_DIR" != "" ]]; then
+            mkdir -p "$OUTPUT_DIR/$command"
+            cp $(command_log_path $command) "$OUTPUT_DIR/$command"
+          fi
       fi
     done
   done
@@ -196,21 +236,24 @@ function wait_for_commands_or_die() {
   echo ""
   echo "$(timestamp): Finished $description"
 
+  local command_format="%$(_determine_max_command_length ${SKIPPED_COMMANDS[@]})s"
   if [[ ${#SKIPPED_COMMANDS[@]} -gt 0 ]]; then
     for command in "${SKIPPED_COMMANDS[@]}"; do
-       echo "   SKIP: $command"
+       printf "   SKIP: $command_format\n" "$command"
     done
   fi
 
+  command_format="%$(_determine_max_command_length ${GOOD_COMMANDS[@]})s"
   if [[ ${#GOOD_COMMANDS[@]} -gt 0 ]]; then
     for command in "${GOOD_COMMANDS[@]}"; do
-       echo "   OK: $command   $(command_log_path $command)"
+       printf "     OK: $command_format   $(command_log_path $command)\n" "$command"
     done
   fi
 
+  command_format="%$(_determine_max_command_length ${BAD_COMMANDS[@]})s"
   if [[ ${#BAD_COMMANDS[@]} -gt 0 ]]; then
     for command in "${BAD_COMMANDS[@]}"; do
-       echo "   FAIL: $command   $(command_log_path $command)"
+       printf "   FAIL: $command_format   $(command_log_path $command)\n" "$command"
     done
     exit -1
   fi

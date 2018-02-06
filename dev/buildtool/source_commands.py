@@ -18,166 +18,97 @@ import logging
 import os
 import shutil
 
-from buildtool.command import (
+from buildtool import (
+    DEFAULT_BUILD_NUMBER,
+    SPINNAKER_BOM_REPOSITORY_NAMES,
+    SPINNAKER_HALYARD_REPOSITORY_NAME,
+
+    BranchSourceCodeManager,
     RepositoryCommandFactory,
-    RepositoryCommandProcessor)
-from buildtool.git import (
-    GitRunner,
-    RemoteGitRepository)
-from buildtool.source_code_manager import (
-    SPINNAKER_BOM_REPOSITORIES,
-    SPINNAKER_HALYARD_REPOSITORIES,
-    SPINNAKER_RUNNABLE_REPOSITORIES)
-from buildtool.util import (
-    check_subprocess,
-    ensure_dir_exists)
+    RepositoryCommandProcessor,
+
+    raise_and_log_error,
+    ConfigError)
 
 
 class FetchSourceCommand(RepositoryCommandProcessor):
   """Implements the fetch_source command."""
 
-  def _do_determine_source_repositories(self):
-    """Implements RepositoryCommand interface."""
-    options = self.options
-
-    all_source_repos = dict(SPINNAKER_BOM_REPOSITORIES)
-    all_source_repos.update(SPINNAKER_HALYARD_REPOSITORIES)
-
-    if options.github_user in ('upstream', 'default'):
-      source_repositories = all_source_repos
-    else:
-      github = 'https://github.com/{user}'.format(user=options.github_user)
-      source_repositories = {
-          name: RemoteGitRepository(name, '%s/%s' % (github, name), upstream)
-          for name, upstream in all_source_repos.items()
-      }
-
-    return self.filter_repositories(source_repositories)
-
   def __init__(self, factory, options):
     """Implements CommandProcessor interface."""
-    super(FetchSourceCommand, self).__init__(factory, options)
-    have_bom_path = 1 if options.fetch_bom_path else 0
-    have_bom_version = 1 if options.fetch_bom_version else 0
-    have_branch = 1 if options.git_branch else 0
-    have_refresh = 1 if options.git_refresh else 0
-    if have_bom_path + have_bom_version + have_branch + have_refresh != 1:
-      raise ValueError(
-          '{name} requires one of:'
-          ' --bom_path, --bom_version, --git_branch or --refresh'
-          .format(name=self.name))
 
-    self.__bom = None
+    all_names = list(SPINNAKER_BOM_REPOSITORY_NAMES)
+    all_names.append(SPINNAKER_HALYARD_REPOSITORY_NAME)
+    super(FetchSourceCommand, self).__init__(
+        factory, options, source_repository_names=all_names)
 
-  def _do_preprocess(self):
-    """Implements RepositoryCommandProcessor interface.
-
-    Load the bom if one was specified.
-    """
+  def ensure_local_repository(self, repository):
+    """Implements RepositoryCommandProcessor interface."""
     options = self.options
-    bom_path = options.fetch_bom_path
-    bom_version = options.fetch_bom_version
-    if bom_path:
-      self.__bom = self.source_code_manager.bom_from_path(bom_path)
-    elif bom_version:
-      self.__bom = self.source_code_manager.bom_from_version(bom_version)
+    if os.path.exists(repository.git_dir):
+      if options.delete_existing:
+        logging.warning('Deleting existing %s', repository.git_dir)
+        shutil.rmtree(repository.git_dir)
+      elif options.skip_existing:
+        logging.debug('Skipping existing %s', repository.git_dir)
+      else:
+        raise_and_log_error(
+            ConfigError('"{dir}" already exists.'
+                        ' Enable "skip_existing" or "delete_existing".'
+                        .format(dir=repository.git_dir)))
+    super(FetchSourceCommand, self).ensure_local_repository(repository)
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
-    options = self.options
-    scm = self.source_code_manager
-    git_dir = scm.get_local_repository_path(repository.name)
-    branch = options.git_branch
-    default_branch = options.fallback_branch
-
-    if branch:
-      self.git.clone_repository_to_path(
-          repository.url, git_dir,
-          upstream_url=repository.upstream_url,
-          branch=branch, default_branch=default_branch)
-    elif self.__bom:
-      scm.pull_source_from_bom(repository.name, git_dir, self.__bom)
-    else:
-      self.git.refresh_local_repository(
-          git_dir, scm.git.ORIGIN_REMOTE_NAME, options.refresh_branch)
-
-    self.__collect_halconfig_files(repository)
-
-  def __collect_halconfig_files(self, repository):
-    """Gets the component config files and writes them into the scratch_path."""
-    name = repository.name
-    if (name not in SPINNAKER_RUNNABLE_REPOSITORIES.keys()
-        and name not in ['spinnaker-monitoring']):
-      logging.debug('%s does not use config files -- skipping', name)
-      return
-
-    git_dir = self.source_code_manager.get_local_repository_path(name)
-    if name == 'spinnaker-monitoring':
-      config_root = os.path.join(git_dir, 'spinnaker-monitoring-daemon')
-    else:
-      config_root = git_dir
-
-    options = self.options
-    target_dir = os.path.join(options.scratch_dir, name, 'halconfig')
-    ensure_dir_exists(target_dir)
-
-    config_path = os.path.join(config_root, 'halconfig')
-    logging.info('Copying configs from %s...', config_path)
-    for profile in os.listdir(config_path):
-      profile_path = os.path.join(config_path, profile)
-      if os.path.isfile(profile_path):
-        shutil.copyfile(profile_path, os.path.join(target_dir, profile))
-        logging.debug('Copied profile to %s', profile_path)
-      elif not os.path.isdir(profile_path):
-        logging.warning('%s is neither file nor directory -- ignoring',
-                        profile_path)
-        continue
-      else:
-        tar_path = os.path.join(
-            target_dir, '{profile}.tar.gz'.format(profile=profile))
-        file_list = ' '.join(os.listdir(profile_path))
-
-        # NOTE: For historic reasons this is not actually compressed
-        # even though the tar_path says ".tar.gz"
-        check_subprocess(
-            'tar cf {path} -C {profile} {file_list}'.format(
-                path=tar_path, profile=profile_path, file_list=file_list))
-        logging.debug('Copied profile to %s', tar_path)
+    pass
 
 
 class FetchSourceCommandFactory(RepositoryCommandFactory):
-  """Creates instances of FetchSourceCommand."""
-
-  @staticmethod
-  def add_fetch_parser_args(parser, defaults):
-    """Public method for adding standard "fetch" related arguments.
-
-    This is intended to be used by other commands wanting to be consistent.
-    """
-    add_argument = FetchSourceCommandFactory.add_argument
-    GitRunner.add_git_parser_args(parser, defaults, pull=True)
-    add_argument(
-        parser, 'fetch_bom_version', defaults, None,
-        help='Pull this BOM version rather than --git_branch.'
-        ' This requires halyard is installed to retrieve the BOM.')
-    add_argument(
-        parser, 'fetch_bom_path', defaults, None,
-        help='Pull versions from this BOM rather than --git_branch.')
-    add_argument(
-        parser, 'git_refresh', defaults, None,
-        help='Refresh existing source from this branch.')
-
   def __init__(self):
     super(FetchSourceCommandFactory, self).__init__(
         'fetch_source', FetchSourceCommand,
-        'Clone or refresh the local git repositories from the ORIGIN.')
+        'Clone or refresh the local git repositories from the origin.',
+        BranchSourceCodeManager)
 
-  def _do_init_argparser(self, parser, defaults):
-    """Adds command-specific arguments."""
-    super(FetchSourceCommandFactory, self)._do_init_argparser(parser, defaults)
-    self.add_fetch_parser_args(parser, defaults)
+  def init_argparser(self, parser, defaults):
+    super(FetchSourceCommandFactory, self).init_argparser(parser, defaults)
+    self.add_argument(
+        parser, 'build_number', defaults, DEFAULT_BUILD_NUMBER,
+        help='The build number is used when generating artifacts.')
+    self.add_argument(
+        parser, 'delete_existing', defaults, False, type=bool,
+        help='Force a new clone by removing existing directories if present.')
+    self.add_argument(
+        parser, 'skip_existing', defaults, False, type=bool,
+        help='Ignore directories that are already present.')
+
+
+class ExtractSourceInfoCommand(RepositoryCommandProcessor):
+  """Get the Git metadata for each repository, and associate a build number."""
+  def _do_repository(self, repository):
+    """Implements RepositoryCommandProcessor interface."""
+    self.source_code_manager.refresh_source_info(
+        repository, self.options.build_number)
+
+
+class ExtractSourceInfoCommandFactory(RepositoryCommandFactory):
+  """Associates the current build number with each repository."""
+
+  def __init__(self):
+    super(ExtractSourceInfoCommandFactory, self).__init__(
+        'extract_source_info', ExtractSourceInfoCommand,
+        'Get the repository metadata and establish a build number.',
+        BranchSourceCodeManager,
+        source_repository_names=SPINNAKER_BOM_REPOSITORY_NAMES)
+
+  def init_argparser(self, parser, defaults):
+    super(ExtractSourceInfoCommandFactory, self).init_argparser(
+        parser, defaults)
+    self.add_argument(
+        parser, 'build_number', defaults, DEFAULT_BUILD_NUMBER,
+        help='The build number is used when generating artifacts.')
 
 
 def register_commands(registry, subparsers, defaults):
-  """Registers all the commands for this module."""
+  ExtractSourceInfoCommandFactory().register(registry, subparsers, defaults)
   FetchSourceCommandFactory().register(registry, subparsers, defaults)

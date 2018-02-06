@@ -20,21 +20,23 @@ import os
 import shutil
 import tempfile
 import unittest
+import yaml
 
 import dateutil.parser
 
-from buildtool.git import (
-    GitRunner,
+from buildtool import (
     CommitMessage,
-    RemoteGitRepository,
+    GitRepositorySpec,
+    GitRunner,
     RepositorySummary,
-    SemanticVersion
-)
+    SemanticVersion,
 
-from buildtool.util import (
     check_subprocess,
-    check_subprocess_sequence
-)
+    check_subprocess_sequence)
+
+from test_util import init_runtime
+
+
 TAG_VERSION_PATTERN = r'^version-[0-9]+\.[0-9]+\.[0-9]+$'
 
 VERSION_BASE = 'version-0.1.0'
@@ -50,9 +52,9 @@ TEST_REPO_NAME = 'test_repository'
 def make_default_options():
   """Helper function for creating default options for runner."""
   parser = argparse.ArgumentParser()
-  parser.add_argument('--scratch_dir',
+  GitRunner.add_parser_args(parser, {'github_disable_upstream_push': True})
+  parser.add_argument('--output_dir',
                       default=os.path.join('/tmp', 'gittest.%d' % os.getpid()))
-  GitRunner.add_git_parser_args(parser, {})
   return parser.parse_args([])
 
 
@@ -92,7 +94,6 @@ class TestGitRunner(unittest.TestCase):
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
-    shutil.rmtree(cls.git.options.scratch_dir)
 
   def setUp(self):
     self.run_git('checkout master'.format(dir=self.git_dir))
@@ -193,7 +194,9 @@ class TestGitRunner(unittest.TestCase):
     os.makedirs(test_parent)
 
     test_dir = os.path.join(test_parent, TEST_REPO_NAME)
-    git.clone_repository_to_path(self.git_dir, test_dir)
+    repository = GitRepositorySpec(
+        TEST_REPO_NAME, git_dir=test_dir, origin=self.git_dir)
+    git.clone_repository_to_path(repository)
     self.assertTrue(os.path.exists(os.path.join(test_dir, 'base_file')))
 
     want_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
@@ -203,24 +206,16 @@ class TestGitRunner(unittest.TestCase):
     got = check_subprocess('git -C "{dir}" remote -v'.format(dir=test_dir))
     # Disable pushes to the origni
     # No upstream since origin is upstream
-    remote = git.ORIGIN_REMOTE_NAME
-    decoy = os.path.join(git.options.scratch_dir,
-                         'nebula_decoys',
-                         os.path.basename(self.git_dir))
     self.assertEquals(
         '\n'.join([
-            '{remote}\t{origin} (fetch)'.format(
-                remote=remote, origin=self.git_dir),
-            '{remote}\tdisabled (push)'.format(remote=remote),
-            'origin\t{decoy} (fetch)'.format(decoy=decoy),
-            'origin\t{decoy} (push)'.format(decoy=decoy)
-            ]),
+            'origin\t{origin} (fetch)'.format(origin=self.git_dir),
+            'origin\tdisabled (push)']),
         got)
 
-    reference = git.determine_remote_git_repository(test_dir)
-    self.assertEquals(
-        RemoteGitRepository.make_from_url(self.git_dir),
-        reference)
+    reference = git.determine_git_repository_spec(test_dir)
+    expect = GitRepositorySpec(os.path.basename(self.git_dir),
+                               origin=self.git_dir, git_dir=test_dir)
+    self.assertEquals(expect, reference)
 
   def test_clone_origin(self):
     git = self.git
@@ -240,8 +235,10 @@ class TestGitRunner(unittest.TestCase):
 
     test_dir = os.path.join(test_parent, TEST_REPO_NAME)
     origin_dir = os.path.join(origin_basedir, TEST_REPO_NAME)
-    self.git.clone_repository_to_path(
-        origin_dir, test_dir, upstream_url=self.git_dir)
+    repository = GitRepositorySpec(
+        TEST_REPO_NAME,
+        git_dir=test_dir, origin=origin_dir, upstream=self.git_dir)
+    self.git.clone_repository_to_path(repository)
 
     want_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
     have_tags = git.query_tag_commits(test_dir, TAG_VERSION_PATTERN)
@@ -249,38 +246,30 @@ class TestGitRunner(unittest.TestCase):
 
     got = check_subprocess('git -C "{dir}" remote -v'.format(dir=test_dir))
 
-    remote = git.ORIGIN_REMOTE_NAME
-    decoy = os.path.join(git.options.scratch_dir,
-                         'nebula_decoys',
-                         os.path.basename(self.git_dir))
     # Upstream repo is configured for pulls, but not for pushes.
     self.assertEquals(
         '\n'.join([
-            '{remote}\t{origin} (fetch)'.format(
-                remote=remote, origin=origin_dir),
-            '{remote}\t{origin} (push)'.format(
-                remote=remote, origin=origin_dir),
-            'origin\t{decoy} (fetch)'.format(decoy=decoy),
-            'origin\t{decoy} (push)'.format(decoy=decoy),
+            'origin\t{origin} (fetch)'.format(origin=origin_dir),
+            'origin\t{origin} (push)'.format(origin=origin_dir),
             'upstream\t{upstream} (fetch)'.format(upstream=self.git_dir),
             'upstream\tdisabled (push)'
             ]),
         got)
 
-    reference = git.determine_remote_git_repository(test_dir)
-    self.assertEquals(
-        RemoteGitRepository.make_from_url(
-            origin_dir,
-            upstream_ref=RemoteGitRepository.make_from_url(self.git_dir)),
-        reference)
+    reference = git.determine_git_repository_spec(test_dir)
+    expect = GitRepositorySpec(
+        os.path.basename(origin_dir),
+        upstream=self.git_dir, origin=origin_dir, git_dir=test_dir)
+    self.assertEquals(expect, reference)
 
   def test_clone_branch(self):
     test_parent = os.path.join(self.base_temp_dir, 'test_clone_branch')
     os.makedirs(test_parent)
 
     test_dir = os.path.join(test_parent, TEST_REPO_NAME)
-    self.git.clone_repository_to_path(
-        self.git_dir, test_dir, branch=BRANCH_A)
+    repository = GitRepositorySpec(
+        TEST_REPO_NAME, git_dir=test_dir, origin=self.git_dir)
+    self.git.clone_repository_to_path(repository, branch=BRANCH_A)
     self.assertEquals(BRANCH_A,
                       self.git.query_local_repository_branch(test_dir))
 
@@ -290,13 +279,14 @@ class TestGitRunner(unittest.TestCase):
     test_dir = os.path.join(test_parent, TEST_REPO_NAME)
     self.assertFalse(os.path.exists(test_dir))
 
+    repository = GitRepositorySpec(
+        TEST_REPO_NAME, git_dir=test_dir, origin=self.git_dir)
+
     branch = 'Bogus'
     regexp = r"Branches \['{branch}'\] do not exist in {url}\.".format(
         branch=branch, url=self.git_dir)
-
     with self.assertRaisesRegexp(Exception, regexp):
-      self.git.clone_repository_to_path(
-          self.git_dir, test_dir, branch=branch)
+      self.git.clone_repository_to_path(repository, branch=branch)
     self.assertFalse(os.path.exists(test_dir))
 
   def test_clone_failure(self):
@@ -306,20 +296,39 @@ class TestGitRunner(unittest.TestCase):
     with open(os.path.join(test_dir, 'something'), 'w') as f:
       f.write('not empty')
 
+    repository = GitRepositorySpec(
+        TEST_REPO_NAME, git_dir=test_dir, origin=self.git_dir)
     regexp = '.* clone .*'
     with self.assertRaisesRegexp(Exception, regexp):
-      self.git.clone_repository_to_path(
-          self.git_dir, test_dir, branch='master')
+      self.git.clone_repository_to_path(repository, branch='master')
 
   def test_default_branch(self):
     test_parent = os.path.join(self.base_temp_dir, 'test_default_branch')
     os.makedirs(test_parent)
     test_dir = os.path.join(test_parent, TEST_REPO_NAME)
 
+    repository = GitRepositorySpec(
+        TEST_REPO_NAME, git_dir=test_dir, origin=self.git_dir)
     self.git.clone_repository_to_path(
-        self.git_dir, test_dir, branch='Bogus', default_branch=BRANCH_B)
+        repository, branch='Bogus', default_branch=BRANCH_B)
     self.assertEquals(BRANCH_B,
                       self.git.query_local_repository_branch(test_dir))
+
+  def test_summarize(self):
+    # All the tags in this fixture are where the head is tagged, so
+    # these are not that interesting. This is tested again in the
+    # CommitMessage fixture for more interesting cases.
+    tests = [(BRANCH_BASE, VERSION_BASE),
+             (BRANCH_A, VERSION_A)]
+    for branch, tag in tests:
+      self.run_git('checkout ' + branch)
+      summary = self.git.collect_repository_summary(self.git_dir)
+      self.assertEquals(self.git.query_local_repository_commit_id(self.git_dir),
+                        summary.commit_id)
+      self.assertEquals(tag, summary.tag)
+      self.assertEquals(tag.split('-')[1], summary.version)
+      self.assertEquals(tag.split('-')[1], summary.prev_version)
+      self.assertEquals([], summary.commit_messages)
 
 
 class TestSemanticVersion(unittest.TestCase):
@@ -415,6 +424,28 @@ class TestCommitMessage(unittest.TestCase):
       raise NotImplementedError('platform not supported for this test')
     check_subprocess('git -C "{dir}" commit'.format(dir=git_dir), env=env)
 
+  def test_summarize(self):
+    expect_messages = ['feat(testC): added major_file\n'
+                       '\nInterestingly enough, this is a BREAKING CHANGE.',
+                       'chore(testB): added minor_file',
+                       'fix(testA): added patch_file']
+
+    all_tests = [(self.PATCH_BRANCH, '0.1.1'),
+                 (self.MINOR_BRANCH, '0.2.0'),
+                 (self.MAJOR_BRANCH, '1.0.0')]
+    for changes, spec in enumerate(all_tests):
+      branch, version = spec
+      # CommitMessage fixture for more interesting cases.
+      self.run_git('checkout ' + branch)
+      summary = self.git.collect_repository_summary(self.git_dir)
+      self.assertEquals('version-' + version, summary.tag)
+      self.assertEquals(version, summary.version)
+      self.assertEquals('0.1.0', summary.prev_version)
+      clean_messages = ['\n'.join([line.strip() for line in lines])
+                        for lines in [m.message.split('\n')
+                                      for m in summary.commit_messages]]
+      self.assertEquals(expect_messages[-changes - 1:], clean_messages)
+
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
@@ -427,7 +458,7 @@ class TestCommitMessage(unittest.TestCase):
     all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
     self.run_git('checkout {branch}'.format(branch=self.MERGED_BRANCH))
     commit_id = git.query_local_repository_commit_id(self.git_dir)
-    tag, messages = git.query_local_repository_commits_to_existing_tag_from_id(
+    _, messages = git.query_local_repository_commits_to_existing_tag_from_id(
         self.git_dir, commit_id, all_tags)
     self.assertEqual(1, len(messages))
     normalized_messages = CommitMessage.normalize_message_list(messages)
@@ -466,7 +497,7 @@ class TestCommitMessage(unittest.TestCase):
     for branch, expect in tests:
       self.run_git('checkout {branch}'.format(branch=branch))
       commit_id = git.query_local_repository_commit_id(self.git_dir)
-      tag, messages = git.query_local_repository_commits_to_existing_tag_from_id(
+      _, messages = git.query_local_repository_commits_to_existing_tag_from_id(
           self.git_dir, commit_id, all_tags)
       self.assertEquals(
           expect,
@@ -487,21 +518,58 @@ class TestCommitMessage(unittest.TestCase):
 class TestRepositorySummary(unittest.TestCase):
   def test_to_yaml(self):
     summary = RepositorySummary(
-        'abcd1234', 'mytag-987', '0.0.1',
+        'abcd1234', 'mytag-987', '0.0.1', '0.0.0',
         [CommitMessage('commit-abc', 'author', 'date', 'commit message')])
 
     expect = """commit_id: {id}
+prev_version: {prev}
 tag: {tag}
 version: {version}
-""".format(id=summary.commit_id, tag=summary.tag, version=summary.version)
+""".format(id=summary.commit_id, tag=summary.tag, version=summary.version,
+           prev=summary.prev_version)
     self.assertEquals(expect, summary.to_yaml(with_commit_messages=False))
+
+  def test_patchable_true(self):
+    tests = [('1.2.3', '1.2.2'),
+             ('1.2.1', '1.2.0'),
+             ('1.2.10', '1.2.9')]
+    for test in tests:
+      summary = RepositorySummary('abcd', 'tag-123', test[0], test[1], [])
+      self.assertTrue(summary.patchable)
+
+  def test_patchable_false(self):
+    tests = [('1.3.0', '1.2.0'),
+             ('1.3.0', '1.2.1'),
+             ('1.3.1', '1.2.0')]
+    for test in tests:
+      summary = RepositorySummary('abcd', 'tag-123', test[0], test[1], [])
+      self.assertFalse(summary.patchable)
+
+  def test_yamilfy(self):
+    # The summary values are arbitrary. Just verifying we can go in and out
+    # of yaml.
+    summary = RepositorySummary(
+        'abcd', 'tag-123', '1.2.0', '1.1.5',
+        [
+            CommitMessage('commitB', 'authorB', 'dateB', 'messageB'),
+            CommitMessage('commitA', 'authorA', 'dateA', 'messageA')
+        ])
+    yamlized = yaml.load(summary.to_yaml())
+    self.assertEquals(summary.commit_id, yamlized['commit_id'])
+    self.assertEquals(summary.tag, yamlized['tag'])
+    self.assertEquals(summary.version, yamlized['version'])
+    self.assertEquals(summary.prev_version, yamlized['prev_version'])
+    self.assertEquals(
+        [{
+            'commit_id': 'commit' + x,
+            'author': 'author' + x,
+            'date': 'date' + x,
+            'message': 'message' + x}
+         for x in ['B', 'A']],
+        yamlized['commit_messages'])
+    self.assertEquals(summary, RepositorySummary.from_dict(yamlized))
 
 
 if __name__ == '__main__':
-  import logging
-  logging.basicConfig(
-      format='%(levelname).1s %(asctime)s.%(msecs)03d %(message)s',
-      datefmt='%H:%M:%S',
-      level=logging.DEBUG)
-
+  init_runtime()
   unittest.main(verbosity=2)
