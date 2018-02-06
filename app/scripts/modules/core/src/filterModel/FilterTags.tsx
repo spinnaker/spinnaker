@@ -9,6 +9,7 @@ export interface IFilter {
 
 export interface IFilterTag extends IFilter {
   clear: () => any;
+  key: string;
 }
 
 export interface IFilterTagsProps {

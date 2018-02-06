@@ -16,7 +16,7 @@ import { Tooltip } from 'core/presentation/Tooltip';
 import { CreatePipeline } from 'core/pipeline/config/CreatePipeline';
 import { ExecutionFilters } from 'core/pipeline/filter/ExecutionFilters';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
-import { FilterTags } from 'core/filterModel';
+import { FilterTags, IFilterTag } from 'core/filterModel';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executions.less';
@@ -30,7 +30,7 @@ export interface IExecutionsState {
   filtersExpanded: boolean;
   loading: boolean;
   sortFilter: any;
-  tags: any[];
+  tags: IFilterTag[];
   triggeringExecution: boolean;
 }
 

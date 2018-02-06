@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
+import { IFilterTag } from 'core/filterModel';
 import { IPipeline } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 
@@ -20,7 +21,7 @@ export interface IExecutionFiltersProps {
 export interface IExecutionFiltersState {
   pipelineNames: string[];
   pipelineReorderEnabled: boolean;
-  tags: any[];
+  tags: IFilterTag[];
 }
 
 const DragHandle = SortableHandle(() => (
@@ -77,8 +78,8 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   private refreshExecutions(): void {
     ReactInjector.executionFilterModel.asFilterModel.applyParamsToUrl();
-    this.props.application.executions.reloadingForFilters = true;
     this.props.application.executions.refresh(true);
+    this.props.application.executions.reloadingForFilters = true;
   }
 
   private clearFilters(): void {
@@ -187,6 +188,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
               <div className="form">
                 <Pipelines
                   names={pipelineNames}
+                  tags={tags}
                   dragEnabled={pipelineReorderEnabled}
                   update={this.refreshExecutions}
                   onSortEnd={this.handleSortEnd}
@@ -230,12 +232,16 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 }
 
-const FilterCheckbox = (props: { pipeline: string, visible: boolean, update: () => void }): JSX.Element => {
-  const { pipeline, visible, update } = props;
+const FilterCheckbox = (props: { tag: IFilterTag, pipeline: string, visible: boolean, update: () => void }): JSX.Element => {
+  const { pipeline, tag, update, visible } = props;
   const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
   const changeHandler = () => {
     ReactGA.event({ category: 'Pipelines', action: 'Filter: pipeline', label: pipeline });
-    sortFilter.pipeline[pipeline] = !sortFilter.pipeline[pipeline];
+    if (tag) {
+      tag.clear();
+    } else {
+      sortFilter.pipeline[pipeline] = true;
+    }
     update();
   };
   return (
@@ -249,21 +255,27 @@ const FilterCheckbox = (props: { pipeline: string, visible: boolean, update: () 
   );
 }
 
-const Pipeline = SortableElement((props: { pipeline: string, dragEnabled: boolean, update: () => void }) => (
+const Pipeline = SortableElement((props: { tag: IFilterTag, pipeline: string, dragEnabled: boolean, update: () => void }) => (
   <div className="checkbox sortable">
   <div>
     <label>
       {props.dragEnabled && <DragHandle/>}
-      <FilterCheckbox pipeline={props.pipeline} visible={!props.dragEnabled} update={props.update}/>
+      <FilterCheckbox pipeline={props.pipeline} tag={props.tag} visible={!props.dragEnabled} update={props.update}/>
       {props.pipeline}
     </label>
   </div>
 </div>
 ));
 
-const Pipelines = SortableContainer((props: { names: string[], dragEnabled: boolean, update: () => void }) => (
+const Pipelines = SortableContainer((props: { names: string[], tags: IFilterTag[], dragEnabled: boolean, update: () => void }) => (
   <div>
-    {props.names.map((pipeline, index) => <Pipeline key={pipeline} index={index} pipeline={pipeline} disabled={!props.dragEnabled} dragEnabled={props.dragEnabled} update={props.update}/>)}
+    {props.names.map((pipeline, index) => {
+      const tag = props.tags.find((t) => t.key === 'pipeline' && t.value === pipeline);
+
+      return (
+        <Pipeline key={pipeline} tag={tag} index={index} pipeline={pipeline} disabled={!props.dragEnabled} dragEnabled={props.dragEnabled} update={props.update}/>
+      );
+    })}
   </div>
 ));
 
