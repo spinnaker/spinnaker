@@ -27,9 +27,9 @@ digraph Flow_Build {
 		    color=aquamarine3;
 
     		git_clone_at_branch -> get_HEAD_hash;
-    		get_HEAD_hash -> look_backwards_for_SEMVAR_tag;
+    		get_HEAD_hash -> look_backwards_for_SEMVER_tag;
 		}
-		look_backwards_for_SEMVAR_tag -> bom_built
+		look_backwards_for_SEMVER_tag -> bom_built
     }
 
 	subgraph cluster_10 {
@@ -41,8 +41,8 @@ digraph Flow_Build {
 		    label = "For Each Service..."
 		    color=aquamarine3
 
-    		git_clone_from_BOM_hash_10 -> git_tag_SEMVAR_buildnum_10;
-    		git_tag_SEMVAR_buildnum_10 -> gcloud_container_build
+    		git_clone_from_BOM_hash_10 -> git_tag_SEMVER_buildnum_10;
+    		git_tag_SEMVER_buildnum_10 -> gcloud_container_build
 		}
 	}
 	gcloud_container_build -> publish_nightly_bom;
@@ -72,9 +72,9 @@ digraph Flow_Build {
 		    label = "For Each Service..."
 		    color=aquamarine3
 
-    		git_clone_from_BOM_hash_30 -> git_tag_SEMVAR_buildnum_30;
+    		git_clone_from_BOM_hash_30 -> git_tag_SEMVER_buildnum_30;
     		// delete tags
-    		git_tag_SEMVAR_buildnum_30 -> gradle_buildRpm_30;
+    		git_tag_SEMVER_buildnum_30 -> gradle_buildRpm_30;
 
 		}
 	}
@@ -88,8 +88,8 @@ digraph Flow_Build {
 		    label = "For Each Service..."
 		    color=aquamarine3
 
-    		git_clone_from_BOM_hash_40 -> look_backwards_for_SEMVAR_tag_commit;
-    		look_backwards_for_SEMVAR_tag_commit -> collect_commit_messages;
+    		git_clone_from_BOM_hash_40 -> look_backwards_for_SEMVER_tag_commit;
+    		look_backwards_for_SEMVER_tag_commit -> collect_commit_messages;
 
 		}
 		collect_commit_messages -> generate_markdown_to_file;
