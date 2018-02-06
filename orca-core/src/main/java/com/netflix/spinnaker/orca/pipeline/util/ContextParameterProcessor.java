@@ -111,7 +111,10 @@ public class ContextParameterProcessor {
       context.put("parameters", trigger.getParameters());
     }
 
-    context.put("scmInfo", Optional.ofNullable((BuildInfo) context.get("buildInfo")).map(BuildInfo::getScm).orElse(null));
+    if (context.get("buildInfo") instanceof BuildInfo) {
+      context.put("scmInfo", Optional.ofNullable((BuildInfo) context.get("buildInfo")).map(BuildInfo::getScm).orElse(null));
+    }
+
     if (context.get("scmInfo") == null && trigger instanceof JenkinsTrigger) {
       context.put("scmInfo", Optional.ofNullable(((JenkinsTrigger) trigger).getBuildInfo()).map(BuildInfo::getScm).orElse(emptyList()));
     }
