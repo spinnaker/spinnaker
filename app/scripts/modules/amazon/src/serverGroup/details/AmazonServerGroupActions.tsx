@@ -204,7 +204,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
           {!serverGroup.isDisabled && <li role="presentation" className="divider"/>}
           <li><a className="clickable" onClick={this.resizeServerGroup}>Resize</a></li>
           {!serverGroup.isDisabled && <li><a className="clickable" onClick={this.disableServerGroup}>Disable</a></li>}
-          {this.hasDisabledInstances() && this.isEnableLocked() && <li><a className="clickable" onClick={this.enableServerGroup}>Enable</a></li>}
+          {this.hasDisabledInstances() && !this.isEnableLocked() && <li><a className="clickable" onClick={this.enableServerGroup}>Enable</a></li>}
           {this.isEnableLocked() && (
             <li className="disabled">
               <Tooltip value="Cannot enable this server group until resize operation completes" placement="left">
