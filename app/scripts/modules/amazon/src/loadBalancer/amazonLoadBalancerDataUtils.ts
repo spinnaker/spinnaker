@@ -19,9 +19,11 @@ export class AmazonLoadBalancerDataUtils {
       if (tgHealth) {
         const matchedHealth: ILoadBalancer = tgHealth.targetGroups.find(tg => tg.name === match.name);
 
-        const healthState = matchedHealth.healthState.toLowerCase();
-        if (matchedHealth !== undefined && matchedHealth.healthState !== undefined && targetGroup.instanceCounts[healthState] !== undefined) {
-          targetGroup.instanceCounts[healthState]++;
+        if (matchedHealth !== undefined && matchedHealth.healthState !== undefined) {
+          const healthState = matchedHealth.healthState.toLowerCase();
+          if (targetGroup.instanceCounts[healthState] !== undefined) {
+            targetGroup.instanceCounts[healthState]++;
+          }
         }
       }
     });
