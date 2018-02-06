@@ -50,7 +50,6 @@
       </div>
     </div>
   </div>
-
   <div class="content" ng-if="!ctrl.state.loading">
     <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
     <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.serverGroup.moniker.app"></server-group-running-tasks-details>
@@ -75,6 +74,12 @@
           </a>
         </dd>
       </dl>
+    </collapsible-section>
+    <collapsible-section heading="Labels" expanded="true">
+      <kubernetes-manifest-labels manifest="ctrl.serverGroup.manifest"></kubernetes-manifest-labels>
+    </collapsible-section>
+    <collapsible-section heading="Annotations" expanded="true">
+      <kubernetes-manifest-annotations manifest="ctrl.serverGroup.manifest"></kubernetes-manifest-annotations>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
       <dl class="dl-horizontal dl-flex"

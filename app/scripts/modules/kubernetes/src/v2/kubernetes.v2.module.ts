@@ -30,6 +30,8 @@ import { KUBERNETES_MANIFEST_SERVICE } from './manifest/manifest.service';
 import { KUBERNETES_MANIFEST_CONDITION } from './manifest/status/condition.component';
 import { KUBERNETES_MANIFEST_ARTIFACT } from './manifest/artifact/artifact.component';
 import { KUBERNETES_MANIFEST_SELECTOR } from './manifest/selector/selector.component';
+import { KUBERNETES_MANIFEST_LABELS } from './manifest/manifestLabels.component';
+import { KUBERNETES_MANIFEST_ANNOTATIONS } from './manifest/manifestAnnotations.component';
 import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSelector.component';
 import { KUBERNETES_SHOW_MANIFEST_YAML } from './manifest/showManifestYaml.component';
 
@@ -73,6 +75,8 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE,
   KUBERNETES_MANIFEST_SELECTOR,
   KUBERNETES_MULTI_MANIFEST_SELECTOR,
+  KUBERNETES_MANIFEST_LABELS,
+  KUBERNETES_MANIFEST_ANNOTATIONS,
   KUBERNETES_SHOW_MANIFEST_YAML,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
