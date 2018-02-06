@@ -28,28 +28,32 @@ class DryRunStageDefinitionBuilderFactory(
   override fun builderFor(stage: Stage): StageDefinitionBuilder =
     stage.execution.let { execution ->
       super.builderFor(stage).let {
-        if (stage.isExpressionPreconditionStage()) {
+        if (!execution.trigger.isDryRun || stage.shouldExecuteNormallyInDryRun) {
           it
-        } else if (execution.trigger.isDryRun) {
-          DryRunStage(it)
         } else {
-          it
+          DryRunStage(it)
         }
       }
     }
 
-  private fun Stage.isExpressionPreconditionStage() =
-    isPreconditionStage() && (isExpressionChild() || isExpressionParent())
+  private val Stage.shouldExecuteNormallyInDryRun: Boolean
+    get() = isExpressionPrecondition || isManualJudgment
 
-  private fun Stage.isPreconditionStage() =
-    type == CheckPreconditionsStage.PIPELINE_CONFIG_TYPE
+  private val Stage.isManualJudgment: Boolean
+    get() = type == "manualJudgment"
 
-  private fun Stage.isExpressionChild() =
-    context["preconditionType"] == "expression"
+  private val Stage.isExpressionPrecondition: Boolean
+    get() = isPreconditionStage && (isExpressionChild || isExpressionParent)
+
+  private val Stage.isPreconditionStage: Boolean
+    get() = type == CheckPreconditionsStage.PIPELINE_CONFIG_TYPE
+
+  private val Stage.isExpressionChild: Boolean
+    get() = context["preconditionType"] == "expression"
 
   @Suppress("UNCHECKED_CAST")
-  private fun Stage.isExpressionParent() =
-    (context["preconditions"] as Iterable<Map<String, Any>>?)?.run {
+  private val Stage.isExpressionParent: Boolean
+    get() = (context["preconditions"] as Iterable<Map<String, Any>>?)?.run {
       all { it["type"] == "expression" }
     } == true
 }
