@@ -35,8 +35,8 @@ import lombok.NoArgsConstructor;
 public class KubernetesResourceProperties {
   KubernetesHandler handler;
   boolean versioned;
-  KubernetesVersionedArtifactConverter versionedConverter = new KubernetesVersionedArtifactConverter();
-  KubernetesUnversionedArtifactConverter unversionedConverter = new KubernetesUnversionedArtifactConverter();
+  KubernetesVersionedArtifactConverter versionedConverter;
+  KubernetesUnversionedArtifactConverter unversionedConverter;
 
   public static KubernetesResourceProperties fromCustomResource(CustomKubernetesResource customResource) {
     KubernetesHandler handler = CustomKubernetesHandlerFactory.create(KubernetesKind.fromString(customResource.getKubernetesKind()),

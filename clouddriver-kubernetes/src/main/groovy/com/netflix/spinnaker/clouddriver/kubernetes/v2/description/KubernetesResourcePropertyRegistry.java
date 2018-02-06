@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,8 @@ public class KubernetesResourcePropertyRegistry {
       KubernetesResourceProperties properties = KubernetesResourceProperties.builder()
           .handler(handler)
           .versioned(handler.versioned())
+          .versionedConverter(new KubernetesVersionedArtifactConverter())
+          .unversionedConverter(new KubernetesUnversionedArtifactConverter())
           .build();
 
       kindMap.addRelationship(handler.spinnakerKind(), handler.kind());
