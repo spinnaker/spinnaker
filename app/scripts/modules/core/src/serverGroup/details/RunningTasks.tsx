@@ -44,8 +44,8 @@ const Task = (props: { task: ITask, application: Application }): JSX.Element => 
         </strong>
       </div>
     </div>
-    {displayableTasks(props.task.steps).map((step) => (
-      <div className="row">
+    {displayableTasks(props.task.steps).map((step, index) => (
+      <div className="row" key={index}>
         <div className="col-md-7 col-md-offset-0">
           <span className="small"><StatusGlyph item={step}/></span>{' '}{robotToHuman(step.name)}
           {step.name === 'waitForUpInstances' && (
