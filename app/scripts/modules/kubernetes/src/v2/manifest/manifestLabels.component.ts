@@ -1,6 +1,6 @@
 import { IComponentOptions, IController, module } from 'angular';
 
-import "./manifestLabels.less"
+import './manifestLabels.less';
 
 class KubernetesManifestLabels implements IController {
   public manifest: any;
