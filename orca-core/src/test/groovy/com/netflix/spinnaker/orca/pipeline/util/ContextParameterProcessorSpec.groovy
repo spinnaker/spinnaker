@@ -24,10 +24,12 @@ import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionsSupport
 import com.netflix.spinnaker.orca.pipeline.expressions.SpelHelperFunctionException
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
+import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
 import org.springframework.expression.spel.SpelEvaluationException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.BuildInfo
 import static com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger.SourceControl
@@ -309,6 +311,25 @@ class ContextParameterProcessorSpec extends Specification {
         []
       )
     ]
+  }
+
+  @Unroll
+  def "does not fail when buildInfo contains a webhook stage response"() {  // TODO(jacobkiefer): Outgoing webhook stage responses land in buildInfo. Why?
+    given:
+    def source = ['triggerId': '${trigger.correlationId}']
+    def context = [
+        trigger: new ManualTrigger('id', 'user', [:], [], []),
+        buildInfo: buildInfo
+      ]
+
+    when:
+    def result = contextParameterProcessor.process(source, context, true)
+
+    then:
+    result.triggerId == 'id'
+
+    where:
+    buildInfo = "<html></html>" // Webhook stage response.
   }
 
   def "ignores deployment details that have not yet ran"() {
