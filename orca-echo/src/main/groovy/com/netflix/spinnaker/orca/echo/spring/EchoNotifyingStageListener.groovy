@@ -33,7 +33,6 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_EXECUTION_ID
 import static com.netflix.spinnaker.security.AuthenticatedRequest.SPINNAKER_USER
-import static java.lang.System.currentTimeMillis
 
 /**
  * Converts execution events to Echo events.
@@ -54,27 +53,13 @@ class EchoNotifyingStageListener implements StageListener {
   }
 
   @Override
-  void beforeTask(Persister persister,
-                                           Stage stage,
-                                           Task task) {
+  void beforeTask(Persister persister, Stage stage, Task task) {
     recordEvent('task', 'starting', stage, task)
   }
 
   @Override
   @CompileDynamic
-  void beforeStage(Persister persister,
-                                            Stage stage) {
-    def details = [
-      name       : stage.name,
-      type       : stage.type,
-      // because this listener runs before the one setting the startTime
-      // TODO: handle better when we remove v1 path
-      startTime  : stage.startTime ?: currentTimeMillis(),
-      isSynthetic: stage.syntheticStageOwner != null
-    ]
-    stage.context.stageDetails = details
-    repository.updateStageContext(stage)
-
+  void beforeStage(Persister persister, Stage stage) {
     recordEvent("stage", "starting", stage)
   }
 
@@ -93,16 +78,7 @@ class EchoNotifyingStageListener implements StageListener {
 
   @Override
   @CompileDynamic
-  void afterStage(Persister persister,
-                  Stage stage) {
-    if (stage.endTime) {
-      if (stage.context.stageDetails == null) {
-        stage.context.stageDetails = [:]
-      }
-      stage.context.stageDetails.endTime = stage.endTime
-    }
-    repository.updateStageContext(stage)
-
+  void afterStage(Persister persister, Stage stage) {
     // STOPPED stages are "successful" because they allow the pipeline to
     // proceed but they are still failures in terms of the stage and should
     // send failure notifications
