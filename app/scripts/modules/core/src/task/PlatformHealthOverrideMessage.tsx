@@ -38,6 +38,7 @@ export class PlatformHealthOverrideMessage extends React.Component<IPlatformHeal
   constructor(props: IPlatformHealthOverrideMessageProps) {
     super(props);
 
+    let showMessage = false;
     const lastCapacity: IInstanceCounts = props.task.getValueFor('lastCapacityCheck');
     if (lastCapacity) {
       const lastCapacityTotal = lastCapacity.up + lastCapacity.down +
@@ -51,15 +52,15 @@ export class PlatformHealthOverrideMessage extends React.Component<IPlatformHeal
             stage.tasks.some((task: ITimedItem) => task.startTime === props.step.startTime);
         });
 
-      const showMessage = (isRelevantTask &&
+      showMessage = (isRelevantTask &&
         props.step.name === 'waitForUpInstances' &&
         props.step.runningTimeInMs > moment.duration(5, 'minutes').asMilliseconds() &&
         lastCapacity.unknown > 0 &&
         lastCapacity.unknown === lastCapacityTotal &&
         !get(props.application, 'attributes.platformHealthOnly'));
-
-      this.setState({ showMessage });
     }
+
+    this.state = { showMessage };
   }
 
   public render() {
