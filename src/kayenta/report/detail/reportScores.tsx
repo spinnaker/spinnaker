@@ -3,18 +3,18 @@ import { connect, Dispatch } from 'react-redux';
 import { sortBy } from 'lodash';
 import * as classNames from 'classnames';
 
-import { ICanaryState } from '../reducers/index';
+import { ICanaryState } from 'kayenta/reducers/index';
 import {
   ICanaryJudgeGroupScore,
   ICanaryJudgeScore
-} from '../domain/ICanaryJudgeResult';
+} from 'kayenta/domain/ICanaryJudgeResult';
 import AllMetricResultsHeader from './allMetricResultsHeader';
 import GroupScores from './groupScores';
 import * as Creators from 'kayenta/actions/creators';
 import {
   judgeResultSelector,
   serializedGroupWeightsSelector
-} from '../selectors/index';
+} from '../../selectors/index';
 
 import './reportScores.less';
 

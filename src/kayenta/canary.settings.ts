@@ -16,6 +16,7 @@ export interface ICanarySettings {
   optInAll: boolean;
   atlasWebComponentsUrl: string;
   templatesEnabled: boolean;
+  executionListEnabled: boolean;
 }
 
 export const CanarySettings: ICanarySettings = SETTINGS.canary || { featureDisabled: true };

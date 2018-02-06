@@ -1,6 +1,6 @@
 import { MetricClassificationLabel } from 'kayenta/domain/MetricClassificationLabel';
 import { ScoreClassificationLabel } from 'kayenta/domain/ScoreClassificationLabel';
-import { ICanaryJudgeGroupScore } from '../domain/ICanaryJudgeResult';
+import { ICanaryJudgeGroupScore } from 'kayenta/domain/ICanaryJudgeResult';
 
 // Standard Spinnaker styleguide colors.
 const GREEN = 'var(--color-success)';

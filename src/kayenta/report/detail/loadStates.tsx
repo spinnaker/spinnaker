@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ICanaryState } from '../reducers/index';
-import { AsyncRequestState } from '../reducers/asyncRequest';
-import CenteredDetail from '../layout/centeredDetail';
+import { ICanaryState } from 'kayenta/reducers';
+import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
+import CenteredDetail from 'kayenta/layout/centeredDetail';
 import ReportDetail from './detail';
 import LoadStatesBuilder from 'kayenta/components/loadStates';
 

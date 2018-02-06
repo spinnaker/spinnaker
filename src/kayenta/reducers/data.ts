@@ -17,13 +17,18 @@ interface IMetricsServiceMetadataState {
   data: IMetricsServiceMetadata[];
 }
 
+interface IExecutionsState {
+  load: AsyncRequestState;
+  data: ICanaryExecutionStatusResult[];
+}
+
 export interface IDataState {
   application: Application;
   configSummaries: ICanaryConfigSummary[];
   configs: ICanaryConfig[];
   judges: IJudge[];
-  executions: ICanaryExecutionStatusResult[]
   metricsServiceMetadata: IMetricsServiceMetadataState;
+  executions: IExecutionsState;
 }
 
 export const application = handleActions({
@@ -53,11 +58,17 @@ const judges = handleActions({
   [Actions.UPDATE_JUDGES]: (_state: IJudge[], action: Action & any): IJudge[] => action.payload.judges,
 }, null);
 
-
-const executions = handleActions({
-  [Actions.UPDATE_CANARY_EXECUTIONS]:
-    (_state: ICanaryExecutionStatusResult[], action: Action & any) => action.payload.executions,
-}, []);
+const executions = combineReducers<IExecutionsState>({
+  data: handleActions({
+    [Actions.LOAD_EXECUTIONS_SUCCESS]:
+      (_state: ICanaryExecutionStatusResult[], action: Action & any) => action.payload.executions,
+    }, []),
+  load: handleActions({
+    [Actions.LOAD_EXECUTIONS_REQUEST]: () => AsyncRequestState.Requesting,
+    [Actions.LOAD_EXECUTIONS_SUCCESS]: () => AsyncRequestState.Fulfilled,
+    [Actions.LOAD_EXECUTIONS_FAILURE]: () => AsyncRequestState.Failed,
+  }, AsyncRequestState.Requesting)
+});
 
 const metricsServiceMetadata = combineReducers<IMetricsServiceMetadataState>({
   load: handleActions({

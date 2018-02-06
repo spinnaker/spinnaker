@@ -71,7 +71,14 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     });
 
     const loadCanaryExecutions = (application: Application) => {
-      return $q.resolve(listCanaryExecutions(application.name, 20));
+      // TODO(dpeach): make the number of canary executions rendered configurable from the UI.
+      const listExecutionsRequest = listCanaryExecutions(application.name, 20);
+
+      listExecutionsRequest.catch(error => {
+        canaryStore.dispatch(Creators.loadExecutionsFailure({ error }));
+      });
+
+      return $q.resolve(listExecutionsRequest);
     };
 
     const canaryExecutionsLoaded = (_application: Application, executions: ICanaryExecutionStatusResult[]) => {
@@ -79,7 +86,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     const afterCanaryExecutionsLoaded = (application: Application) => {
-      canaryStore.dispatch(Creators.updateCanaryExecutions({
+      canaryStore.dispatch(Creators.loadExecutionsSuccess({
         executions: application.getDataSource('canaryExecutions').data as ICanaryExecutionStatusResult[],
       }));
     };

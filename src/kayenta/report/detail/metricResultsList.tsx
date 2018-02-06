@@ -2,8 +2,8 @@ import * as React from 'react';
 import { connect, Dispatch } from 'react-redux';
 import * as classNames from 'classnames';
 
-import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
-import { ICanaryState } from '../reducers/index';
+import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
+import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import { Table } from 'kayenta/layout/table';
 import { metricResultsColumns } from './metricResultsColumns';

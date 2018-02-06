@@ -2,12 +2,12 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { connect, Dispatch } from 'react-redux';
 
-import { ICanaryJudgeGroupScore } from '../domain/ICanaryJudgeResult';
+import { ICanaryJudgeGroupScore } from 'kayenta/domain/ICanaryJudgeResult';
 import ClickableHeader from './clickableHeader';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from '../reducers/index';
-import { IGroupWeights } from '../domain/ICanaryConfig';
-import { serializedGroupWeightsSelector, serializedCanaryConfigSelector } from '../selectors/index';
+import { ICanaryState } from 'kayenta/reducers/index';
+import { IGroupWeights } from 'kayenta/domain/ICanaryConfig';
+import { serializedGroupWeightsSelector, serializedCanaryConfigSelector } from 'kayenta/selectors';
 import { mapGroupToColor } from './colors';
 
 export interface IGroupScoresOwnProps {

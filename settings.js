@@ -78,6 +78,7 @@ window.spinnakerSettings = {
     metricStore: defaultMetricStore,
     reportsEnabled: canaryReportsEnabled,
     stagesEnabled: canaryStagesEnabled,
+    executionListEnabled: false,
     graphImplementation: 'chartjs',
     atlasWebComponentsUrl: atlasWebComponentsUrl,
     templatesEnabled: templatesEnabled,

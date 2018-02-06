@@ -4,12 +4,12 @@ import { connect } from 'react-redux';
 
 import { ICanaryAnalysisResultsStats } from 'kayenta/domain';
 import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
-import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import { IMetricSetPair } from '../domain/IMetricSetPair';
-import { runSelector, selectedMetricConfigSelector } from '../selectors/index';
-import { ICanaryState } from '../reducers/index';
+import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
+import { runSelector, selectedMetricConfigSelector } from 'kayenta/selectors';
+import { ICanaryState } from 'kayenta/reducers';
 import metricStoreConfigStore from 'kayenta/metricStore/metricStoreConfig.service';
-import FormattedDate from '../layout/formattedDate';
+import FormattedDate from 'kayenta/layout/formattedDate';
 
 import './metricResultStats.less';
 

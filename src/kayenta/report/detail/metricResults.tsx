@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import ListDetail from '../layout/listDetail';
-import { ICanaryState } from '../reducers/index';
-import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
+import ListDetail from '../../layout/listDetail';
+import { ICanaryState } from 'kayenta/reducers';
+import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
 import MetricResultsList from './metricResultsList';
 import MetricResultDetail from './metricResultDetail';
-import { judgeResultSelector } from '../selectors/index';
+import { judgeResultSelector } from 'kayenta/selectors';
 
 interface IMetricResultsStateProps {
   metricResults: ICanaryAnalysisResult[];
