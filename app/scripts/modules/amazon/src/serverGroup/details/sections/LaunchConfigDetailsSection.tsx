@@ -50,11 +50,11 @@ export class LaunchConfigDetailsSection extends React.Component<IAmazonServerGro
               <dt>Image ID</dt>
               <dd>{serverGroup.launchConfig.imageId}</dd>
 
-              {image.imageLocation && <dt>Image Name</dt>}
-              {image.imageLocation && <dd>{image.imageLocation}</dd>}
+              {image && image.imageLocation && <dt>Image Name</dt>}
+              {image && image.imageLocation && <dd>{image.imageLocation}</dd>}
 
-              {image.baseImage && <dt>Base Image Name</dt>}
-              {image.baseImage && <dd>{image.baseImage}</dd>}
+              {image && image.baseImage && <dt>Base Image Name</dt>}
+              {image && image.baseImage && <dd>{image.baseImage}</dd>}
 
               <dt>Instance Type</dt>
               <dd>{serverGroup.launchConfig.instanceType}</dd>
