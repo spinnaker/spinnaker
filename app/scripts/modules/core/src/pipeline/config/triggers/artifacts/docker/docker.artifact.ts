@@ -10,6 +10,8 @@ module(DOCKER_ARTIFACT, [
 ]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'Docker',
+    isDefault: false,
+    isMatch: true,
     description: 'A Docker image to be deployed.',
     key: 'docker',
     controller(artifact: IArtifact) {
@@ -27,7 +29,7 @@ module(DOCKER_ARTIFACT, [
     </label>
     <div class="col-md-8">
       <input type="text"
-             placeholder="gcr.io/project/image:release"
+             placeholder="gcr.io/project/image"
              class="form-control input-sm"
              ng-model="ctrl.artifact.name"/>
     </div>

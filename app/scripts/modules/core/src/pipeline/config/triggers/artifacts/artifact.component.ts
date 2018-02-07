@@ -1,4 +1,5 @@
 import {
+  IAttributes,
   ICompileService,
   IComponentOptions,
   IController,
@@ -14,15 +15,30 @@ class ArtifactCtrl implements IController {
   public artifact: IArtifact;
   public options: IArtifactKindConfig[];
   public description: string;
+  private isDefault: boolean;
+  private isMatch: boolean;
 
   constructor(private pipelineConfig: PipelineConfigProvider,
+              private $attrs: IAttributes,
               private $controller: IControllerService,
               private $compile: ICompileService,
               private $element: IRootElementService,
               private $rootScope: IRootScopeService) {
     'ngInject';
+    if (this.$attrs.$attr.hasOwnProperty('isDefault')) {
+      this.isDefault = true;
+    }
+
+    if (this.$attrs.$attr.hasOwnProperty('isMatch')) {
+      this.isMatch = true;
+    }
+
     this.options = this.pipelineConfig.getArtifactKinds();
     this.loadArtifactKind();
+  }
+
+  public getOptions(): IArtifactKindConfig[] {
+    return this.options.filter(o => o.isDefault === this.isDefault || o.isMatch === this.isMatch);
   }
 
   public loadArtifactKind(): void  {
@@ -65,7 +81,7 @@ class ArtifactComponent implements IComponentOptions {
     <select class="input-sm"
             required
             ng-change="ctrl.loadArtifactKind()"
-            ng-options="option.key as option.label for option in ctrl.options"
+            ng-options="option.key as option.label for option in ctrl.getOptions()"
             ng-model="ctrl.artifact.kind">
       <option style="display:none" value="">Select a kind</option>
     </select>

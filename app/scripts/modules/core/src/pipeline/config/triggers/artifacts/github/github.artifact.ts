@@ -12,6 +12,8 @@ module(GITHUB_ARTIFACT, [
     label: 'GitHub',
     description: 'A file stored in git, hosted by GitHub.',
     key: 'github',
+    isDefault: false,
+    isMatch: true,
     controller(artifact: IArtifact) {
       'ngInject';
       this.artifact = artifact;

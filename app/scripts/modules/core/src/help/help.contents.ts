@@ -98,7 +98,8 @@ module(HELP_CONTENTS, [])
           the pub/sub -> Spinnaker artifact translation.
         </p>
         <p>For example, if you want to match against any GCS object, only supply <b>type</b> = gcs/object. If you also want to restrict the matches by other fields, include those as well.</p>
-        <p>Regex is accepted, so you could for example match on a filepath like so <b>name</b> = .*\\.yaml to match all incoming YAML files.</p>`,
+        <p>Regex is accepted, so you could for example match on a filepath like so <b>name</b> = .*\\.yaml to match all incoming YAML files.</p>
+        <p>See the <a href="https://www.spinnaker.io/reference/artifacts/">reference</a> for more information.</p>`,
     'pipeline.config.expectedArtifact.ifMissing': `
         <p>If no artifact was supplied by your trigger to match against this expected artifact, you have a few options:
           <ol>
@@ -106,15 +107,26 @@ module(HELP_CONTENTS, [])
             <li>If option 1 fails, or isn't specified, you can provide a default artifact with the required fields to use instead.</li>
             <li>Fail the pipeline if options 1 or 2 fail or aren't selected.</li>
           </ol>
-        </p>`,
+        </p>
+        <p>See the <a href="https://www.spinnaker.io/reference/artifacts/in-pipelines">reference</a> for more information.</p>`,
     'pipeline.config.expectedArtifact.defaultArtifact': `
-        <p>If your artifact either wasn't supplied from a trigger, or it wasn't found in a prior execution, the artifact specified below will end up in your pipeline's execution context.</p>`,
+        <p>If your artifact either wasn't supplied from a trigger, or it wasn't found in a prior execution, the artifact specified below will end up in your pipeline's execution context.</p>
+        <p>See the <a href="https://www.spinnaker.io/reference/artifacts/in-pipelines">reference</a> for more information.</p>`,
     'pipeline.config.expectedArtifact.gcs.name': `
-        <p>The GCS object name, in the form 'gs://bucket/path/to/file.yml'.</p>`,
+        <p>The GCS object name, in the form <code>gs://bucket/path/to/file.yml</code>.</p>`,
+    'pipeline.config.expectedArtifact.defaultGcs.reference': `
+        <p>The GCS object name, <i>optionally</i> appending the version. An example: <code>gs://bucket/file.yml#123948581</code></p>`,
     'pipeline.config.expectedArtifact.docker.name': `
-        <p>The Docker image name you want to trigger on changes to. If you are treating a tag as a release stream, you should include the image tag in the name. An example is 'gcr.io/project/image:stable', where all changes to the 'stable' tag will result in triggering this pipeline.</p>`,
+        <p>The Docker image name you want to trigger on changes to. By default, this does <i>not</i> include the image tag or digest, only the registry and image repository.</p>`,
+    'pipeline.config.expectedArtifact.defaultDocker.reference': `
+        <p>The fully-qualified docker image to deploy. An example: <code>gcr.io/project/image@sha256:59bb771c86</code></p>`,
     'pipeline.config.expectedArtifact.git.name': `
         <p>The file's path from the git root, in the form 'path/to/file.json'</p>`,
+    'pipeline.config.expectedArtifact.defaultGithub.version': `
+        <p>Either the commit or branch to checkout.</p>`,
+    'pipeline.config.expectedArtifact.defaultGithub.reference': `
+        <p>The GitHub API content url the artifact lives under. The domain name may change if you're running GHE.</p>
+        <p>An example is <code>https://api.github.com/repos/$ORG/$REPO/contents/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/github-file/#fields">our docs</a> for more info.</p>`,
     'pipeline.config.trigger.webhook.source': `
         <p>Determines the target URL required to trigger this pipeline, as well as how the payload can be transformed into artifacts.</p>
     `,

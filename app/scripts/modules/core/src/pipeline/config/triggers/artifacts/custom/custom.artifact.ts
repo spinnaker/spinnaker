@@ -18,6 +18,8 @@ module(CUSTOM_ARTIFACT, [
     label: 'Custom',
     description: 'A custom-defined artifact.',
     key: 'custom',
+    isDefault: true,
+    isMatch: true,
     controller(artifact: IArtifact) {
       'ngInject';
       this.artifact = artifact;

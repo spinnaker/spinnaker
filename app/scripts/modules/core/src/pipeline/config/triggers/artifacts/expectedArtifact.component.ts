@@ -42,7 +42,7 @@ class ExpectedArtifactComponent implements IComponentOptions {
         </button>
       </div>
     </div>
-    <artifact artifact="ctrl.expectedArtifact.matchArtifact"></artifact>
+    <artifact is-match artifact="ctrl.expectedArtifact.matchArtifact"></artifact>
     If missing
     <help-field key="pipeline.config.expectedArtifact.ifMissing"></help-field>
     <div class="form-group row">
@@ -65,7 +65,7 @@ class ExpectedArtifactComponent implements IComponentOptions {
           </div>
         </div>
         <div class="form-group row">
-          <artifact artifact="ctrl.expectedArtifact.defaultArtifact"></artifact>
+          <artifact is-default artifact="ctrl.expectedArtifact.defaultArtifact"></artifact>
         </div>
       </div>
     </div>
