@@ -1,5 +1,3 @@
-import { CanarySettings } from 'kayenta/canary.settings';
-
 export interface ICanaryHeaderTabConfig {
   title: string;
   sref: string;
@@ -17,6 +15,5 @@ export const canaryTabs: ICanaryHeaderTabConfig[] = [
     title: 'reports',
     sref: 'home.applications.application.canary.report.reportDefault',
     activeStates: ['**.report.**'],
-    hide: !CanarySettings.reportsEnabled,
   },
 ];

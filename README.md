@@ -17,11 +17,9 @@ The app will start up on [localhost:9000](localhost:9000).
 ## Environment variables
 
 * `API_HOST` overrides the default Spinnaker API host.
-* `LIVE_CALLS` allows the UI to interact with the API host for canary config-related calls.
 * `METRIC_STORE` sets the default metric store that will be used when creating
    new canary configs (e.g., `atlas`, `stackdriver`, `prometheus`).
 * `REDUX_LOGGER` toggles browser logging for interactions with the Redux store.
-* `CANARY_REPORTS_ENABLED`: enables reporting UI (under development).
 * `CANARY_STAGES_ENABLED` enables Kayenta canary stages.
 
 For example, `API_HOST=http://localhost:8084 LIVE_CALLS=true yarn start` will run Deck 

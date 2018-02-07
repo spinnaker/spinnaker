@@ -6,9 +6,7 @@ var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (gateHost + '/bakery/logs
 var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
-var liveCallsEnabled = process.env.LIVE_CALLS === 'true';
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
-var canaryReportsEnabled = process.env.CANARY_REPORTS_ENABLED === 'true';
 var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
 var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
@@ -70,13 +68,11 @@ window.spinnakerSettings = {
   gitSources: ['stash', 'github', 'bitbucket'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
   canary: {
-    liveCalls: liveCallsEnabled,
     reduxLogger: reduxLoggerEnabled,
     metricsAccountName: 'my-google-account',
     storageAccountName: 'my-google-account',
     defaultJudge: 'NetflixACAJudge-v1.0',
     metricStore: defaultMetricStore,
-    reportsEnabled: canaryReportsEnabled,
     stagesEnabled: canaryStagesEnabled,
     executionListEnabled: false,
     graphImplementation: 'chartjs',

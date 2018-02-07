@@ -3,7 +3,6 @@ import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryState } from '../reducers/index';
-import { localConfigStore } from './localConfigStore.service';
 import {
   ICanaryMetricConfig,
   IJudge,
@@ -14,65 +13,36 @@ import {
 import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
-  if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').one(id).get()
-      .then((config: ICanaryConfig) => ({
-        ...config,
-        id,
-      }));
-  } else {
-    return localConfigStore.getCanaryConfigById(id);
-  }
+  return ReactInjector.API.one('v2/canaryConfig').one(id).get()
+    .then((config: ICanaryConfig) => ({
+      ...config,
+      id,
+    }));
 }
 
 export function getCanaryConfigSummaries(...application: string[]): Promise<ICanaryConfigSummary[]> {
-  if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').withParams({ application }).get();
-  } else {
-    return localConfigStore.getCanaryConfigSummaries();
-  }
+  return ReactInjector.API.one('v2/canaryConfig').withParams({ application }).get();
 }
 
 export function updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
-  if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').one(config.id).put(config);
-  } else {
-    return localConfigStore.updateCanaryConfig(config);
-  }
+  return ReactInjector.API.one('v2/canaryConfig').one(config.id).put(config);
 }
 
 export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
-  if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').post(config);
-  } else {
-    return localConfigStore.createCanaryConfig(config);
-  }
+  return ReactInjector.API.one('v2/canaryConfig').post(config);
 }
 
 export function deleteCanaryConfig(id: string): Promise<void> {
-  if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').one(id).remove();
-  } else {
-    return localConfigStore.deleteCanaryConfig(id);
-  }
+  return ReactInjector.API.one('v2/canaryConfig').one(id).remove();
 }
 
 export function listJudges(): Promise<IJudge[]> {
-  let allJudges: Promise<IJudge[]>;
-  if (CanarySettings.liveCalls) {
-    allJudges = ReactInjector.API.one('v2/canaries/judges').get();
-  } else {
-    allJudges = localConfigStore.listJudges();
-  }
-  return allJudges.then(judges => judges.filter(judge => judge.visible));
+  return ReactInjector.API.one('v2/canaries/judges').get()
+    .then((judges: IJudge[]) => judges.filter(judge => judge.visible));
 }
 
 export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
-  if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaries/credentials').get();
-  } else {
-    return localConfigStore.listKayentaAccounts();
-  }
+  return ReactInjector.API.one('v2/canaries/credentials').get();
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config

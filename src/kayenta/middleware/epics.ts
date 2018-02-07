@@ -16,7 +16,7 @@ import { ReactInjector } from '@spinnaker/core';
 import {
   getCanaryRun,
   getMetricSetPair
-} from '../service/run/canaryRun.service';
+} from '../service/canaryRun.service';
 import { runSelector } from '../selectors/index';
 import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
 import { listMetricsServiceMetadata } from '../service/metricsServiceMetadata.service';

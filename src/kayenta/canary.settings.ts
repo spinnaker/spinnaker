@@ -1,7 +1,6 @@
 import { SETTINGS } from '@spinnaker/core';
 
 export interface ICanarySettings {
-  liveCalls: boolean;
   showAllConfigs: boolean;
   reduxLogger: boolean;
   metricsAccountName: string;
@@ -9,7 +8,6 @@ export interface ICanarySettings {
   defaultJudge: string;
   metricStore: string;
   defaultServiceSettings: {[key: string]: any};
-  reportsEnabled: boolean;
   stagesEnabled: boolean;
   graphImplementation: string;
   featureDisabled: boolean;

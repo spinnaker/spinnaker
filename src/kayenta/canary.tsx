@@ -34,7 +34,7 @@ export default class Canary extends React.Component<ICanaryProps> {
   private store: Store<ICanaryState>;
 
   constructor(props: ICanaryProps) {
-    super();
+    super(props);
     this.store = canaryStore;
     this.store.dispatch({
       type: INITIALIZE,
