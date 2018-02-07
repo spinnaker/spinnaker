@@ -110,7 +110,10 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
       <div className="execution-status-section">
         <span className={`trigger-type ${this.state.sortFilter.groupBy !== name ? 'subheading' : ''}`}>
           <h5 className="build-number"><ExecutionBuildLink execution={execution}/></h5>
-          <h5 className="execution-type">{this.getExecutionTypeDisplay()}</h5>
+          <h5 className="execution-type">
+            {execution.trigger.dryRun && '[DRY RUN] '}
+            {this.getExecutionTypeDisplay()}
+          </h5>
         </span>
         <ul className="trigger-details">
           {has(execution.trigger, 'buildInfo.url') && <li>{buildDisplayName(execution.trigger.buildInfo)}</li>}

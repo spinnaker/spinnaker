@@ -10,4 +10,5 @@ export interface IExecutionTrigger {
   parentPipelineName?: string;
   type: string;
   user: string;
+  dryRun?: boolean;
 }
