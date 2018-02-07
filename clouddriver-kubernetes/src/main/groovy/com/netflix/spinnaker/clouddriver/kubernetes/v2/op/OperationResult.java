@@ -50,11 +50,9 @@ public class OperationResult {
 
   public void merge(OperationResult other) {
     for (Map.Entry<String, Set<String>> entry : other.manifestNamesByNamespace.entrySet()) {
-      if (this.manifestNamesByNamespace.containsKey(entry.getKey())) {
-        this.manifestNamesByNamespace.get(entry.getKey()).addAll(entry.getValue());
-      } else {
-        this.manifestNamesByNamespace.put(entry.getKey(), entry.getValue());
-      }
+      Set<String> thisManifests = this.manifestNamesByNamespace.getOrDefault(entry.getKey(), new HashSet<>());
+      thisManifests.addAll(entry.getValue());
+      this.manifestNamesByNamespace.put(entry.getKey(), thisManifests);
     }
 
     this.manifests.addAll(other.manifests);
