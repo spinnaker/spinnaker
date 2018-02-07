@@ -17,10 +17,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -41,6 +37,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import retrofit.client.Response;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Component
 @Slf4j
@@ -91,9 +97,13 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       ), 5, 1000, true);
 
       try {
-        Map manifest = objectMapper.convertValue(yamlParser.load(manifestText.getBody().in()), Map.class);
+        Iterable<Object> rawManifests = yamlParser.loadAll(manifestText.getBody().in());
+        List<Map> manifests = StreamSupport.stream(rawManifests.spliterator(), false)
+            .map(m -> objectMapper.convertValue(m, Map.class))
+            .collect(Collectors.toList());
+
         Map<String, Object> manifestWrapper = new HashMap<>();
-        manifestWrapper.put("manifest", manifest);
+        manifestWrapper.put("manifests", manifests);
 
         manifestWrapper = contextParameterProcessor.process(
             manifestWrapper,
@@ -105,7 +115,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
           throw new IllegalStateException("Failure evaluating manifest expressions: " + manifestWrapper.get("expressionEvaluationSummary"));
         }
 
-        task.put("manifest", manifestWrapper.get("manifest"));
+        task.put("manifests", manifestWrapper.get("manifests"));
         task.put("source", "text");
       } catch (IOException e) {
         throw new IllegalArgumentException("Failed to read manifest from '" + manifestArtifact + "' as '" + manifestText + "': " + e.getMessage(), e);
