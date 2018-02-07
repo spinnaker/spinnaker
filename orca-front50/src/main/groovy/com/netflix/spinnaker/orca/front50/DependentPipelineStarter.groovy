@@ -48,11 +48,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
   List<PipelinePreprocessor> pipelinePreprocessors
 
   Execution trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
-    if (parentPipeline.trigger.isDryRun()) {
-      log.info("Not triggering dependent pipeline {}:{} as parent execution was a dry run", pipelineConfig.id, json)
-      return
-    }
-
     def json = objectMapper.writeValueAsString(pipelineConfig)
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
 
@@ -72,6 +67,10 @@ class DependentPipelineStarter implements ApplicationContextAware {
       suppliedParameters.each { k, v ->
         pipelineConfig.trigger.parameters[k] = pipelineConfig.trigger.parameters[k] ?: suppliedParameters[k]
       }
+    }
+
+    if (parentPipeline.trigger.dryRun) {
+      pipelineConfig.trigger.otherProperties["dryRun"] = true
     }
 
     def trigger = pipelineConfig.trigger //keep the trigger as the preprocessor removes it.

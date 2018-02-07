@@ -128,7 +128,7 @@ class DependentPipelineStarterSpec extends Specification {
     gotMDC["X-SPINNAKER-ACCOUNTS"] == "acct1,acct2"
   }
 
-  def "should not do anything if parent was a dry run execution"() {
+  def "should propagate dry run flag"() {
     given:
     def triggeredPipelineConfig = [name: "triggered", id: "triggered"]
     def parentPipeline = pipeline {
@@ -146,6 +146,16 @@ class DependentPipelineStarterSpec extends Specification {
       contextParameterProcessor: new ContextParameterProcessor()
     )
 
+    and:
+    executionLauncher.start(*_) >> {
+      def p = mapper.readValue(it[1], Map)
+      return pipeline {
+        name = p.name
+        id = p.name
+        trigger = mapper.convertValue(p.trigger, Trigger)
+      }
+    }
+
     when:
     def result = dependentPipelineStarter.trigger(
       triggeredPipelineConfig,
@@ -156,9 +166,6 @@ class DependentPipelineStarterSpec extends Specification {
     )
 
     then:
-    result == null
-
-    and:
-    0 * executionLauncher._
+    result.trigger.dryRun
   }
 }
