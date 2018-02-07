@@ -3,13 +3,14 @@ import * as ReactGA from 'react-ga';
 import { has } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 
-import { IBuildTrigger, ICronTrigger, IDockerTrigger, IExecution } from 'core/domain';
+import { IBuildTrigger, ICronTrigger, IDockerTrigger, IExecution, IArtifact } from 'core/domain';
 import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { ReactInjector } from 'core/reactShims';
 import { relativeTime, timestamp } from 'core/utils';
 
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
+import { ArtifactList } from './ArtifactList';
 
 import './executionStatus.less';
 
@@ -106,6 +107,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
 
   public render() {
     const { execution, showingDetails, standalone } = this.props;
+    const artifacts: IArtifact[] = execution.trigger.artifacts;
     return (
       <div className="execution-status-section">
         <span className={`trigger-type ${this.state.sortFilter.groupBy !== name ? 'subheading' : ''}`}>
@@ -127,10 +129,10 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
             <li title={timestamp(execution.startTime)}>
               {this.state.timestamp}
             </li>
-
           </span>
           {this.state.parameters.map((p) => <li key={p.key} className="break-word"><span className="parameter-key">{p.key}</span>: {p.value}</li>)}
         </ul>
+        <ArtifactList artifacts={artifacts} />
         {!standalone && <a className="clickable" onClick={this.toggleDetails}><span className={`small glyphicon ${showingDetails ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}/>Details</a>}
       </div>
     )

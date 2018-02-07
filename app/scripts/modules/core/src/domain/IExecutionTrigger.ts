@@ -1,4 +1,5 @@
 import { IExecution } from './IExecution';
+import { IArtifact } from './IArtifact';
 
 export interface IExecutionTrigger {
   buildInfo?: any;
@@ -11,4 +12,5 @@ export interface IExecutionTrigger {
   type: string;
   user: string;
   dryRun?: boolean;
+  artifacts?: IArtifact[];
 }
