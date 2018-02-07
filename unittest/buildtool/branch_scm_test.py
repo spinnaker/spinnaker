@@ -16,17 +16,21 @@
 # pylint: disable=invalid-name
 
 import argparse
+import logging
 import os
 import shutil
 import tempfile
 import unittest
 
-from buildtool.git import (
+from buildtool import (
     GitRunner,
-    RemoteGitRepository,
-    SemanticVersion)
-from buildtool.source_code_manager import SpinnakerSourceCodeManager
-from buildtool.util import check_subprocess_sequence
+    SemanticVersion,
+    BranchSourceCodeManager,
+    SpinnakerSourceCodeManager,
+
+    check_subprocess_sequence)
+
+from test_util import init_runtime
 
 
 SCM_USER = 'scm_user'
@@ -36,50 +40,41 @@ BASE_VERSION = 'version-7.8.9'
 UNTAGGED_BRANCH = 'untagged-branch'
 
 
-def _foreach_func(repository, *pos_args, **kwargs):
-  return (repository, list(pos_args), dict(kwargs))
-
-
 def make_default_options():
   """Helper function for creating default options for runner."""
   parser = argparse.ArgumentParser()
-  parser.add_argument('--scratch_dir',
+  parser.add_argument('--output_dir',
                       default=os.path.join('/tmp', 'scmtest.%d' % os.getpid()))
-  GitRunner.add_git_parser_args(parser, {})
-  return parser.parse_args([])
+  GitRunner.add_parser_args(parser, {'github_owner': 'test_github_owner'})
+  options = parser.parse_args([])
+  options.command = 'test-command'
+  options.git_branch = 'testing'
+  return options
 
 
 class TestSourceCodeManager(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
-    cls.git = GitRunner(make_default_options())
     cls.base_temp_dir = tempfile.mkdtemp(prefix='scm_test')
     origin_root = os.path.join(cls.base_temp_dir, 'origin_repos')
 
-    repository_list = [
-        RemoteGitRepository.make_from_url(url)
-        for url in [
-            os.path.join(origin_root, SCM_USER, 'RepoOne'),
-            os.path.join(origin_root, SCM_USER, 'RepoTwo'),
-            os.path.join(origin_root, TEST_USER, 'RepoTest')]
-    ]
-
-    cls.TEST_SOURCE_REPOSITORIES = {
-        repo.name: repo
-        for repo in repository_list
+    cls.ORIGIN_URLS = {
+        'RepoOne': os.path.join(origin_root, SCM_USER, 'RepoOne'),
+        'RepoTwo': os.path.join(origin_root, SCM_USER, 'RepoTwo'),
+        'RepoTest': os.path.join(origin_root, TEST_USER, 'RepoTest'),
     }
 
-    for repo in repository_list:
-      os.makedirs(repo.url)
+    for repo_name, repo_origin in cls.ORIGIN_URLS.items():
+      os.makedirs(repo_origin)
       base_file = os.path.join(
-          repo.url, '{name}-base.txt'.format(name=repo.name))
+          repo_origin, '{name}-base.txt'.format(name=repo_name))
       unique_file = os.path.join(
-          repo.url, '{name}-unique.txt'.format(name=repo.name))
+          repo_origin, '{name}-unique.txt'.format(name=repo_name))
       untagged_file = os.path.join(
-          repo.url, '{name}-untagged.txt'.format(name=repo.name))
+          repo_origin, '{name}-untagged.txt'.format(name=repo_name))
 
-      logging.debug('Initializing repository %s', repo.url)
-      git_prefix = 'git -C "{dir}" '.format(dir=repo.url)
+      logging.debug('Initializing repository %s', repo_origin)
+      git_prefix = 'git -C "{dir}" '.format(dir=repo_origin)
       run_git = lambda cmd: git_prefix + cmd
 
       check_subprocess_sequence([
@@ -93,7 +88,7 @@ class TestSourceCodeManager(unittest.TestCase):
               base_version=BASE_VERSION)),
 
           # Add Unique branch name per repo
-          run_git('checkout -b {name}-branch'.format(name=repo.name)),
+          run_git('checkout -b {name}-branch'.format(name=repo_name)),
           'touch "{file}"'.format(file=unique_file),
           run_git('add "{file}"'.format(file=os.path.basename(unique_file))),
           run_git('commit -a -m "chore(uniq): unique commit"'),
@@ -112,53 +107,41 @@ class TestSourceCodeManager(unittest.TestCase):
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
-    shutil.rmtree(cls.git.options.scratch_dir)
+
+  def setUp(self):
+    self.options = make_default_options()
 
   def test_get_local_repository_path(self):
     test_root = os.path.join(self.base_temp_dir, 'unused_source')
-    scm = SpinnakerSourceCodeManager(
-        self.git, test_root, self.TEST_SOURCE_REPOSITORIES)
+    scm = BranchSourceCodeManager(self.options, test_root)
 
     tests = ['RepoOne', 'RepoTwo', 'RepoTest', 'DoesNotExist']
     for repo_name in tests:
+      repository = scm.make_repository_spec(repo_name)
       expect = os.path.join(test_root, repo_name)
-      self.assertEquals(expect,
-                        scm.get_local_repository_path(repo_name))
+      self.assertEquals(expect, repository.git_dir)
       self.assertFalse(os.path.exists(expect))
-
-  def test_maybe_pull_unknown_branch(self):
-    test_root = os.path.join(self.base_temp_dir, 'unknown_branch')
-    git = self.git
-    scm = SpinnakerSourceCodeManager(
-        git, test_root, self.TEST_SOURCE_REPOSITORIES)
-
-    repository = self.TEST_SOURCE_REPOSITORIES['RepoOne']
-    branch = 'XYZ'
-    regexp = r"Branches \['{branch}'\] do not exist in {url}\.".format(
-        branch=branch, url=repository.url)
-
-    with self.assertRaisesRegexp(Exception, regexp):
-      scm.maybe_pull_repository_source(repository, git_branch=branch)
 
   def test_maybe_pull_repository_branch(self):
     test_root = os.path.join(self.base_temp_dir, 'pulled_test')
-    git = self.git
-    scm = SpinnakerSourceCodeManager(
-        git, test_root, self.TEST_SOURCE_REPOSITORIES)
+    options = make_default_options()
+    options.git_branch = UNTAGGED_BRANCH
+    options.build_number = 'maybe_pull_branch_buildnum'
+    scm = BranchSourceCodeManager(options, test_root)
 
-    for repository in self.TEST_SOURCE_REPOSITORIES.values():
-      scm.maybe_pull_repository_source(
-          repository, git_branch=UNTAGGED_BRANCH)
-      git_dir = scm.get_local_repository_path(repository.name)
+    for repository_name, origin in self.ORIGIN_URLS.items():
+      repository = scm.make_repository_spec(repository_name, origin=origin,
+                                            upstream=None)
+      scm.ensure_local_repository(repository)
 
-      remote_git = git.determine_remote_git_repository(
-          git_dir)
-      self.assertEquals(repository, remote_git)
+      git_dir = repository.git_dir
+      spec = scm.git.determine_git_repository_spec(git_dir)
+      self.assertEquals(repository, spec)
 
-      in_branch = git.query_local_repository_branch(git_dir)
+      in_branch = scm.git.query_local_repository_branch(git_dir)
       self.assertEquals(UNTAGGED_BRANCH, in_branch)
 
-      summary = git.collect_repository_summary(git_dir)
+      summary = scm.git.collect_repository_summary(git_dir)
       semver = SemanticVersion.make(BASE_VERSION)
       expect_version = semver.next(
           SemanticVersion.MINOR_INDEX).to_version()
@@ -167,46 +150,43 @@ class TestSourceCodeManager(unittest.TestCase):
 
   def test_pull_repository_fallback_branch(self):
     test_root = os.path.join(self.base_temp_dir, 'fallback_test')
-    git = self.git
-    scm = SpinnakerSourceCodeManager(
-        git, test_root, self.TEST_SOURCE_REPOSITORIES)
-
     unique_branch = 'RepoTwo-branch'
-    for repository in self.TEST_SOURCE_REPOSITORIES.values():
-      scm.maybe_pull_repository_source(
-          repository,
-          git_branch=unique_branch,
-          default_branch='master')
-      git_dir = scm.get_local_repository_path(repository.name)
+    options = make_default_options()
+    options.git_branch = unique_branch
+    options.git_fallback_branch = 'master'
+    options.build_number = 'pull_repository_fallback_buildnumber'
+    scm = BranchSourceCodeManager(options, test_root)
+
+    for repo_name, origin in self.ORIGIN_URLS.items():
+      repository = scm.make_repository_spec(repo_name, origin=origin)
+      scm.ensure_local_repository(repository)
+      git_dir = repository.git_dir
       want_branch = (unique_branch
                      if repository.name == 'RepoTwo'
                      else 'master')
-      in_branch = git.query_local_repository_branch(git_dir)
+      in_branch = scm.git.query_local_repository_branch(git_dir)
       self.assertEquals(want_branch, in_branch)
 
   def test_foreach_repo(self):
     test_root = os.path.join(self.base_temp_dir, 'foreach_test')
-    git = self.git
     pos_args = [1, 2, 3]
     kwargs = {'a': 'A', 'b': 'B'}
 
+    scm = SpinnakerSourceCodeManager(self.options, test_root)
+    all_repos = [scm.make_repository_spec(repo_name, origin=origin)
+                 for repo_name, origin in self.ORIGIN_URLS.items()]
     expect = {
         repository.name: (repository, pos_args, kwargs)
-        for repository in self.TEST_SOURCE_REPOSITORIES.values()
+        for repository in all_repos
     }
 
-    scm = SpinnakerSourceCodeManager(
-        git, test_root, self.TEST_SOURCE_REPOSITORIES)
+    def _foreach_func(repository, *pos_args, **kwargs):
+      return (repository, list(pos_args), dict(kwargs))
     got = scm.foreach_source_repository(
-        _foreach_func, *pos_args, **kwargs)
+        all_repos, _foreach_func, *pos_args, **kwargs)
     self.assertEquals(expect, got)
 
 
 if __name__ == '__main__':
-  import logging
-  logging.basicConfig(
-      format='%(levelname).1s %(asctime)s.%(msecs)03d %(message)s',
-      datefmt='%H:%M:%S',
-      level=logging.INFO)
-
+  init_runtime()
   unittest.main(verbosity=2)
