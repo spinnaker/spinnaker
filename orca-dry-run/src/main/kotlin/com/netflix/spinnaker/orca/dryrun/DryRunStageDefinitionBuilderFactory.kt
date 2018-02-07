@@ -37,10 +37,13 @@ class DryRunStageDefinitionBuilderFactory(
     }
 
   private val Stage.shouldExecuteNormallyInDryRun: Boolean
-    get() = isExpressionPrecondition || isManualJudgment
+    get() = isManualJudgment || isPipeline || isExpressionPrecondition
 
   private val Stage.isManualJudgment: Boolean
     get() = type == "manualJudgment"
+
+  private val Stage.isPipeline: Boolean
+    get() = type == "pipeline"
 
   private val Stage.isExpressionPrecondition: Boolean
     get() = isPreconditionStage && (isExpressionChild || isExpressionParent)
