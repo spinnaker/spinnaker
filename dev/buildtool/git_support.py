@@ -25,59 +25,105 @@ import re
 import tempfile
 import time
 
-from subprocess import CalledProcessError
-
 # pylint: disable=no-name-in-module
 # pylint: disable=import-error
 from distutils.version import LooseVersion
 import yaml
 
-from buildtool.util import (
+from buildtool import (
+    add_parser_argument,
+    check_kwargs_empty,
     check_subprocess,
     ensure_dir_exists,
-    run_subprocess)
+    run_subprocess,
+    raise_and_log_error,
+    ConfigError,
+    ExecutionError,
+    UnexpectedError)
 
 
-class RemoteGitRepository(
-    collections.namedtuple(
-        'RemoteGitRepository', ['name', 'url', 'upstream_ref'])):
-  """A reference to a remote git repository and possibly it's upstream as well.
+class GitRepositorySpec(object):
+  """A reference to a git repository with local and origin locations.
 
   Attributes:
     name: [string] The shorthand name of the repository
-    url: [string] The url to the repository isnt necessarily a URL, rather
-       this is simply the repository string passed to git clone, which is
-       typically a URL or directory name.
-    upstream_ref: [RemoteGitRepository] A reference to the upstream repository
-       that the url repository is derived from. This is for purposes of
-       informing update requests between the ORIGIN URL from its upstream URL.
+    git_dir: [path] The local path the repository was cloned to, if any.
+    origin: [url] The url the local_path was cloned from, if known.
+    upstream: [url] The url the origin is refreshed from, if known.
   """
-
-  @staticmethod
-  def make_from_url(url, upstream_ref=None):
-    """Create a new RemoteGitRepository from the specified URL.
-
-    The tail of the URL is assumed to be the repository name.
-    """
-    name = url[url.rfind('/') + 1:]
-    return RemoteGitRepository(name, url, upstream_ref)
-
-  @staticmethod
-  def merge_to_dict(*pos_args):
-    """For a upstream_repos parameter value from a list of mappings.
-
-    pos_args: [list of dict] where key is name of repository,
-        value is the RemoteGitRepository specification for that repository name.
-    """
-    result = {}
-    for some in pos_args:
-      result.update(some)
-    return result
+  @property
+  def name(self):
+    """The short name for the repository."""
+    return self.__name
 
   @property
-  def upstream_url(self):
-    """The upstream repository URL or None if there is no upstream_ref."""
-    return None if self.upstream_ref is None else self.upstream_ref.url
+  def git_dir(self):
+    """The path to the local repository the origin was cloned to."""
+    if not self.__git_dir:
+      raise_and_log_error(
+          ConfigError('{0} does not specify a git_dir'.format(self)))
+    return self.__git_dir
+
+  @property
+  def origin(self):
+    """The origin URL."""
+    if not self.__origin:
+      raise_and_log_error(
+          ConfigError('{0} does not specify an origin'.format(self)))
+    return self.__origin
+
+  @property
+  def upstream(self):
+    """The upstream URL."""
+    if not self.__upstream:
+      raise_and_log_error(
+          ConfigError('{0} does not specify an upstream'.format(self)))
+    return self.__upstream
+
+  def __init__(self, name, **kwargs):
+    """Create a new instance."""
+    self.__name = name
+    self.__git_dir = kwargs.pop('git_dir', None)
+    self.__origin = kwargs.pop('origin', None)
+    self.__upstream = kwargs.pop('upstream', None)
+    self.__commit = kwargs.pop('commit_id', None)
+    self.__branch = kwargs.pop('branch', None)
+    check_kwargs_empty(kwargs)
+
+  def branch_or_none(self):
+    """Returns specific branch or None."""
+    return self.__branch
+
+  def commit_or_none(self):
+    """Returns specific commit or None."""
+    return self.__commit
+
+  def git_dir_or_none(self):
+    """Returns local git_dir path, which might be None."""
+    return self.__git_dir or None
+
+  def origin_or_none(self):
+    """Returns origin URL, which might be None."""
+    return self.__origin or None
+
+  def upstream_or_none(self):
+    """Returns upstream URL, which might be None."""
+    return self.__upstream or None
+
+  def __str__(self):
+    return self.__repr__()
+
+  def __repr__(self):
+    return 'git_dir={git_dir}  origin={origin}  upstream={upstream}'.format(
+        git_dir=self.__git_dir,
+        origin=self.__origin,
+        upstream=self.__upstream)
+
+  def __eq__(self, other):
+    return (self.__name == other.name
+            and self.__git_dir == other.git_dir_or_none()
+            and self.__origin == other.origin_or_none()
+            and self.__upstream == other.upstream_or_none())
 
 
 class SemanticVersion(
@@ -100,7 +146,7 @@ class SemanticVersion(
     """
     match = SemanticVersion.SEMVER_MATCHER.match(tag)
     if match is None:
-      raise ValueError('Malformed tag "{tag}"'.format(tag=tag))
+      raise_and_log_error(UnexpectedError('Malformed tag "%s"' % tag))
 
     # Keep first group as a string, but use integers for the component parts
     return SemanticVersion(match.group(1),
@@ -142,7 +188,7 @@ class SemanticVersion(
        at_index: [int] The component *_INDEX to bump at.
     """
     if at_index is None:
-      raise ValueError('Invalid index={0}'.format(at_index))
+      raise_and_log_error(UnexpectedError('Invalid index={0}'.format(at_index)))
 
     major = self.major
     minor = self.minor
@@ -158,7 +204,8 @@ class SemanticVersion(
         minor = 0
         major += 1
       else:
-        raise ValueError('Invalid index={0}'.format(at_index))
+        raise_and_log_error(
+            UnexpectedError('Invalid index={0}'.format(at_index)))
 
     return SemanticVersion(self.series_name, major, minor, patch)
 
@@ -201,7 +248,7 @@ class CommitMessage(
                            ['commit_id', 'author', 'date', 'message'])):
   """Denotes an individual entry in 'git log --pretty'."""
   _MEDIUM_PRETTY_COMMIT_MATCHER = re.compile(
-      '(.+)\nAuthor: *(.+)\nDate: *(.*)\n', re.MULTILINE)
+      '(.+)\n(?:Merge: .*?\n)?Author: *(.+)\nDate: *(.*)\n', re.MULTILINE)
 
   _EMBEDDED_COMMIT_MATCHER = re.compile(
       r'^( *)commit [a-f0-9]+\n'
@@ -262,6 +309,9 @@ class CommitMessage(
   def make(entry):
     """Create a new CommitMessage from an individual entry"""
     match = CommitMessage._MEDIUM_PRETTY_COMMIT_MATCHER.match(entry)
+    if match is None:
+      raise_and_log_error(
+          UnexpectedError('Unexpected commit entry {0}'.format(entry)))
 
     text = entry[match.end(3):]
 
@@ -434,11 +484,15 @@ class CommitMessage(
                   default_semver_index, self.message)
     return default_semver_index
 
+  def to_yaml(self):
+    """Convert the summary to a yaml string."""
+    data = dict(self._asdict())
+    return yaml.dump(data, default_flow_style=False)
 
 
 class RepositorySummary(collections.namedtuple(
     'RepositorySummary',
-    ['commit_id', 'tag', 'version', 'commit_messages'])):
+    ['commit_id', 'tag', 'version', 'prev_version', 'commit_messages'])):
   """Denotes information about a repository that a build-delta wants.
 
   Attributes:
@@ -449,15 +503,42 @@ class RepositorySummary(collections.namedtuple(
        If this is empty then the tag and version already exists.
        Otherwise the tag and version are proposed values.
   """
+  @staticmethod
+  def from_dict(content):
+    """Construct from yaml dictionary."""
+    data = dict(content)
+    data['commit_messages'] = [CommitMessage(**raw)
+                               for raw in data['commit_messages']]
+    return RepositorySummary(**data)
+
+  @property
+  def patchable(self):
+    """Return True if the changes in this repository is only a patch release."""
+    previous_parts = self.prev_version.split('.')
+    current_parts = self.version.split('.')
+    if len(previous_parts) != 3:
+      raise_and_log_error(
+          ConfigError('Previous version %s is not X.Y.Z' % self.prev_version))
+    if len(current_parts) != 3:
+      raise_and_log_error(
+          ConfigError('Version %s is not X.Y.Z' % self.version))
+    if previous_parts[:2] != current_parts[:2]:
+      return False
+    if int(previous_parts[2]) != int(current_parts[2]) - 1:
+      raise_and_log_error(
+          UnexpectedError(
+              'Unexpected version sequence {prev} to {current}'.format(
+                  prev=self.prev_version, current=self.version)))
+    return True
+
   def to_yaml(self, with_commit_messages=True):
     """Convert the summary to a yaml string."""
-    data = dict(super(RepositorySummary, self).__dict__)
-    del data['commit_messages']
-
+    data = dict(self._asdict())
     if with_commit_messages:
-      # Need data['commit_messages'] = [
-      #   message.to_dict() for message in self.commit_messages]
-      raise NotImplementedError('with_commit_messages not yet supported')
+      data['commit_messages'] = [dict(m._asdict())
+                                 for m in data['commit_messages']]
+    else:
+      del data['commit_messages']
 
     return yaml.dump(data, default_flow_style=False)
 
@@ -465,63 +546,46 @@ class RepositorySummary(collections.namedtuple(
 class GitRunner(object):
   """Helper class for interacting with Git"""
 
-  ORIGIN_REMOTE_NAME = 'actual_origin'
   __GITHUB_TOKEN = None
 
   @staticmethod
-  def add_git_parser_args(
-      parser, defaults,
-      pull=False, push=False, pull_request=False, common=True):
-    """Add standard options needed to interact with git for various modes.
+  def add_parser_args(parser, defaults):
+    """Add standard parser options used by GitRunner."""
+    if hasattr(parser, 'added_git'):
+      return
+    parser.added_git = True
 
-    The push/pull_request controls are safety mechanisms to help ensure no
-    side effects may happen if use cases desire that.
+    add_parser_argument(
+        parser, 'github_owner', defaults, None,
+        help='Github repository owner whose repositories we should'
+             ' be operating on.')
+    add_parser_argument(
+        parser, 'github_pull_ssh', defaults, False, type=bool,
+        help='If True, github pull origin uses ssh rather than https.'
+             ' Pulls are https by default since the standard repos are public.')
+    add_parser_argument(
+        parser, 'github_push_ssh', defaults, True, type=bool,
+        help='If False, github push origin uses https rather than ssh.'
+             ' Pushes are ssh by default for enhanced security over https.')
+    add_parser_argument(
+        parser, 'github_disable_upstream_push', defaults, False, type=bool,
+        help='If True then disable upstream git pushes in local repos.'
+             ' This is intended as a safety mechanism for testing.')
 
-    The remaining configuration parameters are primarily here on behalf of
-    consumers to standardize with. They do not control the runner itself,
-    rather what callers of the runner may pass to it.
+  @staticmethod
+  def add_publishing_parser_args(parser, defaults):
+    """Add standard parser options used when pushing changes with GitRunner."""
+    if hasattr(parser, 'added_publishing'):
+      return
+    parser.added_publishing = True
 
-    Args:
-      parer: [argparse.ArgumentParser] The parser to add to.
-      defaults: [dict] The default value overrides, keyed by option.
-      pull: [boolean] Set to true if git will be used to pull data (e.g. clone)
-      push: [boolean] Set to true if git will be used to push data (e.g. push)
-      pull_request: [boolean] Set to true if git will be used to initiate PRs.
-      common: [boolean] Set to false to disable common args because they were
-         already added by another call to this method.
-    """
-    def add_argument(parser, name, defaults, default_value, **kwargs):
-      """Helper function"""
-      parser.add_argument(
-          '--{name}'.format(name=name),
-          default=defaults.get(name, default_value),
-          **kwargs)
-
-    if common:
-      add_argument(
-          parser, 'github_user', defaults, 'default',
-          help='Github user repositories to interact with.')
-      add_argument(
-          parser, 'git_branch', defaults, None,
-          help='Github branch to interact with.')
-
-    if pull:
-      add_argument(
-          parser, 'fallback_branch', defaults, None,
-          help='Github branch to pull from if --git_branch is not found.')
-
-    if push:
-      pass
-
-    if pull_request:
-      add_argument(
-          parser, 'pr_notify_list', defaults, None,
-          help='Comma-separated list of Github users'
-          ' to notify when creating Github pull requests.')
-      add_argument(
-          parser, 'no_pr', defaults, False,
-          help='Do not submit upstream PRs even if pushing to ORIGIN.')
-
+    add_parser_argument(
+        parser, 'git_allow_publish_master_branch', defaults, True,
+        help='If false then push to a version-specific branch'
+             ' rather than "master" so it can be reviewed.')
+    add_parser_argument(
+        parser, 'git_never_push', defaults, False, type=bool,
+        help='Disable pushing to git.')
 
   @staticmethod
   def __normalize_repo_url(url):
@@ -565,6 +629,18 @@ class GitRunner(object):
       GitRunner.__GITHUB_TOKEN = os.environ['GITHUB_TOKEN']
       del os.environ['GITHUB_TOKEN']
 
+  @staticmethod
+  def make_https_url(host, owner, repo):
+    """Return github https url."""
+    return 'https://{host}/{owner}/{repo}'.format(
+        host=host, owner=owner, repo=repo)
+
+  @staticmethod
+  def make_ssh_url(host, owner, repo):
+    """Return github https url."""
+    return 'git@{host}:{owner}/{repo}'.format(
+        host=host, owner=owner, repo=repo)
+
   @property
   def options(self):
     """Return bound options."""
@@ -598,22 +674,22 @@ class GitRunner(object):
         'git -C "{dir}" {command}'.format(dir=git_dir, command=command),
         **kwargs)
 
-  def check_git(self, git_dir, command, **kwargs):
+  def check_run(self, git_dir, command, **kwargs):
     """Wrapper around check_subprocess."""
     self.__inject_auth(kwargs)
     return check_subprocess(
         'git -C "{dir}" {command}'.format(dir=git_dir, command=command),
         **kwargs)
 
-  def check_git_sequence(self, git_dir, commands):
+  def check_run_sequence(self, git_dir, commands):
     """Check a sequence of git commands.
 
     Args:
       git_dir: [path] All the commands refer to this lcoal repository.
-      commands: [list of string] To pass to check_git.
+      commands: [list of string] To pass to check_run.
     """
     for cmd in commands:
-      self.check_git(git_dir, cmd)
+      self.check_run(git_dir, cmd)
 
   def query_local_repository_commits_to_existing_tag_from_id(
       self, git_dir, commit_id, commit_tags):
@@ -627,7 +703,7 @@ class GitRunner(object):
     if tag is not None:
       return tag, []
 
-    result = self.check_git(git_dir, 'log --pretty=oneline ' + commit_id)
+    result = self.check_run(git_dir, 'log --pretty=oneline ' + commit_id)
     lines = result.split('\n')
     count = 0
     for line in lines:
@@ -638,11 +714,12 @@ class GitRunner(object):
       count += 1
 
     if tag is None:
-      raise ValueError(
-          'There is no baseline tag for commit "{id}" in {dir}.'.format(
-              id=commit_id, dir=git_dir))
+      raise_and_log_error(
+          ConfigError(
+              'There is no baseline tag for commit "{id}" in {dir}.'.format(
+                  id=commit_id, dir=git_dir)))
 
-    result = self.check_git(
+    result = self.check_run(
         git_dir,
         'log -n {count} --pretty=medium {id}'.format(
             count=count, id=commit_id))
@@ -651,29 +728,61 @@ class GitRunner(object):
 
   def query_local_repository_commit_id(self, git_dir):
     """Returns the current commit for the repository at git_dir."""
-    result = self.check_git(git_dir, 'rev-parse HEAD')
+    result = self.check_run(git_dir, 'rev-parse HEAD')
     return result
 
   def query_local_repository_branch(self, git_dir):
     """Returns the branch for the repository at git_dir."""
     returncode, stdout = self.run_git(git_dir, 'rev-parse --abbrev-ref HEAD')
     if returncode:
-      error = 'Could not determine branch: ' + stdout
-      raise RuntimeError(error + ' in ' + git_dir)
+      raise_and_log_error(
+          ExecutionError('Could detmine branch', program='git'),
+          'Could not determine branch in {dir}: {output}'.format(
+              dir=git_dir, output=stdout))
     return stdout
 
+  def delete_branch_on_origin(self, git_dir, branch):
+    if self.options.git_never_push:
+      logging.warning(
+          'SKIP deleting branch because --git_never_push=true.'
+          '\nCommand would have been: %s',
+          'git -C "{dir}" push origin --delete {branch}'.format(
+              dir=git_dir, branch=branch))
+      return
+    logging.warning('Deleting origin branch="%s" for %s', branch, git_dir)
+    self.check_run(git_dir, 'push origin --delete ' + branch)
+
   def push_branch_to_origin(self, git_dir, branch):
-    """Push the given local repository back up to the ORIGIN.
+    """Push the given local repository back up to the origin.
 
     This has no effect if the repository is not in the given branch.
     """
+    if self.options.git_never_push:
+      logging.warning(
+          'SKIP pushing branch because --git_never_push=true.'
+          '\nCommand would have been: %s',
+          'git -C "{dir}" push origin {branch}'.format(
+              dir=git_dir, branch=branch))
+      return
+
     in_branch = self.query_local_repository_branch(git_dir)
     if in_branch != branch:
-      logging.warning('Skipping push %s "%s" to %s because branch is "%s".',
-                      git_dir, branch, self.ORIGIN_REMOTE_NAME, in_branch)
+      logging.warning('Skipping push %s "%s" to origin because branch is "%s".',
+                      git_dir, branch, in_branch)
       return
-    self.check_git(git_dir, 'push {remote} --tags {branch}'.format(
-        remote=self.ORIGIN_REMOTE_NAME, branch=branch))
+    self.check_run(git_dir, 'push origin ' + branch)
+
+  def push_tag_to_origin(self, git_dir, tag):
+    """Push the given tag back up to the origin."""
+    if self.options.git_never_push:
+      logging.warning(
+          'SKIP pushing tag because --git_never_push=true.'
+          '\nCommand would have been: %s',
+          'git -C "{dir}" push origin {tag}'.format(dir=git_dir, tag=tag))
+      return
+
+    logging.debug('Pushing tag "%s" and pushing to origin in %s', tag, git_dir)
+    self.check_run(git_dir, 'push origin ' + tag)
 
   def refresh_local_repository(self, git_dir, remote_name, branch):
     """Refreshes the given local repository from the remote one.
@@ -683,8 +792,8 @@ class GitRunner(object):
       remote_name: [remote_name] Which remote repository to pull from.
       branch: [string] Which branch to pull.
     """
-    repository = self.determine_remote_git_repository(git_dir)
-    if remote_name == 'upstream' and not repository.upstream_url:
+    repository = self.determine_git_repository_spec(git_dir)
+    if remote_name == 'upstream' and not repository.upstream:
       logging.warning(
           'Skipping pull {remote_name} {branch} in {repository} because'
           ' it does not have a remote "{remote_name}"'
@@ -709,10 +818,10 @@ class GitRunner(object):
                     git_dir, remote_name, branch)
       command = 'pull {remote_name} {branch} --tags'.format(
           remote_name=remote_name, branch=branch)
-      result = self.check_git(git_dir, command)
+      result = self.check_run(git_dir, command)
       logging.info('%s:\n%s', repository.name, result)
-    except RuntimeError:
-      result = self.check_git(git_dir, 'branch -r')
+    except ExecutionError:
+      result = self.check_run(git_dir, 'branch -r')
       if result.find(
           '{which}/{branch}\n'.format(which=remote_name, branch=branch)) >= 0:
         raise
@@ -733,8 +842,8 @@ class GitRunner(object):
                               .format(branch=branch)) >= 0
       if not not_found:
         full_command = 'git -C "{dir}" {cmd}'.format(dir=base_dir, cmd=cmd)
-        raise CalledProcessError(cmd=full_command,
-                                 returncode=retcode, output=stdout)
+        raise_and_log_error(ExecutionError(full_command, program='git'),
+                            full_command + ' failed with:\n' + stdout)
 
       if remaining_branches:
         logging.warning(
@@ -746,26 +855,27 @@ class GitRunner(object):
       stdout = '\n   '.join(lines)
       logging.error('git -C "%s" %s failed with output:\n   %s',
                     base_dir, cmd, stdout)
-      raise ValueError('Branches {0} do not exist in {1}.'
-                       .format(branches, remote_url))
+      raise_and_log_error(ConfigError('Branches {0} do not exist in {1}.'
+                                      .format(branches, remote_url)))
 
-  def __make_decoy_origin(self, repo_name):
-    """Create a empty repository as a decoy to trick nebula.
+  def remove_all_non_version_tags(self, repository, git_dir=None):
+    """Removes tags from the repository that confuse nebula.
 
-    When nebula insists on side effects to the "origin" repo, it will
-    munge this one leaving the real origin alone.
+    This confusion is because nebula is assuming Netflix policies and tags,
+    but the OSS build has different policies and different tags to avoid
+    conflicts with Netflix internal usage.
     """
-    decoy_path = os.path.join(
-        self.options.scratch_dir, 'nebula_decoys', repo_name)
-    ensure_dir_exists(decoy_path)
-    if not os.path.exists(os.path.join(decoy_path, '.git')):
-      logging.debug('Creating nebula decoy repository at %s', decoy_path)
-      self.check_git(decoy_path, 'init')
-    return decoy_path
+    tag_matcher = re.compile(r'^version-[0-9]+\.[0-9]+\.[0-9]+$')
+    git_dir = git_dir or repository.git_dir
+
+    logging.debug('Clearing all non-version tags from %s', git_dir)
+    all_tags = self.check_run(git_dir, 'tag').split('\n')
+    tags_to_remove = [tag for tag in all_tags if not tag_matcher.match(tag)]
+    self.check_run(git_dir, 'tag -d ' + ' '.join(tags_to_remove))
+    logging.debug('%d of %d tags removed', len(tags_to_remove), len(all_tags))
 
   def clone_repository_to_path(
-      self, remote_url, git_dir, upstream_url=None,
-      commit=None, branch=None, default_branch=None):
+      self, repository, commit=None, branch=None, default_branch=None):
     """Clone the remote repository at the given commit or branch.
 
     If requesting a branch and it is not found, then settle for the default
@@ -774,76 +884,86 @@ class GitRunner(object):
     # pylint: disable=too-many-arguments
 
     if (commit != None) and (branch != None):
-      raise ValueError('At most one of commit or branch can be specified.')
+      raise_and_log_error(
+          ConfigError('At most one of commit or branch can be specified.'))
 
-    logging.debug('Begin cloning %s', remote_url)
+    origin = repository.origin
+    git_dir = repository.git_dir
+    logging.debug('Begin cloning %s', origin)
     parent_dir = os.path.dirname(git_dir)
     ensure_dir_exists(parent_dir)
 
-    clone_command = 'clone ' + remote_url
+    clone_command = 'clone ' + origin
     if branch:
       branches = [branch]
       if default_branch:
         branches.append(default_branch)
-      self.__check_clone_branch(remote_url, parent_dir, clone_command, branches)
+      self.__check_clone_branch(origin, parent_dir, clone_command, branches)
     else:
-      self.check_git(parent_dir, clone_command)
-    logging.info('Cloned %s into %s', remote_url, parent_dir)
-    logging.info('Renaming origin remote and adding a decoy to trick nebula.')
-    self.check_git(git_dir, 'remote rename origin ' + self.ORIGIN_REMOTE_NAME)
-
-    decoy_origin_dir = self.__make_decoy_origin(os.path.basename(git_dir))
-    self.check_git(git_dir,
-                   'remote add origin ' + os.path.abspath(decoy_origin_dir))
+      self.check_run(parent_dir, clone_command)
+    logging.info('Cloned %s into %s', origin, parent_dir)
 
     if commit:
-      self.check_git(git_dir, 'checkout -q ' + commit, echo=True)
+      self.check_run(git_dir, 'checkout -q ' + commit, echo=True)
 
-    if upstream_url and not self.is_same_repo(upstream_url, remote_url):
-      logging.debug('Adding upstream %s with disabled push', upstream_url)
-      self.check_git(git_dir, 'remote add upstream ' + upstream_url)
+    upstream = repository.upstream_or_none()
+    if upstream and not self.is_same_repo(upstream, origin):
+      logging.debug('Adding upstream %s with disabled push', upstream)
+      self.check_run(git_dir, 'remote add upstream ' + upstream)
 
     which = ('upstream'
-             if upstream_url and not self.is_same_repo(upstream_url, remote_url)
-             else self.ORIGIN_REMOTE_NAME)
-    self.check_git(
-        git_dir, 'remote set-url --push {which} disabled'.format(which=which))
-    logging.debug('Finished cloning %s', remote_url)
+             if upstream and not self.is_same_repo(upstream, origin)
+             else 'origin')
+    if self.__options.github_disable_upstream_push:
+      self.check_run(
+          git_dir, 'remote set-url --push {which} disabled'.format(which=which))
+    if which != 'origin' or not self.__options.github_disable_upstream_push:
+      parts = self.__normalize_repo_url(repository.origin)
+      if len(parts) == 3:
+        # Origin is not a local path
+        logging.debug('Fixing origin push url')
+        push_url = (self.make_ssh_url(*parts) if self.__options.github_push_ssh
+                    else self.make_https_url(*parts))
+        self.check_run(git_dir, 'remote set-url --push origin ' + push_url)
+
+    logging.debug('Finished cloning %s', origin)
 
   def tag_head(self, git_dir, tag):
     """Add tag to the local repository HEAD."""
-    self.check_git(git_dir, 'tag {tag} HEAD'.format(tag=tag))
+    self.check_run(git_dir, 'tag {tag} HEAD'.format(tag=tag))
 
   def query_tag_commits(self, git_dir, tag_pattern):
     """Collect the TagCommit for each tag matching the pattern.
 
       Returns: list of CommitTag sorted most recent first.
     """
-    tag_ref_result = self.check_git(git_dir, 'show-ref --tags')
+    retcode, stdout = self.run_git(git_dir, 'show-ref --tags')
+    if retcode and stdout:
+      raise_and_log_error(
+          ExecutionError('git failed in %s' % git_dir, program='git'),
+          'git -C "%s" show-ref --tags: %s' % (git_dir, stdout))
 
-    ref_lines = tag_ref_result.split('\n')
-    commit_tags = [CommitTag.make(line) for line in ref_lines]
+    ref_lines = stdout.split('\n')
+    commit_tags = [CommitTag.make(line) for line in ref_lines if line]
     matcher = re.compile(tag_pattern)
     filtered = [ct for ct in commit_tags if matcher.match(ct.tag)]
     return sorted(filtered, reverse=True)
 
-  def determine_remote_git_repository(self, git_dir):
-    """Infter RemoteGitRepository from a local git repository."""
-    git_text = self.check_git(git_dir, 'remote -v')
+  def determine_git_repository_spec(self, git_dir):
+    """Infer GitRepositorySpec from a local git repository."""
+    git_text = self.check_run(git_dir, 'remote -v')
     remote_urls = {
         match.group(1): match.group(2)
         for match in re.finditer(r'(\w+)\s+(\S+)\s+\(fetch\)', git_text)
     }
-    remote_url = remote_urls.get(self.ORIGIN_REMOTE_NAME)
-    if not remote_url:
-      raise ValueError('{0} has no remote "{1}"'.format(
-          git_dir, self.ORIGIN_REMOTE_NAME))
-
-    upstream_url = remote_urls.get('upstream')
-    upstream = (RemoteGitRepository.make_from_url(upstream_url)
-                if upstream_url
-                else None)
-    return RemoteGitRepository.make_from_url(remote_url, upstream_ref=upstream)
+    origin_url = remote_urls.get('origin')
+    if not origin_url:
+      raise_and_log_error(
+          UnexpectedError('{0} has no remote "origin"'.format(git_dir)))
+    return GitRepositorySpec(os.path.basename(git_dir),
+                             git_dir=git_dir,
+                             origin=origin_url,
+                             upstream=remote_urls.get('upstream'))
 
   def collect_repository_summary(self, git_dir):
     """Collects RepsitorySummary from local repository directory."""
@@ -869,14 +989,16 @@ class GitRunner(object):
 
     total_ms = int((time.time() - start_time) * 1000)
     logging.debug('Finished analyzing %s in %d ms', git_dir, total_ms)
-    return RepositorySummary(current_id, use_tag, use_version, msgs)
+    return RepositorySummary(current_id, use_tag, use_version,
+                             current_semver.to_version(),
+                             msgs)
 
   def delete_local_branch_if_exists(self, git_dir, branch):
     """Delete the branch from git_dir if one exists.
 
     This will fail if the branch exists and the git_dir is currently in it.
     """
-    result = self.check_git(git_dir, 'branch -l')
+    result = self.check_run(git_dir, 'branch -l')
     branches = []
     for elem in result.split('\n'):
       if elem.startswith('*'):
@@ -885,7 +1007,7 @@ class GitRunner(object):
 
     if branch in branches:
       logging.info('Deleting existing branch %s from %s', branch, git_dir)
-      self.check_git(git_dir, 'branch -D ' + branch)
+      self.check_run(git_dir, 'branch -D ' + branch)
       return
 
   def initiate_github_pull_request(
@@ -902,7 +1024,7 @@ class GitRunner(object):
       head: [string] The branch to use for the pull request. By default this
          is the current branch state of the the git_dir repository. This
          too can be BRANCH or OWNER:BRANCH. This branch must have alraedy been
-         pushed to the ORIGIN repository -- not the local repository.
+         pushed to the origin repository -- not the local repository.
     """
     options = self.options
     message = message.strip()
@@ -915,11 +1037,11 @@ class GitRunner(object):
     if head:
       hub_args.extend(['-h', head])
 
-    if options.no_pr:
+    if options.git_never_push:
       logging.warning(
-          'SKIPPING the creation of a pull request because --no_pr.'
+          'SKIP creating pull request because --git_never_push=true.'
           '\nCommand would have been: %s',
-          'hub -C "{dir}" pull-request {args} -m {msg!r}'.format(
+          'git -C "{dir}" pull-request {args} -m {msg!r}'.format(
               dir=git_dir, args=' '.join(hub_args), msg=message))
       return
 
