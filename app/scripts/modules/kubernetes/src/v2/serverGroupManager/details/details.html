@@ -65,7 +65,6 @@
       </div>
     </div>
   </div>
-
   <div class="content" ng-if="!ctrl.state.loading">
     <kubernetes-manifest-status status="ctrl.manifest.status"></kubernetes-manifest-status>
     <collapsible-section heading="Information" expanded="true">
@@ -91,14 +90,24 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Artifacts" expanded="true">
-      <ul ng-repeat="artifact in ctrl.manifest.artifacts">
-        <kubernetes-manifest-artifact artifact="artifact"></kubernetes-manifest-artifact>
-      </ul>
-    </collapsible-section>
+
     <collapsible-section heading="Status" expanded="true">
       <ul ng-repeat="condition in ctrl.manifest.manifest.status.conditions">
         <kubernetes-manifest-condition condition="condition"></kubernetes-manifest-condition>
+      </ul>
+    </collapsible-section>
+
+    <collapsible-section heading="Labels" expanded="true">
+      <kubernetes-manifest-labels manifest="ctrl.serverGroupManager.manifest"></kubernetes-manifest-labels>
+    </collapsible-section>
+
+    <collapsible-section heading="Annotations" expanded="true">
+      <kubernetes-manifest-annotations manifest="ctrl.serverGroupManager.manifest"></kubernetes-manifest-annotations>
+    </collapsible-section>
+
+    <collapsible-section heading="Artifacts" expanded="true">
+      <ul ng-repeat="artifact in ctrl.manifest.artifacts">
+        <kubernetes-manifest-artifact artifact="artifact"></kubernetes-manifest-artifact>
       </ul>
     </collapsible-section>
   </div>
