@@ -61,10 +61,18 @@ class DependentPipelineStarter implements ApplicationContextAware {
     pipelineConfig.trigger = new PipelineTrigger(
       parentPipeline,
       parentPipelineStageId,
-      principal?.username ?: user ?: "[anonymous]",
-      buildParameters(pipelineConfig, suppliedParameters),
-      []
+      principal?.username ?: user ?: "[anonymous]"
     )
+
+    if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
+      def pipelineParameters = suppliedParameters ?: [:]
+      pipelineConfig.parameterConfig.each {
+        pipelineConfig.trigger.parameters[it.name] = pipelineParameters.containsKey(it.name) ? pipelineParameters[it.name] : it.default
+      }
+      suppliedParameters.each { k, v ->
+        pipelineConfig.trigger.parameters[k] = pipelineConfig.trigger.parameters[k] ?: suppliedParameters[k]
+      }
+    }
 
     def trigger = pipelineConfig.trigger //keep the trigger as the preprocessor removes it.
 
@@ -103,20 +111,6 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline
-  }
-
-  private Map<String, Object> buildParameters(Map pipelineConfig, Map suppliedParameters) {
-    def result = [:]
-    if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
-      def pipelineParameters = suppliedParameters ?: [:]
-      pipelineConfig.parameterConfig.each {
-        result[it.name] = pipelineParameters.containsKey(it.name) ? pipelineParameters[it.name] : it.default
-      }
-      suppliedParameters.each { k, v ->
-        result.parameters[k] = pipelineConfig.trigger.parameters[k] ?: suppliedParameters[k]
-      }
-    }
-    return result
   }
 
   // There are currently two sources-of-truth for the user:

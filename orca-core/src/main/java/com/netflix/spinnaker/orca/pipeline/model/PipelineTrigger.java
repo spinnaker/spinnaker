@@ -42,10 +42,18 @@ public final class PipelineTrigger extends Trigger {
     @JsonProperty("user") @Nullable String user,
     @JsonProperty("parameters") @Nullable Map<String, Object> parameters,
     @JsonProperty("artifacts") @Nullable List<Artifact> artifacts
-    ) {
+  ) {
     super(user, parameters, artifacts);
     this.parentExecution = parentExecution;
     this.parentPipelineStageId = parentPipelineStageId;
+  }
+
+  public PipelineTrigger(
+    @Nonnull Execution parentExecution,
+    @Nullable String parentPipelineStageId,
+    @Nullable String user
+  ) {
+    this(parentExecution, parentPipelineStageId, user, null, null);
   }
 
   public PipelineTrigger(Execution parentExecution, Map<String, Object> parameters) {

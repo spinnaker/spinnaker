@@ -91,7 +91,7 @@ class MonitorPipelineTaskSpec extends Specification {
       }
       stage {
         type = PipelineStage.PIPELINE_CONFIG_TYPE
-        name = null
+        name = "pipeline"
         status = ExecutionStatus.TERMINAL
         context = [exception: [details: [errors: "Some other error"]]]
       }

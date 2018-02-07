@@ -101,7 +101,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger = new PipelineTrigger(null, [strategy: true])
+      trigger = new PipelineTrigger(pipeline {}, [strategy: true])
     }
   }
 
@@ -121,7 +121,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger = new PipelineTrigger(null, [strategy: true])
+      trigger = new PipelineTrigger(pipeline {}, [strategy: true])
     }
   }
 
