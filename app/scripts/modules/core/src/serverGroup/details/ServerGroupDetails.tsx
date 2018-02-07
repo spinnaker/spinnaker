@@ -18,6 +18,7 @@ import { ServerGroupInsightActions } from './ServerGroupInsightActions';
 @BindAll()
 export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps, IServerGroupDetailsState> {
   private destroy$ = new Subject();
+  private serverGroupsRefreshUnsubscribe: () => void;
 
   constructor(props: IServerGroupDetailsProps) {
     super(props);
@@ -41,7 +42,11 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
     this.props.detailsGetter(this.props, this.autoClose)
       .takeUntil(this.destroy$)
       .subscribe(this.updateServerGroup);
-    this.props.app.serverGroups.onRefresh(null, () => this.props.detailsGetter(this.props, this.autoClose).takeUntil(this.destroy$).subscribe(this.updateServerGroup));
+    this.serverGroupsRefreshUnsubscribe = this.props.app.serverGroups.onRefresh(null, () => {
+      this.props.detailsGetter(this.props, this.autoClose)
+        .takeUntil(this.destroy$)
+        .subscribe(this.updateServerGroup);
+    });
   }
 
   public componentWillReceiveProps(nextProps: IServerGroupDetailsProps): void {
@@ -52,6 +57,7 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
 
   public componentWillUnmount(): void {
     this.destroy$.next();
+    this.serverGroupsRefreshUnsubscribe();
   }
 
   public render() {
