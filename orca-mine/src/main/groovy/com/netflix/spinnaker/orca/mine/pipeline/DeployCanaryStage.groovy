@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -185,7 +186,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
             }
 
             cluster.amiName = ami?.ami
-            cluster.buildUrl = createBuildUrl(ami) ?: stage.execution.trigger?.buildInfo?.url
+            cluster.buildUrl = createBuildUrl(ami) ?: (stage.execution.trigger instanceof JenkinsTrigger ? stage.execution.trigger.buildInfo?.url : null)
           }
 
           def accountDetails = mortService.getAccountDetails(cluster.account)
