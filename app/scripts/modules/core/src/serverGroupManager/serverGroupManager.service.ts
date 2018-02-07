@@ -1,6 +1,6 @@
 import { module, IPromise } from 'angular';
 
-import { API_SERVICE, Api } from '@spinnaker/core';
+import { API_SERVICE, Api } from 'core/api/api.service';
 
 import { IServerGroupManager } from 'core/domain/IServerGroupManager';
 

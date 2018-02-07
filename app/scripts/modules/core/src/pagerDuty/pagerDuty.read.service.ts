@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { Observable } from 'rxjs';
 
-import { Api, API_SERVICE } from '@spinnaker/core';
+import { Api, API_SERVICE } from 'core/api/api.service';
 
 export interface IPagerDutyService {
   id: string;

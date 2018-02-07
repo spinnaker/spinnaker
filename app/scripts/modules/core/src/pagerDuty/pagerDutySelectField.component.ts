@@ -1,6 +1,6 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
 
-import { SchedulerFactory } from '@spinnaker/core';
+import { SchedulerFactory } from 'core/scheduler/scheduler.factory';
 
 import { IPagerDutyService, PAGER_DUTY_READ_SERVICE, PagerDutyReader } from './pagerDuty.read.service';
 

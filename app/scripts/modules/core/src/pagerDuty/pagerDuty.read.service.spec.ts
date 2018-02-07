@@ -1,6 +1,6 @@
 import { IHttpBackendService, mock } from 'angular';
 
-import { Api, API_SERVICE } from '@spinnaker/core';
+import { Api, API_SERVICE } from 'core/api/api.service';
 
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
