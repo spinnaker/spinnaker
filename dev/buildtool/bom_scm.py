@@ -35,6 +35,10 @@ from buildtool import (
 SPINNAKER_BOM_REPOSITORY_NAMES = list(SPINNAKER_RUNNABLE_REPOSITORY_NAMES)
 SPINNAKER_BOM_REPOSITORY_NAMES.extend(['spinnaker', 'spinnaker-monitoring'])
 
+REPO_NAME_TO_SERVICE_NAME_OVERRIDE = {
+    'spinnaker-monitoring': 'monitoring-daemon'
+}
+
 
 class BomSourceCodeManager(SpinnakerSourceCodeManager):
   """Manages source code specified in a BOM."""
@@ -87,9 +91,8 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
 
   @staticmethod
   def to_service_name(repository):
-    if repository.name == 'spinnaker-monitoring':
-      return 'monitoring-daemon'
-    return repository.name
+    return REPO_NAME_TO_SERVICE_NAME_OVERRIDE.get(repository.name,
+                                                  repository.name)
 
   @property
   def bom(self):
@@ -109,11 +112,7 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     return None
 
   def determine_origin(self, name):
-    if name == 'spinnaker-monitoring':
-      service_name = 'monitoring-daemon'
-    else:
-      service_name = name
-
+    service_name = REPO_NAME_TO_SERVICE_NAME_OVERRIDE.get(name, name)
     service = self.__bom['services'][service_name]
     if service.get('gitPrefix'):
       prefix = service['gitPrefix']
@@ -155,14 +154,12 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     bom_commit = self.__bom['services'][service_name]['commit']
     if have_commit == bom_commit:
       return True
-
-    logging.warning('"%s" is at the wrong commit -- changing to "%s"',
-                    git_dir, bom_commit)
-    self.git.check_run(git_dir, 'checkout ' + bom_commit)
-    return False
+    raise_and_log_error(
+        UnexpectedError(
+            '"%s" is at the wrong commit "%s"' % (git_dir, bom_commit)))
 
   def determine_upstream_url(self, name):
-    # Disable upstrema on BOM urls since we wont be pushing back.
+    # Disable upstream on BOM urls since we wont be pushing back.
     return None
 
   def determine_source_repositories(self):

@@ -90,7 +90,6 @@ class BranchSourceCodeManager(SpinnakerSourceCodeManager):
     have_branch = self.git.query_local_repository_branch(repository.git_dir)
     if have_branch == branch:
       return True
-    logging.warning('"%s" was in the wrong branch -- checkout "%s"',
-                    repository.git_dir, branch)
-    self.git.check_run(repository.git_dir, 'checkout ' + branch)
-    return False
+    raise_and_log_error(
+        UnexpectedError(
+            '"%s" is at the wrong branch "%s"' % (git_dir, branch)))
