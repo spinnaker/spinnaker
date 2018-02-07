@@ -61,7 +61,7 @@ class UnexpectedError(BuildtoolError):
 
 
 def maybe_log_exception(where, ex, action_msg='propagating exception'):
-  """Log the exception and stackdrace if it hasnt been logged already."""
+  """Log the exception and stacktrace if it hasnt been logged already."""
   if not hasattr(ex, 'loggedit'):
     text = traceback.format_exc()
     logging.error('"%s" caught exception\n%s', where, text)

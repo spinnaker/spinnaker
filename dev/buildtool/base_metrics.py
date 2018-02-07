@@ -265,9 +265,8 @@ class BaseMetricsRegistry(object):
 
   def inc_counter(self, name, labels, description, **kwargs):
     """Track number of completed calls to the given function."""
-    family = self.__ensure_family(
+    counter = self.__ensure_metric(
         MetricFamily.COUNTER, name, labels, description)
-    counter = family.get(labels)
     counter.inc(**kwargs)
     return counter
 
@@ -286,33 +285,29 @@ class BaseMetricsRegistry(object):
 
   def set(self, name, labels, description, value):
     """Sets the implied gauge with the specified value."""
-    family = self.__ensure_family(
+    gauge = self.__ensure_metric(
         MetricFamily.GAUGE, name, labels, description)
-    gauge = family.get(labels)
     gauge.set(value)
     return gauge
 
   def track_call(self, name, labels, description, func, *pos_args, **kwargs):
     """Track number of active calls to the given function."""
-    family = self.__ensure_family(
+    gauge = self.__ensure_metric(
         MetricFamily.GAUGE, name, labels, description)
-    gauge = family.get(labels)
     return gauge.track(func, *pos_args, **kwargs)
 
   def observe_timer(self, name, labels, description, seconds):
     """Add an observation to the specified timer."""
-    family = self.__ensure_family(
+    timer = self.__ensure_metric(
         MetricFamily.TIMER, name, labels, description)
-    timer = family.get(labels)
     timer.observe(seconds)
     return timer
 
   def time_call(self, name, labels, description,
                 func, *pos_args, **kwargs):
     """Track number of completed calls to the given function."""
-    family = self.__ensure_family(
+    timer = self.__ensure_metric(
         MetricFamily.TIMER, name, labels, description)
-    timer = family.get(labels)
 
     try:
       start_time = time.time()
@@ -323,7 +318,7 @@ class BaseMetricsRegistry(object):
   def lookup_family_or_none(self, name):
     return self.__metric_families.get(name)
 
-  def __ensure_family(
+  def __ensure_metric(
       self, family_type, name, labels, description, *pos_args):
     """Find family with given name if it exists already, otherwise make one."""
     family = self.__metric_families.get(name)
@@ -331,14 +326,14 @@ class BaseMetricsRegistry(object):
       if family.family_type != family_type:
         raise TypeError('{have} is not a {want}'.format(
             have=family, want=family_type))
-      return family
+      return family.get(labels)
 
     family = self._do_make_family(
         family_type, name, description, labels.keys(), *pos_args)
     with self.__family_mutex:
       if name not in self.__metric_families:
         self.__metric_families[name] = family
-    return family
+    return family.get(labels)
 
   def instrument_track_and_outcome(
       self, name, description, track_labels, outcome_labels_func,
