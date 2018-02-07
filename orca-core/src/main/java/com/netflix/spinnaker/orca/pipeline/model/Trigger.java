@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.*;
@@ -31,8 +28,6 @@ import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import lombok.Getter;
 import lombok.Setter;
 import static java.lang.Boolean.parseBoolean;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Objects.hash;
 
 @JsonTypeInfo(use = Id.NAME, include = As.EXISTING_PROPERTY, property = "type")
@@ -67,8 +62,8 @@ public abstract class Trigger {
   ) {
     this.type = getClass().getAnnotation(JsonTypeName.class).value();
     this.user = user == null ? "[anonymous]" : user;
-    this.parameters = parameters == null ? emptyMap() : parameters;
-    this.artifacts = artifacts == null ? emptyList() : artifacts;
+    this.parameters = parameters == null ? new HashMap<>() : new HashMap<>(parameters);
+    this.artifacts = artifacts == null ? new ArrayList<>() : new ArrayList<>(artifacts);
   }
 
   public @Nonnull String getType() {
