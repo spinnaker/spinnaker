@@ -108,11 +108,15 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
     });
     (command.listeners || []).forEach((listenerDescription) => {
       listenerDescription.defaultActions.forEach((actionDescription) => {
-        actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
+        if (actionDescription.targetGroupName) {
+          actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
+        }
       });
       (listenerDescription.rules || []).forEach((ruleDescription) => {
         ruleDescription.actions.forEach((actionDescription) => {
-          actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
+          if (actionDescription.targetGroupName) {
+            actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
+          }
         });
       });
     });

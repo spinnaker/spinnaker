@@ -247,14 +247,18 @@ export class AwsLoadBalancerTransformer {
           }
 
           (listener.defaultActions || []).forEach((action) => {
-            action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
+            if (action.targetGroupName) {
+              action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
+            }
           });
 
           // Remove the default rule because it already exists in defaultActions
           listener.rules = (listener.rules || []).filter((l) => !l.default);
           listener.rules.forEach((rule) => {
             (rule.actions || []).forEach((action) => {
-              action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
+              if (action.targetGroupName) {
+                action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
+              }
             });
             rule.conditions = rule.conditions || [];
           });
