@@ -269,25 +269,26 @@ abstract class AbstractEurekaSupport {
     if (!serverGroup) {
       return []
     }
-    List<String> modified = []
-    List<String> unmodified = []
+
+    Set<String> modified = []
+    Set<String> unmodified = []
 
     instances.each { instanceId ->
-      boolean isUp = false
-      serverGroup.instances.find { it.name == instanceId }?.health.flatten().each {
-        Map<String, String> health ->
-          if (DiscoveryStatus.Enable.value.equalsIgnoreCase(health?.eurekaStatus)) {
-            isUp = true
-          }
-      }
-      if (isUp) {
-        unmodified.add(instanceId)
-      } else {
-        modified.add(instanceId)
+      def instanceInExistingServerGroup = serverGroup.instances.find { it.name == instanceId }
+      instanceInExistingServerGroup?.health?.each { Map<String, String> health ->
+        if (DiscoveryStatus.Enable.value.equalsIgnoreCase(health?.eurekaStatus)) {
+          unmodified.add(instanceId)
+        } else {
+          modified.add(instanceId)
+        }
       }
     }
 
-    return EnableDisablePercentageCategorizer.getInstancesToModify(modified, unmodified, desiredPercentage)
+    return EnableDisablePercentageCategorizer.getInstancesToModify(
+      modified as List<String>,
+      unmodified as List<String>,
+      desiredPercentage
+    )
   }
 
   enum DiscoveryStatus {
