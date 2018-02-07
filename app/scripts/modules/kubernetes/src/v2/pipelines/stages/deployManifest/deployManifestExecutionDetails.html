@@ -7,7 +7,7 @@
       <div class="col-md-12">
         <div class="well alert alert-info">
           <dl ng-repeat="manifest in stage.context['outputs.manifests']">
-            <kubernetes-show-manifest-yaml manifest="manifest" link-name="'Deployed manifest YAML'"></kubernetes-show-manifest-yaml>
+            <kubernetes-show-manifest-yaml manifest="manifest" link-name="manifest.kind + ' ' + manifest.metadata.name + ' YAML'"></kubernetes-show-manifest-yaml>
           </dl>
         </div>
       </div>
