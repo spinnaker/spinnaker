@@ -1,6 +1,6 @@
 import { copy, IPromise, IQService, module } from 'angular';
 
-import { dump, load } from 'js-yaml'
+import { dump, loadAll } from 'js-yaml'
 
 import { ACCOUNT_SERVICE, AccountService, Application, IMoniker } from '@spinnaker/core';
 
@@ -12,7 +12,8 @@ export interface IKubernetesManifestCommandData {
 export interface IKubernetesManifestCommand {
   account: string;
   cloudProvider: string;
-  manifest: any;
+  manifest: any; // deprecated
+  manifests: any[];
   relationships: IKubernetesManifestSpinnakerRelationships;
   moniker: IMoniker;
   manifestArtifactId?: string;
@@ -56,7 +57,8 @@ export class KubernetesManifestCommandBuilder {
 
   public copyAndCleanCommand(metadata: IKubernetesManifestCommandMetadata, input: IKubernetesManifestCommand): IKubernetesManifestCommand {
     const command = copy(input);
-    command.manifest = load(metadata.manifestText);
+    command.manifests = [];
+    loadAll(metadata.manifestText, doc => command.manifests.push(doc));
     delete command.source;
     return command;
   }
@@ -82,6 +84,7 @@ export class KubernetesManifestCommandBuilder {
         }
 
         const manifest: any = null;
+        const manifests: any = null;
         const manifestText = !sourceManifest ? '' : dump(sourceManifest);
         const cloudProvider = 'kubernetes';
         const moniker = sourceMoniker || {
@@ -99,6 +102,7 @@ export class KubernetesManifestCommandBuilder {
           command: {
             cloudProvider,
             manifest,
+            manifests,
             relationships,
             moniker,
             account,
