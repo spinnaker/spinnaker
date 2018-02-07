@@ -55,3 +55,10 @@ export const configTemplatesSelector = createSelector(
 );
 
 export const editingTemplateSelector = (state: ICanaryState) => state.selectedConfig.editingTemplate;
+
+// TODO(dpeach): temporary workaround because a config doesn't return with its own ID.
+export const resolveConfigIdFromNameAndApplication = (state: ICanaryState, configName: string, application: string): string => {
+  const config = state.data.configSummaries.find(summary =>
+    summary.name === configName && summary.applications.includes(application));
+  return config && config.id;
+};

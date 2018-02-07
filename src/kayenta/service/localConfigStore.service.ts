@@ -36,6 +36,7 @@ export class LocalConfigStore {
       updatedTimestamp: config.updatedTimestamp,
       updatedTimestampIso: config.updatedTimestampIso,
       name: config.name,
+      applications: ['myapp']
     }));
     return Promise.resolve(summaries);
   }

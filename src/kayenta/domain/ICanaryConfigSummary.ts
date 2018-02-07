@@ -3,4 +3,5 @@ export interface ICanaryConfigSummary {
   name: string;
   id: string;
   updatedTimestamp: number;
+  applications: string[];
 }

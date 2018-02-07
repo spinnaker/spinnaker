@@ -5,12 +5,19 @@ import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryExecutionStatusResult } from 'kayenta/domain';
 import FormattedDate from 'kayenta/layout/formattedDate';
 import Score from '../detail/score';
+import ReportLink from './reportLink';
+import ConfigLink from './configLink';
+import { PipelineLink } from './pipelineLink';
 
-// TODO(dpeach): fill these in.
 const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   {
     label: 'Config',
-    getContent: execution => <span>{execution.result.config.name}</span>,
+    getContent: execution => (
+      <ConfigLink
+        configName={execution.result.config.name}
+        application={execution.application}
+      />
+    ),
     width: 1,
   },
   {
@@ -19,22 +26,27 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
     width: 1,
   },
   {
-    label: 'Start Time',
+    label: 'Started',
     getContent: execution => <FormattedDate dateIso={execution.startTimeIso}/>,
     width: 1,
   },
   {
-    label: 'Status',
-    getContent: execution => <span>{execution.status}</span>,
+    getContent: execution => (
+      <PipelineLink
+        parentPipelineExecutionId={execution.result.parentPipelineExecutionId}
+        application={execution.application}
+      />
+    ),
     width: 1,
   },
   {
-    label: 'Pipeline',
-    getContent: execution => <span>{execution.result.parentPipelineExecutionId}</span>,
-    width: 1,
-  },
-  {
-    getContent: () => <span>Report</span>,
+    getContent: execution => (
+      <ReportLink
+        configName={execution.result.config.name}
+        executionId={execution.result.pipelineId}
+        application={execution.application}
+      />
+    ),
     width: 1,
   }
 ];

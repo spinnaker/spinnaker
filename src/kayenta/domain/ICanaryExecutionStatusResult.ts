@@ -8,6 +8,7 @@ export interface ICanaryExecutionStatusResult {
   result: ICanaryResult;
   stageStatus: { [key: string]: string };
   startTimeIso: string;
+  application: string;
 }
 
 export interface ICanaryResult {
