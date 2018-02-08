@@ -19,6 +19,10 @@ module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
 
     function buildLink(accountName, kind, namespace, serverGroupName) {
       let apiPrefix = KubernetesProviderSettings.defaults.apiPrefix;
+      let account = KubernetesProviderSettings[accountName];
+      if (account && account.apiPrefix) {
+        apiPrefix = account.apiPrefix;
+      }
       if ((apiPrefix == null) || (apiPrefix === "")) {
         apiPrefix = 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#';
       }
