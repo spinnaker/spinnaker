@@ -66,33 +66,43 @@ class MonitorWebhookTask implements Task {
     }
 
     def result
+    def responsePayload = [
+      webhook: [
+        monitor: [
+          body: response.body,
+          statusCode: response.statusCode
+        ]
+      ],
+      buildInfo: response.body, // TODO: deprecated
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', " +
+        "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."
+    ]
     try {
       result = JsonPath.read(response.body, statusJsonPath)
     } catch (PathNotFoundException e) {
-      return new TaskResult(ExecutionStatus.TERMINAL,
-        [error: [reason: e.message, response: response.body]])
+      responsePayload.webhook.monitor << [error: e.message]
+      return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
     }
     if (!(result instanceof String || result instanceof Number || result instanceof Boolean)) {
-      return new TaskResult(ExecutionStatus.TERMINAL,
-        [error: [reason: "The json path '${statusJsonPath}' did not resolve to a single value", value: result]])
+      responsePayload.webhook.monitor << [error: "The json path '${statusJsonPath}' did not resolve to a single value", resolvedValue: result]
+      return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
     }
-
-    def responsePayload = [buildInfo: response.body]
 
     if (progressJsonPath) {
       def progress
       try {
         progress = JsonPath.read(response.body, progressJsonPath)
       } catch (PathNotFoundException e) {
-        return new TaskResult(ExecutionStatus.TERMINAL,
-          [error: [reason: e.message, response: response.body]])
+        responsePayload.webhook.monitor << [error: e.message]
+        return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
       }
       if (!(progress instanceof String)) {
-        return new TaskResult(ExecutionStatus.TERMINAL,
-          [error: [reason: "The json path '${progressJsonPath}' did not resolve to a String value", value: progress]])
+        responsePayload.webhook.monitor << [error: "The json path '${progressJsonPath}' did not resolve to a String value", resolvedValue: progress]
+        return new TaskResult(ExecutionStatus.TERMINAL, responsePayload)
       }
       if (progress) {
-        responsePayload += [progressMessage: progress]
+        responsePayload << [progressMessage: progress] // TODO: deprecated
+        responsePayload.webhook.monitor << [progressMessage: progress]
       }
     }
 
@@ -100,7 +110,9 @@ class MonitorWebhookTask implements Task {
 
     if (result instanceof Number) {
       def status = result == 100 ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
-      return new TaskResult(status, responsePayload + [percentComplete: result])
+      responsePayload << [percentComplete: result] // TODO: deprecated
+      responsePayload.webhook.monitor << [percentComplete: result]
+      return new TaskResult(status, responsePayload)
     } else if (statusMap.containsKey(result.toString().toUpperCase())) {
       return new TaskResult(statusMap[result.toString().toUpperCase()], responsePayload)
     }
@@ -108,8 +120,8 @@ class MonitorWebhookTask implements Task {
     return new TaskResult(ExecutionStatus.RUNNING, response ? responsePayload : [:])
   }
 
-  private static Map<String, ?> createStatusMap(String successStatuses, String canceledStatuses, String terminalStatuses) {
-    Map statusMap = [:]
+  private static Map<String, ExecutionStatus> createStatusMap(String successStatuses, String canceledStatuses, String terminalStatuses) {
+    def statusMap = [:]
     statusMap << mapStatuses(successStatuses, ExecutionStatus.SUCCEEDED)
     if (canceledStatuses) {
       statusMap << mapStatuses(canceledStatuses, ExecutionStatus.CANCELED)
@@ -120,7 +132,7 @@ class MonitorWebhookTask implements Task {
     return statusMap
   }
 
-  private static Map mapStatuses(String statuses, ExecutionStatus status) {
+  private static Map<String, ExecutionStatus> mapStatuses(String statuses, ExecutionStatus status) {
     statuses.split(",").collectEntries { [(it.trim().toUpperCase()): status] }
   }
 }

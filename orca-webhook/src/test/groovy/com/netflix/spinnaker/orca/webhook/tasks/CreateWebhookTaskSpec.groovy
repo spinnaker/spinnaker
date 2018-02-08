@@ -58,7 +58,13 @@ class CreateWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context as Map == [statusCode: HttpStatus.OK]
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.OK,
+      webhook: [
+        statusCode: HttpStatus.OK
+      ]
+    ]
   }
 
   def "should default to POST if no method is specified"() {
@@ -130,7 +136,16 @@ class CreateWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.context as Map == [statusCode: HttpStatus.BAD_REQUEST, buildInfo: [error: "Oh noes, you can't do this"], error: "The request did not return a 2xx/3xx status"]
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.BAD_REQUEST,
+      buildInfo: [error: "Oh noes, you can't do this"],
+      webhook: [
+        statusCode: HttpStatus.BAD_REQUEST,
+        body: [error: "Oh noes, you can't do this"],
+        error: "The request did not return a 2xx/3xx status"
+      ]
+    ]
   }
 
   def "if statusUrlResolution is getMethod, should return SUCCEEDED status"() {
@@ -150,7 +165,16 @@ class CreateWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context as Map == [statusCode: HttpStatus.CREATED, buildInfo: [success: true], statusEndpoint: "https://my-service.io/api/"]
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.CREATED,
+      buildInfo: [success: true],
+      webhook: [
+        statusCode: HttpStatus.CREATED,
+        body: [success: true],
+        statusEndpoint: "https://my-service.io/api/"
+      ]
+    ]
     stage.context.statusEndpoint == "https://my-service.io/api/"
   }
 
@@ -173,7 +197,16 @@ class CreateWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context as Map == [statusCode: HttpStatus.CREATED, buildInfo: [success: true], statusEndpoint: "https://my-service.io/api/status/123"]
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.CREATED,
+      buildInfo: [success: true],
+      webhook: [
+        statusCode: HttpStatus.CREATED,
+        body: [success: true],
+        statusEndpoint: "https://my-service.io/api/status/123"
+      ]
+    ]
     stage.context.statusEndpoint == "https://my-service.io/api/status/123"
   }
 
@@ -197,7 +230,16 @@ class CreateWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context as Map == [statusCode: HttpStatus.CREATED, buildInfo: body, statusEndpoint: "https://my-service.io/api/status/123"]
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.CREATED,
+      buildInfo: body,
+      webhook: [
+        statusCode: HttpStatus.CREATED,
+        body: body,
+        statusEndpoint: "https://my-service.io/api/status/123"
+      ]
+    ]
     stage.context.statusEndpoint == "https://my-service.io/api/status/123"
   }
 
@@ -228,11 +270,78 @@ class CreateWebhookTaskSpec extends Specification {
     then:
     result.status == ExecutionStatus.TERMINAL
     result.context as Map == [
-      statusCode: HttpStatus.CREATED,
-      buildInfo: body,
-      error: "The status URL couldn't be resolved, but 'Wait for completion' was checked",
-      statusUrlValue: ["this", "is", "a", "list"]
+      webhook: [
+        statusCode: HttpStatus.CREATED,
+        body: body,
+        error: "The status URL couldn't be resolved, but 'Wait for completion' was checked",
+        statusEndpoint: ["this", "is", "a", "list"]
+      ]
     ]
     stage.context.statusEndpoint == null
+  }
+
+  def "should support html in response"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      method: "post",
+      payload: [payload1: "Hello Spinnaker!"]
+    ])
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        HttpMethod.POST,
+        "https://my-service.io/api/",
+        [payload1: "Hello Spinnaker!"],
+        null
+      ) >> new ResponseEntity<String>("<html></html>", HttpStatus.OK)
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.OK,
+      buildInfo: "<html></html>",
+      webhook: [
+        statusCode: HttpStatus.OK,
+        body: "<html></html>"
+      ]
+    ]
+  }
+
+// TODO: Remove test when removing the deprecated fields
+  def "should add deprecation warning to the outputs"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      method: "post",
+      payload: [payload1: "Hello Spinnaker!"]
+    ])
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        HttpMethod.POST,
+        "https://my-service.io/api/",
+        [payload1: "Hello Spinnaker!"],
+        null
+      ) >> new ResponseEntity<Map>([:], HttpStatus.OK)
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.context as Map == [
+      deprecationWarning: "All webhook information will be moved beneath the key 'webhook', and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today.",
+      statusCode: HttpStatus.OK,
+      webhook: [
+        statusCode: HttpStatus.OK
+      ]
+    ]
   }
 }

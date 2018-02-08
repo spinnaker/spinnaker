@@ -90,7 +90,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.context == [buildInfo: [status: "RUNNING"]]
+    result.context.webhook.monitor == [body: [status: "RUNNING"], statusCode: HttpStatus.OK]
   }
 
   def "should find correct element using statusJsonPath parameter"() {
@@ -112,7 +112,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.context == [buildInfo: [status: "TERMINAL"]]
+    result.context.webhook.monitor == [body: [status: "TERMINAL"], statusCode: HttpStatus.OK]
   }
 
   def "should return percentComplete if supported by endpoint"() {
@@ -135,7 +135,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.RUNNING
-    result.context == [percentComplete: 42, buildInfo: [status: 42]]
+    result.context.webhook.monitor == [percentComplete: 42, body: [status: 42], statusCode: HttpStatus.OK]
   }
 
   def "100 percent complete should result in SUCCEEDED status"() {
@@ -157,7 +157,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.context == [percentComplete: 100, buildInfo: [status: 100]]
+    result.context.webhook.monitor == [percentComplete: 100, body: [status: 100], statusCode: HttpStatus.OK]
   }
 
   def "should return TERMINAL status if jsonPath can not be found"() {
@@ -176,7 +176,7 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.context == [error: [reason: 'Missing property in path $[\'doesnt\']', response: [status: "SUCCESS"]]]
+    result.context.webhook.monitor == [error: 'Missing property in path $[\'doesnt\']', body: [status: "SUCCESS"], statusCode: HttpStatus.OK]
   }
 
   def "should return TERMINAL status if jsonPath isn't evaluated to single value"() {
@@ -195,6 +195,11 @@ class MonitorWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.context == [error: [reason: "The json path '\$.status' did not resolve to a single value", value: ["some", "complex", "list"]]]
+    result.context.webhook.monitor == [
+      error: "The json path '\$.status' did not resolve to a single value",
+      resolvedValue: ["some", "complex", "list"],
+      body: [status: ["some", "complex", "list"]],
+      statusCode: HttpStatus.OK
+    ]
   }
 }

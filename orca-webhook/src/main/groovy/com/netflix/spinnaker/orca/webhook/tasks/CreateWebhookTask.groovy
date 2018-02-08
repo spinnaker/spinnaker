@@ -62,10 +62,17 @@ class CreateWebhookTask implements RetryableTask {
     }
 
     def statusCode = response.statusCode
-    def outputs = [:]
-    outputs << [statusCode: statusCode]
+
+    Map<String, ?> outputs = [webhook: [:]]
+    // TODO: The below parameter is deprecated and should be removed after some time
+    Map<String, ?> outputsDeprecated = [deprecationWarning: "All webhook information will be moved beneath the key 'webhook', " +
+      "and the keys 'statusCode', 'buildInfo', 'statusEndpoint' and 'error' will be removed. Please migrate today."]
+
+    outputs.webhook << [statusCode: statusCode]
+    outputsDeprecated << [statusCode: statusCode]
     if (response.body) {
-      outputs << [buildInfo: response.body]
+      outputs.webhook << [body: response.body]
+      outputsDeprecated << [buildInfo: response.body]
     }
     if (statusCode.is2xxSuccessful() || statusCode.is3xxRedirection()) {
       if (waitForCompletion) {
@@ -82,23 +89,25 @@ class CreateWebhookTask implements RetryableTask {
             try {
               statusUrl = JsonPath.read(response.body, stage.context.statusUrlJsonPath as String)
             } catch (PathNotFoundException e) {
-              return new TaskResult(ExecutionStatus.TERMINAL,
-                [error: [reason: e.message, response: response.body]])
+              outputs.webhook << [error: e.message]
+              return new TaskResult(ExecutionStatus.TERMINAL, outputs)
             }
         }
         if (!statusUrl || !(statusUrl instanceof String)) {
-          return new TaskResult(ExecutionStatus.TERMINAL,
-            outputs + [
-              error: "The status URL couldn't be resolved, but 'Wait for completion' was checked",
-              statusUrlValue: statusUrl
-            ])
+          outputs.webhook << [
+            error: "The status URL couldn't be resolved, but 'Wait for completion' was checked",
+            statusEndpoint: statusUrl
+          ]
+          return new TaskResult(ExecutionStatus.TERMINAL, outputs)
         }
         stage.context.statusEndpoint = statusUrl
-        return new TaskResult(ExecutionStatus.SUCCEEDED, outputs + [statusEndpoint: statusUrl])
+        outputs.webhook << [statusEndpoint: statusUrl]
+        return new TaskResult(ExecutionStatus.SUCCEEDED, outputsDeprecated + outputs)
       }
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, outputsDeprecated + outputs)
     } else {
-      return new TaskResult(ExecutionStatus.TERMINAL, outputs + [error: "The request did not return a 2xx/3xx status"])
+      outputs.webhook << [error: "The request did not return a 2xx/3xx status"]
+      return new TaskResult(ExecutionStatus.TERMINAL, outputsDeprecated + outputs)
     }
   }
 
