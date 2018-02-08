@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +37,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.*;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.JedisCommands;
 import rx.Scheduler;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
@@ -277,7 +279,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
     return format("pipeline:executions:%s", id);
   }
 
-  private String fetchKey(String id) {
+  protected String fetchKey(String id) {
     String key = redisClientDelegate.withCommandsClient(c -> {
       if (c.exists(pipelineKey(id))) {
         return pipelineKey(id);
@@ -288,7 +290,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
     });
 
     if (key == null && previousRedisClientDelegate.isPresent()) {
-      key = redisClientDelegate.withCommandsClient(c -> {
+      key = previousRedisClientDelegate.get().withCommandsClient(c -> {
         if (c.exists(pipelineKey(id))) {
           return pipelineKey(id);
         } else if (c.exists(orchestrationKey(id))) {

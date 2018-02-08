@@ -32,6 +32,7 @@ import spock.lang.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
@@ -94,10 +95,12 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     def runningExecution = orchestration {
       status = RUNNING
       buildTime = 0
+      trigger = new ManualTrigger(null, "fnord", [:], null, null)
     }
     def succeededExecution = orchestration {
       status = SUCCEEDED
       buildTime = 0
+      trigger = new ManualTrigger(null, "fnord", [:], null, null)
     }
 
     when:
@@ -241,7 +244,9 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     where:
-    execution << [pipeline(), orchestration()]
+    execution << [pipeline { trigger = new PipelineTrigger(pipeline(), [:]) }, orchestration {
+      trigger = new ManualTrigger(null, "fnord", [:], null, null)
+    }]
   }
 
   def "updateStatus sets endTime to current time if new status is #status"() {
@@ -263,10 +268,10 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     where:
-    execution       | status
-    pipeline()      | CANCELED
-    orchestration() | SUCCEEDED
-    orchestration() | TERMINAL
+    execution                                                                     | status
+    pipeline { trigger = new PipelineTrigger(pipeline(), [:]) }                   | CANCELED
+    orchestration { trigger = new ManualTrigger(null, "fnord", [:], null, null) } | SUCCEEDED
+    orchestration { trigger = new ManualTrigger(null, "fnord", [:], null, null) } | TERMINAL
   }
 
   def "cancelling a not-yet-started execution updates the status immediately"() {
@@ -430,7 +435,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
   def "should return task ref for currently running orchestration by correlation id"() {
     given:
     def execution = orchestration {
-      trigger = new ManualTrigger('covfefe', null, [:], [], [])
+      trigger = new ManualTrigger('covfefe', 'tremendous', [:], [], [])
     }
     repository.store(execution)
     repository.updateStatus(execution.id, RUNNING)
@@ -547,7 +552,10 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
   def "retrieving orchestrations limits the number of returned results"() {
     given:
     4.times {
-      repository.store(orchestration { application = "orca" })
+      repository.store(orchestration {
+        application = "orca"
+        trigger = new ManualTrigger(null, "fnord", [:], null, null)
+      })
     }
 
     when:
@@ -566,16 +574,103 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     100   || 4
   }
 
+  def "can store an orchestration already in previousRedis back to previousRedis"() {
+    given:
+    def orchestration = orchestration {
+      application = "paperclips"
+      trigger = new ManualTrigger(null, "fnord", [:], null, null)
+      stage {
+        type = "one"
+        context = [:]
+      }
+    }
+
+    when:
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
+    previousRepository.store(orchestration)
+    def retrieved = repository.retrieve(ORCHESTRATION, orchestration.id)
+
+    then:
+    retrieved.id == orchestration.id
+
+    and:
+    def stage = retrieved.stages.first()
+    stage.setContext([this: "works"])
+    repository.store(retrieved)
+
+    then:
+    previousRepository.retrieve(ORCHESTRATION, orchestration.id).stages.first().getContext() == [this: "works"]
+  }
+
+  def "can updateStageContext against previousRedis"() {
+    given:
+    def orchestration = orchestration {
+      application = "paperclips"
+      trigger = new ManualTrigger(null, "fnord", [:], null, null)
+      stage {
+        type = "one"
+        context = [:]
+      }
+    }
+
+    when:
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
+    previousRepository.store(orchestration)
+    def retrieved = repository.retrieve(ORCHESTRATION, orchestration.id)
+
+    then:
+    retrieved.id == orchestration.id
+
+    and:
+    def stage = retrieved.stages.first()
+    stage.setContext([why: 'hello'])
+    repository.updateStageContext(stage)
+
+    then:
+    previousRepository.retrieve(ORCHESTRATION, orchestration.id).stages.first().getContext() == [why: 'hello']
+
+  }
+
+  def "can retrieve running orchestration in previousRedis by correlation id"() {
+    given:
+    def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
+    def execution = orchestration {
+      trigger = new ManualTrigger('covfefe', 'tremendous', [:], [], [])
+    }
+    previousRepository.store(execution)
+    previousRepository.updateStatus(execution.id, RUNNING)
+
+    when:
+    def result = repository.retrieveOrchestrationForCorrelationId('covfefe')
+
+    then:
+    result.id == execution.id
+
+    when:
+    repository.updateStatus(execution.id, SUCCEEDED)
+    repository.retrieveOrchestrationForCorrelationId('covfefe')
+
+    then:
+    thrown(ExecutionNotFoundException)
+  }
+
+
   def "can retrieve orchestrations from multiple redis stores"() {
     given:
     3.times {
-      repository.store(orchestration { application = "orca" })
+      repository.store(orchestration {
+        application = "orca"
+        trigger = new ManualTrigger(null, "fnord", [:], null, null)
+      })
     }
 
     and:
     def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
     3.times {
-      previousRepository.store(orchestration { application = "orca" })
+      previousRepository.store(orchestration {
+        application = "orca"
+        trigger = new ManualTrigger(null, "fnord", [:], null, null)
+      })
     }
 
     when:
@@ -590,12 +685,18 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can delete orchestrations from multiple redis stores"() {
     given:
-    def orchestration1 = orchestration { application = "orca" }
+    def orchestration1 = orchestration {
+      application = "orca"
+      trigger = new ManualTrigger(null, "fnord", [:], null, null)
+    }
     repository.store(orchestration1)
 
     and:
     def previousRepository = new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
-    def orchestration2 = orchestration { application = "orca" }
+    def orchestration2 = orchestration {
+      application = "orca"
+      trigger = new ManualTrigger(null, "fnord", [:], null, null)
+    }
     previousRepository.store(orchestration2)
 
     when:
