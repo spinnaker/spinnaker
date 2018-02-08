@@ -17,10 +17,14 @@
 
 package com.netflix.spinnaker.orca.clouddriver.model;
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class Manifest {
+  private List<Artifact> artifacts;
   private Status status;
 
   @Data
