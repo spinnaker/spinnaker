@@ -31,6 +31,7 @@ class KubernetesDeploymentHandlerSpec extends Specification {
 
   def IMAGE = "gcr.io/project/image"
   def CONFIG_MAP_VOLUME = "my-config-map"
+  def SECRET_ENV = "my-secret-env"
 
   def BASIC_DEPLOYMENT = """
 apiVersion: apps/v1beta2
@@ -54,6 +55,9 @@ spec:
         image: $IMAGE
         ports:
         - containerPort: 80
+        envFrom:
+        - secretRef:
+            name: $SECRET_ENV
       volumes:
       - configMap:
           name: $CONFIG_MAP_VOLUME
@@ -140,5 +144,44 @@ spec:
 
     then:
     result.findAll { a -> a.getReference() == CONFIG_MAP_VOLUME && a.getType() == ArtifactTypes.KUBERNETES_CONFIG_MAP.toString()}.size() == 1
+  }
+
+
+  void "check that only secret ref is replaced by the artifact replacer"() {
+    when:
+    def target = "$SECRET_ENV-version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(ArtifactTypes.KUBERNETES_SECRET.toString())
+        .name(SECRET_ENV)
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+
+    then:
+    result.manifest.spec.template.spec.containers[0].envFrom[0].secretRef.name == target
+  }
+
+  void "check that secret ref is not replaced by the artifact replacer"() {
+    when:
+    def target = "$SECRET_ENV:version-bad"
+    def artifact = Artifact.builder()
+        .type(ArtifactTypes.KUBERNETES_SECRET.toString())
+        .name("not-$SECRET_ENV")
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+
+    then:
+    result.manifest.spec.template.spec.containers[0].envFrom[0].secretRef.name == SECRET_ENV
+  }
+
+  void "check that secret ref is found"() {
+    when:
+    def result = handler.listArtifacts(stringToManifest(BASIC_DEPLOYMENT))
+
+    then:
+    result.findAll { a -> a.getReference() == SECRET_ENV && a.getType() == ArtifactTypes.KUBERNETES_SECRET.toString()}.size() == 1
   }
 }

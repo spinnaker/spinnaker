@@ -46,4 +46,20 @@ public class ArtifactReplacerFactory {
         .type(ArtifactTypes.KUBERNETES_SECRET)
         .build();
   }
+
+  public static Replacer configMapEnvFromReplacer() {
+    return Replacer.builder()
+        .replacePath("$.spec.template.spec.containers.*.envFrom.[?( @.configMapRef.name == \"{%name%}\" )].configMapRef.name")
+        .findPath("$.spec.template.spec.containers.*.envFrom.*.configMapRef.name")
+        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP)
+        .build();
+  }
+
+  public static Replacer secretEnvFromReplacer() {
+    return Replacer.builder()
+        .replacePath("$.spec.template.spec.containers.*.envFrom.[?( @.secretRef.name == \"{%name%}\" )].secretRef.name")
+        .findPath("$.spec.template.spec.containers.*.envFrom.*.secretRef.name")
+        .type(ArtifactTypes.KUBERNETES_SECRET)
+        .build();
+  }
 }

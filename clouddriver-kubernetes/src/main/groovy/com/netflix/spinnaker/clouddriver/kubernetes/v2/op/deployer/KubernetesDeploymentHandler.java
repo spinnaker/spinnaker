@@ -49,6 +49,8 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
     registerReplacer(ArtifactReplacerFactory.configMapVolumeReplacer());
     registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
+    registerReplacer(ArtifactReplacerFactory.configMapEnvFromReplacer());
+    registerReplacer(ArtifactReplacerFactory.secretEnvFromReplacer());
   }
 
   @Override
