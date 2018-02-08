@@ -59,7 +59,13 @@ class WebhooksController {
     event.details.requestHeaders = headers
     event.rawContent = rawPayload
 
-    Map postedEvent = mapper.readValue(rawPayload, Map) ?: [:]
+    Map postedEvent
+    try {
+      postedEvent = mapper.readValue(rawPayload, Map) ?: [:]
+    } catch (Exception e) {
+      log.error("Failed to parse payload: {}", rawPayload, e);
+      throw e
+    }
     event.content = postedEvent
     event.payload = postedEvent
 
@@ -105,7 +111,7 @@ class WebhooksController {
     }
 
     if (!event.content.artifacts) {
-      event.content.artifacts = artifactExtractor.extractArtifacts(type, source, event.content)
+      event.content.artifacts = artifactExtractor.extractArtifacts(type, source, event.payload)
     }
 
     log.info("Webhook ${type}:${source}:${event.content}")

@@ -68,13 +68,12 @@ public class TemplateBasedArtifactExtractor implements WebhookArtifactExtractor 
         log.error("Unable to translate artifacts: {}", payload, e);
       }
 
-
       return result;
     }
   }
 
   @Override
   public boolean handles(String type, String source) {
-    return webhookProperties != null && (type.equals("artifact") || type.equals("artifacts"));
+    return webhookProperties != null;
   }
 }
