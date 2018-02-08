@@ -60,7 +60,7 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
   @Slf4j
   @Component
   @VisibleForTesting
-  public static class WaitForManualJudgmentTask implements RetryableTask {
+  public static class WaitForManualJudgmentTask implements OverridableTimeoutRetryableTask {
     final long backoffPeriod = 15000
     final long timeout = TimeUnit.DAYS.toMillis(3)
 
