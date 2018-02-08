@@ -70,6 +70,30 @@ public class ArtifactResolver {
     }
   }
 
+  public @Nonnull
+  List<Artifact> getAllArtifacts(@Nonnull Execution execution) {
+    // Get all artifacts emitted by the execution's stages; we'll sort the stages topologically,
+    // then reverse the result so that artifacts from later stages will appear
+    // earlier in the results.
+    List<Artifact> emittedArtifacts = Stage.topologicalSort(execution.getStages())
+      .filter(s -> s.getOutputs().containsKey("artifacts"))
+      .flatMap(
+        s -> {
+          List<Artifact> stageArtifacts = (List<Artifact>) s.getOutputs().get("artifacts");
+          return stageArtifacts.stream();
+        }
+      ).collect(Collectors.toList());
+    Collections.reverse(emittedArtifacts);
+
+    // Get all artifacts in the parent pipeline's trigger; these artifacts go at the end of the list,
+    // after any that were emitted by the pipeline
+    List<Artifact> triggerArtifacts = execution.getTrigger().getArtifacts();
+
+    emittedArtifacts.addAll(triggerArtifacts);
+
+    return emittedArtifacts;
+  }
+
   public @Nullable
   Artifact getBoundArtifactForId(
     @Nonnull Stage stage, @Nullable String id) {

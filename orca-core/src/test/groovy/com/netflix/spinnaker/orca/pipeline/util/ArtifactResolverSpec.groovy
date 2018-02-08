@@ -237,4 +237,31 @@ class ArtifactResolverSpec extends Specification {
     new ExpectedArtifact(matchArtifact: new Artifact(type: "flocker/.*"))              | [new Artifact(type: "docker/image"), new Artifact(type: "amazon/ami")]
     new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*", name: "none")) | [new Artifact(type: "docker/image", name: "bad"), new Artifact(type: "docker/image", name: "image")]
   }
+
+  def "should find all artifacts from an execution, in reverse order" () {
+    when:
+    def execution = pipeline {
+      stage {
+        refId = "1"
+        outputs.artifacts = [new Artifact(type: "1")]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        outputs.artifacts = [new Artifact(type: "2")]
+      }
+      stage {
+        // This stage does not emit an artifact
+        requisiteStageRefIds = ["2"]
+      }
+    }
+    execution.trigger = new WebhookTrigger("user", [:], [new Artifact(type: "trigger")])
+
+    def artifactResolver = makeArtifactResolver()
+
+    then:
+    def artifacts = artifactResolver.getAllArtifacts(execution)
+    artifacts.size == 3
+    artifacts*.type == ["2", "1", "trigger"]
+  }
 }

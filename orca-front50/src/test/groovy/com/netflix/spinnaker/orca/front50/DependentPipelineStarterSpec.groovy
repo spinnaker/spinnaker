@@ -17,11 +17,16 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.pipeline.model.WebhookTrigger
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
@@ -29,6 +34,8 @@ import org.springframework.context.support.StaticApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class DependentPipelineStarterSpec extends Specification {
 
@@ -36,6 +43,8 @@ class DependentPipelineStarterSpec extends Specification {
   DependentPipelineStarter dependentPipelineStarter
 
   ObjectMapper mapper = OrcaObjectMapper.newInstance()
+  ExecutionRepository executionRepository = Mock(ExecutionRepository)
+  ArtifactResolver artifactResolver = Spy(ArtifactResolver, constructorArgs: [mapper, executionRepository])
 
   def "should propagate credentials from explicit pipeline invocation ('run pipeline' stage)"() {
     setup:
@@ -65,7 +74,8 @@ class DependentPipelineStarterSpec extends Specification {
     dependentPipelineStarter = new DependentPipelineStarter(
       objectMapper: mapper,
       applicationContext: applicationContext,
-      contextParameterProcessor: new ContextParameterProcessor()
+      contextParameterProcessor: new ContextParameterProcessor(),
+      artifactResolver: artifactResolver
     )
 
     when:
@@ -74,7 +84,7 @@ class DependentPipelineStarterSpec extends Specification {
       triggeredPipelineConfig,
       null /*user*/,
       parentPipeline, [:],
-      "parent"
+      null
     )
     MDC.clear()
 
@@ -108,7 +118,8 @@ class DependentPipelineStarterSpec extends Specification {
     dependentPipelineStarter = new DependentPipelineStarter(
       objectMapper: mapper,
       applicationContext: applicationContext,
-      contextParameterProcessor: new ContextParameterProcessor()
+      contextParameterProcessor: new ContextParameterProcessor(),
+      artifactResolver: artifactResolver
     )
 
     when:
@@ -118,7 +129,7 @@ class DependentPipelineStarterSpec extends Specification {
       null /*user*/,
       parentPipeline,
       [:],
-      "parent"
+      null
     )
     MDC.clear()
 
@@ -143,7 +154,8 @@ class DependentPipelineStarterSpec extends Specification {
     dependentPipelineStarter = new DependentPipelineStarter(
       objectMapper: mapper,
       applicationContext: applicationContext,
-      contextParameterProcessor: new ContextParameterProcessor()
+      contextParameterProcessor: new ContextParameterProcessor(),
+      artifactResolver: artifactResolver
     )
 
     and:
@@ -162,10 +174,138 @@ class DependentPipelineStarterSpec extends Specification {
       null /*user*/,
       parentPipeline,
       [:],
-      "parent"
+      null
     )
 
     then:
     result.trigger.dryRun
+  }
+
+  def "should find artifacts from triggering pipeline"() {
+    given:
+    def triggeredPipelineConfig = [
+      name              : "triggered",
+      id                : "triggered",
+      expectedArtifacts : [[
+          matchArtifact: [
+            kind: "gcs",
+            name: "gs://test/file.yaml",
+            type: "gcs/object"
+          ]
+        ]]
+    ];
+    Artifact testArtifact = new Artifact(
+      type : "gcs/object",
+      name : "gs://test/file.yaml"
+    )
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new WebhookTrigger("test", [:], [testArtifact]);
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+      objectMapper: mapper,
+      applicationContext: applicationContext,
+      contextParameterProcessor: new ContextParameterProcessor(),
+      artifactResolver: artifactResolver
+    )
+
+    and:
+    executionLauncher.start(*_) >> {
+      def p = mapper.readValue(it[1], Map)
+      return pipeline {
+        name = p.name
+        id = p.name
+        trigger = mapper.convertValue(p.trigger, Trigger)
+      }
+    }
+    artifactResolver.getArtifactsForPipelineId(*_) >> {
+      return new ArrayList<Artifact>();
+    }
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+      triggeredPipelineConfig,
+      null,
+      parentPipeline,
+      [:],
+      null
+    )
+
+    then:
+    result.trigger.getArtifacts().size() == 1
+    result.trigger.getArtifacts()*.name == ["gs://test/file.yaml"]
+  }
+
+  def "should find artifacts from parent pipeline stage"() {
+    given:
+    def triggeredPipelineConfig = [
+      name              : "triggered",
+      id                : "triggered",
+      expectedArtifacts : [[
+                             matchArtifact: [
+                               kind: "gcs",
+                               name: "gs://test/file.yaml",
+                               type: "gcs/object"
+                             ]
+                           ]]
+    ];
+    Artifact testArtifact = new Artifact(
+      type : "gcs/object",
+      name : "gs://test/file.yaml"
+    )
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new WebhookTrigger("test", [:], []);
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+      stage {
+        id = "stage1"
+        refId = "1"
+        outputs.artifacts = [testArtifact]
+      }
+      stage {
+        id = "stage2"
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+      }
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+      objectMapper: mapper,
+      applicationContext: applicationContext,
+      contextParameterProcessor: new ContextParameterProcessor(),
+      artifactResolver: artifactResolver
+    )
+
+    and:
+    executionLauncher.start(*_) >> {
+      def p = mapper.readValue(it[1], Map)
+      return pipeline {
+        name = p.name
+        id = p.name
+        trigger = mapper.convertValue(p.trigger, Trigger)
+      }
+    }
+    artifactResolver.getArtifactsForPipelineId(*_) >> {
+      return new ArrayList<Artifact>();
+    }
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+      triggeredPipelineConfig,
+      null,
+      parentPipeline,
+      [:],
+      "stage1"
+    )
+
+    then:
+    result.trigger.getArtifacts().size() == 1
+    result.trigger.getArtifacts()*.name == ["gs://test/file.yaml"]
   }
 }

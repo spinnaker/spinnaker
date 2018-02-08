@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.front50
 
-import java.util.concurrent.Callable
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
+import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
@@ -31,6 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.Callable
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Component
@@ -47,17 +50,21 @@ class DependentPipelineStarter implements ApplicationContextAware {
   @Autowired(required = false)
   List<PipelinePreprocessor> pipelinePreprocessors
 
+  @Autowired(required = false)
+  ArtifactResolver artifactResolver
+
   Execution trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
 
     User principal = getUser(parentPipeline)
 
-    pipelineConfig.trigger = new PipelineTrigger(
-      parentPipeline,
-      parentPipelineStageId,
-      principal?.username ?: user ?: "[anonymous]"
-    )
+    pipelineConfig.trigger = [
+      type                  : "pipeline",
+      user                  : principal?.username ?: user ?: "[anonymous]",
+      parentExecution       : parentPipeline,
+      parentPipelineStageId : parentPipelineStageId
+    ];
 
     if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
       def pipelineParameters = suppliedParameters ?: [:]
@@ -69,8 +76,10 @@ class DependentPipelineStarter implements ApplicationContextAware {
       }
     }
 
-    if (parentPipeline.trigger.dryRun) {
-      pipelineConfig.trigger.otherProperties["dryRun"] = true
+    if (parentPipelineStageId != null) {
+      pipelineConfig.receivedArtifacts = artifactResolver.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
+    } else {
+      pipelineConfig.receivedArtifacts = artifactResolver.getAllArtifacts(parentPipeline)
     }
 
     def trigger = pipelineConfig.trigger //keep the trigger as the preprocessor removes it.
@@ -80,6 +89,18 @@ class DependentPipelineStarter implements ApplicationContextAware {
     }
     pipelineConfig.trigger = trigger
 
+    def artifactError = null
+    try {
+      artifactResolver?.resolveArtifacts(pipelineConfig)
+    } catch (Exception e) {
+      artifactError = e
+    }
+
+    pipelineConfig.trigger = objectMapper.readValue(objectMapper.writeValueAsString(pipelineConfig.trigger), Trigger.class)
+    if (parentPipeline.trigger.dryRun) {
+      pipelineConfig.trigger.otherProperties["dryRun"] = true
+    }
+
     def augmentedContext = [trigger: pipelineConfig.trigger]
     def processedPipeline = contextParameterProcessor.process(pipelineConfig, augmentedContext, false)
 
@@ -87,14 +108,22 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     log.info('running pipeline {}:{}', pipelineConfig.id, json)
 
-    def pipeline
-
     log.debug("Source thread: MDC user: " + AuthenticatedRequest.getAuthenticationHeaders() +
-                  ", principal: " + principal?.toString())
-    def callable = AuthenticatedRequest.propagate({
-      log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-      pipeline = executionLauncher().start(PIPELINE, json)
-    } as Callable<Void>, true, principal)
+      ", principal: " + principal?.toString())
+
+    def pipeline
+    def callable
+    if (artifactError == null) {
+      callable = AuthenticatedRequest.propagate({
+        log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
+        pipeline = executionLauncher().start(PIPELINE, json)
+      } as Callable<Void>, true, principal)
+    } else {
+      callable = AuthenticatedRequest.propagate({
+        log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
+        pipeline = executionLauncher().fail(PIPELINE, json, artifactError)
+      } as Callable<Void>, true, principal)
+    }
 
     //This needs to run in a separate thread to not bork the batch TransactionManager
     //TODO(rfletcher) - should be safe to kill this off once nu-orca merges down
