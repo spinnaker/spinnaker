@@ -39,7 +39,6 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
@@ -180,6 +179,21 @@ public class AtlasMetricsService implements MetricsService {
       metricSetBuilder.attribute("baseURL", uri);
 
       metricSetList.add(metricSetBuilder.build());
+    }
+
+    // If nothing was returned, add a placeholder for us to add metadata about this query.
+    if (metricSetList.size() == 0) {
+      MetricSet metricSet = MetricSet.builder()
+        .name(canaryMetricConfig.getName())
+        .startTimeMillis(atlasCanaryScope.getStart().toEpochMilli())
+        .tags(Collections.emptyMap())
+        .stepMillis(atlasCanaryScope.getStep() * 1000)
+        .startTimeIso(atlasCanaryScope.getStart().toString())
+        .values(Collections.emptyList())
+        .attribute("query", decoratedQuery)
+        .attribute("baseURL", uri)
+        .build();
+      metricSetList.add(metricSet);
     }
 
     return metricSetList;

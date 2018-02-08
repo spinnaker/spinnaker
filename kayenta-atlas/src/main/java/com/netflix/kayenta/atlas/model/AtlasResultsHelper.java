@@ -71,7 +71,7 @@ public class AtlasResultsHelper {
   public static Map<String, AtlasResults> merge(List<AtlasResults> atlasResultsList) {
     return atlasResultsList
       .stream()
-      .filter(atlasResults -> !atlasResults.getType().equals("close"))
+      .filter(atlasResults -> atlasResults.getType().equals("timeseries"))
       .collect(Collectors.groupingBy(AtlasResults::getId))
       .entrySet()
       .stream()

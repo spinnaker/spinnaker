@@ -81,7 +81,7 @@ public class SynchronousQueryProcessor {
         registry.counter(queryId.withTag("retries", retries + "")).increment();
         metricSetList = metricsService.queryMetrics(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
         success = true;
-      } catch (IOException | UncheckedIOException | RetrofitError e) {
+      } catch (IOException | UncheckedIOException | RetrofitError | RetryableQueryException e) {
         retries++;
         // TODO: Externalize this as a configurable setting.
         if (retries >= 10)
