@@ -93,7 +93,8 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       manifestArtifact.setArtifactAccount((String) task.get("manifestArtifactAccount"));
       Response manifestText = retrySupport.retry(() -> oort.fetchArtifact(manifestArtifact.getArtifactAccount(),
           manifestArtifact.getType(),
-          manifestArtifact.getReference()
+          manifestArtifact.getReference(),
+          manifestArtifact.getVersion()
       ), 5, 1000, true);
 
       try {

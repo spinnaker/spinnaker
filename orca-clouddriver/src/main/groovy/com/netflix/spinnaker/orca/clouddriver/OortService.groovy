@@ -93,7 +93,8 @@ interface OortService {
   @GET("/artifacts/fetch/")
   Response fetchArtifact(@Query("artifactAccount") String artifactAccount,
                          @Query("type") String type,
-                         @Query("reference") String reference)
+                         @Query("reference") String reference,
+                         @Query("version") String version)
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   List<Map> getLoadBalancerDetails(@Path("provider") String provider,

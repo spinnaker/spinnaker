@@ -88,8 +88,8 @@ public class DelegatingOortService
   }
 
   @Override
-  public Response fetchArtifact(String artifactAccount, String type, String reference) {
-    return getService().fetchArtifact(artifactAccount, type, reference);
+  public Response fetchArtifact(String artifactAccount, String type, String reference, String version) {
+    return getService().fetchArtifact(artifactAccount, type, reference, version);
   }
 
   @Override
