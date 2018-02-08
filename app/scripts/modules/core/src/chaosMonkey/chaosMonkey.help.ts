@@ -4,7 +4,7 @@ import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from 'core/help/helpCont
 const helpContents: any[] = [
   {
     key: 'application.chaos.enabled',
-    contents: '<p>Chaos Monkey periodically terminates instances in your ASGs to ensure resiliency.</p>' +
+    contents: '<p>Chaos Monkey periodically terminates instances in your server groups to ensure resiliency.</p>' +
     '<p>If you do <b>not</b> want your application to participate in Chaos Monkey, unselect this option.</p>'
   },
   {
