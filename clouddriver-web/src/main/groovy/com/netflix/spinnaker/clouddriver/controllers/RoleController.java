@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,11 +34,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/roles")
 public class RoleController {
 
-  @Autowired
+  @Autowired(required = false)
   List<RoleProvider> roleProviders;
 
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}")
   Collection<Role> getRoles(@PathVariable String cloudProvider) {
+    if (roleProviders == null) {
+      return Collections.emptyList();
+    }
+    
     Set<Role> roles = roleProviders.stream()
       .filter(roleProvider -> roleProvider.getCloudProvider().equals(cloudProvider))
       .flatMap(roleProvider -> roleProvider.getAll().stream())
