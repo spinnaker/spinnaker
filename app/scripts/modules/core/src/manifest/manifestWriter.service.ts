@@ -68,6 +68,16 @@ export class ManifestWriter {
       description
     });
   }
+
+  public findArtifactsFromResource(command: any, application: Application): IPromise<ITask> {
+    const description = 'Find artifacts from a Kubernetes resource';
+    command.type = 'findArtifactsFromResource';
+    return this.taskExecutor.executeTask({
+      job: [command],
+      application,
+      description
+    });
+  }
 }
 
 export const MANIFEST_WRITER = 'spinnaker.core.manifest.write.service';
