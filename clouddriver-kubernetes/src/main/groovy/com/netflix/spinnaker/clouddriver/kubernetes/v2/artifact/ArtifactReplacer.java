@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -171,7 +172,12 @@ public class ArtifactReplacer {
 
       String jsonPath = processPath(replacePath, artifact);
 
-      Object get = obj.read(jsonPath);
+      Object get;
+      try {
+        get = obj.read(jsonPath);
+      } catch (PathNotFoundException e) {
+        return false;
+      }
       if (get == null || (get instanceof ArrayNode && ((ArrayNode) get).size() == 0)) {
         return false;
       }
