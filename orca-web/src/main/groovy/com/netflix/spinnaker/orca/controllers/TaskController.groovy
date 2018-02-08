@@ -21,8 +21,6 @@ import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import java.time.Clock
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.log.ExecutionLogEntry
-import com.netflix.spinnaker.orca.log.ExecutionLogRepository
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
@@ -61,9 +59,6 @@ class TaskController {
 
   @Autowired
   Collection<StageDefinitionBuilder> stageBuilders
-
-  @Autowired(required = false)
-  ExecutionLogRepository executionLogRepository
 
   @Autowired
   ContextParameterProcessor contextParameterProcessor
@@ -186,15 +181,6 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
     executionRepository.delete(PIPELINE, id)
-  }
-
-  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
-  @RequestMapping(value = "/pipelines/{id}/logs", method = RequestMethod.GET)
-  List<ExecutionLogEntry> logs(@PathVariable String id) {
-    if (executionLogRepository == null) {
-      throw new FeatureNotEnabledException("Execution log not enabled")
-    }
-    return executionLogRepository.getAllByExecutionId(id)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")

@@ -17,13 +17,8 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.log.BlackholeExecutionLogRepository
-import com.netflix.spinnaker.orca.log.ExecutionLogRepository
-import com.netflix.spinnaker.q.metrics.EventPublisher
-import com.netflix.spinnaker.q.metrics.QueueEvent
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -39,7 +34,6 @@ import java.time.Clock
 @ComponentScan(basePackages = [
   "com.netflix.spinnaker.orca.q",
   "com.netflix.spinnaker.orca.q.handler",
-  "com.netflix.spinnaker.orca.log",
   "com.netflix.spinnaker.orca.q.trafficshaping"
 ])
 @EnableScheduling
@@ -47,10 +41,6 @@ class OrcaQueueConfiguration {
   @Bean
   @ConditionalOnMissingBean(Clock::class)
   fun systemClock(): Clock = Clock.systemDefaultZone()
-
-  @Bean
-  @ConditionalOnMissingBean(ExecutionLogRepository::class)
-  fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()
 
   /**
    * This overrides Spring's default application event multicaster as we need
