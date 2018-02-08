@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { BindAll } from 'lodash-decorators';
 
 import { CollapsibleSection, HelpField, ReactInjector, Tooltip, timestamp } from '@spinnaker/core';
 
@@ -13,6 +14,7 @@ export interface IScalingProcessesDetailsSectionState {
   scheduledActionsDisabled: boolean;
 }
 
+@BindAll()
 export class ScalingProcessesDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, IScalingProcessesDetailsSectionState> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
