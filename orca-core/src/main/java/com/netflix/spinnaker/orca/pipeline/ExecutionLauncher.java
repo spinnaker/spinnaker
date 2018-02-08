@@ -53,7 +53,6 @@ public class ExecutionLauncher {
   private final ExecutionRepository executionRepository;
   private final ExecutionRunner executionRunner;
   private final Clock clock;
-  private final Optional<PipelineStartTracker> startTracker;
   private final Optional<PipelineValidator> pipelineValidator;
   private final Optional<Registry> registry;
 
@@ -63,14 +62,12 @@ public class ExecutionLauncher {
                            ExecutionRunner executionRunner,
                            Clock clock,
                            Optional<PipelineValidator> pipelineValidator,
-                           Optional<PipelineStartTracker> startTracker,
                            Optional<Registry> registry) {
     this.objectMapper = objectMapper;
     this.executionRepository = executionRepository;
     this.executionRunner = executionRunner;
     this.clock = clock;
     this.pipelineValidator = pipelineValidator;
-    this.startTracker = startTracker;
     this.registry = registry;
   }
 
@@ -118,12 +115,7 @@ public class ExecutionLauncher {
   }
 
   public Execution start(Execution execution) throws Exception {
-    if (shouldQueue(execution)) {
-      log.info("Queueing {}", execution.getId());
-    } else {
-      executionRunner.start(execution);
-      onExecutionStarted(execution);
-    }
+    executionRunner.start(execution);
     return execution;
   }
 
@@ -161,24 +153,7 @@ public class ExecutionLauncher {
     log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
     executionRepository.updateStatus(execution.getId(), status);
     executionRepository.cancel(execution.getId(), canceledBy, reason);
-    if (execution.getType() == PIPELINE) {
-      startTracker.ifPresent(tracker -> {
-        if (execution.getPipelineConfigId() != null) {
-          tracker.removeFromQueue(execution.getPipelineConfigId(), execution.getId());
-        }
-        tracker.markAsFinished(execution.getPipelineConfigId(), execution.getId());
-      });
-    }
     return executionRepository.retrieve(execution.getType(), execution.getId());
-  }
-
-  private void onExecutionStarted(Execution execution) {
-    if (execution.getPipelineConfigId() != null) {
-      startTracker
-        .ifPresent(tracker -> {
-          tracker.addToStarted(execution.getPipelineConfigId(), execution.getId());
-        });
-    }
   }
 
   private Execution parse(ExecutionType type, String configJson) throws IOException {
@@ -267,20 +242,5 @@ public class ExecutionLauncher {
   private final <E extends Enum<E>> E getEnum(Map<String, ?> map, String key, Class<E> type) {
     String value = (String) map.get(key);
     return value != null ? Enum.valueOf(type, value) : null;
-  }
-
-  /**
-   * Decide if this execution should be queued or start immediately.
-   *
-   * @return true if the stage should be queued.
-   */
-  private boolean shouldQueue(Execution execution) {
-    if (execution.getPipelineConfigId() == null || !execution.isLimitConcurrent()) {
-      return false;
-    }
-    return startTracker
-      .map(tracker ->
-        tracker.queueIfNotStarted(execution.getPipelineConfigId(), execution.getId()))
-      .orElse(false);
   }
 }

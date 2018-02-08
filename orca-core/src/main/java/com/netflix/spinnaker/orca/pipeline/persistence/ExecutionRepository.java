@@ -16,7 +16,9 @@
 package com.netflix.spinnaker.orca.pipeline.persistence;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -26,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import rx.Observable;
+import static java.util.stream.Collectors.toList;
 
 public interface ExecutionRepository {
   void store(@Nonnull Execution orchestration);
@@ -77,7 +80,7 @@ public interface ExecutionRepository {
   @Nonnull Execution retrieveOrchestrationForCorrelationId(
     @Nonnull String correlationId) throws ExecutionNotFoundException;
 
-  class ExecutionCriteria {
+  final class ExecutionCriteria {
     public int getLimit() {
       return limit;
     }
@@ -87,16 +90,38 @@ public interface ExecutionRepository {
       return this;
     }
 
-    public Collection<String> getStatuses() {
+    public Collection<ExecutionStatus> getStatuses() {
       return statuses;
     }
 
     public ExecutionCriteria setStatuses(Collection<String> statuses) {
-      this.statuses = statuses;
+      return setStatuses(
+        statuses
+          .stream()
+          .map(ExecutionStatus::valueOf)
+          .collect(toList())
+          .toArray(new ExecutionStatus[statuses.size()])
+      );
+    }
+
+    public ExecutionCriteria setStatuses(ExecutionStatus... statuses) {
+      this.statuses = Arrays.asList(statuses);
       return this;
     }
 
     private int limit;
-    private Collection<String> statuses = new ArrayList<>();
+    private Collection<ExecutionStatus> statuses = new ArrayList<>();
+
+    @Override public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ExecutionCriteria that = (ExecutionCriteria) o;
+      return limit == that.limit &&
+        Objects.equals(statuses, that.statuses);
+    }
+
+    @Override public int hashCode() {
+      return Objects.hash(limit, statuses);
+    }
   }
 }

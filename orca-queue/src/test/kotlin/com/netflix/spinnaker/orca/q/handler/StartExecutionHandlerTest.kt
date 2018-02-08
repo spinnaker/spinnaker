@@ -16,26 +16,32 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
+import com.netflix.spinnaker.time.fixedClock
+import com.netflix.spinnaker.spek.and
 import org.assertj.core.api.Assertions.assertThat
-import org.jetbrains.spek.api.dsl.context
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import rx.Observable.just
+import java.util.*
 
 object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
@@ -51,7 +57,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
   fun resetMocks() = reset(queue, repository, publisher)
 
   describe("starting an execution") {
-    context("with a single initial stage") {
+    given("a pipeline with a single initial stage") {
       val pipeline = pipeline {
         stage {
           type = singleTaskStage.type
@@ -65,12 +71,12 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
       it("marks the execution as running") {
-        verify(repository).updateStatus(message.executionId, ExecutionStatus.RUNNING)
+        verify(repository).updateStatus(message.executionId, RUNNING)
       }
 
       it("starts the first stage") {
@@ -85,12 +91,12 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
     }
 
-    context("that was previously canceled and status is CANCELED") {
+    given("a pipeline that was previously canceled and status is CANCELED") {
       val pipeline = pipeline {
         stage {
           type = singleTaskStage.type
         }
-        status = ExecutionStatus.CANCELED
+        status = CANCELED
       }
 
       val message = StartExecution(pipeline)
@@ -101,7 +107,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -109,7 +115,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         verify(publisher).publishEvent(check<ExecutionComplete> {
           assertThat(it.executionType).isEqualTo(message.executionType)
           assertThat(it.executionId).isEqualTo(message.executionId)
-          assertThat(it.status).isEqualTo(ExecutionStatus.CANCELED)
+          assertThat(it.status).isEqualTo(CANCELED)
         })
       }
 
@@ -118,7 +124,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
     }
 
-    context("that was previously canceled and status is NOT_STARTED") {
+    given("a pipeline that was previously canceled and status is NOT_STARTED") {
       val pipeline = pipeline {
         stage {
           type = singleTaskStage.type
@@ -134,7 +140,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -142,7 +148,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         verify(publisher).publishEvent(check<ExecutionComplete> {
           assertThat(it.executionType).isEqualTo(message.executionType)
           assertThat(it.executionId).isEqualTo(message.executionId)
-          assertThat(it.status).isEqualTo(ExecutionStatus.NOT_STARTED)
+          assertThat(it.status).isEqualTo(NOT_STARTED)
         })
       }
 
@@ -151,7 +157,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
     }
 
-    context("with multiple initial stages") {
+    given("a pipeline with multiple initial stages") {
       val pipeline = pipeline {
         stage {
           type = singleTaskStage.type
@@ -168,19 +174,21 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
       it("starts all the initial stages") {
         argumentCaptor<StartStage>().apply {
           verify(queue, times(2)).push(capture())
-          assertThat(allValues.map { it.stageId }.toSet()).isEqualTo(pipeline.stages.map { it.id }.toSet())
+          assertThat(allValues)
+            .extracting("stageId")
+            .containsExactlyInAnyOrderElementsOf(pipeline.stages.map { it.id })
         }
       }
     }
 
-    context("with no initial stages") {
+    given("a pipeline with no initial stages") {
       val pipeline = pipeline {
         stage {
           type = singleTaskStage.type
@@ -199,24 +207,24 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
       it("marks the execution as TERMINAL") {
-        verify(repository, times(1)).updateStatus(pipeline.id, ExecutionStatus.TERMINAL)
+        verify(repository, times(1)).updateStatus(pipeline.id, TERMINAL)
       }
 
       it("publishes an event with TERMINAL status") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
           assertThat(it.executionType).isEqualTo(message.executionType)
           assertThat(it.executionId).isEqualTo(message.executionId)
-          assertThat(it.status).isEqualTo(ExecutionStatus.TERMINAL)
+          assertThat(it.status).isEqualTo(TERMINAL)
         })
       }
     }
 
-    context("with a start time after ttl") {
+    given("a start time after ttl") {
       val pipeline = pipeline {
         stage {
           type = singleTaskStage.type
@@ -241,6 +249,87 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           "spinnaker",
           "Could not begin execution before start time TTL"
         ))
+      }
+    }
+
+    given("a pipeline with another instance already running") {
+      val configId = UUID.randomUUID().toString()
+      val runningPipeline = pipeline {
+        pipelineConfigId = configId
+        isLimitConcurrent = true
+        status = RUNNING
+        stage {
+          type = singleTaskStage.type
+          status = RUNNING
+        }
+      }
+      val pipeline = pipeline {
+        pipelineConfigId = configId
+        isLimitConcurrent = true
+        stage {
+          type = singleTaskStage.type
+        }
+      }
+      val message = StartExecution(pipeline.type, pipeline.id, pipeline.application)
+
+      and("the pipeline should not run multiple executions concurrently") {
+        beforeGroup {
+          pipeline.isLimitConcurrent = true
+          runningPipeline.isLimitConcurrent = true
+
+          whenever(
+            repository
+              .retrievePipelinesForPipelineConfigId(configId, ExecutionCriteria().setLimit(1).setStatuses(RUNNING))
+          ) doReturn just(runningPipeline)
+          whenever(
+            repository.retrieve(message.executionType, message.executionId)
+          ) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("does not start the new pipeline") {
+          verify(repository, never()).updateStatus(message.executionId, RUNNING)
+          verify(queue, never()).push(isA<StartStage>())
+        }
+
+        it("does not push any messages to the queue") {
+          verifyNoMoreInteractions(queue)
+        }
+
+        it("does not publish any events") {
+          verifyNoMoreInteractions(publisher)
+        }
+      }
+
+      and("the pipeline is allowed to run multiple executions concurrently") {
+        beforeGroup {
+          pipeline.isLimitConcurrent = false
+          runningPipeline.isLimitConcurrent = false
+
+          whenever(
+            repository
+              .retrievePipelinesForPipelineConfigId(configId, ExecutionCriteria().setLimit(1).setStatuses(RUNNING))
+          ) doReturn just(runningPipeline)
+          whenever(
+            repository.retrieve(message.executionType, message.executionId)
+          ) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("starts the new pipeline") {
+          verify(repository).updateStatus(message.executionId, RUNNING)
+          verify(queue).push(isA<StartStage>())
+        }
       }
     }
   }

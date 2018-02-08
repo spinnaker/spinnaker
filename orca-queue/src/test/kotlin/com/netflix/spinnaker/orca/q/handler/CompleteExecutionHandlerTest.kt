@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELIN
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
@@ -34,6 +35,7 @@ import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Duration
+import java.util.*
 import kotlin.collections.set
 
 object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
@@ -52,7 +54,6 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
   setOf(SUCCEEDED, TERMINAL, CANCELED).forEach { stageStatus ->
     describe("when an execution completes and has a single stage with $stageStatus status") {
       val pipeline = pipeline {
-        application = "foo"
         stage {
           refId = "1"
           status = stageStatus
@@ -86,12 +87,41 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
         verifyZeroInteractions(queue)
       }
     }
+
+    describe("when an execution with a pipelineConfigId completes with $stageStatus") {
+      val configId = UUID.randomUUID().toString()
+      val pipeline = pipeline {
+        pipelineConfigId = configId
+        stage {
+          refId = "1"
+          status = stageStatus
+        }
+      }
+      val message = CompleteExecution(pipeline)
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving $message") {
+        subject.handle(message)
+      }
+
+      it("triggers any waiting pipelines") {
+        verify(queue).push(StartWaitingExecutions(configId, !pipeline.isKeepWaitingPipelines))
+      }
+
+      it("does not queue any other commands") {
+        verifyNoMoreInteractions(queue)
+      }
+    }
   }
 
   setOf(SUCCEEDED, STOPPED, FAILED_CONTINUE, SKIPPED).forEach { stageStatus ->
     describe("an execution appears to complete with one branch $stageStatus but other branches are still running") {
       val pipeline = pipeline {
-        application = "foo"
         stage {
           refId = "1"
           status = stageStatus
@@ -131,7 +161,6 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
   setOf(TERMINAL, CANCELED).forEach { stageStatus ->
     describe("a stage signals branch completion with $stageStatus but other branches are still running") {
       val pipeline = pipeline {
-        application = "foo"
         stage {
           refId = "1"
           status = stageStatus
@@ -179,7 +208,6 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
   describe("when a stage status was STOPPED but should fail the pipeline at the end") {
     val pipeline = pipeline {
-      application = "foo"
       stage {
         refId = "1a"
         status = STOPPED
@@ -226,7 +254,6 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
   describe("when a stage status was STOPPED and should not fail the pipeline at the end") {
     val pipeline = pipeline {
-      application = "foo"
       stage {
         refId = "1a"
         status = STOPPED
@@ -273,7 +300,6 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
   describe("when a branch is stopped and nothing downstream has started yet") {
     val pipeline = pipeline {
-      application = "covfefe"
       stage {
         refId = "1a"
         status = STOPPED

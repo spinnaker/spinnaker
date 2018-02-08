@@ -32,7 +32,6 @@ class ExecutionLauncherSpec extends Specification {
   @Shared def objectMapper = new ObjectMapper()
   def executionRunner = Mock(ExecutionRunner)
   def executionRepository = Mock(ExecutionRepository)
-  def startTracker = Mock(PipelineStartTracker)
   def pipelineValidator = Stub(PipelineValidator)
 
   ExecutionLauncher create() {
@@ -42,8 +41,7 @@ class ExecutionLauncherSpec extends Specification {
       executionRunner,
       Clock.systemDefaultZone(),
       Optional.of(pipelineValidator),
-      Optional.of(startTracker),
-      Optional.<Registry>empty()
+      Optional.<Registry> empty()
     )
   }
 
@@ -63,7 +61,6 @@ class ExecutionLauncherSpec extends Specification {
             return "whatever"
           }
         })
-        registerSingleton("pipelineStartTracker", startTracker)
       }
       register(ExecutionLauncher)
       refresh()
@@ -98,30 +95,8 @@ class ExecutionLauncherSpec extends Specification {
     context.getBean(ExecutionLauncher)
   }
 
-  def "does not start pipeline if it should be queued"() {
+  def "starts pipeline"() {
     given:
-    startTracker.queueIfNotStarted(*_) >> true
-
-    and:
-    @Subject def launcher = create()
-
-    when:
-    launcher.start(PIPELINE, json)
-
-    then:
-    1 * executionRepository.store(_)
-    0 * executionRunner.start(_)
-
-    where:
-    config = [id: "whatever", stages: [], limitConcurrent: true]
-    json = objectMapper.writeValueAsString(config)
-  }
-
-  def "starts pipeline if it should not be queued"() {
-    given:
-    startTracker.queueIfNotStarted(*_) >> false
-
-    and:
     @Subject def launcher = create()
 
     when:
@@ -129,7 +104,6 @@ class ExecutionLauncherSpec extends Specification {
 
     then:
     1 * executionRunner.start(_)
-    1 * startTracker.addToStarted(config.id, _)
 
     where:
     config = [id: "whatever", stages: []]

@@ -28,4 +28,5 @@ dependencies {
 
   testCompile project(":orca-test-kotlin")
   testCompile project(":orca-queue-tck")
+  testCompile "org.assertj:assertj-core:3.9.0"
 }

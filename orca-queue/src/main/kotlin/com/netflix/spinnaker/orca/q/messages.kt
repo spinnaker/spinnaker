@@ -305,12 +305,21 @@ data class CancelExecution(
   override val executionType: ExecutionType,
   override val executionId: String,
   override val application: String,
-  val user: String,
+  val user: String?,
   val reason: String?
 ) : Message(), ExecutionLevel {
-  constructor(source: Execution, user: String, reason: String?) :
+  constructor(source: Execution, user: String?, reason: String?) :
     this(source.type, source.id, source.application, user, reason)
+
+  constructor(source: Execution) :
+    this(source.type, source.id, source.application, null, null)
 }
+
+@JsonTypeName("startWaitingExecutions")
+data class StartWaitingExecutions(
+  val pipelineConfigId: String,
+  val purgeQueue: Boolean = false
+) : Message()
 
 /**
  * Fatal errors in processing the execution configuration.

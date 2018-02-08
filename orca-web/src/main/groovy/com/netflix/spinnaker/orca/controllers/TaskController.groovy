@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
-import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
@@ -52,9 +51,6 @@ class TaskController {
   ExecutionRepository executionRepository
 
   @Autowired
-  PipelineStartTracker startTracker
-
-  @Autowired
   ExecutionRunner executionRunner
 
   @Autowired
@@ -74,8 +70,10 @@ class TaskController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Execution> list(@PathVariable String application,
-                           @RequestParam(value = "limit", defaultValue = "3500") int limit,
-                           @RequestParam(value = "statuses", required = false) String statuses) {
+                       @RequestParam(value = "limit", defaultValue = "3500")
+                         int limit,
+                       @RequestParam(value = "statuses", required = false)
+                         String statuses) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
     def executionCriteria = new ExecutionRepository.ExecutionCriteria(
       limit: limit,
@@ -200,8 +198,9 @@ class TaskController {
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  void cancel(@PathVariable String id, @RequestParam(required = false) String reason,
-              @RequestParam(defaultValue = "false") boolean force) {
+  void cancel(
+    @PathVariable String id, @RequestParam(required = false) String reason,
+    @RequestParam(defaultValue = "false") boolean force) {
     executionRepository.retrieve(PIPELINE, id).with { pipeline ->
       executionRunner.cancel(
         pipeline,
@@ -233,15 +232,17 @@ class TaskController {
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.GONE)
   List<String> runningPipelines() {
-    startTracker.getAllStartedExecutions()
+    []
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.GONE)
   List<String> waitingPipelines() {
-    startTracker.getAllWaitingExecutions()
+    []
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
@@ -276,16 +277,14 @@ class TaskController {
     @PathVariable String id, @PathVariable String stageId) {
     def pipeline = executionRepository.retrieve(PIPELINE, id)
     executionRunner.restart(pipeline, stageId)
-    if (pipeline.pipelineConfigId) {
-      startTracker.addToStarted(pipeline.pipelineConfigId, pipeline.id)
-    }
     pipeline
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/{id}/evaluateExpression", method = RequestMethod.GET)
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
-                                     @RequestParam("expression") String expression){
+                                     @RequestParam("expression")
+                                       String expression) {
     def execution = executionRepository.retrieve(PIPELINE, id)
     def evaluated = contextParameterProcessor.process(
       [expression: expression],
@@ -298,8 +297,10 @@ class TaskController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Execution> getApplicationPipelines(@PathVariable String application,
-                                         @RequestParam(value = "limit", defaultValue = "5") int limit,
-                                         @RequestParam(value = "statuses", required = false) String statuses,
+                                          @RequestParam(value = "limit", defaultValue = "5")
+                                            int limit,
+                                          @RequestParam(value = "statuses", required = false)
+                                            String statuses,
                                          @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
     return getPipelinesForApplication(application, limit, statuses, expand)
   }
@@ -307,8 +308,10 @@ class TaskController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Execution> getPipelinesForApplication(@PathVariable String application,
-                                            @RequestParam(value = "limit", defaultValue = "5") int limit,
-                                            @RequestParam(value = "statuses", required = false) String statuses,
+                                             @RequestParam(value = "limit", defaultValue = "5")
+                                               int limit,
+                                             @RequestParam(value = "statuses", required = false)
+                                               String statuses,
                                             @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")

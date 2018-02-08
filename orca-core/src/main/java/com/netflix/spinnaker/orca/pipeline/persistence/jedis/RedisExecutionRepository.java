@@ -332,8 +332,8 @@ public class RedisExecutionRepository implements ExecutionRepository {
           return;
         }
 
-        Set<String> allowedExecutionStatuses = new HashSet<>(criteria.getStatuses());
-        List<String> statuses = fetchMultiExecutionStatus(d,
+        Set<ExecutionStatus> allowedExecutionStatuses = new HashSet<>(criteria.getStatuses());
+        List<ExecutionStatus> statuses = fetchMultiExecutionStatus(d,
           pipelineKeys.stream()
             .map(key -> pipelineKey(key))
             .collect(Collectors.toList())
@@ -412,8 +412,8 @@ public class RedisExecutionRepository implements ExecutionRepository {
           return;
         }
 
-        Set<String> allowedExecutionStatuses = new HashSet<>(criteria.getStatuses());
-        List<String> statuses = fetchMultiExecutionStatus(d,
+        Set<ExecutionStatus> allowedExecutionStatuses = new HashSet<>(criteria.getStatuses());
+        List<ExecutionStatus> statuses = fetchMultiExecutionStatus(d,
           orchestrationKeys.stream()
             .map(key -> orchestrationKey(key))
             .collect(Collectors.toList())
@@ -909,13 +909,16 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return buildExecution(execution, map, stageIds);
   }
 
-  protected List<String> fetchMultiExecutionStatus(RedisClientDelegate redisClientDelegate, List<String> keys) {
+  protected List<ExecutionStatus> fetchMultiExecutionStatus(RedisClientDelegate redisClientDelegate, List<String> keys) {
     return redisClientDelegate.withMultiKeyPipeline(p -> {
       List<Response<String>> responses = keys.stream()
         .map(k -> p.hget(k, "status"))
         .collect(Collectors.toList());
       p.sync();
-      return responses.stream().map(Response::get).collect(Collectors.toList());
+      return responses.stream()
+        .map(Response::get)
+        .map(ExecutionStatus::valueOf)
+        .collect(Collectors.toList());
     });
   }
 

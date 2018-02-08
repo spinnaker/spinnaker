@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
-import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
@@ -46,7 +45,6 @@ class TaskControllerSpec extends Specification {
   MockMvc mockMvc
   def executionRepository = Mock(ExecutionRepository)
   def front50Service = Mock(Front50Service)
-  def startTracker = Mock(PipelineStartTracker)
   def executionRunner = Mock(ExecutionRunner)
 
   def clock = Clock.fixed(Instant.now(), UTC)
@@ -63,7 +61,6 @@ class TaskControllerSpec extends Specification {
         executionRunner: executionRunner,
         daysOfExecutionHistory: daysOfExecutionHistory,
         numberOfOldPipelineExecutionsToInclude: numberOfOldPipelineExecutionsToInclude,
-        startTracker: startTracker,
         clock: clock
       )
     ).build()
