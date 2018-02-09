@@ -22,8 +22,8 @@ The app will start up on [localhost:9000](localhost:9000).
 * `REDUX_LOGGER` toggles browser logging for interactions with the Redux store.
 * `CANARY_STAGES_ENABLED` enables Kayenta canary stages.
 
-For example, `API_HOST=http://localhost:8084 LIVE_CALLS=true yarn start` will run Deck 
-with `https://localhost:8084` as the API host.
+For example, `API_HOST=http://localhost:8084 CANARY_STAGES_ENABLED=true yarn start` will run Deck 
+with `https://localhost:8084` as the API host and Kayenta canary stages enabled.
 
 ## Testing
 
