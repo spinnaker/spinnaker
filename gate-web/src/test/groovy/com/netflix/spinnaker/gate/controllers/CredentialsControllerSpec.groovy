@@ -21,7 +21,6 @@ import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
@@ -36,8 +35,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 class CredentialsControllerSpec extends Specification {
 
   MockMvc mockMvc
-  ClouddriverService clouddriverService
-  ClouddriverServiceSelector clouddriverServiceSelector
+  ClouddriverService clouddriverService = Mock(ClouddriverService)
+  AccountLookupService accountLookupService = Stub(AccountLookupService) {
+    getAccounts() >> [new ClouddriverService.AccountDetails(name: "test"),
+                      new ClouddriverService.AccountDetails(name: "test.com")]
+  }
 
   def server = new MockWebServer()
 
@@ -46,36 +48,25 @@ class CredentialsControllerSpec extends Specification {
   }
 
   void setup() {
-    AccountLookupService  accountLookupService = Mock(AccountLookupService) {
-      getAccounts() >> ["test", "test.com"]
-    }
     FiatClientConfigurationProperties fiatConfig = new FiatClientConfigurationProperties(enabled: false)
-
-    clouddriverService = Mock(ClouddriverService)
-    clouddriverServiceSelector = Mock(ClouddriverServiceSelector)
 
     @Subject
     CredentialsService credentialsService = new CredentialsService(accountLookupService: accountLookupService,
-      clouddriverServiceSelector: clouddriverServiceSelector,
       fiatConfig: fiatConfig)
 
     server.start()
-    mockMvc = MockMvcBuilders.standaloneSetup(new CredentialsController(credentialsService: credentialsService)).build()
+    mockMvc = MockMvcBuilders.standaloneSetup(new CredentialsController(accountLookupService:  accountLookupService, credentialsService: credentialsService)).build()
   }
 
   @Unroll
   def "should accept account names with dots"() {
-    given:
-    1 * clouddriverServiceSelector.select(_) >> clouddriverService
-    1 * clouddriverService.getAccount(account) >> ["name": account]
-
     when:
     MockHttpServletResponse response = mockMvc.perform(get("/credentials/${account}")
       .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
     then:
     response.status == 200
-    response.contentAsString == "{\"name\":\"${expectedAccount}\",\"requiredGroupMembership\":[]}"
+    response.contentAsString == "{\"name\":\"${expectedAccount}\",\"requiredGroupMembership\":[],\"authorized\":true}"
 
     where:
     account    || expectedAccount

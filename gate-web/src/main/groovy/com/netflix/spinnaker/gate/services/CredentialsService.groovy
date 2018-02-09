@@ -36,9 +36,6 @@ class CredentialsService {
   AccountLookupService accountLookupService
 
   @Autowired
-  ClouddriverServiceSelector clouddriverServiceSelector
-
-  @Autowired
   FiatClientConfigurationProperties fiatConfig
 
   Collection<String> getAccountNames() {
@@ -77,12 +74,6 @@ class CredentialsService {
 
         return userRolesLower.intersect(permissions) as Boolean
       } ?: []
-    } execute()
-  }
-
-  AccountDetails getAccount(String account, String selectorKey) {
-    HystrixFactory.newMapCommand(GROUP, "getAccount") {
-      clouddriverServiceSelector.select(selectorKey).getAccount(account)
     } execute()
   }
 }

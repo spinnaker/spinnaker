@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -36,8 +38,11 @@ class DefaultProviderLookupService implements ProviderLookupService, AccountLook
 
   private static final String FALLBACK = "unknown"
   private static final String ACCOUNTS_KEY = "all"
+  private static final TypeReference<List<Map>> JSON_LIST = new TypeReference<List<Map>>() {}
+  private static final TypeReference<List<AccountDetails>> ACCOUNT_DETAILS_LIST = new TypeReference<List<AccountDetails>>() {}
 
   private final ClouddriverService clouddriverService
+  private final ObjectMapper mapper = new ObjectMapper()
 
   private final LoadingCache<String, List<AccountDetails>> accountsCache = CacheBuilder.newBuilder()
     .initialCapacity(1)
@@ -66,7 +71,8 @@ class DefaultProviderLookupService implements ProviderLookupService, AccountLook
 
   @Override
   public List<AccountDetails> getAccounts() {
-    return accountsCache.get(ACCOUNTS_KEY)
+    final List<AccountDetails> original = accountsCache.get(ACCOUNTS_KEY)
+    final List<Map> accountsCopy = mapper.convertValue(original, JSON_LIST)
+    return mapper.convertValue(accountsCopy, ACCOUNT_DETAILS_LIST)
   }
-
 }
