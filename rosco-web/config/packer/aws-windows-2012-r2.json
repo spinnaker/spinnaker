@@ -12,7 +12,7 @@
     "aws_security_group": "",
     "aws_associate_public_ip_address": "false",
     "aws_ena_support": "false",
-    "aws_spot_price": 0,
+    "aws_spot_price": "0",
     "aws_spot_price_auto_product": "",
     "aws_userdata_file": "scripts/aws-windows.userdata",
     "appversion": "",

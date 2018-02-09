@@ -11,7 +11,7 @@
     "aws_target_ami": null,
     "aws_associate_public_ip_address": "true",
     "aws_ena_support": "false",
-    "aws_spot_price": 0,
+    "aws_spot_price": "0",
     "aws_spot_price_auto_product": "",
     "appversion": "",
     "build_host": "",
