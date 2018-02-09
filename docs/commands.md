@@ -3965,6 +3965,8 @@ hal config pubsub google subscription add SUBSCRIPTION [parameters]
 Configurable in your Google Cloud Pubsub subscription. See the docs here: https://cloud.google.com/pubsub/docs/subscriber
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--message-format`: (*Default*: `CUSTOM`) One of 'GCS', 'GCR', or 'CUSTOM'. This can be used to help Spinnaker translate the contents of the
+Pub/Sub message into Spinnaker artifacts.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The name of the GCP project your subscription lives in.
  * `--subscription-name`: The name of the subscription to listen to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.
@@ -4003,6 +4005,8 @@ hal config pubsub google subscription edit SUBSCRIPTION [parameters]
 Configurable in your Google Cloud Pubsub subscription. See the docs here: https://cloud.google.com/pubsub/docs/subscriber
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--message-format`: One of 'GCS', 'GCR', or 'CUSTOM'. This can be used to help Spinnaker translate the contents of the
+Pub/Sub message into Spinnaker artifacts.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The name of the GCP project your subscription lives in.
  * `--subscription-name`: The name of the subscription to listen to. This identifier does not include the name of the project, and must already be configured for Spinnaker to work.
