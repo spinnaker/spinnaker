@@ -4,10 +4,13 @@ import { ITableColumn, Table } from 'kayenta/layout/table';
 import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryExecutionStatusResult } from 'kayenta/domain';
 import FormattedDate from 'kayenta/layout/formattedDate';
+import CenteredDetail from 'kayenta/layout/centeredDetail';
 import Score from '../detail/score';
 import ReportLink from './reportLink';
 import ConfigLink from './configLink';
 import { PipelineLink } from './pipelineLink';
+
+import './executionList.less';
 
 const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   {
@@ -56,11 +59,21 @@ interface IExecutionListTableStateProps {
 }
 
 const ExecutionListTable = ({ executions }: IExecutionListTableStateProps) => {
+  if (!executions || !executions.length) {
+    return (
+      <CenteredDetail>
+        <h3 className="heading-3">No canary execution history for this application.</h3>
+      </CenteredDetail>
+    );
+  }
+
   return (
     <Table
       rows={executions}
+      className="vertical flex-1 execution-list-table"
       columns={columns}
       rowKey={execution => execution.result.pipelineId}
+      tableBodyClassName="flex-1"
     />
   );
 };
