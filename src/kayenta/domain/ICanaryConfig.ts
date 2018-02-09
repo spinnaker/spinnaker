@@ -11,7 +11,6 @@ export interface ICanaryConfig {
   configVersion: string;
   metrics: ICanaryMetricConfig[];
   templates: {[key: string]: string};
-  services: {[key: string]: ICanaryServiceConfig};
   classifier: ICanaryClassifierConfig;
   judge: ICanaryJudgeConfig;
 }
@@ -33,13 +32,6 @@ export interface ICanaryMetricSetQueryConfig {
   type: string;
   customFilter?: string;
   customFilterTemplate?: string;
-}
-
-export interface ICanaryServiceConfig {
-  name: string;
-  type: string;
-  region: string;
-  environment: string;
 }
 
 export type IGroupWeights = {[group: string]: number};

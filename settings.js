@@ -79,18 +79,6 @@ window.spinnakerSettings = {
     atlasWebComponentsUrl: atlasWebComponentsUrl,
     templatesEnabled: templatesEnabled,
     showAllConfigs: false,
-    defaultServiceSettings: {
-      atlas: {
-        name: 'atlas',
-        type: 'atlas',
-        region: 'us-east-1',
-        environment: 'prod',
-      },
-      stackdriver: {
-        name: 'stackdriver',
-        type: 'stackdriver',
-      }
-    }
   },
   feature: {
     entityTags: entityTagsEnabled,

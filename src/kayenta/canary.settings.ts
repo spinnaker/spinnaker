@@ -7,7 +7,6 @@ export interface ICanarySettings {
   storageAccountName: string;
   defaultJudge: string;
   metricStore: string;
-  defaultServiceSettings: {[key: string]: any};
   stagesEnabled: boolean;
   graphImplementation: string;
   featureDisabled: boolean;

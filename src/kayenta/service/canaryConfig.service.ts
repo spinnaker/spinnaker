@@ -80,9 +80,6 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
     isNew: true,
     metrics: [] as ICanaryMetricConfig[],
     configVersion: '1',
-    services: {
-      [CanarySettings.metricStore]: CanarySettings.defaultServiceSettings[CanarySettings.metricStore]
-    },
     templates: {},
     classifier: {
       groupWeights: {} as {[key: string]: number},
