@@ -45,7 +45,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
         { name: 'test', regions: [ { name: 'us-west-2' }, { name: 'eu-west-1' }] }
       ];
 
-      spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
+      spyOn(accountService, 'listAllAccounts').and.returnValue($q.when(accounts));
 
       initializeController(null);
       $ctrl.application =

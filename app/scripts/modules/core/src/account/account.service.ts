@@ -26,6 +26,7 @@ export interface IAccount {
 
 export interface IAccountDetails extends IAccount {
   accountType: string;
+  authorized: boolean;
   awsAccount?: string;
   awsVpc?: string;
   challengeDestructiveActions: boolean;
@@ -84,11 +85,11 @@ export class AccountService {
   }
 
   public getAccountDetails(account: string): IPromise<IAccountDetails> {
-    return this.listAccounts().then(accounts => accounts.find(a => a.name === account));
+    return this.listAllAccounts().then(accounts => accounts.find(a => a.name === account));
   }
 
   public getAllAccountDetailsForProvider(provider: string, providerVersion: string = null): IPromise<IAccountDetails[]> {
-    return this.listAccounts(provider, providerVersion)
+    return this.listAllAccounts(provider, providerVersion)
       .catch((error: any) => {
         this.$log.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
         return [];
@@ -101,7 +102,7 @@ export class AccountService {
   }
 
   public getCredentialsKeyedByAccount(provider: string = null): IPromise<IAggregatedAccounts> {
-    return this.listAccounts(provider)
+    return this.listAllAccounts(provider)
       .then((accounts: IAccountDetails[]) => {
         const names: string[] = accounts.map((account: IAccount) => account.name);
         return zipObject<IAccountDetails, IAggregatedAccounts>(names, accounts);
@@ -138,28 +139,30 @@ export class AccountService {
       .then((credentials: IAggregatedAccounts) => {
         return chain(credentials)
           .map(attribute)
-          .flatten().compact()
+          .flatten()
+          .compact()
           .map((region: IRegion) => region.name || region)
           .uniq()
           .value() as string[];
       });
   }
 
+  public listAllAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
+    return this.API.one('credentials')
+      .useCache()
+      .withParams({ expand: true })
+      .get()
+      .then((accounts: IAccountDetails[]) => accounts.filter(account => !provider || account.type === provider))
+      .then((accounts: IAccountDetails[]) => accounts.filter(account => !providerVersion || account.type === providerVersion));
+  }
+
   public listAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
-    let result: IPromise<IAccountDetails[]> = this.API.one('credentials').useCache().withParams({ expand: true }).get();
-    if (provider) {
-      result = result.then((accounts) => accounts.filter((account) => account.type === provider));
-    }
-
-    if (providerVersion) {
-      result = result.then((accounts) => accounts.filter((account) => account.providerVersion === providerVersion));
-    }
-
-    return result;
+    return this.listAllAccounts(provider, providerVersion)
+      .then((accounts) => accounts.filter((account) => account.authorized !== false));
   }
 
   public listProviders(application: Application = null): IPromise<string[]> {
-    return this.listAccounts()
+    return this.listAllAccounts()
       .then((accounts: IAccount[]) => {
         const all: string[] = Array.from(new Set(accounts.map((account: IAccount) => account.type)));
         const available: string[] = intersection(all, this.cloudProviderRegistry.listRegisteredProviders());

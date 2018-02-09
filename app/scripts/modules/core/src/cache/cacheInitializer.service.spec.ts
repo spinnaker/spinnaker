@@ -83,7 +83,7 @@ describe('Service: cacheInitializer', function () {
 
     beforeEach(() => {
       initialized = false;
-      spyOn(accountService, 'listAccounts').and.returnValue($q.when(keys.account));
+      spyOn(accountService, 'listAllAccounts').and.returnValue($q.when(keys.account));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg));
       spyOn(applicationReader, 'listApplications').and.returnValue($q.when(keys.app));
       spyOn(igorService, 'listMasters').and.returnValue($q.when(keys.bm));
