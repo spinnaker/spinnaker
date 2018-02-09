@@ -2,11 +2,12 @@ package com.netflix.spinnaker.clouddriver.titus.v3client;
 
 import com.netflix.metatron.ipc.security.MetatronKeyManagerFactory;
 import com.netflix.metatron.ipc.security.MetatronTrustManagerFactory;
-import com.netflix.netty.jettyalpn.JettyAlpnSslContext;
+
+import com.netflix.netty.jettyalpn.ShadedJettyAlpnSslContext;
 import io.grpc.Metadata;
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext;
 import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
-import io.netty.handler.ssl.SslContext;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -26,7 +27,7 @@ public class ClientAuthenticationUtils {
       kmf.init(MetatronKeyManagerFactory.clientParameters());
       TrustManagerFactory tmf = new MetatronTrustManagerFactory();
       tmf.init(MetatronTrustManagerFactory.clientParameters(applicationName));
-      return new JettyAlpnSslContext(kmf, tmf, true, null);
+      return new ShadedJettyAlpnSslContext(kmf, tmf, true, null);
     } catch (InvalidAlgorithmParameterException e) {
       throw new RuntimeException(e);
     }

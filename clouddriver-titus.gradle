@@ -8,7 +8,7 @@ buildscript {
 
 ext {
   protobufVersion = '3.2.+'
-  grpcVersion = '1.4.+'
+  grpcVersion = '1.9.+'
 }
 
 dependencies {
@@ -17,7 +17,7 @@ dependencies {
   compile "com.google.protobuf:protobuf-java:$protobufVersion"
   compile "io.grpc:grpc-protobuf:$grpcVersion"
   compile "io.grpc:grpc-stub:$grpcVersion"
-  compile "io.grpc:grpc-netty:$grpcVersion"
+  compile "io.grpc:grpc-netty-shaded:$grpcVersion"
   compile 'netflix:eureka2-grpc-client-guice:latest.release'
   compile "netflix:metatron-ipc-common:latest.release"
   compile "netflix:netty-handler-jettyalpn:latest.release"

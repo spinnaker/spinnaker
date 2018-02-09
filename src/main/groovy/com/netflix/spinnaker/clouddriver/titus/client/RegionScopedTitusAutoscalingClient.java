@@ -25,8 +25,8 @@ import com.netflix.spinnaker.clouddriver.titus.v3client.GrpcMetricsInterceptor;
 import com.netflix.spinnaker.clouddriver.titus.v3client.GrpcRetryInterceptor;
 import com.netflix.titus.grpc.protogen.*;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.NegotiationType;
-import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NegotiationType;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.util.RoundRobinLoadBalancerFactory;
 
 import java.util.List;
