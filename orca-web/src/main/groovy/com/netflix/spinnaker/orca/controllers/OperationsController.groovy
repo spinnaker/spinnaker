@@ -81,7 +81,7 @@ class OperationsController {
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
     Exception pipelineError = null
     try {
-      parseAndValidatePipeline(pipeline)
+      pipeline = parseAndValidatePipeline(pipeline)
     } catch (Exception e) {
       pipelineError = e
     }
@@ -106,7 +106,7 @@ class OperationsController {
     }
   }
 
-  private void parseAndValidatePipeline(Map pipeline) {
+  private Map parseAndValidatePipeline(Map pipeline) {
     parsePipelineTrigger(executionRepository, buildService, pipeline)
 
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
@@ -128,6 +128,7 @@ class OperationsController {
     if (pipeline.errors != null) {
       throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
     }
+    return pipeline
   }
 
   private void parsePipelineTrigger(ExecutionRepository executionRepository, BuildService buildService, Map pipeline) {
