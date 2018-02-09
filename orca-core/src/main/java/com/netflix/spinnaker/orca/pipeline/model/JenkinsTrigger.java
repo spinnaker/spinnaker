@@ -237,14 +237,17 @@ public class JenkinsTrigger extends Trigger {
   public static class JenkinsArtifact {
     private final String fileName;
     private final String relativePath;
+    private final String displayPath;
 
     @JsonCreator
     public JenkinsArtifact(
       @JsonProperty("fileName") @Nonnull String fileName,
-      @JsonProperty("relativePath") @Nonnull String relativePath
+      @JsonProperty("relativePath") @Nonnull String relativePath,
+      @JsonProperty("displayPath") String diplayPath
     ) {
       this.fileName = fileName;
       this.relativePath = relativePath;
+      this.displayPath = diplayPath;
     }
 
     public @Nonnull String getFileName() {
@@ -255,16 +258,21 @@ public class JenkinsTrigger extends Trigger {
       return relativePath;
     }
 
+    public String getDisplayPath() {
+      return displayPath;
+    }
+
     @Override public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       JenkinsArtifact that = (JenkinsArtifact) o;
       return Objects.equals(fileName, that.fileName) &&
-        Objects.equals(relativePath, that.relativePath);
+        Objects.equals(relativePath, that.relativePath) &&
+        Objects.equals(displayPath, that.displayPath);
     }
 
     @Override public int hashCode() {
-      return Objects.hash(fileName, relativePath);
+      return Objects.hash(fileName, relativePath, displayPath);
     }
   }
 }

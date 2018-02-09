@@ -63,7 +63,7 @@ class PackageInfoSpec extends Specification {
     given:
     def execution = pipeline {
       trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
-      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("testFileName", ".")], [], false, "SUCCESS")
+      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("testFileName", ".", "")], [], false, "SUCCESS")
       stage {
         context = [buildInfo: [name: "someName"], package: "testPackageName"]
       }
@@ -346,7 +346,7 @@ class PackageInfoSpec extends Specification {
     given:
     def pipeline = pipeline {
       trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
-      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS")
+      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".", "")], [], false, "SUCCESS")
       stage {
         refId = "1"
         context["package"] = "another_package"
@@ -382,7 +382,7 @@ class PackageInfoSpec extends Specification {
     given:
     def pipeline = pipeline {
       trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
-      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_2.2.2-h02.sha321_all.deb", ".")], [], false, "SUCCESS")
+      trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_2.2.2-h02.sha321_all.deb", ".", "")], [], false, "SUCCESS")
       stage {
         context = [package: 'api']
       }
@@ -468,10 +468,10 @@ class PackageInfoSpec extends Specification {
     pipelineTrigger << [
       new PipelineTrigger(ExecutionBuilder.pipeline {
         trigger = new JenkinsTrigger("master", "job", 1, null, null, [:], [])
-        trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS")
+        trigger.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".", "")], [], false, "SUCCESS")
       }, [:]),
       new JenkinsTrigger("master", "job", 1, null, null, [:], []).with {
-        it.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".")], [], false, "SUCCESS")
+        it.buildInfo = new BuildInfo("name", 1, "http://jenkins", [new JenkinsArtifact("api_1.1.1-h01.sha123_all.deb", ".", "")], [], false, "SUCCESS")
         it
       }
     ]
