@@ -70,12 +70,14 @@ export class AmazonInfoDetailsSection extends React.Component<IAmazonServerGroup
           <dd><VpcTag vpcId={serverGroup.vpcId}/></dd>
           {serverGroup.vpcId && <dt>Subnet</dt>}
           {serverGroup.vpcId && <dd>{serverGroup.subnetType || 'None (EC2 Classic)'}</dd>}
-          <dt>Zones</dt>
-          <dd>
-            <ul>
-              {serverGroup.asg.availabilityZones.map((zone) => <li key={zone}>{zone}</li>)}
-            </ul>
-          </dd>
+          {serverGroup.asg && <dt>Zones</dt>}
+          {serverGroup.asg && (
+            <dd>
+              <ul>
+                {serverGroup.asg.availabilityZones.map((zone) => <li key={zone}>{zone}</li>)}
+              </ul>
+            </dd>
+          )}
         </dl>
       </CollapsibleSection>
     )

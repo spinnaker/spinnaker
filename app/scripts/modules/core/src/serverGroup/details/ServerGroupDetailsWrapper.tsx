@@ -35,9 +35,6 @@ export interface IServerGroupDetailsWrapperState {
   detailsGetter: DetailsGetter,
   sections: React.ComponentType<IServerGroupDetailsSectionProps>[],
   Actions: React.ComponentType<IServerGroupActionsProps>,
-  accountId: string;
-  provider: string;
-  region: string;
 }
 
 export interface IServerGroupActionsProps {
@@ -66,12 +63,7 @@ export class ServerGroupDetailsWrapper extends React.Component<IServerGroupDetai
   constructor(props: IServerGroupDetailsWrapperProps) {
     super(props);
 
-    const $stateParams: IServerGroupDetailsWrapperStateParams = ReactInjector.$stateParams as any;
-
     this.state = {
-      accountId: $stateParams.accountId,
-      provider: $stateParams.provider,
-      region: $stateParams.region,
       angular: {
         template: undefined,
         controller: undefined,
@@ -82,8 +74,8 @@ export class ServerGroupDetailsWrapper extends React.Component<IServerGroupDetai
     };
   }
 
-  public componentDidMount(): void {
-    const { provider, accountId } = this.state;
+  private getServerGroupDetailsTemplate(): void {
+    const { provider, accountId } = ReactInjector.$stateParams;
     const { versionedCloudProviderService } = ReactInjector;
     $q.all([
       versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsActions'),
@@ -102,6 +94,14 @@ export class ServerGroupDetailsWrapper extends React.Component<IServerGroupDetai
       const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
       this.setState({ angular: { template, controller }, Actions, detailsGetter, sections });
     });
+  }
+
+  public componentDidMount(): void {
+    this.getServerGroupDetailsTemplate();
+  }
+
+  public componentWillReceiveProps(): void {
+    this.getServerGroupDetailsTemplate();
   }
 
   public render() {
