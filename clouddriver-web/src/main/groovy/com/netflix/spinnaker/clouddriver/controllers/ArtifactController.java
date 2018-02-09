@@ -61,7 +61,8 @@ public class ArtifactController {
   @RequestMapping(method = RequestMethod.GET, value = "/fetch")
   String fetch(@RequestParam("artifactAccount") String artifactAccount,
       @RequestParam("type") String type,
-      @RequestParam("reference") String reference) {
+      @RequestParam("reference") String reference,
+      @RequestParam("version") String version) {
     if (artifactDownloader == null) {
       throw new IllegalStateException("Artifacts have not been enabled. Enable them using 'artifacts.enabled' in clouddriver");
     }
@@ -70,6 +71,7 @@ public class ArtifactController {
         .type(type)
         .artifactAccount(artifactAccount)
         .reference(reference)
+        .version(version)
         .build();
 
     try {
