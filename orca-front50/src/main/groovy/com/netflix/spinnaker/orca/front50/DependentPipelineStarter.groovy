@@ -77,9 +77,9 @@ class DependentPipelineStarter implements ApplicationContextAware {
     }
 
     if (parentPipelineStageId != null) {
-      pipelineConfig.receivedArtifacts = artifactResolver.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
+      pipelineConfig.receivedArtifacts = artifactResolver?.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
     } else {
-      pipelineConfig.receivedArtifacts = artifactResolver.getAllArtifacts(parentPipeline)
+      pipelineConfig.receivedArtifacts = artifactResolver?.getAllArtifacts(parentPipeline)
     }
 
     def trigger = pipelineConfig.trigger //keep the trigger as the preprocessor removes it.

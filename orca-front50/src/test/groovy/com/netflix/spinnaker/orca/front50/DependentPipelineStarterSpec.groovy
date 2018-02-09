@@ -308,4 +308,70 @@ class DependentPipelineStarterSpec extends Specification {
     result.trigger.getArtifacts().size() == 1
     result.trigger.getArtifacts()*.name == ["gs://test/file.yaml"]
   }
+
+  def "should find artifacts from triggering pipeline without expected artifacts"() {
+    given:
+    def triggeredPipelineConfig = [
+        name              : "triggered",
+        id                : "triggered",
+        expectedArtifacts : [[
+          matchArtifact: [
+            kind: "gcs",
+            name: "gs://test/file.yaml",
+            type: "gcs/object"
+          ]
+        ]]
+    ];
+    Artifact testArtifact1 = new Artifact(
+        type : "gcs/object",
+        name : "gs://test/file.yaml"
+    )
+    Artifact testArtifact2 = new Artifact(
+        type : "docker/image",
+        name : "gcr.io/project/image"
+    )
+    def parentPipeline = pipeline {
+      name = "parent"
+      trigger = new WebhookTrigger("test", [:], [testArtifact1, testArtifact2]);
+      authentication = new Execution.AuthenticationDetails("parentUser", "acct1", "acct2")
+    }
+    def executionLauncher = Mock(ExecutionLauncher)
+    def applicationContext = new StaticApplicationContext()
+    applicationContext.beanFactory.registerSingleton("pipelineLauncher", executionLauncher)
+    dependentPipelineStarter = new DependentPipelineStarter(
+        objectMapper: mapper,
+        applicationContext: applicationContext,
+        contextParameterProcessor: new ContextParameterProcessor(),
+        artifactResolver: artifactResolver
+    )
+
+    and:
+    executionLauncher.start(*_) >> {
+      def p = mapper.readValue(it[1], Map)
+      return pipeline {
+        name = p.name
+        id = p.name
+        trigger = mapper.convertValue(p.trigger, Trigger)
+      }
+    }
+    artifactResolver.getArtifactsForPipelineId(*_) >> {
+      return new ArrayList<Artifact>();
+    }
+
+    when:
+    def result = dependentPipelineStarter.trigger(
+        triggeredPipelineConfig,
+        null,
+        parentPipeline,
+        [:],
+        null
+    )
+
+    then:
+    result.trigger.getArtifacts().size() == 2
+    result.trigger.getArtifacts()*.name.contains(testArtifact1.name)
+    result.trigger.getArtifacts()*.name.contains(testArtifact2.name)
+    result.trigger.resolvedExpectedArtifacts.size() == 1
+    result.trigger.resolvedExpectedArtifacts*.boundArtifact.name == [testArtifact1.name]
+  }
 }

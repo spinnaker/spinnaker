@@ -149,6 +149,12 @@ public class ArtifactResolver {
       .orElse(emptyList());
 
     if (expectedArtifacts.isEmpty()) {
+      try {
+        Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
+        trigger.put("artifacts", objectMapper.readValue(objectMapper.writeValueAsString(receivedArtifacts), List.class));
+      } catch (IOException e) {
+        log.warn("Failure storing received artifacts: {}", e.getMessage(), e);
+      }
       return;
     }
 
@@ -176,9 +182,12 @@ public class ArtifactResolver {
       }
     }
 
+    Set<Artifact> allArtifacts = new HashSet<>(receivedArtifacts);
+    allArtifacts.addAll(resolvedArtifacts);
+
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
     try {
-      trigger.put("artifacts", objectMapper.readValue(objectMapper.writeValueAsString(resolvedArtifacts), List.class));
+      trigger.put("artifacts", objectMapper.readValue(objectMapper.writeValueAsString(allArtifacts), List.class));
       trigger.put("resolvedExpectedArtifacts", objectMapper.readValue(objectMapper.writeValueAsString(expectedArtifacts), List.class)); // Add the actual expectedArtifacts we included in the ids.
     } catch (IOException e) {
       throw new ArtifactResolutionException("Failed to store artifacts in trigger: " + e.getMessage(), e);
