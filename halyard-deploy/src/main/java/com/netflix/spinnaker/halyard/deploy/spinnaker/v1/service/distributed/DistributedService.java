@@ -120,6 +120,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     baseDescription.put("region", getRegion(settings));
     baseDescription.put("credentials", details.getAccount().getName());
     baseDescription.put("cluster", getServiceName());
+    baseDescription.put("name", "rollback");
 
     Map<String, Object> capacity = new HashMap<>();
     capacity.put("desired", targetSize);
@@ -185,6 +186,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     String accountName = details.getAccount().getName();
     String region = runtimeSettings.getServiceSettings(getService()).getLocation();
     Map<String, Object> deployDescription  = getServerGroupDescription(details, runtimeSettings, configSources);
+    deployDescription.put("name", "deploy");
     Map<String, String> source = new HashMap<>();
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
     if (runningServiceDetails.getLatestEnabledVersion() == null) {
@@ -224,6 +226,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
 
   default Map<String, Object> buildUpsertLoadBalancerTask(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
     Map<String, Object> upsertDescription = getLoadBalancerDescription(details, runtimeSettings);
+    upsertDescription.put("name", "upsert");
     upsertDescription.put("type", AtomicOperations.UPSERT_LOAD_BALANCER);
     upsertDescription.put("cloudProvider", getProviderType().getId());
     upsertDescription.put("refId", "upsertlb");
