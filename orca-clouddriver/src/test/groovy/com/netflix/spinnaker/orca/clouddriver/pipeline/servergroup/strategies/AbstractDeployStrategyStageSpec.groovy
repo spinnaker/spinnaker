@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
-import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.clouddriver.tasks.DetermineHealthProvidersTask
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.pipeline.TaskNode.task
 
 @Unroll
 class AbstractDeployStrategyStageSpec extends Specification {
@@ -39,9 +42,9 @@ class AbstractDeployStrategyStageSpec extends Specification {
   def "should compose list of steps"() {
     given:
     // Step mocks
-    def determineSourceServerGroupTask = TaskNode.task("determineSourceServerGroup", null)
-    def determineHealthProvidersTask = TaskNode.task("determineHealthProviders", null)
-    def basicTask = TaskNode.task("basic", null)
+    def determineSourceServerGroupTask = task("determineSourceServerGroup", DetermineSourceServerGroupTask)
+    def determineHealthProvidersTask = task("determineHealthProviders", DetermineHealthProvidersTask)
+    def basicTask = task("basic", Task)
 
     AbstractDeployStrategyStage testStage = Spy(AbstractDeployStrategyStage)
     testStage.with {

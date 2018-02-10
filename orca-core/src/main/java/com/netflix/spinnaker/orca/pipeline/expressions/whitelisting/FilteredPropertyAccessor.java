@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import static java.lang.String.format;
 
 public class FilteredPropertyAccessor extends ReflectivePropertyAccessor {
@@ -31,7 +33,7 @@ public class FilteredPropertyAccessor extends ReflectivePropertyAccessor {
   protected Method findGetterForProperty(String propertyName, Class<?> clazz, boolean mustBeStatic) {
     Method getter = super.findGetterForProperty(propertyName, clazz, mustBeStatic);
     if (getter == null) {
-      throw new IllegalArgumentException(format("requested getter $propertyName not found on type", clazz));
+      throw new IllegalArgumentException(format("requested getter %s not found on type %s", propertyName, clazz));
     } else if (!ReturnTypeRestrictor.supports(getter.getReturnType())) {
       throw new IllegalArgumentException(format("found getter for requested %s but rejected due to return type %s", propertyName, getter.getReturnType()));
     }

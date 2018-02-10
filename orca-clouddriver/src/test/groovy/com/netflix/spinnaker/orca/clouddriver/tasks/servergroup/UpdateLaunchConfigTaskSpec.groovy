@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,7 +38,9 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           region     : region,
           asgName    : asgName
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", taskConfig)
+    def stage = ExecutionBuilder.stage {
+      context.putAll(taskConfig)
+    }
 
     when:
       def result = task.execute(stage)
@@ -63,7 +65,9 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           ],
           amiName          : contextAmi
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", taskConfig)
+    def stage = ExecutionBuilder.stage {
+      context.putAll(taskConfig)
+    }
 
     when:
       def result = task.execute(stage)
@@ -95,7 +99,9 @@ class UpdateLaunchConfigTaskSpec extends Specification {
               ["ami": "also-not-my-ami", "region": region, cloudProvider: "aws"]
           ]
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", taskConfig)
+    def stage = ExecutionBuilder.stage {
+      context.putAll(taskConfig)
+    }
       stage.context.amiName = null
       stage.context.deploymentDetails = [
           ["ami": "not-my-ami", "region": region, cloudProvider: "aws"],
@@ -167,7 +173,9 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           asgName    : asgName,
           amiName    : "ami-abcdef"
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", taskConfig)
+    def stage = ExecutionBuilder.stage {
+      context.putAll(taskConfig)
+    }
 
     when:
       task.execute(stage)
@@ -201,7 +209,9 @@ class UpdateLaunchConfigTaskSpec extends Specification {
           foo          : "bar",
           cloudProvider: "abc"
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", taskConfig)
+    def stage = ExecutionBuilder.stage {
+      context.putAll(taskConfig)
+    }
 
     when:
       task.execute(stage)

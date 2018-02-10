@@ -85,9 +85,8 @@ class KubernetesContainerFinder {
         if (stage.execution.type == PIPELINE) {
           def trigger = stage.execution.trigger
 
-
-          if ((trigger instanceof DockerTrigger && trigger.account == container.imageDescription.account && trigger.repository == container.imageDescription.repository) || (trigger?.otherProperties?.account == container.imageDescription.account && trigger?.otherProperties?.repository == container.imageDescription.repository)) {
-            container.imageDescription.tag = trigger instanceof DockerTrigger? trigger.tag : trigger.otherProperties.tag
+          if (trigger instanceof DockerTrigger && trigger.account == container.imageDescription.account && trigger.repository == container.imageDescription.repository) {
+            container.imageDescription.tag = trigger.tag
           }
         }
 

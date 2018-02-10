@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.util.Collections;
-import java.util.List;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
@@ -27,6 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import rx.schedulers.Schedulers;
+
+import java.util.Collections;
+import java.util.List;
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -78,7 +80,11 @@ public class PipelineStartTracker {
       }
     });
 
-    boolean isQueued = pipelineStack.addToListIfKeyExists("${PIPELINE_STARTED}:${pipelineConfigId}", "${PIPELINE_QUEUED}:${pipelineConfigId}", executionId);
+    boolean isQueued = pipelineStack.addToListIfKeyExists(
+      format("%s:%s", PIPELINE_STARTED, pipelineConfigId),
+      format("%s:%s", PIPELINE_QUEUED, pipelineConfigId),
+      executionId
+    );
     if (isQueued) {
       pipelineStack.add(PIPELINE_QUEUED_ALL, executionId);
     }

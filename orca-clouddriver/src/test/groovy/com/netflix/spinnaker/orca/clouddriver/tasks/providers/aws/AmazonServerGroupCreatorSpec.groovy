@@ -17,29 +17,28 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.google.common.collect.Maps
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class AmazonServerGroupCreatorSpec extends Specification {
 
   @Subject
   def creator = new AmazonServerGroupCreator()
-  def stage = new Stage(Execution.newPipeline("orca"), "whatever")
+  def stage = stage {}
 
   def deployConfig = [
-      application      : "hodor",
-      amiName          : "hodor-ubuntu-1",
-      instanceType     : "large",
-      securityGroups   : ["a", "b", "c"],
-      availabilityZones: ["us-east-1": ["a", "d"]],
-      capacity         : [
-          min    : 1,
-          max    : 20,
-          desired: 5
-      ],
-      credentials      : "fzlem"
+    application      : "hodor",
+    amiName          : "hodor-ubuntu-1",
+    instanceType     : "large",
+    securityGroups   : ["a", "b", "c"],
+    availabilityZones: ["us-east-1": ["a", "d"]],
+    capacity         : [
+      min    : 1,
+      max    : 20,
+      desired: 5
+    ],
+    credentials      : "fzlem"
   ]
 
   def setup() {
@@ -55,19 +54,19 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
   def "creates a deployment based on job parameters"() {
     given:
-      def expected = Maps.newHashMap(deployConfig)
-      expected.with {
-        keyPair = 'nf-fzlem-keypair-a'
-        securityGroups = securityGroups + ['nf-infrastructure', 'nf-datacenter']
-      }
+    def expected = Maps.newHashMap(deployConfig)
+    expected.with {
+      keyPair = 'nf-fzlem-keypair-a'
+      securityGroups = securityGroups + ['nf-infrastructure', 'nf-datacenter']
+    }
 
     when:
-      def operations = creator.getOperations(stage)
+    def operations = creator.getOperations(stage)
 
     then:
-      operations.find {
-        it.containsKey("createServerGroup")
-      }.createServerGroup == expected
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup == expected
   }
 
   def "requests an allowLaunch operation for each region"() {
@@ -75,101 +74,101 @@ class AmazonServerGroupCreatorSpec extends Specification {
     stage.context.availabilityZones["us-west-1"] = []
 
     when:
-      def operations = creator.getOperations(stage)
+    def operations = creator.getOperations(stage)
 
     then:
-      with(operations.findAll {
-        it.containsKey("allowLaunchDescription")
-      }.allowLaunchDescription) { ops ->
-        ops.every {
-          it instanceof Map
-        }
-        region == this.deployConfig.availabilityZones.keySet() as List
+    with(operations.findAll {
+      it.containsKey("allowLaunchDescription")
+    }.allowLaunchDescription) { ops ->
+      ops.every {
+        it instanceof Map
       }
+      region == this.deployConfig.availabilityZones.keySet() as List
+    }
   }
 
   def "don't create allowLaunch tasks when in same account"() {
     given:
-      creator.defaultBakeAccount = 'fzlem'
+    creator.defaultBakeAccount = 'fzlem'
     stage.context.availabilityZones["us-west-1"] = []
 
     when:
-      def operations = creator.getOperations(stage)
+    def operations = creator.getOperations(stage)
 
     then:
-      operations.findAll { it.containsKey("allowLaunchDescription") }.empty
+    operations.findAll { it.containsKey("allowLaunchDescription") }.empty
   }
 
   def "can include optional parameters"() {
     given:
-      stage.context.stack = stackValue
-      stage.context.subnetType = subnetTypeValue
+    stage.context.stack = stackValue
+    stage.context.subnetType = subnetTypeValue
 
     when:
-      def operations = creator.getOperations(stage)
+    def operations = creator.getOperations(stage)
 
     then:
-      operations.size() == 2
-      operations.find {
-        it.containsKey("createServerGroup")
-      }.createServerGroup == [
-          amiName          : 'hodor-ubuntu-1',
-          application      : 'hodor',
-          availabilityZones: ['us-east-1': ['a', 'd']],
-          capacity         : [min: 1, max: 20, desired: 5],
-          credentials      : 'fzlem',
-          instanceType     : 'large',
-          keyPair          : 'nf-fzlem-keypair-a',
-          securityGroups   : ['a', 'b', 'c', 'nf-infrastructure', 'nf-datacenter'],
-          stack            : 'the-stack-value',
-          subnetType       : 'the-subnet-type-value'
-      ]
+    operations.size() == 2
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup == [
+      amiName          : 'hodor-ubuntu-1',
+      application      : 'hodor',
+      availabilityZones: ['us-east-1': ['a', 'd']],
+      capacity         : [min: 1, max: 20, desired: 5],
+      credentials      : 'fzlem',
+      instanceType     : 'large',
+      keyPair          : 'nf-fzlem-keypair-a',
+      securityGroups   : ['a', 'b', 'c', 'nf-infrastructure', 'nf-datacenter'],
+      stack            : 'the-stack-value',
+      subnetType       : 'the-subnet-type-value'
+    ]
 
     where:
-      stackValue = "the-stack-value"
-      subnetTypeValue = "the-subnet-type-value"
+    stackValue = "the-stack-value"
+    subnetTypeValue = "the-subnet-type-value"
   }
 
   def "can use the AMI supplied by deployment details"() {
     given:
-      stage.context.amiName = null
-      stage.context.deploymentDetails = [
-          ["ami": "not-my-ami", "region": "us-west-1", cloudProvider: "aws"],
-          ["ami": "definitely-not-my-ami", "region": "us-west-2", cloudProvider: "aws"],
-          ["ami": amiName, "region": deployConfig.availabilityZones.keySet()[0], cloudProvider: "aws"]
-      ]
+    stage.context.amiName = null
+    stage.context.deploymentDetails = [
+      ["ami": "not-my-ami", "region": "us-west-1", cloudProvider: "aws"],
+      ["ami": "definitely-not-my-ami", "region": "us-west-2", cloudProvider: "aws"],
+      ["ami": amiName, "region": deployConfig.availabilityZones.keySet()[0], cloudProvider: "aws"]
+    ]
 
     when:
-      def operations = creator.getOperations(stage)
+    def operations = creator.getOperations(stage)
 
     then:
-      operations.find {
-        it.containsKey("createServerGroup")
-      }.createServerGroup.amiName == amiName
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.amiName == amiName
 
     where:
-      amiName = "ami-name-from-bake"
+    amiName = "ami-name-from-bake"
   }
 
   def "create deploy task adds imageId if present in deployment details"() {
     given:
     stage.context.credentials = creator.defaultBakeAccount
-      stage.context.amiName = null
-      stage.context.deploymentDetails = [
-          ["imageId": "docker-image-is-not-region-specific", "region": "us-west-1"],
-          ["imageId": "docker-image-is-not-region-specific", "region": "us-west-2"],
-      ]
+    stage.context.amiName = null
+    stage.context.deploymentDetails = [
+      ["imageId": "docker-image-is-not-region-specific", "region": "us-west-1"],
+      ["imageId": "docker-image-is-not-region-specific", "region": "us-west-2"],
+    ]
 
     when:
-      def operations = creator.getOperations(stage)
+    def operations = creator.getOperations(stage)
 
     then:
-      operations.find {
-        it.containsKey("createServerGroup")
-      }.createServerGroup.imageId == "docker-image-is-not-region-specific"
+    operations.find {
+      it.containsKey("createServerGroup")
+    }.createServerGroup.imageId == "docker-image-is-not-region-specific"
 
     where:
-      amiName = "ami-name-from-bake"
+    amiName = "ami-name-from-bake"
   }
 
   def "create deploy throws an exception if allowLaunch cannot find an ami"() {

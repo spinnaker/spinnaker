@@ -64,3 +64,14 @@ dependencies {
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
+
+// SHOULDN'T HAVE TO SPECIFY THIS HERE BUT SOMETHING FORCES IT LOWER
+configurations.all {
+  resolutionStrategy {
+    eachDependency {
+      if (it.requested.group.startsWith("com.fasterxml.jackson")) {
+        it.useVersion spinnaker.version('jackson')
+      }
+    }
+  }
+}

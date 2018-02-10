@@ -16,20 +16,22 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class CloudFoundryServerGroupCreatorSpec extends Specification {
 
   def "should get operations"() {
     given:
     def ctx = [
-        account          : "abc",
-        zone             : "north-pole-1",
-        deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
+      account          : "abc",
+      zone             : "north-pole-1",
+      deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def stage = stage {
+      context.putAll(ctx)
+    }
 
     when:
     def ops = new CloudFoundryServerGroupCreator().getOperations(stage)
@@ -38,39 +40,43 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
     ops == [
         [
             "createServerGroup": [
-                account          : "abc",
-                credentials      : "abc",
-                image            : "testImageId",
-                zone             : "north-pole-1",
-                trigger          : null,
-                deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
+              account          : "abc",
+              credentials      : "abc",
+              image            : "testImageId",
+              zone             : "north-pole-1",
+              trigger          : stage.execution.trigger,
+              deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
             ],
         ]
     ]
 
     when: "fallback to non-zone matching image"
     ctx.zone = "south-pole-1"
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
     ops = new CloudFoundryServerGroupCreator().getOperations(stage)
 
     then:
     ops == [
-        [
-            "createServerGroup": [
-                account          : "abc",
-                credentials      : "abc",
-                image            : "testImageId",
-                zone             : "south-pole-1",
-                trigger          : null,
-                deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
-            ],
-        ]
+      [
+        "createServerGroup": [
+          account          : "abc",
+          credentials      : "abc",
+          image            : "testImageId",
+          zone             : "south-pole-1",
+          trigger          : stage.execution.trigger,
+          deploymentDetails: [[imageId: "testImageId", zone: "north-pole-1"]],
+        ],
+      ]
     ]
 
     when: "throw error if >1 image"
     ctx.deploymentDetails = [[imageId: "testImageId-1", zone: "east-pole-1"],
                              [imageId: "testImageId-2", zone: "west-pole-1"]]
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
     ops = new CloudFoundryServerGroupCreator().getOperations(stage)
 
     then:
@@ -79,7 +85,9 @@ class CloudFoundryServerGroupCreatorSpec extends Specification {
 
     when: "throw error if no image found"
     ctx.deploymentDetails = []
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
     ops = new CloudFoundryServerGroupCreator().getOperations(stage)
 
     then:

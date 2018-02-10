@@ -16,11 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.config
 
-import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.igor.IgorService
-import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
-import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
@@ -64,10 +61,5 @@ class IgorConfiguration {
       .setConverter(new JacksonConverter(mapper))
       .build()
       .create(IgorService)
-  }
-
-  @PostConstruct
-  void registerTriggers() {
-    objectMapper.registerSubtypes(JenkinsTrigger, GitTrigger)
   }
 }

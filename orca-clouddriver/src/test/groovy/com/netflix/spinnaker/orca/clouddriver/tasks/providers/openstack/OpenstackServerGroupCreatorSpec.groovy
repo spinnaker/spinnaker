@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.openstack
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 
 class OpenstackServerGroupCreatorSpec extends Specification {
@@ -29,7 +28,9 @@ class OpenstackServerGroupCreatorSpec extends Specification {
       region           : "north-pole",
       deploymentDetails: [[imageId: "testImageId", region: "north-pole"]]
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
 
     when:
     def ops = new OpenstackServerGroupCreator().getOperations(stage)
@@ -50,7 +51,9 @@ class OpenstackServerGroupCreatorSpec extends Specification {
 
     when: "fallback to non-region matching image"
     ctx.region = "south-pole"
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
     ops = new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
@@ -69,7 +72,9 @@ class OpenstackServerGroupCreatorSpec extends Specification {
 
     when: "throw error if no image found"
     ctx.deploymentDetails = []
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
     new OpenstackServerGroupCreator().getOperations(stage)
 
     then:
@@ -86,7 +91,9 @@ class OpenstackServerGroupCreatorSpec extends Specification {
       deploymentDetails: [[cloudProviderType: "openstack",
                            imageId: imageId]]
     ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
 
     when:
     def ops = new OpenstackServerGroupCreator().getOperations(stage)

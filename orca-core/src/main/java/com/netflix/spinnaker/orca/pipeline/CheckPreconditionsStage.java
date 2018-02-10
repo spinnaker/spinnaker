@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
@@ -57,7 +59,7 @@ public class CheckPreconditionsStage implements StageDefinitionBuilder {
         .filter(it -> it.getPreconditionType().equals(preconditionType))
         .findFirst()
         .orElseThrow(() ->
-          new IllegalStateException("no Precondition implementation for type $preconditionType")
+          new IllegalStateException(format("no Precondition implementation for type %s", preconditionType))
         );
       builder.withTask("checkPrecondition", preconditionTask.getClass());
     }

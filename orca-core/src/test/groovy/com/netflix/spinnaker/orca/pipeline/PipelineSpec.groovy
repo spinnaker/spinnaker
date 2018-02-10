@@ -31,7 +31,7 @@ class PipelineSpec extends Specification {
 
   @Subject
     pipeline = pipeline {
-      trigger = new JenkinsTrigger("master", "SPINNAKER-build-job", 1, null, null, null, null);
+      trigger = new JenkinsTrigger("master", "SPINNAKER-build-job", 1, null)
       stage { type = "stage1" }
       stage { type = "stage2" }
       stage { type = "stage3" }
@@ -57,6 +57,7 @@ class PipelineSpec extends Specification {
 
   def "trigger is properly build into the pipeline"() {
     expect:
-    pipeline.trigger.job == "SPINNAKER-build-job" && pipeline.trigger.buildNumber == 1
+    pipeline.trigger.job == "SPINNAKER-build-job"
+    pipeline.trigger.buildNumber == 1
   }
 }

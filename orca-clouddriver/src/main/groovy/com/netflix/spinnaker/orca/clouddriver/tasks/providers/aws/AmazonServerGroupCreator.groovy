@@ -102,11 +102,11 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
         // Get image id from the trigger
         if (context.cloudProvider == 'titus') {
           def trigger = stage.execution.trigger
-          if (trigger instanceof DockerTrigger && trigger.repository && trigger.tag) {
+          if (trigger instanceof DockerTrigger) {
             operation.imageId = "${trigger.repository}:${trigger.tag}".toString()
           }
-          if (!operation.imageId && trigger.otherProperties.imageName) {
-            operation.imageId = trigger.otherProperties.imageName
+          if (!operation.imageId && trigger.parameters.imageName) {
+            operation.imageId = trigger.parameters.imageName
           }
         }
       }

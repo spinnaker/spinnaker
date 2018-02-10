@@ -98,7 +98,7 @@ class VerifyQuipTaskSpec extends Specification {
 
     where:
     app   | cluster    | account | region      | healthProviders
-    null  | "foo-test" | "test"  | "us-west-2" | ['Discovery']
+    ""    | "foo-test" | "test"  | "us-west-2" | ['Discovery']
     "foo" | null       | "test"  | "us-west-2" | ['Discovery']
     "foo" | "foo-test" | null    | "us-west-2" | ['Discovery']
     "foo" | "foo-test" | "test"  | null        | ['Discovery']

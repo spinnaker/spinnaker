@@ -16,66 +16,71 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 
 class GoogleServerGroupCreatorSpec extends Specification {
 
   def "should get operations"() {
     given:
-      def ctx = [
+    def ctx = [
+      account          : "abc",
+      region           : "north-pole",
+      zone             : "north-pole-1",
+      deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
+    ]
+    def stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
+
+    when:
+    def ops = new GoogleServerGroupCreator().getOperations(stage)
+
+    then:
+    ops == [
+      [
+        "createServerGroup": [
           account          : "abc",
+          credentials      : "abc",
+          image            : "testImageId",
           region           : "north-pole",
           zone             : "north-pole-1",
           deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
+        ],
       ]
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
-
-    when:
-      def ops = new GoogleServerGroupCreator().getOperations(stage)
-
-    then:
-      ops == [
-          [
-              "createServerGroup": [
-                  account          : "abc",
-                  credentials      : "abc",
-                  image            : "testImageId",
-                  region           : "north-pole",
-                  zone             : "north-pole-1",
-                  deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
-              ],
-          ]
-      ]
+    ]
 
     when: "fallback to non-region matching image"
-      ctx.region = "south-pole"
-      ctx.zone = "south-pole-1"
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
-      ops = new GoogleServerGroupCreator().getOperations(stage)
+    ctx.region = "south-pole"
+    ctx.zone = "south-pole-1"
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
+    ops = new GoogleServerGroupCreator().getOperations(stage)
 
     then:
-      ops == [
-          [
-              "createServerGroup": [
-                  account          : "abc",
-                  credentials      : "abc",
-                  image            : "testImageId",
-                  region           : "south-pole",
-                  zone             : "south-pole-1",
-                  deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
-              ],
-          ]
+    ops == [
+      [
+        "createServerGroup": [
+          account          : "abc",
+          credentials      : "abc",
+          image            : "testImageId",
+          region           : "south-pole",
+          zone             : "south-pole-1",
+          deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
+        ],
       ]
+    ]
 
     when: "throw error if no image found"
-      ctx.deploymentDetails = []
-    stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
-      new GoogleServerGroupCreator().getOperations(stage)
+    ctx.deploymentDetails = []
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
+    new GoogleServerGroupCreator().getOperations(stage)
 
     then:
-      IllegalStateException ise = thrown()
-      ise.message == "No image could be found in south-pole."
+    IllegalStateException ise = thrown()
+    ise.message == "No image could be found in south-pole."
   }
 }

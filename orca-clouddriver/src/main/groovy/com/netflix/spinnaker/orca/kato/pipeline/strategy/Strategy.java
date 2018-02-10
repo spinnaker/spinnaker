@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy;
 
-import java.util.Collections;
-import java.util.List;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
-// Yes, Java, because Spring hates Groovy enums with implementations
+import java.util.Collections;
+import java.util.List;
+
 public enum Strategy implements StrategyFlowComposer{
   RED_BLACK("redblack"),
   HIGHLANDER("highlander"),

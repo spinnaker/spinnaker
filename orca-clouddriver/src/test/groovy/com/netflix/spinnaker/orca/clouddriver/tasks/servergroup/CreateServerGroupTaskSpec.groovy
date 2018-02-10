@@ -22,10 +22,10 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.AmazonServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce.GoogleServerGroupCreator
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
@@ -70,7 +70,11 @@ class CreateServerGroupTaskSpec extends Specification {
     given:
     KatoService katoService = Mock(KatoService)
     def task = new CreateServerGroupTask(kato: katoService, serverGroupCreators: [aCreator, bCreator, cCreator])
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", [credentials: "abc", cloudProvider: cloudProvider])
+    def stage = ExecutionBuilder.stage {
+      type = "whatever"
+      context["credentials"] = "abc"
+      context["cloudProvider"] = cloudProvider
+    }
 
     when:
     def result = task.execute(stage)
@@ -98,7 +102,7 @@ class CreateServerGroupTaskSpec extends Specification {
     KatoService katoService = Mock(KatoService)
     MortService mortService = Mock(MortService)
     def deployRegion = "us-east-1"
-    def pipeline = Execution.newPipeline("orca")
+    def pipeline = ExecutionBuilder.pipeline {}
 
     def bakeStage1 = buildStageForPipeline(pipeline, "bake")
 
@@ -164,7 +168,7 @@ class CreateServerGroupTaskSpec extends Specification {
 
     def childPipeline = pipeline {
       name = "child"
-      trigger = new PipelineTrigger(parentPipeline, [:])
+      trigger = new PipelineTrigger(parentPipeline)
     }
     def manualJudgmentStage = buildStageForPipeline(childPipeline, "manualJudgment")
 

@@ -15,11 +15,11 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis;
 
-import java.util.ArrayList;
-import java.util.List;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack;
-import org.apache.commons.lang.BooleanUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class JedisPipelineStack implements PipelineStack {
 
@@ -35,14 +35,15 @@ public class JedisPipelineStack implements PipelineStack {
     boolean result;
     // lua script here ensures that the add and check happens in one atomic operation
     result = redisClientDelegate.withScriptingClient(s -> {
-      String script = "local key1 = KEYS[1];\n" +
+      String script =
+        "local key1 = KEYS[1];\n" +
         "local key2 = KEYS[2];\n" +
         "local value = ARGV[1];\n" +
         "if redis.call('exists', key1) == 1 then\n" +
         "  redis.call('lpush', key2, value);\n" +
-        "  return true;\n" +
+          "  return 1;\n" +
         "end\n" +
-        "return false;";
+          "return 0;";
       List<String> keys = new ArrayList<>();
       List<String> value = new ArrayList<>();
       keys.add(key(id1));
@@ -50,7 +51,7 @@ public class JedisPipelineStack implements PipelineStack {
       value.add(content);
       Long response = ((Long) s.eval(script, keys, value));
 
-      return response != null && BooleanUtils.toBoolean(response.intValue());
+      return response != null && response == 1L;
     });
     return result;
   }

@@ -26,7 +26,7 @@ class AppEngineBranchFinderSpec extends Specification {
   @Unroll
   def "(git trigger) should resolve branch in trigger if it matches regex (if provided). If no regex is provided, the branch from the trigger will be used."() {
     given:
-    def trigger = new GitTrigger("github", "spinnaker", triggerBranch, "orca", null, null, null)
+    def trigger = new GitTrigger("github", "spinnaker", triggerBranch, "orca")
 
     def operation = [
       trigger: [
@@ -48,7 +48,7 @@ class AppEngineBranchFinderSpec extends Specification {
 
   def "(git trigger) should throw appropriate error if method cannot resolve a branch"() {
     given:
-    def trigger = new GitTrigger("github", "spinnaker", "no-match", "orca", null, null, null)
+    def trigger = new GitTrigger("github", "spinnaker", "no-match", "orca")
 
     def operation = [
       trigger      : [
@@ -71,7 +71,7 @@ class AppEngineBranchFinderSpec extends Specification {
   @Unroll
   def "(jenkins trigger) should resolve branch, using regex (if provided) to narrow down options"() {
     given:
-    def trigger = new JenkinsTrigger("Jenkins", "poll_git_repo", 1, null, null, null, null)
+    def trigger = new JenkinsTrigger("Jenkins", "poll_git_repo", 1, null)
     trigger.buildInfo = new BuildInfo("poll_git_repo", 1, "http://jenkins", [], scm, false, "SUCCESS")
 
     def operation = [
@@ -94,7 +94,7 @@ class AppEngineBranchFinderSpec extends Specification {
   @Unroll
   def "(jenkins trigger) should throw appropriate error if method cannot resolve exactly one branch"() {
     given:
-    def trigger = new JenkinsTrigger("Jenkins", "poll_git_repo", 1, null, null, null, null)
+    def trigger = new JenkinsTrigger("Jenkins", "poll_git_repo", 1, null)
     trigger.buildInfo = new BuildInfo("poll_git_repo", 1, "http://jenkins", [], scm, false, "SUCCESS")
 
     def operation = [

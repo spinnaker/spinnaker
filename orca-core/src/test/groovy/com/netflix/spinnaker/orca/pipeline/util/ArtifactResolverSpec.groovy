@@ -20,11 +20,10 @@ package com.netflix.spinnaker.orca.pipeline.util
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
-import com.netflix.spinnaker.orca.pipeline.model.WebhookTrigger
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -113,7 +112,7 @@ class ArtifactResolverSpec extends Specification {
         requisiteStageRefIds = ["1"]
       }
     }
-    execution.trigger = new WebhookTrigger("user", [:], [new Artifact(type: "trigger")])
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
 
     def desired = execution.getStages().find { it.name == "desired" }
     def artifactResolver = makeArtifactResolver()
@@ -194,7 +193,7 @@ class ArtifactResolverSpec extends Specification {
         requisiteStageRefIds = ["1"]
       }
     }
-    execution.trigger = new WebhookTrigger("user", [:], [])
+    execution.trigger = new DefaultTrigger("webhook")
     execution.trigger.resolvedExpectedArtifacts = [new ExpectedArtifact(id: "1", boundArtifact: new Artifact(type: "correct"))]
 
     def desired = execution.getStages().find { it.name == "desired" }
@@ -255,7 +254,7 @@ class ArtifactResolverSpec extends Specification {
         requisiteStageRefIds = ["2"]
       }
     }
-    execution.trigger = new WebhookTrigger("user", [:], [new Artifact(type: "trigger")])
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
 
     def artifactResolver = makeArtifactResolver()
 

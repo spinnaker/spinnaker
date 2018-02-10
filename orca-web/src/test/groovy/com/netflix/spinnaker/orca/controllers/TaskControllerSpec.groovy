@@ -20,6 +20,7 @@ import java.time.Clock
 import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -33,8 +34,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.orchestration
-import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 import static java.time.ZoneOffset.UTC
 import static java.time.temporal.ChronoUnit.DAYS
 import static java.time.temporal.ChronoUnit.HOURS
@@ -53,7 +53,7 @@ class TaskControllerSpec extends Specification {
   int daysOfExecutionHistory = 14
   int numberOfOldPipelineExecutionsToInclude = 2
 
-  ObjectMapper objectMapper = new ObjectMapper()
+  ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
 
   void setup() {
     mockMvc = MockMvcBuilders.standaloneSetup(
@@ -96,14 +96,17 @@ class TaskControllerSpec extends Specification {
     executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([orchestration {
       id = "1"
       application = "covfefe"
-      stages << new Stage(delegate, "test")
-      stages.first().tasks = [new Task(name: 'jobOne'), new Task(name: 'jobTwo')]
+      stage {
+        type = "test"
+        tasks = [new Task(name: 'jobOne'), new Task(name: 'jobTwo')]
+      }
     }])
 
     when:
     def response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
+    response.status == 200
     with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.front50.pipeline
 
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineValidator.PipelineValidationFailed
-import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import spock.lang.Specification
 import spock.lang.Subject
@@ -101,7 +101,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger = new PipelineTrigger(pipeline {}, [strategy: true])
+      trigger = new PipelineTrigger("pipeline", null, null, [:], [], [], false, false, true, pipeline {
+      })
     }
   }
 
@@ -121,7 +122,8 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger = new PipelineTrigger(pipeline {}, [strategy: true])
+      trigger = new PipelineTrigger("pipeline", null, null, [:], [], [], false, false, true, pipeline {
+      })
     }
   }
 
@@ -141,7 +143,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     execution = pipeline {
       application = "whatever"
       pipelineConfigId = "1337"
-      trigger = new ManualTrigger(null, "fzlem", [strategy: "kthxbye"], [], [])
+      trigger = new DefaultTrigger("manual", null, "fzlem", [strategy: "kthxbye"])
     }
   }
 }

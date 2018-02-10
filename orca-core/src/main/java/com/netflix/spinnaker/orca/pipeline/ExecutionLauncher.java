@@ -25,7 +25,10 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.*;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.Trigger;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
@@ -129,11 +132,11 @@ public class ExecutionLauncher {
       return null;
     }
 
-    if (!(execution.getTrigger() instanceof ManualTrigger) || ((ManualTrigger) execution.getTrigger()).getCorrelationId() == null) {
+    if (execution.getTrigger().getCorrelationId() == null) {
       return null;
     }
 
-    ManualTrigger trigger = (ManualTrigger) execution.getTrigger();
+    Trigger trigger = execution.getTrigger();
 
     try {
       Execution o = executionRepository.retrieveOrchestrationForCorrelationId(

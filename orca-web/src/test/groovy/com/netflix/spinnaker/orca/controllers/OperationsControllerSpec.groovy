@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import rx.Observable
-
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
@@ -26,6 +24,7 @@ import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
@@ -41,6 +40,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.mock.env.MockEnvironment
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -125,6 +125,7 @@ class OperationsControllerSpec extends Specification {
     then:
     with(startedPipeline) {
       trigger.type == requestedPipeline.trigger.type
+      trigger instanceof JenkinsTrigger
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
@@ -164,10 +165,11 @@ class OperationsControllerSpec extends Specification {
 
     where:
     requestedPipeline = [
-      trigger: [
+      application: "covfefe",
+      trigger    : [
         type            : "manual",
         parentPipelineId: "12345",
-        parentExecution : ['name': 'abc']
+        parentExecution : [name: "abc"]
       ]
     ]
   }
@@ -260,6 +262,7 @@ class OperationsControllerSpec extends Specification {
     then:
     with(startedPipeline) {
       trigger.type == requestedPipeline.trigger.type
+      trigger instanceof JenkinsTrigger
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
@@ -542,6 +545,7 @@ class OperationsControllerSpec extends Specification {
     then:
     with(startedPipeline) {
       trigger.type == requestedPipeline.trigger.type
+      trigger instanceof JenkinsTrigger
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber

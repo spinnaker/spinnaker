@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -34,6 +35,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 class GetCommitsTaskSpec extends Specification {
 
@@ -45,7 +47,7 @@ class GetCommitsTaskSpec extends Specification {
   Front50Service front50Service = Mock(Front50Service)
 
   @Shared
-  def pipeline = Execution.newPipeline("orca")
+  def pipeline = ExecutionBuilder.pipeline {}
 
   ObjectMapper getObjectMapper() {
     return new ObjectMapper()
@@ -56,11 +58,11 @@ class GetCommitsTaskSpec extends Specification {
     task.buildService = null
 
     when:
-    def result = task.execute(new Stage(Execution.newPipeline("orca"), ""))
+    def result = task.execute(ExecutionBuilder.stage {})
 
     then:
     0 * _
-    result.status == ExecutionStatus.SUCCEEDED
+    result.status == SUCCEEDED
   }
 
   def "global credential is preferred to the stage account for application lookup"() {
@@ -95,14 +97,14 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[imageId: "ami-foo", ami: "amiFooName", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks" : katoMap]
+                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[imageId: "ami-foo", ami: "amiFooName", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
 
     when:
     def result = task.execute(stage)
 
     then:
-    assertResults(result, ExecutionStatus.SUCCEEDED)
+    assertResults(result, SUCCEEDED)
 
     where:
     app = "myapp"
@@ -127,14 +129,14 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], imageId: targetImage, amiName : targetImageName, "kato.tasks" : katoMap]
+                      source     : [asgName: serverGroup, region: region, account: account], imageId: targetImage, amiName: targetImageName, "kato.tasks": katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImageName, region, cluster, serverGroup)
 
     when:
     def result = task.execute(stage)
 
     then:
-    assertResults(result, ExecutionStatus.SUCCEEDED)
+    assertResults(result, SUCCEEDED)
 
     where:
     app = "myapp"
@@ -151,18 +153,18 @@ class GetCommitsTaskSpec extends Specification {
 
   def "get commits from a single region canary stage"() {
     given:
-    def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account],
-                      clusterPairs :
-                          [[ baseline : [amiName: sourceImage, availabilityZones: [(region) : ["${region}-1c"]]], canary : [imageId: targetImage, amiName: targetImageName, availabilityZones: [(region) : ["${region}-1c"]]]]]
-                      ]
+    def contextMap = [application : app, account: account,
+                      source      : [asgName: serverGroup, region: region, account: account],
+                      clusterPairs:
+                        [[baseline: [amiName: sourceImage, availabilityZones: [(region): ["${region}-1c"]]], canary: [imageId: targetImage, amiName: targetImageName, availabilityZones: [(region): ["${region}-1c"]]]]]
+    ]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImageName, region, cluster, serverGroup, 0)
 
     when:
     def result = task.execute(stage)
 
     then:
-    assertResults(result, ExecutionStatus.SUCCEEDED)
+    assertResults(result, SUCCEEDED)
 
     where:
     app = "myapp"
@@ -179,13 +181,13 @@ class GetCommitsTaskSpec extends Specification {
 
   def "get commits from a multi-region canary stage"() {
     given:
-    def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account],
-                      clusterPairs : [
-                        [baseline : [amiName: "ami-fake", availabilityZones: ["us-east-1" : ["us-east-1-1c"]]], canary : [amiName: "ami-fake2",  availabilityZones: ["us-east-1" : ["us-east-1-1c"]]]],
-                        [baseline : [amiName: sourceImage, availabilityZones: [(region) : ["${region}-1c"]]], canary : [amiName: targetImage, availabilityZones: [(region) : ["${region}-1c"]]]],
-                        [baseline : [amiName: "ami-fake3", availabilityZones: ["eu-west-1" : ["eu-west-1-1c"]]], canary : [amiName: "ami-fake4", availabilityZones: ["eu-west-1" : ["eu-west-1-1c"]]]]
-      ]
+    def contextMap = [application : app, account: account,
+                      source      : [asgName: serverGroup, region: region, account: account],
+                      clusterPairs: [
+                        [baseline: [amiName: "ami-fake", availabilityZones: ["us-east-1": ["us-east-1-1c"]]], canary: [amiName: "ami-fake2", availabilityZones: ["us-east-1": ["us-east-1-1c"]]]],
+                        [baseline: [amiName: sourceImage, availabilityZones: [(region): ["${region}-1c"]]], canary: [amiName: targetImage, availabilityZones: [(region): ["${region}-1c"]]]],
+                        [baseline: [amiName: "ami-fake3", availabilityZones: ["eu-west-1": ["eu-west-1-1c"]]], canary: [amiName: "ami-fake4", availabilityZones: ["eu-west-1": ["eu-west-1-1c"]]]]
+                      ]
     ]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0)
 
@@ -193,7 +195,7 @@ class GetCommitsTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    assertResults(result, ExecutionStatus.SUCCEEDED)
+    assertResults(result, SUCCEEDED)
 
     where:
     app = "myapp"
@@ -212,8 +214,8 @@ class GetCommitsTaskSpec extends Specification {
     def stage = new Stage(pipeline, "stash", contextMap)
 
     task.buildService = Stub(BuildService) {
-      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
-                                                                                                                   [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
+      compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
+                                                                                                                      [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
 
     task.front50Service = front50Service
@@ -224,8 +226,8 @@ class GetCommitsTaskSpec extends Specification {
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
     task.oortService = oortService
     serverGroupCalls * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
-    List<Map> sourceResponse = [[ "tags": [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
-    List<Map> targetResponse = [[ "tags": [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
+    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
+    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
     oortCalls * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
     oortCalls * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
     return stage
@@ -257,7 +259,7 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new Stage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap])
+                                              source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]], "kato.tasks": katoMap])
 
     and:
     task.front50Service = front50Service
@@ -267,8 +269,8 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = getObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
-    List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
+    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
+    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
 
     task.oortService = oortService
     1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
@@ -282,7 +284,7 @@ class GetCommitsTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * buildService.compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> {
+    1 * buildService.compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
       throw new RetrofitError(null, null,
         new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
     }
@@ -317,7 +319,7 @@ class GetCommitsTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.status == ExecutionStatus.SUCCEEDED
+    result.status == SUCCEEDED
 
     where:
     app = "myapp"
@@ -332,7 +334,7 @@ class GetCommitsTaskSpec extends Specification {
   def "return info from ami or empty map if not in the right format"() {
     given:
     task.oortService = oortService
-    1 * oortService.getByAmiId("aws", account, region, image) >> [[ "tags" : [ "appversion" : appVersion ]]]
+    1 * oortService.getByAmiId("aws", account, region, image) >> [["tags": ["appversion": appVersion]]]
 
     when:
     Map result = task.resolveInfoFromAmi(image, account, region)
@@ -358,12 +360,12 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new Stage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
+                                              source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.buildService = Stub(BuildService) {
-      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
-                                                                                                                   [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
+      compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
+                                                                                                                      [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
 
     and:
@@ -393,13 +395,12 @@ class GetCommitsTaskSpec extends Specification {
     targetImage = "ami-target"
     targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
-    taskStatus = ExecutionStatus.SUCCEEDED
+    taskStatus = SUCCEEDED
 
     cluster | serverGroup | targetServerGroup | sourceTags | targetTags
-    "myapp" | "myapp-v001" | "myapp-v002" | [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]] | [[ "tags" : [ ]]]
-    "myapp" | "myapp-v001" | "myapp-v002" | [[ "tags" : [ ]]] | [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
+    "myapp" | "myapp-v001" | "myapp-v002" | [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]] | [["tags": []]]
+    "myapp" | "myapp-v001" | "myapp-v002" | [["tags": []]] | [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
   }
-
 
   def "oort service 404 results in success"() {
     given:
@@ -408,12 +409,12 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new Stage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
+                                              source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.buildService = Stub(BuildService) {
-      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
-                                                                                                                   [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
+      compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
+                                                                                                                      [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
 
     and:
@@ -424,12 +425,12 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = getObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
-    List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
+    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
+    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
     task.oortService = oortService
     1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >>> response
 
-    if(sourceThrowRetrofitError) {
+    if (sourceThrowRetrofitError) {
       1 * oortService.getByAmiId("aws", account, region, sourceImage) >> {
         throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
       }
@@ -438,7 +439,7 @@ class GetCommitsTaskSpec extends Specification {
 
     }
 
-    if(targetThrowRetrofitError) {
+    if (targetThrowRetrofitError) {
       (sourceThrowRetrofitError ? 0 : 1) * oortService.getByAmiId("aws", account, region, targetImage) >> {
         throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
       }
@@ -462,7 +463,7 @@ class GetCommitsTaskSpec extends Specification {
     targetImage = "ami-target"
     targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
-    taskStatus = ExecutionStatus.SUCCEEDED
+    taskStatus = SUCCEEDED
 
     cluster | serverGroup | targetServerGroup | sourceThrowRetrofitError | targetThrowRetrofitError
     "myapp" | "myapp" | "myapp-v000" | true | false
@@ -476,11 +477,11 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def stage = new Stage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
+                                              source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
     task.buildService = Stub(BuildService) {
-      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> {
+      compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
         throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
       }
     }
@@ -493,8 +494,8 @@ class GetCommitsTaskSpec extends Specification {
     task.objectMapper = getObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    List<Map> sourceResponse = [[ "tags" : [ "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" ]]]
-    List<Map> targetResponse = [[ "tags" : [ "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" ]]]
+    List<Map> sourceResponse = [["tags": ["appversion": "myapp-1.143-h216.186605b/MYAPP-package-myapp/216"]]]
+    List<Map> targetResponse = [["tags": ["appversion": "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217"]]]
     task.oortService = oortService
     1 * oortService.getServerGroupFromCluster(app, account, cluster, serverGroup, region, "aws") >> response
     1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
@@ -515,7 +516,7 @@ class GetCommitsTaskSpec extends Specification {
     targetImage = "ami-target"
     targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
-    taskStatus = ExecutionStatus.SUCCEEDED
+    taskStatus = SUCCEEDED
 
     cluster | serverGroup | targetServerGroup
     "myapp" | "myapp" | "myapp-v000"
@@ -529,7 +530,7 @@ class GetCommitsTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.status == ExecutionStatus.SUCCEEDED
+    result.status == SUCCEEDED
   }
 
   def "return success if there is no ancestor asg"() {
@@ -538,14 +539,14 @@ class GetCommitsTaskSpec extends Specification {
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage ,region: region]], "kato.tasks" : katoMap]
+                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0, 0)
 
     when:
     def result = task.execute(stage)
 
     then:
-    result.status == ExecutionStatus.SUCCEEDED
+    result.status == SUCCEEDED
     result.context.commits.size == 0
 
     where:
@@ -602,11 +603,11 @@ class GetCommitsTaskSpec extends Specification {
       "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
-    def contextMap = [application: app,
-                      account: account,
-                      source: [region: region, account: account],
+    def contextMap = [application      : app,
+                      account          : account,
+                      source           : [region: region, account: account],
                       deploymentDetails: [[imageId: targetImage, ami: targetImageName, region: region]],
-                      "kato.tasks": katoMap]
+                      "kato.tasks"     : katoMap]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
 
     when:
@@ -628,35 +629,43 @@ class GetCommitsTaskSpec extends Specification {
     targetImageName = "amiTargetName"
 
     ancestorBuild | targetBuild
-    "216"         | "217"
+    "216" | "217"
   }
 
   @Unroll
   def "get commits from parent pipelines"() {
     given:
-    def parentPipeline = Execution.newPipeline("parentPipeline")
-    def childPipeline = Execution.newPipeline("childPipeline")
     String katoTasks = "[{\"resultObjects\": [" +
       "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     def katoMap = getObjectMapper().readValue(katoTasks, List)
     def contextMap = [application: app, account: account,
-      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks" : katoMap]
+                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks": katoMap]
 
+    def parentPipeline = ExecutionBuilder.pipeline { name = "parentPipeline" }
+    def childPipeline = ExecutionBuilder.pipeline {
+      name = "childPipeline"
+      trigger = new PipelineTrigger(parentPipeline)
+    }
     def parentStage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 1, 1, parentPipeline)
     parentStage.outputs = [deploymentDetails: [[imageId: "ami-foo", ami: "amiFooName", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]]]
-    def childStage = new Stage(childPipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks" : katoMap])
+    def childStage = new Stage(childPipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks": katoMap])
 
     parentPipeline.stages << parentStage
-    childStage.execution.trigger = new PipelineTrigger(parentStage.execution, [:])
 
     when:
     def result = task.execute(childStage)
 
     then:
-    assertResults(result, ExecutionStatus.SUCCEEDED)
+    assertResults(result, SUCCEEDED)
 
     where:
+    cluster              | serverGroup               | targetServerGroup
+    "myapp"              | "myapp"                   | "myapp-v000"
+    "myapp"              | "myapp-v001"              | "myapp-v002"
+    "myapp-stack"        | "myapp-stack-v002"        | "myapp-stack-v003"
+    "myapp-stack-detail" | "myapp-stack-detail-v002" | "myapp-stack-detail-v003"
+
     app = "myapp"
     account = "test"
     region = "us-west-1"
@@ -664,11 +673,5 @@ class GetCommitsTaskSpec extends Specification {
     targetImage = "ami-target"
     targetImageName = "amiTargetName"
     jobState = 'SUCCESS'
-
-    cluster              | serverGroup               | targetServerGroup
-    "myapp"              | "myapp"                   | "myapp-v000"
-    "myapp"              | "myapp-v001"              | "myapp-v002"
-    "myapp-stack"        | "myapp-stack-v002"        | "myapp-stack-v003"
-    "myapp-stack-detail" | "myapp-stack-detail-v002" | "myapp-stack-detail-v003"
   }
 }

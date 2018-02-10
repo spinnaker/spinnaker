@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
+import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +39,8 @@ class GetCommitsTask implements DiffTask {
   private static final int MAX_RETRIES = 3
 
   long backoffPeriod = 3000
-  long timeout = TimeUnit.MINUTES.toMillis(5) // always set this higher than retries * backoffPeriod would take
+  long timeout = TimeUnit.MINUTES.toMillis(5)
+  // always set this higher than retries * backoffPeriod would take
 
   @Autowired
   OortService oortService
@@ -74,7 +76,7 @@ class GetCommitsTask implements DiffTask {
       // get app config to see if it has repo info
       repoInfo = getRepoInfo(stage.context.account, stage.context.application)
 
-      if(!repoInfo?.repoType || !repoInfo?.projectKey || !repoInfo?.repositorySlug) {
+      if (!repoInfo?.repoType || !repoInfo?.projectKey || !repoInfo?.repositorySlug) {
         log.info("not enough info to query igor for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug}]")
         return TaskResult.SUCCEEDED
       }
@@ -83,9 +85,10 @@ class GetCommitsTask implements DiffTask {
       String account = stage.context?.source?.account ?: stage.context?.account
 
       //figure out the old asg/ami/commit
-      String ancestorAmi = getAncestorAmi(stage.context, region, account) // FIXME: multi-region deployments/canaries
+      String ancestorAmi = getAncestorAmi(stage.context, region, account)
+      // FIXME: multi-region deployments/canaries
 
-      if(!ancestorAmi) {
+      if (!ancestorAmi) {
         log.info "could not determine ancestor ami, this may be a new cluster with no ancestor asg"
         return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
       }
@@ -93,10 +96,12 @@ class GetCommitsTask implements DiffTask {
       //figure out the new asg/ami/commit
       String targetAmi = getTargetAmi(stage.context, region)
       if (!targetAmi) {
-        def parentPipeline = stage.execution.trigger?.parentExecution
-        while (!targetAmi && parentPipeline?.context) {
-          targetAmi = getTargetAmi(parentPipeline.context, region)
-          parentPipeline = parentPipeline.trigger?.parentExecution
+        if (stage.execution.trigger instanceof PipelineTrigger) {
+          def parentPipeline = stage.execution.trigger?.parentExecution
+          while (!targetAmi && parentPipeline?.context) {
+            targetAmi = getTargetAmi(parentPipeline.context, region)
+            parentPipeline = parentPipeline.trigger instanceof PipelineTrigger ? parentPipeline.trigger?.parentExecution : null
+          }
         }
       }
 
@@ -118,17 +123,17 @@ class GetCommitsTask implements DiffTask {
 
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
     } catch (RetrofitError e) {
-        if(e.response?.status == 404) { // just give up on 404
-          log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]")
-          return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
-        } else { // retry on other status codes
-          log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", e)
-          return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
-        }
-    } catch(Exception f) { // retry on everything else
+      if (e.response?.status == 404) { // just give up on 404
+        log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}]")
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+      } else { // retry on other status codes
+        log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", e)
+        return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
+      }
+    } catch (Exception f) { // retry on everything else
       log.error("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", f)
       return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
-    } catch(Throwable g) {
+    } catch (Throwable g) {
       log.error("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceInfo} targetCommit: ${targetInfo}], retrying", g)
       return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
     }
@@ -160,8 +165,8 @@ class GetCommitsTask implements DiffTask {
   }
 
   String getTargetAmi(Map context, region) {
-    if(context.clusterPairs) { // canary cluster stage
-      return context.clusterPairs?.find{ clusterPair ->
+    if (context.clusterPairs) { // canary cluster stage
+      return context.clusterPairs?.find { clusterPair ->
         clusterPair?.canary?.availabilityZones?.findResult { key, value -> key == region }
       }?.canary?.amiName
     } else if (context.deploymentDetails) { // deploy asg stage
@@ -174,11 +179,11 @@ class GetCommitsTask implements DiffTask {
   }
 
   String getAncestorAmi(Map context, String region, String account) {
-    if(context.clusterPairs) { // separate cluster diff
-      return context.clusterPairs?.find{ clusterPair ->
+    if (context.clusterPairs) { // separate cluster diff
+      return context.clusterPairs?.find { clusterPair ->
         clusterPair?.baseline?.availabilityZones?.findResult { key, value -> key == region }
       }?.baseline?.amiName
-    } else if(context.get("kato.tasks")) { // same cluster asg diff
+    } else if (context.get("kato.tasks")) { // same cluster asg diff
       String ancestorAsg = context.get("kato.tasks")?.find { item ->
         item.find { key, value ->
           key == 'resultObjects'
@@ -190,7 +195,7 @@ class GetCommitsTask implements DiffTask {
       }?.get(region)
 
       String sourceCluster
-      if(!ancestorAsg) {
+      if (!ancestorAsg) {
         return null
       } else if (ancestorAsg.lastIndexOf("-") > 0) {
         sourceCluster = ancestorAsg.substring(0, ancestorAsg.lastIndexOf("-"))
@@ -210,7 +215,7 @@ class GetCommitsTask implements DiffTask {
     def globalAccount = front50Service.credentials.find { it.global }
     def applicationAccount = globalAccount?.name ?: account
     Application app = front50Service.get(application)
-    return [repoType : app?.details()?.repoType, projectKey : app?.details()?.repoProjectKey, repositorySlug : app?.details()?.repoSlug]
+    return [repoType: app?.details()?.repoType, projectKey: app?.details()?.repoProjectKey, repositorySlug: app?.details()?.repoSlug]
   }
 
   String getBuildFromAppVersion(String appVersion) {

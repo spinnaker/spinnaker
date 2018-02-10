@@ -16,19 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.pipeline.model.*;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.pipeline.model.Trigger;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionSerializationException;
 import com.netflix.spinnaker.orca.pipeline.persistence.StageSerializationException;
@@ -49,6 +45,13 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Maps.filterValues;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
@@ -426,9 +429,9 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
     } else if (execution.getType() == ORCHESTRATION) {
       map.put("description", execution.getDescription());
     }
-    if (execution.getTrigger() instanceof ManualTrigger && ((ManualTrigger) execution.getTrigger()).getCorrelationId() != null) {
+    if (execution.getTrigger().getCorrelationId() != null) {
       tx.set(
-        format("correlation:%s", ((ManualTrigger) execution.getTrigger()).getCorrelationId()),
+        format("correlation:%s", execution.getTrigger().getCorrelationId()),
         execution.getId()
       );
     }
@@ -462,7 +465,7 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
       return c.exists(key);
     });
     if (!exists) {
-      throw new ExecutionNotFoundException("No ${type} found for $id");
+      throw new ExecutionNotFoundException(format("No %s found for %s", type, id));
     }
 
     final Map<String, String> map = new HashMap<>();

@@ -29,7 +29,7 @@ class AppEngineBranchFinder {
 
       if (trigger instanceof GitTrigger) {
         return fromGitTrigger(operation, (GitTrigger) trigger)
-      } else if (trigger.type == "jenkins" || (trigger.type == "manual" && trigger.master && trigger.job)) {
+      } else if (trigger instanceof JenkinsTrigger) {
         return fromJenkinsTrigger(operation, (JenkinsTrigger) trigger)
       } else {
         throw new IllegalArgumentException("Trigger type '${trigger.type}' not supported " +
@@ -57,7 +57,7 @@ class AppEngineBranchFinder {
   }
 
   /*
-  * This method throws an error if it does not resolve exactly one branch from a Jenkin trigger's SCM details.
+  * This method throws an error if it does not resolve exactly one branch from a Jenkins trigger's SCM details.
   * A user can provide a regex to help narrow down the list of branches.
   * */
 

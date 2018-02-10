@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStackTck
 import spock.lang.AutoCleanup
 import spock.lang.Shared
-import spock.lang.Subject
 
 class JedisPipelineStackSpec extends PipelineStackTck<JedisPipelineStack> {
 
@@ -40,9 +39,6 @@ class JedisPipelineStackSpec extends PipelineStackTck<JedisPipelineStack> {
   def cleanup() {
     embeddedRedis.jedis.withCloseable { it.flushDB() }
   }
-
-  @Subject
-  JedisPipelineStack pipelineStack
 
   @Override
   JedisPipelineStack createPipelineStack() {
