@@ -112,7 +112,12 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
-
+    # This postfix is required when we create stateful/daemonset , if we add the existing framework application name
+    # such as XXXXXXXXXX-tst-v001 its giving error when we are tring to delete it, hence we are removing '-' in between
+    # the name for statefulset/daemonset only.
+    # Error: Exception ( Determine Target Server Group )
+    # Unable to locate current_asg_dynamic in config/default/XXXXXXXXXXX-tst-v001
+    self.POSTFIX_STATEFUL_DAEMONSET='tstv001'
     # Take just the first if there are multiple
     # because some uses below assume just one.
     self.TEST_NAMESPACE = bindings['TEST_NAMESPACE'].split(',')[0]
@@ -389,6 +394,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     result.update(kwargs)
     return result
+
   def create_statefulset_pipeline(self):
       bindings = self.bindings
 
@@ -402,11 +408,14 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('StatefulSet Added', retryable_for_secs=60)
        .get_resources(
-          'statefulsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
+          'statefulsets', extra_args=[self.TEST_APP +
+          self.POSTFIX_STATEFUL_DAEMONSET, '--namespace', self.TEST_NAMESPACE])
        .contains_path_value('kind', 'StatefulSet'))
       return st.OperationContract(
           self.new_post_operation(
-              title='create_statefulset', data=payload, path='pipelines/' + self.TEST_APP + '/statefulset-pipeline',
+              title='create_statefulset',
+              data=payload, path='pipelines/'
+                                 + self.TEST_APP + '/statefulset-pipeline',
               status_class=st.SynchronousHttpOperationStatus),
           contract=builder.build())
 
@@ -435,9 +444,11 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
        .get_url_path(
           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_match(expect_match))
-      return st.OperationContract(self.new_post_operation(title='create_statefulset', data=payload, path='pipelines',
-                                                          status_class=st.SynchronousHttpOperationStatus),
-                                  contract=builder.build())
+      return st.OperationContract(
+          self.new_post_operation(title='create_statefulset',
+                                  data=payload, path='pipelines',
+                                  status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
 
   def create_daemonset_pipeline(self):
       bindings = self.bindings
@@ -451,11 +462,14 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('Daemonset Added', retryable_for_secs=15)
        .get_resources(
-          'daemonsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
+          'daemonsets', extra_args=[self.TEST_APP +
+                                    self.POSTFIX_STATEFUL_DAEMONSET,
+                                    '--namespace', self.TEST_NAMESPACE])
        .contains_path_value('kind', 'DaemonSet'))
       return st.OperationContract(
           self.new_post_operation(
-              title='Create_daemonset', data=payload, path='pipelines/' + self.TEST_APP + '/daemonset-pipeline',
+              title='Create_daemonset', data=payload,
+              path='pipelines/' + self.TEST_APP + '/daemonset-pipeline',
               status_class=st.SynchronousHttpOperationStatus),
           contract=builder.build())
 
@@ -485,9 +499,11 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_match(expect_match))
       builder = kube.KubeContractBuilder(self.kube_observer)
-      return st.OperationContract(self.new_post_operation(title='Save Daemonset', data=payload, path='pipelines',
-                                                          status_class=st.SynchronousHttpOperationStatus),
-                                  contract=builder.build())
+      return st.OperationContract(
+          self.new_post_operation(title='Save Daemonset',
+                                  data=payload, path='pipelines',
+                                  status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
 
   def make_deploy_stage_daemonset(self, **kwargs):
       bindings = self.bindings
@@ -498,7 +514,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'clusters': [
               {
                   'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
-                  'application': self.TEST_APP+'tstv001',
+                  'application': self.TEST_APP+self.POSTFIX_STATEFUL_DAEMONSET,
                   'targetSize': 1,
                   'cloudProvider': 'kubernetes',
                   'namespace': self.TEST_NAMESPACE,
@@ -538,7 +554,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'clusters': [
               {
                   'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
-                  'application': self.TEST_APP+'tstv001',
+                  'application': self.TEST_APP+self.POSTFIX_STATEFUL_DAEMONSET,
                   'targetSize': 1,
                   'cloudProvider': 'kubernetes',
                   'namespace': self.TEST_NAMESPACE,
@@ -595,9 +611,11 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
        .get_url_path(
           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_match(expect_match))
-      return st.OperationContract(self.new_post_operation(title='create_delete statefulset', data=payload, path='pipelines',
-                                                          status_class=st.SynchronousHttpOperationStatus),
-                                  contract=builder.build())
+      return st.OperationContract(
+          self.new_post_operation(title='create_delete statefulset',
+                                  data=payload, path='pipelines',
+                                  status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
 
   def save_delete_daemonset_pipeline(self):
       deploy_stage = self.make_delete_stage_daemonset()
@@ -625,9 +643,11 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
        .get_url_path(
           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_match(expect_match))
-      return st.OperationContract(self.new_post_operation(title='create_delete daemonset', data=payload, path='pipelines',
-                                                          status_class=st.SynchronousHttpOperationStatus),
-                                  contract=builder.build())
+      return st.OperationContract(
+          self.new_post_operation(title='create_delete daemonset',
+                                  data=payload, path='pipelines',
+                                  status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
 
   def make_delete_stage_daemonset(self, **kwargs):
       bindings = self.bindings
@@ -635,15 +655,15 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'refId': '1',
           'type': 'destroyServerGroup',
           'cloudProvider': 'kubernetes',
-		  'cloudProviderType': 'kubernetes',
-		  'cluster': self.TEST_APP+'tstv001',
-		  'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+          'cloudProviderType': 'kubernetes',
+          'cluster': self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
+          'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
           'interestingHealthProviderNames': ['KubernetesService'],
-		  'kind': 'DaemonSet',
-		  'name': 'Destroy Server Group',
-                  'target': 'current_asg_dynamic',
-		  'namespaces': ['default'],
-		  'preCondition': 'true'
+          'kind': 'DaemonSet',
+          'name': 'Destroy Server Group',
+          'target': 'current_asg_dynamic',
+          'namespaces': ['default'],
+          'preCondition': 'true'
       }
       result.update(kwargs)
       return result
@@ -654,15 +674,15 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'refId': '1',
           'type': 'destroyServerGroup',
           'cloudProvider': 'kubernetes',
-		  'cloudProviderType': 'kubernetes',
-		  'cluster': self.TEST_APP+'tstv001',
-		  'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+          'cloudProviderType': 'kubernetes',
+          'cluster': self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
+          'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
           'interestingHealthProviderNames': ['KubernetesService'],
-		  'kind': 'StatefulSet',
-                  'target': 'current_asg_dynamic',
-		  'name': 'Destroy Server Group',
-		  'namespaces': ['default'],
-		  'preCondition': 'true'
+          'kind': 'StatefulSet',
+          'target': 'current_asg_dynamic',
+          'name': 'Destroy Server Group',
+          'namespaces': ['default'],
+          'preCondition': 'true'
       }
       result.update(kwargs)
       return result
@@ -679,11 +699,14 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('Daemonset Deleted', retryable_for_secs=15)
        .get_resources(
-          'daemonsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
-       .contains_path_value('kind', 'DaemonSet'))
+          'daemonsets', extra_args=[self.TEST_APP +
+                                    self.POSTFIX_STATEFUL_DAEMONSET, '--namespace',
+                                    self.TEST_NAMESPACE], no_resource_ok=True)
+       .contains_path_eq('targetSize', 0))
       return st.OperationContract(
           self.new_post_operation(
-              title='Delete_daemonset', data=payload, path='pipelines/' + self.TEST_APP + '/daemonset-delete-pipeline',
+              title='Delete_daemonset', data=payload,
+              path='pipelines/' + self.TEST_APP + '/daemonset-delete-pipeline',
               status_class=st.SynchronousHttpOperationStatus),
           contract=builder.build())
 
@@ -699,56 +722,58 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('StatefulSet Deleted', retryable_for_secs=15)
        .get_resources(
-          'statefulsets', extra_args=[self.TEST_APP+'tstv001', '--namespace', self.TEST_NAMESPACE])
-       .contains_path_value('kind', 'StatefulSet'))
+          'statefulsets', extra_args=[self.TEST_APP +
+                                      self.POSTFIX_STATEFUL_DAEMONSET, '--namespace',
+                                      self.TEST_NAMESPACE], no_resource_ok=True)
+       .contains_path_eq('targetSize', 0))
       return st.OperationContract(
           self.new_post_operation(
-              title='Delete_StatefulSet', data=payload, path='pipelines/' + self.TEST_APP + '/statefulset-delete-pipeline',
+              title='Delete_StatefulSet', data=payload,
+              path='pipelines/' + self.TEST_APP + '/statefulset-delete-pipeline',
               status_class=st.SynchronousHttpOperationStatus),
           contract=builder.build())
 
-
   def create_find_image_pipeline(self):
-    name = 'findImagePipeline'
-    self.pipeline_id = name
-    smoke_stage = self.make_smoke_stage()
-    deploy_stage = self.make_deploy_stage(
-        imageSource='FINDIMAGE',
-        requisiteStages=['FINDIMAGE'])
+      name = 'findImagePipeline'
+      self.pipeline_id = name
+      smoke_stage = self.make_smoke_stage()
+      deploy_stage = self.make_deploy_stage(
+          imageSource='FINDIMAGE',
+          requisiteStages=['FINDIMAGE'])
 
-    pipeline_spec = dict(
-      name=name,
-      stages=[smoke_stage,  deploy_stage],
-      triggers=[],
-      application=self.TEST_APP,
-      stageCounter=2,
-      parallel=True,
-      limitConcurrent=True,
-      appConfig={},
-      index=0
-    )
+      pipeline_spec = dict(
+          name=name,
+          stages=[smoke_stage, deploy_stage],
+          triggers=[],
+          application=self.TEST_APP,
+          stageCounter=2,
+          parallel=True,
+          limitConcurrent=True,
+          appConfig={},
+          index=0
+      )
+      payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
+      expect_match = {key: jp.EQUIVALENT(value)
+                      for key, value in pipeline_spec.items()}
+      expect_match['stages'] = jp.LIST_MATCHES(
+          [jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                            for key, value in smoke_stage.items()}),
+           jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                            for key, value in deploy_stage.items()})])
 
-    payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
-    expect_match = {key: jp.EQUIVALENT(value)
-                    for key, value in pipeline_spec.items()}
-    expect_match['stages'] = jp.LIST_MATCHES(
-      [jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
-                       for key, value in smoke_stage.items()}),
-       jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
-                        for key, value in deploy_stage.items()})])
-
-    builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline',
-                                retryable_for_secs=5)
-        .get_url_path(
+      builder = st.HttpContractBuilder(self.agent)
+      (builder.new_clause_builder('Has Pipeline',
+                                  retryable_for_secs=5)
+       .get_url_path(
           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
-        .contains_match(expect_match))
+       .contains_match(expect_match))
 
-    return st.OperationContract(
-        self.new_post_operation(
-            title='create_find_image_pipeline', data=payload, path='pipelines',
-            status_class=st.SynchronousHttpOperationStatus),
-        contract=builder.build())
+      return st.OperationContract(
+          self.new_post_operation(
+              title='create_find_image_pipeline',
+              data=payload, path='pipelines',
+              status_class=st.SynchronousHttpOperationStatus),
+          contract=builder.build())
 
   def delete_server_group(self, version='v000'):
     """Creates OperationContract for deleteServerGroup.
