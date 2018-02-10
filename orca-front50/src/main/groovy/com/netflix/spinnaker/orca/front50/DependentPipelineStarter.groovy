@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50
 
+import java.util.concurrent.Callable
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
@@ -31,9 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
-
-import java.util.concurrent.Callable
-
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 
 @Component
@@ -60,10 +58,11 @@ class DependentPipelineStarter implements ApplicationContextAware {
     User principal = getUser(parentPipeline)
 
     pipelineConfig.trigger = [
-      type                  : "pipeline",
-      user                  : principal?.username ?: user ?: "[anonymous]",
-      parentExecution       : parentPipeline,
-      parentPipelineStageId : parentPipelineStageId
+      type                 : "pipeline",
+      user                 : principal?.username ?: user ?: "[anonymous]",
+      parentExecution      : parentPipeline,
+      parentPipelineStageId: parentPipelineStageId,
+      parameters           : [:]
     ];
 
     if (pipelineConfig.parameterConfig || !suppliedParameters.empty) {
@@ -82,7 +81,8 @@ class DependentPipelineStarter implements ApplicationContextAware {
       pipelineConfig.receivedArtifacts = artifactResolver?.getAllArtifacts(parentPipeline)
     }
 
-    def trigger = pipelineConfig.trigger //keep the trigger as the preprocessor removes it.
+    def trigger = pipelineConfig.trigger
+    //keep the trigger as the preprocessor removes it.
 
     for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
       pipelineConfig = preprocessor.process(pipelineConfig)
