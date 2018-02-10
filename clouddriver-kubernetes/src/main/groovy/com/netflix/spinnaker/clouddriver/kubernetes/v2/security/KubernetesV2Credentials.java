@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Suppliers;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import io.kubernetes.client.models.V1DeleteOptions;
 import io.kubernetes.client.util.KubeConfig;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
@@ -40,11 +42,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class KubernetesV2Credentials implements KubernetesCredentials {
   private final KubectlJobExecutor jobExecutor;
   private final Registry registry;
@@ -53,6 +61,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final ObjectMapper mapper = new ObjectMapper();
   private final List<String> namespaces;
   private final List<String> omitNamespaces;
+
+  // TODO(lwander) make configurable
+  private final static int namespaceExpirySeconds = 30;
+
+  private final com.google.common.base.Supplier<List<String>> liveNamespaceSupplier;
 
   @Getter
   private final List<CustomKubernetesResource> customResources;
@@ -78,8 +91,19 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final List<String> oAuthScopes;
 
   private final String defaultNamespace = "default";
+  private String cachedDefaultNamespace;
+
   private final Path serviceAccountNamespacePath = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+
   public String getDefaultNamespace() {
+    if (StringUtils.isEmpty(cachedDefaultNamespace)) {
+      cachedDefaultNamespace = lookupDefaultNamespace();
+    }
+
+    return cachedDefaultNamespace;
+  }
+
+  public String lookupDefaultNamespace() {
     String namespace = defaultNamespace;
     try {
       Optional<String> serviceAccountNamespace = Files.lines(serviceAccountNamespacePath, StandardCharsets.UTF_8).findFirst();
@@ -87,7 +111,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     } catch (IOException | NoSuchElementException e) {
       try {
         namespace = jobExecutor.defaultNamespace(this);
-      } catch (KubectlException e1) {
+      } catch (KubectlException ke) {
+        log.warn("Failure looking up desired namespace, defaulting to {}", namespace);
       }
     }
     if (StringUtils.isEmpty(namespace)) {
@@ -241,6 +266,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.oAuthServiceAccount = oAuthServiceAccount;
     this.oAuthScopes = oAuthScopes;
     this.customResources = customResources;
+
+    this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, KubernetesKind.NAMESPACE, "")
+        .stream()
+        .map(KubernetesManifest::getName)
+        .collect(Collectors.toList()), namespaceExpirySeconds, TimeUnit.SECONDS);
   }
 
   @Override
@@ -250,10 +280,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       result = namespaces;
     } else {
       try {
-        List<KubernetesManifest> namespaceManifests = jobExecutor.list(this, KubernetesKind.NAMESPACE, "");
-        result = namespaceManifests.stream()
-            .map(KubernetesManifest::getName)
-            .collect(Collectors.toList());
+        result = liveNamespaceSupplier.get();
 
       } catch (KubectlException e) {
         throw new RuntimeException(e);

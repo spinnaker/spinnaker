@@ -43,10 +43,10 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class KubectlJobExecutor {
-  @Value("${kubernetes.kubectl.poll.minSleepMillis:100}")
+  @Value("${kubernetes.kubectl.poll.minSleepMillis:200}")
   Long minSleepMillis;
 
-  @Value("${kubernetes.kubectl.poll.maxSleepMillis:2000}")
+  @Value("${kubernetes.kubectl.poll.maxSleepMillis:4000}")
   Long maxSleepMillis;
 
   @Value("${kubernetes.kubectl.poll.timeoutMillis:100000}")
@@ -387,7 +387,7 @@ public class KubectlJobExecutor {
 
     while (totalSleep < timeoutMillis && interrupts < maxInterruptRetries) {
       try {
-        Thread.sleep(totalSleep);
+        Thread.sleep(nextSleep);
       } catch (InterruptedException e) {
         log.warn("{} was interrupted", jobId, e);
         interrupts += 1;
