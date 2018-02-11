@@ -15,9 +15,13 @@
  */
 package com.netflix.spinnaker.keel.intent
 
-import com.fasterxml.jackson.core.type.TypeReference
+import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.model.Job
 
-const val SCHEMA_PROPERTY = "schema"
-const val KIND_PROPERTY = "kind"
+interface SpecConverter<I : IntentSpec, S : Any> {
 
-val ANY_MAP_TYPE = object : TypeReference<MutableMap<String, Any?>>(){}
+  fun convertToState(spec: I): S
+  fun convertFromState(state: S): I?
+  fun convertToJob(spec: I, changeSummary: ChangeSummary): List<Job>
+}

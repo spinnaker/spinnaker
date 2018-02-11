@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.intent.PipelineFlags
 import com.netflix.spinnaker.keel.intent.PipelineProperties
 import com.netflix.spinnaker.keel.intent.PipelineSpec
 import com.netflix.spinnaker.keel.intent.PipelineStage
+import com.netflix.spinnaker.keel.intent.SpecConverter
 import com.netflix.spinnaker.keel.intent.Trigger
 import com.netflix.spinnaker.keel.model.Job
 import org.springframework.stereotype.Component

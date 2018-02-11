@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor
+package com.netflix.spinnaker.keel.intent.securitygroup
 
-import org.springframework.http.HttpStatus
-import retrofit.RetrofitError
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 
-fun RetrofitError.notFound(): Boolean {
-  return response != null && response.status == HttpStatus.NOT_FOUND.value()
+interface SecurityGroupLoader {
+  fun <S : SecurityGroupSpec> supports(spec: S): Boolean
+
+  fun <S : SecurityGroupSpec> load(spec: S): SecurityGroup?
+
+  fun <S : SecurityGroupSpec> upstreamGroup(spec: S, name: String): SecurityGroup?
 }

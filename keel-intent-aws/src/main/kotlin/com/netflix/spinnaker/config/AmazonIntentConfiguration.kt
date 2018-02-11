@@ -16,9 +16,16 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupRule
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ComponentScan(basePackages = ["com.netflix.spinnaker.keel.intent.aws"])
-open class AmazonIntentConfiguration
+open class AmazonIntentConfiguration {
+
+  @Bean open fun securityGroupSubTypeLocator() =
+    ClassSubtypeLocator(SecurityGroupRule::class.java, listOf("com.netflix.spinnaker.keel.intent.aws"))
+}

@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.keel.intent
 
-import com.fasterxml.jackson.core.type.TypeReference
+import org.springframework.http.HttpStatus
+import retrofit.RetrofitError
 
-const val SCHEMA_PROPERTY = "schema"
-const val KIND_PROPERTY = "kind"
-
-val ANY_MAP_TYPE = object : TypeReference<MutableMap<String, Any?>>(){}
+fun RetrofitError.notFound(): Boolean {
+  return response != null && response.status == HttpStatus.NOT_FOUND.value()
+}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor.converter
+package com.netflix.spinnaker.keel.intent.aws.securitygroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
@@ -24,10 +24,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
-import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
-import com.netflix.spinnaker.keel.intent.SecurityGroupPortRange
-import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.securitygroup.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupPortRange
+import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupSpec
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
@@ -35,11 +34,11 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Test
 
-object SecurityGroupConverterTest {
+object AmazonSecurityGroupConverterTest {
 
   val objectMapper = ObjectMapper()
   val clouddriverCache = mock<CloudDriverCache>()
-  val subject = SecurityGroupConverter(clouddriverCache, objectMapper)
+  val subject = AmazonSecurityGroupConverter(clouddriverCache, objectMapper)
 
   @Test
   fun `should convert spec to system state`() {

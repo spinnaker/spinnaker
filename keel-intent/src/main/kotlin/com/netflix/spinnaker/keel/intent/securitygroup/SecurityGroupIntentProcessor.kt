@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor
+package com.netflix.spinnaker.keel.intent.securitygroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.ConvergeReason
@@ -21,52 +21,42 @@ import com.netflix.spinnaker.keel.ConvergeResult
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentProcessor
 import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
+import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
-import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
-import com.netflix.spinnaker.keel.intent.NamedReferenceSupport
-import com.netflix.spinnaker.keel.intent.SecurityGroupIntent
-import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
-import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Component
 class SecurityGroupIntentProcessor
 @Autowired constructor(
   private val traceRepository: TraceRepository,
-  private val cloudDriverService: CloudDriverService,
-  private val clouddriverCache: CloudDriverCache,
   private val objectMapper: ObjectMapper,
-  private val securityGroupConverter: SecurityGroupConverter
+  private val securityGroupConverters: List<SecurityGroupConverter<SecurityGroupSpec>>,
+  private val securityGroupLoaders: List<SecurityGroupLoader>
 ) : IntentProcessor<SecurityGroupIntent> {
-
-  private val log = LoggerFactory.getLogger(javaClass)
 
   override fun supports(intent: Intent<IntentSpec>) = intent is SecurityGroupIntent
 
   override fun converge(intent: SecurityGroupIntent): ConvergeResult {
-    val changeSummary = ChangeSummary(intent.id())
+    val converter = converterForSpec(intent.spec)
 
-    val currentState = getSecurityGroups(intent.spec)
+    val changeSummary = ChangeSummary(intent.id())
+    val currentState = intent.spec.loadSystemState()
 
     traceRepository.record(Trace(
       startingState = objectMapper.convertValue(mapOf("state" to currentState), ANY_MAP_TYPE),
       intent = intent
     ))
 
-    if (currentStateUpToDate(intent.id(), currentState, intent.spec, changeSummary)) {
+    if (currentStateUpToDate(converter, intent.id(), currentState, intent.spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
@@ -85,7 +75,7 @@ class SecurityGroupIntentProcessor
           name = "Upsert security group",
           application = intent.spec.application,
           description = "Converging on desired security group state",
-          job = securityGroupConverter.convertToJob(intent.spec, changeSummary),
+          job = converter.convertToJob(intent.spec, changeSummary),
           trigger = OrchestrationTrigger(intent.id())
         )
       ),
@@ -93,33 +83,11 @@ class SecurityGroupIntentProcessor
     )
   }
 
-  private fun getSecurityGroups(spec: SecurityGroupSpec): SecurityGroup? {
-    if (spec is AmazonSecurityGroupSpec) {
-      try {
-        return if (spec.vpcName == null) {
-          cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region)
-        } else {
-          cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region, clouddriverCache.networkBy(
-            spec.vpcName,
-            spec.accountName,
-            spec.region
-          ).id)
-        }
-      } catch (e: RetrofitError) {
-        if (e.notFound()) {
-          return null
-        }
-        throw e
-      }
-    }
-    throw NotImplementedError("Only amazon security groups are supported at the moment")
-  }
-
-  private fun currentStateUpToDate(intentId: String,
+  private fun currentStateUpToDate(converter: SecurityGroupConverter<SecurityGroupSpec>,
+                                   intentId: String,
                                    currentState: SecurityGroup?,
                                    desiredState: SecurityGroupSpec,
                                    changeSummary: ChangeSummary): Boolean {
-
     if (currentState == null) {
       return false
     }
@@ -127,7 +95,7 @@ class SecurityGroupIntentProcessor
     val diff = StateInspector(objectMapper).getDiff(
       intentId = intentId,
       currentState = currentState,
-      desiredState = securityGroupConverter.convertToState(desiredState),
+      desiredState = converter.convertToState(desiredState),
       modelClass = SecurityGroup::class,
       specClass = SecurityGroupSpec::class,
       ignoreKeys = setOf("type", "id", "moniker", "summary", "description")
@@ -143,26 +111,22 @@ class SecurityGroupIntentProcessor
         spec.name != it.name
       }
       .map {
-        if (spec is AmazonSecurityGroupSpec) {
-          try {
-            cloudDriverService.getSecurityGroup(
-              spec.accountName,
-              "aws",
-              it.name,
-              spec.region,
-              clouddriverCache.networkBy(spec.vpcName!!, spec.accountName, spec.region).id
-            )
-          } catch (e: RetrofitError) {
-            if (e.notFound()) {
-              return@map it.name
-            }
-          }
-        } else {
-          log.error("${spec.javaClass.simpleName} is not supported yet")
-        }
-        return@map null
+        return@map if (loaderForSpec(spec).upstreamGroup(spec, it.name) == null) it.name else null
       }
       .filterNotNull()
       .distinct()
   }
+
+  private fun converterForSpec(spec: SecurityGroupSpec): SecurityGroupConverter<SecurityGroupSpec> =
+    securityGroupConverters
+      .firstOrNull { it.supports(spec) }
+      ?: throw DeclarativeException("No SecurityGroupConverter found supporting ${spec.javaClass.simpleName}")
+
+  private fun SecurityGroupSpec.loadSystemState(): SecurityGroup? =
+    loaderForSpec(this).load(this)
+
+  private fun loaderForSpec(spec: SecurityGroupSpec): SecurityGroupLoader =
+    securityGroupLoaders
+      .firstOrNull { it.supports(spec) }
+      ?: throw DeclarativeException("No SecurityGroupLoader found supporting ${spec.javaClass.simpleName}")
 }

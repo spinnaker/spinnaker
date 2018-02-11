@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
 import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
+import com.netflix.spinnaker.keel.intent.notFound
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger

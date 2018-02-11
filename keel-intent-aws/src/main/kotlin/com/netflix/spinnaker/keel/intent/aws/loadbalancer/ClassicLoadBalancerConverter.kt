@@ -24,7 +24,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
-import com.netflix.spinnaker.keel.intent.processor.converter.SpecConverter
+import com.netflix.spinnaker.keel.intent.SpecConverter
 import com.netflix.spinnaker.keel.model.Job
 import org.springframework.stereotype.Component
 

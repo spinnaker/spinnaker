@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent
+package com.netflix.spinnaker.keel.intent.securitygroup
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
 import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.intent.SCHEMA_PROPERTY
 import java.util.*
 
 private const val KIND = "SecurityGroup"
@@ -47,20 +48,6 @@ abstract class SecurityGroupSpec : ApplicationAwareIntentSpec {
   abstract val inboundRules: Set<SecurityGroupRule>
 }
 
-@JsonTypeName("aws")
-data class AmazonSecurityGroupSpec(
-  override val application: String,
-  override val name: String,
-  override val cloudProvider: String,
-  override val accountName: String,
-  override val region: String,
-  override val inboundRules: Set<SecurityGroupRule>,
-  val outboundRules: Set<SecurityGroupRule>,
-  // We don't care to support EC2 Classic, but for some reason clouddriver returns nulls (and isn't "default" vpcs)
-  val vpcName: String?,
-  val description: String
-) : SecurityGroupSpec()
-
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class SecurityGroupRule
 
@@ -85,12 +72,11 @@ data class SecurityGroupPortRange(
   }
 }
 
-// TODO rz - should probably be named differently
 interface NamedReferenceSupport {
   val name: String
 }
 
-interface PortRangeSupport : NamedReferenceSupport {
+interface PortRangeSupport {
   val portRanges: SortedSet<SecurityGroupPortRange>
   val protocol: String
 }
@@ -100,15 +86,12 @@ data class ReferenceSecurityGroupRule(
   override val portRanges: SortedSet<SecurityGroupPortRange>,
   override val protocol: String,
   override val name: String
-) : SecurityGroupRule(), PortRangeSupport
+) : SecurityGroupRule(), NamedReferenceSupport, PortRangeSupport
 
-@JsonTypeName("crossAccountRef")
-data class CrossAccountReferenceSecurityGroupRule(
+@JsonTypeName("self")
+data class SelfReferencingSecurityGroupRule(
   override val portRanges: SortedSet<SecurityGroupPortRange>,
-  override val protocol: String,
-  override val name: String,
-  val account: String,
-  val vpcName: String
+  override val protocol: String
 ) : SecurityGroupRule(), PortRangeSupport
 
 @JsonTypeName("http")

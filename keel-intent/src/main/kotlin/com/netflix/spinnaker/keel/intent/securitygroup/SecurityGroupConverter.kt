@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor.converter
+package com.netflix.spinnaker.keel.intent.securitygroup
 
-import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.keel.intent.SpecConverter
 
-interface SpecConverter<I : IntentSpec, S : Any> {
-
-  fun convertToState(spec: I): S
-  fun convertFromState(state: S): I?
-  fun convertToJob(spec: I, changeSummary: ChangeSummary): List<Job>
+interface SecurityGroupConverter<I : SecurityGroupSpec> : SpecConverter<I, SecurityGroup> {
+  fun supports(spec: SecurityGroupSpec): Boolean
 }

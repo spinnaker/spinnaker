@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor
+package com.netflix.spinnaker.keel.intent.aws.securitygroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
@@ -27,11 +27,12 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
-import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
-import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
-import com.netflix.spinnaker.keel.intent.SecurityGroupIntent
-import com.netflix.spinnaker.keel.intent.processor.converter.SecurityGroupConverter
+import com.netflix.spinnaker.keel.intent.securitygroup.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupConverter
+import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupIntent
+import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupIntentProcessor
+import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupSpec
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
@@ -44,7 +45,8 @@ import org.junit.jupiter.api.Test
 import retrofit.RetrofitError
 import retrofit.client.Response
 
-object SecurityGroupIntentProcessorTest {
+
+object AmazonSecurityGroupIntentProcessorTest {
 
   val traceRepository = mock<TraceRepository>()
   val clouddriverCache = mock<CloudDriverCache>()
@@ -60,13 +62,14 @@ object SecurityGroupIntentProcessorTest {
     )
   }
   val objectMapper = ObjectMapper()
-  val converter = SecurityGroupConverter(clouddriverCache, objectMapper)
+  val converter = AmazonSecurityGroupConverter(clouddriverCache, objectMapper) as SecurityGroupConverter<SecurityGroupSpec>
+  val loader = AmazonSecurityGroupLoader(clouddriverService, clouddriverCache)
 
-  val subject = SecurityGroupIntentProcessor(traceRepository, clouddriverService, clouddriverCache, objectMapper, converter)
+  val subject = SecurityGroupIntentProcessor(traceRepository, objectMapper, listOf(converter), listOf(loader))
 
   @AfterEach
   fun cleanup() {
-    reset(traceRepository, clouddriverService)
+    reset(traceRepository, clouddriverService, clouddriverCache)
   }
 
   @Test

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
+import com.netflix.spinnaker.keel.intent.SpecConverter
 import com.netflix.spinnaker.keel.model.Job
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

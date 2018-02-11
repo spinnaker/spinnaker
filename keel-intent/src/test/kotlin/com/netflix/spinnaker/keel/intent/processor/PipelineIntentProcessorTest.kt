@@ -53,7 +53,7 @@ object PipelineIntentProcessorTest {
 
   @AfterEach
   fun cleanup() {
-    reset(SecurityGroupIntentProcessorTest.traceRepository, front50Service)
+    reset(traceRepository, front50Service)
   }
 
   @Test
