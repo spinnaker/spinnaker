@@ -60,10 +60,10 @@ class IntentController
     return intentRepository.getIntents()
   }
 
-  @RequestMapping(value = "/{id}", method = [(RequestMethod.GET)])
+  @RequestMapping(value = ["/{id}"], method = [(RequestMethod.GET)])
   fun getIntent(@PathVariable("id") id: String) = intentRepository.getIntent(id)
 
-  @RequestMapping(value = "", method = [(RequestMethod.POST)])
+  @RequestMapping(value = [""], method = [(RequestMethod.POST)])
   @ResponseStatus(HttpStatus.ACCEPTED)
   fun upsertIntent(@RequestBody req: UpsertIntentRequest): Any {
     // TODO rz - validate intents
@@ -91,7 +91,7 @@ class IntentController
     return intentList
   }
 
-  @RequestMapping(value = "/{id}", method = [(RequestMethod.DELETE)])
+  @RequestMapping(value = ["/{id}"], method = [(RequestMethod.DELETE)])
   @ResponseStatus(HttpStatus.NO_CONTENT)
   fun deleteIntent(@PathVariable("id") id: String,
                    @RequestParam("soft", defaultValue = "true", required = false) soft: Boolean) {
@@ -102,16 +102,16 @@ class IntentController
       }
   }
 
-  @RequestMapping(value = "/{id}/history", method = [(RequestMethod.GET)])
+  @RequestMapping(value = ["/{id}/history"], method = [(RequestMethod.GET)])
   fun getIntentHistory(@PathVariable("id") id: String) = intentActivityRepository.getHistory(id)
 
-  @RequestMapping(value = "/{id}/traces", method = [(RequestMethod.GET)])
+  @RequestMapping(value = ["/{id}/traces"], method = [(RequestMethod.GET)])
   fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)
 
-  @RequestMapping(value = "/{id}/log", method = arrayOf(RequestMethod.GET))
+  @RequestMapping(value = ["/{id}/log"], method = [(RequestMethod.GET)])
   fun getLog(@PathVariable("id") id: String) = intentActivityRepository.getLog(id)
 
-  @RequestMapping(value = "/{id}/log/{timestampMillis}", method = arrayOf(RequestMethod.GET))
+  @RequestMapping(value = ["/{id}/log/{timestampMillis}"], method = [(RequestMethod.GET)])
   fun getLogEntry(@PathVariable("id") id: String, @PathVariable("timestampMillis") timestampMillis: Long)
     = intentActivityRepository.getLogEntry(id, timestampMillis)
 }

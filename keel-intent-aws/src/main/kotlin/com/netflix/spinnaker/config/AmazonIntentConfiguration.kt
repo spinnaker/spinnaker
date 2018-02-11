@@ -16,16 +16,9 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.MapperFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
-import com.netflix.spinnaker.keel.intent.SecurityGroupRule
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ComponentScan(basePackages = arrayOf(
-  "com.netflix.spinnaker.keel.intent.aws"
-))
+@ComponentScan(basePackages = ["com.netflix.spinnaker.keel.intent.aws"])
 open class AmazonIntentConfiguration

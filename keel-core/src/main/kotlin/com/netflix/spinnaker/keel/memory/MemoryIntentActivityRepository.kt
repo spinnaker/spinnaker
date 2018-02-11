@@ -30,8 +30,6 @@ class MemoryIntentActivityRepository
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val currentOrchestrations: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
-
   private val orchestrations: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
 
   private val convergenceLog: ConcurrentHashMap<String, MutableList<IntentConvergenceRecord>> = ConcurrentHashMap()
@@ -48,38 +46,11 @@ class MemoryIntentActivityRepository
     }
     if (orchestrations[intentId]?.contains(orchestrationUUID) == false) {
       orchestrations[intentId]?.add(orchestrationUUID)
-      if (!currentOrchestrations.containsKey(intentId)) {
-        currentOrchestrations.put(intentId, mutableSetOf())
-      }
-      currentOrchestrations[intentId]?.add(orchestrationUUID)
     }
   }
 
   override fun addOrchestrations(intentId: String, orchestrations: List<String>) {
     orchestrations.forEach { addOrchestration(intentId, it) }
-  }
-
-  override fun getCurrent(intentId: String): List<String> {
-    return currentOrchestrations.getOrDefault(intentId, mutableSetOf()).toList()
-  }
-
-  override fun upsertCurrent(intentId: String, orchestrations: List<String>) {
-    if (!currentOrchestrations.containsKey(intentId)) {
-      currentOrchestrations.put(intentId, mutableSetOf())
-    }
-    currentOrchestrations[intentId]?.addAll(orchestrations.toMutableSet())
-  }
-
-  override fun upsertCurrent(intentId: String, orchestration: String) {
-    upsertCurrent(intentId, listOf(orchestration))
-  }
-
-  override fun removeCurrent(intentId: String, orchestrationId: String) {
-    currentOrchestrations[intentId]?.remove(orchestrationId)
-  }
-
-  override fun removeCurrent(intentId: String) {
-    currentOrchestrations.remove(intentId)
   }
 
   override fun getHistory(intentId: String) = orchestrations.getOrDefault(intentId, mutableSetOf()).toList()

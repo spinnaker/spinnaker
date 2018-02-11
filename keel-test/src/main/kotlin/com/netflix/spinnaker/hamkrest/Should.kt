@@ -17,6 +17,6 @@ inline infix fun <reified T : Throwable> (() -> Any?).shouldThrow(matcher: Match
 }
 
 @Suppress("UNCHECKED_CAST")
-inline infix fun <reified T : Throwable> (() -> Any?).shouldThrow(type: KClass<T>) {
+inline infix fun <reified T : Throwable> (() -> Any?).shouldThrow(@Suppress("UNUSED_PARAMETER") type: KClass<T>) {
   (this as () -> Unit) shouldMatch throws(isA<T>())
 }

@@ -19,4 +19,6 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 import org.springframework.context.ApplicationEvent
 
-class ConvergenceRequiredEvent(intent: Intent<IntentSpec>) : ApplicationEvent("scheduler")
+class ConvergenceRequiredEvent(
+  @Suppress("UNUSED_PARAMETER") intent: Intent<IntentSpec>
+) : ApplicationEvent("scheduler")

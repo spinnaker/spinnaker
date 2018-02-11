@@ -98,10 +98,10 @@ class RedisIntentActivityRepository
         }
       }.map { objectMapper.readValue(it, IntentConvergenceRecord::class.java) }.toList()
 
-  override fun getLogEntry(intentId: String, timeMs: Long)
+  override fun getLogEntry(intentId: String, timestampMillis: Long)
     = logKey(intentId). let { key ->
         getClientForId(key).withCommandsClient<Set<String>> { c ->
-          c.zrangeByScore(key, timeMs.toDouble(), timeMs.toDouble())
+          c.zrangeByScore(key, timestampMillis.toDouble(), timestampMillis.toDouble())
         }
       }.map { objectMapper.readValue(it, IntentConvergenceRecord::class.java) }
       .toList()
@@ -110,40 +110,6 @@ class RedisIntentActivityRepository
         if (it.size > 1) log.warn("Two messages with the same timestampMillis. This shouldn't happen.")
       }
       .firstOrNull()
-
-  override fun getCurrent(intentId: String): List<String>
-    = currentKey(intentId).let { key ->
-        getClientForId(key).withCommandsClient<Set<String>> { c ->
-          c.zrangeByScore(key, "-inf", "+inf")
-        }
-      }.toList()
-
-
-  override fun upsertCurrent(intentId: String, orchestrations: List<String>)
-    = currentKey(intentId).let { key ->
-        val score = clock.millis()
-        getClientForId(key).withCommandsClient { c ->
-          c.zadd(key, orchestrations.map { parseOrchestrationId(it) to score.toDouble() }.toMap().toMutableMap())
-        }
-      }
-
-  override fun upsertCurrent(intentId: String, orchestration: String) {
-    upsertCurrent(intentId, listOf(orchestration))
-  }
-
-  override fun removeCurrent(intentId: String, orchestrationId: String)
-    = currentKey(intentId).let { key ->
-        getClientForId(key).withCommandsClient { c ->
-          c.zrem(key, orchestrationId)
-        }
-      }
-
-  override fun removeCurrent(intentId: String)
-    = currentKey(intentId).let { key ->
-        getClientForId(key).withCommandsClient { c ->
-          c.zrem(key)
-        }
-      }
 
   private fun getClientForId(id: String?): RedisClientDelegate {
     if (id == null) {

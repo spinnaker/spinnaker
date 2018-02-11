@@ -78,6 +78,7 @@ class PipelineStage : HashMap<String, Any>() {
   val refId: String
     get() = get("refId").toString()
 
+  @Suppress("UNCHECKED_CAST")
   val dependsOn: List<String>
     get() = if (containsKey("dependsOn")) this["dependsOn"] as List<String> else listOf()
 }

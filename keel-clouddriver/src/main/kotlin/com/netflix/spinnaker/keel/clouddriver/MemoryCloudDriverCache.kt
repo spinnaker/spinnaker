@@ -5,9 +5,6 @@ import com.google.common.cache.CacheBuilder
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
-import org.springframework.beans.BeansException
-import org.springframework.scheduling.annotation.Scheduled
-import retrofit.RetrofitError
 import java.util.concurrent.TimeUnit
 
 class MemoryCloudDriverCache(
@@ -85,7 +82,7 @@ class MemoryCloudDriverCache(
       if (v == null) {
         throw ResourceNotFound(notFoundMessage)
       }
-      put(key, loader.invoke())
+      put(key, v)
     }
     return v
   }

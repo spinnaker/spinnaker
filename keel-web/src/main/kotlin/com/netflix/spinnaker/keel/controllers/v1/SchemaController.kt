@@ -53,7 +53,7 @@ class SchemaController
 
   private val generator = JsonSchemaGenerator(objectMapper)
 
-  @RequestMapping(value = "/{type}", method = [(RequestMethod.GET)])
+  @RequestMapping(value = ["/{type}"], method = [(RequestMethod.GET)])
   fun getSchemas(@PathVariable("type") type: String, @QueryParam("name") name: String?): String {
     if (name != null) {
       return objectMapper.writeValueAsString(generator.generateJsonSchema(

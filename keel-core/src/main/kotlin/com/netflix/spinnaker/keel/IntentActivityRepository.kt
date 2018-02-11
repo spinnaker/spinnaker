@@ -58,20 +58,6 @@ interface IntentActivityRepository {
 
   fun addOrchestrations(intentId: String, orchestrations: List<String>)
 
-  fun getCurrent(intentId: String): List<String>
-
-  @Deprecated("Tracking downstream orchestrations is not currently planned for support")
-  fun upsertCurrent(intentId: String, orchestrations: List<String>)
-
-  @Deprecated("Tracking downstream orchestrations is not currently planned for support")
-  fun upsertCurrent(intentId: String, orchestration: String)
-
-  @Deprecated("Tracking downstream orchestrations is not currently planned for support")
-  fun removeCurrent(intentId: String, orchestrationId: String)
-
-  @Deprecated("Tracking downstream orchestrations is not currently planned for support")
-  fun removeCurrent(intentId: String)
-
   fun getHistory(intentId: String): List<String>
 
   fun logConvergence(intentConvergenceRecord: IntentConvergenceRecord)

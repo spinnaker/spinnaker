@@ -48,14 +48,6 @@ data class Application(
       "owner=$owner, details=$details)"
   }
 
-  /*
-   * Need to identify additional ignored properties that are in
-   * the 'details' map
-   */
-  @Deprecated(message = "use method from ComputedPropertyProvider")
-  fun computedPropertiesToIgnore(): List<String> {
-    return listOf("user","lastModifiedBy","requiredGroupMembership")
-  }
-
-  override fun additionalComputedProperties(): List<String> = computedPropertiesToIgnore()
+  override fun additionalComputedProperties(): List<String> =
+    listOf("user","lastModifiedBy","requiredGroupMembership")
 }
