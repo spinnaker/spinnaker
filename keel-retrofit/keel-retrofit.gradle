@@ -23,5 +23,4 @@ dependencies {
   compile "com.squareup.retrofit:converter-jackson:1.+"
 
   compile "com.netflix.spinnaker.kork:kork-web:+"
-  compile "io.reactivex:rxjava:1.0.+"
 }

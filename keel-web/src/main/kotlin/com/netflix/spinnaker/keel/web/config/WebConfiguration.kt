@@ -15,8 +15,18 @@
  */
 package com.netflix.spinnaker.keel.web.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.github.jonpeterson.jackson.module.versioning.VersioningModule
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.KeelProperties
+import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -35,10 +45,15 @@ import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan(basePackages = ["com.netflix.spinnaker.keel.controllers.v1"])
-open class WebConfiguration
-@Autowired constructor(
+open class WebConfiguration(
+  private val properties: KeelProperties,
   private val registry: Registry
+
 ) : WebMvcConfigurerAdapter() {
+
+  @Autowired open fun objectMapper(objectMapper: ObjectMapper, subtypeLocators: List<SubtypeLocator>) {
+    configureObjectMapper(objectMapper, properties, subtypeLocators)
+  }
 
   override fun addInterceptors(registry: InterceptorRegistry) {
     registry.addInterceptor(MetricsInterceptor(

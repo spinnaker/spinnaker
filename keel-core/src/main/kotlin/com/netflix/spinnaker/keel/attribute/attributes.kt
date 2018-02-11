@@ -18,10 +18,7 @@ package com.netflix.spinnaker.keel.attribute
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaDescription
 import com.netflix.spinnaker.keel.IntentPriority
-import javax.validation.constraints.Max
-import javax.validation.constraints.Min
 
 /**
  * An Attribute is a strictly typed key/value pair. They're attached as a collection of metadata on Intents and used
@@ -50,7 +47,6 @@ class EnabledAttribute(value: Boolean) : Attribute<Boolean>("Enabled", value)
  * Defines at what times during the time of day & weekly schedule an Intent should be a candidate for being converged.
  */
 @JsonTypeName("ExecutionWindow")
-@JsonSchemaDescription("Defines when an intent will be allowed to converge on state changes")
 class ExecutionWindowAttribute(value: ExecutionWindow) : Attribute<ExecutionWindow>("ExecutionWindow", value) {
   override fun toString(): String {
     return "ExecutionWindowAttribute(days=${value.days}, timeWindows=${value.timeWindows})"
@@ -63,8 +59,8 @@ data class ExecutionWindow(
 )
 
 data class TimeWindow(
-  @Min(0) @Max(23) val startHour: Int,
-  @Min(0) @Max(60) val startMin: Int,
-  @Min(0) @Max(23) val endHour: Int,
-  @Min(0) @Max(60) val endMin: Int
+  val startHour: Int,
+  val startMin: Int,
+  val endHour: Int,
+  val endMin: Int
 )

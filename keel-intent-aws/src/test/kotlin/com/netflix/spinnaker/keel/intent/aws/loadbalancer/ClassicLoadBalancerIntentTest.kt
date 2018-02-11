@@ -6,25 +6,28 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
+import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
+import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Http
-import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Protocol.SSL
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Protocol.TCP
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Scheme.internal
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.junit.jupiter.api.Test
 
 object ClassicLoadBalancerIntentTest {
 
-  val mapper = KeelConfiguration()
-    .apply { properties = KeelProperties() }
-    .objectMapper(
-      ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL), listOf()
+  val mapper = configureObjectMapper(
+    ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL),
+    KeelProperties(),
+    listOf(
+      ClassSubtypeLocator(ClassicLoadBalancerSpec::class.java, listOf("com.netflix.spinnaker.keel.intent"))
     )
+  )
 
   @Test
   fun `can serialize to expected JSON format`() {

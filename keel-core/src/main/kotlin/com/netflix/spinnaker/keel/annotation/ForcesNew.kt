@@ -15,13 +15,10 @@
  */
 package com.netflix.spinnaker.keel.annotation
 
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaInject
-
 /**
  * Flags IntentSpec parameters that cannot change once created without
  * recreating the intent.
  */
-@JsonSchemaInject(json = "{ \"forcesNew\": true }")
 @Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ForcesNew(val value: Boolean = true)

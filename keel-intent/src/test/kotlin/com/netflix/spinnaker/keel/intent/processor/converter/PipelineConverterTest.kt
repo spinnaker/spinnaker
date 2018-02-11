@@ -16,9 +16,8 @@
 package com.netflix.spinnaker.keel.intent.processor.converter
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
-import com.netflix.spinnaker.config.KeelSubTypeLocator
+import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.front50.model.PipelineConfig
@@ -28,15 +27,16 @@ import com.netflix.spinnaker.keel.intent.PipelineProperties
 import com.netflix.spinnaker.keel.intent.PipelineSpec
 import com.netflix.spinnaker.keel.intent.PipelineStage
 import com.netflix.spinnaker.keel.intent.Trigger
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.junit.jupiter.api.Test
 
 object PipelineConverterTest {
 
-  val mapper = KeelConfiguration()
-    .apply { properties = KeelProperties() }
-    .objectMapper(
-      ObjectMapper(), listOf(KeelSubTypeLocator(Trigger::class.java, listOf("com.netflix.spinnaker.keel.intent")))
-    )
+  val mapper = configureObjectMapper(
+    ObjectMapper(),
+    KeelProperties(),
+    listOf(ClassSubtypeLocator(Trigger::class.java, listOf("com.netflix.spinnaker.keel.intent")))
+  )
 
   val subject = PipelineConverter(mapper)
 

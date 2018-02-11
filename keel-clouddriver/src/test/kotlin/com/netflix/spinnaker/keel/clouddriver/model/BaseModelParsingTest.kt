@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.clouddriver.model
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldNotMatch
-import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
+import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.nhaarman.mockito_kotlin.any
@@ -24,9 +24,11 @@ import java.net.URL
 
 abstract class BaseModelParsingTest<out T> {
 
-  private val mapper = KeelConfiguration()
-    .apply { properties = KeelProperties() }
-    .objectMapper(ObjectMapper(), listOf())
+  private val mapper = configureObjectMapper(
+    ObjectMapper(),
+    KeelProperties(),
+    listOf()
+  )
   private val client = mock<Client>()
   private val cloudDriver = RestAdapter.Builder()
     .setEndpoint(newFixedEndpoint("https://spinnaker.💩"))

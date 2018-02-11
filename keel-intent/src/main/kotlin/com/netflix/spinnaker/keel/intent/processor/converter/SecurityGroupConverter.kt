@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import com.netflix.spinnaker.keel.findAllSubtypes
 import com.netflix.spinnaker.keel.intent.AmazonSecurityGroupSpec
 import com.netflix.spinnaker.keel.intent.CrossAccountReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.intent.PortRangeSupport
@@ -30,7 +29,6 @@ import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.model.Job
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
 @Component
 class SecurityGroupConverter(
@@ -39,12 +37,6 @@ class SecurityGroupConverter(
 ) : SpecConverter<SecurityGroupSpec, SecurityGroup> {
 
   private val log = LoggerFactory.getLogger(javaClass)
-
-  @PostConstruct fun addSecurityGroupJsonSubtypes() {
-    objectMapper.registerSubtypes(
-      *findAllSubtypes(log, SecurityGroupRule::class.java, "com.netflix.spinnaker.keel.intent")
-    )
-  }
 
   override fun convertToState(spec: SecurityGroupSpec): SecurityGroup {
     if (spec is AmazonSecurityGroupSpec) {

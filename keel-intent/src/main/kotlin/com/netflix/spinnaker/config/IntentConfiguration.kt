@@ -17,6 +17,7 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.keel.intent.SecurityGroupRule
 import com.netflix.spinnaker.keel.intent.Trigger
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -30,8 +31,8 @@ import org.springframework.context.annotation.Configuration
 open class IntentConfiguration {
 
   @Bean open fun securityGroupSubTypeLocator() =
-    KeelSubTypeLocator(SecurityGroupRule::class.java, listOf("com.netflix.spinnaker.keel.intent"))
+    ClassSubtypeLocator(SecurityGroupRule::class.java, listOf("com.netflix.spinnaker.keel.intent"))
 
   @Bean open fun pipelineTriggerSubTypeLocator() =
-    KeelSubTypeLocator(Trigger::class.java, listOf("com.netflix.spinnaker.keel.intent"))
+    ClassSubtypeLocator(Trigger::class.java, listOf("com.netflix.spinnaker.keel.intent"))
 }

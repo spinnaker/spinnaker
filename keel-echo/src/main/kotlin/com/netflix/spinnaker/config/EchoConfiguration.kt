@@ -15,25 +15,13 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.github.jonpeterson.jackson.module.versioning.VersioningModule
-import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.echo.EchoService
-import com.netflix.spinnaker.keel.echo.EventNotificationListener
-import com.netflix.spinnaker.keel.findAllSubtypes
-import com.netflix.spinnaker.keel.policy.*
+import com.netflix.spinnaker.keel.policy.NotificationSpec
 import com.netflix.spinnaker.keel.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -69,9 +57,6 @@ open class EchoConfiguration {
     .build()
     .create(EchoService::class.java)
 
-  @Autowired
-  open fun objectMapper(objectMapper: ObjectMapper) =
-    objectMapper.apply {
-      registerSubtypes(*findAllSubtypes(log, NotificationSpec::class.java, "com.netflix.spinnaker.keel.intent"))
-    }
+  @Bean open fun notificationSpecSubtype() =
+    ClassSubtypeLocator(NotificationSpec::class.java, listOf("com.netflix.spinnaker.keel.intent"))
 }

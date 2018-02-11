@@ -18,8 +18,8 @@ package com.netflix.spinnaker.keel.redis
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
+import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.IntentConvergenceRecord
 import com.netflix.spinnaker.keel.dryrun.ChangeType
@@ -42,9 +42,7 @@ object RedisIntentActivityRepositoryTest {
     maxConvergenceLogEntriesPerIntent = 5
   }
   val clock = Clock.systemDefaultZone()
-  val mapper = KeelConfiguration()
-    .apply { properties = keelProperties }
-    .objectMapper(ObjectMapper(), listOf())
+  val mapper = configureObjectMapper(ObjectMapper(), keelProperties, listOf())
 
   val subject = RedisIntentActivityRepository(
     mainRedisClientDelegate = JedisClientDelegate(jedisPool),

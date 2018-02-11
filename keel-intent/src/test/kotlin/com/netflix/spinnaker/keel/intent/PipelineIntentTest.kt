@@ -20,19 +20,19 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.spinnaker.config.KeelConfiguration
 import com.netflix.spinnaker.config.KeelProperties
-import com.netflix.spinnaker.config.KeelSubTypeLocator
+import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.junit.jupiter.api.Test
 
 object PipelineIntentTest {
 
-  val mapper = KeelConfiguration()
-    .apply { properties = KeelProperties() }
-    .objectMapper(
-      ObjectMapper(), listOf(KeelSubTypeLocator(Trigger::class.java, listOf("com.netflix.spinnaker.keel.intent")))
-    )
+  val mapper = configureObjectMapper(
+    ObjectMapper(),
+    KeelProperties(),
+    listOf(ClassSubtypeLocator(Trigger::class.java, listOf("com.netflix.spinnaker.keel.intent")))
+  )
 
   @Test
   fun `can serialize to expected JSON format`() {
