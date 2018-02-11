@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
@@ -230,8 +229,6 @@ public class Stage implements Serializable {
   /**
    * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work in a stage.
    * Because tasks can be dynamically composed, this list is open updated during a stage's execution.
-   *
-   * @see StageTaskPropagationListener
    */
   private List<Task> tasks = new ArrayList<>();
 
