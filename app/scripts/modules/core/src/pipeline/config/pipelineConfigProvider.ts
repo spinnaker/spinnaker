@@ -1,10 +1,12 @@
 import { auto, IServiceProvider, module } from 'angular';
-import { cloneDeep, intersection, memoize } from 'lodash';
+import { isNil, cloneDeep, intersection, memoize } from 'lodash';
 import { $log } from 'ngimport';
 
 import { Application } from 'core/application/application.model';
-import { IExecution, IStage, ITriggerTypeConfig, IStageTypeConfig, IArtifactKindConfig, IStageOrTriggerTypeConfig  } from 'core/domain';
+import { IExecution, IStage, ITriggerTypeConfig, IStageTypeConfig, IArtifactKindConfig, IStageOrTriggerTypeConfig } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
+
+import { IAccountDetails } from 'core/account/account.service';
 
 export interface ITransformer {
   transform: (application: Application, execution: IExecution) => void;
@@ -118,14 +120,22 @@ export class PipelineConfigProvider implements IServiceProvider {
     return intersection(providers, cloudProviders);
   }
 
-
-  public getConfigurableStageTypes(providers?: string[]): IStageTypeConfig[] {
+  public getConfigurableStageTypes(accounts?: IAccountDetails[]): IStageTypeConfig[] {
+    const providers: string[] = isNil(accounts) ? [] : Array.from(new Set(accounts.map(a => a.cloudProvider)));
     const allStageTypes = this.getStageTypes();
-    const configurableStageTypes = allStageTypes.filter(stageType => !stageType.synthetic && !stageType.provides);
-    if (!providers) {
+    let configurableStageTypes = allStageTypes.filter(stageType => !stageType.synthetic && !stageType.provides);
+    if (providers.length === 0) {
       return configurableStageTypes;
     }
     configurableStageTypes.forEach(type => type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, providers));
+    // remove stage types where all given provider accounts are explicitly excluded by that type
+    configurableStageTypes = configurableStageTypes.filter(type => {
+      return !accounts.every(a => {
+        return !!((type.excludedCloudProviders || []).find(p => {
+          return p.cloudProvider === a.cloudProvider && p.providerVersion === a.providerVersion;
+        }));
+      });
+    });
     return configurableStageTypes
       .filter(stageType => stageType.cloudProviders.length)
       .sort((a, b) => a.label.localeCompare(b.label));

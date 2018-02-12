@@ -52,9 +52,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       selectedStageType: null,
     };
 
-    accountService.listProviders($scope.application).then((providers) => {
-      $scope.options.stageTypes = pipelineConfig.getConfigurableStageTypes(providers);
-      $scope.showProviders = providers.length > 1;
+    accountService.applicationAccounts($scope.application).then(accounts => {
+      $scope.options.stageTypes = pipelineConfig.getConfigurableStageTypes(accounts);
+      $scope.showProviders = new Set(accounts.map(a => a.cloudProvider)).size > 1;
     });
 
     if ($scope.pipeline.strategy) {

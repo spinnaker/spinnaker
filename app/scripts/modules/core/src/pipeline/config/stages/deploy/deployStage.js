@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       strategyDescription: 'Deploys the image specified',
       key: 'deploy',
       alias: 'createServerGroup',
+      excludedCloudProviders: [{ cloudProvider: 'kubernetes', providerVersion: 'v2' }],
       templateUrl: require('./deployStage.html'),
       executionDetailsUrl: require('./deployExecutionDetails.html'),
       controller: 'DeployStageCtrl',
