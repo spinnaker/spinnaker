@@ -16,6 +16,7 @@ const mockProviderAccount = {
   environment: 'bar',
   primaryAccount: false,
   regions: [] as IRegion[],
+  authorized: true,
 }
 
 const awsProviderAccount = Object.assign({}, mockProviderAccount, {
