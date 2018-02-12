@@ -942,6 +942,7 @@ hal config ci jenkins master add MASTER [parameters]
 #### Parameters
 `MASTER`: The name of the master to operate on.
  * `--address`: (*Required*) The address your jenkins master is reachable at.
+ * `--csrf`: Whether or not to negotiate CSRF tokens when calling Jenkins.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
@@ -977,6 +978,7 @@ hal config ci jenkins master edit MASTER [parameters]
 #### Parameters
 `MASTER`: The name of the master to operate on.
  * `--address`: The address your jenkins master is reachable at.
+ * `--csrf`: Whether or not to negotiate CSRF tokens when calling Jenkins.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.

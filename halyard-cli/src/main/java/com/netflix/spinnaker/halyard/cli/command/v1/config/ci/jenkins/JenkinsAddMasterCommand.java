@@ -49,12 +49,19 @@ public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
   )
   public String password;
 
+  @Parameter(
+      names = "--csrf",
+      description = JenkinsCommandProperties.CSRF_DESCRIPTION
+  )
+  public Boolean csrf;
+
   @Override
   protected Master buildMaster(String masterName) {
     JenkinsMaster master = (JenkinsMaster) new JenkinsMaster().setName(masterName);
     master.setAddress(address)
         .setPassword(password)
-        .setUsername(username);
+        .setUsername(username)
+        .setCsrf(csrf);
 
     return master;
   }

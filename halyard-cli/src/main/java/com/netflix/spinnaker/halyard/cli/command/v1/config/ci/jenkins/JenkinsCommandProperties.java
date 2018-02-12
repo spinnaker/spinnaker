@@ -23,4 +23,6 @@ public class JenkinsCommandProperties {
   static final String PASSWORD_DESCRIPTION = "The password of the jenkins user to authenticate as.";
 
   static final String ADDRESS_DESCRIPTION = "The address your jenkins master is reachable at.";
+
+  static final String CSRF_DESCRIPTION = "Whether or not to negotiate CSRF tokens when calling Jenkins.";
 }

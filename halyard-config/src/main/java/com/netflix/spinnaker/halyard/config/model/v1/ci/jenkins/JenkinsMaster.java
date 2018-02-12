@@ -41,4 +41,5 @@ public class JenkinsMaster extends Master {
   private String address;
   private String username;
   private String password;
+  private Boolean csrf;
 }

@@ -48,11 +48,18 @@ public class JenkinsEditMasterCommand extends AbstractEditMasterCommand<JenkinsM
   )
   public String password;
 
+  @Parameter(
+      names = "--csrf",
+      description = JenkinsCommandProperties.CSRF_DESCRIPTION
+  )
+  public Boolean csrf;
+
   @Override
   protected Master editMaster(JenkinsMaster master) {
     master.setAddress(isSet(address) ? address : master.getAddress());
     master.setUsername(isSet(username) ? username : master.getUsername());
     master.setPassword(isSet(password) ? password : master.getPassword());
+    master.setCsrf(isSet(csrf) ? csrf : master.getCsrf());
 
     return master;
   }
