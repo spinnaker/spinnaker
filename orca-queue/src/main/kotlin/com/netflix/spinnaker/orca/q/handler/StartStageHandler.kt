@@ -72,41 +72,42 @@ class StartStageHandler(
 
   override fun handle(message: StartStage) {
     message.withStage { stage ->
-      if (stage.anyUpstreamStagesFailed()) {
+      val mergedContextStage = stage.withMergedContext()
+      if (mergedContextStage.anyUpstreamStagesFailed()) {
         // this only happens in restart scenarios
-        log.warn("Tried to start stage ${stage.id} but something upstream had failed (executionId: ${message.executionId})")
+        log.warn("Tried to start stage ${mergedContextStage.id} but something upstream had failed (executionId: ${message.executionId})")
         queue.push(CompleteExecution(message))
-      } else if (stage.allUpstreamStagesComplete()) {
-        if (stage.status != NOT_STARTED) {
-          log.warn("Ignoring $message as stage is already ${stage.status}")
-        } else if (stage.shouldSkip()) {
+      } else if (mergedContextStage.allUpstreamStagesComplete()) {
+        if (mergedContextStage.status != NOT_STARTED) {
+          log.warn("Ignoring $message as stage is already ${mergedContextStage.status}")
+        } else if (mergedContextStage.shouldSkip()) {
           queue.push(SkipStage(message))
         } else {
           try {
-            stage.withAuth {
-              stage.plan()
+            mergedContextStage.withAuth {
+              mergedContextStage.withMergedContext().plan()
             }
 
-            stage.status = RUNNING
-            stage.startTime = clock.millis()
-            repository.storeStage(stage)
+            mergedContextStage.status = RUNNING
+            mergedContextStage.startTime = clock.millis()
+            repository.storeStage(mergedContextStage)
 
-            stage.start()
+            mergedContextStage.start()
 
-            publisher.publishEvent(StageStarted(this, stage))
-            trackResult(stage)
+            publisher.publishEvent(StageStarted(this, mergedContextStage))
+            trackResult(mergedContextStage)
           } catch(e: Exception) {
-            val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.name)
+            val exceptionDetails = exceptionHandlers.shouldRetry(e, mergedContextStage.name)
             if (exceptionDetails?.shouldRetry == true) {
               val attempts = message.getAttribute<AttemptsAttribute>()?.attempts ?: 0
-              log.warn("Error planning ${stage.type} stage for ${message.executionType}[${message.executionId}] (attempts: $attempts)")
+              log.warn("Error planning ${mergedContextStage.type} stage for ${message.executionType}[${message.executionId}] (attempts: $attempts)")
 
               message.setAttribute(MaxAttemptsAttribute(40))
               queue.push(message, retryDelay)
             } else {
-              log.error("Error running ${stage.type} stage for ${message.executionType}[${message.executionId}]", e)
-              stage.context["exception"] = exceptionDetails
-              repository.storeStage(stage)
+              log.error("Error running ${mergedContextStage.type} stage for ${message.executionType}[${message.executionId}]", e)
+              mergedContextStage.context["exception"] = exceptionDetails
+              repository.storeStage(mergedContextStage)
               queue.push(CompleteStage(message))
             }
           }
@@ -142,7 +143,7 @@ class StartStageHandler(
     builder().let { builder ->
       builder.buildTasks(this)
       builder.buildSyntheticStages(this) { it: Stage ->
-        repository.addStage(it.withMergedContext())
+        repository.addStage(it)
       }
     }
   }

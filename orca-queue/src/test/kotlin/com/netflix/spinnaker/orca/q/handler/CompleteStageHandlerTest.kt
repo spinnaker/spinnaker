@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
+import com.netflix.spinnaker.orca.pipeline.model.ManualTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
@@ -133,6 +134,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("it is already complete") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               type = multiTaskStage.type
@@ -166,6 +168,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("it is the last stage") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               type = singleTaskStage.type
@@ -214,6 +217,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("there is a single downstream stage") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               type = singleTaskStage.type
@@ -263,6 +267,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("there are multiple downstream stages") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               type = singleTaskStage.type
@@ -304,6 +309,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("there are parallel stages still running") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               type = singleTaskStage.type
@@ -338,6 +344,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           and("there are parallel stages that failed") {
             val pipeline = pipeline {
               application = "covfefe"
+              trigger = ManualTrigger("id", "user", emptyMap(), null, null)
               stage {
                 refId = "1"
                 type = singleTaskStage.type
@@ -372,6 +379,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("there are still synthetic stages to plan") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               name = "wait"
@@ -410,6 +418,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       describe("when a stage's task fails with $taskStatus status") {
         val pipeline = pipeline {
           application = "foo"
+          trigger = ManualTrigger("id", "user", emptyMap(), null, null)
           stage {
             refId = "1"
             type = multiTaskStage.type
@@ -474,6 +483,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     describe("when none of a stage's tasks ever started") {
       val pipeline = pipeline {
         application = "foo"
+        trigger = ManualTrigger("id", "user", emptyMap(), null, null)
         stage {
           refId = "1"
           type = multiTaskStage.type
@@ -539,6 +549,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         describe("when a $syntheticType synthetic stage completed with $failureStatus") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               status = RUNNING
@@ -575,6 +586,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       describe("when any $syntheticType synthetic stage completed with FAILED_CONTINUE") {
         val pipeline = pipeline {
           application = "foo"
+          trigger = ManualTrigger("id", "user", emptyMap(), null, null)
           stage {
             refId = "1"
             status = RUNNING
@@ -616,6 +628,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("it comes before its parent stage") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               type = stageWithSyntheticBefore.type
@@ -680,6 +693,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         and("it comes after its parent stage") {
           val pipeline = pipeline {
             application = "foo"
+            trigger = ManualTrigger("id", "user", emptyMap(), null, null)
             stage {
               refId = "1"
               type = stageWithSyntheticAfter.type
@@ -753,6 +767,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       given("a synthetic stage's task ends with $taskStatus status") {
         val pipeline = pipeline {
           application = "foo"
+          trigger = ManualTrigger("id", "user", emptyMap(), null, null)
           stage {
             refId = "1"
             type = stageWithSyntheticBefore.type
@@ -794,6 +809,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       context("when one branch completes with $status") {
         val pipeline = pipeline {
           application = "foo"
+          trigger = ManualTrigger("id", "user", emptyMap(), null, null)
           stage {
             refId = "1"
             name = "parallel"
@@ -823,6 +839,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       context("when all branches are complete") {
         val pipeline = pipeline {
           application = "foo"
+          trigger = ManualTrigger("id", "user", emptyMap(), null, null)
           stage {
             refId = "1"
             name = "parallel"
@@ -865,6 +882,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val existingException = "Existing error"
       val pipeline = pipeline {
         application = "foo"
+        trigger = ManualTrigger("id", "user", emptyMap(), null, null)
         stage {
           refId = "1"
           name = "wait"
@@ -903,6 +921,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       val expressionError = "Expression foo failed for field bar"
       val pipeline = pipeline {
         application = "foo"
+        trigger = ManualTrigger("id", "user", emptyMap(), null, null)
         stage {
           refId = "1"
           name = "wait"
