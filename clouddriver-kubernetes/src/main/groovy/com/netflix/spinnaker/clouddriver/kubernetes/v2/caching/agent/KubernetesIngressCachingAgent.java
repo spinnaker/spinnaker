@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
@@ -71,17 +72,19 @@ public class KubernetesIngressCachingAgent extends KubernetesV2OnDemandCachingAg
   protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> ingresses) {
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
 
+    BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
+
     Map<String, KubernetesManifest> services = namespaces.stream()
         .map(n -> credentials.list(KubernetesKind.SERVICE, n))
         .flatMap(Collection::stream)
-        .collect(Collectors.toMap(KubernetesManifest::getName, (m) -> m));
+        .collect(Collectors.toMap((m) -> manifestName.apply(m.getNamespace(), m.getName()), (m) -> m));
 
     for (KubernetesManifest ingress : ingresses) {
       List<KubernetesManifest> attachedServices = new ArrayList<>();
       try {
         attachedServices = KubernetesIngressHandler.attachedServices(ingress)
             .stream()
-            .map(services::get)
+            .map(s -> services.get(manifestName.apply(ingress.getNamespace(), s)))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
       } catch (Exception e) {
