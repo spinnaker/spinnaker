@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import spock.lang.Specification
+import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.pipeline.model.Stage.topologicalSort
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.*
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
@@ -179,5 +181,43 @@ class StageSpec extends Specification {
     then:
     syntheticBeforeStageAncestors*.refId == ["1<1", "1"]
     syntheticAfterStageAncestors*.refId == ["1<2", "1<1", "1"]
+  }
+
+  @Unroll
+  def "should fetch stageTimeoutMs for a synthetic stage from the closest parent with it overridden"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        id = "1"
+
+        stage {
+          id = "2"
+
+          stage {
+            id = "3"
+          }
+        }
+      }
+    }
+
+    if (stage1TimeoutMs) {
+      pipeline.stageById("1").context.stageTimeoutMs = stage1TimeoutMs
+    }
+    if (stage2TimeoutMs) {
+      pipeline.stageById("2").context.stageTimeoutMs = stage2TimeoutMs
+    }
+    if (stage3TimeoutMs) {
+      pipeline.stageById("3").context.stageTimeoutMs = stage3TimeoutMs
+    }
+
+    expect:
+    pipeline.stageById("3").getParentWithTimeout().orElse(null)?.getTimeout()?.orElse(null) == expectedTimeout
+
+    where:
+    stage1TimeoutMs | stage2TimeoutMs | stage3TimeoutMs || expectedTimeout
+    null            | null            | null            || null
+    100             | null            | null            || 100
+    100             | 200             | null            || 200
+    100             | 200             | 300             || 300
   }
 }

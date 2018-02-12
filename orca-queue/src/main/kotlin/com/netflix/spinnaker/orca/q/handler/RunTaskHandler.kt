@@ -179,8 +179,8 @@ class RunTaskHandler(
       val elapsedTime = Duration.between(startTime, clock.instant())
       val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
       val actualTimeout = (
-        if (this is OverridableTimeoutRetryableTask && stage.topLevelTimeout.isPresent)
-          stage.topLevelTimeout.get().toDuration()
+        if (this is OverridableTimeoutRetryableTask && stage.parentWithTimeout.isPresent)
+          stage.parentWithTimeout.get().timeout.get().toDuration()
         else
           timeout.toDuration()
         )
@@ -199,14 +199,15 @@ class RunTaskHandler(
   }
 
   private fun checkForStageTimeout(stage: Stage) {
-    stage.topLevelTimeout.map(Duration::ofMillis).ifPresent({
-      val startTime = stage.topLevelStage.startTime.toInstant()
+    stage.parentWithTimeout.ifPresent {
+      val startTime = it.startTime.toInstant()
       val elapsedTime = Duration.between(startTime, clock.instant())
       val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
-      if (elapsedTime.minus(pausedDuration) > it) {
+      val timeout = Duration.ofMillis(it.timeout.get())
+      if (elapsedTime.minus(pausedDuration) > timeout) {
         throw TimeoutException("Stage ${stage.name} timed out after ${formatTimeout(elapsedTime.toMillis())}")
       }
-    })
+    }
   }
 
 

@@ -486,12 +486,22 @@ public class Stage implements Serializable {
     return topLevelStage;
   }
 
-  /**
-   * Returns the top-most stage timeout value if present.
-   */
-  @JsonIgnore public Optional<Long> getTopLevelTimeout() {
-    Stage topLevelStage = getTopLevelStage();
-    Object timeout = topLevelStage.getContext().get("stageTimeoutMs");
+  @JsonIgnore public Optional<Stage> getParentWithTimeout() {
+    Stage current = this;
+    Optional<Long> timeout = Optional.empty();
+
+    while (current != null && !timeout.isPresent()) {
+      timeout = current.getTimeout();
+      if (!timeout.isPresent()) {
+        current = current.getParent();
+      }
+    }
+
+    return timeout.isPresent() ? Optional.of(current) : Optional.empty();
+  }
+
+  @JsonIgnore public Optional<Long> getTimeout() {
+    Object timeout = getContext().get(STAGE_TIMEOUT_OVERRIDE_KEY);
     if (timeout instanceof Integer) {
       return Optional.of((Integer) timeout).map(Integer::longValue);
     } else if (timeout instanceof Long) {
