@@ -20,20 +20,20 @@ export class VpcTag extends React.Component<IVpcTagProps, IVpcTagState> {
   }
 
   private updateState(props: IVpcTagProps): void {
-    if (props.vpcId !== this.props.vpcId) {
-      if (!props.vpcId) {
-        this.setState({ label: this.defaultLabel });
-      } else {
-        AwsReactInjector.vpcReader.getVpcName(props.vpcId).then((name) => {
-          const label = name ? `${name} (${props.vpcId})` : `(${props.vpcId})`;
-          this.setState({ label });
-        });
-      }
+    if (!props.vpcId) {
+      this.setState({ label: this.defaultLabel });
+    } else {
+      AwsReactInjector.vpcReader.getVpcName(props.vpcId).then((name) => {
+        const label = name ? `${name} (${props.vpcId})` : `(${props.vpcId})`;
+        this.setState({ label });
+      });
     }
   }
 
   public componentWillReceiveProps(nextProps: IVpcTagProps): void {
-    this.updateState(nextProps);
+    if (nextProps.vpcId !== this.props.vpcId) {
+      this.updateState(nextProps);
+    }
   }
 
   public render() {
