@@ -2,38 +2,25 @@
 
 const angular = require('angular');
 
-import {
-  ACCOUNT_SERVICE,
-  INSTANCE_TYPE_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  SUBNET_READ_SERVICE
-} from '@spinnaker/core';
-
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
 module.exports = angular.module('spinnaker.amazon.cache.initializer', [
-  ACCOUNT_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  INSTANCE_TYPE_SERVICE,
-  SUBNET_READ_SERVICE,
   VPC_READ_SERVICE,
 ])
-  .factory('awsCacheConfigurer', function ($q,
-                                         accountService, instanceTypeService,
-                                         subnetReader, vpcReader, loadBalancerReader) {
+  .factory('awsCacheConfigurer', function ($q, subnetReader, vpcReader) {
 
     let config = Object.create(null);
 
-    config.credentials = {
-      initializers: [ () => accountService.listAccounts('aws') ],
-    };
-
+    // cache no longer used; version incremented and retained to clear any existing caches
+    // remove this cache entry any time after June 2018
     config.instanceTypes = {
-      initializers: [ () => instanceTypeService.getAllTypesByRegion('aws') ],
+      version: 3
     };
 
+    // cache no longer used; version incremented and retained to clear any existing caches
+    // remove this cache entry any time after June 2018
     config.loadBalancers = {
-      initializers: [ () => loadBalancerReader.listLoadBalancers('aws') ],
+      version: 2,
     };
 
     config.subnets = {

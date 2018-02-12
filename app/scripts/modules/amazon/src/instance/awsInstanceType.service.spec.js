@@ -14,7 +14,7 @@ describe('Service: InstanceType', function () {
   });
 
 
-  beforeEach(window.inject(function (_awsInstanceTypeService_, _$httpBackend_, _API_, infrastructureCaches) {
+  beforeEach(window.inject(function (_awsInstanceTypeService_, _$httpBackend_, _API_) {
     API = _API_;
     this.awsInstanceTypeService = _awsInstanceTypeService_;
     this.$httpBackend = _$httpBackend_;
@@ -36,10 +36,6 @@ describe('Service: InstanceType', function () {
       {account: 'test', region: 'us-east-1', name: 't2.loltiny', availabilityZone: 'us-east-1c'},
     ];
 
-    infrastructureCaches.createCache('instanceTypes', {});
-    if (infrastructureCaches.get('instanceTypes')) {
-      infrastructureCaches.get('instanceTypes').removeAll();
-    }
   }));
 
   afterEach(function () {

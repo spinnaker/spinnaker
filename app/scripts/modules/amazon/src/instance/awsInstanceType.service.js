@@ -3,13 +3,12 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+import { API_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.instanceType.service', [
   API_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE
 ])
-  .factory('awsInstanceTypeService', function ($http, $q, API, infrastructureCaches) {
+  .factory('awsInstanceTypeService', function ($http, $q, API) {
 
     var m4 = {
       type: 'm4',
@@ -168,21 +167,15 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
     }
 
     var getAllTypesByRegion = function getAllTypesByRegion() {
-      var cached = infrastructureCaches.get('instanceTypes').get('aws');
-      if (cached) {
-        return $q.when(cached);
-      }
       return API.one('instanceTypes').get()
         .then(function (types) {
-          var result = _.chain(types)
+          return _.chain(types)
             .map(function (type) {
               return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };
             })
             .uniqBy('key')
             .groupBy('region')
             .value();
-          infrastructureCaches.get('instanceTypes').put('aws', result);
-          return result;
         });
     };
 

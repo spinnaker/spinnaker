@@ -1,7 +1,6 @@
 import { IPromise, IQService, module } from 'angular';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
-import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
 import { NAMING_SERVICE, NamingService, IComponentName } from 'core/naming/naming.service';
 import { ILoadBalancer, ILoadBalancerSourceData } from 'core/domain';
 
@@ -19,7 +18,7 @@ export interface ILoadBalancersByAccount {
 export class LoadBalancerReader {
 
   public constructor(private $q: IQService, private API: Api, private namingService: NamingService,
-                     private loadBalancerTransformer: any, private infrastructureCaches: InfrastructureCacheService) {
+                     private loadBalancerTransformer: any) {
     'ngInject';
   }
 
@@ -37,7 +36,6 @@ export class LoadBalancerReader {
 
   public listLoadBalancers(cloudProvider: string): IPromise<ILoadBalancersByAccount[]> {
     return this.API.all('loadBalancers')
-      .useCache(this.infrastructureCaches.get('loadBalancers'))
       .withParams({ provider: cloudProvider })
       .getList();
   }
@@ -59,7 +57,6 @@ export const LOAD_BALANCER_READ_SERVICE = 'spinnaker.core.loadBalancer.read.serv
 
 module(LOAD_BALANCER_READ_SERVICE, [
   NAMING_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
   require('./loadBalancer.transformer.js').name,
   API_SERVICE
 ]).service('loadBalancerReader', LoadBalancerReader);
