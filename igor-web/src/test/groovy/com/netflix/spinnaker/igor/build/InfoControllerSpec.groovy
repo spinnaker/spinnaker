@@ -159,7 +159,7 @@ class InfoControllerSpec extends Specification {
             address: server.getUrl('/').toString(),
             username: 'username',
             password: 'password')
-        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host))
+        service = new JenkinsConfig().jenkinsService("jenkins", new JenkinsConfig().jenkinsClient(host), false)
     }
 
     void 'is able to get a job config'() {

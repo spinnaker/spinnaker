@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
+import com.netflix.spinnaker.igor.model.Crumb
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import spock.lang.Shared
@@ -69,6 +70,16 @@ class JenkinsClientSpec extends Specification {
         expect:
         build.number == BUILD_NUMBER
         build.result == 'SUCCESS'
+    }
+
+    void 'gets crumb'() {
+        given:
+        setResponse '<defaultCrumbIssuer _class=\'hudson.security.csrf.DefaultCrumbIssuer\'><crumb>2f70a60a9f993597a565862020bedd5a</crumb><crumbRequestField>Jenkins-Crumb</crumbRequestField></defaultCrumbIssuer>'
+        Crumb crumb = client.getCrumb()
+
+        expect:
+        crumb.crumb == '2f70a60a9f993597a565862020bedd5a'
+        crumb.crumbRequestField == 'Jenkins-Crumb'
     }
 
     void 'correctly retrieves upstream dependencies'() {
@@ -192,11 +203,13 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
 
         when:
-        def response = client.build("My-Build", "")
+        def response = client.build("My-Build", "", crumb)
 
         then:
         response
 
+        where:
+        crumb << [null, 'crumb']
     }
 
     void 'trigger a build with parameters'() {
@@ -204,10 +217,13 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
 
         when:
-        def response = client.buildWithParameters("My-Build", [foo:"bar", key:"value"], "")
+        def response = client.buildWithParameters("My-Build", [foo:"bar", key:"value"], "", crumb)
 
         then:
         response
+
+        where:
+        crumb << [null, 'crumb']
     }
 
     private void setResponse(String body) {
@@ -315,5 +331,16 @@ class JenkinsClientSpec extends Specification {
                 '</lastBuild>' +
                 '</job>' +
                 '</hudson>'
+    }
+
+    private String getCrumb() {
+        return '<defaultCrumbIssuer _class=\'hudson.security.csrf.DefaultCrumbIssuer\'>' +
+            '<crumb>' +
+            '2f70a60a9f993597a565862020bedd5a' +
+            '</crumb>' +
+            '<crumbRequestField>' +
+            'Jenkins-Crumb' +
+            '</crumbRequestField>' +
+            '</defaultCrumbIssuer>'
     }
 }

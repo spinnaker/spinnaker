@@ -51,15 +51,15 @@ class JenkinsConfig {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = ( jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
-            [(host.name): jenkinsService(host.name, jenkinsClient(host, igorConfigurationProperties.client.timeout))]
+            [(host.name): jenkinsService(host.name, jenkinsClient(host, igorConfigurationProperties.client.timeout), host.csrf)]
         })
 
         buildMasters.map.putAll jenkinsMasters
         jenkinsMasters
     }
 
-    static JenkinsService jenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient) {
-        return new JenkinsService(jenkinsHostId, jenkinsClient)
+    static JenkinsService jenkinsService(String jenkinsHostId, JenkinsClient jenkinsClient, Boolean csrf) {
+        return new JenkinsService(jenkinsHostId, jenkinsClient, csrf)
     }
 
     static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, int timeout = 30000) {

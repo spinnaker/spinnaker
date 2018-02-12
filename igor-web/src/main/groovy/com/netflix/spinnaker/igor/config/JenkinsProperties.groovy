@@ -45,6 +45,8 @@ class JenkinsProperties {
         @NotEmpty
         String password
 
+        Boolean csrf = false
+
         // These are needed for Google-based OAuth with a service account credential
         String jsonPath
         List<String> oauthScopes = []

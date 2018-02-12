@@ -16,23 +16,14 @@
 
 package com.netflix.spinnaker.igor.jenkins.client
 
-import com.netflix.spinnaker.igor.jenkins.client.model.Build
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
+import com.netflix.spinnaker.igor.jenkins.client.model.*
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.JobList
-import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
-import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
+import com.netflix.spinnaker.igor.model.Crumb
 import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.EncodedPath
-import retrofit.http.GET
-import retrofit.http.POST
-import retrofit.http.Path
-import retrofit.http.Query
-import retrofit.http.QueryMap
-import retrofit.http.Streaming
+import retrofit.http.*
 
 /**
  * Interface for interacting with a Jenkins Service via Xml
@@ -69,16 +60,16 @@ interface JenkinsClient {
     QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
 
     @POST('/job/{jobName}/build')
-    Response build(@EncodedPath('jobName') String jobName, @Body String emptyRequest)
+    Response build(@EncodedPath('jobName') String jobName, @Body String emptyRequest, @Header("Jenkins-Crumb") String crumb)
 
     @POST('/job/{jobName}/buildWithParameters')
-    Response buildWithParameters(@EncodedPath('jobName') String jobName, @QueryMap Map<String, String> queryParams, @Body String EmptyRequest)
+    Response buildWithParameters(@EncodedPath('jobName') String jobName, @QueryMap Map<String, String> queryParams, @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
 
     @POST('/job/{jobName}/{buildNumber}/stop')
-    Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber,  @Body String EmptyRequest)
+    Response stopRunningBuild(@EncodedPath('jobName') String jobName, @Path('buildNumber') Integer buildNumber,  @Body String EmptyRequest, @Header("Jenkins-Crumb") String crumb)
 
     @POST('/queue/cancelItem')
-    Response stopQueuedBuild(@Query('id') String queuedBuild, @Body String emptyRequest)
+    Response stopQueuedBuild(@Query('id') String queuedBuild, @Body String emptyRequest, @Header("Jenkins-Crumb") String crumb)
 
     @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
     JobConfig getJobConfig(@EncodedPath('jobName') String jobName)
@@ -89,4 +80,6 @@ interface JenkinsClient {
         @EncodedPath('jobName') String jobName,
         @Path('buildNumber') Integer buildNumber, @Path(value = 'fileName', encode = false) String fileName)
 
+    @GET('/crumbIssuer/api/xml')
+    Crumb getCrumb()
 }

@@ -39,6 +39,9 @@ class JenkinsServiceSpec extends Specification {
     JenkinsService service
 
     @Shared
+    JenkinsService csrfService
+
+    @Shared
     MockWebServer server
 
     void setup() {
@@ -50,7 +53,8 @@ class JenkinsServiceSpec extends Specification {
         )
         server.start()
         client = Mock(JenkinsClient)
-        service = new JenkinsService('http://my.jenkins.net', client)
+        service = new JenkinsService('http://my.jenkins.net', client, false)
+        csrfService = new JenkinsService('http://my.jenkins.net', client, true)
     }
 
     void cleanup() {
@@ -94,15 +98,46 @@ class JenkinsServiceSpec extends Specification {
 
         then:
         if (extra_args) {
-            1 * client."${method}"(JOB_ENCODED, *extra_args, '')
+            1 * client."${method}"(JOB_ENCODED, *extra_args, '', null)
         } else {
-            1 * client."${method}"(JOB_ENCODED, '')
+            1 * client."${method}"(JOB_ENCODED, '', null)
         }
+        0 * client.getCrumb()
 
         where:
         method                | extra_args
         'build'               | []
         'buildWithParameters' | [['key': 'value']]
+    }
+
+    @Unroll
+    void 'the "#method" method negotiates a crumb when csrf enabled'() {
+        when:
+        if (extra_args) {
+            service."${method}"(JOB_UNENCODED, *extra_args)
+        } else {
+            service."${method}"(JOB_UNENCODED)
+        }
+
+        then:
+        0 * client.getCrumb()
+
+        when:
+        if (extra_args) {
+            csrfService."${method}"(JOB_UNENCODED, *extra_args)
+        } else {
+            csrfService."${method}"(JOB_UNENCODED)
+        }
+
+        then:
+        1 * client.getCrumb()
+
+        where:
+        method                | extra_args
+        'build'               | []
+        'buildWithParameters' | [['key': 'value']]
+        'stopRunningBuild'    | [1]
+        'stopQueuedBuild'     | []
     }
 
     void 'get a list of projects with the folders plugin'() {
@@ -112,7 +147,7 @@ class JenkinsServiceSpec extends Specification {
             username: 'username',
             password: 'password')
         client = new JenkinsConfig().jenkinsClient(host)
-        service = new JenkinsService('http://my.jenkins.net', client)
+        service = new JenkinsService('http://my.jenkins.net', client, false)
 
         when:
         List<Project> projects = service.projects.list
