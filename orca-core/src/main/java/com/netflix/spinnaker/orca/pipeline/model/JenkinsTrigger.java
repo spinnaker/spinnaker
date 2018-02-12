@@ -22,6 +22,7 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -162,7 +163,7 @@ public class JenkinsTrigger extends Trigger {
       return scm;
     }
 
-    public @Nonnull String getFullDisplayName() {
+    public @JsonIgnore @Nonnull String getFullDisplayName() {
       return name + " #" + number;
     }
 
