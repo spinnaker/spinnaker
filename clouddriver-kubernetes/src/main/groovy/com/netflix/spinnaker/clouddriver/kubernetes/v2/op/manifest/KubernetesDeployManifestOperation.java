@@ -44,7 +44,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class KubernetesDeployManifestOperation implements AtomicOperation<OperationResult> {
@@ -82,6 +84,8 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       log.warn("Relying on deprecated single manifest input: " + description.getManifest());
       inputManifests = Collections.singletonList(description.getManifest());
     }
+
+    inputManifests = inputManifests.stream().filter(Objects::nonNull).collect(Collectors.toList());
 
     List<Artifact> requiredArtifacts = description.getRequiredArtifacts();
     if (requiredArtifacts == null) {
