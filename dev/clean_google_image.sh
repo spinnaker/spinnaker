@@ -47,6 +47,7 @@ for user in $(ls home); do
   fi
 
   if [[ "$user" != "spinnaker" && "$user" != "ubuntu" ]]; then
+    userdel -rf $user
     for file in $etc_files; do
       sed /^$user:.*/d -i etc/${file} || true
       sed /^$user:.*/d -i etc/${file}- || true
@@ -55,11 +56,12 @@ for user in $(ls home); do
   fi
 done
 
-
 # Remove authorized keys
-if [[ -f root/.ssh/authorized_keys ]]; then
-  cat /dev/null > root/.ssh/authorized_keys
-fi
+for homedir in $(cut -d: -f6 etc/passwd | sed 's/^\///'); do
+  if [[ -f ${homedir}/.ssh/authorized_keys ]]; then
+    cat /dev/null > ${homedir}/.ssh/authorized_keys
+  fi
+done
 
 # Remove tmp and log files
 rm -rf tmp/*
