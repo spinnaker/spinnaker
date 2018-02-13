@@ -31,6 +31,7 @@ public class DockerTrigger extends Trigger {
 
   private final String repository;
   private final String tag;
+  private final String account;
 
   @JsonCreator
   public DockerTrigger(
@@ -38,11 +39,13 @@ public class DockerTrigger extends Trigger {
     @JsonProperty("tag") @Nullable String tag,
     @JsonProperty("user") @Nullable String user,
     @JsonProperty("parameters") @Nullable Map<String, Object> parameters,
-    @JsonProperty("artifacts") @Nullable List<Artifact> artifacts
+    @JsonProperty("artifacts") @Nullable List<Artifact> artifacts,
+    @JsonProperty("account") @Nonnull String account
   ) {
     super(user, parameters, artifacts);
     this.repository = repository;
     this.tag = tag;
+    this.account = account;
   }
 
   public @Nonnull String getRepository() {
@@ -51,6 +54,10 @@ public class DockerTrigger extends Trigger {
 
   public @Nullable String getTag() {
     return tag;
+  }
+
+  public @Nonnull String getAccount() {
+    return account;
   }
 
   @Override public boolean equals(Object o) {
