@@ -196,7 +196,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       'sticky-header-3': this.headerIsSticky(),
     });
 
-    const col1ClassName = `col-md-${images ? 9 : 8 } col-sm-6 section-title`;
+    const col1ClassName = `col-md-${images ? 9 : 8 } col-sm-6 section-title horizontal bottom`;
     const col2ClassName = `col-md-${images ? 3 : 4 } col-sm-6 text-right`;
 
     return (
@@ -212,7 +212,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
                   <span className="server-group-sequence"> {this.state.serverGroupSequence}</span>
                   {(hasJenkins || hasImages) && <span>: </span>}
-                  {hasJenkins && <a href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
+                  {hasJenkins && <a className="build-link" href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
                   {hasImages && <span>{images}</span>}
 
                   <EntityNotifications

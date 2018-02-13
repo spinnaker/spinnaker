@@ -18,7 +18,7 @@ export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProp
           <AccountTag account={parentHeading} />
         </div>
 
-        <div className="pod-center">
+        <div className="pod-center horizontal space-between center flex-1">
           <div>
             <span className="glyphicon glyphicon-th"/>
             {' ' + grouping.heading}

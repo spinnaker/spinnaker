@@ -7,7 +7,7 @@
   }
   .server-group-title {
     input {
-      margin-right: 3px;
+      margin: 0 5px 3px 0;
     }
   }
 }
@@ -190,10 +190,7 @@ table.instances {
   font-size: 16px;
   color: var(--color-primary);
   .pod-center {
-    flex: 1 1 auto;
     min-width: 0;
-    display: flex;
-    justify-content: space-between;
     background-color: var(--color-accent-g2);
     padding: 0 10px;
     border-right: 1px solid var(--color-alabaster);
@@ -345,7 +342,7 @@ running-tasks-tag {
   padding: 0;
 
   .section-title {
-    min-height: 24px;
+    margin-bottom: 3px;
     span {
       font-size: 13px;
     }
@@ -368,6 +365,7 @@ running-tasks-tag {
   }
   .pod-subgroup {
     h6 {
+      display: flex;
       text-transform: uppercase;
       margin: 0;
       padding: 10px 10px 5px;
@@ -493,6 +491,10 @@ running-tasks-tag {
   .server-group-sequence {
     text-transform: uppercase;
     font-weight: 600;
+    margin-left: 2px;
+  }
+  .build-link {
+    margin-left: 3px;
   }
   .server-group-title, .subgroup-title {
     padding: 5px 10px 2px;
