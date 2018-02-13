@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollbackSupport.*;
@@ -102,19 +103,41 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
     StageData stageData = stage.mapTo(StageData.class);
     Map<String, Object> cluster;
 
+    AtomicReference<Moniker> moniker = new AtomicReference<>(stageData.moniker);
+    if (moniker.get() == null && stageData.serverGroup != null) {
+      try {
+        Map<String, Object> serverGroup = retrySupport.retry(() -> fetchServerGroup(
+          stageData.credentials,
+          stageData.regions.get(0),
+          stageData.serverGroup
+        ), 5, 1000, false);
+
+        moniker.set(objectMapper.convertValue(serverGroup.get("moniker"), Moniker.class));
+      } catch (Exception e) {
+        logger.warn(
+          "Failed to fetch server group, retrying! (account: {}, region: {}, serverGroup: {})",
+          stageData.credentials,
+          stageData.regions.get(0),
+          stageData.serverGroup,
+          e
+        );
+        return new TaskResult(ExecutionStatus.RUNNING);
+      }
+    }
+
     try {
       cluster = retrySupport.retry(() -> fetchCluster(
-        stageData.moniker.getApp(),
+        moniker.get().getApp(),
         stageData.credentials,
-        stageData.moniker.getCluster(),
+        moniker.get().getCluster(),
         stageData.cloudProvider
       ), 5, 1000, false);
     } catch (Exception e) {
       logger.warn(
         "Failed to fetch cluster, retrying! (application: {}, account: {}, cluster: {}, cloudProvider: {})",
-        stageData.moniker.getApp(),
+        moniker.get().getApp(),
         stageData.credentials,
-        stageData.moniker.getCluster(),
+        moniker.get().getCluster(),
         stageData.cloudProvider,
         e
       );
@@ -177,11 +200,14 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
         Map<String, Object> rollbackContext = new HashMap<>(rollbackDetails.rollbackContext);
         rollbackContext.put(
           "targetHealthyRollbackPercentage",
-          stageData.targetHealthRollbackPercentage
+          determineTargetHealthyRollbackPercentage(
+            newestEnabledServerGroupInRegion.capacity,
+            stageData.targetHealthyRollbackPercentage
+          )
         );
 
         rollbackTypes.put(region, rollbackDetails.rollbackType.toString());
-        rollbackContexts.put(region, rollbackDetails.rollbackContext);
+        rollbackContexts.put(region, rollbackContext);
 
         ImmutableMap.Builder<Object, Object> imageToRestore = ImmutableMap.builder()
           .put("region", region)
@@ -212,6 +238,17 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
                                            String cloudProvider) {
     try {
       Response response = oortService.getCluster(application, credentials, cluster, cloudProvider);
+      return (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private Map<String, Object> fetchServerGroup(String account,
+                                               String region,
+                                               String serverGroup) {
+    try {
+      Response response = oortService.getServerGroup(account, region, serverGroup);
       return (Map<String, Object>) objectMapper.readValue(response.getBody().in(), Map.class);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -283,11 +320,37 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
     );
   }
 
+  private static Integer determineTargetHealthyRollbackPercentage(Capacity currentCapacity,
+                                                                  Integer targetHealthyRollbackPercentageOverride) {
+    if (targetHealthyRollbackPercentageOverride != null) {
+      return targetHealthyRollbackPercentageOverride;
+    }
+
+    if (currentCapacity == null || currentCapacity.desired == null) {
+      return 100;
+    }
+
+    /*
+     * This logic is equivalent to what `deck` has implemented around manual rollbacks.
+     *
+     * https://github.com/spinnaker/deck/blob/master/app/scripts/modules/amazon/src/serverGroup/details/rollback/rollbackServerGroup.controller.js#L44
+     */
+    if (currentCapacity.desired < 10) {
+      return 100;
+    } else if (currentCapacity.desired < 20) {
+      // accept 1 instance in an unknown state during rollback
+      return 90;
+    }
+
+    return 95;
+  }
+
   private static class StageData {
     public String credentials;
     public String cloudProvider;
+    public String serverGroup;
 
-    public Integer targetHealthRollbackPercentage = 100;
+    public Integer targetHealthyRollbackPercentage;
 
     public Moniker moniker;
     public List<String> regions;
@@ -299,6 +362,7 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
     public Long createdTime;
     public Boolean disabled;
 
+    public Capacity capacity;
     public Image image;
     public BuildInfo buildInfo;
 
@@ -309,6 +373,12 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
     public String getBuildNumber() {
       return (buildInfo != null && buildInfo.jenkins != null) ? buildInfo.jenkins.number : null;
     }
+  }
+
+  public static class Capacity {
+    public Integer min;
+    public Integer max;
+    public Integer desired;
   }
 
   private static class Image {
@@ -332,9 +402,9 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
     String buildNumber;
 
     RollbackDetails(RollbackServerGroupStage.RollbackType rollbackType,
-                           Map<String, String> rollbackContext,
-                           String imageName,
-                           String buildNumber) {
+                    Map<String, String> rollbackContext,
+                    String imageName,
+                    String buildNumber) {
       this.rollbackType = rollbackType;
       this.rollbackContext = rollbackContext;
       this.imageName = imageName;

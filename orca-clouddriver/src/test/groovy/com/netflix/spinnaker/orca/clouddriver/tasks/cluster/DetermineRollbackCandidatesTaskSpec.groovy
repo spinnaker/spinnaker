@@ -23,6 +23,9 @@ import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
+
+import static DetermineRollbackCandidatesTask.determineTargetHealthyRollbackPercentage
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 
@@ -49,16 +52,28 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     ]
   }
 
+  @Unroll
   def "should build EXPLICIT rollback context when there are _only_ previous server groups"() {
+    given:
+    stage.context.putAll(additionalStageContext)
+
     when: "there are previous server groups but no entity tags"
     def result = task.execute(stage)
 
     then:
+    (shouldFetchServerGroup ? 1 : 0) * oortService.getServerGroup("test", "us-west-2", "servergroup-v001") >> {
+      return buildResponse([
+        moniker: [
+          app    : "app",
+          cluster: "app-stack-details"
+        ]
+      ])
+    }
     1 * oortService.getCluster("app", "test", "app-stack-details", "aws") >> {
       return buildResponse([
         serverGroups: [
-          buildServerGroup("servergroup-v000", "us-west-2", 50, true, [name: "my_image-0"], [:]),
-          buildServerGroup("servergroup-v001", "us-west-2", 100, false, [name: "my_image-1"], [:])
+          buildServerGroup("servergroup-v000", "us-west-2", 50, true, [name: "my_image-0"], [:], 5),
+          buildServerGroup("servergroup-v001", "us-west-2", 100, false, [name: "my_image-1"], [:], 5)
         ]
       ])
     }
@@ -68,15 +83,23 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
         [region: "us-west-2", image: "my_image-0", rollbackMethod: "EXPLICIT"]
       ]
     ]
-    result.outputs.rollbackTypes == [
-      "us-west-2": "EXPLICIT"
-    ]
-    result.outputs.rollbackContexts == [
-      "us-west-2": [
-        rollbackServerGroupName: "servergroup-v001",
-        restoreServerGroupName : "servergroup-v000"
+    result.outputs == [
+      rollbackTypes   : [
+        "us-west-2": "EXPLICIT"
+      ],
+      rollbackContexts: [
+        "us-west-2": [
+          rollbackServerGroupName        : "servergroup-v001",
+          restoreServerGroupName         : "servergroup-v000",
+          targetHealthyRollbackPercentage: 100
+        ]
       ]
     ]
+
+    where:
+    additionalStageContext                           || shouldFetchServerGroup
+    [:]                                              || false                   // stage context includes moniker, no need to fetch server group
+    [moniker: null, serverGroup: "servergroup-v001"] || true
   }
 
   def "should build PREVIOUS_IMAGE rollback context when there are _only_ entity tags"() {
@@ -87,7 +110,7 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     1 * oortService.getCluster("app", _, "app-stack-details", _) >> {
       return buildResponse([
         serverGroups: [
-          buildServerGroup("servergroup-v001", "us-west-2", 100, false, [:], [:]),
+          buildServerGroup("servergroup-v001", "us-west-2", 100, false, [:], [:], 80),
         ]
       ])
     }
@@ -100,16 +123,35 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
         [region: "us-west-2", image: "my_image-0", buildNumber: "5", rollbackMethod: "PREVIOUS_IMAGE"]
       ]
     ]
-    result.outputs.rollbackTypes == [
-      "us-west-2": "PREVIOUS_IMAGE"
-    ]
-    result.outputs.rollbackContexts == [
-      "us-west-2": [
-        rollbackServerGroupName: "servergroup-v001",
-        "imageId"              : "ami-xxxxx0",
-        "imageName"            : "my_image-0"
+    result.outputs == [
+      rollbackTypes   : [
+        "us-west-2": "PREVIOUS_IMAGE"
+      ],
+      rollbackContexts: [
+        "us-west-2": [
+          rollbackServerGroupName          : "servergroup-v001",
+          "imageId"                        : "ami-xxxxx0",
+          "imageName"                      : "my_image-0",
+          "targetHealthyRollbackPercentage": 95             // calculated based on `capacity.desired` of server group
+        ]
       ]
     ]
+  }
+
+  @Unroll
+  def "should calculate 'targetHealthyRollbackPercentage' when not explicitly provided"() {
+    given:
+    def capacity = new DetermineRollbackCandidatesTask.Capacity(min: 1, max: 100, desired: desired)
+
+    expect:
+    determineTargetHealthyRollbackPercentage(capacity, override) == expectedTargetHealthyRollbackPercentage
+
+    where:
+    desired | override || expectedTargetHealthyRollbackPercentage
+    3       | null     || 100
+    50      | null     || 95
+    10      | null      | 90
+    10      | 100       | 100
   }
 
   private Response buildResponse(Object value) {
@@ -127,14 +169,20 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
                                       Long createdTime,
                                       Boolean disabled,
                                       Map image,
-                                      Map buildInfo) {
+                                      Map buildInfo,
+                                      int desiredCapacity) {
     return [
       name       : name,
       region     : region,
       createdTime: createdTime,
       disabled   : disabled,
       image      : image,
-      buildInfo  : buildInfo
+      buildInfo  : buildInfo,
+      capacity   : [
+        min    : 0,
+        max    : desiredCapacity * 2,
+        desired: desiredCapacity
+      ]
     ]
   }
 

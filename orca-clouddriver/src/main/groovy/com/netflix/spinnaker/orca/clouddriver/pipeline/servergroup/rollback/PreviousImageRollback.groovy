@@ -89,7 +89,7 @@ class PreviousImageRollback implements Rollback {
       region                       : parentStageContext.region,
       credentials                  : parentStageContext.credentials,
       cloudProvider                : parentStageContext.cloudProvider,
-      source: [
+      source                       : [
         asgName          : rollbackServerGroupName,
         serverGroupName  : rollbackServerGroupName,
         account          : parentStageContext.credentials,
@@ -98,6 +98,11 @@ class PreviousImageRollback implements Rollback {
         useSourceCapacity: true
       ]
     ]
+
+    if (parentStageContext.containsKey("sourceServerGroupCapacitySnapshot")) {
+      cloneServerGroupContext.source.useSourceCapacity = false
+      cloneServerGroupContext.capacity = parentStageContext.sourceServerGroupCapacitySnapshot
+    }
 
     if (parentStageContext.containsKey("interestingHealthProviderNames")) {
       cloneServerGroupContext.interestingHealthProviderNames = parentStageContext.interestingHealthProviderNames

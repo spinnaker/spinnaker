@@ -19,7 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import spock.lang.Specification
-import spock.lang.Subject;
+import spock.lang.Subject
+import spock.lang.Unroll;
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
@@ -76,5 +77,24 @@ class RollbackClusterStageSpec extends Specification {
     then:
     afterStages*.type == ["rollbackServerGroup"]
     afterStages*.context.region == ["us-east-1"]
+  }
+
+  @Unroll
+  def "should propagate 'interestingHealthProviderNames' and 'sourceServerGroupCapacitySnapshot' to child rollback stage"() {
+    given:
+    def stage = (stageContext == null) ? null : stage { context = stageContext }
+
+    expect:
+    RollbackClusterStage.propagateParentStageContext(stage) == expectedPropagations
+
+    where:
+    stageContext                                                       || expectedPropagations
+    null                                                               || [:]
+    [:]                                                                || [:]
+    [foo: "bar"]                                                       || [:]
+    [interestingHealthProviderNames: null]                             || [interestingHealthProviderNames: null]            // do not care if value is null
+    [interestingHealthProviderNames: ["Amazon"]]                       || [interestingHealthProviderNames: ["Amazon"]]
+    [sourceServerGroupCapacitySnapshot: null]                          || [sourceServerGroupCapacitySnapshot: null]         // do not care if value is null
+    [sourceServerGroupCapacitySnapshot: [min: 0, max: 10, desired: 5]] || [sourceServerGroupCapacitySnapshot: [min: 0, max: 10, desired: 5]]
   }
 }

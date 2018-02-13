@@ -87,6 +87,9 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       context.put("credentials", stageData.credentials);
       context.put("cloudProvider", stageData.cloudProvider);
 
+      // propagate any attributes of the parent stage that are relevant to this rollback
+      context.putAll(propagateParentStageContext(stage.getParent()));
+
       stages.add(
         newStage(
           stage.getExecution(),
@@ -114,6 +117,28 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
     }
 
     return stages;
+  }
+
+  private static Map<String, Object> propagateParentStageContext(Stage parent) {
+    Map<String, Object> contextToPropagate = new HashMap<>();
+
+    if (parent == null) {
+      return contextToPropagate;
+    }
+
+    Map<String, Object> parentStageContext = parent.getContext();
+    if (parentStageContext.containsKey("interestingHealthProviderNames")) {
+      // propagate any health overrides that have been set on a parent stage (ie. rollback on failed deploy)
+      contextToPropagate.put("interestingHealthProviderNames", parentStageContext.get("interestingHealthProviderNames"));
+    }
+
+    if (parentStageContext.containsKey("sourceServerGroupCapacitySnapshot")) {
+      // in the case of rolling back a failed deploy, this is the capacity that should be restored!
+      // ('sourceServerGroupCapacitySnapshot' represents the original capacity before any pinning has occurred)
+      contextToPropagate.put("sourceServerGroupCapacitySnapshot", parentStageContext.get("sourceServerGroupCapacitySnapshot"));
+    }
+
+    return contextToPropagate;
   }
 
   static class StageData {

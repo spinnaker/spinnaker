@@ -117,16 +117,17 @@ class PreviousImageRollbackSpec extends Specification {
   }
 
   @Unroll
-  def "should include interestingHealthProviderNames in clone stage context when present in parent"() {
+  def "should include interestingHealthProviderNames when present in parent stage context"() {
     given:
-    rollback.imageName = "explicit_image"
+    rollback.imageName = "my_image"
     stage.context.putAll(additionalContext)
 
     when:
     def allStages = rollback.buildStages(stage)
+    def rollbackStageContext = allStages[0].context
 
     then:
-    allStages[0].context.containsKey("interestingHealthProviderNames") == hasInterestingHealthProviderNames
+    rollbackStageContext.containsKey("interestingHealthProviderNames") == hasInterestingHealthProviderNames
 
     where:
     additionalContext                            || hasInterestingHealthProviderNames
@@ -134,7 +135,27 @@ class PreviousImageRollbackSpec extends Specification {
     [interestingHealthProviderNames: null]       || true
     [interestingHealthProviderNames: ["Amazon"]] || true
     [interestingHealthProviderNames: []]         || true
+  }
 
+  @Unroll
+  def "should include capacity when sourceServerGroupCapacitySnapshot present in parent stage context"() {
+    given:
+    rollback.imageName = "my_image"
+    stage.context.putAll(additionalContext)
+
+    when:
+    def allStages = rollback.buildStages(stage)
+    def rollbackStageContext = allStages[0].context
+
+    then:
+    rollbackStageContext.source.useSourceCapacity == expectedUseSourceCapacity
+    rollbackStageContext.capacity == expectedCapacity
+
+
+    where:
+    additionalContext                                                  || expectedUseSourceCapacity || expectedCapacity
+    [:]                                                                || true                      || null
+    [sourceServerGroupCapacitySnapshot: [min: 0, max: 10, desired: 5]] || false                     || [min: 0, max: 10, desired: 5]
   }
 
   def "should raise exception if no image found"() {

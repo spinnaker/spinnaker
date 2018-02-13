@@ -64,7 +64,10 @@ class ExplicitRollback implements Rollback {
       parentStage.execution, enableServerGroupStage.type, "enable", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
-    stages << buildCaptureSourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))
+    if (!parentStage.getContext().containsKey("sourceServerGroupCapacitySnapshot")) {
+      // capacity has been previously captured (likely as part of a failed deploy), no need to do again!
+      stages << buildCaptureSourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))
+    }
 
     Map resizeServerGroupContext = new HashMap(parentStage.context) + [
       action                       : ResizeStrategy.ResizeAction.scale_to_server_group.toString(),

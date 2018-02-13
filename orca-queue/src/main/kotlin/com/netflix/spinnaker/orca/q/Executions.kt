@@ -100,6 +100,9 @@ fun Stage.syntheticStages(): List<Stage> =
 fun Stage.beforeStages(): List<Stage> =
   syntheticStages().filter { it.syntheticStageOwner == STAGE_BEFORE }
 
+fun Stage.afterStages(): List<Stage> =
+  syntheticStages().filter { it.syntheticStageOwner == STAGE_AFTER }
+
 fun Stage.allBeforeStagesComplete(): Boolean =
   beforeStages().all { it.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED) }
 

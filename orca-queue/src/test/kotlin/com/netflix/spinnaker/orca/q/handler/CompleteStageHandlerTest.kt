@@ -36,23 +36,7 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.orca.q.CancelStage
-import com.netflix.spinnaker.orca.q.CompleteExecution
-import com.netflix.spinnaker.orca.q.CompleteStage
-import com.netflix.spinnaker.orca.q.ContinueParentStage
-import com.netflix.spinnaker.orca.q.DummyTask
-import com.netflix.spinnaker.orca.q.RunTask
-import com.netflix.spinnaker.orca.q.StartStage
-import com.netflix.spinnaker.orca.q.buildSyntheticStages
-import com.netflix.spinnaker.orca.q.buildTasks
-import com.netflix.spinnaker.orca.q.get
-import com.netflix.spinnaker.orca.q.multiTaskStage
-import com.netflix.spinnaker.orca.q.pipeline
-import com.netflix.spinnaker.orca.q.singleTaskStage
-import com.netflix.spinnaker.orca.q.stage
-import com.netflix.spinnaker.orca.q.stageWithParallelBranches
-import com.netflix.spinnaker.orca.q.stageWithSyntheticAfter
-import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
+import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
@@ -121,7 +105,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         stageWithSyntheticBefore,
         stageWithSyntheticAfter,
         stageWithParallelBranches,
-        stageWithTaskAndAfterStages
+        stageWithTaskAndAfterStages,
+        stageWithSyntheticOnFailure
       )
     )
   }
@@ -951,6 +936,49 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         val errors = exceptionErrors(pipeline.stages)
         errors.size shouldEqual 1
         expressionError in errors
+      }
+    }
+  }
+
+  setOf(TERMINAL).forEach { taskStatus ->
+    given("a stage ends with $taskStatus status") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          type = stageWithSyntheticOnFailure.type
+          stageWithSyntheticOnFailure.buildSyntheticStages(this)
+          stageWithSyntheticOnFailure.plan(this)
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        pipeline.stageById(message.stageId).apply {
+          status = RUNNING
+          tasks.first().status = taskStatus
+        }
+
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      on("receiving the message") {
+        subject.handle(message)
+      }
+
+      afterGroup(::resetMocks)
+
+      it("plans the first 'OnFailure' stage") {
+        val onFailureStage = pipeline.stages.first { it.name.equals("onFailure1") }
+        verify(queue).push(StartStage(onFailureStage))
+      }
+
+      on("receiving the message again") {
+        subject.handle(message)
+      }
+
+      it("does not re-plan any 'OnFailure' stages") {
+        verify(queue).push(CancelStage(message))
       }
     }
   }
