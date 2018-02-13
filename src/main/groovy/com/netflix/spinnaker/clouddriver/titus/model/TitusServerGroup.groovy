@@ -40,6 +40,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   List<String> securityGroups
   List<String> hardConstraints
   List<String> softConstraints
+  List<String> targetGroups = []
   Set<TitusSecurityGroup> securityGroupDetails
   Map env
   Long submittedAt

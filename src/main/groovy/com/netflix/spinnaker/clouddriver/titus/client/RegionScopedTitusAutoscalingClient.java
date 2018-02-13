@@ -36,7 +36,7 @@ public class RegionScopedTitusAutoscalingClient implements TitusAutoscalingClien
   /**
    * Default connect timeout in milliseconds
    */
-  private static final long DEFAULT_CONNECT_TIMEOUT = 5000;
+  private static final long DEFAULT_CONNECT_TIMEOUT = 60000;
 
   private final AutoScalingServiceGrpc.AutoScalingServiceBlockingStub autoScalingServiceBlockingStub;
 

@@ -32,6 +32,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
@@ -43,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.titus.caching.TitusCachingProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
+import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
@@ -58,7 +60,11 @@ import javax.inject.Provider
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*
 
 class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, OnDemandAgent {
@@ -69,12 +75,14 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
     AUTHORITATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
+    INFORMATIVE.forType(TARGET_GROUPS.ns),
     AUTHORITATIVE.forType(INSTANCES.ns)
   ] as Set)
 
   private final TitusCloudProvider titusCloudProvider
   private final TitusClient titusClient
   private final TitusAutoscalingClient titusAutoscalingClient
+  private final TitusLoadBalancerClient titusLoadBalancerClient
   private final NetflixTitusCredentials account
   private final String region
   private final ObjectMapper objectMapper
@@ -104,6 +112,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     )
     this.titusClient = titusClientProvider.getTitusClient(account, region)
     this.titusAutoscalingClient = titusClientProvider.getTitusAutoscalingClient(account, region)
+    this.titusLoadBalancerClient = titusClientProvider.getTitusLoadBalancerClient(account, region)
     this.awsLookupUtil = awsLookupUtil
     this.pollIntervalMillis = pollIntervalMillis
     this.timeoutMillis = timeoutMillis
@@ -273,8 +282,10 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     Map<String, CacheData> clusters = createCache()
     Map<String, CacheData> serverGroups = createCache()
     Map<String, CacheData> instances = createCache()
+    Map<String, CacheData> targetGroups = createCache()
     List<ScalingPolicyResult> allScalingPolicies = titusAutoscalingClient ? titusAutoscalingClient.getAllScalingPolicies() : []
     // Ignore policies in a Deleted state (may need to revisit)
+    Map<String, String> allLoadBalancers = titusLoadBalancerClient ? titusLoadBalancerClient.allLoadBalancers : [:]
     List cacheablePolicyStates = [ScalingPolicyState.Pending, ScalingPolicyState.Applied, ScalingPolicyState.Deleting]
     Map<String, TitusSecurityGroup> titusSecurityGroupCache = [:]
 
@@ -284,8 +295,8 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
           new ScalingPolicyData(id: it.id.id, policy: it.scalingPolicy, status: it.policyState) :
           null
       }
-
-      return new ServerGroupData(job, scalingPolicies, account.name, region, account.stack)
+      List<String> loadBalancers = allLoadBalancers.get(job.id) ?: []
+      return new ServerGroupData(job, scalingPolicies, loadBalancers, account.name, region, account.stack)
     }
 
     serverGroupDatas.each { data ->
@@ -301,6 +312,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
        (CLUSTERS.ns)     : clusters.values(),
        (SERVER_GROUPS.ns): serverGroups.values(),
        (INSTANCES.ns)    : instances.values(),
+       (TARGET_GROUPS.ns): targetGroups.values(),
        (ON_DEMAND.ns)    : onDemandKeep.values()
       ],
       [(ON_DEMAND.ns): onDemandEvict]
@@ -312,6 +324,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       attributes.name = data.name.app
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
     }
   }
 
@@ -320,6 +333,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       attributes.name = data.name.cluster
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
     }
   }
 
@@ -346,15 +360,16 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
           // tasks are cached independently as instances so avoid the overhead of also storing on the serialized job
           def jobTasks = job.tasks
           job.tasks = []
-
           attributes.job = job
           attributes.scalingPolicies = policies
           attributes.tasks = jobTasks.collect { [id: it.id, instanceId: it.instanceId] }
           attributes.region = region
           attributes.account = account.name
+          attributes.targetGroups = data.targetGroupNames
           relationships[APPLICATIONS.ns].add(data.appName)
           relationships[CLUSTERS.ns].add(data.cluster)
           relationships[INSTANCES.ns].addAll(data.instanceIds)
+          relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
           for (Job.TaskSummary task : jobTasks) {
             def instanceData = new InstanceData(job, task, account.name, region, account.stack)
             cacheInstance(instanceData, instances)
@@ -362,6 +377,16 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
         } catch (Exception e) {
           log.error("Failed to cache ${data.job.name} in ${account.name}", e)
         }
+      }
+    }
+  }
+
+
+  private void cacheTargetGroups(ServerGroupData data, Map<String, CacheData> targetGroups) {
+    for (String targetGroupKey : data.targetGroupKeys) {
+      targetGroups[targetGroupKey].with {
+        relationships[APPLICATIONS.ns].add(data.appName)
+        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
   }
@@ -399,9 +424,11 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     final String serverGroup
     final Set<String> instanceIds
     final String region
+    final Set<String> targetGroupKeys
+    final Set<String> targetGroupNames
     final String account
 
-    ServerGroupData(Job job, List<ScalingPolicyData> scalingPolicies, String account, String region, String stack) {
+    ServerGroupData(Job job, List<ScalingPolicyData> scalingPolicies, List<String> targetGroups, String account, String region, String stack) {
       this.job = job
       this.scalingPolicies = scalingPolicies
 
@@ -426,8 +453,17 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       this.account = account
       serverGroup = Keys.getServerGroupKey(job.name, account, region)
       instanceIds = (job.tasks.id.collect {
-        Keys.getInstanceKey(it, getAwsAccountId(account), stack, region)
+        Keys.getInstanceKey(it, getAwsAccountId(account, region), stack, region)
       } as Set).asImmutable()
+
+      targetGroupNames = (targetGroups.collect {
+        ArnUtils.extractTargetGroupName(it).get()
+      } as Set).asImmutable()
+
+      targetGroupKeys = (targetGroupNames.collect {
+        com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(it, getAwsAccountId(account, region), region,getAwsVpcId(account, region))
+      } as Set).asImmutable()
+
     }
   }
 
@@ -443,8 +479,12 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     }
   }
 
-  private String getAwsAccountId(String account) {
+  private String getAwsAccountId(String account, String region) {
     awsLookupUtil.get().awsAccountId(account, region)
+  }
+
+  private String getAwsVpcId(String account, String region) {
+    awsLookupUtil.get().awsVpcId(account, region)
   }
 
   private class InstanceData {
@@ -457,7 +497,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     public InstanceData(Job job, Job.TaskSummary task, String account, String region, String stack) {
       this.job = job
       this.task = task
-      this.instanceId = Keys.getInstanceKey(task.id, getAwsAccountId(account), stack, region)
+      this.instanceId = Keys.getInstanceKey(task.id, getAwsAccountId(account, region), stack, region)
       this.serverGroup = job.name
       this.imageId = "${job.applicationName}:${job.version}"
     }

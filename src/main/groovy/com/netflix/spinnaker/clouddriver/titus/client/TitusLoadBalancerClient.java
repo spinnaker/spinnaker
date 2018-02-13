@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.titus.client;
 import com.netflix.titus.grpc.protogen.LoadBalancerId;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TitusLoadBalancerClient {
 
@@ -28,5 +29,7 @@ public interface TitusLoadBalancerClient {
   void addLoadBalancer(String jobId, String loadBalancerId);
 
   void removeLoadBalancer(String jobId, String loadBalancerId);
+
+  Map<String, List<String>> getAllLoadBalancers();
 
 }

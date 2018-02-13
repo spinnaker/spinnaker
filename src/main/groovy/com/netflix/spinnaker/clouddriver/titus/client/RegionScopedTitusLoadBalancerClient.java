@@ -28,14 +28,17 @@ import io.grpc.netty.shaded.io.grpc.netty.NegotiationType;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.util.RoundRobinLoadBalancerFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerClient {
 
   /**
    * Default connect timeout in milliseconds
    */
-  private static final long DEFAULT_CONNECT_TIMEOUT = 5000;
+  private static final long DEFAULT_CONNECT_TIMEOUT = 60000;
 
   private final LoadBalancerServiceGrpc.LoadBalancerServiceBlockingStub loadBalancerServiceBlockingStub;
 
@@ -78,6 +81,22 @@ public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerCli
   @Override
   public void removeLoadBalancer(String jobId, String loadBalancerId) {
     loadBalancerServiceBlockingStub.removeLoadBalancer(RemoveLoadBalancerRequest.newBuilder().setJobId(jobId).setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build()).build());
+  }
+
+  public Map<String, List<String>> getAllLoadBalancers() {
+    Map<String, List<String>> results = new HashMap<>();
+    for (GetJobLoadBalancersResult result : loadBalancerServiceBlockingStub.getAllLoadBalancers(GetAllLoadBalancersRequest.newBuilder().setPage(Page.newBuilder().setPageSize(1000).build()).build()).getJobLoadBalancersList()) {
+      for (LoadBalancerId loadBalancerid : result.getLoadBalancersList()) {
+        if(results.get(result.getJobId()) == null){
+          List<String> loadBalancers = new ArrayList<>();
+          loadBalancers.add(loadBalancerid.getId());
+          results.put(result.getJobId(), loadBalancers);
+        } else {
+          results.get(result.getJobId()).add(loadBalancerid.getId());
+        }
+      }
+    }
+    return results;
   }
 
 }
