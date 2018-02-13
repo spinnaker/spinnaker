@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -28,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
 
 @Component
 @Slf4j
@@ -51,8 +54,14 @@ public class HalconfigValidator extends Validator<Halconfig> {
       }
 
       if (Versions.lessThan(runningVersion, latestVersion)) {
-        p.addProblem(Problem.Severity.WARNING, "There is a newer version of Halyard available (" + latestVersion + "), please update when possible")
-            .setRemediation("sudo apt-get update && sudo apt-get upgrade spinnaker-halyard");
+        ConfigProblemBuilder problemBuilder = p.addProblem(Problem.Severity.WARNING, "There is a newer version of Halyard available (" + latestVersion + "), please update when possible");
+
+        File updateScript = new File("/usr/local/bin/update-halyard");
+        if (updateScript.exists() && !updateScript.isDirectory()) {
+          problemBuilder.setRemediation("Run 'sudo update-halyard' to upgrade");
+        } else {
+          problemBuilder.setRemediation("Run 'sudo apt-get update && sudo apt-get upgrade spinnaker-halyard -y' to upgrade");
+        }
       }
     } catch (Exception e) {
       log.warn("Unexpected error comparing versions: " + e);
