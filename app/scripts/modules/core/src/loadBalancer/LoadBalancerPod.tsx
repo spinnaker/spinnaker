@@ -36,7 +36,7 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
             <div className="heading-tag">
               <AccountTag account={parentHeading}/>
             </div>
-            <div className="pod-center">
+            <div className="pod-center horizontal space-between center flex-1">
               <div>
                 {grouping.heading}
               </div>
