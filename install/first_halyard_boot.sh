@@ -137,19 +137,19 @@ function replace_startup_script() {
 # The GCE VM that is running this script must have the following scope:
 # - https://www.googleapis.com/auth/cloud-platform
 function enable_apis() {
-  gcloud service-management enable storage-api.googleapis.com
+  gcloud services enable storage-api.googleapis.com
 
   # gcr_enabled is automatically set if either kube_enabled or appengine_enabled is set
   local gcr_enabled=$(get_instance_metadata_attribute "gcr_enabled")
   if [ -n "$gcr_enabled" ]; then
-    gcloud service-management enable containerregistry.googleapis.com
-    gcloud service-management enable iam.googleapis.com
-    gcloud service-management enable cloudresourcemanager.googleapis.com
+    gcloud services enable containerregistry.googleapis.com
+    gcloud services enable iam.googleapis.com
+    gcloud services enable cloudresourcemanager.googleapis.com
   fi
 
   local appengine_enabled=$(get_instance_metadata_attribute "appengine_enabled")
   if [ -n "$appengine_enabled" ]; then
-    gcloud service-management enable appengine.googleapis.com
+    gcloud services enable appengine.googleapis.com
   fi
 }
 

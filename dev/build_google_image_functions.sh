@@ -66,7 +66,7 @@ function extract_clean_prototype_disk() {
     fi
   done
 
-  if ! gcloud compute copy-files  \
+  if ! gcloud compute scp  \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \

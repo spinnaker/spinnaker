@@ -14,15 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PYTHONPATH=/opt/spinnaker/pylib python /opt/spinnaker/install/codelab_config.py
-echo "debianRepository: http://$(hostname):9999/ trusty main" \
-    > /opt/spinnaker/config/rosco-local.yml
-chown spinnaker:spinnaker /opt/spinnaker/config/rosco-local.yml
+hal config ci jenkins enable
+echo admin | hal config ci jenkins master add CodelabJenkins --address http://localhost:5656 --username admin --password
 
-cat <<EOF > /opt/spinnaker/config/clouddriver-local.yml
+sudo -u ubuntu echo "debianRepository: http://$(hostname):9999/ trusty main" \
+    > ~ubuntu/.hal/default/profiles/rosco-local.yml
+
+sudo -u ubuntu cat <<EOF > ~ubuntu/.hal/default/profiles/clouddriver-local.yml
 credentials:
   challengeDestructiveActionsEnvironments:
 EOF
-chown spinnaker:spinnaker /opt/spinnaker/config/clouddriver-local.yml
 
-/opt/spinnaker/install/first_google_boot.sh
+/var/spinnaker/startup/first_halyard_boot.sh
