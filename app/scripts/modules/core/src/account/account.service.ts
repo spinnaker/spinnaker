@@ -153,7 +153,7 @@ export class AccountService {
       .withParams({ expand: true })
       .get()
       .then((accounts: IAccountDetails[]) => accounts.filter(account => !provider || account.type === provider))
-      .then((accounts: IAccountDetails[]) => accounts.filter(account => !providerVersion || account.type === providerVersion));
+      .then((accounts: IAccountDetails[]) => accounts.filter(account => !providerVersion || account.providerVersion === providerVersion));
   }
 
   public listAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
