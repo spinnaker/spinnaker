@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.fasterxml.jackson.annotation.JsonRawValue
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.databind.JsonNode
 import groovy.transform.Canonical
 import groovy.transform.EqualsAndHashCode
 import retrofit.http.GET
@@ -63,11 +66,31 @@ interface MortService {
     String type
     String id
     String name
-    String description
+    Object description
     String accountName
     String region
     String vpcId
     List<Map> inboundRules
+
+    //Custon Jackson settings to handle either String or JSON Object for description
+    @JsonRawValue
+    String getDescription() {
+      return description != null ? description.toString() : null
+    }
+
+    void setDescription(String description) {
+      this.description = description
+    }
+
+    @JsonSetter('description')
+    void setDescription(JsonNode node) {
+      // If it's a simple text node, unwrap it to its value
+      if (node.textual) {
+        this.description = node.textValue()
+      } else {
+        this.description = node
+      }
+    }
 
     @Canonical
     static class SecurityGroupIngress {
