@@ -115,6 +115,9 @@ module(KUBERNETES_V2_MODULE, [
       instance: {
         detailsController: 'kubernetesV2InstanceDetailsCtrl',
         detailsTemplateUrl: require('./instance/details/details.html'),
-      }
+      },
+      unsupportedStageTypes: [
+        'deploy',
+      ],
     });
   });

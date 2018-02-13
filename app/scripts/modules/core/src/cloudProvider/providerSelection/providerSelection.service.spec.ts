@@ -8,6 +8,24 @@ import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvid
 import { PROVIDER_SELECTION_SERVICE, ProviderSelectionService } from './providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
 
+import { IAccountDetails } from 'core/account/account.service';
+
+function fakeAccount(provider: string): IAccountDetails {
+  return {
+    cloudProvider: provider,
+    accountId: 'foobaraccount',
+    name: 'foo-bar-account',
+    requiredGroupMembership: [],
+    type: 'foobaraccount',
+    accountType: 'foo',
+    authorized: true,
+    challengeDestructiveActions: true,
+    environment: 'foo-env',
+    primaryAccount: true,
+    regions: [],
+  };
+}
+
 describe('providerSelectionService: API', () => {
 
   let cloudProvider: any;
@@ -43,9 +61,9 @@ describe('providerSelectionService: API', () => {
       }));
 
   let hasValue: boolean,
-      providers: string[];
+    accounts: IAccountDetails[];
   beforeEach(() => {
-    spyOn(accountService, 'listProviders').and.callFake(() => $q.when(providers));
+    spyOn(accountService, 'applicationAccounts').and.callFake(() => $q.when(accounts));
     spyOn(cloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
     spyOn($modal, 'open').and.callFake(() => {
       return {
@@ -70,7 +88,7 @@ describe('providerSelectionService: API', () => {
   beforeEach(() => {
 
     hasValue = false;
-    providers = [];
+    accounts = [];
     delete SETTINGS.defaultProvider;
 
     application = applicationBuilder.createApplication('app');
@@ -110,7 +128,7 @@ describe('providerSelectionService: API', () => {
 
     let provider = '';
     hasValue = true;
-    providers = ['testProvider'];
+    accounts = [fakeAccount('testProvider')];
     cloudProvider.registerProvider('testProvider', config);
     providerService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
@@ -123,7 +141,7 @@ describe('providerSelectionService: API', () => {
 
     let provider = '';
     hasValue = true;
-    providers = ['testProvider'];
+    accounts = [fakeAccount('testProvider')];
     config.securityGroup.useProvider = 'titus';
     cloudProvider.registerProvider('testProvider', config);
     providerService.selectProvider(application, 'securityGroup').then((_provider) => {
@@ -137,7 +155,7 @@ describe('providerSelectionService: API', () => {
 
     let provider = '';
     hasValue = true;
-    providers = ['aws', 'titus'];
+    accounts = [fakeAccount('aws'), fakeAccount('titus')];
     cloudProvider.registerProvider('aws', { securityGroup: {} });
     cloudProvider.registerProvider('titus', { securityGroup: { useProvider: 'aws' } });
 
@@ -152,7 +170,7 @@ describe('providerSelectionService: API', () => {
 
     let provider = '';
     hasValue = true;
-    providers = ['aws', 'titus', 'testProvider'];
+    accounts = [fakeAccount('aws'), fakeAccount('titus'), fakeAccount('testProvider')];
     cloudProvider.registerProvider('aws', { securityGroup: {} });
     cloudProvider.registerProvider('titus', { securityGroup: { useProvider: 'aws' } });
     cloudProvider.registerProvider('testProvider', config);
@@ -162,5 +180,39 @@ describe('providerSelectionService: API', () => {
     });
     $scope.$digest();
     expect(provider).toBe('modalProvider');
+  });
+
+  it('should not return a filtered provider', () => {
+    let provider = '';
+    hasValue = true;
+    const k8s = fakeAccount('kubernetes');
+    k8s.providerVersion = 'v2';
+    accounts = [k8s];
+    cloudProvider.registerProvider('kubernetes', config);
+    SETTINGS.defaultProvider = 'defaultProvider';
+
+    const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
+    providerService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('defaultProvider');
+  });
+
+  it('should not launch a modal if one of two providers is filtered out by filter function', () => {
+    let provider = '';
+    hasValue = true;
+    const k8s = fakeAccount('kubernetes');
+    k8s.providerVersion = 'v2';
+    accounts = [k8s, fakeAccount('titus')];
+    cloudProvider.registerProvider('titus', config);
+    cloudProvider.registerProvider('kubernetes', config);
+
+    const filterFn = (_app: Application, acc: IAccountDetails) =>  acc.cloudProvider !== 'kubernetes';
+    providerService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('titus');
   });
 });

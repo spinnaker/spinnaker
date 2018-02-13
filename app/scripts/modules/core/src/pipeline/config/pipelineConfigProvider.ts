@@ -1,9 +1,10 @@
 import { auto, IServiceProvider, module } from 'angular';
-import { isNil, cloneDeep, intersection, memoize } from 'lodash';
+import { uniq, isNil, cloneDeep, intersection, memoize } from 'lodash';
 import { $log } from 'ngimport';
 
 import { Application } from 'core/application/application.model';
 import { IExecution, IStage, ITriggerTypeConfig, IStageTypeConfig, IArtifactKindConfig, IStageOrTriggerTypeConfig } from 'core/domain';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider/cloudProvider.registry';
 import { SETTINGS } from 'core/config/settings';
 
 import { IAccountDetails } from 'core/account/account.service';
@@ -20,7 +21,7 @@ export class PipelineConfigProvider implements IServiceProvider {
   private transformers: ITransformer[] = [];
   private artifactKinds: IArtifactKindConfig[] = [];
 
-  constructor() {
+  constructor(private cloudProviderRegistryProvider: CloudProviderRegistry) {
     this.getStageConfig = memoize(this.getStageConfig.bind(this),
       (stage: IStage) => [stage ? stage.type : '', stage ? stage.cloudProvider || stage.cloudProviderType || 'aws' : ''].join(':'));
   }
@@ -91,7 +92,8 @@ export class PipelineConfigProvider implements IServiceProvider {
     return cloneDeep(this.artifactKinds);
   }
 
-  private getCloudProvidersForStage(type: IStageTypeConfig, allStageTypes: IStageTypeConfig[], providers: string[]): string[] {
+  private getCloudProvidersForStage(type: IStageTypeConfig, allStageTypes: IStageTypeConfig[], accounts: IAccountDetails[]): string[] {
+    let providers = Array.from(new Set(accounts.map(acc => acc.cloudProvider)));
     let cloudProviders: string[] = [];
     if (type.providesFor) {
       cloudProviders = type.providesFor;
@@ -107,7 +109,13 @@ export class PipelineConfigProvider implements IServiceProvider {
         }
       });
     } else {
-      cloudProviders = providers;
+      cloudProviders = uniq(accounts.reduce((memo, acc) => {
+        const p = this.cloudProviderRegistryProvider.getProvider(acc.cloudProvider, acc.providerVersion);
+        if (!isExcludedStageType(type, p)) {
+          memo.push(acc.cloudProvider);
+        }
+        return memo;
+      }, []));
     }
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
     const dockerBakeEnabled = SETTINGS.feature.dockerBake && type.key === 'bake';
@@ -127,13 +135,12 @@ export class PipelineConfigProvider implements IServiceProvider {
     if (providers.length === 0) {
       return configurableStageTypes;
     }
-    configurableStageTypes.forEach(type => type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, providers));
+    configurableStageTypes.forEach(type => type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, accounts));
     // remove stage types where all given provider accounts are explicitly excluded by that type
     configurableStageTypes = configurableStageTypes.filter(type => {
       return !accounts.every(a => {
-        return !!((type.excludedCloudProviders || []).find(p => {
-          return p.cloudProvider === a.cloudProvider && p.providerVersion === a.providerVersion;
-        }));
+        const p = this.cloudProviderRegistryProvider.getProvider(a.cloudProvider, a.providerVersion);
+        return isExcludedStageType(type, p);
       });
     });
     return configurableStageTypes
@@ -227,6 +234,12 @@ export class PipelineConfigProvider implements IServiceProvider {
   }
 }
 
+function isExcludedStageType(type: IStageTypeConfig, provider: ICloudProviderConfig) {
+  if (!provider || !provider.unsupportedStageTypes) {
+    return false;
+  }
+  return provider.unsupportedStageTypes.indexOf(type.key) > -1;
+}
+
 export const PIPELINE_CONFIG_PROVIDER = 'spinnaker.core.pipeline.config.configProvider';
-module(PIPELINE_CONFIG_PROVIDER, [])
-  .provider('pipelineConfig', PipelineConfigProvider);
+module(PIPELINE_CONFIG_PROVIDER, [CLOUD_PROVIDER_REGISTRY]).provider('pipelineConfig', PipelineConfigProvider);

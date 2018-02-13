@@ -34,16 +34,6 @@ const gcpProviderAccount = Object.assign({}, mockProviderAccount, {
   providerVersion: 'foo',
 });
 
-const k8sV1ProviderAccount = Object.assign({}, mockProviderAccount, {
-  cloudProvider: 'kubernetes',
-  providerVersion: 'v1',
-});
-
-const k8sV2ProviderAccount = Object.assign({}, mockProviderAccount, {
-  cloudProvider: 'kubernetes',
-  providerVersion: 'v2',
-});
-
 describe('pipelineConfigProvider: API', function() {
   let configurer: PipelineConfigProvider,
       service: PipelineConfigProvider;
@@ -166,42 +156,6 @@ describe('pipelineConfigProvider: API', function() {
       it('filters out stages that do not support passed in providers', mock.inject(function () {
         configurer.registerStage({ key: 'a', providesFor: ['aws', 'gcp'] } as IStageTypeConfig);
         expect(service.getConfigurableStageTypes([titusProviderAccount])).toEqual([]);
-      }));
-
-      it('filters out stages that explicitly exclude a passed in provider', mock.inject(function() {
-        const nonK8sStage = {
-          key: 'b',
-          excludedCloudProviders: [k8sV2ProviderAccount]
-        } as IStageTypeConfig;
-        configurer.registerStage({ key: 'a' });
-        configurer.registerStage(nonK8sStage);
-        const configurableStageTypes = service.getConfigurableStageTypes([k8sV2ProviderAccount]);
-        expect(configurableStageTypes).toEqual([{ key: 'a', cloudProviders: ['kubernetes'] }]);
-      }));
-
-      it('filters out stages that explicitly exclude all passed in providers', mock.inject(function() {
-        const nonK8sStage = {
-          key: 'b',
-          excludedCloudProviders: [k8sV2ProviderAccount, awsProviderAccount],
-        } as IStageTypeConfig;
-        configurer.registerStage({ key: 'a' });
-        configurer.registerStage(nonK8sStage);
-        const configurableStageTypes = service.getConfigurableStageTypes([awsProviderAccount, k8sV2ProviderAccount]);
-        expect(configurableStageTypes).toEqual([{ key: 'a', cloudProviders: ['aws', 'kubernetes'] }]);
-      }));
-
-      it('does not filter out stages that exclude a provider with same name but different version to that passed in', mock.inject(function() {
-        const excludesV2ButNotV1 = {
-          key: 'a',
-          excludedCloudProviders: [k8sV2ProviderAccount],
-        } as IStageTypeConfig;
-        configurer.registerStage(excludesV2ButNotV1);
-        const configurableStageTypes = service.getConfigurableStageTypes([k8sV1ProviderAccount, k8sV2ProviderAccount]);
-        expect(configurableStageTypes).toEqual([{
-          key: 'a',
-          cloudProviders: ['kubernetes'],
-          excludedCloudProviders: [k8sV2ProviderAccount],
-        }]);
       }));
     });
 

@@ -161,8 +161,8 @@ export class AccountService {
       .then((accounts) => accounts.filter((account) => account.authorized !== false));
   }
 
-  public applicationAccounts(application: Application = null): Promise<IAccountDetails[]> {
-    return Promise.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
+  public applicationAccounts(application: Application = null): IPromise<IAccountDetails[]> {
+    return this.$q.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
       return providers.reduce((memo, p) => {
         return memo.concat(accounts.filter(acc => acc.cloudProvider === p));
       }, [] as IAccountDetails[]);
