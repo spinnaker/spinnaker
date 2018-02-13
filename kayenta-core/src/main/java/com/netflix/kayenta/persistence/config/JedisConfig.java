@@ -44,7 +44,9 @@ public class JedisConfig {
                          connectionInfo.getHost(),
                          connectionInfo.getPort(),
                          timeout,
-                         connectionInfo.getPassword());
+                         connectionInfo.getPassword(),
+                         connectionInfo.getDatabase(),
+                         null /* clientName */);
   }
 
   @Bean
