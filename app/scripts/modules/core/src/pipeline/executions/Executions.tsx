@@ -140,18 +140,29 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     );
   };
 
-  private triggerPipeline(): void {
+  private startManualExecutionClicked(): void {
+    this.triggerPipeline();
+  }
+
+  private triggerPipeline(pipeline: IPipeline = null): void {
     ReactGA.event({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
     // TODO: Convert the modal to react
     ReactInjector.modalService.open({
       templateUrl: require('../manualExecution/manualPipelineExecution.html'),
       controller: 'ManualPipelineExecutionCtrl as vm',
       resolve: {
-        pipeline: (): IPipeline => null,
+        pipeline: () => pipeline,
         application: () => this.props.app,
       }
-    }).result.then((command) => this.startPipeline(command)).catch(() => {});
+    }).result
+      .then((command) => this.startPipeline(command))
+      .catch(() => {})
+      .finally(() => this.clearManualExecutionParam());
   };
+
+  private clearManualExecutionParam(): void {
+    ReactInjector.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
+  }
 
   private scrollIntoView(delay = 200): void {
     ReactInjector.scrollToService.scrollTo('#execution-' + ReactInjector.$stateParams.executionId, '.all-execution-groups', 225, delay);
@@ -198,6 +209,15 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       this.updateExecutionGroups();
       if (ReactInjector.$stateParams.executionId) {
         this.scrollIntoView();
+      }
+      const nameOrIdToStart = ReactInjector.$stateParams.startManualExecution;
+      if (nameOrIdToStart) {
+        const toStart = app.pipelineConfigs.data.find((p: IPipeline) => [p.id, p.name].includes(nameOrIdToStart));
+        if (toStart) {
+          this.triggerPipeline(toStart);
+        } else {
+          this.clearManualExecutionParam();
+        }
       }
     });
   }
@@ -290,7 +310,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                 <div className="form-group pull-right">
                   <a
                     className="btn btn-sm btn-primary clickable"
-                    onClick={this.triggerPipeline}
+                    onClick={this.startManualExecutionClicked}
                     style={{ pointerEvents: triggeringExecution ? 'none' : 'auto' }}
                   >
                     {triggeringExecution && (

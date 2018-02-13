@@ -63,7 +63,7 @@ module(PIPELINE_STATES, [
 
   const executions: INestedState = {
     name: 'executions',
-    url: `?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
+    url: `?startManualExecution&${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
     views: {
       'pipelines': { component: Executions, $type: 'react' },
     },
