@@ -29,6 +29,7 @@ import com.netflix.titus.grpc.protogen.ScalingPolicy
 import com.netflix.titus.grpc.protogen.ScalingPolicyID
 import com.netflix.titus.grpc.protogen.ScalingPolicyResult
 import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
+import com.netflix.titus.grpc.protogen.UpdatePolicyRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -62,57 +63,41 @@ class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
       throw new UnsupportedOperationException("Autoscaling is not supported for this account/region")
     }
 
-    ScalingPolicyResult previousPolicy
-
     if (description.scalingPolicyID) {
 
-      previousPolicy = client.getScalingPolicy(description.scalingPolicyID)
-
-      task.updateStatus BASE_PHASE, "Deleting previous scaling policy (${description.scalingPolicyID})..."
-
-      DeletePolicyRequest.Builder deleteRequestBuilder = DeletePolicyRequest.newBuilder()
-        .setId(ScalingPolicyID.newBuilder().setId(description.scalingPolicyID))
-
-      client.deleteScalingPolicy(deleteRequestBuilder.build())
-
-      task.updateStatus BASE_PHASE, "Deleted previous scaling policy (${description.scalingPolicyID}); monitoring deletion"
-
       retrySupport.retry({ ->
-        ScalingPolicyResult updatedPolicy = client.getScalingPolicy(description.scalingPolicyID)
-        if (!updatedPolicy || (updatedPolicy.getPolicyState().state != ScalingPolicyState.Deleted)) {
-          throw new IllegalStateException("Previous policy was not deleted after 45 seconds")
-        }
-      }, 5000, 10, false)
+        client.updateScalingPolicy(
+          UpdatePolicyRequest.newBuilder()
+            .setScalingPolicy(description.toScalingPolicyBuilder().build())
+            .setPolicyId(ScalingPolicyID.newBuilder().setId(description.scalingPolicyID).build())
+            .build()
+        )
+      }, 10, 3000, false)
 
-      task.updateStatus BASE_PHASE, "Previous scaling policy successfully deleted"
-    }
+      task.updateStatus BASE_PHASE, "Scaling policy successfully updated"
 
-    ScalingPolicy.Builder builder = description.toScalingPolicyBuilder()
+      return [scalingPolicyID: description.scalingPolicyID]
+    } else {
+      ScalingPolicy.Builder builder = description.toScalingPolicyBuilder()
 
-    Builder requestBuilder = PutPolicyRequest.newBuilder()
-      .setScalingPolicy(builder)
-      .setJobId(description.jobId)
+      Builder requestBuilder = PutPolicyRequest.newBuilder()
+        .setScalingPolicy(builder)
+        .setJobId(description.jobId)
 
-    task.updateStatus BASE_PHASE, "Create Scaling Policy request constructed, sending..."
+      task.updateStatus BASE_PHASE, "Create Scaling Policy request constructed, sending..."
 
-    ScalingPolicyID result = client.upsertScalingPolicy(requestBuilder.build())
+      ScalingPolicyID result = client.createScalingPolicy(requestBuilder.build())
 
-    task.updateStatus BASE_PHASE, "Create Scaling Policy succeeded; new policy ID: ${result.id}; monitoring creation..."
+      task.updateStatus BASE_PHASE, "Create Scaling Policy succeeded; new policy ID: ${result.id}; monitoring creation..."
 
-    // make sure the new policy was applied
-    try {
+      // make sure the new policy was applied
       verifyNewPolicyState(client, result)
-    } catch (IllegalStateException e) {
-      if (previousPolicy) {
-        log.info("New policy creation failed; attempting to restore previous policy")
-        client.upsertScalingPolicy(PutPolicyRequest.newBuilder().setScalingPolicy(previousPolicy.scalingPolicy).build())
-      }
-      throw e
+
+      task.updateStatus BASE_PHASE, "Scaling policy successfully created"
+
+      return [scalingPolicyID: result.id]
     }
 
-    task.updateStatus BASE_PHASE, "Scaling policy successfully created"
-
-    return [scalingPolicyID: result.id]
   }
 
   private void verifyNewPolicyState(client, result) {

@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client;
 
-import com.netflix.titus.grpc.protogen.DeletePolicyRequest;
-import com.netflix.titus.grpc.protogen.PutPolicyRequest;
-import com.netflix.titus.grpc.protogen.ScalingPolicyID;
-import com.netflix.titus.grpc.protogen.ScalingPolicyResult;
+import com.netflix.titus.grpc.protogen.*;
 
 import java.util.List;
 
@@ -31,7 +28,9 @@ public interface TitusAutoscalingClient {
 
   ScalingPolicyResult getScalingPolicy(String policyId);
 
-  ScalingPolicyID upsertScalingPolicy(PutPolicyRequest policy);
+  ScalingPolicyID createScalingPolicy(PutPolicyRequest policy);
+
+  void updateScalingPolicy(UpdatePolicyRequest policy);
 
   void deleteScalingPolicy(DeletePolicyRequest request);
 }
