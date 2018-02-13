@@ -138,6 +138,16 @@ class AwsLookupUtil {
     }?.accountId
   }
 
+  String awsVpcId(account, region){
+    Map awsDetails = awsAccountLookup.find {
+      it.titusAccount == account && it.region == region
+    }
+    if(!awsDetails){
+      return null
+    }
+    awsDetails.vpcId
+  }
+
   String stack(account){
     accountCredentialsProvider.all.find {
       it instanceof NetflixTitusCredentials && it.name == account
