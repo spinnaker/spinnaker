@@ -20,15 +20,15 @@
 # specifically for creating a new (running) codelab image out of a fresh
 # spinnaker image.
 
+if ! hal --version; then
+  echo "Spinnaker is not installed. Look at http://www.spinnaker.io for installation instructions."
+  exit 1
+fi
+
 set -e
 
 if [[ `/usr/bin/id -u` -ne 0 ]]; then
   echo "$0 must be executed with root permissions; exiting"
-  exit 1
-fi
-
-if [[ ! -d "/opt/spinnaker/pylib" ]]; then
-  echo "Spinnaker is not installed. Look at http://www.spinnaker.io for installation instructions."
   exit 1
 fi
 
@@ -41,7 +41,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # we don't want to update these. see github.com/spinnaker/spinnaker/issues/1279
 # for context.
-SPINNAKER_SUBSYSTEMS="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-fiat spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker"
+SPINNAKER_SUBSYSTEMS="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-fiat spinnaker-front50 spinnaker-gate spinnaker-halyard spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker"
 
 apt-mark hold $SPINNAKER_SUBSYSTEMS
 # update apt
@@ -52,22 +52,27 @@ apt-mark unhold $SPINNAKER_SUBSYSTEMS
 
 # acquire and configure jenkins
 apt-get install -y git
-wget http://pkg.jenkins-ci.org/debian/binary/jenkins_2.1_all.deb
+wget https://pkg.jenkins.io/debian-stable/binary/jenkins_2.89.3_all.deb
 # dpkg partially installs jenkins and fails
-dpkg -i jenkins_2.1_all.deb || true
-rm -f jenkins_2.1_all.deb
+dpkg -i jenkins_2.89.3_all.deb || true
+rm -f jenkins_2.89.3_all.deb
 
 # finish installing jenkins and its dependencies
 apt-get -f -y install
 sed -i "s/HTTP_PORT=.*/HTTP_PORT=5656/" /etc/default/jenkins
 
 # as jenkins, configure aptly
-cd /home/jenkins
-wget https://dl.bintray.com/smira/aptly/0.9.5/debian-squeeze-x64/aptly
-chown jenkins /home/jenkins/aptly
-sudo -u jenkins -H sh -c "chmod +x aptly"
-sudo -u jenkins -H sh -c "/home/jenkins/aptly repo create hello"
-sudo -u jenkins -H sh -c '/home/jenkins/aptly publish repo -architectures="amd64,i386" -component=main -distribution=trusty -skip-signing=true hello'
+JENKINS_HOMEDIR=~jenkins
+
+cd $JENKINS_HOMEDIR
+touch keep_user
+wget https://dl.bintray.com/smira/aptly/aptly_1.2.0_linux_amd64.tar.gz
+tar -xf aptly_1.2.0_linux_amd64.tar.gz
+rm aptly_1.2.0_linux_amd64.tar.gz
+
+sudo -u jenkins ln -s aptly_1.2.0_linux_amd64/aptly aptly
+sudo -u jenkins -H sh -c "./aptly repo create hello"
+sudo -u jenkins -H sh -c './aptly publish repo -architectures="amd64,i386" -component=main -distribution=trusty -skip-signing=true hello'
 
 # as jenkins, configure jenkins config directory
 # this storage bucket is public so we can pull the jenkins config from anywhere
@@ -91,7 +96,7 @@ cat > $nginx_default <<EOF
 server {
         listen 9999 default_server;
         listen [::]:9999 default_server ipv6only=on;
-        root /home/jenkins/.aptly/public;
+        root $JENKINS_HOMEDIR/.aptly/public;
         index index.html index.htm;
         server_name localhost;
         location / {
@@ -100,15 +105,8 @@ server {
 }
 EOF
 
-mv $(dirname $0)/first_codelab_boot.sh /opt/spinnaker/install
-chmod 755 /opt/spinnaker/install/first_codelab_boot.sh
-chown spinnaker:spinnaker /opt/spinnaker/install/first_codelab_boot.sh
 
-mv $(dirname $0)/codelab_config.py /opt/spinnaker/install
-chmod 644 /opt/spinnaker/install/codelab_config.py
-chown spinnaker:spinnaker /opt/spinnaker/install/codelab_config.py
+mv $(dirname $0)/first_codelab_boot.sh /var/spinnaker/startup
+chmod 755 /var/spinnaker/startup/first_codelab_boot.sh
+chown spinnaker:spinnaker /var/spinnaker/startup/first_codelab_boot.sh
 
-service nginx restart
-
-service spinnaker restart
-service apache2 restart
