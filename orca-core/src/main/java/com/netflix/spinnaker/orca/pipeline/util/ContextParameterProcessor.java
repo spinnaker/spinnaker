@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.orca.pipeline.expressions.ExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
@@ -45,7 +46,7 @@ public class ContextParameterProcessor {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final static ObjectMapper mapper = new ObjectMapper();
+  private final static ObjectMapper mapper = OrcaObjectMapper.newInstance();
 
   private ExpressionEvaluator expressionEvaluator;
 
