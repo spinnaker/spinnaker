@@ -192,6 +192,7 @@ class SecurityGroupsImpl extends React.Component<IWizardPageProps & FormikProps<
                   value={securityGroups}
                   options={availableSecurityGroups}
                   onChange={this.handleSecurityGroupsChanged}
+                  clearable={false}
                 />
               )}
             </div>
