@@ -3,6 +3,7 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.longrunning.Operation;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -50,6 +51,11 @@ public class DaemonTask<C, T> {
     this.version = Optional.ofNullable(DaemonTask.class
         .getPackage()
         .getImplementationVersion()).orElse("Unknown");
+  }
+
+  public Operation getLRO() {
+    // TODO(brnelson): This shouldn't do this, it should set name to name and add the UUID as metadata.
+    return Operation.newBuilder().setName(this.uuid).setDone(this.state.isTerminal()).build();
   }
 
   void newStage(String name) {

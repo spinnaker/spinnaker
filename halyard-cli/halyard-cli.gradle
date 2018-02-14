@@ -4,6 +4,7 @@ dependencies {
   compile project(':halyard-config')
   compile project(':halyard-core')
   compile project(':halyard-deploy')
+  compile project(':halyard-proto')
 }
 
 apply plugin: 'java'

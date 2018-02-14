@@ -1,4 +1,5 @@
 apply plugin: 'org.springframework.boot'
+apply plugin: 'com.google.protobuf'
 apply plugin: 'spinnaker.package'
 
 ext {
@@ -30,7 +31,11 @@ dependencies {
   compile project(':halyard-cli')
   compile project(':halyard-config')
   compile project(':halyard-core')
-  compile project(':halyard-deploy')
+  compile project(':halyard-deploy')  
+  compile project(':halyard-proto')
+
+  compile('org.lognet:grpc-spring-boot-starter:2.1.4')
+  compile 'com.google.guava:guava:23.5-jre'
 }
 
 tasks.bootRepackage.enabled = project.repackage

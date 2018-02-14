@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "google/longrunning/operations.proto";
+
+package spinnaker.halyard;
+
+option java_package = "com.netflix.spinnaker.halyard.proto";
+option java_multiple_files = true;
+
+service Deployments {
+  // A Service for instructing Halyard to begin a deployment with the provided
+  // config.
+  rpc DeployConfig(DeployConfigRequest) returns (google.longrunning.Operation) {
+  }
+}
+
+message DeployConfigRequest {
+  string name = 1;
+  bytes config = 2;
+}

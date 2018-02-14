@@ -99,6 +99,7 @@ public class DaemonResponse<T> {
     private Supplier<K> buildResponse;
     private Supplier<ProblemSet> validateResponse;
     private Severity severity = Severity.WARNING;
+    private Runnable setup = () -> {};
 
     public StaticRequestBuilder(Supplier<K> buildResponse) {
       this.buildResponse = buildResponse;
@@ -112,6 +113,7 @@ public class DaemonResponse<T> {
       K responseBody;
       ProblemSet problemSet = new ProblemSet();
       try {
+        setup.run();
         if (validateResponse != null) {
           problemSet = validateResponse.get();
         }

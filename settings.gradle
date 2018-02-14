@@ -21,6 +21,7 @@ include 'halyard-cli'
 include 'halyard-config'
 include 'halyard-core'
 include 'halyard-deploy'
+include 'halyard-proto'
 include 'halyard-web'
 
 def setBuildFile(project) {

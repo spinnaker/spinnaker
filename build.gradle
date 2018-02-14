@@ -26,6 +26,7 @@ buildscript {
   dependencies {
     classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.16.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
   }
 }
 

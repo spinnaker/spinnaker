@@ -34,6 +34,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -95,6 +96,22 @@ public class HalconfigParser {
     } catch (IllegalArgumentException e) {
       throw e;
     }
+  }
+
+  /**
+   * Parse Halyard's config for inmemory usage. HalConfigs parsed with this function will NOT be written to disk for
+   * persistence.
+   *
+   * @param is is the input stream to read from.
+   * @return the fully parsed halconfig.
+   * @see Halconfig
+   */
+  public Halconfig setInmemoryHalConfig(ByteArrayInputStream is) throws IllegalArgumentException {
+    Halconfig halconfig = parseHalconfig(is);
+
+    DaemonTaskHandler.setContext(halconfig);
+
+    return halconfig;
   }
 
   private InputStream getHalconfigStream() throws FileNotFoundException {

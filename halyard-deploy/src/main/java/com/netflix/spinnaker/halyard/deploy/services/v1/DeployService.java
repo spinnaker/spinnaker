@@ -216,7 +216,8 @@ public class DeployService {
     return action;
   }
 
-  public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String> serviceNames) {
+  public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String>
+      serviceNames) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
