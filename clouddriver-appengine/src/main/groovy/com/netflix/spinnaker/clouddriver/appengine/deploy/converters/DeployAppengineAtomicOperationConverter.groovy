@@ -27,9 +27,11 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import groovy.util.logging.Slf4j
 
 @AppengineOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component
+@Slf4j
 class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Autowired
   ObjectMapper objectMapper
@@ -45,13 +47,17 @@ class DeployAppengineAtomicOperationConverter extends AbstractAtomicOperationsCr
       description.artifact = objectMapper.convertValue(input.artifact, Artifact)
       switch (description.artifact.type) {
         case 'gcs/object':
-          description.repositoryUrl = description.artifact.reference;
+          description.repositoryUrl = description.artifact.reference
           if (!description.repositoryUrl.startsWith('gs://')) {
             description.repositoryUrl = "gs://${description.repositoryUrl}"
           }
           break
         case 'docker/image':
-          description.containerImageUrl = description.artifact.name;
+          if (description.artifact.reference) {
+            description.containerImageUrl = description.artifact.reference
+          } else if (description.artifact.name) {
+            description.containerImageUrl = description.artifact.name
+          }
           break
         default:
           throw new AppengineDescriptionConversionException("Invalid artifact type for Appengine deploy: ${description.artifact.type}")
