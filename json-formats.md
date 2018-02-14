@@ -12,8 +12,16 @@ Atlas and Stackdriver are used.
 ```JSON
 {
   "name": "MySampleAtlasCanaryConfig",
-  "description": "Example Automated Canary Analysis (ACA) Configuration using Atlas",
-  "configVersion": 1.0,
+  "description": "Example Kayenta Configuration using Atlas",
+  "configVersion": "1.0",
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": {
+    }
+  },
   "metrics": [
     {
       "name": "cpu",
@@ -21,12 +29,9 @@ Atlas and Stackdriver are used.
         "type": "atlas",
         "q": "name,CpuRawUser,:eq,:sum,name,numProcs,:eq,:sum,:div"
       },
-      "analysisConfigurations": {
-        "canary": {
-          "judge": "dredd-v1.0"
-        }
-      },
-      "groups": ["system"]
+      "groups": ["system"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
     },
     {
       "name": "requests",
@@ -34,10 +39,9 @@ Atlas and Stackdriver are used.
         "type": "atlas",
         "q": "name,apache.http.requests,:eq,:sum"
       },
-      "analysisConfigurations": {
-        "canary": { }
-      },
-      "groups": ["requests"]
+      "groups": ["requests"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
     }
   ],
   "classifier": {
@@ -55,21 +59,27 @@ Atlas and Stackdriver are used.
 ```JSON
 {
   "name": "MySampleStackdriverCanaryConfig",
-  "description": "Example Automated Canary Analysis (ACA) Configuration using Stackdriver",
-  "configVersion": 1.0,
+  "description": "Example Kayenta Configuration using Stackdriver",
+  "configVersion": "1.0",
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": {
+    }
+  },
   "metrics": [
     {
       "name": "cpu",
       "query": {
         "type": "stackdriver",
-        "metricType": "compute.googleapis.com/instance/cpu/utilization"
+        "metricType": "compute.googleapis.com/instance/cpu/utilization",
+        "serviceType": "stackdriver"
       },
-      "analysisConfigurations": {
-        "canary": {
-          "judge": "dredd-v1.0"
-        }
-      },
-      "groups": ["system"]
+      "groups": ["system"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
     }
   ],
   "classifier": {
@@ -91,16 +101,18 @@ Data retrieved is immutable; however, it could be copied and used again
 to re-run with different thresholds.
 
 ```JSON
-{
-  "results": [
-    {
-      "name": "cpu",
-      "tags": {"tagName": "tagValue"},
-      "values": {
-        "control": [ 1, 2, 3, 4, 5 ],
-        "experiment": [ 1, 2, 3, 4, 5 ]
-      }
-    }
-  ]
-}
+[
+  {
+    "name": "cpu",
+    "tags": {"tagName": "tagValue"},
+    "values": {
+      "control": [ 1, 2, 3, 4, 5 ],
+      "experiment": [ 1, 2, 3, 4, 5 ]
+    },
+    "attributes": {"query", "..."},
+    "startTimeMillis": 1516046700000,
+    "startTimeIso": "2018-01-15T20:05:00Z",
+    "stepMillis": 3600000
+  }
+]
 ```
