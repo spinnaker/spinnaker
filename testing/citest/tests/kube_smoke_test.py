@@ -408,8 +408,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('StatefulSet Added', retryable_for_secs=60)
        .get_resources(
-          'statefulsets', extra_args=[self.TEST_APP +
-          self.POSTFIX_STATEFUL_DAEMONSET, '--namespace', self.TEST_NAMESPACE])
+          'statefulsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
+                          '--namespace', self.TEST_NAMESPACE])
        .contains_path_value('kind', 'StatefulSet'))
       return st.OperationContract(
           self.new_post_operation(
@@ -462,9 +462,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('Daemonset Added', retryable_for_secs=15)
        .get_resources(
-          'daemonsets', extra_args=[self.TEST_APP +
-                                    self.POSTFIX_STATEFUL_DAEMONSET,
-                                    '--namespace', self.TEST_NAMESPACE])
+          'daemonsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
+                        '--namespace', self.TEST_NAMESPACE])
        .contains_path_value('kind', 'DaemonSet'))
       return st.OperationContract(
           self.new_post_operation(
@@ -699,9 +698,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('Daemonset Deleted', retryable_for_secs=15)
        .get_resources(
-          'daemonsets', extra_args=[self.TEST_APP +
-                                    self.POSTFIX_STATEFUL_DAEMONSET, '--namespace',
-                                    self.TEST_NAMESPACE], no_resource_ok=True)
+          'daemonsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
+                        '--namespace',self.TEST_NAMESPACE], no_resource_ok=True)
        .contains_path_eq('targetSize', 0))
       return st.OperationContract(
           self.new_post_operation(
@@ -722,9 +720,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       builder = kube.KubeContractBuilder(self.kube_observer)
       (builder.new_clause_builder('StatefulSet Deleted', retryable_for_secs=15)
        .get_resources(
-          'statefulsets', extra_args=[self.TEST_APP +
-                                      self.POSTFIX_STATEFUL_DAEMONSET, '--namespace',
-                                      self.TEST_NAMESPACE], no_resource_ok=True)
+          'statefulsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
+                          '--namespace',self.TEST_NAMESPACE], no_resource_ok=True)
        .contains_path_eq('targetSize', 0))
       return st.OperationContract(
           self.new_post_operation(
