@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.io.Serializable;
-import java.util.*;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -28,6 +24,12 @@ import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.util.*;
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
@@ -36,6 +38,8 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toMap;
 
 public class Execution implements Serializable {
+
+  public static final DefaultTrigger NO_TRIGGER = new DefaultTrigger("none");
 
   public Execution(ExecutionType type, String application) {
     this(type, UUID.randomUUID().toString(), application);
@@ -229,7 +233,7 @@ public class Execution implements Serializable {
     this.origin = origin;
   }
 
-  private Trigger trigger = null;
+  private Trigger trigger = NO_TRIGGER;
 
   public @Nonnull Trigger getTrigger() {
     return trigger;

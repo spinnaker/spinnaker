@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import static com.google.common.collect.Maps.filterValues;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.NO_TRIGGER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
@@ -504,7 +505,7 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
       }
       execution.setKeepWaitingPipelines(Boolean.parseBoolean(map.get("keepWaitingPipelines")));
       execution.setOrigin(map.get("origin"));
-      execution.setTrigger(mapper.readValue(map.get("trigger"), Trigger.class));
+      execution.setTrigger(map.get("trigger") != null ? mapper.readValue(map.get("trigger"), Trigger.class) : NO_TRIGGER);
     } catch (Exception e) {
       throw new ExecutionSerializationException("Failed serializing execution json", e);
     }
