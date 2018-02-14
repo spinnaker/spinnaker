@@ -117,8 +117,7 @@ html {
   }
   .filters-content, .nav-content, .details-panel, .main-content {
     width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: visible;
 
     display: flex;
     flex-direction: column;
@@ -133,6 +132,7 @@ html {
     }
   }
   .filters-content {
+    overflow-x: hidden;
     @media (min-width: 708px) and (max-width: 992px) {
       font-size: 90%;
       h3 {
