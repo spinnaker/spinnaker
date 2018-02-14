@@ -35,6 +35,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import static com.netflix.spinnaker.orca.ExecutionStatus.*;
+import static java.lang.Boolean.parseBoolean;
 import static java.lang.String.format;
 import static java.util.Calendar.*;
 import static java.util.Collections.singletonList;
@@ -147,7 +148,7 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
       }
       if (now.equals(scheduledTime) || now.isAfter(scheduledTime)) {
         return new TaskResult(SUCCEEDED);
-      } else if (Boolean.parseBoolean(stage.getContext().get("skipRemainingWait").toString())) {
+      } else if (parseBoolean(stage.getContext().getOrDefault("skipRemainingWait", "false").toString())) {
         return new TaskResult(SUCCEEDED);
       } else {
         stage.setScheduledTime(scheduledTime.toEpochMilli());
