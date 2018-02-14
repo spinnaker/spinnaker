@@ -10,6 +10,7 @@ import { Execution } from 'core/pipeline/executions/execution/Execution';
 import { IScheduler } from 'core/scheduler';
 import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
+import { ISortFilter } from 'core/filterModel';
 
 import './singleExecutionDetails.less';
 
@@ -19,7 +20,7 @@ export interface ISingleExecutionDetailsProps {
 
 export interface ISingleExecutionDetailsState {
   execution: IExecution;
-  sortFilter: any;
+  sortFilter: ISortFilter;
   stateNotFound: boolean;
 }
 

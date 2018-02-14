@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { Application } from 'core/application/application.model';
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
 import { CLUSTER_FILTER_SERVICE, ClusterFilterService } from 'core/cluster/filter/clusterFilter.service';
-import { IFilterTag } from 'core/filterModel/FilterTags';
+import { IFilterTag, ISortFilter } from 'core/filterModel';
 
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
@@ -25,7 +25,7 @@ class ClusterFilterCtrl {
   public instanceTypeHeadings: string[];
   public providerTypeHeadings: string[];
   public regionHeadings: string[];
-  public sortFilter: any;
+  public sortFilter: ISortFilter;
   public stackHeadings: string[];
   public detailHeadings: string[];
   public tags: IFilterTag[];

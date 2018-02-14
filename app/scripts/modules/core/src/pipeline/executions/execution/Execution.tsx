@@ -17,6 +17,7 @@ import { SETTINGS } from 'core/config/settings';
 import { AccountTag } from 'core/account';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { duration, timestamp } from 'core/utils/timeFormatters';
+import { ISortFilter } from 'core/filterModel';
 
 // react components
 import { ExecutionMarker } from './ExecutionMarker';
@@ -39,7 +40,7 @@ export interface IExecutionState {
   showingDetails: boolean;
   pipelinesUrl: string;
   viewState: IExecutionViewState;
-  sortFilter: any;
+  sortFilter: ISortFilter;
   restartDetails: IRestartDetails;
   runningTimeInMs: number;
 }

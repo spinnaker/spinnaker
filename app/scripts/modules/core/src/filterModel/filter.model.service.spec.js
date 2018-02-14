@@ -1,4 +1,5 @@
 'use strict';
+import { FILTER_MODEL_SERVICE } from './filter.model.service';
 
 describe('Service: FilterModelService', function () {
 
@@ -19,7 +20,7 @@ describe('Service: FilterModelService', function () {
 
   beforeEach(
     window.module(
-      require('./filter.model.service.js').name
+      FILTER_MODEL_SERVICE
     )
   );
 
@@ -625,23 +626,23 @@ describe('Service: FilterModelService', function () {
         expect(filterModel.sortFilter.search).toBe('');
       });
 
-      it ('should set sortKey key fields based on value', function () {
+      it ('should set sortKey field based on value', function () {
         filterModelConfig = [
-          { model: 'instanceSort', type: 'sortKey' },
+          { model: 'instanceSort', type: 'string' },
         ];
         $location.search('instanceSort', 'zone');
         configure();
 
-        expect(filterModel.sortFilter.instanceSort.key).toBe('zone');
+        expect(filterModel.sortFilter.instanceSort).toBe('zone');
       });
 
       it ('should set to default value if provided', function () {
         filterModelConfig = [
-          { model: 'instanceSort', type: 'sortKey', defaultValue: 'launchTime' },
+          { model: 'instanceSort', type: 'string', defaultValue: 'launchTime' },
         ];
         configure();
 
-        expect(filterModel.sortFilter.instanceSort.key).toBe('launchTime');
+        expect(filterModel.sortFilter.instanceSort).toBe('launchTime');
       });
 
       it ('should set boolean values', function () {

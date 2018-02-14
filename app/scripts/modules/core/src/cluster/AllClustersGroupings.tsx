@@ -11,6 +11,7 @@ import { Application } from 'core/application';
 import { ClusterPod } from 'core/cluster/ClusterPod';
 import { IClusterGroup } from './filter/clusterFilter.service';
 import { Spinner } from 'core/widgets/spinners/Spinner'
+import { ISortFilter } from 'core/filterModel';
 
 export interface IAllClustersGroupingsProps {
   app: Application;
@@ -19,7 +20,7 @@ export interface IAllClustersGroupingsProps {
 
 export interface IAllClustersGroupingsState {
   groups: IClusterSubgroup[];
-  sortFilter: any;
+  sortFilter: ISortFilter;
   scrollToRow?: number;
 }
 

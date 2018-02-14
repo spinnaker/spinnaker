@@ -1,11 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+import { FILTER_MODEL_SERVICE} from "core/filterModel";
 
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.projects.dashboard.regionFilter.service', [
-    require('../../../filterModel/filter.model.service.js').name,
+    FILTER_MODEL_SERVICE,
   ])
   .factory('regionFilterService', function (filterModelService) {
     let callbacks = [];

@@ -6,6 +6,7 @@ import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
+import { FILTER_MODEL_SERVICE, ISortFilter } from 'core/filterModel';
 import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalancerFilter.model';
 
 @BindAll()
@@ -72,19 +73,21 @@ export class LoadBalancerFilterService {
   }
 
   private shouldFilterInstances(): boolean {
-    return this.isFilterable(this.loadBalancerFilterModel.asFilterModel.sortFilter.status) ||
-      this.isFilterable(this.loadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone);
+    const sortFilter: ISortFilter = this.loadBalancerFilterModel.asFilterModel.sortFilter;
+    return this.isFilterable(sortFilter.status) ||
+      this.isFilterable(sortFilter.availabilityZone);
   }
 
   public shouldShowInstance(instance: IInstance): boolean {
-    if (this.isFilterable(this.loadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone)) {
-      const checkedAvailabilityZones = this.getCheckValues(this.loadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone);
+    const sortFilter: ISortFilter = this.loadBalancerFilterModel.asFilterModel.sortFilter;
+    if (this.isFilterable(sortFilter.availabilityZone)) {
+      const checkedAvailabilityZones = this.getCheckValues(sortFilter.availabilityZone);
       if (!checkedAvailabilityZones.includes(instance.zone)) {
         return false;
       }
     }
-    if (this.isFilterable(this.loadBalancerFilterModel.asFilterModel.sortFilter.status)) {
-      const allCheckedValues = this.getCheckValues(this.loadBalancerFilterModel.asFilterModel.sortFilter.status);
+    if (this.isFilterable(sortFilter.status)) {
+      const allCheckedValues = this.getCheckValues(sortFilter.status);
       const checkedStatus = without(allCheckedValues, 'Disabled');
       if (!checkedStatus.length) {
         return true;
@@ -243,6 +246,6 @@ export class LoadBalancerFilterService {
 export const LOAD_BALANCER_FILTER_SERVICE = 'spinnaker.core.loadBalancer.filter.service';
 module(LOAD_BALANCER_FILTER_SERVICE, [
   LOAD_BALANCER_FILTER_MODEL,
-  require('core/filterModel/filter.model.service.js').name
+  FILTER_MODEL_SERVICE,
 ]).factory('loadBalancerFilterService', (loadBalancerFilterModel: LoadBalancerFilterModel, filterModelService: any, $log: ILogService) =>
                                         new LoadBalancerFilterService(loadBalancerFilterModel, filterModelService, $log));

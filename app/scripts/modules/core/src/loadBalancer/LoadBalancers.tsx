@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
+import { ISortFilter } from 'core/filterModel/IFilterModel';
 import { ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerPod } from './LoadBalancerPod';
 import { Spinner } from 'core/widgets/spinners/Spinner';
@@ -98,7 +99,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   private handleInputChange(event: any): void {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
+    const name: keyof ISortFilter = target.name;
 
     ReactInjector.loadBalancerFilterModel.asFilterModel.sortFilter[name] = value;
 

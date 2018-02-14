@@ -3,17 +3,18 @@ import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 import { UrlParser } from 'core/navigation/urlParser';
+import { FILTER_MODEL_SERVICE } from 'core/filterModel';
 
 export const SECURITY_GROUP_FILTER_MODEL = 'spinnaker.core.securityGroup.filter.model';
 export const filterModelConfig: IFilterConfig[] = [
-  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'account', param: 'acct', type: 'trueKeyObject' },
-  { model: 'region', param: 'reg', type: 'trueKeyObject' },
-  { model: 'stack', param: 'stack', type: 'trueKeyObject', },
   { model: 'detail', param: 'detail', type: 'trueKeyObject', },
+  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'providerType', type: 'trueKeyObject', filterLabel: 'provider' },
-  { model: 'showServerGroups', param: 'hideServerGroups', displayOption: true, type: 'inverse-boolean' },
+  { model: 'region', param: 'reg', type: 'trueKeyObject' },
   { model: 'showLoadBalancers', param: 'hideLoadBalancers', displayOption: true, type: 'inverse-boolean' },
+  { model: 'showServerGroups', param: 'hideServerGroups', displayOption: true, type: 'inverse-boolean' },
+  { model: 'stack', param: 'stack', type: 'trueKeyObject', },
 ];
 
 export class SecurityGroupFilterModel {
@@ -98,5 +99,5 @@ export class SecurityGroupFilterModel {
 }
 
 module(SECURITY_GROUP_FILTER_MODEL, [
-  require('core/filterModel/filter.model.service').name,
+  FILTER_MODEL_SERVICE,
 ]).service('securityGroupFilterModel', SecurityGroupFilterModel);

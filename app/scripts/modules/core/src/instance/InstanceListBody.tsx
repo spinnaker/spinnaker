@@ -84,7 +84,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
 
   private instanceSorter(a1: IInstance, b1: IInstance): number {
     const { sortFilter } = this.clusterFilterModel;
-    const filterSplit = sortFilter.instanceSort.key.split('-'),
+    const filterSplit = sortFilter.instanceSort.split('-'),
       filterType = filterSplit.length === 1 ? filterSplit[0] : filterSplit[1],
       reverse = filterSplit.length === 2,
       a = reverse ? b1 : a1,

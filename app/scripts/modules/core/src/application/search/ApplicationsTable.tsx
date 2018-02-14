@@ -15,11 +15,11 @@ export const ApplicationTable = ({ currentSort, toggleSort, applications }: IApp
   <table className="table table-hover">
     <thead>
       <tr>
-        <th style={{ width: '18%' }}><SortToggle model={{ key: currentSort }} onChange={toggleSort} label="Name" sortKey="name"/></th>
-        <th style={{ width: '15%' }}><SortToggle model={{ key: currentSort }} onChange={toggleSort} label="Created" sortKey="createTs"/></th>
-        <th style={{ width: '15%' }}><SortToggle model={{ key: currentSort }} onChange={toggleSort} label="Updated" sortKey="updateTs"/></th>
-        <th style={{ width: '15%' }}><SortToggle model={{ key: currentSort }} onChange={toggleSort} label="Owner" sortKey="email"/></th>
-        <th><SortToggle model={{ key: currentSort }} onChange={toggleSort} label="Account(s)" sortKey="accounts"/></th>
+        <th style={{ width: '18%' }}><SortToggle currentSort={currentSort} onChange={toggleSort} label="Name" sortKey="name"/></th>
+        <th style={{ width: '15%' }}><SortToggle currentSort={currentSort} onChange={toggleSort} label="Created" sortKey="createTs"/></th>
+        <th style={{ width: '15%' }}><SortToggle currentSort={currentSort} onChange={toggleSort} label="Updated" sortKey="updateTs"/></th>
+        <th style={{ width: '15%' }}><SortToggle currentSort={currentSort} onChange={toggleSort} label="Owner" sortKey="email"/></th>
+        <th><SortToggle currentSort={currentSort} onChange={toggleSort} label="Account(s)" sortKey="accounts"/></th>
         <th style={{ width: '22%' }}>Description</th>
       </tr>
     </thead>

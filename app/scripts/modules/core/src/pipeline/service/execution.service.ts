@@ -12,6 +12,7 @@ import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { DebugWindow } from 'core/utils/consoleDebug';
 import { IPipeline } from 'core/domain/IPipeline';
+import { ISortFilter } from 'core/filterModel';
 
 export class ExecutionService {
   public get activeStatuses(): string[] { return ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED']; }
@@ -55,9 +56,10 @@ export class ExecutionService {
    * @return {<IExecution[]>}
    */
     public getExecutions(applicationName: string, application: Application = null): IPromise<IExecution[]> {
-      const pipelines = Object.keys(this.executionFilterModel.asFilterModel.sortFilter.pipeline);
-      const statuses = Object.keys(pickBy(this.executionFilterModel.asFilterModel.sortFilter.status || {}, identity));
-      const limit = this.executionFilterModel.asFilterModel.sortFilter.count;
+    const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
+    const pipelines = Object.keys(sortFilter.pipeline);
+      const statuses = Object.keys(pickBy(sortFilter.status || {}, identity));
+      const limit = sortFilter.count;
       if (application && pipelines.length) {
         return this.getConfigIdsFromFilterModel(application).then(pipelineConfigIds => {
           return this.getFilteredExecutions(application.name, statuses, limit, pipelineConfigIds);

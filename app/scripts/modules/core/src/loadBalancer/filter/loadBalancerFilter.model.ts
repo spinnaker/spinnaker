@@ -3,19 +3,20 @@ import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 
 import { ILoadBalancerGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+import { FILTER_MODEL_SERVICE } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
-  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'account', param: 'acct', type: 'trueKeyObject' },
-  { model: 'region', param: 'reg', type: 'trueKeyObject' },
-  { model: 'stack', param: 'stack', type: 'trueKeyObject', },
-  { model: 'detail', param: 'detail', type: 'trueKeyObject', },
-  { model: 'status', type: 'trueKeyObject', filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' } },
   { model: 'availabilityZone', param: 'zone', type: 'trueKeyObject', filterLabel: 'availability zone' },
+  { model: 'detail', param: 'detail', type: 'trueKeyObject', },
+  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'providerType', type: 'trueKeyObject', filterLabel: 'provider' },
+  { model: 'region', param: 'reg', type: 'trueKeyObject' },
   { model: 'showInstances', displayOption: true, type: 'boolean' },
   { model: 'showServerGroups', param: 'hideServerGroups', displayOption: true, type: 'inverse-boolean' },
+  { model: 'stack', param: 'stack', type: 'trueKeyObject', },
+  { model: 'status', type: 'trueKeyObject', filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' } },
 ];
 
 export interface ILoadBalancerFilterModel extends IFilterModel {
@@ -105,5 +106,5 @@ export class LoadBalancerFilterModel {
 
 export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
 module(LOAD_BALANCER_FILTER_MODEL, [
-  require('core/filterModel/filter.model.service').name,
+  FILTER_MODEL_SERVICE,
 ]).service('loadBalancerFilterModel', LoadBalancerFilterModel);

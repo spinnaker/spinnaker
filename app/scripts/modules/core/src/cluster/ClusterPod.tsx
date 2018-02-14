@@ -9,13 +9,14 @@ import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifica
 import { IServerGroup } from 'core/domain';
 import { Tooltip } from 'core/presentation';
 import { IClusterSubgroup, IServerGroupSubgroup } from './filter/clusterFilter.service';
+import { ISortFilter } from 'core/filterModel';
 import { ClusterPodTitleWrapper } from 'core/cluster/ClusterPodTitleWrapper';
 
 export interface IClusterPodProps {
   grouping: IClusterSubgroup;
   application: Application;
   parentHeading: string;
-  sortFilter: any;
+  sortFilter: ISortFilter;
 }
 
 export interface IClusterPodState {

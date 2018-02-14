@@ -5,11 +5,12 @@ import _ from 'lodash';
 import { Subject } from 'rxjs';
 
 import { SECURITY_GROUP_FILTER_MODEL } from './securityGroupFilter.model';
+import { FILTER_MODEL_SERVICE } from 'core/filterModel';
 
 module.exports = angular
   .module('securityGroup.filter.service', [
     SECURITY_GROUP_FILTER_MODEL,
-    require('core/filterModel/filter.model.service').name,
+    FILTER_MODEL_SERVICE,
   ])
   .factory('securityGroupFilterService', function (securityGroupFilterModel, filterModelService) {
 

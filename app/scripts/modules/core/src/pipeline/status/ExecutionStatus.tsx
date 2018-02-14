@@ -7,6 +7,7 @@ import { IBuildTrigger, ICronTrigger, IDockerTrigger, IExecution, IArtifact } fr
 import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { ReactInjector } from 'core/reactShims';
 import { relativeTime, timestamp } from 'core/utils';
+import { ISortFilter } from 'core/filterModel';
 
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
@@ -22,7 +23,7 @@ export interface IExecutionStatusProps {
 }
 
 export interface IExecutionStatusState {
-  sortFilter: any;
+  sortFilter: ISortFilter;
   parameters: { key: string, value: any }[];
   timestamp: string;
 }

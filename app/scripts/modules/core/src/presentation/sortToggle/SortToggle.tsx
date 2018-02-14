@@ -8,7 +8,7 @@ export interface ISortToggleProps {
   sortKey: string;
   label: string;
   onChange?: (newVal: string) => void;
-  model: { key: string };
+  currentSort: string;
 }
 
 @BindAll()
@@ -18,13 +18,13 @@ export class SortToggle extends React.Component<ISortToggleProps> {
   };
 
   private isSortKey(): boolean {
-    const { model, sortKey } = this.props;
-    const field = model.key;
+    const { currentSort, sortKey } = this.props;
+    const field = currentSort;
     return field === sortKey || field === '-' + sortKey;
   }
 
   private isReverse(): boolean {
-    return this.props.model.key && this.props.model.key.startsWith('-');
+    return this.props.currentSort && this.props.currentSort.startsWith('-');
   }
 
   private setSortKey(event: React.MouseEvent<HTMLElement>): void {

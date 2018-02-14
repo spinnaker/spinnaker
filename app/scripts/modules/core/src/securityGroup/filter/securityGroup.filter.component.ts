@@ -3,7 +3,7 @@ import { compact, uniq, map } from 'lodash';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { IFilterTag } from 'core/filterModel/FilterTags';
+import { IFilterTag, ISortFilter } from 'core/filterModel';
 import { SECURITY_GROUP_FILTER_MODEL, SecurityGroupFilterModel } from './securityGroupFilter.model';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
@@ -20,7 +20,7 @@ export class SecurityGroupFilterCtrl {
   public accountHeadings: string[];
   public providerTypeHeadings: string[];
   public regionHeadings: string[];
-  public sortFilter: any;
+  public sortFilter: ISortFilter;
   public stackHeadings: string[];
   public detailHeadings: string[];
   public tags: IFilterTag[];

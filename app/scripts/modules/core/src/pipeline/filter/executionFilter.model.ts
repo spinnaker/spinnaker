@@ -7,6 +7,7 @@ import { ICache } from 'core/cache/deckCache.service';
 import { VIEW_STATE_CACHE_SERVICE, ViewStateCacheService } from 'core/cache/viewStateCache.service';
 import { IExecutionGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+import { FILTER_MODEL_SERVICE } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
@@ -154,7 +155,7 @@ export class ExecutionFilterModel {
 
 export const EXECUTION_FILTER_MODEL = 'spinnaker.core.pipeline.filter.executionFilter.model';
 module (EXECUTION_FILTER_MODEL, [
-  require('core/filterModel/filter.model.service').name,
-  VIEW_STATE_CACHE_SERVICE
+  FILTER_MODEL_SERVICE,
+  VIEW_STATE_CACHE_SERVICE,
 ]).factory('executionFilterModel', ($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) =>
                                     new ExecutionFilterModel($rootScope, filterModelService, viewStateCache));

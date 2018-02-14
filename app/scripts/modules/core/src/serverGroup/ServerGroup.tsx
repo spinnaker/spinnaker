@@ -16,6 +16,7 @@ import { LoadBalancersTagWrapper } from 'core/loadBalancer';
 import { NamingService } from 'core/naming';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { ScrollToService } from 'core/utils';
+import { ISortFilter } from 'core/filterModel';
 import { ServerGroupManagerTag } from 'core/serverGroupManager/ServerGroupManagerTag';
 
 export interface JenkinsViewModel {
@@ -27,7 +28,7 @@ export interface IServerGroupProps {
   cluster: string;
   serverGroup: IServerGroup;
   application: Application;
-  sortFilter: any;
+  sortFilter: ISortFilter;
   hasLoadBalancers: boolean;
   hasDiscovery: boolean;
 }

@@ -16,7 +16,7 @@ import { Tooltip } from 'core/presentation/Tooltip';
 import { CreatePipeline } from 'core/pipeline/config/CreatePipeline';
 import { ExecutionFilters } from 'core/pipeline/filter/ExecutionFilters';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
-import { FilterTags, IFilterTag } from 'core/filterModel';
+import { FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executions.less';
@@ -29,7 +29,7 @@ export interface IExecutionsState {
   initializationError?: boolean;
   filtersExpanded: boolean;
   loading: boolean;
-  sortFilter: any;
+  sortFilter: ISortFilter;
   tags: IFilterTag[];
   triggeringExecution: boolean;
 }
@@ -251,7 +251,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private showCountChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
     const value = event.target.value;
-    this.state.sortFilter.count = value;
+    this.state.sortFilter.count = parseInt(value, 10);
     ReactGA.event({ category: 'Pipelines', action: 'Change Count', label: value });
     this.updateExecutionGroups(true);
   }
