@@ -146,6 +146,14 @@ google:
   - suse-cloud
   - ubuntu-os-cloud
   - windows-cloud
+  accounts:
+    - name: my-gcp-account
+      project: my-gcp-project
+      required: true # Forces the account to be valid at startup
+      alphaListed: true # Project is enabled for alpha features at GCP
+      jsonPath: /root/.gcp/my-gcp-project.json
+      imageProjects: # Additional projects that can images for deploying
+        - my-gcp-image-project
   defaults:
     instanceTypeDisks:
     - instanceType: n1-standard-1

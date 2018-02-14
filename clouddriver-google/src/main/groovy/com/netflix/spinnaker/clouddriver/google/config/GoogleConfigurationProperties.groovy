@@ -33,6 +33,7 @@ class GoogleConfigurationProperties {
     // Takes a list of regions you want indexed, per-account. Will default to the value in
     // defaultRegions if left unspecified. An empty list will index no regions.
     List<String> regions
+    boolean required
   }
 
   List<ManagedAccount> accounts = []
