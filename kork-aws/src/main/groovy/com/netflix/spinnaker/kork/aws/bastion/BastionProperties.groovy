@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,17 @@
  * limitations under the License.
  */
 
-include 'kork-core',
-  'kork-cassandra',
-  'kork-jedis-test',
-  'kork-swagger',
-  'kork-security',
-  'kork-web',
-  'kork-hystrix',
-  'kork-stackdriver',
-  'kork-exceptions',
-  'kork-artifacts',
-  'kork-jedis',
-  'kork-dynomite',
-  'kork-aws'
+package com.netflix.spinnaker.kork.aws.bastion
 
-rootProject.name='kork'
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
+@ConfigurationProperties("bastion")
+class BastionProperties {
+  Boolean enabled
+  String host
+  String user
+  Integer port
+  String proxyCluster
+  String proxyRegion
+  String accountIamRole
 }
-
-rootProject.children.each {
-    setBuildFile it
-}
-
