@@ -7,11 +7,12 @@ import { VERSION_SELECTION_SERVICE } from 'core/cloudProvider/versionSelection/v
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
 import { SECURITY_GROUP_FILTER_MODEL } from './filter/securityGroupFilter.model';
+import { SECURITY_GROUP_FILTER_SERVICE } from './filter/securityGroupFilter.service';
 
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
-  require('./filter/securityGroup.filter.service.js').name,
+  SECURITY_GROUP_FILTER_SERVICE,
   SECURITY_GROUP_FILTER_MODEL,
   PROVIDER_SELECTION_SERVICE,
   VERSION_SELECTION_SERVICE,
@@ -33,17 +34,13 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
 
       $scope.sortFilter = securityGroupFilterModel.sortFilter;
 
-      handleRefresh();
-
       app.setActiveState(app.securityGroups);
       $scope.$on('$destroy', () => {
         app.setActiveState();
         groupsUpdatedSubscription.unsubscribe();
       });
 
-      app.securityGroups.ready().then(() => updateSecurityGroups());
-
-      app.securityGroups.onRefresh($scope, handleRefresh);
+      app.securityGroups.onRefresh($scope, () => updateSecurityGroups());
 
     };
 
@@ -53,8 +50,6 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
       $scope.$evalAsync(() => {
         securityGroupFilterService.updateSecurityGroups(app);
         groupsUpdated();
-        // Timeout because the updateSecurityGroups method is debounced by 25ms
-        $timeout(() => { this.initialized = true; }, 50);
       });
     };
 
@@ -62,6 +57,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
       $scope.$applyAsync(() => {
         $scope.groups = securityGroupFilterModel.groups;
         $scope.tags = securityGroupFilterModel.tags;
+        this.initialized = this.initialized || app.securityGroups.loaded;
       });
     };
 
@@ -101,8 +97,5 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
 
     this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
 
-    let handleRefresh = () => {
-      this.updateSecurityGroups();
-    };
   }
 );

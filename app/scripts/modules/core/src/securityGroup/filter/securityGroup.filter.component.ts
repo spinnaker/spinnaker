@@ -5,11 +5,12 @@ import { Subscription } from 'rxjs';
 import { Application } from 'core/application/application.model';
 import { IFilterTag, ISortFilter } from 'core/filterModel';
 import { SECURITY_GROUP_FILTER_MODEL, SecurityGroupFilterModel } from './securityGroupFilter.model';
+import { SECURITY_GROUP_FILTER_SERVICE } from './securityGroupFilter.service';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
 const ngmodule = module(SECURITY_GROUP_FILTER, [
-  require('./securityGroup.filter.service').name,
+  SECURITY_GROUP_FILTER_SERVICE,
   SECURITY_GROUP_FILTER_MODEL,
   require('core/filterModel/dependentFilter/dependentFilter.service').name,
   require('./securityGroupDependentFilterHelper.service').name,
@@ -65,7 +66,6 @@ export class SecurityGroupFilterCtrl {
     const {
       dependentFilterService,
       securityGroupFilterModel,
-      securityGroupFilterService,
       securityGroupDependentFilterHelper,
       app,
     } = this;
@@ -82,7 +82,6 @@ export class SecurityGroupFilterCtrl {
     if (applyParamsToUrl) {
       securityGroupFilterModel.asFilterModel.applyParamsToUrl();
     }
-    securityGroupFilterService.updateSecurityGroups(app);
   };
 
   private getHeadingsForOption(option: string): string[] {

@@ -1,6 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
+import { SECURITY_GROUP_FILTER_SERVICE } from './securityGroupFilter.service';
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: securityGroupFilterService', function () {
@@ -9,18 +9,15 @@ describe('Service: securityGroupFilterService', function () {
   var securityGroupFilterModel;
   var app;
   var resultJson;
-  var $timeout;
 
   beforeEach(function() {
-    spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
-      require('./securityGroup.filter.service').name
+      SECURITY_GROUP_FILTER_SERVICE
     );
     window.inject(
-      function (securityGroupFilterService, _securityGroupFilterModel_, _$timeout_) {
+      function (securityGroupFilterService, _securityGroupFilterModel_) {
         service = securityGroupFilterService;
         securityGroupFilterModel = _securityGroupFilterModel_;
-        $timeout = _$timeout_;
       }
     );
   });
@@ -53,7 +50,6 @@ describe('Service: securityGroupFilterService', function () {
         ]}
       ];
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual(expected);
     });
 
@@ -65,7 +61,6 @@ describe('Service: securityGroupFilterService', function () {
         });
         securityGroupFilterModel.sortFilter.filter = 'main';
         service.updateSecurityGroups(app);
-        $timeout.flush();
         app.securityGroups.data.forEach((group) => {
           expect(group.searchField).not.toBeUndefined();
         });
@@ -76,7 +71,6 @@ describe('Service: securityGroupFilterService', function () {
       it('should filter by vpc name as an exact match', function () {
         securityGroupFilterModel.sortFilter.filter = 'vpc:main';
         service.updateSecurityGroups(app);
-        $timeout.flush();
         expect(securityGroupFilterModel.groups).toEqual([
           { heading: 'test', subgroups: [
             { heading: 'sg-1', subgroups: [ resultJson[1] ]}
@@ -87,7 +81,6 @@ describe('Service: securityGroupFilterService', function () {
       it('should not match on partial vpc name', function () {
         securityGroupFilterModel.sortFilter.filter = 'vpc:main-old';
         service.updateSecurityGroups(app);
-        $timeout.flush();
         expect(securityGroupFilterModel.groups).toEqual([]);
       });
     });
@@ -96,7 +89,6 @@ describe('Service: securityGroupFilterService', function () {
       it('1 account filter: should be transformed showing only prod accounts', function () {
         securityGroupFilterModel.sortFilter.account = {prod: true};
         service.updateSecurityGroups(app);
-        $timeout.flush();
         expect(securityGroupFilterModel.groups).toEqual([
           { heading: 'prod', subgroups: [
             { heading: 'sg-2', subgroups: [ resultJson[2] ]}
@@ -107,7 +99,6 @@ describe('Service: securityGroupFilterService', function () {
       it('All account filters: should show all accounts', function () {
         securityGroupFilterModel.sortFilter.account = {prod: true, test: true};
         service.updateSecurityGroups(app);
-        $timeout.flush();
         expect(securityGroupFilterModel.groups).toEqual([
           { heading: 'prod', subgroups: [
             { heading: 'sg-2', subgroups: [ resultJson[2] ]}
@@ -125,7 +116,6 @@ describe('Service: securityGroupFilterService', function () {
       securityGroupFilterModel.sortFilter.region = {'us-east-1' : true};
 
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'sg-2', subgroups: [ resultJson[2] ]}
@@ -140,7 +130,6 @@ describe('Service: securityGroupFilterService', function () {
       securityGroupFilterModel.sortFilter.region = {'us-east-1' : true, 'us-west-1': true};
 
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'sg-2', subgroups: [ resultJson[2] ]}
@@ -161,7 +150,6 @@ describe('Service: securityGroupFilterService', function () {
     it('should filter by aws if checked', function () {
       securityGroupFilterModel.sortFilter.providerType = {aws : true};
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'sg-2', subgroups: [ resultJson[2] ]}
@@ -175,7 +163,6 @@ describe('Service: securityGroupFilterService', function () {
     it('should not filter if no provider type is selected', function () {
       securityGroupFilterModel.sortFilter.providerType = undefined;
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'sg-2', subgroups: [ resultJson[2] ]}
@@ -189,7 +176,6 @@ describe('Service: securityGroupFilterService', function () {
     it('should not filter if all provider are selected', function () {
       securityGroupFilterModel.sortFilter.providerType = {aws: true, gce: true};
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'sg-2', subgroups: [ resultJson[2] ]}
@@ -225,7 +211,6 @@ describe('Service: securityGroupFilterService', function () {
         ]}
       ]};
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         newGroup,
         { heading: 'prod', subgroups: [
@@ -243,7 +228,6 @@ describe('Service: securityGroupFilterService', function () {
       });
       var newSubGroup = { heading: 'sg-3', subgroups: [{heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups.data[3], }]};
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
             { heading: 'sg-2', subgroups: [resultJson[2]] },
@@ -261,7 +245,6 @@ describe('Service: securityGroupFilterService', function () {
       });
       var newSubsubGroup = { heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups.data[3], };
       service.updateSecurityGroups(app);
-      $timeout.flush();
       expect(securityGroupFilterModel.groups).toEqual([
         {
           heading: 'prod', subgroups: [

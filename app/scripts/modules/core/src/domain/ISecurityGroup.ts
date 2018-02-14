@@ -1,3 +1,5 @@
+import { ILoadBalancer } from 'core/domain/ILoadBalancer';
+import { IServerGroup } from 'core/domain/IServerGroup';
 import { IEntityTags } from './IEntityTags';
 
 export interface ILoadBalancerUsage {
@@ -29,8 +31,20 @@ export interface ISecurityGroup {
   name?: string;
   provider?: string;
   region?: string;
+  searchField?: string;
   stack?: string;
   type?: string;
   usages?: IUsages;
   vpcId?: string;
+  vpcName?: string;
+}
+
+export interface ISecurityGroupGroup {
+  heading: string;
+  securityGroup?: ISecurityGroup;
+  serverGroups?: IServerGroup[];
+  loadBalancers?: ILoadBalancer[];
+  subgroups?: ISecurityGroupGroup[];
+  searchField?: string;
+  vpcName?: string;
 }
