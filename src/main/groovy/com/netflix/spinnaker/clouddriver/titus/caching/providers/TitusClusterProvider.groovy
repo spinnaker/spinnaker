@@ -218,6 +218,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
           new TitusInstance(it as Map)
         }
       }
+      serverGroup.targetGroups = serverGroupEntry.attributes.targetGroups
       serverGroup.instances = serverGroup.instances ?: []
 
       [(serverGroupEntry.id): serverGroup]
