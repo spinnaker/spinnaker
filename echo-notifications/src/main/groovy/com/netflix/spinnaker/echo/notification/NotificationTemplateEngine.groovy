@@ -35,6 +35,8 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils
 @Slf4j
 @Component
 class NotificationTemplateEngine {
+    private static final List<Formatter> FORMATTERS = [new MarkdownToHtmlFormatter(), new HtmlToPlainTextFormatter()]
+
     @Autowired
     Configuration configuration
 
@@ -42,15 +44,27 @@ class NotificationTemplateEngine {
     String spinnakerUrl
 
     String build(Notification notification, Type type) {
+        if (!notification.templateGroup) {
+          if (type == Type.SUBJECT) {
+            return (FORMATTERS.find { it.type == notification.additionalContext.formatter }?: new MarkdownToHtmlFormatter())
+              .convert((notification.additionalContext.customSubject?: notification.additionalContext.subject) as String)
+          }
+
+          if (type == Type.BODY) {
+            return (FORMATTERS.find { it.type == notification.additionalContext.formatter }?: new MarkdownToHtmlFormatter())
+              .convert((notification.additionalContext.customBody?: notification.additionalContext.body) as String)
+          }
+        }
+
         Template template = determineTemplate(configuration, notification.templateGroup, type, notification.notificationType)
         FreeMarkerTemplateUtils.processTemplateIntoString(
-            template,
-            [
-                baseUrl         : spinnakerUrl,
-                notification    : notification,
-                htmlToText      : new HtmlToPlainTextFormatter(),
-                markdownToHtml  : new MarkdownToHtmlFormatter()
-            ]
+          template,
+          [
+            baseUrl         : spinnakerUrl,
+            notification    : notification,
+            htmlToText      : new HtmlToPlainTextFormatter(),
+            markdownToHtml  : new MarkdownToHtmlFormatter()
+          ]
         )
     }
 
@@ -84,17 +98,32 @@ class NotificationTemplateEngine {
         SUBJECT
     }
 
-    static class HtmlToPlainTextFormatter {
+    interface Formatter {
+      String getType()
+      String convert(String text)
+    }
+
+    static class HtmlToPlainTextFormatter implements Formatter {
         private final HtmlToPlainText htmlToPlainText = new HtmlToPlainText()
 
-        String convert(String content) {
+      @Override
+      String getType() {
+        return "TEXT"
+      }
+
+      String convert(String content) {
             return htmlToPlainText.getPlainText(Jsoup.parse(content))
         }
     }
 
-    static class MarkdownToHtmlFormatter {
+    static class MarkdownToHtmlFormatter implements Formatter {
       private final Parser parser = Parser.builder().build()
       private final HtmlRenderer renderer = HtmlRenderer.builder().build()
+
+      @Override
+      String getType() {
+        return "HTML"
+      }
 
       String convert(String content) {
         Node document = parser.parse(content)

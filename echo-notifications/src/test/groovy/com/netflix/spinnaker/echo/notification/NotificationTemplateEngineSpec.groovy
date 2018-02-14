@@ -21,6 +21,7 @@ import freemarker.template.Configuration
 import freemarker.template.Template
 import freemarker.template.TemplateNotFoundException
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static NotificationTemplateEngine.*
 
@@ -50,6 +51,31 @@ class NotificationTemplateEngineSpec extends Specification {
     templateGroup | type      | notificationType        | specificTemplateExists
     "group"       | Type.BODY | Notification.Type.EMAIL | true
     "group"       | Type.BODY | Notification.Type.EMAIL | false
+  }
+
+  @Unroll
+  void "Not defining a template should work"() {
+    given:
+    def notification = new Notification(
+      notificationType: notificationType,
+      to: ["test@netflix.com"],
+      severity: Notification.Severity.NORMAL,
+      additionalContext: [
+        subject: content,
+        body: content
+      ]
+    )
+
+    when:
+    def output = new NotificationTemplateEngine().build(notification, Type.BODY)
+
+    then:
+    output == "<p>test</p>\n"
+
+    where:
+    templateGroup | type          | notificationType        | content
+    null          | Type.BODY     | Notification.Type.EMAIL | "test"
+    null          | Type.SUBJECT  | Notification.Type.EMAIL | "test"
   }
 
 }
