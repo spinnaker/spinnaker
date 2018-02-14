@@ -118,6 +118,18 @@ module(KUBERNETES_V2_MODULE, [
       },
       unsupportedStageTypes: [
         'deploy',
+        'destroyServerGroup',
+        'disableCluster',
+        'disableServerGroup',
+        'enableServerGroup',
+        'findImage',
+        'resizeServerGroup',
+        'rollbackCluster',
+        'runJob',
+        'scaleDown',
+        'scaleDownCluster',
+        'script',
+        'shrinkCluster',
       ],
     });
   });
