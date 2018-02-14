@@ -158,7 +158,7 @@ class CompleteStageHandler(
       val onFailureStages = builder.onFailureStages(this)
       val alreadyPlanned = onFailureStages.any { previouslyPlannedAfterStageNames.contains(it.name) }
 
-      if (alreadyPlanned) {
+      if (alreadyPlanned || onFailureStages.isEmpty()) {
         return emptyList()
       }
 
