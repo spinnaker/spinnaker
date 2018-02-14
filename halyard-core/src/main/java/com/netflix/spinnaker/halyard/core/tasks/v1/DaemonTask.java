@@ -53,6 +53,7 @@ public class DaemonTask<C, T> {
         .getImplementationVersion()).orElse("Unknown");
   }
 
+  @JsonIgnore
   public Operation getLRO() {
     // TODO(brnelson): This shouldn't do this, it should set name to name and add the UUID as metadata.
     return Operation.newBuilder().setName(this.uuid).setDone(this.state.isTerminal()).build();
