@@ -22,6 +22,8 @@ import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor
 import com.netflix.spinnaker.echo.pubsub.google.GoogleMessageAcknowledger
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
@@ -35,22 +37,21 @@ class PubsubMessageHandlerSpec extends Specification {
   @AutoCleanup("destroy")
   EmbeddedRedis embeddedRedis
 
+  RedisClientDelegate redisClientDelegate = new JedisClientDelegate(embeddedRedis.getPool())
+
   MessageDigest messageDigest = MessageDigest.getInstance("SHA-256")
 
   PubsubEventMonitor pubsubEventMonitor = Mock(PubsubEventMonitor)
 
   @Subject
-  PubsubMessageHandler pubsubMessageHandler
+  PubsubMessageHandler pubsubMessageHandler = new PubsubMessageHandler(
+    pubsubEventMonitor,
+    new ObjectMapper(),
+    redisClientDelegate,
+  )
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
-  }
-
-  def setup() {
-    pubsubMessageHandler = new PubsubMessageHandler()
-    pubsubMessageHandler.setJedisPool(embeddedRedis.getPool())
-    pubsubMessageHandler.setPubsubEventMonitor(pubsubEventMonitor)
-    pubsubMessageHandler.setObjectMapper(new ObjectMapper())
   }
 
   def cleanup() {

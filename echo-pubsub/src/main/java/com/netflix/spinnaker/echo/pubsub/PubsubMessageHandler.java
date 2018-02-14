@@ -22,12 +22,11 @@ import com.netflix.spinnaker.echo.model.Metadata;
 import com.netflix.spinnaker.echo.model.pubsub.MessageDescription;
 import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
 import com.netflix.spinnaker.echo.pubsub.model.MessageAcknowledger;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,23 +40,29 @@ import java.util.Map;
 @Slf4j
 public class PubsubMessageHandler {
 
-  @Autowired
-  private JedisPool jedisPool;
+  private final PubsubEventMonitor pubsubEventMonitor;
+
+  private final ObjectMapper objectMapper;
+
+  private final RedisClientDelegate redisClientDelegate;
 
   @Autowired
-  private PubsubEventMonitor pubsubEventMonitor;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  public PubsubMessageHandler(PubsubEventMonitor pubsubEventMonitor,
+    ObjectMapper objectMapper,
+    RedisClientDelegate redisClientDelegate) {
+    this.pubsubEventMonitor = pubsubEventMonitor;
+    this.objectMapper = objectMapper;
+    this.redisClientDelegate = redisClientDelegate;
+  }
 
   private static final String SET_IF_NOT_EXIST = "NX";
   private static final String SET_EXPIRE_TIME_MILLIS = "PX";
   private static final String SUCCESS = "OK";
 
   public void handleFailedMessage(MessageDescription description,
-                                  MessageAcknowledger acknowledger,
-                                  String identifier,
-                                  String messageId) {
+    MessageAcknowledger acknowledger,
+    String identifier,
+    String messageId) {
     String messageKey = makeKey(description, messageId);
     if (tryAck(messageKey, description.getAckDeadlineMillis(), acknowledger, identifier)) {
       setMessageHandled(messageKey, identifier, description.getRetentionDeadlineMillis());
@@ -89,18 +94,19 @@ public class PubsubMessageHandler {
   }
 
   private Boolean acquireMessageLock(String messageKey, String identifier, Long ackDeadlineMillis) {
-    try (Jedis resource = jedisPool.getResource()) {
-      String response = resource.set(messageKey, identifier, SET_IF_NOT_EXIST, SET_EXPIRE_TIME_MILLIS, ackDeadlineMillis);
-      return SUCCESS.equals(response);
-    }
+    String response = redisClientDelegate.withCommandsClient(c -> {
+      return c.set(messageKey, identifier, SET_IF_NOT_EXIST, SET_EXPIRE_TIME_MILLIS, ackDeadlineMillis);
+    });
+    return SUCCESS.equals(response);
   }
 
   private void setMessageHandled(String messageKey, String identifier, Long retentionDeadlineMillis) {
-    try (Jedis resource = jedisPool.getResource()) {
-      resource.psetex(messageKey, retentionDeadlineMillis, identifier);
-    }
+    redisClientDelegate.withCommandsClient(c -> {
+      c.psetex(messageKey, retentionDeadlineMillis, identifier);
+    });
   }
 
+  // Todo emjburns: change key format to "{echo:pubsub:system}:%s:%s" and migrate messages
   private String makeKey(MessageDescription description, String messageId) {
     return String.format("%s:echo-pubsub:%s:%s", description.getPubsubSystem().toString(), description.getSubscriptionName(), messageId);
   }

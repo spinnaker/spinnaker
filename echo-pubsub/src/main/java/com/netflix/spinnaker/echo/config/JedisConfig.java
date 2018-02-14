@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPool;
@@ -23,11 +26,17 @@ import redis.clients.jedis.JedisPool;
 import java.net.URI;
 
 @Configuration
+@ConditionalOnExpression("${redis.enabled:true}")
 public class JedisConfig {
 
   @Bean
   JedisPool jedisPool(EchoPubsubConfigurationProperties echoPubsubConfigurationProperties) {
     EchoPubsubConfigurationProperties.RedisProperties redis = echoPubsubConfigurationProperties.getRedis();
     return new JedisPool(URI.create(redis.getConnection()), redis.getTimeout());
+  }
+
+  @Bean
+  RedisClientDelegate redisClientDelegate(JedisPool jedisPool) {
+    return new JedisClientDelegate(jedisPool);
   }
 }
