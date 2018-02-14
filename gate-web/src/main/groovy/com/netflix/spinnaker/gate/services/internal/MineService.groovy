@@ -50,7 +50,7 @@ public interface MineService {
   List<Map> getCanaryAnalysisHistory(@Path("id") String canaryDeploymentId)
 
   @GET("/canaryConfig/names")
-  List<String> getCanaryConfigNames()
+  List<String> getCanaryConfigNames(@Query("application") String application)
 
 
   @GET("/canaryConfigs")

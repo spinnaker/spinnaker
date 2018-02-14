@@ -57,8 +57,8 @@ class CanaryController {
   }
 
   @RequestMapping(value = "/canaryConfig/names", method = RequestMethod.GET)
-  List<String> getCanaryConfigNames() {
-    canaryService.getCanaryConfigNames();
+  List<String> getCanaryConfigNames(@RequestParam String application) {
+    canaryService.getCanaryConfigNames(application);
   }
 
   @RequestMapping(value = "/canaryConfigs/{application}", method = RequestMethod.GET)

@@ -75,10 +75,10 @@ class CanaryService {
     }).execute()
   }
 
-  List<String> getCanaryConfigNames() {
+  List<String> getCanaryConfigNames(String application) {
     HystrixFactory.newListCommand(HYSTRIX_GROUP, "getCanaryConfigNames", {
       try {
-        mineService ? mineService.getCanaryConfigNames() : []
+        mineService ? mineService.getCanaryConfigNames(application) : []
       } catch (RetrofitError error) {
         throw classifyError(error)
       }
