@@ -20,5 +20,5 @@ dependencies {
   compile project(":orca-clouddriver")
   compile project(":orca-front50")
   compile project(":orca-retrofit")
-  testCompile project(":orca-test")
+  testCompile project(":orca-test-groovy")
 }

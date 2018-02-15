@@ -23,9 +23,9 @@ repositories {
 
 dependencies {
   compile project(":orca-core")
+  compile project(":orca-kotlin")
 
   testCompile "org.assertj:assertj-core:3.9.0"
   testCompile "org.springframework.boot:spring-boot-test:${spinnaker.version('springBoot')}"
-  testCompile project(":orca-test")
   testCompile project(":orca-queue-tck")
 }

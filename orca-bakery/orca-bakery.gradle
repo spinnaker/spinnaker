@@ -20,5 +20,6 @@ dependencies {
   compile project(":orca-retrofit")
   spinnaker.group('jackson')
   compile spinnaker.dependency('jacksonGuava')
-  testCompile project(":orca-test")
+  testCompile project(":orca-test-groovy")
+  testCompile "com.github.tomakehurst:wiremock:2.15.0"
 }

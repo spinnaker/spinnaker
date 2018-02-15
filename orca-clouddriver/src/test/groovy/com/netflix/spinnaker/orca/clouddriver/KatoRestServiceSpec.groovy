@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfigurationProperties
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
 import retrofit.RequestInterceptor
 import retrofit.client.OkClient
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.github.tomakehurst.wiremock.client.WireMock.*
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import static java.net.HttpURLConnection.HTTP_ACCEPTED
 import static java.net.HttpURLConnection.HTTP_OK
 import static retrofit.RestAdapter.LogLevel.FULL
@@ -32,7 +34,7 @@ import static retrofit.RestAdapter.LogLevel.FULL
 class KatoRestServiceSpec extends Specification {
 
   @Rule
-  HttpServerRule httpServer = new HttpServerRule()
+  public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort())
 
   @Subject
   KatoRestService service
@@ -47,45 +49,65 @@ class KatoRestServiceSpec extends Specification {
     }
   }
 
+  def mapper = OrcaObjectMapper.newInstance()
+
   final taskId = "e1jbn3"
 
   def setup() {
     def cfg = new CloudDriverConfiguration()
     def builder = cfg.clouddriverRetrofitBuilder(
-        OrcaObjectMapper.newInstance(),
-        new OkClient(),
-        FULL,
-        noopInterceptor,
-        new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: httpServer.baseURI)))
+      mapper,
+      new OkClient(),
+      FULL,
+      noopInterceptor,
+      new CloudDriverConfigurationProperties(clouddriver: new CloudDriverConfigurationProperties.CloudDriver(baseUrl: wireMockRule.url("/"))))
     service = cfg.katoDeployService(builder)
     taskStatusService = cfg.cloudDriverTaskStatusService(builder)
   }
 
   def "can interpret the response from an operation request"() {
     given: "kato accepts an operations request"
-    httpServer.expect("POST", "/ops").andRespond().withStatus(HTTP_ACCEPTED).withJsonContent {
-      id taskId
-      resourceLink "/task/$taskId"
-    }
+    stubFor(
+      post("/ops?clientRequestId=$requestId")
+        .willReturn(
+        aResponse()
+          .withStatus(HTTP_ACCEPTED)
+          .withBody(mapper.writeValueAsString([
+          id          : taskId,
+          resourceLink: "/task/$taskId"
+        ])
+        )
+      )
+    )
 
     and: "we request a deployment"
     def operation = [:]
 
     expect: "kato should return the details of the task it created"
-    with(service.requestOperations(UUID.randomUUID().toString(), [operation])) {
+    with(service.requestOperations(requestId, [operation])) {
       it.id == taskId
     }
+
+    where:
+    requestId = UUID.randomUUID().toString()
   }
 
   def "can interpret the response from a task lookup"() {
     given:
-    httpServer.expect("GET", "/task/$taskId").andRespond().withStatus(HTTP_OK).withJsonContent {
-      id taskId
-      status {
-        completed true
-        failed true
-      }
-    }
+    stubFor(
+      get("/task/$taskId")
+        .willReturn(
+        aResponse()
+          .withStatus(HTTP_OK)
+          .withBody(mapper.writeValueAsString([
+          id    : taskId,
+          status: [
+            completed: true,
+            failed   : true
+          ]
+        ]))
+      )
+    )
 
     expect:
     with(taskStatusService.lookupTask(taskId)) {
@@ -94,5 +116,4 @@ class KatoRestServiceSpec extends Specification {
       status.failed
     }
   }
-
 }
