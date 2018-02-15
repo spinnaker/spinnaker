@@ -106,6 +106,7 @@ export interface ITargetGroup {
   provider?: string;
   region: string; // returned from clouddriver
   serverGroups?: IAmazonServerGroup[];
+  targetType?: string;
   type: string; // returned from clouddriver
   vpcId?: string;
   vpcName?: string;

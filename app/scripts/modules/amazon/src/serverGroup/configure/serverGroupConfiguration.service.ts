@@ -28,7 +28,7 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-import { IAmazonLoadBalancer, IKeyPair } from 'amazon/domain';
+import { IAmazonLoadBalancer, IKeyPair, IAmazonApplicationLoadBalancer } from 'amazon/domain';
 import { KEY_PAIRS_READ_SERVICE, KeyPairsReader } from 'amazon/keyPairs/keyPairs.read.service';
 
 export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
@@ -457,8 +457,8 @@ export class AwsServerGroupConfigurationService {
   }
 
   public getTargetGroupNames(command: IAmazonServerGroupCommand): string[] {
-    const loadBalancersV2 = this.getLoadBalancerMap(command).filter((lb) => lb.loadBalancerType !== 'classic') as any[];
-    const instanceTargetGroups = flatten(loadBalancersV2.map<object>((lb) => lb.targetGroups.filter((tg) => tg.targetType === 'instance')));
+    const loadBalancersV2 = this.getLoadBalancerMap(command).filter((lb) => lb.loadBalancerType !== 'classic') as IAmazonApplicationLoadBalancer[];
+    const instanceTargetGroups = flatten(loadBalancersV2.map<any>((lb) => lb.targetGroups.filter((tg) => tg.targetType === 'instance')));
     return instanceTargetGroups.map((tg) => tg.name).sort();
   }
 
