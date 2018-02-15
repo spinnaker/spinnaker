@@ -55,7 +55,7 @@ describe('Service: awsServerGroupConfiguration', function () {
               {
                 name: 'us-east-1',
                 loadBalancers: [
-                  { region: 'us-east-1', vpcId: 'vpc-1', name: 'elb-1' },
+                  { region: 'us-east-1', vpcId: 'vpc-1', name: 'elb-1', targetGroups: []},
                 ]
               }
             ]
@@ -71,13 +71,13 @@ describe('Service: awsServerGroupConfiguration', function () {
               {
                 name: 'us-east-1',
                 loadBalancers: [
-                  { region: 'us-east-1', vpcId: 'vpc-2', name: 'elb-2' },
+                  { region: 'us-east-1', vpcId: 'vpc-2', name: 'elb-2', targetGroups: []},
                 ]
               },
               {
                 name: 'us-west-1',
                 loadBalancers: [
-                  { region: 'us-west-1', vpcId: null, name: 'elb-2' },
+                  { region: 'us-west-1', vpcId: null, name: 'elb-2', targetGroups: [] },
                 ]
               }
             ],

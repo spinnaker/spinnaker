@@ -458,8 +458,8 @@ export class AwsServerGroupConfigurationService {
 
   public getTargetGroupNames(command: IAmazonServerGroupCommand): string[] {
     const loadBalancersV2 = this.getLoadBalancerMap(command).filter((lb) => lb.loadBalancerType !== 'classic') as any[];
-    const allTargetGroups = flatten(loadBalancersV2.map<string[]>((lb) => lb.targetGroups));
-    return allTargetGroups.sort();
+    const instanceTargetGroups = flatten(loadBalancersV2.map<object>((lb) => lb.targetGroups.filter((tg) => tg.targetType === 'instance')));
+    return instanceTargetGroups.map((tg) => tg.name).sort();
   }
 
   public configureLoadBalancerOptions(command: IAmazonServerGroupCommand): IServerGroupCommandResult {
