@@ -78,6 +78,7 @@ export interface ISpinnakerSettings {
   providers?: {
     [key: string]: IProviderSettings; // allows custom providers not typed in here (good for testing too)
   };
+  pubsubProviders: string[];
   resetProvider: (provider: string) => () => void;
   resetToOriginal: () => void;
   searchVersion: 1 | 2;

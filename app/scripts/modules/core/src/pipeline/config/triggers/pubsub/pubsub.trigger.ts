@@ -1,5 +1,7 @@
 import { IController, module } from 'angular';
 
+import { SETTINGS } from 'core/config/settings';
+
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 import {
   PUBSUB_SUBSCRIPTION_SERVICE,
@@ -10,7 +12,7 @@ import {
 } from 'core/domain';
 
 class PubsubTriggerController implements IController {
-  public pubsubSystems = ['kafka', 'google'];
+  public pubsubSystems = SETTINGS.pubsubProviders || ['google', 'kafka'];
   public pubsubSubscriptions: string[];
   public subscriptionsLoaded = false;
 
