@@ -20,8 +20,11 @@
 # specifically for creating a new (running) codelab image out of a fresh
 # spinnaker image.
 
+JENKINS_PACKAGE=jenkins_2.89.3_all.deb
+APTLY_PACKAGE=aptly_1.2.0_linux_amd64
+
 if ! hal --version; then
-  echo "Spinnaker is not installed. Look at http://www.spinnaker.io for installation instructions."
+  echo "Halyard is not installed. Refer to http://www.spinnaker.io for installation instructions."
   exit 1
 fi
 
@@ -52,10 +55,10 @@ apt-mark unhold $SPINNAKER_SUBSYSTEMS
 
 # acquire and configure jenkins
 apt-get install -y git
-wget https://pkg.jenkins.io/debian-stable/binary/jenkins_2.89.3_all.deb
+wget https://pkg.jenkins.io/debian-stable/binary/$JENKINS_PACKAGE
 # dpkg partially installs jenkins and fails
-dpkg -i jenkins_2.89.3_all.deb || true
-rm -f jenkins_2.89.3_all.deb
+dpkg -i $JENKINS_PACKAGE || true
+rm -f $JENKINS_PACKAGE
 
 # finish installing jenkins and its dependencies
 apt-get -f -y install
@@ -66,11 +69,11 @@ JENKINS_HOMEDIR=~jenkins
 
 cd $JENKINS_HOMEDIR
 touch keep_user
-wget https://dl.bintray.com/smira/aptly/aptly_1.2.0_linux_amd64.tar.gz
-tar -xf aptly_1.2.0_linux_amd64.tar.gz
-rm aptly_1.2.0_linux_amd64.tar.gz
+wget https://dl.bintray.com/smira/aptly/$APTLY_PACKAGE.tar.gz
+tar -xf $APTLY_PACKAGE.tar.gz
+rm $APTLY_PACKAGE.tar.gz
 
-sudo -u jenkins ln -s aptly_1.2.0_linux_amd64/aptly aptly
+sudo -u jenkins ln -s $APTLY_PACKAGE/aptly aptly
 sudo -u jenkins -H sh -c "./aptly repo create hello"
 sudo -u jenkins -H sh -c './aptly publish repo -architectures="amd64,i386" -component=main -distribution=trusty -skip-signing=true hello'
 

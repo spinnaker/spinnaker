@@ -226,46 +226,6 @@ function process_args() {
   fi
 }
 
-
-function create_cleaner_instance() {
-  # see https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys#instance-only
-  local ssh_key=$(cat ${SSH_KEY_FILE}.pub)
-  if [[ $ssh_key == ssh-rsa* ]]; then
-      ssh_key="$LOGNAME:$ssh_key"
-  fi
-  gcloud compute instances create ${CLEANER_INSTANCE} \
-      --metadata ssh-keys="$ssh_key" \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --machine-type n1-highmem-4 \
-      --scopes storage-rw \
-      --boot-disk-type pd-ssd \
-      --boot-disk-size 20GB \
-      --image-family ubuntu-1404-lts \
-      --image-project ubuntu-os-cloud
-}
-
-function delete_cleaner_instance() {
-  echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
-  gcloud compute instances delete ${CLEANER_INSTANCE} \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --quiet || true
-  CLEANER_INSTANCE=
-
-  if [[ "$BUILD_INSTANCE" != "" ]]; then
-    echo "`date`: Deleting disk '$BUILD_INSTANCE'"
-    gcloud compute disks delete $BUILD_INSTANCE \
-        --project $PROJECT \
-        --account $ACCOUNT \
-        --zone $ZONE \
-        --quiet || true
-  fi
-}
-
-
 function create_prototype_disk() {
   local ssh_key=$(cat ${SSH_KEY_FILE}.pub)
   if [[ $ssh_key == ssh-rsa* ]]; then
