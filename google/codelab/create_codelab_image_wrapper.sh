@@ -32,23 +32,8 @@ echo "CLEAN SCRIPT '$CLEAN_GOOGLE_IMAGE_SCRIPT'"
 
 function cleanup() {
   echo "`date`: Cleaning up"
-   # gcloud compute instances delete $PROVISIONED_INSTANCE \
-    --quiet \
-    --account $BUILDER_SERVICE_ACCOUNT \
-    --project $PROJECT \
-    --zone $ZONE >& /dev/null || true
-
-  gcloud compute disks delete $SOURCE_DISK \
-    --quiet \
-    --account $BUILDER_SERVICE_ACCOUNT \
-    --project $PROJECT \
-    --zone $ZONE >& /dev/null || true
-
-  gcloud compute instances delete clean-$SOURCE_DISK \
-    --quiet \
-    --account $BUILDER_SERVICE_ACCOUNT \
-    --project $PROJECT \
-    --zone $ZONE >& /dev/null || true
+  cleanup_instances_on_error
+  delete_disk_if_exists $SOURCE_DISK
 }
 
 trap cleanup EXIT
@@ -61,8 +46,10 @@ gcloud compute instances create $PROVISIONED_INSTANCE \
     --image-project $PROJECT \
     --machine-type n1-standard-4 \
     --scopes "storage-rw,compute-rw" \
+    --no-boot-disk-auto-delete \
     --metadata block-project-ssh-keys=TRUE
 
+PROTOTYPE_INSTANCE=$PROVISIONED_INSTANCE
 
 echo "`date` Adding Codelab Components"
 for retry in {1..20}; do
@@ -89,28 +76,17 @@ gcloud compute ssh $PROVISIONED_INSTANCE \
     --project $PROJECT --zone $ZONE \
     --command="$remote_commands"
 
+delete_build_instance
+
 echo "`date` Extracting disk"
-gcloud compute instances delete --quiet $PROVISIONED_INSTANCE \
-    --account $BUILDER_SERVICE_ACCOUNT \
-    --project $PROJECT --zone $ZONE \
-    --keep-disks=boot
 
 SOURCE_DISK=$PROVISIONED_INSTANCE
 
 echo "`date` Creating cleaner instance"
-gcloud compute instances create clean-$SOURCE_DISK \
-    --account $BUILDER_SERVICE_ACCOUNT \
-    --project $PROJECT \
-    --zone $ZONE \
-    --machine-type n1-highmem-4 \
-    --scopes storage-rw \
-    --boot-disk-type pd-ssd \
-    --boot-disk-size 20GB \
-    --image-family ubuntu-1404-lts \
-    --image-project ubuntu-os-cloud
+CLEANER_INSTANCE="clean-$SOURCE_DISK"
 
 ensure_empty_ssh_key
-
+create_cleaner_instance
 extract_clean_prototype_disk \
     "$SOURCE_DISK" "clean-$SOURCE_DISK" ""
 
