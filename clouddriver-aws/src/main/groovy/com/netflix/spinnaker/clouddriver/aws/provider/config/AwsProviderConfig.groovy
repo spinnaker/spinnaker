@@ -143,7 +143,7 @@ class AwsProviderConfig {
           newlyAddedAgents << new AmazonLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new AmazonApplicationLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, eddaApiFactory.createApi(credentials.edda, region.name), objectMapper, registry, eddaTimeoutConfig)
           newlyAddedAgents << new ReservedInstancesCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new AmazonCertificateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+          newlyAddedAgents << new AmazonCertificateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
           if (credentials.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region.name)) {
             newlyAddedAgents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
           } else {

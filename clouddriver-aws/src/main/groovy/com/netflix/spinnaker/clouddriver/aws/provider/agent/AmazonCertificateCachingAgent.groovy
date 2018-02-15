@@ -16,10 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
+import com.amazonaws.services.identitymanagement.model.AmazonIdentityManagementException
 import com.amazonaws.services.identitymanagement.model.ListServerCertificatesRequest
 import com.amazonaws.services.identitymanagement.model.ServerCertificateMetadata
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.agent.*
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.agent.AccountAware
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -28,6 +35,9 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import groovy.util.logging.Slf4j
+
+import java.time.Duration
+import java.time.Instant
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.CERTIFICATES
@@ -39,19 +49,31 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final Registry registry
+  final Id securityTokenExceptionGauge
+
+  private Instant lastFailure
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(CERTIFICATES.ns)
   ] as Set)
 
+  private static final Duration RETRY_DELAY = Duration.ofMinutes(10)
+
   AmazonCertificateCachingAgent(AmazonClientProvider amazonClientProvider,
                                 NetflixAmazonCredentials account,
                                 String region,
-                                ObjectMapper objectMapper) {
+                                ObjectMapper objectMapper,
+                                Registry registry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
+    this.registry = registry
+    this.securityTokenExceptionGauge = registry.createId("aws.certificateCache.errors",
+      "account.name", account.name,
+      "account.id", account.accountId,
+      "region", region)
   }
 
   @Override
@@ -76,29 +98,43 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    log.info("Describing items in ${agentType}")
-    def iam = amazonClientProvider.getAmazonIdentityManagement(account, region)
+    if (!lastFailure || lastFailure.isBefore(Instant.now() - RETRY_DELAY)) {
+      log.info("Describing items in ${agentType}")
+      def iam = amazonClientProvider.getAmazonIdentityManagement(account, region)
 
-    // Get all the target groups
-    List<ServerCertificateMetadata> iamCertificates = []
-    ListServerCertificatesRequest listServerCertificatesRequest = new ListServerCertificatesRequest()
-    while (true) {
-      def resp = iam.listServerCertificates(listServerCertificatesRequest)
-      iamCertificates.addAll(resp.serverCertificateMetadataList)
-      if (resp.marker) {
-        listServerCertificatesRequest.withMarker(resp.marker)
-      } else {
-        break
+      // Get all the target groups
+      List<ServerCertificateMetadata> iamCertificates = []
+      ListServerCertificatesRequest listServerCertificatesRequest = new ListServerCertificatesRequest()
+      while (true) {
+        try {
+          def resp = iam.listServerCertificates(listServerCertificatesRequest)
+          registry.gauge(securityTokenExceptionGauge.withTag("operation", "ListServerCertificates")).set(0)
+          iamCertificates.addAll(resp.serverCertificateMetadataList)
+          if (resp.marker) {
+            listServerCertificatesRequest.withMarker(resp.marker)
+          } else {
+            break
+          }
+        } catch (AmazonIdentityManagementException e) {
+          lastFailure = Instant.now()
+          log.warn("An error occured when querying for \"ListServerCertificates\" in AWS account ${account.name} " +
+            "(${account.accountId}) in region ${region}. Will not retry in the next ${RETRY_DELAY.toMinutes()} minutes. " +
+            "Details:\n${e.message}")
+          registry.gauge(securityTokenExceptionGauge.withTag("operation", "ListServerCertificates")).set(1)
+          break
+        }
+
       }
+
+      List<CacheData> data = iamCertificates.collect { ServerCertificateMetadata cert ->
+        Map<String, Object> attributes = objectMapper.convertValue(cert, AwsInfrastructureProvider.ATTRIBUTES)
+        new DefaultCacheData(Keys.getCertificateKey(cert.serverCertificateId, region, account.name, "iam"),
+          attributes,
+          [:])
+      }
+      log.info("Caching ${data.size()} items in ${agentType}")
+      new DefaultCacheResult([(CERTIFICATES.ns): data])
     }
 
-    List<CacheData> data = iamCertificates.collect { ServerCertificateMetadata cert ->
-      Map<String, Object> attributes = objectMapper.convertValue(cert, AwsInfrastructureProvider.ATTRIBUTES)
-      new DefaultCacheData(Keys.getCertificateKey(cert.serverCertificateId, region, account.name, "iam"),
-        attributes,
-        [:])
-    }
-    log.info("Caching ${data.size()} items in ${agentType}")
-    new DefaultCacheResult([(CERTIFICATES.ns): data])
   }
 }
