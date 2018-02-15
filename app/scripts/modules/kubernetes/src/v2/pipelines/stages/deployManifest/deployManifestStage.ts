@@ -29,6 +29,7 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
       controllerAs: 'ctrl',
       executionDetailsUrl: require('./deployManifestExecutionDetails.html'),
       executionConfigSections: ['deployStatus', 'taskStatus'],
+      producesArtifacts: true,
       validators: [
         { type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' }
       ],

@@ -73,6 +73,20 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
         requisiteStageRefIds.includes(stage.refId) ? null : 'Downstream dependencies (unavailable)';
     };
 
+    $scope.stageProducesArtifacts = function() {
+      if (!$scope.stage) {
+        return false;
+      }
+
+      const stageConfig = pipelineConfig.getStageConfig($scope.stage);
+
+      if (!stageConfig) {
+        return false;
+      } else {
+        return !!stageConfig.producesArtifacts;
+      }
+    };
+
     $scope.updateAvailableDependencyStages = function() {
       var availableDependencyStages = pipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
       $scope.options.dependencies = availableDependencyStages.map(function(stage) {

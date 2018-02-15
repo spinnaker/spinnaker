@@ -23,6 +23,7 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
       cloudProvider: 'kubernetes',
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
+      producesArtifacts: true,
       defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
         { type: 'requiredField', fieldName: 'account' },

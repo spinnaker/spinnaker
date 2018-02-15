@@ -45,11 +45,11 @@
         </p>
       </div>
       <expected-artifact
+        use-prior-execution
         ng-repeat="expectedArtifact in pipeline.expectedArtifacts"
         expected-artifact="expectedArtifact"
-        pipeline="pipeline"
-        help-field-key="kubernetes.manifest.requiredArtifactsToBind"
-        application="application">
+        context="pipeline"
+        remove-expected-artifact="triggersCtrl.removeExpectedArtifact">
       </expected-artifact>
       <hr/>
       <div class="row" ng-if="!pipeline.expectedArtifacts.length">

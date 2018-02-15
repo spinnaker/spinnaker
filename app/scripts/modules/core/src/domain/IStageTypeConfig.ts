@@ -26,6 +26,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   nameToCheckInTest?: string;
   provides?: string;
   providesFor?: string[];
+  producesArtifacts?: boolean;
   restartable?: boolean;
   stageFilter?: (stage: IStage) => boolean;
   strategy?: boolean;

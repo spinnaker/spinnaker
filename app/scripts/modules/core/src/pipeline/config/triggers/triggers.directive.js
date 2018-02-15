@@ -38,6 +38,23 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggers
       kind: 'custom'
     });
 
+    this.removeExpectedArtifact = (pipeline, expectedArtifact) => {
+      if (!pipeline.expectedArtifacts) {
+        return;
+      }
+
+      pipeline.expectedArtifacts = pipeline.expectedArtifacts
+        .filter(a => a.id !== expectedArtifact.id);
+
+      if (!pipeline.triggers) {
+        return;
+      }
+
+      pipeline.triggers
+        .forEach(t => t.expectedArtifactIds = t.expectedArtifactIds
+          .filter(eid => expectedArtifact.id !== eid));
+    };
+
     this.addArtifact = () => {
       const newArtifact = {
         matchArtifact: this.defaultArtifact(),

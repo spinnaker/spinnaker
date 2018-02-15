@@ -1,29 +1,23 @@
-import { equals, IComponentController, IComponentOptions, module } from 'angular';
+import { IAttributes, IComponentController, IComponentOptions, module } from 'angular';
 
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { IExpectedArtifact, IPipeline } from 'core/domain';
+import { IExpectedArtifact } from 'core/domain';
 
 class ExpectedArtifactController implements IComponentController {
   public expectedArtifact: IExpectedArtifact;
-  public pipeline: IPipeline;
+  public usePriorExecution: boolean;
+  public removeExpectedArtifact: any;
+  public context: any;
 
-  private static expectedArtifactEquals(first: IExpectedArtifact, other: IExpectedArtifact): boolean {
-    // Interesting to point out that if two artifact's match artifacts equal, they match the same artifacts & are effectively equal
-    return equals(first.matchArtifact, other.matchArtifact);
-  }
+  public constructor(private $attrs: IAttributes) {
+    'nginject'
 
-  public removeExpectedArtifact(): void {
-    this.pipeline.expectedArtifacts = this.pipeline.expectedArtifacts
-      .filter(a => !ExpectedArtifactController.expectedArtifactEquals(a, this.expectedArtifact));
-
-    this.pipeline.triggers
-      .forEach(t => t.expectedArtifactIds = t.expectedArtifactIds
-        .filter(eid => this.expectedArtifact.id !== eid));
+    this.usePriorExecution = this.$attrs.$attr.hasOwnProperty('usePriorExecution');
   }
 }
 
 class ExpectedArtifactComponent implements IComponentOptions {
-  public bindings = { expectedArtifact: '=', pipeline: '=' };
+  public bindings = { expectedArtifact: '=', removeExpectedArtifact: '=', context: '=' };
   public controller = ExpectedArtifactController;
   public controllerAs = 'ctrl';
   public template = `
@@ -36,7 +30,7 @@ class ExpectedArtifactComponent implements IComponentOptions {
           <help-field key="pipeline.config.expectedArtifact.matchArtifact"></help-field>
         </div>
         <div class="col-md-2 col-md-offset-7">
-        <button class="btn btn-sm btn-default" ng-click="ctrl.removeExpectedArtifact()">
+        <button class="btn btn-sm btn-default" ng-click="ctrl.removeExpectedArtifact(ctrl.context, ctrl.expectedArtifact)">
           <span class="glyphicon glyphicon-trash" uib-tooltip="Remove expected artifact"></span>
           <span class="visible-xl-inline">Remove artifact</span>
         </button>
@@ -45,7 +39,7 @@ class ExpectedArtifactComponent implements IComponentOptions {
     <artifact is-match artifact="ctrl.expectedArtifact.matchArtifact"></artifact>
     If missing
     <help-field key="pipeline.config.expectedArtifact.ifMissing"></help-field>
-    <div class="form-group row">
+    <div class="form-group row" ng-if="ctrl.usePriorExecution">
       <label class="col-md-3 sm-label-right">
         Use Prior Execution
       </label>
