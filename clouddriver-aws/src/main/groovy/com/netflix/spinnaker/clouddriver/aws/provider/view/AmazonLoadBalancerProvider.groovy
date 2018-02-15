@@ -311,7 +311,9 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
 
   private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
-    Map<String, CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys, RelationshipCacheFilter.include(TARGET_GROUPS.ns)).collectEntries { [(it.id): it] }
+    Collection<CacheData> loadBalancerData = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys, RelationshipCacheFilter.include(TARGET_GROUPS.ns))
+    Map<String, CacheData> loadBalancers = loadBalancerData.collectEntries { [(it.id): it] }
+    Map<String, CacheData> targetGroups = resolveRelationshipDataForCollection(loadBalancerData, TARGET_GROUPS.ns).collectEntries { [(it.id): it] }
 
     for (lb in loadBalancerKeys) {
       CacheData loadBalancerFromCache = loadBalancers[lb]
@@ -343,7 +345,10 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
         // provider type.
         if (loadBalancerFromCache.relationships[TARGET_GROUPS.ns]) {
           loadBalancer.targetGroups = loadBalancerFromCache.relationships[TARGET_GROUPS.ns].collect {
-            Keys.parse(it).targetGroup
+            [
+              name: targetGroups[it].attributes.targetGroupName,
+              targetType: targetGroups[it].attributes.targetType
+            ]
           }
         }
 
@@ -402,6 +407,6 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     String type = 'aws'
     String loadBalancerType
     List<String> securityGroups = []
-    List<String> targetGroups = []
+    List<Map<String, String>> targetGroups = []
   }
 }
