@@ -107,7 +107,7 @@ to re-run with different thresholds.
       "control": [ 1, 2, 3, 4, 5 ],
       "experiment": [ 1, 2, 3, 4, 5 ]
     },
-    "attributes": {"query", "..."},
+    "attributes": {"query": "..."},
     "startTimeMillis": 1516046700000,
     "startTimeIso": "2018-01-15T20:05:00Z",
     "stepMillis": 3600000
