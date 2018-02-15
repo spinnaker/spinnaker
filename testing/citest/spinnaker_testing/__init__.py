@@ -22,3 +22,9 @@ from jenkins_agent import(
     JenkinsAgent,
     BaseJenkinsOperation,
     JenkinsTriggerOperation)
+
+from gcs_pubsub_trigger_agent import(
+    GcsFileUploadAgent,
+    BaseGcsPubsubTriggerOperation,
+    GcsPubsubUploadTriggerOperation,
+    GcsPubsubTriggerOperationStatus)

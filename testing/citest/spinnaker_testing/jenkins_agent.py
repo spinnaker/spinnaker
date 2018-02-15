@@ -238,7 +238,7 @@ class JenkinsTriggerOperation(BaseJenkinsOperation):
 
   def _do_execute(self, agent, trace=True):
     http_response = self.agent._trigger_jenkins_build(job=self.__job,
-                                                       token=self.__token)
+                                                      token=self.__token)
     agent.logger.debug(
         'Checking for effect of jenkins trigger at url={url}'.format(
             url=self.__status_path))
