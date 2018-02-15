@@ -69,6 +69,9 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
         return stage;
       })
       .collect(Collectors.toList()));
+    if (request.getTrigger() != null && !request.getTrigger().isEmpty()) {
+      pipeline.put("trigger", request.getTrigger());
+    }
 
     return pipeline;
   }

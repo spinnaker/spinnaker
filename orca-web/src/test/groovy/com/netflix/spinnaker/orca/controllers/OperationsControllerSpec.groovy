@@ -484,7 +484,7 @@ class OperationsControllerSpec extends Specification {
         executionLauncher: executionLauncher,
         contextParameterProcessor: new ContextParameterProcessor(),
         webhookService: webhookService,
-        artifactResolver: new ArtifactResolver(mapper, executionRepository)
+        artifactResolver: realArtifactResolver
     )
 
     def reference = 'gs://bucket'
@@ -493,7 +493,7 @@ class OperationsControllerSpec extends Specification {
 
     Map requestedPipeline = [
         pipelineConfigId: "some-id",
-
+        id: '12345',
 
         expectedArtifacts: [[
             id: id,

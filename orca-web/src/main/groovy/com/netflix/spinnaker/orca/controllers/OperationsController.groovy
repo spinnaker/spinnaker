@@ -80,13 +80,14 @@ class OperationsController {
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, Object> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
     Exception pipelineError = null
+    boolean plan = pipeline.plan ?: false
     try {
       pipeline = parseAndValidatePipeline(pipeline)
     } catch (Exception e) {
       pipelineError = e
     }
 
-    if (pipeline.plan) {
+    if (plan) {
       log.info('Not starting pipeline (plan: true): {}', value("pipelineId", pipeline.id))
       if (pipelineError != null) {
         throw pipelineError

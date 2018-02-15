@@ -158,7 +158,13 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
           waitTime: 5
         ]
       ],
-      parameterConfig: []
+      parameterConfig: [],
+      trigger: [
+        type: "jenkins",
+        master: "master",
+        job: "job",
+        buildNumber: 1111
+      ]
     ]
     assertReflectionEquals(expected, result, ReflectionComparatorMode.IGNORE_DEFAULTS)
   }
