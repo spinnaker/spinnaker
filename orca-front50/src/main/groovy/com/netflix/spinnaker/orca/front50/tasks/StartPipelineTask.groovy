@@ -53,6 +53,10 @@ class StartPipelineTask implements Task {
       throw new IllegalArgumentException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} cannot be located (${pipelineId}")
     }
 
+    if (pipelineConfig.getOrDefault("disabled", false)) {
+      throw new IllegalArgumentException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} is disabled")
+    }
+
     def parameters = stage.context.pipelineParameters ?: [:]
 
     if (isStrategy) {
