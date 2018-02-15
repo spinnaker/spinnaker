@@ -28,6 +28,8 @@ dependencies {
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency("korkJedis")
   compile spinnaker.dependency("korkJedisTest")
+  compile spinnaker.dependency("aws")
+  compile spinnaker.dependency("korkAws")
 
   compile 'com.google.cloud:google-cloud-pubsub:0.33.0-beta'
 }

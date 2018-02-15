@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.echo.discovery.DiscoveryPollingConfiguration
 import com.netflix.spinnaker.echo.events.EchoEventListener
 import com.netflix.spinnaker.echo.events.EventPropagator
 import groovy.transform.CompileStatic
@@ -24,6 +25,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 
 /**
  * Configuration for Event Propagator
@@ -31,6 +33,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @CompileStatic
 @ComponentScan('com.netflix.spinnaker.echo.events')
+@Import(DiscoveryPollingConfiguration)
 class EchoCoreConfig {
 
     @Autowired
@@ -44,5 +47,4 @@ class EchoCoreConfig {
         }
         instance
     }
-
 }

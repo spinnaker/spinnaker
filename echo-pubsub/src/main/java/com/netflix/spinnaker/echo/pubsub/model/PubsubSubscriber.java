@@ -18,6 +18,10 @@ package com.netflix.spinnaker.echo.pubsub.model;
 
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem;
 
+/**
+ * One subscriber exists for each subscription, and facilitates
+ * getting messages from the subscription.
+ */
 public interface PubsubSubscriber {
   PubsubSystem pubsubSystem();
   String subscriptionName();

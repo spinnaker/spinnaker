@@ -24,6 +24,9 @@ import java.net.*;
 import java.util.Collections;
 import java.util.Enumeration;
 
+/**
+ * Provides an identity for each echo node.
+ */
 public class NodeIdentity {
   public static final String UNKNOWN_HOST = "UnknownHost";
 

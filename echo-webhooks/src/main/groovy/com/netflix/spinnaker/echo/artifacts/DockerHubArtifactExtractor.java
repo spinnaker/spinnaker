@@ -51,7 +51,7 @@ public class DockerHubArtifactExtractor implements WebhookArtifactExtractor {
 
     String name = String.format("index.docker.io/%s", repository.getRepoName());
     String version = pushData.getTag();
-    Map<String, String> metadata = new ImmutableMap.Builder<String, String>()
+    Map<String, Object> metadata = new ImmutableMap.Builder<String, Object>()
         .put("pusher", pushData.getPusher() != null ? pushData.getPusher() : "")
         .build();
 

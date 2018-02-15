@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.model.pubsub;
 
 public enum PubsubSystem {
+  AMAZON("amazon"),
   GOOGLE("google"),
   KAFKA("kafka");
 

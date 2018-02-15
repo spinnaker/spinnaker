@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -78,7 +79,8 @@ public class MessageArtifactTranslator {
     try {
       context = mapper.readValue(messagePayload, Map.class);
     } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
+      log.error(messagePayload);
+      throw new InvalidRequestException(ioe);
     }
     return context;
   }
@@ -87,7 +89,11 @@ public class MessageArtifactTranslator {
     try {
       return mapper.readValue(hydratedTemplate, artifactListReference);
     } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
+      // Failure to parse artifacts from the message indicates either
+      // the message payload does not match the provided template or
+      // there is no template and no artifacts are expected
+      log.warn("Unable to parse artifact from {}", hydratedTemplate);
     }
+    return null;
   }
 }

@@ -1,0 +1,12 @@
+[
+{% for record in Records %}
+  {
+    "reference": "s3://{{ record.s3.bucket.name }}/{{ record.s3.object.key }}",
+    "name": "s3://{{ record.s3.bucket.name }}/{{ record.s3.object.key }}",
+    "version": "{{ record.s3.object.versionId }}",
+    "provenance": "{{ record.s3.bucket.arn }}",
+    "location": "{{ record.awsRegion }}",
+    "type": "s3/object"
+  } {% if not loop.last %}, {% endif %}
+{% endfor %}
+]
