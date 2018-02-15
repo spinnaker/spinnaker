@@ -66,7 +66,10 @@ class BranchSourceCodeManager(SpinnakerSourceCodeManager):
   def determine_origin_for_owner(self, name, github_owner):
     options = self.options
     if github_owner in ('upstream', 'default'):
-      github_owner = 'spinnaker'
+      if name in ['kayenta']:
+        github_owner = 'Netflix-Skunkworks'
+      else:
+        github_owner = 'spinnaker'
     origin_hostname = options.github_hostname
 
     if self.options.github_filesystem_root:
