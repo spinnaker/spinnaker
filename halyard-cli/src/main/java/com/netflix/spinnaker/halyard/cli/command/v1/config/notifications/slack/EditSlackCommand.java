@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Notification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 
 /**
- * Interact with the slaock notification
+ * Interact with the slack notification
  */
 @Parameters(separators = "=")
 public class EditSlackCommand extends AbstractEditNotificationCommand<SlackNotification> {
