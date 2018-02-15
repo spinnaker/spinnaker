@@ -59,4 +59,4 @@ import org.springframework.stereotype.Component
   }
 }
 
-@JsonTypeName("deadMessage") internal object DeadMessageAttribute : Attribute
+@JsonTypeName("deadMessage") object DeadMessageAttribute : Attribute

@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
-import com.netflix.spinnaker.orca.q.migration.MinimalClassTypeInfoSerializationMigrator
 import com.netflix.spinnaker.orca.q.redis.migration.ExecutionTypeDeserializer
+import com.netflix.spinnaker.orca.q.redis.migration.OrcaToKeikoSerializationMigrator
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
 import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Clock
+import java.util.*
 
 @Configuration
 @EnableConfigurationProperties(ObjectMapperSubtypeProperties::class)
@@ -60,6 +61,8 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     }
   }
 
+  @Bean fun orcaToKeikoSerializationMigrator(objectMapper: ObjectMapper) = OrcaToKeikoSerializationMigrator(objectMapper)
+
   @Bean(name = arrayOf("queueImpl")) override fun queue(
     @Qualifier("queueRedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
@@ -67,8 +70,8 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     deadMessageHandler: RedisDeadMessageHandler,
     @Qualifier("queueEventPublisher") publisher: EventPublisher,
     mapper: ObjectMapper,
-    serializationMigrators: List<SerializationMigrator>
+    serializationMigrator: Optional<SerializationMigrator>
   ): RedisQueue {
-    return super.queue(redisPool, redisQueueProperties, clock, deadMessageHandler, publisher, mapper, serializationMigrators)
+    return super.queue(redisPool, redisQueueProperties, clock, deadMessageHandler, publisher, mapper, serializationMigrator)
   }
 }

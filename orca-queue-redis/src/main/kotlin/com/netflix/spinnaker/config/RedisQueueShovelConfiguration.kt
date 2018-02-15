@@ -37,6 +37,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Clock
 import java.time.Duration
+import java.util.*
 
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true}")
@@ -65,7 +66,7 @@ class RedisQueueShovelConfiguration {
     deadMessageHandler: RedisDeadMessageHandler,
     publisher: EventPublisher,
     redisQueueObjectMapper: ObjectMapper,
-    serializationMigrators: List<SerializationMigrator>
+    serializationMigrator: Optional<SerializationMigrator>
   ) =
     RedisQueue(
       queueName = redisQueueProperties.queueName,
@@ -75,7 +76,7 @@ class RedisQueueShovelConfiguration {
       publisher = publisher,
       ackTimeout = Duration.ofSeconds(redisQueueProperties.ackTimeoutSeconds.toLong()),
       mapper = redisQueueObjectMapper,
-      serializationMigrators = serializationMigrators
+      serializationMigrator = serializationMigrator
     )
 
 
