@@ -152,6 +152,22 @@ class SemanticVersion(
     return SemanticVersion(match.group(1),
                            *[int(num) for num in match.groups()[1:]])
 
+  @staticmethod
+  def compare(semver, other):
+    """Compare this to another semver.
+
+    Returns:
+      < 0 if this is before, 0 if equal, > 0 if this is after.
+    """
+    if semver.series_name != other.series_name:
+      raise ValueError('Cannot compare different SemVer series.')
+
+    if semver.major != other.major:
+      return semver.major - other.major
+    if semver.minor != other.minor:
+      return semver.minor - other.minor
+    return semver.patch - other.patch
+
   def most_significant_diff_index(self, arg):
     """Returns the *_INDEX for the most sigificant component differnce."""
     if arg.series_name != self.series_name:
@@ -745,6 +761,13 @@ class GitRunner(object):
     """Returns the current commit for the repository at git_dir."""
     result = self.check_run(git_dir, 'rev-parse HEAD')
     return result
+
+  def query_remote_repository_commit_id(self, url, branch):
+    """Returns the current commit for the remote repository."""
+    args = {}
+    self.__inject_auth(args)
+    result = check_subprocess('git ls-remote %s %s' % (url, branch), **args)
+    return result.split('\t')[0]
 
   def query_local_repository_branch(self, git_dir):
     """Returns the branch for the repository at git_dir."""
