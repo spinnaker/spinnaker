@@ -133,12 +133,17 @@ module.exports = angular.module('spinnaker.canary.transformer', [])
             $log.warn('No deployment parent found for canary stage in execution:', execution.id);
             return;
           }
+
           var monitorStage = _.find(execution.stages, {
             type: 'monitorCanary',
             context: {
               canaryStageId: stage.id,
             }
           });
+          if (!monitorStage) {
+            $log.warn('No monitorCanary stage found for canary stage in execution:', execution.id);
+            return;
+          }
 
           const deployStages = execution.stages.filter(s =>
             s.parentStageId === deployParent.id && ['deploy', 'createServerGroup'].includes(s.type));
@@ -179,7 +184,7 @@ module.exports = angular.module('spinnaker.canary.transformer', [])
             status = 'SKIPPED';
           }
           var canaryStatus = stage.context.canary.status;
-          if (canaryStatus && status !== 'CANCELED') {
+          if (canaryStatus && !['CANCELED', 'STOPPED'].includes(status)) {
             if (canaryStatus.status === 'LAUNCHED' || monitorStage.status === 'RUNNING') {
               status = 'RUNNING';
             }
