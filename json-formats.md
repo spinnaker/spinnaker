@@ -19,8 +19,7 @@ Atlas and Stackdriver are used.
   ],
   "judge": {
     "name": "dredd-v1.0",
-    "judgeConfigurations": {
-    }
+    "judgeConfigurations": { }
   },
   "metrics": [
     {
@@ -66,8 +65,7 @@ Atlas and Stackdriver are used.
   ],
   "judge": {
     "name": "dredd-v1.0",
-    "judgeConfigurations": {
-    }
+    "judgeConfigurations": { }
   },
   "metrics": [
     {
