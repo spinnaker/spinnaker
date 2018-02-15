@@ -24,6 +24,7 @@ import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -56,6 +57,7 @@ public class StackdriverFetchController {
     this.synchronousQueryProcessor = synchronousQueryProcessor;
   }
 
+  @ApiOperation(value = "Exercise the Stackdriver Metrics Service directly, without any orchestration or judging")
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
                           @RequestParam(required = false) final String storageAccountName,
@@ -66,9 +68,9 @@ public class StackdriverFetchController {
                           @ApiParam(defaultValue = "gce_instance") @RequestParam String resourceType,
                           @ApiParam(defaultValue = "us-central1") @RequestParam(required = false) String region,
                           @ApiParam(defaultValue = "myapp-v059") @RequestParam(required = false) String scope,
-                          @ApiParam(defaultValue = "2017-11-21T12:48:00Z") @RequestParam Instant startTimeIso,
-                          @ApiParam(defaultValue = "2017-11-21T12:51:00Z") @RequestParam Instant endTimeIso,
-                          @ApiParam(defaultValue = "3600") @RequestParam Long step,
+                          @ApiParam(defaultValue = "2018-01-21T12:48:00Z") @RequestParam Instant startTimeIso,
+                          @ApiParam(defaultValue = "2018-01-21T12:51:00Z") @RequestParam Instant endTimeIso,
+                          @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
                           @RequestParam(required = false) final String customFilter,
                           @ApiParam @RequestBody final Map<String, String> extendedScopeParams) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,

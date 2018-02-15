@@ -273,6 +273,8 @@ public class StackdriverMetricsService implements MetricsService {
         }
       }
 
+      metricSetBuilder.attribute("query", filter);
+
       metricSetList.add(metricSetBuilder.build());
     }
 
