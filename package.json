@@ -16,7 +16,7 @@
     "yarn": ">=1.3.2"
   },
   "scripts": {
-    "clean": "rimraf .awcache .happypack build node_modules transpiled",
+    "clean": "rimraf .awcache .cache-loader build node_modules transpiled",
     "build": "webpack --bail",
     "eslint": "eslint -c .eslintrc app/scripts/modules",
     "start": "sh ./start.sh",
