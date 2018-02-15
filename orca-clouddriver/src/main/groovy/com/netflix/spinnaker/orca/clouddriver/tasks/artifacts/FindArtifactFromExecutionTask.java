@@ -58,13 +58,12 @@ public class FindArtifactFromExecutionTask implements Task {
 
     List<Artifact> priorArtifacts = artifactResolver.getArtifactsForPipelineId(pipeline, executionOptions.toCriteria());
 
-    Artifact match = artifactResolver.resolveSingleArtifact(expectedArtifact, priorArtifacts);
+    Artifact match = artifactResolver.resolveSingleArtifact(expectedArtifact, priorArtifacts, false);
 
     if (match == null) {
       return new TaskResult(ExecutionStatus.TERMINAL);
     }
 
-    expectedArtifact.setBoundArtifact(match);
     outputs.put("resolvedExpectedArtifacts", Collections.singletonList(expectedArtifact));
     outputs.put("artifacts", Collections.singletonList(match));
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.BindProducedArtifactsTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
@@ -33,6 +34,10 @@ class RunJobStage implements StageDefinitionBuilder {
     builder
       .withTask("runJob", RunJobTask)
       .withTask("monitorDeploy", MonitorKatoTask)
+
+    if (stage.getContext().containsKey("expectedArtifacts")) {
+      builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
+    }
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
       builder.withTask("waitOnJobCompletion", WaitOnJobCompletion)

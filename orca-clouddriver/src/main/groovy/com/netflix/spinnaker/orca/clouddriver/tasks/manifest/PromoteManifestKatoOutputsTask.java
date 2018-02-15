@@ -17,10 +17,15 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
@@ -34,8 +39,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class PromoteManifestKatoOutputsTask implements Task {
   public static final String TASK_NAME = "promoteOutputs";
+
+  private static final TypeReference<List<Artifact>> artifactListType = new TypeReference<List<Artifact>>() { };
+  private static final String MANIFESTS_KEY = "manifests";
+  private static final String MANIFESTS_BY_NAMESPACE_KEY = "manifestNamesByNamespace";
+  private static final String BOUND_ARTIFACTS_KEY = "boundArtifacts";
+  private static final String CREATED_ARTIFACTS_KEY = "createdArtifacts";
+  private static final String ARTIFACTS_KEY = "artifacts";
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   @Nonnull
   @Override
@@ -49,17 +65,31 @@ public class PromoteManifestKatoOutputsTask implements Task {
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-    addToOutputs(outputs, allResults, "manifests");
-    addToOutputs(outputs, allResults, "manifestNamesByNamespace");
-    addToOutputs(outputs, allResults, "boundArtifacts");
-    addToOutputs(outputs, allResults, "createdArtifacts");
-    addToOutputs(outputs, allResults, "createdArtifacts", "artifacts");
+    addToOutputs(outputs, allResults, MANIFESTS_KEY);
+    addToOutputs(outputs, allResults, MANIFESTS_BY_NAMESPACE_KEY);
+
+    addToOutputs(outputs, allResults, BOUND_ARTIFACTS_KEY);
+    convertKey(outputs, outputKey(BOUND_ARTIFACTS_KEY), artifactListType);
+
+    addToOutputs(outputs, allResults, CREATED_ARTIFACTS_KEY);
+    convertKey(outputs, outputKey(CREATED_ARTIFACTS_KEY), artifactListType);
+
+    addToOutputs(outputs, allResults, CREATED_ARTIFACTS_KEY, ARTIFACTS_KEY);
+    convertKey(outputs, ARTIFACTS_KEY, artifactListType);
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs);
   }
 
+  private void convertKey(Map<String, Object> outputs, String key, TypeReference tr) {
+    outputs.computeIfPresent(key, (k, v) -> objectMapper.convertValue(v, tr));
+  }
+
+  private String outputKey(String input) {
+    return "outputs." + input;
+  }
+
   private void addToOutputs(Map<String, Object> outputs, List<Map> allResults, String key) {
-    addToOutputs(outputs, allResults, key, "outputs." + key);
+    addToOutputs(outputs, allResults, key, outputKey(key));
   }
 
   private void addToOutputs(Map<String, Object> outputs, List<Map> allResults, String key, String targetKey) {

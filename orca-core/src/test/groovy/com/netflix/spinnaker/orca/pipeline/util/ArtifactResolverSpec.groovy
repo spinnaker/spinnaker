@@ -209,7 +209,7 @@ class ArtifactResolverSpec extends Specification {
   def "should find a matching artifact for #expected"() {
     when:
     def artifactResolver = makeArtifactResolver()
-    def artifact = artifactResolver.resolveSingleArtifact(expected, existing)
+    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, true)
 
     then:
     artifact == desired
@@ -225,7 +225,7 @@ class ArtifactResolverSpec extends Specification {
   def "should fail find a matching artifact for #expected"() {
     when:
     def artifactResolver = makeArtifactResolver()
-    def artifact = artifactResolver.resolveSingleArtifact(expected, existing)
+    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, true)
 
     then:
     artifact == null
@@ -262,5 +262,23 @@ class ArtifactResolverSpec extends Specification {
     def artifacts = artifactResolver.getAllArtifacts(execution)
     artifacts.size == 3
     artifacts*.type == ["2", "1", "trigger"]
+  }
+
+  @Unroll
+  def "should resolve expected artifacts from pipeline for #expectedArtifacts using #available and prior #prior"() {
+    when:
+    def artifactResolver = makeArtifactResolver()
+    def bound = artifactResolver.resolveExpectedArtifacts(expectedArtifacts, available, prior, true)
+
+    then:
+    bound.size() == expectedBound.size()
+    bound.findAll({ a -> expectedBound.contains(a) }).size() == bound.size()
+
+    where:
+    expectedArtifacts                                                                                                                                                                                                                                   | available                                                   | prior                                || expectedBound
+    [new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"))]                                                                                                                                                                              | [new Artifact(type: "docker/image")]                        | null                                 || [new Artifact(type: "docker/image")]
+    [new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"), useDefaultArtifact: true, defaultArtifact: new Artifact(type: "google/image"))]                                                                                               | [new Artifact(type: "bad")]                                 | null                                 || [new Artifact(type: "google/image")]
+    [new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"), usePriorArtifact: true)]                                                                                                                                                      | [new Artifact(type: "bad")]                                 | [new Artifact(type: "docker/image")] || [new Artifact(type: "docker/image")]
+    [new ExpectedArtifact(matchArtifact: new Artifact(type: "google/.*"), usePriorArtifact: true), new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"), useDefaultArtifact: true, defaultArtifact: new Artifact(type: "docker/image"))] | [new Artifact(type: "bad"), new Artifact(type: "more bad")] | [new Artifact(type: "google/image")] || [new Artifact(type: "docker/image"), new Artifact(type: "google/image")]
   }
 }
