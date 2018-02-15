@@ -47,7 +47,6 @@ for user in $(ls home); do
   fi
 
   if [[ "$user" != "spinnaker" && "$user" != "ubuntu" ]]; then
-    userdel -rf $user
     for file in $etc_files; do
       sed /^$user:.*/d -i etc/${file} || true
       sed /^$user:.*/d -i etc/${file}- || true
