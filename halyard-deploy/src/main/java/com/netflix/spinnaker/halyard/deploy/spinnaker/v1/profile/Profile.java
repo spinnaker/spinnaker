@@ -21,6 +21,8 @@ import com.netflix.spinnaker.halyard.core.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -35,6 +37,8 @@ import java.util.Map;
 @Slf4j
 public class Profile {
   @JsonIgnore
+  @Getter
+  @Setter
   private String contents = "";
   private List<String> requiredFiles = new ArrayList<>();
   private Map<String, String> env = new HashMap<>();

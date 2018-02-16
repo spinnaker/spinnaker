@@ -40,13 +40,15 @@ import java.util.Optional;
 @Data
 @Component
 abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
-  private static String roscoConfigPath = "/opt/rosco/config";
-
   @Autowired
   RoscoProfileFactory roscoProfileFactory;
 
   @Autowired
   RegistryBackedArchiveProfileBuilder prefixProfileBuilder;
+
+  protected String getRoscoConfigPath() {
+    return "/opt/rosco/config";
+  }
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -68,11 +70,14 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
     Optional<String> result = super.customProfileOutputPath(profileName);
     if (!result.isPresent()) {
       if (profileName.startsWith("rosco/")) {
-        return Optional.of(roscoConfigPath + profileName.substring("rosco".length()));
+        return Optional.of(getRoscoConfigPath() + profileName.substring("rosco".length()));
       }
     }
 
     return result;
+  }
+
+  protected void appendCustomConfigDir(Profile profile) {
   }
 
   @Override
@@ -83,8 +88,10 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
     String path = Paths.get(getConfigOutputPath(), filename).toString();
     Profile profile = roscoProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
+    appendCustomConfigDir(profile);
+
     profiles.add(profile);
-    profiles.addAll(prefixProfileBuilder.build(deploymentConfiguration, roscoConfigPath, getArtifact(), "packer"));
+    profiles.addAll(prefixProfileBuilder.build(deploymentConfiguration, getRoscoConfigPath(), getArtifact(), "packer"));
     return profiles;
   }
 

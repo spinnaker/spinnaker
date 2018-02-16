@@ -21,19 +21,25 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RoscoService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
 public class LocalGitRoscoService extends RoscoService implements LocalGitService<RoscoService.Rosco> {
-  String startCommand = "";
+  String startCommand = "./gradlew";
 
   @Autowired
   String gitRoot;
@@ -41,9 +47,17 @@ public class LocalGitRoscoService extends RoscoService implements LocalGitServic
   @Autowired
   ArtifactService artifactService;
 
+  @Autowired
+  Yaml yamlParser;
+
   @Override
   protected String getConfigOutputPath() {
     return "~/.spinnaker";
+  }
+
+  @Override
+  protected String getRoscoConfigPath() {
+    return Paths.get(gitRoot, "/rosco/rosco-web/config").toString();
   }
 
   @Override
@@ -60,5 +74,18 @@ public class LocalGitRoscoService extends RoscoService implements LocalGitServic
   @Override
   public void collectLogs(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
     throw new NotImplementedException();
+  }
+
+  @Override
+  protected void appendCustomConfigDir(Profile profile) {
+    Map parsedContents = (Map) yamlParser.load(profile.getContents());
+
+    if (!(parsedContents.get("rosco") instanceof Map)) {
+      parsedContents.put("rosco", new LinkedHashMap<String,Object>());
+    }
+
+    ((Map) parsedContents.get("rosco")).put("configDir", getRoscoConfigPath());
+
+    profile.setContents(yamlParser.dump(parsedContents));
   }
 }
