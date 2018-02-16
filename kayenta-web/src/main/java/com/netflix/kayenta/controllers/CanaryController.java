@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.netflix.kayenta.canary.*;
+import com.netflix.kayenta.canary.orca.CanaryStageNames;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -55,11 +56,6 @@ import java.util.stream.Stream;
 @Slf4j
 public class CanaryController {
 
-  private final String REFID_SET_CONTEXT = "setupContext";
-  private final String REFID_FETCH_CONTROL_PREFIX = "fetchControl";
-  private final String REFID_FETCH_EXPERIMENT_PREFIX = "fetchExperiment";
-  private final String REFID_MIX_METRICS = "mixMetrics";
-  private final String REFID_JUDGE = "judge";
   private final String AD_HOC = "ad-hoc";
 
   private final String currentInstanceId;
@@ -70,6 +66,8 @@ public class CanaryController {
   private final List<CanaryScopeFactory> canaryScopeFactories;
   private final Registry registry;
   private final ObjectMapper kayentaObjectMapper;
+  private final ExecutionMapper executionMapper;
+
   private final Id pipelineRunId;
   private final Id failureId;
 
@@ -81,12 +79,14 @@ public class CanaryController {
                           StorageServiceRepository storageServiceRepository,
                           Optional<List<CanaryScopeFactory>> canaryScopeFactories,
                           Registry registry,
-                          ObjectMapper kayentaObjectMapper) {
+                          ObjectMapper kayentaObjectMapper,
+                          ExecutionMapper executionMapper) {
     this.currentInstanceId = currentInstanceId;
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
+    this.executionMapper = executionMapper;
 
     this.canaryScopeFactories = canaryScopeFactories.orElseGet(Collections::emptyList);
 
@@ -179,93 +179,10 @@ public class CanaryController {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
+
     Execution pipeline = executionRepository.retrieve(Execution.ExecutionType.PIPELINE, canaryExecutionId);
 
-    return getCanaryResults(resolvedStorageAccountName, pipeline);
-  }
-
-  private CanaryExecutionStatusResponse getCanaryResults(String storageAccountName, Execution pipeline) {
-    StorageService storageService =
-      storageServiceRepository
-        .getOne(storageAccountName)
-        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to retrieve results."));
-
-    String canaryExecutionId = pipeline.getId();
-
-    Stage judgeStage = pipeline.getStages().stream()
-      .filter(stage -> stage.getRefId().equals(REFID_JUDGE))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_JUDGE + "' in pipeline ID '" + canaryExecutionId + "'"));
-    Map<String, Object> judgeOutputs = judgeStage.getOutputs();
-
-    Stage contextStage = pipeline.getStages().stream()
-      .filter(stage -> stage.getRefId().equals(REFID_SET_CONTEXT))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_SET_CONTEXT + "' in pipeline ID '" + canaryExecutionId + "'"));
-    Map<String, Object> contextContext = contextStage.getContext();
-
-    Stage mixerStage = pipeline.getStages().stream()
-      .filter(stage -> stage.getRefId().equals(REFID_MIX_METRICS))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + REFID_MIX_METRICS + "' in pipeline ID '" + canaryExecutionId + "'"));
-    Map<String, Object> mixerContext = mixerStage.getContext();
-
-    CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder canaryExecutionStatusResponseBuilder =
-      CanaryExecutionStatusResponse.builder()
-        .application((String)contextContext.get("application"))
-        .parentPipelineExecutionId((String)contextContext.get("parentPipelineExecutionId"));
-
-    Map<String, String> stageStatus = pipeline.getStages()
-      .stream()
-      .collect(Collectors.toMap(Stage::getRefId, s -> s.getStatus().toString().toLowerCase()));
-
-    Boolean isComplete = pipeline.getStatus().isComplete();
-    String pipelineStatus = pipeline.getStatus().toString().toLowerCase();
-
-    canaryExecutionStatusResponseBuilder
-      .stageStatus(stageStatus)
-      .complete(isComplete)
-      .status(pipelineStatus);
-
-    Long buildTime = pipeline.getBuildTime();
-    if (buildTime != null) {
-      canaryExecutionStatusResponseBuilder
-        .buildTimeMillis(buildTime)
-        .buildTimeIso(Instant.ofEpochMilli(buildTime) + "");
-    }
-
-    Long startTime = pipeline.getStartTime();
-    if (startTime != null) {
-      canaryExecutionStatusResponseBuilder
-        .startTimeMillis(startTime)
-        .startTimeIso(Instant.ofEpochMilli(startTime) + "");
-    }
-
-    Long endTime = pipeline.getEndTime();
-    if (endTime != null) {
-      canaryExecutionStatusResponseBuilder
-        .endTimeMillis(endTime)
-        .endTimeIso(Instant.ofEpochMilli(endTime) + "");
-    }
-
-    if (isComplete && pipelineStatus.equals("succeeded")) {
-      if (judgeOutputs.containsKey("canaryJudgeResultId")) {
-        String canaryJudgeResultId = (String)judgeOutputs.get("canaryJudgeResultId");
-        canaryExecutionStatusResponseBuilder.result(storageService.loadObject(storageAccountName, ObjectType.CANARY_RESULT, canaryJudgeResultId));
-      }
-    }
-
-    // Propagate the first canary pipeline exception we can locate.
-    Stage stageWithException = pipeline.getStages().stream()
-      .filter(stage -> stage.getContext().containsKey("exception"))
-      .findFirst()
-      .orElse(null);
-
-    if (stageWithException != null) {
-      canaryExecutionStatusResponseBuilder.exception(stageWithException.getContext().get("exception"));
-    }
-
-    return canaryExecutionStatusResponseBuilder.build();
+    return executionMapper.fromExecution(storageAccountName, pipeline);
   }
 
   private CanaryExecutionResponse buildExecution(String application,
@@ -304,11 +221,12 @@ public class CanaryController {
     HashMap<String, Object> setupCanaryContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", REFID_SET_CONTEXT)
+          .put("refId", CanaryStageNames.REFID_SET_CONTEXT)
           .put("user", "[anonymous]")
           .put("application", application)
           .put("parentPipelineExecutionId", parentPipelineExecutionId)
           .put("canaryConfigId", canaryConfigId)
+          .put("storageAccountName", resolvedStorageAccountName)
           .build());
     if (resolvedConfigurationAccountName != null) {
       setupCanaryContext.put("configurationAccountName", resolvedConfigurationAccountName);
@@ -329,18 +247,18 @@ public class CanaryController {
                                                                          resolvedStorageAccountName);
 
     int maxMetricIndex = canaryConfig.getMetrics().size() - 1; // 0 based naming, so we want the last index value, not the count
-    String lastControlFetchRefid = REFID_FETCH_CONTROL_PREFIX + maxMetricIndex;
-    String lastExperimentFetchRefid = REFID_FETCH_EXPERIMENT_PREFIX + maxMetricIndex;
+    String lastControlFetchRefid = CanaryStageNames.REFID_FETCH_CONTROL_PREFIX + maxMetricIndex;
+    String lastExperimentFetchRefid = CanaryStageNames.REFID_FETCH_EXPERIMENT_PREFIX + maxMetricIndex;
 
     Map<String, Object> mixMetricSetsContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", REFID_MIX_METRICS)
+          .put("refId", CanaryStageNames.REFID_MIX_METRICS)
           .put("requisiteStageRefIds", new ImmutableList.Builder().add(lastControlFetchRefid).add(lastExperimentFetchRefid).build())
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
-          .put("controlRefidPrefix", REFID_FETCH_CONTROL_PREFIX)
-          .put("experimentRefidPrefix", REFID_FETCH_EXPERIMENT_PREFIX)
+          .put("controlRefidPrefix", CanaryStageNames.REFID_FETCH_CONTROL_PREFIX)
+          .put("experimentRefidPrefix", CanaryStageNames.REFID_FETCH_EXPERIMENT_PREFIX)
           .build());
 
     CanaryClassifierThresholdsConfig orchestratorScoreThresholds = canaryExecutionRequest.getThresholds();
@@ -358,8 +276,8 @@ public class CanaryController {
     Map<String, Object> canaryJudgeContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
-          .put("refId", REFID_JUDGE)
-          .put("requisiteStageRefIds", Collections.singletonList(REFID_MIX_METRICS))
+          .put("refId", CanaryStageNames.REFID_JUDGE)
+          .put("requisiteStageRefIds", Collections.singletonList(CanaryStageNames.REFID_MIX_METRICS))
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
@@ -448,7 +366,7 @@ public class CanaryController {
         }
         CanaryScope inspecificScope = getScopeForNamedScope(executionRequest, metric.getScopeName(), isCanary);
         CanaryScope scopeModel = canaryScopeFactory.buildCanaryScope(inspecificScope);
-        String stagePrefix = (isCanary ? REFID_FETCH_EXPERIMENT_PREFIX : REFID_FETCH_CONTROL_PREFIX);
+        String stagePrefix = (isCanary ? CanaryStageNames.REFID_FETCH_EXPERIMENT_PREFIX : CanaryStageNames.REFID_FETCH_CONTROL_PREFIX);
         String scopeJson;
         try {
           scopeJson = kayentaObjectMapper.writeValueAsString(scopeModel);
@@ -457,7 +375,7 @@ public class CanaryController {
         }
 
         String currentStageId = stagePrefix + index;
-        String previousStageId = (index == 0) ? REFID_SET_CONTEXT : stagePrefix + (index - 1);
+        String previousStageId = (index == 0) ? CanaryStageNames.REFID_SET_CONTEXT : stagePrefix + (index - 1);
 
         return Maps.newHashMap(
           new ImmutableMap.Builder<String, Object>()
@@ -483,6 +401,11 @@ public class CanaryController {
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
 
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedStorageAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to retrieve results."));
+
     if (StringUtils.isEmpty(statuses)) {
       statuses = Stream.of(ExecutionStatus.values())
         .map(s -> s.toString())
@@ -507,7 +430,7 @@ public class CanaryController {
 
     return executions
       .stream()
-      .map(execution -> getCanaryResults(resolvedStorageAccountName, execution))
+      .map(execution -> executionMapper.fromExecution(resolvedStorageAccountName, execution))
       .collect(Collectors.toList());
   }
 }

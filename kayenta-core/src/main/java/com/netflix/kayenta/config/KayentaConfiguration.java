@@ -35,7 +35,9 @@ import org.springframework.context.annotation.Configuration;
   "com.netflix.kayenta.index.config",
   "com.netflix.kayenta.metrics",
   "com.netflix.kayenta.persistence.config",
-  "com.netflix.kayenta.retrofit.config"
+  "com.netflix.kayenta.retrofit.config",
+  "com.netflix.kayenta.events",
+  "com.netflix.kayenta.external"
 })
 public class KayentaConfiguration {
 

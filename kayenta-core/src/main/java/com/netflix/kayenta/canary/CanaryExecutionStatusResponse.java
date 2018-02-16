@@ -59,4 +59,7 @@ public class CanaryExecutionStatusResponse {
   protected String startTimeIso;
   protected Long endTimeMillis;
   protected String endTimeIso;
+
+  // If set, this is the storage account name used for the metric data
+  protected String storageAccountName;
 }
