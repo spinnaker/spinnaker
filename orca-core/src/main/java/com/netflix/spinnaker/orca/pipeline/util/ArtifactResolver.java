@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.StageContext;
-import com.netflix.spinnaker.orca.pipeline.model.Trigger;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import lombok.Data;
@@ -98,7 +98,7 @@ public class ArtifactResolver {
 
     // Get all artifacts in the parent pipeline's trigger; these artifacts go at the end of the list,
     // after any that were emitted by the pipeline
-    List<Artifact> triggerArtifacts = execution.getTrigger().getArtifacts();
+    List<Artifact> triggerArtifacts = objectMapper.convertValue(execution.getTrigger().getArtifacts(), new TypeReference<List<Artifact>>() {});
 
     emittedArtifacts.addAll(triggerArtifacts);
 
@@ -139,17 +139,17 @@ public class ArtifactResolver {
     @Nonnull String pipelineId,
     @Nonnull ExecutionCriteria criteria
   ) {
-    return executionRepository
-      .retrievePipelinesForPipelineConfigId(pipelineId, criteria)
-      .subscribeOn(Schedulers.io())
-      .toSortedList(startTimeOrId)
-      .toBlocking()
-      .single()
-      .stream()
-      .map(Execution::getTrigger)
-      .map(Trigger::getArtifacts)
-      .findFirst()
-      .orElse(emptyList());
+    Execution execution = executionRepository
+        .retrievePipelinesForPipelineConfigId(pipelineId, criteria)
+        .subscribeOn(Schedulers.io())
+        .toSortedList(startTimeOrId)
+        .toBlocking()
+        .single()
+        .stream()
+        .findFirst()
+        .orElse(null);
+
+    return execution == null ? Collections.emptyList() : getAllArtifacts(execution);
   }
 
   public void resolveArtifacts(@Nonnull Map pipeline) {
