@@ -699,7 +699,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       (builder.new_clause_builder('Daemonset Deleted', retryable_for_secs=15)
        .get_resources(
           'daemonsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
-                        '--namespace',self.TEST_NAMESPACE], no_resource_ok=True)
+                        '--namespace', self.TEST_NAMESPACE], no_resource_ok=True)
        .contains_path_eq('targetSize', 0))
       return st.OperationContract(
           self.new_post_operation(
@@ -721,7 +721,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       (builder.new_clause_builder('StatefulSet Deleted', retryable_for_secs=15)
        .get_resources(
           'statefulsets', extra_args=[self.TEST_APP + self.POSTFIX_STATEFUL_DAEMONSET,
-                          '--namespace',self.TEST_NAMESPACE], no_resource_ok=True)
+                          '--namespace', self.TEST_NAMESPACE], no_resource_ok=True)
        .contains_path_eq('targetSize', 0))
       return st.OperationContract(
           self.new_post_operation(
