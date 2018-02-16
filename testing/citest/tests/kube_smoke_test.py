@@ -585,7 +585,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       return result
 
   def save_delete_statefulset_pipeline(self):
-      deploy_stage = self.make_delete_stage_statefulset()
+      delete_stage = self.make_delete_stage_statefulset()
       job = dict(
           appConfig={},
           keepWaitingPipelines='false',
@@ -594,7 +594,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           lastModifiedBy='anonymous',
           limitConcurrent='true',
           parallel='true',
-          stages=[deploy_stage]
+          stages=[delete_stage]
       )
       payload = self.agent.make_json_payload_from_kwargs(**job)
       expect_match = {key: jp.EQUIVALENT(value)
@@ -602,7 +602,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       expect_match['stages'] = jp.LIST_MATCHES(
           [
               jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
-                               for key, value in deploy_stage.items()})])
+                               for key, value in delete_stage.items()})])
 
       builder = st.HttpContractBuilder(self.agent)
       (builder.new_clause_builder('Has Pipeline',
@@ -617,7 +617,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           contract=builder.build())
 
   def save_delete_daemonset_pipeline(self):
-      deploy_stage = self.make_delete_stage_daemonset()
+      delete_stage = self.make_delete_stage_daemonset()
       job = dict(
           appConfig={},
           keepWaitingPipelines='false',
@@ -626,7 +626,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           lastModifiedBy='anonymous',
           limitConcurrent='true',
           parallel='true',
-          stages=[deploy_stage]
+          stages=[delete_stage]
       )
       payload = self.agent.make_json_payload_from_kwargs(**job)
       expect_match = {key: jp.EQUIVALENT(value)
@@ -634,7 +634,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       expect_match['stages'] = jp.LIST_MATCHES(
           [
               jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
-                               for key, value in deploy_stage.items()})])
+                               for key, value in delete_stage.items()})])
 
       builder = st.HttpContractBuilder(self.agent)
       (builder.new_clause_builder('Has Pipeline',
