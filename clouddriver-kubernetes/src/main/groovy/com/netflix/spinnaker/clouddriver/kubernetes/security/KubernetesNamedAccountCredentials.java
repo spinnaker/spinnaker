@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResou
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;

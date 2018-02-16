@@ -15,34 +15,47 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesDaemonSetCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesStatefulSetCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
-import io.kubernetes.client.models.V1beta2DaemonSet;
-import io.kubernetes.client.models.V1beta2DaemonSetStatus;
+import io.kubernetes.client.models.V1beta2StatefulSet;
+import io.kubernetes.client.models.V1beta2StatefulSetStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component
-public class KubernetesDaemonSetHandler extends KubernetesHandler implements
+public class KubernetesStatefulSetHandler extends KubernetesHandler implements
     CanResize,
     CanDelete,
+    CanScale,
     CanPauseRollout,
     CanResumeRollout,
     CanUndoRollout {
 
+  public KubernetesStatefulSetHandler() {
+    registerReplacer(
+        ArtifactReplacer.Replacer.builder()
+            .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .findPath("$.spec.template.spec.containers.*.image")
+            .type(ArtifactTypes.DOCKER_IMAGE)
+            .build()
+    );
+  }
+
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.DAEMON_SET;
+    return KubernetesKind.STATEFUL_SET;
   }
 
   @Override
@@ -57,13 +70,19 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesDaemonSetCachingAgent.class;
+    return KubernetesStatefulSetCachingAgent.class;
   }
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    V1beta2DaemonSet v1beta2DaemonSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2DaemonSet.class);
-    return status(v1beta2DaemonSet);
+    V1beta2StatefulSet v1beta2StatefulSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2StatefulSet.class);
+    return status(v1beta2StatefulSet);
+  }
+
+  public static String serviceName(KubernetesManifest manifest) {
+    // TODO(lwander) perhaps switch on API version if this changes
+    Map<String, Object> spec = (Map<String, Object>) manifest.get("spec");
+    return (String) spec.get("serviceName");
   }
 
   @Override
@@ -74,35 +93,34 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
     return result;
   }
 
-  private Status status(V1beta2DaemonSet daemonSet) {
+  private Status status(V1beta2StatefulSet statefulSet) {
     Status result = new Status();
 
-    V1beta2DaemonSetStatus status = daemonSet.getStatus();
+    V1beta2StatefulSetStatus status = statefulSet.getStatus();
     if (status == null) {
       result.unstable("No status reported yet")
           .unavailable("No availability reported");
       return result;
     }
 
-    int desiredReplicas = status.getDesiredNumberScheduled();
-    Integer existing = status.getCurrentNumberScheduled();
+    int desiredReplicas = statefulSet.getSpec().getReplicas();
+    Integer existing = status.getReplicas();
     if (existing == null || desiredReplicas > existing) {
-      return result.unstable("Waiting for all replicas to be scheduled");
+      return result.unstable("Waiting for at least the desired replica count to be met");
     }
 
-    existing = status.getUpdatedNumberScheduled();
+    if (!status.getCurrentRevision().equals(status.getUpdateRevision())) {
+      return result.unstable("Waiting for the updated revision to match the current revision");
+    }
+
+    existing = status.getCurrentReplicas();
     if (existing == null || desiredReplicas > existing) {
       return result.unstable("Waiting for all updated replicas to be scheduled");
     }
 
-    existing = status.getNumberAvailable();
+    existing = status.getReadyReplicas();
     if (existing == null || desiredReplicas > existing) {
-      return result.unstable("Waiting for all replicas to be available");
-    }
-
-    existing = status.getNumberReady();
-    if (existing == null || desiredReplicas > existing) {
-      return result.unstable("Waiting for all replicas to be ready");
+      return result.unstable("Waiting for all updated replicas to be ready");
     }
 
     return result;

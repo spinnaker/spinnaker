@@ -23,8 +23,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoo
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesResumeRolloutManifestDescription;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CanResumeRollout;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanResumeRollout;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 

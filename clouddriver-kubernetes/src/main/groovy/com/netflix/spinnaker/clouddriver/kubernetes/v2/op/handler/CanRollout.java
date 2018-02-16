@@ -15,18 +15,17 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.model.ServerGroup.Capacity;
 
 import java.util.List;
 
-public interface CanUndoRollout extends CanRollout {
+public interface CanRollout {
   KubernetesKind kind();
 
-  default void undoRollout(KubernetesV2Credentials credentials, String namespace, String name, int revision) {
-    credentials.undoRollout(kind(), namespace, name, revision);
+  default List<Integer> historyRollout(KubernetesV2Credentials credentials, String namespace, String name) {
+    return credentials.historyRollout(kind(), namespace, name);
   }
 }

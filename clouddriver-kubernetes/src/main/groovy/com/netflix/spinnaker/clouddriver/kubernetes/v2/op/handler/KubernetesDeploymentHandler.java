@@ -15,15 +15,9 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
-
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesDeploymentCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
@@ -35,6 +29,10 @@ import io.kubernetes.client.models.V1beta2Deployment;
 import io.kubernetes.client.models.V1beta2DeploymentCondition;
 import io.kubernetes.client.models.V1beta2DeploymentStatus;
 import org.springframework.stereotype.Component;
+
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
 
 @Component
 public class KubernetesDeploymentHandler extends KubernetesHandler implements

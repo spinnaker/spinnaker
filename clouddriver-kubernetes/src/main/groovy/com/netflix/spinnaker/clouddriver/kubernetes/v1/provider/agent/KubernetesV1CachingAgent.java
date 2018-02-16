@@ -20,8 +20,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import lombok.Getter;
 

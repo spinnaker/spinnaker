@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesConfigMapCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesHorizontalPodAutoscalerCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -26,10 +26,10 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesConfigMapHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler implements CanDelete {
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.CONFIG_MAP;
+    return KubernetesKind.HORIZONTAL_POD_AUTOSCALER;
   }
 
   @Override
@@ -39,7 +39,7 @@ public class KubernetesConfigMapHandler extends KubernetesHandler implements Can
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.CONFIGS;
+    return SpinnakerKind.UNCLASSIFIED;
   }
 
   @Override
@@ -49,6 +49,6 @@ public class KubernetesConfigMapHandler extends KubernetesHandler implements Can
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesConfigMapCachingAgent.class;
+    return KubernetesHorizontalPodAutoscalerCachingAgent.class;
   }
 }

@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
-
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
@@ -42,6 +40,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

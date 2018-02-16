@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.moniker.Moniker;
 import org.apache.commons.lang3.tuple.Pair;

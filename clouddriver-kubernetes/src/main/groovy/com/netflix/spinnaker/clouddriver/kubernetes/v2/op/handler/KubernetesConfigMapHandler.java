@@ -15,9 +15,9 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesControllerRevisionCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesConfigMapCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -26,20 +26,20 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesControllerRevisionHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesConfigMapHandler extends KubernetesHandler implements CanDelete {
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.CONTROLLER_REVISION;
+    return KubernetesKind.CONFIG_MAP;
   }
 
   @Override
   public boolean versioned() {
-    return false;
+    return true;
   }
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.UNCLASSIFIED;
+    return SpinnakerKind.CONFIGS;
   }
 
   @Override
@@ -49,6 +49,6 @@ public class KubernetesControllerRevisionHandler extends KubernetesHandler imple
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesControllerRevisionCachingAgent.class;
+    return KubernetesConfigMapCachingAgent.class;
   }
 }

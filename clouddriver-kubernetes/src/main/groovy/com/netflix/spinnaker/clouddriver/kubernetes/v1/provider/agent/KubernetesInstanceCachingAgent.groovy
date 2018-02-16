@@ -22,10 +22,9 @@ import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import groovy.util.logging.Slf4j

@@ -29,7 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 
-public interface CanDeploy {
-  default OperationResult deploy(KubernetesV2Credentials credentials, KubernetesManifest manifest) {
-    credentials.deploy(manifest);
-    return new OperationResult().addManifest(manifest);
+public interface CanUndoRollout extends CanRollout {
+  KubernetesKind kind();
+
+  default void undoRollout(KubernetesV2Credentials credentials, String namespace, String name, int revision) {
+    credentials.undoRollout(kind(), namespace, name, revision);
   }
 }

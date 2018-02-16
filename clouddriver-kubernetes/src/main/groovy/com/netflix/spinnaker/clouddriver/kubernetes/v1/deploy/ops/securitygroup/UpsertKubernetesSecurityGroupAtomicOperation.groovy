@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.api.model.extensions.HTTPIngressPathBuilder
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder
 import io.fabric8.kubernetes.api.model.extensions.IngressRuleBuilder
 import io.fabric8.kubernetes.api.model.extensions.IngressTLSBuilder
-import io.fabric8.openshift.api.model.TLSConfigBuilder
 
 class UpsertKubernetesSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SECURITY_GROUP"

@@ -21,7 +21,6 @@ import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.provider.Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import groovy.util.logging.Slf4j;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

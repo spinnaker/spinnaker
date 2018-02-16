@@ -15,16 +15,15 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 
-public interface CanScale {
+public interface CanPauseRollout {
   KubernetesKind kind();
 
-  default void scale(KubernetesV2Credentials credentials, String namespace, String name, int replicas) {
-    credentials.scale(kind(), namespace, name, replicas);
+  default void pauseRollout(KubernetesV2Credentials credentials, String namespace, String name) {
+    credentials.pauseRollout(kind(), namespace, name);
   }
 }

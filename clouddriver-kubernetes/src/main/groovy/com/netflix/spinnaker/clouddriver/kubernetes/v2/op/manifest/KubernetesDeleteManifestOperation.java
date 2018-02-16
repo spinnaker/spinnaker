@@ -24,8 +24,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesRes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CanDelete;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanDelete;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 

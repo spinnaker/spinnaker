@@ -21,19 +21,27 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.fge.jsonpatch.diff.JsonDiff
 import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesApiClientConfig
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesClientOperationException
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesApiClientConfig
+import groovy.util.logging.Slf4j
 import io.kubernetes.client.ApiClient
 import io.kubernetes.client.ApiException
 import io.kubernetes.client.Configuration
 import io.kubernetes.client.apis.AppsV1beta1Api
-import io.kubernetes.client.models.*
-import io.kubernetes.client.apis.ExtensionsV1beta1Api
 import io.kubernetes.client.apis.AutoscalingV1Api
 import io.kubernetes.client.apis.CoreV1Api
-
-import groovy.util.logging.Slf4j
+import io.kubernetes.client.apis.ExtensionsV1beta1Api
+import io.kubernetes.client.models.V1DeleteOptions
+import io.kubernetes.client.models.V1HorizontalPodAutoscaler
+import io.kubernetes.client.models.V1NamespaceList
+import io.kubernetes.client.models.V1Pod
+import io.kubernetes.client.models.V1PodList
+import io.kubernetes.client.models.V1Status
+import io.kubernetes.client.models.V1beta1DaemonSet
+import io.kubernetes.client.models.V1beta1DaemonSetList
+import io.kubernetes.client.models.V1beta1StatefulSet
+import io.kubernetes.client.models.V1beta1StatefulSetList
 
 import java.util.concurrent.TimeUnit
 

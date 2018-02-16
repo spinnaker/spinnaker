@@ -21,8 +21,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResou
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.CustomKubernetesHandlerFactory;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CustomKubernetesHandlerFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

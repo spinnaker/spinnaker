@@ -18,8 +18,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.job
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.KubernetesKindAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesContainerDescription
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSource
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesDnsPolicy
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSource
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 

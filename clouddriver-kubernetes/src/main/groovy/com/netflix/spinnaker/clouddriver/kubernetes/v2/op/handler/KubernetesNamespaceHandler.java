@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesHorizontalPodAutoscalerCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesNamespaceCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -26,15 +26,15 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesNamespaceHandler extends KubernetesHandler implements CanDelete {
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.HORIZONTAL_POD_AUTOSCALER;
+    return KubernetesKind.NAMESPACE;
   }
 
   @Override
   public boolean versioned() {
-    return true;
+    return false;
   }
 
   @Override
@@ -49,6 +49,6 @@ public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler 
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesHorizontalPodAutoscalerCachingAgent.class;
+    return KubernetesNamespaceCachingAgent.class;
   }
 }

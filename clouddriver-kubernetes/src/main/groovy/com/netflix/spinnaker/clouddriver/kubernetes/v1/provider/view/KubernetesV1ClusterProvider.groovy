@@ -23,11 +23,11 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Cluster
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1Instance
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1LoadBalancer
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesV1ServerGroup
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.caching.Keys
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import io.fabric8.kubernetes.api.model.extensions.Deployment

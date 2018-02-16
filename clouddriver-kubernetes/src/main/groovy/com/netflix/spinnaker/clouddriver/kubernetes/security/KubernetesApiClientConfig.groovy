@@ -16,17 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.security
 
-import io.kubernetes.client.ApiClient;
-import io.kubernetes.client.util.Config;
-import io.kubernetes.client.util.KubeConfig;
-import io.kubernetes.client.util.SSLUtils;
-
 import groovy.util.logging.Slf4j
+import io.kubernetes.client.ApiClient
+import io.kubernetes.client.util.Config
+import io.kubernetes.client.util.KubeConfig
 import org.apache.commons.lang3.StringUtils
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 
-import java.nio.file.Files;
+import java.nio.file.Files
 
 @Slf4j
 public class KubernetesApiClientConfig extends Config {

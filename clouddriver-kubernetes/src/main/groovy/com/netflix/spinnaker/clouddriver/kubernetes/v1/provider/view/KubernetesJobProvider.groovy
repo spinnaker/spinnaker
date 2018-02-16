@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesJobStatus
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.model.KubernetesJobStatus
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.model.JobProvider
 import com.netflix.spinnaker.clouddriver.model.JobState

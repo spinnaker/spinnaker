@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer.KubernetesIngressHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesIngressHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

@@ -15,31 +15,47 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesNamespaceCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesPodCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
-public class KubernetesNamespaceHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesPodHandler extends KubernetesHandler implements CanDelete {
+  public KubernetesPodHandler() {
+    registerReplacer(
+        ArtifactReplacer.Replacer.builder()
+            .replacePath("$.spec.containers.[?( @.image == \"{%name%}\" )].image")
+            .findPath("$.spec.containers.*.image")
+            .type(ArtifactTypes.DOCKER_IMAGE)
+            .build()
+    );
+  }
+
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.NAMESPACE;
+    return KubernetesKind.POD;
   }
 
   @Override
   public boolean versioned() {
-    return false;
+    return true;
   }
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.UNCLASSIFIED;
+    return SpinnakerKind.INSTANCES;
   }
 
   @Override
@@ -48,7 +64,15 @@ public class KubernetesNamespaceHandler extends KubernetesHandler implements Can
   }
 
   @Override
+  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+    Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
+    result.put("instanceId", result.get("name"));
+
+    return result;
+  }
+
+  @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesNamespaceCachingAgent.class;
+    return KubernetesPodCachingAgent.class;
   }
 }

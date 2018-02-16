@@ -15,12 +15,10 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesPodCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesNetworkPolicyCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
@@ -32,30 +30,20 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class KubernetesPodHandler extends KubernetesHandler implements CanDelete {
-  public KubernetesPodHandler() {
-    registerReplacer(
-        ArtifactReplacer.Replacer.builder()
-            .replacePath("$.spec.containers.[?( @.image == \"{%name%}\" )].image")
-            .findPath("$.spec.containers.*.image")
-            .type(ArtifactTypes.DOCKER_IMAGE)
-            .build()
-    );
-  }
-
+public class KubernetesNetworkPolicyHandler extends KubernetesHandler implements CanDelete {
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.POD;
+    return KubernetesKind.NETWORK_POLICY;
   }
 
   @Override
   public boolean versioned() {
-    return true;
+    return false;
   }
 
   @Override
   public SpinnakerKind spinnakerKind() {
-    return SpinnakerKind.INSTANCES;
+    return SpinnakerKind.SECURITY_GROUPS;
   }
 
   @Override
@@ -64,15 +52,15 @@ public class KubernetesPodHandler extends KubernetesHandler implements CanDelete
   }
 
   @Override
-  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
-    Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
-    result.put("instanceId", result.get("name"));
-
-    return result;
+  public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
+    return KubernetesNetworkPolicyCachingAgent.class;
   }
 
   @Override
-  public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesPodCachingAgent.class;
+  public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+    Map<String, Object> result = super.hydrateSearchResult(key, cacheUtils);
+    result.put("id", result.get("name"));
+
+    return result;
   }
 }

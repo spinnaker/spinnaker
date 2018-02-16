@@ -15,29 +15,36 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.deployer;
-
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.V1;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesServiceCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesIngressCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
-import io.kubernetes.client.models.V1Service;
+import io.kubernetes.client.models.V1beta1HTTPIngressPath;
+import io.kubernetes.client.models.V1beta1Ingress;
+import io.kubernetes.client.models.V1beta1IngressBackend;
+import io.kubernetes.client.models.V1beta1IngressRule;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
 
 @Component
-public class KubernetesServiceHandler extends KubernetesHandler implements CanDelete {
+public class KubernetesIngressHandler extends KubernetesHandler implements CanDelete {
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.SERVICE;
+    return KubernetesKind.INGRESS;
   }
 
   @Override
@@ -57,16 +64,37 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanDe
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesServiceCachingAgent.class;
+    return KubernetesIngressCachingAgent.class;
   }
 
-  public static Map<String, String> getSelector(KubernetesManifest manifest) {
-    if (manifest.getApiVersion().equals(V1)) {
-      V1Service v1Service = KubernetesCacheDataConverter.getResource(manifest, V1Service.class);
-      return v1Service.getSpec().getSelector();
+  public static List<String> attachedServices(KubernetesManifest manifest) {
+    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)) {
+      V1beta1Ingress v1beta1Ingress = KubernetesCacheDataConverter.getResource(manifest, V1beta1Ingress.class);
+      return attachedServices(v1beta1Ingress);
     } else {
-      throw new IllegalArgumentException("No services with version " + manifest.getApiVersion() + " supported");
+      throw new UnsupportedVersionException(manifest);
     }
+  }
+
+  private static List<String> attachedServices(V1beta1Ingress ingress) {
+    Set<String> result = new HashSet<>();
+    V1beta1IngressBackend backend = ingress.getSpec().getBackend();
+    if (backend != null) {
+      result.add(backend.getServiceName());
+    }
+
+    List<V1beta1IngressRule> rules = ingress.getSpec().getRules();
+    rules = rules == null ? new ArrayList<>() : rules;
+    for (V1beta1IngressRule rule : rules) {
+      for (V1beta1HTTPIngressPath path : rule.getHttp().getPaths()) {
+        backend = path.getBackend();
+        if (backend != null) {
+          result.add(backend.getServiceName());
+        }
+      }
+    }
+
+    return new ArrayList<>(result);
   }
 
   @Override

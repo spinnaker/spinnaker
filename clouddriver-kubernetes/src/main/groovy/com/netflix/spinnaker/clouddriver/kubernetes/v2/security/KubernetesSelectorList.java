@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Arrays;

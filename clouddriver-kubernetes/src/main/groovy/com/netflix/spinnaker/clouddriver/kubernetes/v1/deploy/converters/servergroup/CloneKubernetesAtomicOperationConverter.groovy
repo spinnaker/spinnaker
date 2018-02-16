@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.servergroup
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.converters.KubernetesAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.CloneKubernetesAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.ops.servergroup.CloneKubernetesAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import org.springframework.stereotype.Component
 
 @KubernetesOperation(AtomicOperations.CLONE_SERVER_GROUP)
