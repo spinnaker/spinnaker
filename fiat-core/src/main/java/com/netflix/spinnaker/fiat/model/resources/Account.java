@@ -38,7 +38,7 @@ public class Account extends BaseAccessControlled implements Viewable {
 
   @JsonIgnore
   public View getView(Set<Role> userRoles, boolean isAdmin) {
-    return new View(this, userRoles, false);
+    return new View(this, userRoles, isAdmin);
   }
 
   @Data
