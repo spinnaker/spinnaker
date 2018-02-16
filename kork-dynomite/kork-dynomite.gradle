@@ -1,4 +1,10 @@
 dependencies {
   compile project(":kork-jedis")
-  compile spinnaker.dependency("dynomite")
+  compile("com.netflix.dyno:dyno-jedis:1.6.0") {
+    exclude group: 'joda-time'
+    exclude group: 'org.apache.httpcomponents'
+    exclude group: 'org.slf4j'
+  }
+
+  testCompile spinnaker.dependency('junit')
 }

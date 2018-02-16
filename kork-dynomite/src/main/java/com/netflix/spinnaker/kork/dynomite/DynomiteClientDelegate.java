@@ -27,10 +27,21 @@ import java.util.function.Function;
 
 public class DynomiteClientDelegate implements RedisClientDelegate {
 
+  private final String name;
   private final DynoJedisClient client;
 
   public DynomiteClientDelegate(DynoJedisClient client) {
+    this("default", client);
+  }
+
+  public DynomiteClientDelegate(String name, DynoJedisClient client) {
+    this.name = name;
     this.client = client;
+  }
+
+  @Override
+  public String name() {
+    return name;
   }
 
   @Override

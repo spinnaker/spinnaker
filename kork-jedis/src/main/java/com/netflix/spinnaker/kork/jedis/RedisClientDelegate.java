@@ -25,6 +25,8 @@ import java.util.function.Function;
  */
 public interface RedisClientDelegate {
 
+  String name();
+
   <R> R withCommandsClient(Function<JedisCommands, R> f);
 
   void withCommandsClient(Consumer<JedisCommands> f);

@@ -23,10 +23,21 @@ import java.util.function.Function;
 
 public class JedisClientDelegate implements RedisClientDelegate {
 
+  private final String name;
   private final Pool<Jedis> jedisPool;
 
   public JedisClientDelegate(Pool<Jedis> jedisPool) {
+    this("default", jedisPool);
+  }
+
+  public JedisClientDelegate(String name, Pool<Jedis> jedisPool) {
+    this.name = name;
     this.jedisPool = jedisPool;
+  }
+
+  @Override
+  public String name() {
+    return name;
   }
 
   @Override
