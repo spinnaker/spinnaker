@@ -16,10 +16,28 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions.whitelisting;
 
-import java.util.*;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.Trigger;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 public interface ReturnTypeRestrictor extends InstantiationTypeRestrictor {
   Set<Class<?>> allowedReturnTypes = Collections.unmodifiableSet(
@@ -41,6 +59,10 @@ public interface ReturnTypeRestrictor extends InstantiationTypeRestrictor {
         TreeSet.class,
         Execution.class,
         Stage.class,
+        Trigger.class,
+        JenkinsTrigger.BuildInfo.class,
+        JenkinsTrigger.JenkinsArtifact.class,
+        JenkinsTrigger.SourceControl.class,
         ExecutionStatus.class,
         Execution.AuthenticationDetails.class,
         Execution.PausedDetails.class
