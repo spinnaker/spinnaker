@@ -1,6 +1,7 @@
 import { mock } from 'angular';
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { ACCOUNT_SERVICE, AccountService, IAccount } from 'core/account/account.service';
+import { $rootScope } from 'ngimport';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
 import { SETTINGS } from 'core/config/settings';
 
@@ -27,7 +28,7 @@ describe('Service: accountService', () => {
 
   afterEach(SETTINGS.resetToOriginal);
 
-  it('should filter the list of accounts by provider when supplied', () => {
+  it('should filter the list of accounts by provider when supplied', (done) => {
     $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(200, [
       { name: 'test', type: 'aws' },
       { name: 'prod', type: 'aws' },
@@ -35,43 +36,45 @@ describe('Service: accountService', () => {
       { name: 'gce-test', type: 'gce' },
     ]);
 
-    let accounts: IAccount[] = null;
-    accountService.listAccounts('aws').then((results: IAccount[]) => accounts = results);
-    $http.flush();
+    accountService.listAccounts('aws').then((accounts: IAccount[]) => {
+      expect(accounts.length).toBe(2);
+      expect(accounts.map((account: IAccount) => account.name)).toEqual(['test', 'prod']);
+      done();
+    });
 
-    expect(accounts.length).toBe(2);
-    expect(accounts.map((account: IAccount) => account.name)).toEqual(['test', 'prod']);
+    $http.flush();
+    setTimeout(() => $rootScope.$digest())
   });
 
   describe('getAllAccountDetailsForProvider', () => {
 
-    it('should return details for each account', function () {
+    it('should return details for each account', (done) => {
       $http.expectGET(API.baseUrl + '/credentials?expand=true').respond(200, [
         { name: 'test', type: 'aws' },
         { name: 'prod', type: 'aws' },
       ]);
 
-      let details: any = null;
-      accountService.getAllAccountDetailsForProvider('aws').then((results: any) => {
-        details = results;
+      accountService.getAllAccountDetailsForProvider('aws').then((details: any) => {
+        expect(details.length).toBe(2);
+        expect(details[0].name).toBe('test');
+        expect(details[1].name).toBe('prod');
+        done();
       });
 
       $http.flush();
-      expect(details.length).toBe(2);
-      expect(details[0].name).toBe('test');
-      expect(details[1].name).toBe('prod');
+      setTimeout(() => $rootScope.$digest())
     });
 
-    it('should fall back to an empty array if an exception occurs when listing accounts', () => {
+    it('should fall back to an empty array if an exception occurs when listing accounts', (done) => {
       $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(429, null);
 
-      let details: any[] = null;
-      accountService.getAllAccountDetailsForProvider('aws').then((results: any[]) => {
-        details = results;
+      accountService.getAllAccountDetailsForProvider('aws').then((details: any[]) => {
+        expect(details).toEqual([]);
+        done();
       });
 
       $http.flush();
-      expect(details).toEqual([]);
+      setTimeout(() => $rootScope.$digest())
     });
 
   });

@@ -1,5 +1,6 @@
 import { chain, intersection, zipObject } from 'lodash';
 import { ILogService, IPromise, IQResolveReject, IQService, module } from 'angular';
+import { Observable } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { API_SERVICE, Api } from 'core/api/api.service';
@@ -51,6 +52,10 @@ export interface IAccountZone {
 }
 
 export class AccountService {
+  public accounts$: Observable<IAccountDetails[]> = Observable.defer(() => {
+    const promise = this.API.one('credentials').useCache().withParams({ expand: true }).get();
+    return Observable.fromPromise<IAccountDetails[]>(promise);
+  }).publishReplay(1).refCount();
 
   constructor(private $log: ILogService,
               private $q: IQService,
@@ -148,10 +153,7 @@ export class AccountService {
   }
 
   public listAllAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
-    return this.API.one('credentials')
-      .useCache()
-      .withParams({ expand: true })
-      .get()
+    return this.$q.when(this.accounts$.toPromise())
       .then((accounts: IAccountDetails[]) => accounts.filter(account => !provider || account.type === provider))
       .then((accounts: IAccountDetails[]) => accounts.filter(account => !providerVersion || account.providerVersion === providerVersion));
   }

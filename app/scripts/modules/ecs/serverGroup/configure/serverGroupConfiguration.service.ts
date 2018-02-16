@@ -126,7 +126,7 @@ export class EcsServerGroupConfigurationService {
       ecsClusters: this.ecsClusterReader.listClusters(),
       metricAlarms: this.metricAlarmReader.listMetricAlarms(),
     }).then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
-      let loadBalancerReloader = this.$q.when(null);
+      let loadBalancerReloader = this.$q.when();
       backingData.accounts = keys(backingData.credentialsKeyedByAccount);
       backingData.filtered = {} as IEcsServerGroupCommandBackingDataFiltered;
       command.backingData = backingData as IEcsServerGroupCommandBackingData;

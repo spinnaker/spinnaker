@@ -55,22 +55,30 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
       super(props);
 
       const { accountService } = ReactInjector;
+      let constructing = true;
 
       this.account$
         .switchMap(accountId => {
-          if (accountId) {
-            return Observable.fromPromise(accountService.getAccountDetails(accountId));
+          if (!accountId) {
+            return Observable.of(null);
           }
 
-          return Observable.of(null);
+          return accountService.accounts$.map(accts => accts.find(acct => acct.accountId === accountId));
         })
         .map((accountDetails: IAccountDetails) => this.getComponent(accountDetails))
         .takeUntil(this.destroy$)
-        .subscribe((Component) => this.setState({ Component }));
-    }
+        .subscribe((Component) => {
+          // The component may be ready synchronously (when the constructor is run), or it might require async.
+          // Handle either case here
+          if (constructing) {
+            this.state = { Component };
+          } else {
+            this.setState({ Component });
+          }
+        });
 
-    public componentDidMount() {
       this.account$.next(this.props.accountId);
+      constructing = false;
     }
 
     public componentWillUnmount() {

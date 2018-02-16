@@ -168,9 +168,9 @@ export class AwsServerGroupConfigurationService {
       healthCheckTypes: this.$q.when(clone(this.healthCheckTypes)),
       terminationPolicies: this.$q.when(clone(this.terminationPolicies)),
     }).then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
-      let loadBalancerReloader = this.$q.when(null);
-      let securityGroupReloader = this.$q.when(null);
-      let instanceTypeReloader = this.$q.when(null);
+      let loadBalancerReloader = this.$q.when();
+      let securityGroupReloader = this.$q.when();
+      let instanceTypeReloader = this.$q.when();
       backingData.accounts = keys(backingData.credentialsKeyedByAccount);
       backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
       backingData.scalingProcesses = this.autoScalingProcessService.listProcesses();
