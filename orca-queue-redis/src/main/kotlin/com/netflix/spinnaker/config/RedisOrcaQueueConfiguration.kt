@@ -51,12 +51,8 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
       disable(FAIL_ON_UNKNOWN_PROPERTIES)
 
       SpringObjectMapperConfigurer(objectMapperSubtypeProperties.apply {
-        messagePackages = messagePackages.union(listOf(
-          "com.netflix.spinnaker.orca.q"
-        )).toList()
-        attributePackages = attributePackages.union(listOf(
-          "com.netflix.spinnaker.orca.q.handler"
-        )).toList()
+        messagePackages += listOf("com.netflix.spinnaker.orca.q")
+        attributePackages += listOf("com.netflix.spinnaker.orca.q")
       }).registerSubtypes(this)
     }
   }
