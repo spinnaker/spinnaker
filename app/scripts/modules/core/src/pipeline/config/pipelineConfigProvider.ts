@@ -136,7 +136,6 @@ export class PipelineConfigProvider implements IServiceProvider {
       return configurableStageTypes;
     }
     configurableStageTypes.forEach(type => type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, accounts));
-    // remove stage types where all given provider accounts are explicitly excluded by that type
     configurableStageTypes = configurableStageTypes.filter(type => {
       return !accounts.every(a => {
         const p = this.cloudProviderRegistryProvider.getProvider(a.cloudProvider, a.providerVersion);

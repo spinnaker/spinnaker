@@ -102,6 +102,13 @@ module(KUBERNETES_V1_MODULE, [
         configurationService: 'kubernetesServerGroupConfigurationService',
         paramsMixin: 'kubernetesServerGroupParamsMixin',
       },
+      unsupportedStageTypes: [
+        'scaleManifest',
+        'deployManifest',
+        'deleteManifest',
+        'undoRolloutManifest',
+        'findArtifactsFromResource',
+      ],
     });
   });
 
