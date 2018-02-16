@@ -30,6 +30,8 @@ import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -44,6 +46,7 @@ import java.util.concurrent.RejectedExecutionException;
  * Starts the individual SQS workers (one for each subscription)
  */
 @Component
+@ConditionalOnProperty("pubsub.amazon.enabled")
 public class SQSSubscriberProvider implements DiscoveryActivated {
   private static final Logger log = LoggerFactory.getLogger(SQSSubscriberProvider.class);
 
@@ -57,13 +60,13 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   @Autowired
   SQSSubscriberProvider(ObjectMapper objectMapper,
                         AWSCredentialsProvider awsCredentialsProvider,
-                        Optional<AmazonPubsubProperties> properties,
+                        AmazonPubsubProperties properties,
                         PubsubSubscribers pubsubSubscribers,
                         PubsubMessageHandler pubsubMessageHandler,
                         Registry registry) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
-    this.properties = properties.orElse(null);
+    this.properties = properties;
     this.pubsubSubscribers = pubsubSubscribers;
     this.pubsubMessageHandler = pubsubMessageHandler;
     this.registry = registry;
