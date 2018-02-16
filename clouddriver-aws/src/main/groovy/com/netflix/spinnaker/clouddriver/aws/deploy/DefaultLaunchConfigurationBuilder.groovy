@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.AlreadyExistsException
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
-import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
@@ -273,13 +273,17 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       request.withBlockDeviceMappings(mappings)
     }
 
-    OperationPoller.retryWithBackoff({o ->
-      CreateLaunchConfigurationRequest debugRequest = request.clone()
-      debugRequest.setUserData(null);
-      log.debug("Creating launch configuration (${name}): ${debugRequest}")
+    try {
+      OperationPoller.retryWithBackoff({ o ->
+        CreateLaunchConfigurationRequest debugRequest = request.clone()
+        debugRequest.setUserData(null);
+        log.debug("Creating launch configuration (${name}): ${debugRequest}")
 
-      autoScaling.createLaunchConfiguration(request)
-    }, 1500, 3);
+        autoScaling.createLaunchConfiguration(request)
+      }, 1500, 3);
+    } catch (AlreadyExistsException e) {
+      log.debug("Launch configuration already exists, continuing... (${e.message})")
+    }
 
     name
   }
