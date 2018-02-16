@@ -296,13 +296,7 @@ function configure_appengine() {
 }
 
 function configure_storage() {
-  # buckets may only contain '-', '_', and '.' as special chars
-  # projects can also have quotes, colons, exlamation points, and spaces
-  local sanitized_project=$(echo $MY_PROJECT | sed 's/[:" !]/-/g')
-  # buckets may not contain the word google to avoid looking official
-  sanitized_project=$(echo $sanitized_project | sed 's/google/redacted/g')
-
-  $HAL config storage gcs edit --project $MY_PROJECT --bucket spinnaker-$sanitized_project
+  $HAL config storage gcs edit --project $MY_PROJECT
   $HAL config storage edit --type gcs
 }
 
