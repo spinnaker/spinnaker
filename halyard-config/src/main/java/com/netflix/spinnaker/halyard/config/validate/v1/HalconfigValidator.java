@@ -60,7 +60,7 @@ public class HalconfigValidator extends Validator<Halconfig> {
         if (updateScript.exists() && !updateScript.isDirectory()) {
           problemBuilder.setRemediation("Run 'sudo update-halyard' to upgrade");
         } else {
-          problemBuilder.setRemediation("Run 'sudo apt-get update && sudo apt-get upgrade spinnaker-halyard -y' to upgrade");
+          problemBuilder.setRemediation("Run 'sudo apt-get update && sudo apt-get install spinnaker-halyard -y' to upgrade");
         }
       }
     } catch (Exception e) {
