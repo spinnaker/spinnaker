@@ -58,7 +58,7 @@ export class SecurityGroupsDetailsSection extends React.Component<IAmazonServerG
           {sortBy(securityGroups, 'name').map((securityGroup) => (
             <li key={securityGroup.name}>
               <UISref to="^.securityGroupDetails" params={{ name: securityGroup.name, accountId: securityGroup.accountName, region: serverGroup.region, vpcId: serverGroup.vpcId, provider: serverGroup.type }}>
-                <span>{securityGroup.name} ({securityGroup.id})</span>
+                <a>{securityGroup.name} ({securityGroup.id})</a>
               </UISref>
             </li>
           ))}
