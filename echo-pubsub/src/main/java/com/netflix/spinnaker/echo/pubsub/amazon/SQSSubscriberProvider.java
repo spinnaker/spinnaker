@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -56,13 +57,13 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
   @Autowired
   SQSSubscriberProvider(ObjectMapper objectMapper,
                         AWSCredentialsProvider awsCredentialsProvider,
-                        AmazonPubsubProperties properties,
+                        Optional<AmazonPubsubProperties> properties,
                         PubsubSubscribers pubsubSubscribers,
                         PubsubMessageHandler pubsubMessageHandler,
                         Registry registry) {
     this.objectMapper = objectMapper;
     this.awsCredentialsProvider = awsCredentialsProvider;
-    this.properties = properties;
+    this.properties = properties.orElse(null);
     this.pubsubSubscribers = pubsubSubscribers;
     this.pubsubMessageHandler = pubsubMessageHandler;
     this.registry = registry;
@@ -70,6 +71,10 @@ public class SQSSubscriberProvider implements DiscoveryActivated {
 
   @PostConstruct
   public void start() {
+    if (properties == null) {
+      return;
+    }
+
     ExecutorService executorService = Executors.newFixedThreadPool(properties.getSubscriptions().size());
 
     List<PubsubSubscriber> subscribers = new ArrayList<>();
