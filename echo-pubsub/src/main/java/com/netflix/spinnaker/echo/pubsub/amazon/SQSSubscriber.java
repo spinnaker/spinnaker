@@ -111,7 +111,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
   @Override
   public String getName() {
-    return getWorkerName();
+    return subscriptionName();
   }
 
   @Override
