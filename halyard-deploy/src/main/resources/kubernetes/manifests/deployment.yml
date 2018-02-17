@@ -4,8 +4,8 @@ metadata:
   name: spin-{{ name }}
   namespace: {{ namespace }}
   annotations:
-    moniker.spinnaker.io/application: "'spin'"
-    moniker.spinnaker.io/cluster: "'{{ name }}'"
+    moniker.spinnaker.io/application: '"spin"'
+    moniker.spinnaker.io/cluster: '"{{ name }}"'
   labels:
     app: spin
     cluster: spin-{{ name }}
