@@ -15,6 +15,7 @@
 """Implements debian support commands for buildtool."""
 
 import os
+from threading import Semaphore
 
 from buildtool import (
     BomSourceCodeManager,
@@ -29,8 +30,8 @@ from buildtool import (
 class BuildDebianCommand(GradleCommandProcessor):
   def __init__(self, factory, options, **kwargs):
     options.github_disable_upstream_push = True
-    super(BuildDebianCommand, self).__init__(
-        factory, options, max_threads=options.max_local_builds, **kwargs)
+    super(BuildDebianCommand, self).__init__(factory, options, **kwargs)
+    self.__semaphore = Semaphore(options.max_local_builds)
 
     if not os.environ.get('BINTRAY_KEY'):
       raise_and_log_error(ConfigError('Expected BINTRAY_KEY set.'))
@@ -40,11 +41,13 @@ class BuildDebianCommand(GradleCommandProcessor):
         options, ['bintray_org', 'bintray_jar_repository',
                   'bintray_debian_repository'])
 
+  def _do_can_skip_repository(self, repository):
+    build_version = self.scm.get_repository_service_build_version(repository)
+    return self.gradle.consider_debian_on_bintray(
+        repository, build_version=build_version)
+
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
-    if self.gradle.consider_debian_on_bintray(repository):
-      return
-
     options = self.options
     name = repository.name
     args = self.gradle.get_common_args()
@@ -61,7 +64,8 @@ class BuildDebianCommand(GradleCommandProcessor):
       # args.append('-x generateHtmlTestReports')
     args.extend(self.gradle.get_debian_args('trusty,xenial'))
 
-    self.gradle.check_run(args, self, repository, 'candidate', 'debian-build')
+    with self.__semaphore:
+      self.gradle.check_run(args, self, repository, 'candidate', 'debian-build')
 
 
 def add_bom_parser_args(parser, defaults):

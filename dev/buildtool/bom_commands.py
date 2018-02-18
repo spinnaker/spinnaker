@@ -77,7 +77,7 @@ class BomBuilder(object):
     Args:
       base_bom[dict]: If defined, this is a bom to start with.
                       It is intended to support a "refresh" use case where
-                      only a subset of entires are updated within t.
+                      only a subset of entires are updated within it.
     """
     self.__options = options
     self.__scm = scm
@@ -177,7 +177,21 @@ class BomBuilder(object):
     })
 
     services = dict(self.__base_bom.get('services', {}))
-    services.update(self.__services)
+    changed = False
+    for name, info in self.__services.items():
+      if info['commit'] == services.get(name, {}).get('commit', None):
+        logging.debug('%s commit hasnt changed -- keeping existing %s',
+                      name, info)
+        continue
+      changed = True
+      services[name] = info
+
+    if (self.__base_bom.get('artifactSources') != artifact_sources
+        or self.__base_bom.get('dependencies') != dependencies):
+      changed = True
+
+    if not changed:
+      return self.__base_bom
 
     return {
         'artifactSources': artifact_sources,
@@ -219,6 +233,31 @@ class BuildBomCommand(RepositoryCommandProcessor):
                    base_bom.get('version', 'UNKNOWN'))
     self.__builder = BomBuilder(self.options, self.scm, base_bom=base_bom)
 
+  def _do_can_skip_repository(self, repository):
+    name = repository.name
+    service_name = self.scm.repository_name_to_service_name(name)
+    origin = repository.origin
+    branch = self.options.git_branch
+    services = self.__builder.base_bom.get('services', {})
+    existing_bom_entry = services.get(service_name, {})
+    existing_commit = existing_bom_entry.get('commit')
+    logging.debug('Fetching current commit for %s %s', origin, branch)
+    current_commit = self.git.query_remote_repository_commit_id(origin, branch)
+
+    if current_commit == existing_commit:
+      result = True
+      reason = 'same commit'
+      logging.debug('%s %s is unchanged - skip.', origin, branch)
+    else:
+      result = False
+      reason = 'different commit' if existing_bom_entry else 'fresh bom'
+
+    labels = {'repository': name, 'branch': branch,
+              'reason': reason, 'updated': result}
+    self.metrics.inc_counter('UpdateBomEntry', labels,
+                             'Attempts to update bom entries.')
+    return result
+
   def _do_repository(self, repository):
     source_info = self.scm.lookup_source_info(repository)
     self.__builder.add_repository(repository, source_info)
@@ -226,6 +265,10 @@ class BuildBomCommand(RepositoryCommandProcessor):
   def _do_postprocess(self, _):
     """Construct BOM and write it to the configured path."""
     bom = self.__builder.build()
+    if bom == self.__builder.base_bom:
+      logging.info('Bom has not changed from version %s @ %s',
+                   bom['version'], bom['timestamp'])
+
     bom_text = yaml.dump(bom, default_flow_style=False)
 
     path = _determine_bom_path(self)
@@ -243,6 +286,7 @@ class BuildBomCommandFactory(RepositoryCommandFactory):
 
   def init_argparser(self, parser, defaults):
     super(BuildBomCommandFactory, self).init_argparser(parser, defaults)
+    HalRunner.add_parser_args(parser, defaults)
     buildtool.container_commands.add_bom_parser_args(parser, defaults)
     buildtool.debian_commands.add_bom_parser_args(parser, defaults)
     buildtool.image_commands.add_bom_parser_args(parser, defaults)
@@ -306,17 +350,17 @@ class PublishBomCommand(RepositoryCommandProcessor):
     self.__publish_configs(bom_path)
 
     if options.bom_alias:
+      alias = os.path.splitext(options.bom_alias)[0]
       logging.info('Publishing bom alias %s = %s',
-                   options.bom_alias, os.path.basename(bom_path))
+                   alias, os.path.basename(bom_path))
       with open(bom_path, 'r') as stream:
         bom = yaml.load(stream)
 
-      alias_path = os.path.join(os.path.dirname(bom_path), options.bom_alias)
+      alias_path = os.path.join(os.path.dirname(bom_path), alias + '.yml')
       with open(alias_path, 'w') as stream:
         bom['version'] = options.bom_alias
         yaml.dump(bom, stream, default_flow_style=False)
       self.__hal_runner.publish_bom_path(alias_path)
-      self.__publish_configs(alias_path)
 
   def __publish_configs(self, bom_path):
     """Publish each of the halconfigs for the bom at the given path."""
