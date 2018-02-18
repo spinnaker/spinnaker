@@ -44,6 +44,12 @@ class BuildContainerCommand(GradleCommandProcessor):
         factory, options_copy,
         source_repository_names=source_repository_names, **kwargs)
 
+  def _do_can_skip_repository(self, repository):
+    if self.options.container_builder == 'gcb':
+      build_version = self.scm.get_repository_service_build_version(repository)
+      return self.__check_gcb_image(repository, build_version)
+    return False
+
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
     options = self.options
@@ -112,11 +118,8 @@ class BuildContainerCommand(GradleCommandProcessor):
         check_subprocess, ' '.join(command))
 
   def __build_with_gcb(self, repository):
-    source_info = self.source_code_manager.check_source_info(repository)
-    if self.__check_gcb_image(repository, source_info.to_build_version()):
-      return
-
     name = repository.name
+    source_info = self.source_code_manager.check_source_info(repository)
     gcb_config = self.__derive_gcb_config(repository, source_info)
     if gcb_config is None:
       logging.info('Skipping GCB for %s because there is config for it',

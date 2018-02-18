@@ -188,15 +188,17 @@ class GradleRunner(object):
     self.__scm = scm
 
   def __to_bintray_url(self, repo, package_name, repository,
-                       build_number=None):
+                       build_version=None, build_number=None):
     """Return the url for the desired versioned repository in bintray repo."""
-    source_info = self.__scm.lookup_source_info(repository)
-    build_number = build_number or source_info.build_number
-    version = '%s-%s' % (source_info.summary.version, build_number)
+    if not build_version:
+      source_info = self.__scm.lookup_source_info(repository)
+      build_number = build_number or source_info.build_number
+      build_version = '%s-%s' % (source_info.summary.version, build_number)
+
     bintray_path = (
         'packages/{subject}/{repo}/{package}/versions/{version}'.format(
             subject=self.__options.bintray_org,
-            package=package_name, repo=repo, version=version))
+            package=package_name, repo=repo, version=build_version))
     return 'https://api.bintray.com/' + bintray_path
 
   def __add_bintray_auth_header(self, request):
@@ -208,10 +210,12 @@ class GradleRunner(object):
     request.add_header('Authorization', 'Basic ' + encoded_auth)
 
   def bintray_repo_has_version(self, repo, package_name, repository,
+                               build_version=None,
                                build_number=None):
     """See if the given bintray repository has the package version to build."""
     try:
       bintray_url = self.__to_bintray_url(repo, package_name, repository,
+                                          build_version=build_version,
                                           build_number=build_number)
       logging.debug('Checking for %s', bintray_url)
       request = urllib2.Request(url=bintray_url)
@@ -229,7 +233,9 @@ class GradleRunner(object):
       raise
 
 
-  def consider_debian_on_bintray(self, repository, build_number=None):
+  def consider_debian_on_bintray(self, repository,
+                                 build_version=None,
+                                 build_number=None):
     """Check whether desired version already exists on bintray."""
     options = self.__options
     exists = []
@@ -248,6 +254,7 @@ class GradleRunner(object):
           package_name = 'spinnaker-' + package_name
       if self.bintray_repo_has_version(
           bintray_repo, package_name, repository,
+          build_version=build_version,
           build_number=build_number):
         exists.append(bintray_repo)
       else:
@@ -269,17 +276,20 @@ class GradleRunner(object):
 
       if options.delete_existing:
         for repo in exists:
-          self.bintray_repo_delete_version(repo, package_name, repository)
+          self.bintray_repo_delete_version(repo, package_name, repository,
+                                           build_version=build_version)
       else:
         raise_and_log_error(
             ConfigError('Already have debian for {name}'.format(
                 name=repository.name)))
     return False
 
-  def bintray_repo_delete_version(self, repo, package_name, repository):
+  def bintray_repo_delete_version(self, repo, package_name, repository,
+                                  build_version=None):
     """Delete the given bintray repository version if it exsts."""
     try:
-      bintray_url = self.__to_bintray_url(repo, package_name, repository)
+      bintray_url = self.__to_bintray_url(repo, package_name, repository,
+                                          build_version=build_version)
       logging.debug('Checking for %s', bintray_url)
       request = urllib2.Request(url=bintray_url)
       request.get_method = lambda: 'DELETE'

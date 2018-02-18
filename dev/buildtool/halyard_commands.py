@@ -162,7 +162,11 @@ class BuildHalyardCommand(GradleCommandProcessor):
 
   def find_commit_version_entry(self, repository):
     logging.debug('Looking for existing halyard version for this commit.')
-    commit_id = self.git.query_local_repository_commit_id(repository.git_dir)
+    if os.path.exists(repository.git_dir):
+      commit_id = self.git.query_local_repository_commit_id(repository.git_dir)
+    else:
+      commit_id = self.git.query_remote_repository_commit_id(
+          repository.origin, self.options.git_branch)
     commits = self.load_halyard_version_commits().split('\n')
     commits.reverse()
     postfix = ' ' + commit_id
@@ -171,8 +175,7 @@ class BuildHalyardCommand(GradleCommandProcessor):
         return line
     return None
 
-  def _do_repository(self, repository):
-    """Implements RepositoryCommandProcessor interface."""
+  def _do_can_skip_repository(self, repository):
     if self.options.skip_existing:
       entry = self.find_commit_version_entry(repository)
       if entry:
@@ -181,8 +184,15 @@ class BuildHalyardCommand(GradleCommandProcessor):
         self.metrics.inc_counter('ReuseArtifact', labels,
                                  'Kept existing desired artifact build.')
         self.__emit_last_commit_entry(entry)
-        return
+        return True
+    return False
 
+  def _do_repository(self, repository):
+    """Implements RepositoryCommandProcessor interface."""
+    # We need the version number here, which means we need the source
+    # so this is not in the can_skip method. However if we dont know
+    # about the commit, we probably dont have the debian anyway. And
+    # extra overhead isnt that great.
     if self.gradle.consider_debian_on_bintray(
         repository, build_number=self.options.build_number):
       return

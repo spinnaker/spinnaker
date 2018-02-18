@@ -155,8 +155,23 @@ class RepositoryCommandProcessor(CommandProcessor):
 
     This is for instrumentation purposes.
     """
+    if self._do_can_skip_repository(repository):
+      self.metrics.inc_counter(
+          'SkipRepositoryCommand',
+          {'command': self.name, 'repository': repository.name},
+          'Full command not needed for an individual repository.')
+      logging.debug('Skipping repository %s', repository.name)
+      return None
+
     self.ensure_local_repository(repository)
     return self._do_repository(repository)
+
+  def _do_can_skip_repository(self, repository):
+    """Perform a check to see if the command can skip this repository.
+
+    This is called prior to ensure_local_repository.
+    """
+    return False
 
   def _do_repository(self, repository):
     """This should be overriden to implement actual behavior."""

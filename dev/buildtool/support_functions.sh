@@ -106,7 +106,7 @@ function start_command() {
   shift
   local extra_args=
 
-  if [[ $# -gt 1 ]]; then
+  if [[ $# -gt 0 ]]; then
     extra_args="$@"
   fi
 
@@ -187,7 +187,7 @@ function wait_for_commands() {
       done
       echo -n "$(timestamp): Waiting on ${description}..."
     fi
-    sleep 5
+    sleep 2
 
     for command in "${!COMMAND_TO_PID[@]}"; do
       if ! kill -s 0 ${COMMAND_TO_PID[$command]} >& /dev/null; then

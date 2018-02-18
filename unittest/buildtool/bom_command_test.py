@@ -138,6 +138,9 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
     # When the base command ensures the local repository exists, we'll
     # intercept that call and do nothing rather than the git checkouts, etc.
     make_fake(BranchSourceCodeManager, 'ensure_local_repository')
+    mock_remote = self.patch_function('buildtool.branch_scm.GitRunner'
+                                      '.query_remote_repository_commit_id')
+    mock_remote.return_value = 'CommitA'
 
     # When the base command asks for the repository metadata, we'll return
     # this hardcoded info, then look for it later in the generated om.
@@ -172,6 +175,8 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
                             'gate', 'igor', 'orca', 'rosco', 'spinnaker',
                             'spinnaker-monitoring'])
     ]
+    mock_remote.assert_called_once_with(test_repository.origin,
+                                        options.git_branch)
     mock_filter.assert_called_once_with(bom_repo_list)
     mock_lookup.assert_called_once_with(test_repository)
     bom_text, bom_path = mock_write.call_args_list[0][0]
@@ -282,8 +287,6 @@ class TestBomBuilder(BaseGitRepoTestFixture):
     }
 
     for key, value in bom['services'].items():
-      print '**** {0} -> {1}'.format(key, value)
-      print '   ==>> {0}'.format(golden_bom['services'][key])
       self.assertEquals(value, golden_bom['services'][key])
     for key, value in bom.items():
       self.assertEquals(value, golden_bom[key])
