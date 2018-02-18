@@ -151,15 +151,17 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
     return super(BuildGceComponentImages, self).ensure_local_repository(
         repository)
 
-  def _do_repository(self, repository):
-    """Implements RepositoryCommandProcessor interface."""
+  def _do_can_skip_repository(self, repository):
     if not repository.name in SPINNAKER_RUNNABLE_REPOSITORY_NAMES:
       logging.debug('%s does not build a GCE component image -- skip',
                     repository.name)
-      return
+      return True
 
     if self.have_image(repository):
       return
+
+  def _do_repository(self, repository):
+    """Implements RepositoryCommandProcessor interface."""
 
     name = repository.name
     build_component_image_sh = os.path.join(
