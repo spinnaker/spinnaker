@@ -30,6 +30,7 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
       executionDetailsUrl: require('./deployManifestExecutionDetails.html'),
       executionConfigSections: ['deployStatus', 'taskStatus'],
       producesArtifacts: true,
+      defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
       validators: [
         { type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' }
       ],
