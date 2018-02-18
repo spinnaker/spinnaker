@@ -14,6 +14,8 @@
 
 """Implements rpm support commands for buildtool."""
 
+from threading import Semaphore
+
 from buildtool import (
     BomSourceCodeManager,
     GradleCommandProcessor,
@@ -22,8 +24,8 @@ from buildtool import (
 
 class BuildRpmCommand(GradleCommandProcessor):
   def __init__(self, factory, options, **kwargs):
-    super(BuildRpmCommand, self).__init__(
-        factory, options, max_threads=options.max_local_builds, **kwargs)
+    super(BuildRpmCommand, self).__init__(factory, options, **kwargs)
+    self.__semaphore = Semaphore(options.max_local_buildS)
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
@@ -31,7 +33,8 @@ class BuildRpmCommand(GradleCommandProcessor):
     if self.options.gradle_cache_path:
       args.append('--gradle-user-home=' + self.options.gradle_cache_path)
 
-    self.gradle.check_run(args, self, repository, 'buildRpm', 'rpm-build')
+    with self.__semaphore:
+      self.gradle.check_run(args, self, repository, 'buildRpm', 'rpm-build')
 
 
 def register_commands(registry, subparsers, defaults):

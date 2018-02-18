@@ -106,6 +106,16 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     self.__bom = kwargs.pop('bom', None) or self.load_bom(options)
     super(BomSourceCodeManager, self).__init__(options, *pos_args, **kwargs)
 
+  def get_repository_service_build_version(self, repository):
+    if not self.__bom:
+      raise_and_log_error(UnexpectedError('Missing bom', cause='NotReachable'))
+
+    service_name = self.repository_name_to_service_name(repository.name)
+    service_entry = self.__bom.get('services', {}).get(service_name, {})
+    if not service_entry:
+      raise_and_log_error(ConfigError('BOM missing service %s' % service_name))
+    return service_entry['version']
+
   def determine_bom_version(self):
     """Determine version of bound bom."""
     if self.__bom:
