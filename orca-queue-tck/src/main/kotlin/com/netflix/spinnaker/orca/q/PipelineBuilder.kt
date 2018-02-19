@@ -35,6 +35,13 @@ fun pipeline(init: Execution.() -> Unit = {}): Execution {
   return pipeline
 }
 
+fun stage(init: Stage.() -> Unit = {}): Stage {
+  val stage = Stage()
+  stage.type = "test"
+  stage.init()
+  return stage
+}
+
 /**
  * Build a top-level stage. Use in the context of [#pipeline].
  *

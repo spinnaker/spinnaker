@@ -88,11 +88,14 @@ fun StageDefinitionBuilder.buildSyntheticStages(
 fun StageDefinitionBuilder.buildAfterStages(
   stage: Stage, afterStages: List<Stage>, callback: (Stage) -> Unit = {}
 ) {
+  val offset = stage.afterStages().size
+
   afterStages.forEachIndexed { i, it ->
+    val offsetIndex = offset + i
     it.sanitizeContext()
-    it.refId = "${stage.refId}>${i + 1}"
-    if (i > 0) {
-      it.requisiteStageRefIds = setOf("${stage.refId}>$i")
+    it.refId = "${stage.refId}>${offsetIndex + 1}"
+    if (offsetIndex > 0) {
+      it.requisiteStageRefIds = setOf("${stage.refId}>$offsetIndex")
     } else {
       it.requisiteStageRefIds = emptySet()
     }
@@ -126,11 +129,14 @@ private fun SyntheticStages.buildBeforeStages(stage: Stage,
     listOf(executionWindow) + beforeStages
   }
 
+  val offset = stage.beforeStages().size
+
   allBeforeStages.forEachIndexed { i, it ->
+    val offsetIndex = offset + i
     it.sanitizeContext()
-    it.refId = "${stage.refId}<${i + 1}"
-    if (i > 0) {
-      it.requisiteStageRefIds = setOf("${stage.refId}<$i")
+    it.refId = "${stage.refId}<${offsetIndex + 1}"
+    if (offsetIndex > 0) {
+      it.requisiteStageRefIds = setOf("${stage.refId}<$offsetIndex")
     } else {
       it.requisiteStageRefIds = emptySet()
     }
