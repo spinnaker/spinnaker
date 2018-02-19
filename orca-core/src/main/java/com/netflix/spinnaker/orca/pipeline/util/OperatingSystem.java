@@ -1,18 +1,14 @@
 package com.netflix.spinnaker.orca.pipeline.util;
 
-@Deprecated public enum OperatingSystem {
-  centos(PackageType.RPM),
-  ubuntu(PackageType.DEB),
-  trusty(PackageType.DEB),
-  xenial(PackageType.DEB);
+@Deprecated
+public class OperatingSystem {
+  private final PackageType packageType;
 
-  OperatingSystem(PackageType packageType) {
-    this.packageType = packageType;
+  public OperatingSystem(String os) {
+    this.packageType = os.toLowerCase().matches("centos|rhel|redhat") ? PackageType.RPM : PackageType.DEB;
   }
 
   public PackageType getPackageType() {
     return packageType;
   }
-
-  private final PackageType packageType;
 }

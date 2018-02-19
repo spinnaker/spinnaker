@@ -60,8 +60,7 @@ class ResolveQuipVersionTask implements RetryableTask {
         stage.context.baseOs as String).toBlocking().single()
       packageType = baseImage.packageType
     } else {
-      OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs as String)
-      packageType = operatingSystem.packageType
+      packageType = new OperatingSystem(stage.context.baseOs as String).getPackageType()
     }
     PackageInfo packageInfo = new PackageInfo(stage,
       packageType.packageType,

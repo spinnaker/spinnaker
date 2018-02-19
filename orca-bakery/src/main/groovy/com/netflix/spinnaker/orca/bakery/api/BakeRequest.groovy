@@ -37,7 +37,7 @@ class BakeRequest {
 
   static final Default = new BakeRequest(user: System.getProperty("user.name"),
                                          cloudProviderType: CloudProviderType.aws,
-                                         baseLabel: Label.release,
+                                         baseLabel: "release",
                                          baseOs: "ubuntu")
 
   String user
@@ -48,7 +48,7 @@ class BakeRequest {
   String commitHash
   String buildInfoUrl
   CloudProviderType cloudProviderType
-  Label baseLabel
+  String baseLabel
   String baseOs
   String baseName
   String baseAmi
@@ -75,10 +75,6 @@ class BakeRequest {
 
   static enum CloudProviderType {
     aws, azure, docker, gce, openstack, titus
-  }
-
-  static enum Label {
-    release, candidate, previous, unstable, foundation
   }
 
   static enum VmType {
