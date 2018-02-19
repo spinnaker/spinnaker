@@ -22,6 +22,8 @@ set -o pipefail
 source $(dirname $0)/build_google_image_functions.sh
 
 
+HAL_DAEMON_ENDPOINT=http://localhost:8064
+
 function show_usage() {
     fix_defaults
 
@@ -35,6 +37,10 @@ Usage:  $0 [options]
    --account ACCOUNT
        [$ACCOUNT]
        Use this gcloud account to build the image.
+
+   --hal_daemon_endpoint ENDPOINT
+       [$HAL_DAEMON_ENDPOINT]
+       The endpoint for the halyard daemon when determining the build version
 
    --image_project IMAGE_PROJECT
       [$IMAGE_PROJECT]
@@ -101,6 +107,10 @@ function process_args() {
             ;;
         --account)
             ACCOUNT=$1
+            shift
+            ;;
+        --hal_daemon_endpoint)
+            HAL_DAEMON_ENDPOINT=$1
             shift
             ;;
         --image_project)
@@ -306,7 +316,7 @@ function extract_clean_component_disk() {
 function create_component_image() {
   local artifact=$1
   local service=$2
-  ARTIFACT_VERSION="$(hal version bom $VERSION --artifact-name ${artifact} --quiet --color false)"
+  ARTIFACT_VERSION="$(hal version bom $VERSION --artifact-name ${artifact} --quiet --color false --daemon-endpoint $HAL_DAEMON_ENDPOINT)"
   # Target image is named spinnaker-${artifact}-${artifact-version} with dashes replacing dots.
   TARGET_IMAGE="$(echo spinnaker-${artifact}-${ARTIFACT_VERSION} | sed 's/[\.:]/\-/g')"
   echo $TARGET_IMAGE

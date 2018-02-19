@@ -171,6 +171,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
         build_component_image_sh,
         '--artifact ', name,
         '--account', options.build_gce_service_account,
+        '--hal_daemon_endpoint', 'http://' + options.halyard_daemon,
         '--build_project', options.build_gce_project,
         '--install_script', options.install_image_script,
         '--publish_project', options.publish_gce_image_project,
