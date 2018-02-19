@@ -267,6 +267,55 @@ class PackageInfoSpec extends Specification {
     targetPkg.packageVersion == null
   }
 
+  def "findBuildInfoUpstreamStage: finds artifacts when upstream stages have buildInfo w/o artifacts"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "1"
+        type = "jenkins"
+        outputs["buildInfo"] = [
+          url      : "http://jenkins",
+          master   : "master",
+          name     : "job",
+          number   : 1,
+          artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb", relativePath: "."]],
+          scm      : []
+        ]
+      }
+      stage {
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        context["package"] = "api"
+        outputs["buildInfo"] = [
+          url      : "http://jenkins",
+          master   : "master",
+          name     : "job",
+          number   : 1,
+          scm      : []
+        ]
+      }
+      stage {
+        type = "bake"
+        refId = "3"
+        requisiteStageRefIds = ["2"]
+        context["package"] = "api"
+      }
+    }
+
+    def bakeStage = pipeline.stageByRef("3")
+    PackageType packageType = DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    def pattern = Pattern.compile("api.*")
+
+    when:
+    def buildInfo = packageInfo.findBuildInfoInUpstreamStage(bakeStage, pattern)
+
+    then:
+    noExceptionThrown()
+    buildInfo.containsKey("artifacts")
+  }
+
   def "findTargetPackage: stage execution instance of Pipeline with no trigger"() {
     given:
     def pipeline = pipeline {

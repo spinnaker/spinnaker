@@ -269,7 +269,8 @@ public class PackageInfo {
       .stream()
       .filter(it -> {
         Map<String, Object> buildInfo = (Map<String, Object>) it.getOutputs().get("buildInfo");
-        return buildInfo != null && artifactMatch((List<Map<String, String>>) buildInfo.get("artifacts"), packageFilePattern);
+        return buildInfo != null &&
+          artifactMatch((List<Map<String, String>>) buildInfo.get("artifacts"), packageFilePattern);
       })
       .findFirst()
       .orElse(null);
@@ -277,8 +278,8 @@ public class PackageInfo {
   }
 
   private static boolean artifactMatch(List<Map<String, String>> artifacts, Pattern pattern) {
-    return artifacts.stream().anyMatch((Map artifact) ->
-      pattern.matcher(String.valueOf(artifact.get("fileName"))).matches()
-    );
+    return artifacts != null &&
+      artifacts.stream()
+        .anyMatch((Map artifact) -> pattern.matcher(String.valueOf(artifact.get("fileName"))).matches());
   }
 }
