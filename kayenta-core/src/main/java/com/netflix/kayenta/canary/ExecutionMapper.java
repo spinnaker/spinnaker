@@ -89,7 +89,8 @@ public class ExecutionMapper {
     CanaryExecutionStatusResponse.CanaryExecutionStatusResponseBuilder canaryExecutionStatusResponseBuilder =
       CanaryExecutionStatusResponse.builder()
         .application((String)contextContext.get("application"))
-        .parentPipelineExecutionId((String)contextContext.get("parentPipelineExecutionId"));
+        .parentPipelineExecutionId((String)contextContext.get("parentPipelineExecutionId"))
+        .pipelineId(pipeline.getId());
 
     Map<String, String> stageStatus = pipeline.getStages()
       .stream()

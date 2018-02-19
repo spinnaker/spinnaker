@@ -30,6 +30,7 @@ public class CanaryExecutionStatusResponse {
   // or in the case where it never reaches the judging stage.
   protected String application;
   protected String parentPipelineExecutionId;
+  protected String pipelineId;
 
   @NotNull
   protected Map<String, String> stageStatus;
