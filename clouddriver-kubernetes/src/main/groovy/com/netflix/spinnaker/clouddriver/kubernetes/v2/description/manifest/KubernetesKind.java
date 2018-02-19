@@ -32,6 +32,7 @@ public class KubernetesKind {
   public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy");
   public static KubernetesKind HORIZONTAL_POD_AUTOSCALER = new KubernetesKind("horizontalpodautoscaler", "hpa");
   public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
+  public static KubernetesKind JOB = new KubernetesKind("job");
   public static KubernetesKind POD = new KubernetesKind("pod", "po");
   public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs");
   public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns");
