@@ -259,7 +259,8 @@ class BuildBomCommand(RepositoryCommandProcessor):
     return result
 
   def _do_repository(self, repository):
-    source_info = self.scm.lookup_source_info(repository)
+    source_info = self.scm.refresh_source_info(
+        repository, self.options.build_number)
     self.__builder.add_repository(repository, source_info)
 
   def _do_postprocess(self, _):
