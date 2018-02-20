@@ -50,7 +50,6 @@ export interface IEntityTagEditorProps {
 export interface IEntityTagEditorState {
   taskMonitor: TaskMonitor;
   message: string;
-  show: boolean;
   isValid: boolean;
   isSubmitting: boolean;
   owner: IOwner;
@@ -60,8 +59,6 @@ export interface IEntityTagEditorState {
 @BindAll()
 export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEntityTagEditorState> {
   public static defaultProps: Partial<IEntityTagEditorProps> = {
-    closeModal: noop,
-    dismissModal: noop,
     onUpdate: noop,
   };
 
@@ -85,7 +82,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     this.state = {
       taskMonitor: null,
       message: tag.value && tag.value.message,
-      show: true,
       isValid: false,
       isSubmitting: false,
       owner: owner,
@@ -119,7 +115,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
   }
 
   private close(): void {
-    this.setState({ show: false });
     this.props.dismissModal.apply(null, arguments);
     this.$uibModalInstanceEmulation.deferred.resolve();
   }

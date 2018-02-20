@@ -50,8 +50,6 @@ export class ReactModal {
       let mountNode = document.createElement('div');
       let show = true;
 
-      render();
-
       function onExited() {
         if (!mountNode) {
           return;
@@ -80,6 +78,8 @@ export class ReactModal {
           mountNode
         );
       }
+
+      render();
     });
 
     modalPromise.catch(() => {});
