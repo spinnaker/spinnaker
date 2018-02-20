@@ -46,6 +46,12 @@ interface ResizeStrategy {
   }
 
   @Canonical
+  static class CapacitySet {
+    Capacity original
+    Capacity target
+  }
+
+  @Canonical
   static class Capacity {
     Integer max
     Integer desired
@@ -75,5 +81,5 @@ interface ResizeStrategy {
   }
 
   boolean handles(ResizeAction resizeAction)
-  Capacity capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig)
+  CapacitySet capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig)
 }

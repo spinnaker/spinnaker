@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -40,8 +39,21 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
   @Autowired
   TrafficGuard trafficGuard
 
-  Map getAdditionalStageOutputs(Stage stage, Map operation) {
+  Map getAdditionalContext(Stage stage, Map operation) {
     [capacity: operation.capacity]
+  }
+
+  /**
+   * Track the _original_ capacity of the server group being resized in case it needs to be subsequently restored.
+   */
+  @Override
+  Map<String, Object> getAdditionalOutputs(Stage stage, Map operation) {
+    def originalCapacityKey = "originalCapacity.${operation.serverGroupName}".toString()
+    def originalCapacity = stage.context.get(originalCapacityKey)
+
+    return [
+      (originalCapacityKey) : originalCapacity ?: operation.originalCapacity
+    ]
   }
 
   Map convert(Stage stage) {
@@ -56,9 +68,16 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
     if (!strategy) {
       throw new IllegalStateException("$resizeConfig.actualAction not implemented")
     }
-    Capacity newCapacity = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
-    operation.capacity = [min: newCapacity.min, desired: newCapacity.desired, max: newCapacity.max]
+    ResizeStrategy.CapacitySet capacitySet = strategy.capacityForOperation(
+      stage, account, serverGroupName, cloudProvider, location, resizeConfig
+    )
+    operation.capacity = [
+      min: capacitySet.target.min,
+      desired: capacitySet.target.desired,
+      max: capacitySet.target.max
+    ]
+    operation.originalCapacity = capacitySet.original
 
     return operation
   }

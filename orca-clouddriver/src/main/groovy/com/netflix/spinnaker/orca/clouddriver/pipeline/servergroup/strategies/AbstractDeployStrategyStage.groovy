@@ -66,7 +66,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
 
     correctContext(stage)
     deployStagePreProcessors.findAll { it.supports(stage) }.each {
-      it.additionalSteps().each {
+      it.additionalSteps(stage).each {
         builder.withTask(it.name, it.taskClass)
       }
     }
@@ -97,15 +97,17 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     Strategy strategy = (Strategy) strategies.findResult(noStrategy, {
       it.name.equalsIgnoreCase(stage.context.strategy) ? it : null
     })
+
+    def preProcessors = deployStagePreProcessors.findAll { it.supports(stage) }
     def stages = strategy.composeFlow(stage)
 
     def stageData = stage.mapTo(StageData)
-    deployStagePreProcessors.findAll { it.supports(stage) }.each {
+    preProcessors.each {
       def defaultContext = [
         credentials  : stageData.account,
         cloudProvider: stageData.cloudProvider
       ]
-      it.beforeStageDefinitions().each {
+      it.beforeStageDefinitions(stage).each {
         stages << newStage(
           stage.execution,
           it.stageDefinitionBuilder.type,
@@ -115,7 +117,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
           SyntheticStageOwner.STAGE_BEFORE
         )
       }
-      it.afterStageDefinitions().each {
+      it.afterStageDefinitions(stage).each {
         stages << newStage(
           stage.execution,
           it.stageDefinitionBuilder.type,
@@ -128,6 +130,23 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     }
 
     return stages
+  }
+
+  @Override
+  List<Stage> onFailureStages(Stage stage) {
+    return deployStagePreProcessors.findAll { it.supports(stage) }
+      .collect { it.onFailureStageDefinitions(stage) }
+      .flatten()
+      .collect { DeployStagePreProcessor.StageDefinition stageDefinition ->
+        newStage(
+          stage.execution,
+          stageDefinition.stageDefinitionBuilder.type,
+          stageDefinition.name,
+          stageDefinition.context,
+          stage,
+          SyntheticStageOwner.STAGE_AFTER
+        )
+      }
   }
 
   /**
@@ -160,7 +179,10 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     Location location
 
     static CleanupConfig fromStage(Stage stage) {
-      def stageData = stage.mapTo(StageData)
+      return fromStage(stage.mapTo(StageData))
+    }
+
+    static CleanupConfig fromStage(StageData stageData) {
       def loc = TargetServerGroup.Support.locationFromStageData(stageData)
       new CleanupConfig(
         account: stageData.account,

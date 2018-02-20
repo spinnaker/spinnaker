@@ -153,7 +153,10 @@ class CompleteStageHandler(
    */
   private fun Stage.planOnFailureStages(): List<Stage> {
     builder().let { builder ->
-      val previouslyPlannedAfterStageNames = afterStages().map { it.name }
+      /*
+       * Avoid planning failure stages if _any_ with the same name are already complete
+       */
+      val previouslyPlannedAfterStageNames = afterStages().filter { it.status.isComplete }.map { it.name }
 
       val onFailureStages = builder.onFailureStages(this)
       val alreadyPlanned = onFailureStages.any { previouslyPlannedAfterStageNames.contains(it.name) }
@@ -162,10 +165,15 @@ class CompleteStageHandler(
         return emptyList()
       }
 
-      removeNotStartedSynthetics()
+      val notStartedSynthetics = execution.stages.filter { it.parentStageId == id && it.status == NOT_STARTED}
 
       builder.buildAfterStages(this, onFailureStages) { it: Stage ->
         repository.addStage(it)
+      }
+
+      notStartedSynthetics.forEach {
+        it.removeNotStartedSynthetics() // should be all synthetics (nothing should have been started!)
+        repository.removeStage(execution, it.id)
       }
 
       this.execution = repository.retrieve(this.execution.type, this.execution.id)

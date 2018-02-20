@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
@@ -934,6 +935,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       }
 
       on("receiving the message again") {
+        val onFailureStage = pipeline.stages.first { it.name.equals("onFailure1") }
+        onFailureStage.status = ExecutionStatus.SUCCEEDED
         subject.handle(message)
       }
 

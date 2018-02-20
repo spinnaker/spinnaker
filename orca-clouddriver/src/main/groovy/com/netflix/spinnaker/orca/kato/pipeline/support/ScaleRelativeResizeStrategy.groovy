@@ -18,9 +18,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.ResizeAction
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +35,12 @@ class ScaleRelativeResizeStrategy implements ResizeStrategy {
   }
 
   @Override
-  Capacity capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig) {
+  CapacitySet capacityForOperation(Stage stage,
+                                   String account,
+                                   String serverGroupName,
+                                   String cloudProvider,
+                                   Location location,
+                                   OptionalConfiguration resizeConfig) {
     TargetServerGroup tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location.value, cloudProvider)
       .orElseThrow({
       new IllegalStateException("no server group found $cloudProvider/$account/$serverGroupName in $location")
@@ -47,6 +49,7 @@ class ScaleRelativeResizeStrategy implements ResizeStrategy {
     def currentMin = Integer.parseInt(tsg.capacity.min.toString())
     def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
     def currentMax = Integer.parseInt(tsg.capacity.max.toString())
+    def originalCapacity = new Capacity(currentMax, currentDesired, currentMin)
 
     int sign = resizeConfig.action == ResizeAction.scale_up ? 1 : -1
 
@@ -55,23 +58,32 @@ class ScaleRelativeResizeStrategy implements ResizeStrategy {
       def minDiff = sign * Math.ceil(currentMin * factor)
       def desiredDiff = sign * Math.ceil(currentDesired * factor)
       def maxDiff = sign * Math.ceil(currentMax * factor)
-      return new Capacity(
-        min: Math.max(currentMin + minDiff, 0),
-        desired: Math.max(currentDesired + desiredDiff, 0),
-        max: Math.max(currentMax + maxDiff, 0)
+      return new CapacitySet(
+        originalCapacity,
+        new Capacity(
+          min: Math.max(currentMin + minDiff, 0),
+          desired: Math.max(currentDesired + desiredDiff, 0),
+          max: Math.max(currentMax + maxDiff, 0)
+        )
       )
     } else if (resizeConfig.scaleNum) {
       int delta = sign * resizeConfig.scaleNum
-      return new Capacity(
-        min: Math.max(currentMin + delta, 0),
-        desired: Math.max(currentDesired + delta, 0),
-        max: Math.max(currentMax + delta, 0)
+      return new CapacitySet(
+        originalCapacity,
+        new Capacity(
+          min: Math.max(currentMin + delta, 0),
+          desired: Math.max(currentDesired + delta, 0),
+          max: Math.max(currentMax + delta, 0)
+        )
       )
     } else {
-      return new Capacity(
-        min: currentMin,
-        desired: currentDesired,
-        max: currentMax
+      return new CapacitySet(
+        originalCapacity,
+        new Capacity(
+          min: currentMin,
+          desired: currentDesired,
+          max: currentMax
+        )
       )
     }
   }

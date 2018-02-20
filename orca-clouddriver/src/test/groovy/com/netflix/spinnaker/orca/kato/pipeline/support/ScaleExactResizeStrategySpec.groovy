@@ -45,12 +45,13 @@ class ScaleExactResizeStrategySpec extends Specification {
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
     then:
-    cap == expected
+    cap.original == new Capacity(current)
+    cap.target == expected
     1 * oortHelper.getTargetServerGroup(account, serverGroupName, region, cloudProvider) >> targetServerGroup
     0 * _
 
     where:
-    specifiedCap                       | current                                      || expected
+    specifiedCap                       | current                      || expected
     [min: 0]                           | [min: 1, max: 1, desired: 1] || new Capacity(min: 0, max: 1, desired: 1)
     [max: 0]                           | [min: 1, max: 1, desired: 1] || new Capacity(min: 0, max: 0, desired: 0)
     [max: 1]                           | [min: 1, max: 1, desired: 1] || new Capacity(min: 1, max: 1, desired: 1)

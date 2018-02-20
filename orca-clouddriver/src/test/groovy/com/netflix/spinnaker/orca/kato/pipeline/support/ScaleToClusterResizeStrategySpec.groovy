@@ -57,16 +57,17 @@ class ScaleToClusterResizeStrategySpec extends Specification {
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
     then:
-    cap == expectedCapacity
+    cap.original == null    // capacity bounds could come from multiple server groups -- no single source
+    cap.target == expectedCapacity
     1 * oortHelper.getCluster(application, account, clusterName, cloudProvider) >> cluster
     0 * _
 
     where:
-    serverGroups                                          | expectedCapacity
-    [mkSG()]                                              | new Capacity(0, 0, 0)
-    [mkSG(1)]                                             | new Capacity(1, 1, 1)
-    [mkSG(1), mkSG(1000, 1000, 1000, 'different-region')] | new Capacity(1, 1, 1)
-    [mkSG(0, 0, 10), mkSG(0, 1, 5), mkSG(5, 0, 9)]        | new Capacity(10, 5, 1)
+    serverGroups                                          || expectedCapacity
+    [mkSG()]                                              || new Capacity(0, 0, 0)
+    [mkSG(1)]                                             || new Capacity(1, 1, 1)
+    [mkSG(1), mkSG(1000, 1000, 1000, 'different-region')] || new Capacity(1, 1, 1)
+    [mkSG(0, 0, 10), mkSG(0, 1, 5), mkSG(5, 0, 9)]        || new Capacity(10, 5, 1)
 
     serverGroupName = asgName()
     resizeConfig = cfg()
@@ -81,16 +82,17 @@ class ScaleToClusterResizeStrategySpec extends Specification {
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
     then:
-    cap == expectedCapacity
+    cap.original == null    // capacity bounds could come from multiple server groups -- no single source
+    cap.target == expectedCapacity
     1 * oortHelper.getCluster(application, account, clusterName, cloudProvider) >> cluster
     0 * _
 
     where:
-    serverGroups                                   | scaleNum | scalePct | expectedCapacity
-    [mkSG()]                                       | 1        | null     | new Capacity(0, 0, 0)
-    [mkSG(1)]                                      | 1        | null     | new Capacity(1, 1, 1)
-    [mkSG(0, 0, 10), mkSG(0, 1, 5), mkSG(5, 0, 9)] | 1        | null     | new Capacity(10, 6, 1)
-    [mkSG(100, 0, 1000)]                           | null     | 1        | new Capacity(1000, 101, 0)
+    serverGroups                                   | scaleNum | scalePct || expectedCapacity
+    [mkSG()]                                       | 1        | null     || new Capacity(0, 0, 0)
+    [mkSG(1)]                                      | 1        | null     || new Capacity(1, 1, 1)
+    [mkSG(0, 0, 10), mkSG(0, 1, 5), mkSG(5, 0, 9)] | 1        | null     || new Capacity(10, 6, 1)
+    [mkSG(100, 0, 1000)]                           | null     | 1        || new Capacity(1000, 101, 0)
 
     resizeConfig = cfg(scalePct, scaleNum)
     cluster = Optional.of([serverGroups: serverGroups])

@@ -19,9 +19,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.ResizeAction
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -38,7 +35,12 @@ class ScaleExactResizeStrategy implements ResizeStrategy {
   }
 
   @Override
-  Capacity capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig) {
+  CapacitySet capacityForOperation(Stage stage,
+                                   String account,
+                                   String serverGroupName,
+                                   String cloudProvider,
+                                   Location location,
+                                   OptionalConfiguration resizeConfig) {
     TargetServerGroup tsg = oortHelper.getTargetServerGroup(account, serverGroupName, location.value, cloudProvider)
       .orElseThrow({
       new IllegalStateException("no server group found $cloudProvider/$account/$serverGroupName in $location")
@@ -48,8 +50,10 @@ class ScaleExactResizeStrategy implements ResizeStrategy {
     def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
     def currentMax = Integer.parseInt(tsg.capacity.max.toString())
 
-    Capacity configured = stage.mapTo("/capacity", Capacity)
-    return mergeConfiguredCapacityWithCurrent(configured, currentMin, currentDesired, currentMax)
+    return new CapacitySet(
+      new Capacity(currentMax, currentDesired, currentMin),
+      mergeConfiguredCapacityWithCurrent(stage.mapTo("/capacity", Capacity), currentMin, currentDesired, currentMax)
+    )
   }
 
   static Capacity mergeConfiguredCapacityWithCurrent(Capacity configured, int currentMin, int currentDesired, int currentMax) {

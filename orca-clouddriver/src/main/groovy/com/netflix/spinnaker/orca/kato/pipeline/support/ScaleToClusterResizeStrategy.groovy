@@ -20,9 +20,6 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.ResizeAction
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -39,7 +36,12 @@ class ScaleToClusterResizeStrategy implements ResizeStrategy{
   }
 
   @Override
-  Capacity capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, OptionalConfiguration resizeConfig) {
+  CapacitySet capacityForOperation(Stage stage,
+                                   String account,
+                                   String serverGroupName,
+                                   String cloudProvider,
+                                   Location location,
+                                   OptionalConfiguration resizeConfig) {
     def names = Names.parseName(serverGroupName)
     def appName = stage?.context?.moniker?.app ?: names.app
     def clusterName = stage?.context?.moniker?.cluster ?:names.cluster
@@ -73,6 +75,6 @@ class ScaleToClusterResizeStrategy implements ResizeStrategy{
     capacity.desired = Math.max(capacity.min, capacity.desired)
     capacity.desired = Math.min(capacity.desired + increment, capacity.max)
 
-    return capacity
+    return new CapacitySet(null, capacity)
   }
 }

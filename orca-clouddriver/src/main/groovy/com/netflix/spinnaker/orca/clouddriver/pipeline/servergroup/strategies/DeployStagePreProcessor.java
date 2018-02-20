@@ -33,15 +33,19 @@ import java.util.Map;
 public interface DeployStagePreProcessor {
   boolean supports(Stage stage);
 
-  default List<StepDefinition> additionalSteps() {
+  default List<StepDefinition> additionalSteps(Stage stage) {
     return Collections.emptyList();
   }
 
-  default List<StageDefinition> beforeStageDefinitions() {
+  default List<StageDefinition> beforeStageDefinitions(Stage stage) {
     return Collections.emptyList();
   }
 
-  default List<StageDefinition> afterStageDefinitions() {
+  default List<StageDefinition> afterStageDefinitions(Stage stage) {
+    return Collections.emptyList();
+  }
+
+  default List<StageDefinition> onFailureStageDefinitions(Stage stage) {
     return Collections.emptyList();
   }
 

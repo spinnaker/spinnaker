@@ -57,8 +57,12 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
 
   abstract String getServerGroupAction()
 
-  Map getAdditionalStageOutputs(Stage stage, Map operation) {
-    [:]
+  Map<String, Object> getAdditionalContext(Stage stage, Map operation) {
+    return [:]
+  }
+
+  Map<String, Object> getAdditionalOutputs(Stage stage, Map operation) {
+    return [:]
   }
 
   TaskResult execute(Stage stage) {
@@ -93,7 +97,11 @@ abstract class AbstractServerGroupTask extends AbstractCloudProviderAwareTask im
       ]
     }
 
-    new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs + getAdditionalStageOutputs(stage, operation))
+    new TaskResult(
+      ExecutionStatus.SUCCEEDED,
+      stageOutputs + getAdditionalContext(stage, operation),
+      getAdditionalOutputs(stage, operation)
+    )
   }
 
   Map convert(Stage stage) {

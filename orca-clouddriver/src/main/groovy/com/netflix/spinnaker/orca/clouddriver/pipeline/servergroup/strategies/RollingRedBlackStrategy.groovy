@@ -32,6 +32,8 @@ import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
+import static com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport.*
+
 @Slf4j
 @Component
 class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
@@ -89,7 +91,6 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
 
     def targetPercentages = stageData.getTargetPercentages()
     if (targetPercentages.size() == 0 || targetPercentages[-1] != 100) {
-      log.info("Inserting implicit 100% final target percentage...")
       targetPercentages.add(100)
     }
 
@@ -107,17 +108,19 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       SyntheticStageOwner.STAGE_AFTER
     )
 
+    def source = getSource(targetServerGroupResolver, stageData, baseContext)
+
     // java .forEach rather than groovy .each, since the nested .each closure sometimes omits parent context
     targetPercentages.forEach({ p ->
-      def source = getSource(targetServerGroupResolver, stageData, baseContext)
       def resizeContext = baseContext + [
-        target        : TargetServerGroup.Params.Target.current_asg_dynamic,
-        action        : ResizeStrategy.ResizeAction.scale_to_server_group,
-        source        : source,
-        targetLocation: cleanupConfig.location,
-        scalePct      : p,
-        pinCapacity   : p < 100, // if p = 100, capacity should be unpinned,
-        useNameAsLabel: true     // hint to deck that it should _not_ override the name
+        target              : TargetServerGroup.Params.Target.current_asg_dynamic,
+        action              : ResizeStrategy.ResizeAction.scale_to_server_group,
+        source              : source,
+        targetLocation      : cleanupConfig.location,
+        scalePct            : p,
+        pinCapacity         : p < 100, // if p < 100, capacity should be pinned (min == max == desired)
+        unpinMinimumCapacity: p == 100, // if p == 100, min capacity should be restored to the original unpinned value from source
+        useNameAsLabel      : true     // hint to deck that it should _not_ override the name
       ]
 
       def resizeStage = newStage(
@@ -206,35 +209,6 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
     }
 
     return stages
-  }
-
-  static ResizeStrategy.Source getSource(TargetServerGroupResolver targetServerGroupResolver,
-                                         RollingRedBlackStageData stageData,
-                                         Map baseContext) {
-    if (stageData.source) {
-      return new ResizeStrategy.Source(
-        region: stageData.source.region,
-        serverGroupName: stageData.source.serverGroupName ?: stageData.source.asgName,
-        credentials: stageData.credentials ?: stageData.account,
-        cloudProvider: stageData.cloudProvider
-      )
-    }
-
-    // no source server group specified, lookup current server group
-    TargetServerGroup target = targetServerGroupResolver.resolve(
-      new Stage(null, null, null, baseContext + [target: TargetServerGroup.Params.Target.current_asg_dynamic])
-    )?.get(0)
-
-    if (!target) {
-      throw new IllegalStateException("No target server groups found (${baseContext})")
-    }
-
-    return new ResizeStrategy.Source(
-      region: target.getLocation().value,
-      serverGroupName: target.getName(),
-      credentials: stageData.credentials ?: stageData.account,
-      cloudProvider: stageData.cloudProvider
-    )
   }
 
   ApplicationContext applicationContext

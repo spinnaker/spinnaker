@@ -35,7 +35,8 @@ class ScaleRelativeResizeStrategySpec extends Specification {
     def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
 
     then:
-    cap == expected
+    cap.original == original
+    cap.target == expected
     1 * oortHelper.getTargetServerGroup(account, serverGroupName, region, cloudProvider) >> targetServerGroup
     0 * _
 
@@ -51,8 +52,16 @@ class ScaleRelativeResizeStrategySpec extends Specification {
     "scaleNum" | "scale_down" | 6     || 4
     "scaleNum" | "scale_down" | 100   || 0
     serverGroupName = asgName()
-    targetServerGroup = Optional.of(new TargetServerGroup(name: serverGroupName, region: region, type: cloudProvider, capacity: [min: 10, max: 10, desired: 10]))
+    original = new ResizeStrategy.Capacity(10, 10, 10)
     expected = new ResizeStrategy.Capacity(want, want, want)
+    targetServerGroup = Optional.of(
+      new TargetServerGroup(
+        name: serverGroupName,
+        region: region,
+        type: cloudProvider,
+        capacity: [min: original.min, max: original.max, desired: original.desired]
+      )
+    )
     scalePct = method == 'scalePct' ? value : null
     scaleNum = method == 'scaleNum' ? value : null
     resizeConfig = cfg(direction, scalePct, scaleNum)

@@ -100,9 +100,8 @@ class ScaleToServerGroupResizeStrategySpec extends Specification {
       ))
     }
 
-    capacity.min == expectedMin
-    capacity.desired == expectedDesired
-    capacity.max == expectedMax
+    capacity.original == new ResizeStrategy.Capacity(max: 3, min: 1, desired: 3)
+    capacity.target == new ResizeStrategy.Capacity(max: expectedMax, min: expectedMin, desired: expectedDesired)
 
     where:
     scalePct | pinCapacity | pinMinimumCapacity || expectedMin || expectedDesired || expectedMax

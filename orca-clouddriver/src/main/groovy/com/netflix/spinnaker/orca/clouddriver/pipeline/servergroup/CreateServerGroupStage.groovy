@@ -74,36 +74,36 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   List<Stage> onFailureStages(@Nonnull Stage stage) {
-    def stageData = stage.mapTo(StageData)
+    def onFailureStages = super.onFailureStages(stage)
 
+    def stageData = stage.mapTo(StageData)
     if (!stageData.rollback?.onFailure) {
       // rollback on failure is not enabled
-      return []
+      return onFailureStages
     }
 
     if (!stageData.getServerGroup()) {
       // did not get far enough to create a new server group
       log.warn("No server group was created, skipping rollback! (executionId: ${stage.execution.id}, stageId: ${stage.id})")
-
-      return []
+      return onFailureStages
     }
 
-    return [
-      newStage(
-        stage.execution,
-        rollbackClusterStage.type,
-        "Rollback ${stageData.getCluster()}",
-        [
-          "credentials"   : stageData.getCredentials(),
-          "cloudProvider" : stageData.getCloudProvider(),
-          "regions"       : [stageData.getRegion()],
-          "serverGroup"   : stageData.getServerGroup(),
-          "stageTimeoutMs": TimeUnit.MINUTES.toMillis(30) // timebox a rollback to 30 minutes
-        ],
-        stage,
-        SyntheticStageOwner.STAGE_AFTER
-      )
-    ]
+    onFailureStages << newStage(
+      stage.execution,
+      rollbackClusterStage.type,
+      "Rollback ${stageData.getCluster()}",
+      [
+        "credentials"   : stageData.getCredentials(),
+        "cloudProvider" : stageData.getCloudProvider(),
+        "regions"       : [stageData.getRegion()],
+        "serverGroup"   : stageData.getServerGroup(),
+        "stageTimeoutMs": TimeUnit.MINUTES.toMillis(30) // timebox a rollback to 30 minutes
+      ],
+      stage,
+      SyntheticStageOwner.STAGE_AFTER
+    )
+
+    return onFailureStages
   }
 
   private static class StageData {

@@ -36,12 +36,12 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
   }
 
   @Override
-  ResizeStrategy.Capacity capacityForOperation(Stage stage,
-                                               String account,
-                                               String serverGroupName,
-                                               String cloudProvider,
-                                               Location location,
-                                               ResizeStrategy.OptionalConfiguration resizeConfig) {
+  ResizeStrategy.CapacitySet capacityForOperation(Stage stage,
+                                                  String account,
+                                                  String serverGroupName,
+                                                  String cloudProvider,
+                                                  Location location,
+                                                  ResizeStrategy.OptionalConfiguration resizeConfig) {
     if (!stage.context.source) {
       throw new IllegalStateException("No source configuration available (${stage.context})")
     }
@@ -59,6 +59,7 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
     def currentMin = Integer.parseInt(tsg.capacity.min.toString())
     def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
     def currentMax = Integer.parseInt(tsg.capacity.max.toString())
+    def originalCapacity = new Capacity(currentMax, currentDesired, currentMin)
 
     def scalePct = resizeConfig.scalePct
     if (scalePct != null) {
@@ -71,18 +72,31 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
       currentMin = Math.min(currentMin, currentDesired)
     }
 
+    if (stageData.unpinMinimumCapacity) {
+      def originalSourceCapacity = stage.context.get("originalCapacity.${source.serverGroupName}".toString())
+      if (originalSourceCapacity) {
+        currentMin = Math.min(originalSourceCapacity.min as Integer, currentMin)
+      }
+    }
+
     if (stageData.pinCapacity) {
-      return new ResizeStrategy.Capacity(
-        currentDesired,
-        currentDesired,
-        currentDesired
+      return new CapacitySet(
+        originalCapacity,
+        new Capacity(
+          currentDesired,
+          currentDesired,
+          currentDesired
+        )
       )
     }
 
-    return new ResizeStrategy.Capacity(
-      currentMax,
-      currentDesired,
-      stageData.pinMinimumCapacity ? currentDesired : currentMin
+    return new CapacitySet(
+      originalCapacity,
+      new Capacity(
+        currentMax,
+        currentDesired,
+        stageData.pinMinimumCapacity ? currentDesired : currentMin
+      )
     )
   }
 
@@ -91,6 +105,7 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
 
     // whether or not `min` capacity should be set to `desired` capacity
     boolean pinMinimumCapacity
+    boolean unpinMinimumCapacity = false
 
     boolean pinCapacity
   }

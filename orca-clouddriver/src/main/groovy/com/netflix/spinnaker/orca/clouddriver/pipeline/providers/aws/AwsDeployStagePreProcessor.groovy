@@ -17,41 +17,141 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import static com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport.getSource
 
 @Component
 class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   @Autowired
   ApplySourceServerGroupCapacityStage applySourceServerGroupSnapshotStage
 
+  @Autowired
+  ResizeServerGroupStage resizeServerGroupStage
+
+  @Autowired
+  TargetServerGroupResolver targetServerGroupResolver
+
   @Override
-  List<DeployStagePreProcessor.StepDefinition> additionalSteps() {
+  List<StepDefinition> additionalSteps(Stage stage) {
+    def stageData = stage.mapTo(StageData)
+    if (stageData.strategy == "rollingredblack") {
+      // rolling red/black has no need to snapshot capacities
+      return []
+    }
+
     return [
-        new DeployStagePreProcessor.StepDefinition(
-          name: "snapshotSourceServerGroup",
-          taskClass: CaptureSourceServerGroupCapacityTask
-        )
+      new StepDefinition(
+        name: "snapshotSourceServerGroup",
+        taskClass: CaptureSourceServerGroupCapacityTask
+      )
     ]
   }
 
   @Override
-  List<DeployStagePreProcessor.StageDefinition> afterStageDefinitions() {
-    return [
-        new DeployStagePreProcessor.StageDefinition(
-          name: "restoreMinCapacityFromSnapshot",
-          stageDefinitionBuilder: applySourceServerGroupSnapshotStage,
-          context: [:]
+  List<StageDefinition> beforeStageDefinitions(Stage stage) {
+    def stageData = stage.mapTo(StageData)
+    if (shouldPinSourceServerGroup(stageData.strategy)) {
+      def resizeContext = getResizeContext(stageData)
+      resizeContext.pinMinimumCapacity = true
+
+      return [
+        new StageDefinition(
+          name: "Pin ${resizeContext.serverGroupName}".toString(),
+          stageDefinitionBuilder: resizeServerGroupStage,
+          context: resizeContext
         )
-    ]
+      ]
+    }
+
+    return []
+  }
+
+  @Override
+  List<StageDefinition> afterStageDefinitions(Stage stage) {
+    def stageData = stage.mapTo(StageData)
+    def stageDefinitions = []
+    if (stageData.strategy != "rollingredblack") {
+      // rolling red/black has no need to apply a snapshotted capacity (on the newly created server group)
+      stageDefinitions << new StageDefinition(
+        name: "restoreMinCapacityFromSnapshot",
+        stageDefinitionBuilder: applySourceServerGroupSnapshotStage,
+        context: [:]
+      )
+    }
+
+    def unpinServerGroupStage = buildUnpinServerGroupStage(stageData)
+    if (unpinServerGroupStage) {
+      stageDefinitions << unpinServerGroupStage
+    }
+
+    return stageDefinitions
+  }
+
+  @Override
+  List<StageDefinition> onFailureStageDefinitions(Stage stage) {
+    def stageData = stage.mapTo(StageData)
+    def stageDefinitions = []
+
+    def unpinServerGroupStage = buildUnpinServerGroupStage(stageData)
+    if (unpinServerGroupStage) {
+      stageDefinitions << unpinServerGroupStage
+    }
+
+    return stageDefinitions
   }
 
   @Override
   boolean supports(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    return stageData.useSourceCapacity && stageData.cloudProvider == "aws" && stageData.strategy != "rollingredblack"
+    return stageData.cloudProvider == "aws" // && stageData.useSourceCapacity
+  }
+
+  private static boolean shouldPinSourceServerGroup(String strategy) {
+    // TODO-AJ consciously only enabling for rolling red/black -- will add support for other strategies after it's working
+    return strategy == "rollingredblack"
+  }
+
+  private Map<String, Object> getResizeContext(StageData stageData) {
+    def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stageData)
+    def baseContext = [
+      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+      cluster                                : cleanupConfig.cluster,
+      moniker                                : cleanupConfig.moniker,
+      credentials                            : cleanupConfig.account,
+      cloudProvider                          : cleanupConfig.cloudProvider,
+    ]
+
+    def source = getSource(targetServerGroupResolver, stageData, baseContext)
+    baseContext.putAll([
+      serverGroupName   : source.serverGroupName,
+      action            : ResizeStrategy.ResizeAction.scale_to_server_group,
+      source            : source,
+      useNameAsLabel    : true     // hint to deck that it should _not_ override the name
+    ])
+    return baseContext
+  }
+
+  private StageDefinition buildUnpinServerGroupStage(StageData stageData) {
+    if (!shouldPinSourceServerGroup(stageData.strategy)) {
+      return null;
+    }
+
+    def resizeContext = getResizeContext(stageData)
+    resizeContext.unpinMinimumCapacity = true
+
+    return new StageDefinition(
+      name: "Unpin ${resizeContext.serverGroupName}".toString(),
+      stageDefinitionBuilder: resizeServerGroupStage,
+      context: resizeContext
+    )
   }
 }

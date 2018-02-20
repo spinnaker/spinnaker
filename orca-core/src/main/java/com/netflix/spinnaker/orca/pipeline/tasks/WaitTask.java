@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
+import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL;
 import static java.util.Collections.singletonMap;
 
 @Component
