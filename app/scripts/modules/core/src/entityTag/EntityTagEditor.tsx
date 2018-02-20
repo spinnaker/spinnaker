@@ -42,7 +42,8 @@ export interface IEntityTagEditorProps {
   entityRef: IEntityRef;
   isNew: boolean;
   show?: boolean;
-  onHide?(event: any): void;
+  closeModal?(result?: any): void; // provided by ReactModal
+  dismissModal?(rejection?: any): void; // provided by ReactModal
   onUpdate?(): void;
 }
 
@@ -59,7 +60,8 @@ export interface IEntityTagEditorState {
 @BindAll()
 export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEntityTagEditorState> {
   public static defaultProps: Partial<IEntityTagEditorProps> = {
-    onHide: noop,
+    closeModal: noop,
+    dismissModal: noop,
     onUpdate: noop,
   };
 
@@ -70,7 +72,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
   /** Shows the Entity Tag Editor modal */
   public static show(props: IEntityTagEditorProps): Promise<void> {
-    return ReactModal.show(React.createElement(EntityTagEditor, props));
+    return ReactModal.show(EntityTagEditor, props);
   }
 
   constructor(props: IEntityTagEditorProps) {
@@ -94,8 +96,8 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     const promise = deferred.promise;
     this.$uibModalInstanceEmulation = {
       result: promise,
-      close: () => this.setState({ show: false }),
-      dismiss: () => this.setState({ show: false }),
+      close: (result: any) => this.props.closeModal(result),
+      dismiss: (error: any) => this.props.dismissModal(error),
     } as IModalServiceInstance;
     Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
@@ -116,9 +118,9 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     this.setState({ isValid: false });
   }
 
-  private onHide(): void {
+  private close(): void {
     this.setState({ show: false });
-    this.props.onHide.apply(null, arguments);
+    this.props.dismissModal.apply(null, arguments);
     this.$uibModalInstanceEmulation.deferred.resolve();
   }
 
@@ -163,20 +165,19 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
     const closeButton = (
       <div className="modal-close close-button pull-right">
-        <a className="btn btn-link" onClick={this.onHide}>
+        <a className="btn btn-link" onClick={this.close}>
           <span className="glyphicon glyphicon-remove" />
         </a>
       </div>
     );
 
     const submitLabel = `${isNew ? ' Create' : ' Update'} ${tag.value.type}`;
-    const cancelButton = <button type="button" className="btn btn-default" onClick={this.onHide}>Cancel</button>;
+    const cancelButton = <button type="button" className="btn btn-default" onClick={this.close}>Cancel</button>;
 
     const { TaskMonitorWrapper } = NgReact;
 
     return (
-      <Modal show={this.state.show} onHide={this.onHide} dialogClassName="entity-tag-editor-modal">
-
+      <div>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
 
         <Formsy.Form
@@ -220,8 +221,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
           </Modal.Footer>
         </Formsy.Form>
-
-      </Modal>
+      </div>
     );
   }
 }
