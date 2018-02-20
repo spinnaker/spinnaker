@@ -71,7 +71,10 @@ class EmailNotificationAgentSpec extends Specification {
     status = "complete"
     pipelineName = "foo-pipeline"
     stageName = "foo-stage"
-    event = new Event(content: [context: [stageDetails: [name: "foo-stage"]], execution: [name: "foo-pipeline"]])
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"],
+      name: "foo-stage"
+    ])
   }
 
   @Unroll
@@ -115,7 +118,7 @@ class EmailNotificationAgentSpec extends Specification {
     address = "whoever@netflix.com"
     pipelineName = "foo-pipeline"
     stageName = "foo-stage"
-    event = new Event(content: [context: [stageDetails: [name: "foo-stage"]], execution: [name: "foo-pipeline"]])
+    event = new Event(content: [name: "foo-stage", execution: [name: "foo-pipeline"]])
     message = ["complete", "starting", "failed"].collectEntries {
       [("$type.$it".toString()): [text: "custom $it text"]]
     }
@@ -156,8 +159,8 @@ class EmailNotificationAgentSpec extends Specification {
     pipelineName = "foo-pipeline"
     stageName = "foo-stage"
     event = new Event(content: [context: [customSubject: customSubject,
-                                          customBody: customBody,
-                                          stageDetails: [name: "foo-stage"]],
+                                          customBody: customBody],
+                                name: "foo-stage",
                                 execution: [id: "abc", name: "foo-pipeline"]])
   }
 }

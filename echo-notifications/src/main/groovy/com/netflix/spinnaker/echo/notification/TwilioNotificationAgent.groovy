@@ -58,7 +58,8 @@ class TwilioNotificationAgent extends AbstractEventNotificationAgent {
       String message = ''
 
       if (config.type == 'stage') {
-        message = """Stage ${event.content?.context?.stageDetails.name} for """
+        String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
+        message = """Stage $stageName for """
       }
 
       message +=

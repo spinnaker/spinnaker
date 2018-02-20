@@ -107,8 +107,11 @@ class SlackNotificationAgentSpec extends Specification {
 
     channel = "bluespar"
     application = "whatever"
-    event = new Event(content: [execution: [id: "1", name: "foo-pipeline"],
-                                context: [ customMessage: customMessage, stageDetails: [ name: 'a stage' ]]])
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"],
+      context: [ customMessage: customMessage ],
+      name: 'a stage'
+    ])
     type = "stage"
   }
 }

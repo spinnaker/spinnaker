@@ -76,7 +76,8 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
       String body = ''
 
       if (config.type == 'stage') {
-        body = """Stage ${event.content?.context?.stageDetails?.name} for """
+        String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
+        body = """Stage $stageName for """
       }
 
       String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"

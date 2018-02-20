@@ -59,7 +59,8 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     String subject
 
     if (config.type == 'stage') {
-      subject = """Stage ${context.stageDetails.name} for ${
+      String stageName = event.content.name ?: context.stageDetails.name
+      subject = """Stage $stageName for ${
         application
       }'s ${event.content?.execution?.name} pipeline ${buildInfo}"""
     } else if (config.type == 'pipeline') {
