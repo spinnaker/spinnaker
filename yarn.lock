@@ -6,13 +6,17 @@
   version "0.0.46"
   resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.46.tgz#188ea7fa75a7e166a77f1eaa7079342fcedd6dfd"
 
-"@spinnaker/core@0.0.135":
-  version "0.0.135"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.135.tgz#047846cb93eb91ab22a0fe77ced29ec822087f9e"
+"@spinnaker/core@0.0.150":
+  version "0.0.150"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.150.tgz#a895ea9b0b09a1baaed7e2c0f711ecf19fd329e3"
 
 "@spinnaker/google@^0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@spinnaker/google/-/google-0.0.1.tgz#206e0f6c3d74eca3c35f192b8b8ef98b4ea9e538"
+
+"@spinnaker/kubernetes@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kubernetes/-/kubernetes-0.0.4.tgz#13d126f80494d270e4f9a1e12c89fabee25cdab7"
 
 "@types/angular-mocks@^1.5.10", "@types/angular-mocks@^1.5.9":
   version "1.5.10"

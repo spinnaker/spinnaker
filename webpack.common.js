@@ -102,7 +102,7 @@ function configure(IS_TEST) {
         'react2angular', 'react-bootstrap', 'react-dom', 'react-ga', 'ui-router-visualizer', 'ui-select',
         '@uirouter/angularjs'
       ],
-      spinnaker: ['@spinnaker/core', '@spinnaker/google', '@spinnaker/amazon']
+      spinnaker: ['@spinnaker/core', '@spinnaker/google', '@spinnaker/amazon', '@spinnaker/kubernetes']
     };
 
     config.plugins.push(...[

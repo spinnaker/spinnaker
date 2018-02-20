@@ -14,7 +14,7 @@ var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
 
 window.spinnakerSettings = {
   checkForUpdates: true,
-  defaultProviders: ['aws', 'gce'],
+  defaultProviders: ['aws', 'gce', 'kubernetes'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
@@ -45,6 +45,16 @@ window.spinnakerSettings = {
         zone: 'us-central1-f',
       },
       associatePublicIpAddress: true,
+    },
+    kubernetes: {
+      defaults: {
+        account: 'my-kubernetes-account',
+        namespace: 'default',
+        proxy: 'localhost:8001',
+        internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
+        instanceLinkTemplate: '{{host}}/api/v1/proxy/namespaces/{{namespace}}/pods/{{name}}',
+        apiPrefix: 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#',
+      },
     },
   },
   whatsNew: {
@@ -94,5 +104,6 @@ window.spinnakerSettings = {
     jobs: false,
     snapshots: false,
     travis: false,
+    versionedProviders: true,
   },
 };
