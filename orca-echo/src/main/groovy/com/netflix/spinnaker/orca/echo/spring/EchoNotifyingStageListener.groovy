@@ -114,7 +114,9 @@ class EchoNotifyingStageListener implements StageListener {
           startTime  : stage.startTime,
           endTime    : stage.endTime,
           execution  : stage.execution,
-          executionId: stage.execution.id
+          executionId: stage.execution.id,
+          isSynthetic: stage.syntheticStageOwner != null,
+          name: stage.name
         ]
       ]
       maybeTask.ifPresent { Task task ->
