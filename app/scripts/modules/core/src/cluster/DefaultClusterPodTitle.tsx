@@ -32,7 +32,7 @@ export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProp
             entityType="cluster"
             pageLocation="pod"
             className="inverse"
-            onUpdate={application.serverGroups.refresh}
+            onUpdate={() => application.serverGroups.refresh()}
           />
         </div>
 

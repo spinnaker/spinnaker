@@ -223,7 +223,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
                     hOffsetPercent="20%"
                     entityType="serverGroup"
                     pageLocation="pod"
-                    onUpdate={application.serverGroups.refresh}
+                    onUpdate={() => application.serverGroups.refresh()}
                   />
                 </div>
 

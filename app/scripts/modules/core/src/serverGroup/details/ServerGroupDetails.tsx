@@ -105,7 +105,7 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
                     hOffsetPercent="90%"
                     entityType="serverGroup"
                     pageLocation="details"
-                    onUpdate={app.serverGroups.refresh}
+                    onUpdate={() => app.serverGroups.refresh()}
                   />
               )}
               </h3>

@@ -51,7 +51,7 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
                   placement="bottom"
                   entityType="loadBalancer"
                   pageLocation="pod"
-                  onUpdate={application.loadBalancers.refresh}
+                  onUpdate={() => application.loadBalancers.refresh()}
                 />
                 <span className="text-right">
                   <HealthCounts container={loadBalancer.instanceCounts}/>

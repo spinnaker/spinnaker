@@ -220,7 +220,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
               application={app}
               entityType="serverGroup"
               ownerOptions={entityTagTargets}
-              onUpdate={app.serverGroups.refresh}
+              onUpdate={() => app.serverGroups.refresh()}
             />
           )}
         </Dropdown.Menu>

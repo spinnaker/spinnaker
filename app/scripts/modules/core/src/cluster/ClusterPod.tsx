@@ -94,7 +94,7 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
             hOffsetPercent="20%"
             entityType="cluster"
             pageLocation="pod"
-            onUpdate={application.serverGroups.refresh}
+            onUpdate={() => application.serverGroups.refresh()}
           />
         </h6>
 
