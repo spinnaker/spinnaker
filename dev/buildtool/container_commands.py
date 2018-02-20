@@ -58,16 +58,16 @@ class BuildContainerCommand(GradleCommandProcessor):
         'docker': self.__build_with_docker,
         'gcb': self.__build_with_gcb
     }
-    builder_methods[options.container_builder](repository)
+    scm = self.source_code_manager
+    build_version = scm.get_repository_service_build_version(repository)
+    builder_methods[options.container_builder](repository, build_version)
 
-  def __build_with_docker(self, repository):
+  def __build_with_docker(self, repository, build_version):
     logging.warning('DOCKER builds are still under development')
     name = repository.name
-    source_info = self.source_code_manager.check_source_info(repository)
     docker_tag = '{reg}/{name}:{build_version}'.format(
         reg=self.options.docker_registry,
-        name=name,
-        build_version=source_info.to_build_version())
+        name=name, build_version=build_version)
 
     cmds = [
         'docker build -f Dockerfile -t %s .' % docker_tag,
@@ -115,10 +115,9 @@ class BuildContainerCommand(GradleCommandProcessor):
         'DeleteArtifact', labels,
         check_subprocess, ' '.join(command))
 
-  def __build_with_gcb(self, repository):
+  def __build_with_gcb(self, repository, build_version):
     name = repository.name
-    source_info = self.source_code_manager.check_source_info(repository)
-    gcb_config = self.__derive_gcb_config(repository, source_info)
+    gcb_config = self.__derive_gcb_config(repository, build_version)
     if gcb_config is None:
       logging.info('Skipping GCB for %s because there is config for it',
                    name)
@@ -181,7 +180,7 @@ class BuildContainerCommand(GradleCommandProcessor):
         'name': self.options.container_base_image
     }
 
-  def __derive_gcb_config(self, repository, source_info):
+  def __derive_gcb_config(self, repository, build_version):
     """Helper function for repository_main."""
     options = self.options
     name = repository.name
@@ -208,7 +207,7 @@ class BuildContainerCommand(GradleCommandProcessor):
                      if env]
     versioned_image = '{reg}/{repo}:{build_version}'.format(
         reg=options.docker_registry, repo=name,
-        build_version=source_info.to_build_version())
+        build_version=build_version)
     steps = ([self.__make_gradle_gcb_step(name, env_vars_list)]
              if has_gradle_step
              else [])
