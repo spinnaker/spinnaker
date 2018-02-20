@@ -41,7 +41,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
           account: this.loadBalancerFromParams.accountId,
         },
         application: this.app,
-        manifestController: () => null,
+        manifestController: (): string => null,
       }
     });
   }

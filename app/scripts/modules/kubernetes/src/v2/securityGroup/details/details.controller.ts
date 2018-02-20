@@ -40,7 +40,7 @@ class KubernetesSecurityGroupDetailsController implements IController {
           account: this.securityGroupFromParams.accountId,
         },
         application: this.app,
-        manifestController: () => null,
+        manifestController: (): string => null,
       }
     });
   }
