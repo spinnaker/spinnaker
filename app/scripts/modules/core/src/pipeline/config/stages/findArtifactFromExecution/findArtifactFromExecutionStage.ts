@@ -5,6 +5,7 @@ import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/
 import { ExecutionDetailsTasks } from 'core/pipeline/config/stages/core';
 import { FindArtifactFromExecutionCtrl } from 'core/pipeline/config/stages/findArtifactFromExecution/findArtifactFromExecution.controller';
 import { SETTINGS } from 'core/config/settings';
+import { FindArtifactFromExecutionExecutionDetails } from 'core/pipeline/config/stages/findArtifactFromExecution/FindArtifactFromExecutionExecutionDetails';
 
 export const FIND_ARTIFACT_FROM_EXECUTION_STAGE = 'spinnaker.core.pipeline.stage.findArtifactStage';
 
@@ -19,7 +20,7 @@ module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [
       templateUrl: require('./findArtifactFromExecutionConfig.html'),
       controller: 'findArtifactFromExecutionCtrl',
       controllerAs: 'ctrl',
-      executionDetailsSections: [ExecutionDetailsTasks],
+      executionDetailsSections: [FindArtifactFromExecutionExecutionDetails, ExecutionDetailsTasks],
       validators: [
         { type: 'requiredField', fieldName: 'pipeline', fieldLabel: 'Pipeline' },
         { type: 'requiredField', fieldName: 'application', fieldLabel: 'Application' },
