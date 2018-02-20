@@ -94,7 +94,8 @@ class BuildHalyardCommand(GradleCommandProcessor):
     the 'nightly' build which isnt really nightly just 'last-build',
     which could even be on an older branch than latest.
     """
-    summary_info = self.source_code_manager.lookup_source_info(repository)
+    commit_id = self.source_code_manager.git.query_local_repository_commit_id(
+        repository.git_dir)
 
     # This is only because we need a file to gsutil cp
     # We already need gsutil so its easier to just use it again here.
@@ -103,7 +104,7 @@ class BuildHalyardCommand(GradleCommandProcessor):
 
     contents = self.load_halyard_version_commits()
     new_entry = '{version}: {commit}\n'.format(
-        version=self.__build_version, commit=summary_info.summary.commit_id)
+        version=self.__build_version, commit=commit_id)
 
     logging.info('Updating %s with %s', self.__versions_url, new_entry)
     if contents and contents[-1] != '\n':
@@ -125,8 +126,8 @@ class BuildHalyardCommand(GradleCommandProcessor):
     options = self.options
 
     git_dir = repository.git_dir
-    source_info = self.source_code_manager.lookup_source_info(repository)
-    self.__build_version = source_info.to_build_version()
+    summary = self.source_code_manager.git.collect_repository_summary(git_dir)
+    self.__build_version = '%s-%s' % (summary.version, options.build_number)
 
     cmd = './release/all.sh {version} nightly'.format(
         version=self.__build_version)
@@ -189,12 +190,13 @@ class BuildHalyardCommand(GradleCommandProcessor):
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
-    # We need the version number here, which means we need the source
-    # so this is not in the can_skip method. However if we dont know
-    # about the commit, we probably dont have the debian anyway. And
-    # extra overhead isnt that great.
+    # The gradle prepare for nebula needs the build version
+    # which it will get from the source info, so make it here.
+    source_info = self.source_code_manager.refresh_source_info(
+        repository, self.options.build_number)
+
     if self.gradle.consider_debian_on_bintray(
-        repository, build_number=self.options.build_number):
+        repository, source_info.to_build_version()):
       return
 
     args = self.gradle.get_common_args()
@@ -301,6 +303,7 @@ class PublishHalyardCommand(CommandProcessor):
     options_copy.bom_path = None
     options_copy.bom_version = None
     options_copy.git_branch = 'master'
+    options_copy.github_hostname = 'github.com'
     # Overrides later if --git_allow_publish_master_branch is false
     super(PublishHalyardCommand, self).__init__(factory, options_copy, **kwargs)
 
@@ -365,7 +368,6 @@ class PublishHalyardCommand(CommandProcessor):
       shutil.rmtree(git_dir)
     git = self.__scm.git
     git.clone_repository_to_path(repository, commit=commit)
-    self.__scm.refresh_source_info(repository, self.options.build_number)
     return repository
 
   def _build_release(self, repository):
@@ -388,12 +390,10 @@ class PublishHalyardCommand(CommandProcessor):
     args = self.__gradle.get_common_args()
     args.extend(self.__gradle.get_debian_args('trusty-stable,xenial-stable'))
     build_number = self.options.build_number
-    if not self.__gradle.consider_debian_on_bintray(
-        repository, build_number=build_number):
-      self.__gradle.check_run(
-          args, self, repository, 'candidate', 'build-release',
-          version=self.__release_version, build_number=build_number,
-          gradle_dir=git_dir)
+    self.__gradle.check_run(
+        args, self, repository, 'candidate', 'build-release',
+        version=self.__release_version, build_number=build_number,
+        gradle_dir=git_dir)
 
     info_path = os.path.join(self.get_output_dir(), 'halyard_info.yml')
     logging.debug('Writing build information to %s', info_path)
