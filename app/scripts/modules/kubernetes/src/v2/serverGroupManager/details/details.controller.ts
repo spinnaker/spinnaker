@@ -130,7 +130,8 @@ class KubernetesServerGroupManagerDetailsController implements IController {
           namespace: this.serverGroupManager.namespace,
           account: this.serverGroupManager.account
         },
-        application: this.app
+        application: this.app,
+        manifestController: () => null,
       }
     });
   }

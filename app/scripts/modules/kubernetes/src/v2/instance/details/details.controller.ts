@@ -70,7 +70,8 @@ class KubernetesInstanceDetailsController implements IController {
           namespace: this.instance.namespace,
           account: this.instance.account,
         },
-        application: this.app
+        application: this.app,
+        manifestController: () => null,
       }
     });
   }

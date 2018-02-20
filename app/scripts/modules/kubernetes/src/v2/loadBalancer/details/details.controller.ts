@@ -40,7 +40,8 @@ class KubernetesLoadBalancerDetailsController implements IController {
           namespace: this.loadBalancerFromParams.region,
           account: this.loadBalancerFromParams.accountId,
         },
-        application: this.app
+        application: this.app,
+        manifestController: () => null,
       }
     });
   }

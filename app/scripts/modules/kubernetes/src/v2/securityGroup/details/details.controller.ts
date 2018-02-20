@@ -39,7 +39,8 @@ class KubernetesSecurityGroupDetailsController implements IController {
           namespace: this.securityGroupFromParams.region,
           account: this.securityGroupFromParams.accountId,
         },
-        application: this.app
+        application: this.app,
+        manifestController: () => null,
       }
     });
   }
