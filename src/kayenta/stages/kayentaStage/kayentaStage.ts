@@ -83,7 +83,7 @@ class CanaryStage implements IComponentController {
   }
 
   public onCanaryConfigSelect(): void {
-    this.loadCanaryConfigDetails();
+    this.loadCanaryConfigDetails().then(() => this.overrideScoreThresholds());
   }
 
   public isExpression(val: number | string): boolean {
@@ -133,22 +133,29 @@ class CanaryStage implements IComponentController {
     this.loadBackingData();
   }
 
-  private loadCanaryConfigDetails(): void {
+  private loadCanaryConfigDetails(): Promise<void> {
     if (!this.stage.canaryConfig.canaryConfigId) {
-      return;
+      return Promise.resolve(null);
     }
 
     this.state.detailsLoading = true;
-    getCanaryConfigById(this.stage.canaryConfig.canaryConfigId).then(configDetails => {
+    return getCanaryConfigById(this.stage.canaryConfig.canaryConfigId).then(configDetails => {
       this.state.detailsLoading = false;
       this.selectedCanaryConfigDetails = configDetails;
-      this.overrideScoreThresholds();
       this.populateScopeNameChoices(configDetails);
+      this.metricStore = get(configDetails, 'metrics[0].query.type');
     }).catch(() => {
       this.state.detailsLoading = false;
     });
   }
 
+  // Should only be called when selecting a canary config.
+  // Expected stage behavior:
+  // On stage load, use the stage's score thresholds rather than the canary config's
+  // thresholds.
+  // When selecting a canary config, set the stage's thresholds equal
+  // to the canary config's thresholds unless they are undefined.
+  // In that case, fall back on the stage's thresholds.
   private overrideScoreThresholds(): void {
     if (!this.selectedCanaryConfigDetails) {
       return;
@@ -185,7 +192,7 @@ class CanaryStage implements IComponentController {
       this.$scope.application.ready().then(() => {
         this.setCanaryConfigSummaries(this.$scope.application.getDataSource('canaryConfigs').data);
         this.deleteCanaryConfigIdIfMissing();
-        this.loadCanaryConfigDetailsIfPresent();
+        this.loadCanaryConfigDetails();
       }),
       listKayentaAccounts().then(this.setKayentaAccounts).then(this.deleteConfigAccountsIfMissing),
     ]).then(() => this.state.backingDataLoading = false)
@@ -223,21 +230,6 @@ class CanaryStage implements IComponentController {
     if (this.canaryConfigSummaries.every(s => s.id !== this.stage.canaryConfig.canaryConfigId)) {
       delete this.stage.canaryConfig.canaryConfigId;
     }
-  }
-
-  private loadCanaryConfigDetailsIfPresent(): void {
-    if (!this.stage.canaryConfig.canaryConfigId) {
-      return;
-    }
-
-    this.state.detailsLoading = true;
-    getCanaryConfigById(this.stage.canaryConfig.canaryConfigId).then(configDetails => {
-      this.state.detailsLoading = false;
-      this.metricStore = get(configDetails, 'metrics[0].query.type');
-      this.populateScopeNameChoices(configDetails);
-    }).catch(() => {
-      this.state.detailsLoading = false;
-    });
   }
 
   public populateScopeWithExpressions(): void {
