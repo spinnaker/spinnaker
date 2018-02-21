@@ -58,12 +58,12 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
       let constructing = true;
 
       this.account$
-        .switchMap(accountId => {
-          if (!accountId) {
+        .switchMap(accountName => {
+          if (!accountName) {
             return Observable.of(null);
           }
 
-          return accountService.accounts$.map(accts => accts.find(acct => acct.accountId === accountId));
+          return accountService.accounts$.map(accts => accts.find(acct => acct.name === accountName));
         })
         .map((accountDetails: IAccountDetails) => this.getComponent(accountDetails))
         .takeUntil(this.destroy$)
