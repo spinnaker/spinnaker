@@ -1,4 +1,4 @@
-const colorMap = require('./src/styleguide/src/colorMap');
+const colorMap = require('@spinnaker/styleguide/src/colorMap');
 
 module.exports = {
     plugins: {
