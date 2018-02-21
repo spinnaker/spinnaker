@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage
       stageProviders.push({cloudProvider: 'docker'});
     }
 
-    accountService.listProviders($scope.application).then(function (providers) {
+    accountService.listProviders$($scope.application).take(1).subscribe(function (providers) {
       $scope.viewState.loading = false;
       const availableProviders = [];
       stageProviders.forEach(sp => {

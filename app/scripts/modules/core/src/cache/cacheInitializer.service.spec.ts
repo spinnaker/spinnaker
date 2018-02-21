@@ -87,6 +87,7 @@ describe('Service: cacheInitializer', function () {
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg));
       spyOn(applicationReader, 'listApplications').and.returnValue($q.when(keys.app));
       spyOn(igorService, 'listMasters').and.returnValue($q.when(keys.bm));
+      spyOn(accountService, 'listProviders').and.returnValue($q.when([]));
     });
 
     it('should initialize the cache initializer with the initialization values', () => {
