@@ -44,6 +44,8 @@ class AmazonNamedImageLookupController {
   private static final int MIN_NAME_FILTER = 3
   private static final String EXCEPTION_REASON = 'Minimum of ' + MIN_NAME_FILTER + ' characters required to filter namedImages'
 
+  private static final AMI_GLOB_PATTERN = /^ami-([a-f0-9]{8}|[a-f0-9]{17})$/
+
   private final Cache cacheView
 
   @Autowired
@@ -69,7 +71,7 @@ class AmazonNamedImageLookupController {
   List<NamedImage> list(LookupOptions lookupOptions, HttpServletRequest request) {
     validateLookupOptions(lookupOptions)
     String glob = lookupOptions.q?.trim()
-    def isAmi = glob ==~ /^ami-[a-z0-9]{8}$/
+    def isAmi = glob ==~ AMI_GLOB_PATTERN
 
     // Wrap in '*' if there are no glob-style characters in the query string
     if (!isAmi && !glob.contains('*') && !glob.contains('?') && !glob.contains('[') && !glob.contains('\\')) {
@@ -189,7 +191,7 @@ class AmazonNamedImageLookupController {
     }
 
     String glob = lookupOptions.q?.trim()
-    def isAmi = glob ==~ /^ami-[a-z0-9]{8}$/
+    def isAmi = glob ==~ AMI_GLOB_PATTERN
     if (glob == "ami" || (!isAmi && glob.startsWith("ami-"))) {
       throw new InvalidRequestException("Searches by AMI id must be an exact match (ami-xxxxxxxx)")
     }

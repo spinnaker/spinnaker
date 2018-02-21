@@ -90,7 +90,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     notThrown(InvalidRequestException)
 
     where:
-    query << ["ami_", "ami-12345678", "sami", "ami_12345678"]
+    query << ["ami_", "ami-12345678", "sami", "ami_12345678", "ami-1234567890abcdef0"]
   }
 
   private HttpServletRequest httpServletRequest(Map<String, String> tagFilters) {
