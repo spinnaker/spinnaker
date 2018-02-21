@@ -57,15 +57,22 @@ class DeployAppengineAtomicOperation implements AtomicOperation<DeploymentResult
     if (description.artifact) {
       switch (description.artifact.type) {
         case 'gcs/object':
-          if (!description.artifact.reference) {
+          String ref = description.artifact.reference
+          if (!ref) {
             throw new AppengineOperationException("Missing artifact reference for GCS deploy")
           }
+          description.repositoryUrl = ref.startsWith("gs://") ? ref : "gs://${ref}"
           usesGcs = true
+          break
         case 'docker/image':
           if (!description.artifact.name) {
             throw new AppengineOperationException("Missing artifact name for Flex Custom deploy")
           }
           containerDeployment = description.artifact.name
+          break
+        default:
+          throw new AppengineOperationException("Unhandled artifact type in description")
+          break
       }
     } else {
       containerDeployment = description.containerImageUrl?.trim()
