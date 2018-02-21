@@ -51,8 +51,13 @@ class ResizeServerGroupTask extends AbstractServerGroupTask {
     def originalCapacityKey = "originalCapacity.${operation.serverGroupName}".toString()
     def originalCapacity = stage.context.get(originalCapacityKey)
 
+    def originalCapacityValue = originalCapacity ?: operation.originalCapacity
+    if (!originalCapacityValue) {
+      return [:]
+    }
+
     return [
-      (originalCapacityKey) : originalCapacity ?: operation.originalCapacity
+      (originalCapacityKey) : originalCapacityValue
     ]
   }
 
