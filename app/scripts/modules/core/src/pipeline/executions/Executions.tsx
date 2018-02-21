@@ -152,6 +152,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       controller: 'ManualPipelineExecutionCtrl as vm',
       resolve: {
         pipeline: () => pipeline,
+        trigger: () => null as any,
         application: () => this.props.app,
       }
     }).result

@@ -56,8 +56,8 @@ export class ExecutionService {
    * @return {<IExecution[]>}
    */
     public getExecutions(applicationName: string, application: Application = null): IPromise<IExecution[]> {
-    const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
-    const pipelines = Object.keys(sortFilter.pipeline);
+      const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
+      const pipelines = Object.keys(sortFilter.pipeline);
       const statuses = Object.keys(pickBy(sortFilter.status || {}, identity));
       const limit = sortFilter.count;
       if (application && pipelines.length) {
@@ -451,11 +451,24 @@ export class ExecutionService {
         });
     }
 
-    public getExecutionsForConfigIds(application: Application, pipelineConfigIds: string, limit: number, statuses: string): IPromise<IExecution[]> {
-      return this.API.all('executions').getList({ limit, pipelineConfigIds, statuses })
+  /**
+   * Returns a list of recent executions for the supplied set of IDs, optionally filtered by status
+   * @param {string[]} pipelineConfigIds the pipeline config IDs
+   * @param {{limit?: number; statuses?: string; transform?: boolean; application?: Application}} options:
+   *  transform: if true - and the application option is set, the execution transformer will run on each result (default: false)
+   *  application: if transform is true, the application to use when transforming the executions (default: null)
+   *  limit: the number of executions per config ID to retrieve (default: whatever Gate sets)
+   *  statuses: an optional set of execution statuses (default: all)
+   * @return {angular.IPromise<IExecution[]>}
+   */
+    public getExecutionsForConfigIds(pipelineConfigIds: string[], options: { limit?: number, statuses?: string, transform?: boolean, application?: Application } = {}): IPromise<IExecution[]> {
+      const { limit, statuses, transform, application } = options;
+      return this.API.all('executions').getList({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
         .then((data: IExecution[]) => {
           if (data) {
-            data.forEach((execution: IExecution) => this.transformExecution(application, execution));
+            if (transform && application) {
+              data.forEach((execution: IExecution) => this.transformExecution(application, execution));
+            }
             return data.sort((a, b) => b.startTime - (a.startTime || Date.now()));
           }
           return [];

@@ -24,7 +24,8 @@ module.exports = angular
       this.builds = builds.filter((build) => !build.building && build.result === 'SUCCESS')
         .sort((a, b) => b.number - a.number);
       if (this.builds.length) {
-        let defaultSelection = this.builds[0];
+        // default to what is supplied by the trigger if possible; otherwise, use the latest
+        let defaultSelection = this.builds.find(b => b.number === this.command.trigger.buildNumber) || this.builds[0];
         this.viewState.selectedBuild = defaultSelection;
         this.updateSelectedBuild(defaultSelection);
       }
@@ -45,8 +46,12 @@ module.exports = angular
       this.viewState = {
         buildsLoading: true,
         loadError: false,
-        selectedBuild: null,
+        selectedBuild: command.trigger.buildNumber,
       };
+
+      if (command.trigger.buildNumber) {
+        this.updateSelectedBuild(command.trigger.buildInfo);
+      }
 
       // do not re-initialize if the trigger has changed to some other type
       if (command.trigger.type !== 'jenkins') {

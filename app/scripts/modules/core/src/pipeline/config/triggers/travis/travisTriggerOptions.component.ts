@@ -23,7 +23,7 @@ export class TravisTriggerOptionsController {
     this.viewState = {
       buildsLoading: true,
       loadError: false,
-      selectedBuild: null,
+      selectedBuild: this.command.trigger.buildNumber,
     };
 
     this.$scope.$watch(() => this.command.trigger, () => this.initialize());
@@ -34,7 +34,8 @@ export class TravisTriggerOptionsController {
       .filter((build) => !build.building && build.result === 'SUCCESS')
       .sort((a, b) => b.number - a.number);
     if (this.builds.length) {
-      const defaultSelection = this.builds[0];
+      // default to what is supplied by the trigger if possible; otherwise, use the latest
+      const defaultSelection = this.builds.find(b => b === this.command.trigger.buildNumber) || this.builds[0];
       this.viewState.selectedBuild = defaultSelection;
       this.updateSelectedBuild(defaultSelection);
     }

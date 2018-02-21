@@ -34,7 +34,8 @@ module.exports = angular
     let tagLoadSuccess = (tags) => {
       this.tags = tags;
       if (this.tags.length) {
-        let defaultSelection = this.tags[0];
+        // default to what is supplied by the trigger if possible; otherwise, use the latest
+        let defaultSelection = this.tags.find(t => t === this.command.trigger.tag) || this.tags[0];
         this.viewState.selectedTag = defaultSelection;
         this.updateSelectedTag(defaultSelection);
       }

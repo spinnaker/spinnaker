@@ -22,10 +22,10 @@ module.exports = angular
   })
   .controller('PipelineTriggerOptionsCtrl', function ($scope, executionService) {
     let executionLoadSuccess = (executions) => {
-      this.executions = executions.filter((execution) => execution.pipelineConfigId === this.command.trigger.pipeline)
-        .sort((a, b) => b.buildTime - a.buildTime);
+      this.executions = executions;
       if (this.executions.length) {
-        let defaultSelection = this.executions[0];
+        // default to what is supplied by the trigger if possible; otherwise, use the latest
+        let defaultSelection = this.executions.find(e => e.id === this.command.trigger.parentPipelineId) || this.executions[0];
         this.viewState.selectedExecution = defaultSelection;
         this.updateSelectedExecution(defaultSelection);
       }
@@ -39,6 +39,13 @@ module.exports = angular
 
     let initialize = () => {
       const command = this.command;
+      // structure is a little different if this is a re-run; need to extract the fields from the parentExecution
+      const parent = command.trigger.parentExecution;
+      if (parent) {
+        command.trigger.application = parent.application;
+        command.trigger.pipeline = parent.pipelineConfigId;
+        command.trigger.parentPipelineId = parent.id;
+      }
 
       // These fields will be added to the trigger when the form is submitted
       command.extraFields = {};
@@ -54,7 +61,7 @@ module.exports = angular
         return;
       }
       this.viewState.executionsLoading = true;
-      executionService.getExecutions(command.trigger.application)
+      executionService.getExecutionsForConfigIds([this.command.trigger.pipeline], { limit: 20 })
         .then(executionLoadSuccess, executionLoadFailure);
     };
 

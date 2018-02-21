@@ -8,7 +8,7 @@ import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { Execution } from '../execution/Execution';
-import { IExecution, IExecutionGroup, IPipeline, IPipelineCommand } from 'core/domain';
+import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
@@ -110,7 +110,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
       });
   }
 
-  public triggerPipeline(): void {
+  public triggerPipeline(trigger: IExecutionTrigger = null): void {
     ReactInjector.modalService.open({
       templateUrl: require('../../manualExecution/manualPipelineExecution.html'),
       controller: 'ManualPipelineExecutionCtrl as vm',
@@ -118,6 +118,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
         pipeline: () => this.state.pipelineConfig,
         application: () => this.props.application,
         currentlyRunningExecutions: () => this.props.group.runningExecutions,
+        trigger: () => trigger,
       }
     }).result.then((command) => this.startPipeline(command)).catch(() => {});
   }
@@ -166,6 +167,11 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     e.stopPropagation();
   }
 
+  private rerunExecutionClicked(execution: IExecution): void {
+    ReactGA.event({ category: 'Pipeline', action: 'Rerun pipeline button clicked', label: this.props.group.heading });
+    this.triggerPipeline(execution.trigger);
+  }
+
   public render(): React.ReactElement<ExecutionGroup> {
     const group = this.props.group;
     const pipelineConfig = this.state.pipelineConfig;
@@ -175,7 +181,10 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
     const deploymentAccountLabels = without(this.state.deploymentAccounts || [], ...(group.targetAccounts || [])).map((account: string) => <AccountTag key={account} account={account}/>);
     const groupTargetAccountLabels = (group.targetAccounts || []).map((account: string) => <AccountTag key={account} account={account}/>);
-    const executions = (group.executions || []).map((execution: IExecution) => <Execution key={execution.id} execution={execution} application={this.props.application}/>);
+    const executions = (group.executions || [])
+      .map((execution: IExecution) => (
+        <Execution key={execution.id} execution={execution} application={this.props.application} onRerun={this.rerunExecutionClicked}/>
+      ));
 
     return (
       <div className={`execution-group ${this.isShowingDetails() ? 'showing-details' : 'details-hidden'}`}>
@@ -220,8 +229,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
               </div>
             </div>
           </div>
-        )
-        }
+        )}
         { this.state.open && (
           <div className="execution-groups">
             <div className="execution-group-container">

@@ -60,7 +60,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     expect(controller.viewState.buildsLoading).toBe(false);
     expect(controller.viewState.loadError).toBe(false);
     expect(controller.builds).toEqual(builds);
-    expect(controller.viewState.selectedBuild).toBe(null);
+    expect(controller.viewState.selectedBuild).toBeUndefined();
   });
 
   it('sets build to first one available when returned on initialization', function () {
@@ -86,7 +86,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     expect(controller.viewState.buildsLoading).toBe(false);
     expect(controller.viewState.loadError).toBe(true);
     expect(controller.builds).toBeUndefined();
-    expect(controller.viewState.selectedBuild).toBe(null);
+    expect(controller.viewState.selectedBuild).toBeUndefined();
     expect(command.extraFields.buildNumber).toBeUndefined();
   });
 

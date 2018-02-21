@@ -9,7 +9,7 @@ import * as classNames from 'classnames';
 import { Application } from 'core/application/application.model';
 import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetails';
 import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
-import { IExecution , IRestartDetails } from 'core/domain';
+import { IExecution, IRestartDetails } from 'core/domain';
 import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
@@ -34,6 +34,7 @@ export interface IExecutionProps {
   title?: string | JSX.Element;
   dataSourceKey?: string;
   showAccountLabels?: boolean;
+  onRerun?: (execution: IExecution) => void;
 }
 
 export interface IExecutionState {
@@ -224,28 +225,29 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked (no stages found)' });
   }
 
-  private handlePauseClick(event: React.MouseEvent<HTMLElement>): void {
+  private handlePauseClick(): void {
     ReactGA.event({ category: 'Pipeline', action: 'Execution pause clicked' });
     this.pauseExecution();
-    event.stopPropagation();
   }
 
-  private handleResumeClick(event: React.MouseEvent<HTMLElement>): void {
+  private handleResumeClick(): void {
     ReactGA.event({ category: 'Pipeline', action: 'Execution resume clicked' });
     this.resumeExecution();
-    event.stopPropagation();
   }
 
-  private handleDeleteClick(event: React.MouseEvent<HTMLElement>): void {
+  private handleDeleteClick(): void {
     ReactGA.event({ category: 'Pipeline', action: 'Execution delete clicked' });
     this.deleteExecution();
-    event.stopPropagation();
   }
 
-  private handleCancelClick(event: React.MouseEvent<HTMLElement>): void {
+  private handleCancelClick(): void {
     ReactGA.event({ category: 'Pipeline', action: 'Execution cancel clicked' });
     this.cancelExecution();
-    event.stopPropagation();
+  }
+
+  private handleRerunClick(): void {
+    ReactGA.event({ category: 'Pipeline', action: 'Execution rerun clicked' });
+    this.props.onRerun(this.props.execution);
   }
 
   private handleSourceClick(): void {
@@ -336,30 +338,39 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
           <div className="execution-actions">
             { execution.isRunning && (
               <Tooltip value="Pause execution">
-                <a className="clickable" onClick={this.handlePauseClick}>
-                  <span className="glyphicon glyphicon-pause"/>
-                </a>
+                <button className="link" onClick={this.handlePauseClick}>
+                  <i className="fa fa-pause"/>
+                </button>
               </Tooltip>
             )}
             { execution.isPaused && (
               <Tooltip value="Resume execution">
-                <a className="clickable" onClick={this.handleResumeClick}>
-                  <span className="glyphicon glyphicon-play"/>
-                </a>
+                <button className="link" onClick={this.handleResumeClick}>
+                  <i className="fa fa-play"/>
+                </button>
               </Tooltip>
             )}
             { !execution.isActive && (
-              <Tooltip value="Delete execution">
-                <a className="clickable" onClick={this.handleDeleteClick}>
-                  <span className="glyphicon glyphicon-trash"/>
-                </a>
-              </Tooltip>
+              <span>
+                {this.props.onRerun && (
+                  <Tooltip value="Re-run execution with same parameters">
+                    <button className="link" onClick={this.handleRerunClick}>
+                      <i className="fa fa-repeat"/>
+                    </button>
+                  </Tooltip>
+                )}
+                <Tooltip value="Delete execution">
+                  <button className="link" onClick={this.handleDeleteClick}>
+                    <span className="glyphicon glyphicon-trash"/>
+                  </button>
+                </Tooltip>
+              </span>
             )}
             { execution.isActive && (
               <Tooltip value="Cancel execution">
-                <a className="clickable" onClick={this.handleCancelClick}>
-                  <span className="glyphicon glyphicon-remove-circle"/>
-                </a>
+                <button className="link" onClick={this.handleCancelClick}>
+                  <i className="fa fa-times-circle-o"/>
+                </button>
               </Tooltip>
             )}
           </div>

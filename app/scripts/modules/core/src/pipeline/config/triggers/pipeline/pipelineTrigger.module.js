@@ -32,16 +32,21 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline
     return {
       formatLabel: (trigger) => {
 
+        // if this is a re-run, the trigger info will be on the parentExecution; otherwise, check the trigger itself
+        // (normalization occurs in the pipelineTriggerOptions component, but that renders after this method is called)
+        const application = _.get(trigger, 'parentExecution.application', trigger.application);
+        const pipelineConfigId = _.get(trigger, 'parentExecution.pipelineConfigId', trigger.pipeline);
+
         let loadSuccess = (pipelines) => {
-          let pipeline = pipelines.find((config) => config.id === trigger.pipeline);
-          return pipeline ? `(Pipeline) ${trigger.application}: ${pipeline.name}` : '[pipeline not found]';
+          let pipeline = pipelines.find((config) => config.id === pipelineConfigId);
+          return pipeline ? `(Pipeline) ${application}: ${pipeline.name}` : '[pipeline not found]';
         };
 
         let loadFailure = () => {
-          return `[could not load pipelines for '${trigger.application}']`;
+          return `[could not load pipelines for '${application}']`;
         };
 
-        return pipelineConfigService.getPipelinesForApplication(trigger.application)
+        return pipelineConfigService.getPipelinesForApplication(application)
           .then(loadSuccess, loadFailure);
       },
       selectorTemplate: require('./selectorTemplate.html'),

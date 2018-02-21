@@ -48,7 +48,7 @@ describe('Jenkins Trigger: JenkinsTriggerOptionsCtrl', function() {
     expect(ctrl.viewState.buildsLoading).toBe(false);
     expect(ctrl.viewState.loadError).toBe(false);
     expect(ctrl.builds).toEqual(builds);
-    expect(ctrl.viewState.selectedBuild).toBe(null);
+    expect(ctrl.viewState.selectedBuild).toBeUndefined();
   });
 
   it('sets build to first one available when returned on initialization', function () {
@@ -74,7 +74,7 @@ describe('Jenkins Trigger: JenkinsTriggerOptionsCtrl', function() {
     expect(ctrl.viewState.buildsLoading).toBe(false);
     expect(ctrl.viewState.loadError).toBe(true);
     expect(ctrl.builds).toBeUndefined();
-    expect(ctrl.viewState.selectedBuild).toBe(null);
+    expect(ctrl.viewState.selectedBuild).toBeUndefined();
     expect(command.extraFields.buildNumber).toBeUndefined();
   });
 
