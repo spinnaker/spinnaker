@@ -31,6 +31,6 @@ public class DynomiteClientConfiguration {
   @Bean
   DynomiteClientDelegateFactory dynomiteClientDelegateFactory(ObjectMapper objectMapper,
                                                               Optional<DiscoveryClient> discoveryClient) {
-    return new DynomiteClientDelegateFactory(objectMapper, discoveryClient.get());
+    return new DynomiteClientDelegateFactory(objectMapper, discoveryClient);
   }
 }

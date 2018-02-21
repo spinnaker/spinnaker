@@ -27,19 +27,19 @@ public class DynomiteClientFactory {
   private final Logger log = LoggerFactory.getLogger(DynomiteClientFactory.class);
 
   private DynomiteDriverProperties properties;
-  private DiscoveryClient discoveryClient;
+  private Optional<DiscoveryClient> discoveryClient;
 
   public DynomiteClientFactory properties(DynomiteDriverProperties properties) {
     this.properties = properties;
     return this;
   }
 
-  public DynomiteClientFactory discoveryClient(DiscoveryClient discoveryClient) {
+  public DynomiteClientFactory discoveryClient(Optional<DiscoveryClient> discoveryClient) {
     this.discoveryClient = discoveryClient;
     return this;
   }
 
-  public DynoJedisClient build(DynomiteDriverProperties properties) {
+  public DynoJedisClient build() {
     DynoJedisClient.Builder builder = new DynoJedisClient.Builder()
       .withApplicationName(properties.applicationName)
       .withDynomiteClusterName(properties.clusterName);
@@ -71,6 +71,6 @@ public class DynomiteClientFactory {
     if (properties.forceUseStaticHosts) {
       return Optional.empty();
     }
-    return Optional.of(discoveryClient);
+    return discoveryClient;
   }
 }

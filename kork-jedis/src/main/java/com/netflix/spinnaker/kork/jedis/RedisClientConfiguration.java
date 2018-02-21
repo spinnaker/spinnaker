@@ -103,7 +103,7 @@ public class RedisClientConfiguration {
 
   @ConfigurationProperties(prefix = "redis")
   public static class ClientConfigurationWrapper {
-    Map<String, DualClientConfiguration> clients;
+    Map<String, DualClientConfiguration> clients = new HashMap<>();
 
     public Map<String, DualClientConfiguration> getClients() {
       return clients;
