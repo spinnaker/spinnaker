@@ -21,7 +21,9 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
   }
 
   public componentWillReceiveProps(nextProps: IRenderAngularJSProps) {
-    this.$scope.props = nextProps;
+    if (this.$scope) {
+      this.$scope.props = nextProps;
+    }
   }
 
   private refCallback(ref: Element) {
