@@ -148,6 +148,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       if (instanceIds && credentials.discoveryEnabled && description.desiredPercentage && disable) {
         instanceIds = discoverySupport.getInstanceToModify(credentials.name, region, serverGroupName, instanceIds, description.desiredPercentage)
         task.updateStatus phaseName, "Only disabling instances $instanceIds on ASG $serverGroupName with percentage ${description.desiredPercentage}"
+
+        task.addResultObjects([
+          ["instanceIdsToDisable": instanceIds]
+        ])
       }
 
       // ELB/ALB registration
