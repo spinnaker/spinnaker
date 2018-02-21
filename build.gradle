@@ -19,26 +19,23 @@ buildscript {
   repositories {
     jcenter()
     maven { url "http://spinnaker.bintray.com/gradle" }
+    maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.17.0'
+    classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.17.0"
     classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
   }
 }
 
-plugins {
-  id 'nebula.netflixoss' version '3.6.4'
-}
-
 allprojects {
   group = "com.netflix.kayenta"
-  apply plugin: 'groovy'
-  apply plugin: 'nebula.netflixoss'
+  apply plugin: "groovy"
+  apply plugin: "spinnaker.project"
 
   test {
     testLogging {
-      exceptionFormat = 'full'
+      exceptionFormat = "full"
     }
     minHeapSize = "512m"
     maxHeapSize = "512m"
@@ -67,4 +64,4 @@ subprojects { project ->
   }
 }
 
-defaultTasks ':kayenta-web:bootRun'
+defaultTasks ":kayenta-web:bootRun"
