@@ -39,12 +39,23 @@ import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAG
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 import static java.util.concurrent.TimeUnit.SECONDS
 
+import com.netflix.dyno.connectionpool.ConnectionPoolConfiguration
+import com.netflix.dyno.connectionpool.Host
+import com.netflix.dyno.connectionpool.HostSupplier
+import com.netflix.dyno.connectionpool.TokenMapSupplier
+import com.netflix.dyno.connectionpool.impl.ConnectionPoolConfigurationImpl
+import com.netflix.dyno.connectionpool.impl.lb.HostToken
+import com.netflix.dyno.jedis.DynoJedisClient
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate
+import com.netflix.spinnaker.orca.pipeline.persistence.dynomite.DynomiteExecutionRepository
+
+
 @Subject(ExecutionRepository)
 @Unroll
 abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Specification {
 
   @Subject
-  T repository
+  ExecutionRepository repository
 
   void setup() {
     repository = createExecutionRepository()
@@ -717,6 +728,30 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     retrieved.isEmpty()
   }
 
+  def "can retrieve pipeline without stageIndex"() {
+    given:
+    def pipeline = pipeline {
+      application = "orca"
+      name = "dummy-pipeline"
+      stage { type = "one" }
+      stage { type = "two" }
+      stage { type = "three" }
+    }
+
+    repository.store(pipeline)
+
+    when:
+    jedis.exists("pipeline:${pipeline.id}:stageIndex")
+
+    and:
+    jedis.del("pipeline:${pipeline.id}:stageIndex")
+    def retrieved = repository.retrieve(PIPELINE, pipeline.id)
+
+    then:
+    retrieved.stages.size() == 3
+    retrieved.stages*.id.sort() == pipeline.stages*.id.sort()
+  }
+
   def "can retrieve pipelines from multiple redis stores"() {
     given:
     repository.store(pipeline {
@@ -962,3 +997,100 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   }
 }
+
+/* TODO: This test class is pending an update to DynomiteClient that allows it to work with embedded redis
+
+class DynomiteExecutionRepositorySpec extends JedisExecutionRepositorySpec {
+  @Override
+  void setup() {
+    repository = createDynomiteExecutionRepository()
+  }
+
+  DynomiteExecutionRepository createDynomiteExecutionRepository() {
+    // Dynomite client ignores Host rack parameter if EC2_REGION is set
+    final String rack = System.getenv("EC2_REGION") ?: System.getProperty("EC2_REGION") ?: "local"
+
+    final Host embedded = new Host("localhost", 8102, rack, Host.Status.Up)
+    final Host embeddedPrevious = new Host("localhost", embeddedRedisPrevious.port, rack, Host.Status.Up)
+
+    final HostSupplier localHostSupplier = new HostSupplier() {
+      @Override
+      Collection<Host> getHosts() {
+        return Collections.singletonList(embedded)
+      }
+    }
+
+    final HostSupplier localHostSupplierPrevious = new HostSupplier() {
+      @Override
+      Collection<Host> getHosts() {
+//        return Collections.singletonList(embeddedPrevious)
+        return Collections.singletonList(embedded)
+      }
+    }
+
+    final TokenMapSupplier localTokenSupplier = new TokenMapSupplier() {
+      final HostToken localHostToken = new HostToken(100000L, embedded)
+
+      @Override
+      List<HostToken> getTokens(Set<Host> activeHosts) {
+        return Collections.singletonList(localHostToken)
+      }
+
+      @Override
+      HostToken getTokenForHost(Host host, Set<Host> activeHosts) {
+        return localHostToken
+      }
+    }
+
+    final TokenMapSupplier localTokenSupplierPrevious = new TokenMapSupplier() {
+//      final HostToken localPreviousHostToken = new HostToken(100000L, embeddedPrevious)
+      final HostToken localPreviousHostToken = new HostToken(100000L, embedded)
+
+
+      @Override
+      List<HostToken> getTokens(Set<Host> activeHosts) {
+        return Collections.singletonList(localPreviousHostToken)
+      }
+
+      @Override
+      HostToken getTokenForHost(Host host, Set<Host> activeHosts) {
+        return localPreviousHostToken
+      }
+    }
+
+    def embeddedDynoClient = new DynoJedisClient.Builder()
+      .withApplicationName("orca")
+      .withDynomiteClusterName("local")
+      .withHostSupplier(localHostSupplier)
+      .withCPConfig(
+        new ConnectionPoolConfigurationImpl("orca")
+          .setCompressionStrategy(ConnectionPoolConfiguration.CompressionStrategy.NONE)
+          .setLocalRack(rack)
+          .withHashtag("{}")
+          .withHostSupplier(localHostSupplier)
+          .withTokenSupplier(localTokenSupplier)
+      )
+      .build()
+
+//    def embeddedDynoClientPrevious = new DynoJedisClient.Builder()
+//      .withApplicationName("orca")
+//      .withDynomiteClusterName("localPrevious")
+//      .withHostSupplier(localHostSupplierPrevious)
+//      .withCPConfig(
+//        new ConnectionPoolConfigurationImpl("orca")
+//          .setCompressionStrategy(ConnectionPoolConfiguration.CompressionStrategy.NONE)
+//          .setLocalRack(rack)
+//          .withHashtag("{}")
+//          .withHostSupplier(localHostSupplierPrevious)
+//          .withTokenSupplier(localTokenSupplierPrevious)
+//    )
+//      .build()
+
+    RedisClientDelegate dynoClientDelegate = new DynomiteClientDelegate(embeddedDynoClient)
+    Optional<RedisClientDelegate> previousDynoClientDelegate = Optional.empty()
+
+    return new DynomiteExecutionRepository(new NoopRegistry(), dynoClientDelegate, previousDynoClientDelegate, 1, 50)
+  }
+}
+
+ */
