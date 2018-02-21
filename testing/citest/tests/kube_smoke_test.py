@@ -661,7 +661,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'kind': 'DaemonSet',
           'name': 'Destroy Server Group',
           'target': 'current_asg_dynamic',
-          'namespaces': ['default'],
+          'namespaces': [self.TEST_NAMESPACE],
           'preCondition': 'true'
       }
       result.update(kwargs)
@@ -680,7 +680,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'kind': 'StatefulSet',
           'target': 'current_asg_dynamic',
           'name': 'Destroy Server Group',
-          'namespaces': ['default'],
+          'namespaces': [self.TEST_NAMESPACE],
           'preCondition': 'true'
       }
       result.update(kwargs)
