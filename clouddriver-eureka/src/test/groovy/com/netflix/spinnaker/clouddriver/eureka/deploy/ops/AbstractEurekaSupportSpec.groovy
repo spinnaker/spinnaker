@@ -39,7 +39,7 @@ class AbstractEurekaSupportSpec extends Specification {
     1 * clusterProvider.getServerGroup("test", "us-west-2", "asg-v001") >> {
       return serverGroup(
         instancesInServerGroup.collect {
-          instance(it.key, ["eurekaStatus": it.value])
+          instance(it.key, [["eurekaStatus": it.value], ["notEurekaStatus": it.value]])
         }
       )
     }
@@ -63,10 +63,10 @@ class AbstractEurekaSupportSpec extends Specification {
     }
   }
 
-  Instance instance(String name, Map<String, String> health) {
+  Instance instance(String name, List<Map<String, String>> healths) {
     return Mock(Instance) {
       _ * getName() >> { return name }
-      _ * getHealth() >> { return [health] }
+      _ * getHealth() >> { return healths }
     }
   }
 

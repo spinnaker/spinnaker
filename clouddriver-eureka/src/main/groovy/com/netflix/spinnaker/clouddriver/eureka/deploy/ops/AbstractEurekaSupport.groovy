@@ -275,8 +275,15 @@ abstract class AbstractEurekaSupport {
 
     instances.each { instanceId ->
       def instanceInExistingServerGroup = serverGroup.instances.find { it.name == instanceId }
-      instanceInExistingServerGroup?.health?.each { Map<String, String> health ->
-        if (DiscoveryStatus.Enable.value.equalsIgnoreCase(health?.eurekaStatus)) {
+      if (instanceInExistingServerGroup) {
+        boolean isUp = false
+        instanceInExistingServerGroup.health?.flatten()?.each { Map<String, String> health ->
+          if (DiscoveryStatus.Enable.value.equalsIgnoreCase(health?.eurekaStatus)) {
+            isUp = true
+          }
+        }
+
+        if (isUp) {
           unmodified.add(instanceId)
         } else {
           modified.add(instanceId)
