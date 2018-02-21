@@ -14,6 +14,7 @@ const helpContents: {[key: string]: string} = {
         <li>If no permissions are specified, any user can read from or write to this application.</li>
         <li>These permissions will only be enforced if Fiat is enabled.</li>
       </ul>
+      <p class="small"><strong>Note:</strong> Due to caching, data may be delayed up to 10 minutes</p>
     `,
   'application.enableRestartRunningExecutions': `
         When this option is enabled, users will be able to restart pipeline stages while a pipeline is still running.
