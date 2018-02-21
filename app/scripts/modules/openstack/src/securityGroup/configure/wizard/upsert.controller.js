@@ -127,7 +127,7 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.create.contro
 
     if ($scope.isNew) {
         $scope.securityGroup = openstackSecurityGroupTransformer.constructNewSecurityGroupTemplate();
-        $scope.securityGroup.application = application.name
+        $scope.securityGroup.application = application.name;
         initializeCreateMode();
         $scope.state.accountsLoaded = true;
     }
