@@ -37,12 +37,12 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
     };
 
     this.testEditData = {
-      account: undefined, region: 'region1', name: 'sc111', edit: true, rules: [ ], accountName: undefined, description: undefined, detail: '', stack: ''
+      account: undefined, region: 'region1', name: 'sc111', edit: true, rules: [ ], accountName: undefined, description: undefined, application: 'sc111', detail: '', stack: ''
     };
 
 
     this.securityGroupDefaults = {
-      provider: 'openstack', region: '', stack: '', description: '', detail: '', account: 'account1', rules: []
+      provider: 'openstack', region: '', application: 'app', stack: '', description: '', detail: '', account: 'account1', rules: []
     };
 
     this.$scope = $rootScope.$new();
@@ -94,7 +94,6 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
         $state: this.mockState,
         application: this.mockApplication,
         securityGroup: securityGroup ,
-        isNew: securityGroup,
         securityGroupReader: this.mockSecurityGroupReader,
         accountService: this.mockAccountService,
         securityGroupWriter: this.mockSecurityGroupWriter,
