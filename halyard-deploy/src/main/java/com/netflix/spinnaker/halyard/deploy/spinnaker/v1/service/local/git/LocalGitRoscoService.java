@@ -84,7 +84,8 @@ public class LocalGitRoscoService extends RoscoService implements LocalGitServic
       parsedContents.put("rosco", new LinkedHashMap<String,Object>());
     }
 
-    ((Map) parsedContents.get("rosco")).put("configDir", getRoscoConfigPath());
+    String packerDirectory = Paths.get(getRoscoConfigPath(), "packer").toString();
+    ((Map) parsedContents.get("rosco")).put("configDir", packerDirectory);
 
     profile.setContents(yamlParser.dump(parsedContents));
   }
