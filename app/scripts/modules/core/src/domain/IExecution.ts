@@ -6,6 +6,7 @@ export interface IExecution extends IOrchestratedItem {
   appConfig?: any;
   application: string;
   buildInfo?: any;
+  buildTime?: number;
   canceledBy?: string;
   cancellationReason?: string;
   context?: { [key: string]: any };

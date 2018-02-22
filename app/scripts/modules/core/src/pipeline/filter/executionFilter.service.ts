@@ -36,7 +36,10 @@ export class ExecutionFilterService {
   }
 
   private groupByTimeBoundary(executions: IExecution[]): {[boundaryName: string]: IExecution[]} {
-    return groupBy(executions, (execution) => boundaries.find((boundary) => moment(execution.startTime).isAfter(boundary.after())).name);
+    return groupBy(executions, (execution) =>
+      boundaries.find((boundary) =>
+        // executions that were cancelled before ever starting will not have a startTime, just a buildTime
+        moment(execution.startTime || execution.buildTime).isAfter(boundary.after())).name);
   }
 
   @Debounce(25)
