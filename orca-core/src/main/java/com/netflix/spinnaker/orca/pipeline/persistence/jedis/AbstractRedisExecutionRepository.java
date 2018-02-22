@@ -504,6 +504,9 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
         } else {
           stage.setTasks(emptyList());
         }
+        if (map.get(prefix + "lastModified") != null) {
+          stage.setLastModified(mapper.readValue(map.get(prefix + "lastModified"), Stage.LastModifiedDetails.class));
+        }
         stage.setExecution(execution);
         execution.getStages().add(stage);
       } catch (IOException e) {
