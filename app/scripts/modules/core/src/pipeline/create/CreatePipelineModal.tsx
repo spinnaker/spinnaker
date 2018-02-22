@@ -154,7 +154,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
 
   private onSaveSuccess(config: Partial<IPipeline>): void {
     const application = this.props.application;
-    application.getDataSource('pipelineConfigs').refresh().then(() => {
+    application.getDataSource('pipelineConfigs').refresh(true).then(() => {
       const newPipeline = (config.strategy ?
                           (application.strategyConfigs.data as IPipeline[]) :
                            application.getDataSource('pipelineConfigs').data).find(_config => _config.name === config.name);
