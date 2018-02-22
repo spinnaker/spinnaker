@@ -40,7 +40,7 @@
             ng-click="renamePipelineModalCtrl.renamePipeline()">
       <span ng-if="!viewState.saving" class="fa fa-check-circle-o"></span>
       <span ng-if="viewState.saving">
-        <loading-spinner size="'nano'"></loading-spinner>
+        <span class="fa fa-cog fa-spin"></span>
       </span>
       Rename {{pipeline.strategy === true ? 'Strategy' : 'Pipeline'}}
     </button>
