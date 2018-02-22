@@ -108,6 +108,9 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
           if (!operation.imageId && trigger.parameters.imageName) {
             operation.imageId = trigger.parameters.imageName
           }
+          if (!operation.imageId && trigger.properties && trigger.properties.imageName) {
+            operation.imageId = trigger.properties.imageName
+          }
         }
       }
     }
