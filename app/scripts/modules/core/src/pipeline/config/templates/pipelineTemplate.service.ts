@@ -96,7 +96,7 @@ export class PipelineTemplateService {
   }
 
   public getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
-    return this.$q.all(scopes.map(this.getPipelineTemplatesByScope)).then(flatten)
+    return this.$q.all(scopes.map(this.getPipelineTemplatesByScope)).then((templates) => flatten(templates))
       .then(templates => {
         templates.forEach(template => template.selfLink = `spinnaker://${template.id}`);
         return templates;

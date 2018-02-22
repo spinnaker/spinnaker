@@ -35,12 +35,12 @@ export class ReactModal {
    * @returns {Promise<T>}
    */
   public static show<P extends IModalComponentProps, T = any>(ModalComponent: React.ComponentType<P>, props?: P): Promise<T> {
-    const modalPropKeys: [keyof ModalProps] = [
+    const modalPropKeys: (keyof ModalProps)[] = [
       'onHide', 'animation', 'autoFocus', 'backdrop', 'backdropClassName', 'backdropStyle',
       'backdropTransitionTimeout', 'bsSize', 'container', 'containerClassName', 'dialogClassName',
       'dialogComponent', 'dialogTransitionTimeout', 'enforceFocus', 'keyboard', 'onBackdropClick',
       'onEnter', 'onEntered', 'onEntering', 'onEscapeKeyUp', 'onExit', 'onExited', 'onExiting',
-      'onShow', 'transition',
+      'onShow', 'transition'
     ];
 
     const modalProps: ModalProps = pick(props, modalPropKeys);
