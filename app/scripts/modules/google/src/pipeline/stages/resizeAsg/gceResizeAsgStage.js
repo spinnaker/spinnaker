@@ -15,6 +15,7 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..resizeAsgStage', 
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
+      defaultTimeoutMs: (3 * 60 * 60 * 1000) + (21 * 60 * 1000), // 3h21m
       validators: [
         {
           type: 'targetImpedance',
