@@ -28,7 +28,6 @@ import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -57,7 +56,7 @@ public class LocalGitRedisService extends RedisService implements LocalGitServic
 
   @Override
   public void collectLogs(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -33,7 +33,6 @@ import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -73,7 +72,7 @@ public class LocalGitRoscoService extends RoscoService implements LocalGitServic
 
   @Override
   public void collectLogs(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override

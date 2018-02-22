@@ -27,7 +27,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -59,6 +58,6 @@ public class LocalGitEchoService extends EchoService implements LocalGitService<
 
   @Override
   public void collectLogs(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 }

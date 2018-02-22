@@ -27,7 +27,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubectlServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -69,7 +68,7 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
-    throw new NotImplementedException("todo(lwander)");
+    throw new UnsupportedOperationException("todo(lwander)");
   }
 
   @Override
@@ -77,7 +76,7 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
-    throw new NotImplementedException("todo(lwander)");
+    throw new UnsupportedOperationException("todo(lwander)");
   }
 
   @Override
@@ -102,6 +101,6 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
   public void flushInfrastructureCaches(KubectlServiceProvider serviceProvider,
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings) {
-    throw new NotImplementedException("todo(lwander)");
+    throw new UnsupportedOperationException("todo(lwander)");
   }
 }

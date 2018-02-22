@@ -26,7 +26,6 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetai
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +64,7 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
 
   @Override
   public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new NotImplementedException("todo(lwander)");
+    throw new UnsupportedOperationException("todo(lwander)");
   }
 
   public List<KubernetesV2Service> getServices(List<SpinnakerService.Type> serviceTypes) {

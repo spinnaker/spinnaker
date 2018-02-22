@@ -21,9 +21,7 @@ package com.netflix.spinnaker.halyard.core.registry.v1;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,12 +67,12 @@ public class GitProfileReader implements ProfileReader {
 
   @Override
   public Versions readVersions() throws IOException {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   private String profilePath(String artifactName, String version, String profileFileName) {

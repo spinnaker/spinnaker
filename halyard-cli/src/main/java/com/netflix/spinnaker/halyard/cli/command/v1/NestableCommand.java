@@ -37,7 +37,6 @@ import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang.NotImplementedException;
 import retrofit.RetrofitError;
 
 import java.io.Console;
@@ -564,7 +563,7 @@ public abstract class NestableCommand {
 
   @Deprecated
   protected String getDescription() {
-    throw new NotImplementedException("Each command must implement a description. Preferably `get[Long/Short]Description()`.");
+    throw new UnsupportedOperationException("Each command must implement a description. Preferably `get[Long/Short]Description()`.");
   }
 
   // TODO(lwander) make abstract once `getDescription` is removed.

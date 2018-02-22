@@ -29,7 +29,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,7 +104,7 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
 
   @Override
   public RemoteAction clean(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   public List<LocalGitService> getLocalGitServices(List<SpinnakerService.Type> serviceTypes) {
