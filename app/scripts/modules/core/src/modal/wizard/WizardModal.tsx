@@ -40,7 +40,7 @@ export interface IWizardModalState {
 }
 
 @BindAll()
-export class WizardModal<T> extends React.Component<IWizardModalProps, IWizardModalState> {
+export class WizardModal<T extends FormikValues> extends React.Component<IWizardModalProps, IWizardModalState> {
   private pages: { [label: string]: IWizardPageData } = {};
   private stepsElement: HTMLDivElement;
 
@@ -130,7 +130,7 @@ export class WizardModal<T> extends React.Component<IWizardModalProps, IWizardMo
     return this.getFilteredChildren().map((child: any) => child.type.label);
   }
 
-  private validate(values: {}): any {
+  private validate(values: FormikValues): any {
     const errors: { [key: string]: string }[] = [];
     const newErrorPages: Set<string> = new Set();
 
@@ -149,7 +149,7 @@ export class WizardModal<T> extends React.Component<IWizardModalProps, IWizardMo
     return flattenedErrors;
   }
 
-  private revalidate(values: {}, setErrors: (errors: {}) => void) {
+  private revalidate(values: FormikValues, setErrors: (errors: any) => void) {
     setErrors(this.validate(values));
   }
 

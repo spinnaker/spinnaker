@@ -1,7 +1,7 @@
+import * as React from 'react';
 import { IDeferred } from 'angular';
 import { $q } from 'ngimport';
-import * as Formsy from 'formsy-react';
-import * as React from 'react';
+import { Field, FieldProps, Form, Formik, FormikErrors, FormikProps } from 'formik';
 import { Modal } from 'react-bootstrap';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { BindAll } from 'lodash-decorators';
@@ -11,13 +11,12 @@ import {
   ReactInjector, TaskMonitor, TaskMonitorBuilder, SubmitButton, Markdown
 } from 'core';
 
-import { BasicFieldLayout, TextArea, ReactModal } from 'core/presentation';
+import { ReactModal } from 'core/presentation';
 import { NgReact } from 'core/reactShims/ngReact';
 import { EntityRefBuilder } from './entityRef.builder';
 import { noop } from 'core/utils';
 
 import './EntityTagEditor.less';
-import { Form } from 'formsy-react';
 
 export interface IOwner {
   name: string;
@@ -49,11 +48,13 @@ export interface IEntityTagEditorProps {
 
 export interface IEntityTagEditorState {
   taskMonitor: TaskMonitor;
-  message: string;
-  isValid: boolean;
   isSubmitting: boolean;
-  owner: IOwner;
-  entityType: string;
+  initialValues: IEntityTagEditorValues;
+}
+
+export interface IEntityTagEditorValues {
+  message: string;
+  ownerIndex: number | string;
 }
 
 @BindAll()
@@ -65,7 +66,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
   private taskMonitorBuilder: TaskMonitorBuilder = ReactInjector.taskMonitorBuilder;
   private entityTagWriter: EntityTagWriter = ReactInjector.entityTagWriter;
   private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
-  private form: Form;
 
   /** Shows the Entity Tag Editor modal */
   public static show(props: IEntityTagEditorProps): Promise<void> {
@@ -75,17 +75,17 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
   constructor(props: IEntityTagEditorProps) {
     super(props);
 
-    const { ownerOptions, tag, entityType } = this.props;
-    const owner = this.props.owner || (ownerOptions && ownerOptions.length && ownerOptions[0].owner);
+    const { tag } = this.props;
+    const ownerIndex = this.props.ownerOptions ? 0 : -1; // Assuming that the first option is the provided option
     tag.name = tag.name || `spinnaker_ui_${tag.value.type}:${UUIDGenerator.generateUuid()}`;
 
     this.state = {
       taskMonitor: null,
-      message: tag.value && tag.value.message,
-      isValid: false,
+      initialValues: {
+        message: tag.value && tag.value.message || '',
+        ownerIndex,
+      },
       isSubmitting: false,
-      owner: owner,
-      entityType: entityType,
     };
 
     const deferred = $q.defer();
@@ -98,20 +98,10 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
 
-  private handleMessageChanged(message: string): void {
-    this.setState({ message });
-  }
-
-  private handleOwnerOptionChanged(option: IOwnerOption): void {
-    this.setState({ owner: option.owner, entityType: option.type });
-  }
-
-  private onValid(): void {
-    this.setState({ isValid: true });
-  }
-
-  private onInvalid(): void {
-    this.setState({ isValid: false });
+  private validate(values: IEntityTagEditorValues): Partial<FormikErrors<IEntityTagEditorValues>> {
+    const errors: Partial<FormikErrors<IEntityTagEditorValues>> = {};
+    if (!values.message) { errors.message = 'Please enter a message'; }
+    return errors;
   }
 
   private close(): void {
@@ -119,12 +109,17 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     this.$uibModalInstanceEmulation.deferred.resolve();
   }
 
-  private upsertTag(data: { message: string; }): void {
-    const { application, isNew, tag, onUpdate } = this.props;
-    const { owner, entityType } = this.state;
+  private upsertTag(values: IEntityTagEditorValues): void {
+    const { application, isNew, tag, onUpdate, ownerOptions } = this.props;
+    const ownerIndex = Number(values.ownerIndex);
+
+    const ownerOption = ownerIndex !== -1 && (ownerOptions || [])[ownerIndex];
+    const owner = ownerOption ? ownerOption.owner : this.props.owner;
+    const entityType = ownerOption ? ownerOption.type : this.props.entityType;
+
     const entityRef: IEntityRef = this.props.entityRef || EntityRefBuilder.getBuilder(entityType)(owner);
 
-    tag.value.message = data.message;
+    tag.value.message = values.message;
 
     const taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
       application: application,
@@ -145,18 +140,9 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     this.setState({ taskMonitor, isSubmitting: true });
   }
 
-  private refCallback(form: Form): void {
-    this.form = form;
-  }
-
-  private submit(): void {
-    this.form.submit();
-  }
-
   public render() {
     const { isNew, tag, ownerOptions } = this.props;
-    const { isValid, isSubmitting } = this.state;
-    const message = this.state.message || '';
+    const { initialValues, isSubmitting } = this.state;
 
     const closeButton = (
       <div className="modal-close close-button pull-right">
@@ -167,7 +153,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     );
 
     const submitLabel = `${isNew ? ' Create' : ' Update'} ${tag.value.type}`;
-    const cancelButton = <button type="button" className="btn btn-default" onClick={this.close}>Cancel</button>;
 
     const { TaskMonitorWrapper } = NgReact;
 
@@ -175,170 +160,93 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
       <div>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
 
-        <Formsy.Form
-          ref={this.refCallback}
-          role="form"
-          name="form"
-          className="form-horizontal"
+        <Formik
+          initialValues={initialValues}
           onSubmit={this.upsertTag}
-          onValid={this.onValid}
-          onInvalid={this.onInvalid}
-        >
-          <Modal.Header>
-            <h3>{isNew ? 'Create' : 'Update'} {tag.value.type}</h3>
-            {closeButton}
-          </Modal.Header>
-
-          <Modal.Body>
-            <EntityTagMessage
-              message={message}
-              onMessageChanged={this.handleMessageChanged}
-            />
-
-            { ownerOptions && ownerOptions.length && (
-              <OwnerOptions
-                selectedOwner={this.state.owner}
-                ownerOptions={ownerOptions}
-                onOwnerOptionChanged={this.handleOwnerOptionChanged}
-              />
-            ) }
-          </Modal.Body>
-
-          <Modal.Footer>
-            {cancelButton}
-
-            <SubmitButton
-              onClick={this.submit}
-              label={submitLabel}
-              isDisabled={!isValid || isSubmitting}
-              submitting={this.state.isSubmitting}
-            />
-
-          </Modal.Footer>
-        </Formsy.Form>
-      </div>
-    );
-  }
-}
-
-
-
-interface IEntityTagMessageProps {
-  message: string;
-  onMessageChanged(message: string): void;
-}
-
-@BindAll()
-class EntityTagMessage extends React.Component<IEntityTagMessageProps, {}> {
-  private handleTextareaChanged(event: React.FormEvent<HTMLTextAreaElement>): void {
-    this.props.onMessageChanged(event.currentTarget.value);
-  }
-
-  public render() {
-    const { message } = this.props;
-
-    return (
-      <div className="row">
-        <div className="col-md-10 col-md-offset-1">
-
-          <TextArea
-            label="Message"
-            Help={<div>Markdown is okay <HelpField id="markdown.examples"/></div>}
-            Layout={BasicFieldLayout}
-            name="message"
-            required={true}
-            validationErrors={{ isDefaultRequiredValue: 'Please enter a message' }}
-            onChange={this.handleTextareaChanged}
-            value={message}
-            rows={5}
-            className="form-control input-sm"
-          />
-
-          { message && (
-            <div className="form-group preview">
-              <div className="col-md-3 sm-label-right">
-                <strong>Preview</strong>
-              </div>
-              <div className="col-md-9">
-                <Markdown message={message}/>
-              </div>
-            </div>
-          ) }
-        </div>
-      </div>
-    )
-  }
-}
-
-
-
-interface IOwnerOptionsProps {
-  selectedOwner: any;
-  ownerOptions: IOwnerOption[];
-  onOwnerOptionChanged(owner: IOwnerOption): void;
-}
-
-@BindAll()
-class OwnerOptions extends React.Component<IOwnerOptionsProps> {
-  public handleOwnerOptionChanged(option: IOwnerOption): void {
-    this.props.onOwnerOptionChanged(option);
-  }
-
-  public render() {
-    const { ownerOptions, selectedOwner } = this.props;
-
-    return (
-      <div className="row">
-        <div className="col-md-10 col-md-offset-1">
-          <div className="form-group">
-            <div className="col-md-3 sm-label-right">
-              <b>Applies to</b>
-            </div>
-            <div className="col-md-9">
-              { ownerOptions.map((option: IOwnerOption) => (
-                <div key={option.label} className="radio">
-                  <label>
-                    <OwnerOption
-                      option={option}
-                      selectedOwner={selectedOwner}
-                      onOwnerOptionChanged={this.handleOwnerOptionChanged}
-                    />
-                    <span className="marked">
-                      <Markdown message={option.label}/>
-                    </span>
-                  </label>
+          validate={this.validate}
+          render={(props: FormikProps<IEntityTagEditorValues>) => (
+            <Form className="form-horizontal">
+              <Modal.Header>
+                <h3>{isNew ? 'Create' : 'Update'} {tag.value.type}</h3>
+                {closeButton}
+              </Modal.Header>
+              <Modal.Body className="entity-tag-editor-modal">
+                <div className="row">
+                  <div className="col-md-10 col-md-offset-1">
+                    <div className="form-group">
+                      <div className="col-md-3 sm-label-right">Message</div>
+                      <div className="col-md-9">
+                        <Field
+                          name="message"
+                          render={({ field }: FieldProps<IEntityTagEditorValues>) => (
+                            <textarea className="form-control input-sm" {...field} rows={5} required={true} />
+                          )}
+                        />
+                        <div className="small text-right"> <div>Markdown is okay <HelpField id="markdown.examples"/></div> </div>
+                      </div>
+                    </div>
+                    {props.values.message && (
+                      <div className="form-group preview">
+                        <div className="col-md-3 sm-label-right">
+                          <strong>Preview</strong>
+                        </div>
+                        <div className="col-md-9">
+                          <Markdown message={props.values.message}/>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )) }
-            </div>
-          </div>
-        </div>
+
+                {ownerOptions && ownerOptions.length && (
+                  <div className="row">
+                    <div className="col-md-10 col-md-offset-1">
+                      <div className="form-group">
+                        <div className="col-md-3 sm-label-right">
+                          <b>Applies to</b>
+                        </div>
+                        <div className="col-md-9">
+                          { ownerOptions.map((option, index) => (
+                            <div key={option.label} className="radio">
+                              <label>
+                                <Field
+                                  name="ownerIndex"
+                                  type="radio"
+                                  value={index}
+                                  checked={index === Number(props.values.ownerIndex)}
+                                />
+                                <span className="marked">
+                                  <Markdown message={option.label}/>
+                                </span>
+                              </label>
+                            </div>
+                          )) }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Modal.Body>
+              <Modal.Footer>
+                <button
+                  className="btn btn-default"
+                  disabled={isSubmitting}
+                  onClick={this.close}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <SubmitButton
+                  isDisabled={!props.isValid || isSubmitting}
+                  submitting={isSubmitting}
+                  isFormSubmit={true}
+                  label={submitLabel}
+                />
+              </Modal.Footer>
+            </Form>
+          )}
+        />
       </div>
-    );
-  }
-}
-
-interface IOwnerOptionProps {
-  option?: IOwnerOption;
-  selectedOwner?: any;
-  onOwnerOptionChanged?(option: IOwnerOption): void;
-}
-
-@BindAll()
-class OwnerOption extends React.Component<IOwnerOptionProps, any> {
-  public handleOwnerChanged(): void {
-    this.props.onOwnerOptionChanged(this.props.option);
-  }
-
-  public render() {
-    const { option, selectedOwner } = this.props;
-    return (
-      <input
-        name="owner"
-        type="radio"
-        value={option.label}
-        onChange={this.handleOwnerChanged}
-        checked={option.owner === selectedOwner}
-      />
     );
   }
 }

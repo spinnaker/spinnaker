@@ -3,23 +3,29 @@ import * as spel2js from 'spel2js';
 import { BindAll } from 'lodash-decorators';
 import { truncate } from 'lodash';
 
-import { FormsyComponent, IFormsyComponentProps, IFormComponentState } from '../FormsyComponent';
 import { Markdown } from 'core/presentation/Markdown';
 
 import '../spel2js.templateParser';
 import { Modal } from 'react-bootstrap';
 
-export interface IExpressionInputProps extends IFormsyComponentProps {
+export interface IExpressionInputProps {
   placeholder?: string;
   context?: object;
   locals?: object;
   markdown?: boolean;
+  Help?: JSX.Element;
+  label: string;
+  name: string;
+  onChange: (event: React.ChangeEvent<any>) => void;
+  value?: string;
+  required?: boolean;
 }
 
-export interface IExpressionInputState extends IFormComponentState {
+export interface IExpressionInputState {
   showContextModal: boolean;
   spelPreview: string;
   spelError: ISpelError;
+  value: string;
 }
 
 export interface ISpelError {
@@ -28,17 +34,30 @@ export interface ISpelError {
   contextTruncated: string;
 }
 
-/**
- * A validating Formsy form component for SpEL Expressions
- */
 @BindAll()
-export class ExpressionInput extends FormsyComponent<string, IExpressionInputProps, IExpressionInputState> {
-  public static contextTypes = FormsyComponent.contextTypes;
-  public static defaultProps = Object.assign({ context: {}, locals: {} }, FormsyComponent.defaultProps);
+export class ExpressionInput extends React.Component<IExpressionInputProps, IExpressionInputState> {
+  public static defaultProps = { context: {}, locals: {} };
 
-  public validate(props: IExpressionInputProps = this.props): boolean {
-    const value = this.getValue();
-    const { context, locals } = props;
+  constructor(props: IExpressionInputProps) {
+    super(props);
+    this.state = {
+      showContextModal: false,
+      spelPreview: null,
+      spelError: null,
+      value: props.value || '',
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IExpressionInputProps): void {
+    if (this.props.value !== nextProps.value) {
+      this.validate(nextProps.value);
+    }
+  }
+
+  private validate(value: string): void {
+    if (!value) { return; }
+
+    const { context, locals, onChange } = this.props;
 
     const stringify = (obj: any): string => {
       return obj === null ? 'null' :
@@ -47,15 +66,11 @@ export class ExpressionInput extends FormsyComponent<string, IExpressionInputPro
     };
 
     try {
-      if (!value) {
-        return true;
-      }
-
       const exprs = spel2js.TemplateParser.parse(value);
       const results = exprs.map(expr => expr.eval(context, locals));
-      this.setState({ spelError: null, spelPreview: results.join('') });
+      this.setState({ spelError: null, spelPreview: results.join(''), value });
 
-      return true;
+      onChange({ target: { value } } as React.ChangeEvent<any>);
     } catch (err) {
       const spelError: ISpelError = {
         message: null,
@@ -77,22 +92,16 @@ export class ExpressionInput extends FormsyComponent<string, IExpressionInputPro
         }
       }
 
-      this.setState({ spelError, spelPreview: null });
-      return false;
+      this.setState({ spelError, spelPreview: null, value });
+      onChange({ target: { value: '' } } as React.ChangeEvent<any>);
     }
   }
 
-  public componentWillReceiveProps(nextProps: IExpressionInputProps): void {
-    this.validate(nextProps);
-  }
-
-  public getErrorMessage(): string {
-    const { spelError } = this.state;
+  public getErrorMessage(spelError: ISpelError): string {
     if (spelError) {
       return spelError.message + (spelError.contextTruncated ? ' -- ' + spelError.contextTruncated : '');
     }
-
-    return super.getErrorMessage();
+    return null;
   }
 
   private hideContextModal(): void {
@@ -103,13 +112,11 @@ export class ExpressionInput extends FormsyComponent<string, IExpressionInputPro
     this.setState({ showContextModal: true })
   }
 
-  public renderError(): JSX.Element {
+  private renderError(): JSX.Element {
     const { spelError } = this.state;
 
     return (
       <div>
-        {super.renderError()}
-
         {spelError && spelError.message && (
           <Modal show={this.state.showContextModal} onHide={this.hideContextModal}>
             <Modal.Header>
@@ -133,29 +140,40 @@ export class ExpressionInput extends FormsyComponent<string, IExpressionInputPro
     )
   }
 
-  public renderInput(): JSX.Element {
-    const { name, placeholder, markdown } = this.props;
-    const { spelPreview } = this.state;
-    const inputClass = this.getInputClass();
+  private handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    const { value } = event.target;
+    this.validate(value);
+  }
+
+  public render(): JSX.Element {
+    const { Help, label, markdown, placeholder, required } = this.props;
+    const { spelError, spelPreview, value } = this.state;
+
+    const error = spelError ? <span className="error-message">{this.getErrorMessage(spelError)}</span> : null;
 
     return (
-      <div className="flex-container-v">
-        <input
-          autoComplete="off"
-          className={inputClass}
-          type="text"
-          name={name}
-          id={name}
-          placeholder={placeholder}
-          onChange={this.handleChange}
-          value={this.getValue() || ''}
-        />
-
-        { spelPreview && (
-          <div className="flex-container-h baseline margin-between">
-            <span className="no-grow">Preview:</span> {markdown ? <Markdown message={spelPreview} /> : <span>{spelPreview}</span>}
+      <div className="flex-container-h baseline margin-between">
+        <div className="sm-label-right" style={{ minWidth: '120px' }}>{label} {Help}</div>
+          <div className="flex-grow flex-container-v">
+            <div className="flex-container-v">
+              <input
+                autoComplete="off"
+                className="form-control"
+                type="text"
+                value={value}
+                onChange={this.handleChange}
+                placeholder={placeholder}
+                required={required}
+              />
+              {spelPreview && (
+                <div className="flex-container-h baseline margin-between">
+                  <span className="no-grow">Preview:</span> {markdown ? <Markdown message={spelPreview} /> : <span>{spelPreview}</span>}
+                </div>
+              )}
+            </div>
+            {error}
+            {spelError && this.renderError()}
           </div>
-        )}
       </div>
     )
   }
