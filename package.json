@@ -37,7 +37,6 @@
     "classnames": "^2.2.5",
     "diff-match-patch": "^1.0.0",
     "dompurify": "^0.8.5",
-    "formsy-react": "^0.19.2",
     "js-yaml": "^3.8.3",
     "lodash": "^4.16.1",
     "lodash-decorators": "^4.4.1",
