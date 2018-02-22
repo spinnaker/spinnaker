@@ -72,21 +72,29 @@ class MonitorKatoTask implements RetryableTask {
     }
 
     Task katoTask
+    def skipReplica = stage.context."kato.task.skipReplica" ?: false
     try {
-      katoTask = kato.lookupTask(taskId.id).toBlocking().first()
+      katoTask = kato.lookupTask(taskId.id, skipReplica as Boolean).toBlocking().first()
     } catch (RetrofitError re) {
       //handle a 404 if a task update has not successfully replicated to a read replica
       if (re.kind == RetrofitError.Kind.HTTP && re.response.status == HttpURLConnection.HTTP_NOT_FOUND) {
         def firstNotFoundRetry = stage.context."kato.task.firstNotFoundRetry" as Long
+
         def now = clock.millis()
         def ctx = [:]
         if (firstNotFoundRetry == null || firstNotFoundRetry == -1) {
           ctx['kato.task.firstNotFoundRetry'] = now
           firstNotFoundRetry = now
         }
+
         if (now - firstNotFoundRetry > TASK_NOT_FOUND_TIMEOUT) {
+          if (skipReplica) {
+            // immediately fail the first time it gets a 404 directly from the master
+            throw re
+          }
+
           registry.counter("monitorKatoTask.taskNotFound.timeout").increment()
-          throw re
+          ctx['kato.task.skipReplica'] = true
         }
 
         registry.counter("monitorKatoTask.taskNotFound.retry").increment()

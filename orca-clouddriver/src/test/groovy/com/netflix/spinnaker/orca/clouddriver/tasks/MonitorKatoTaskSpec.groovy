@@ -34,6 +34,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+
 class MonitorKatoTaskSpec extends Specification {
 
   def now = Instant.now()
@@ -43,7 +45,7 @@ class MonitorKatoTaskSpec extends Specification {
   def "result depends on Kato task status"() {
     given:
     task.kato = Stub(KatoService) {
-      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), [], []))
+      lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), [], []))
     }
 
     and:
@@ -68,7 +70,7 @@ class MonitorKatoTaskSpec extends Specification {
   def "result depends on Kato task status and result object size for create/upsert operations"() {
     given:
     task.kato = Stub(KatoService) {
-      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: true), resultObjects, []))
+      lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: true), resultObjects, []))
     }
 
     and:
@@ -127,7 +129,7 @@ class MonitorKatoTaskSpec extends Specification {
     }
     def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
     task.kato = Stub(KatoService) {
-      lookupTask(taskId) >> { retrofit404() }
+      lookupTask(taskId, false) >> { retrofit404() }
     }
 
     when:
@@ -146,15 +148,69 @@ class MonitorKatoTaskSpec extends Specification {
     "about to fail"      | MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT     |  true         | 'N/A'
   }
 
+  def "should set kato.task.skipReplica=true when getting a task from clouddriver times out"() {
+    given:
+    def taskId = "katoTaskId"
+    def elapsed = MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT + 1
+    task.kato = Mock(KatoService)
+
+    def stage = stage {
+      type = "type"
+      context = [
+        "kato.last.task.id": new TaskId(taskId),
+        "kato.task.firstNotFoundRetry": now.minusMillis(elapsed).toEpochMilli()
+      ]
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.context['kato.task.skipReplica'] == true
+    notThrown(RetrofitError)
+    with(task.kato) {
+      1 * lookupTask(taskId, false) >> { retrofit404() }
+      0 * lookupTask(taskId, true)
+    }
+  }
+
+  def "should get task from master when kato.task.skipReplica=true"() {
+    given:
+    def taskId = "katoTaskId"
+    def elapsed = MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT + 1
+    task.kato = Mock(KatoService)
+    def stage = stage {
+      context = [
+        "kato.last.task.id": new TaskId(taskId),
+        "kato.task.firstNotFoundRetry": now.minusMillis(elapsed).toEpochMilli(),
+        "kato.task.skipReplica": true
+      ]
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    notThrown(RetrofitError)
+    with(task.kato) {
+      1 * lookupTask(taskId, true) >> Observable.from(new Task(taskId, new Task.Status(completed: true, failed: false), [], []))
+      0 * lookupTask(taskId, false)
+    }
+  }
+
   def "should timeout if task not not found after timeout period"() {
     given:
-    def ctx = [
-      "kato.last.task.id": new TaskId(taskId)
-    ]
-    ctx.put('kato.task.firstNotFoundRetry', now.minusMillis(elapsed).toEpochMilli())
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
+    def taskId = "katoTaskId"
+    def stage = stage {
+      context = [
+        "kato.last.task.id": new TaskId(taskId),
+        "kato.task.firstNotFoundRetry": now.minusMillis(elapsed).toEpochMilli(),
+        "kato.task.skipReplica": true
+      ]
+    }
+
     task.kato = Stub(KatoService) {
-      lookupTask(taskId) >> { retrofit404() }
+      lookupTask(taskId, true) >> { retrofit404() }
     }
 
     when:
@@ -164,7 +220,6 @@ class MonitorKatoTaskSpec extends Specification {
     thrown(RetrofitError)
 
     where:
-    taskId = "katoTaskId"
     elapsed = MonitorKatoTask.TASK_NOT_FOUND_TIMEOUT + 1
   }
 

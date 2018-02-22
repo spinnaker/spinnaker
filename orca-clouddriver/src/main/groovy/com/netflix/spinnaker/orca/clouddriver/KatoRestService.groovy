@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import retrofit.client.Response
 import retrofit.http.Body
@@ -57,4 +58,10 @@ interface KatoRestService {
                                       @Path("id") String id,
                                       @Path("fileName") String fileName)
 
+  /**
+   * This should _only_ be called if there is a problem retrieving the Task from CloudDriverTaskStatusService (ie. a
+   * clouddriver replica).
+   */
+  @GET("/task/{id}")
+  Task lookupTask(@Path("id") String id);
 }

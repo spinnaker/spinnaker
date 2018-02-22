@@ -45,7 +45,11 @@ class KatoService {
     return Observable.from(cloudDriverTaskStatusService.listTasks())
   }
 
-  Observable<Task> lookupTask(String id) {
+  Observable<Task> lookupTask(String id, boolean skipReplica = false) {
+    if (skipReplica) {
+      return Observable.from(katoRestService.lookupTask(id))
+    }
+
     return Observable.from(cloudDriverTaskStatusService.lookupTask(id))
   }
 }
