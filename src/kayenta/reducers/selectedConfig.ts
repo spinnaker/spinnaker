@@ -14,7 +14,7 @@ import {
 import { CanarySettings } from '../canary.settings';
 import { IGroupState, group } from './group';
 import { JudgeSelectRenderState } from '../edit/judgeSelect';
-import { UNGROUPED, ALL } from '../edit/groupTabs';
+import { ALL } from '../edit/groupTabs';
 import { AsyncRequestState } from './asyncRequest';
 import { IConfigValidationError } from './validators';
 import { editingTemplate, IEditingTemplateState } from './editingTemplate';
@@ -109,6 +109,9 @@ const editingMetric = handleActions({
   [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) => (
     set(cloneDeep(state), ['analysisConfigurations', 'canary', 'direction'], action.payload.direction)
   ),
+  [Actions.UPDATE_METRIC_GROUP]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, groups: [action.payload.group]
+  }),
   [Actions.UPDATE_ATLAS_QUERY]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, q: action.query }
   }),
@@ -151,7 +154,12 @@ const json = combineReducers<IJsonState>({
     [combineActions(Actions.CONFIG_JSON_MODAL_CLOSE, Actions.SELECT_CONFIG, Actions.SET_CONFIG_JSON)]: () => null,
     [Actions.SET_CONFIG_JSON]: (_state: IJsonState, action: Action & any) => {
       try {
-        JSON.parse(action.payload.json);
+        const parsed: ICanaryConfig = JSON.parse(action.payload.json);
+        parsed.metrics.forEach((m, index) => {
+          if (!m.groups || !m.groups.length) {
+            throw new Error(`metric #${index + 1}: 'groups' is a required field`);
+          }
+        });
         return null;
       } catch (e) {
         return e.message;
@@ -249,7 +257,7 @@ export function editGroupConfirmReducer(state: ISelectedConfigState = null, acti
 
   const { payload: { group, edit } } = action;
   const allGroups = flatMap(state.metricList, metric => metric.groups);
-  if (!edit || edit === UNGROUPED || edit === ALL || allGroups.includes(edit)) {
+  if (!edit || edit === ALL || allGroups.includes(edit)) {
     return state;
   }
 
@@ -294,7 +302,7 @@ export function changeMetricGroupConfirmReducer(state: ISelectedConfigState, act
   const metricUpdator = (m: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...m,
     groups: m.id === metricId
-      ? (toGroup === UNGROUPED ? [] : [toGroup])
+      ? [toGroup]
       : m.groups,
   });
 

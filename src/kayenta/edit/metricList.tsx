@@ -3,7 +3,6 @@ import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
-import { UNGROUPED } from './groupTabs';
 import * as Creators from '../actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ITableColumn, Table } from '../layout/table';
@@ -14,6 +13,7 @@ interface IMetricListStateProps {
   metrics: ICanaryMetricConfig[];
   showGroups: boolean;
   changingGroupMetric: ICanaryMetricConfig;
+  groupList: string[];
 }
 
 interface IMetricListDispatchProps {
@@ -26,7 +26,8 @@ interface IMetricListDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal }: IMetricListStateProps & IMetricListDispatchProps) {
+
   const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
       label: 'Metric Name',
@@ -70,14 +71,14 @@ function MetricList({ metrics, selectedGroup, showGroups, addMetric, editMetric,
         rows={metrics}
         rowKey={metric => metric.id}
       />
-      {(!metrics.length && selectedGroup && selectedGroup !== UNGROUPED) ? (
+      {(!metrics.length && selectedGroup) ? (
         <p>
           This group is empty! The group will be not be present the next time the config is loaded unless
           it is saved with at least one metric in it.
         </p>
       ) : null}
       {changingGroupMetric && <ChangeMetricGroupModal metric={changingGroupMetric}/>}
-      <button className="passive" data-group={selectedGroup} onClick={addMetric}>Add Metric</button>
+      <button className="passive" data-group={selectedGroup} data-default={groupList[0]} onClick={addMetric}>Add Metric</button>
     </section>
   );
 }
@@ -89,13 +90,12 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
   let filter;
   if (!selectedGroup) {
     filter = () => true;
-  } else if (selectedGroup === UNGROUPED) {
-    filter = (metric: ICanaryMetricConfig) => metric.groups.length === 0;
   } else {
     filter = (metric: ICanaryMetricConfig) => metric.groups.includes(selectedGroup);
   }
   return {
     selectedGroup,
+    groupList: state.selectedConfig.group.list,
     metrics: metricList.filter(filter),
     showGroups: !selectedGroup || metricList.filter(filter).some(metric => metric.groups.length > 1),
     changingGroupMetric: state.selectedConfig.metricList.find(m =>
@@ -106,7 +106,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricListDispatchProps {
   return {
     addMetric: (event: any) => {
-      const group = event.target.dataset.group;
+      const group = event.target.dataset.group || event.target.dataset.default;
       dispatch(Creators.addMetric({
         metric: {
           // TODO: need to block saving an invalid name
@@ -117,7 +117,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           query: {
             type: CanarySettings.metricStore
           },
-          groups: (group && group !== UNGROUPED) ? [group] : [],
+          groups: group ? [group] : [],
           scopeName: 'default',
           isNew: true,
         }

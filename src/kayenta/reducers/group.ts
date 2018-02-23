@@ -13,9 +13,13 @@ export interface IGroupState {
 }
 
 function groupsFromMetrics(metrics: ICanaryMetricConfig[] = []) {
-  return metrics.reduce((groups, metric) => {
+  const results = metrics.reduce((groups, metric) => {
     return groups.concat(metric.groups.filter((group: string) => !groups.includes(group)))
   }, []).sort();
+  if (!results.length) {
+    results.push('Group 1');
+  }
+  return results;
 }
 
 const list = handleActions({

@@ -111,17 +111,6 @@ describe('Reducer: changeMetricGroupConfirmReducer', () => {
     ).toEqual(['b']);
   });
 
-  it('clears groups given group \'(ungrouped)\'', () => {
-    const state = createSelectedConfigState(['myGroup'], '(ungrouped)');
-    const action = createAction('1');
-
-    const updatedState = changeMetricGroupConfirmReducer(state, action);
-
-    expect(
-      updatedState.metricList.find(m => m.id === '1').groups
-    ).toEqual([]);
-  });
-
   const createAction = (metricId: string) => ({
     type: Actions.CHANGE_METRIC_GROUP_CONFIRM,
     payload: {

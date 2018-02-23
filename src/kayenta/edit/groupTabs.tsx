@@ -6,7 +6,6 @@ import * as Creators from '../actions/creators';
 import { Tabs, Tab } from '../layout/tabs';
 import GroupName from './groupName';
 
-export const UNGROUPED = '(ungrouped)';
 export const ALL = 'all';
 
 
@@ -45,7 +44,6 @@ function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup, editing, e
       <Tabs>
         <GroupTab group=""/>
         {groupList.map(group => <GroupTab key={group} group={group} editable={true}/>)}
-        <GroupTab group={UNGROUPED}/>
         <button className="passive float-right" onClick={addGroup}>Add Group</button>
       </Tabs>
     </section>
