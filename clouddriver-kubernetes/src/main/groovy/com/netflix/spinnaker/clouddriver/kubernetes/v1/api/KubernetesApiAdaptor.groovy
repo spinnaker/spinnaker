@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.ConfigMap
+import io.fabric8.kubernetes.api.model.DoneableHorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.DoneableSecret
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.HasMetadata
@@ -458,6 +459,12 @@ class KubernetesApiAdaptor {
   HorizontalPodAutoscaler createAutoscaler(String namespace, HorizontalPodAutoscaler autoscaler) {
     exceptionWrapper("horizontalPodAutoscalers.create", "Create Autoscaler ${autoscaler?.metadata?.name}", namespace) {
       client.autoscaling().horizontalPodAutoscalers().inNamespace(namespace).create(autoscaler)
+    }
+  }
+
+  DoneableHorizontalPodAutoscaler editAutoscaler(String namespace, String name) {
+    exceptionWrapper("horizontalPodAutoscalers.edit", "Edit Autoscaler $name", namespace) {
+      client.autoscaling().horizontalPodAutoscalers().inNamespace(namespace).withName(name).edit()
     }
   }
 

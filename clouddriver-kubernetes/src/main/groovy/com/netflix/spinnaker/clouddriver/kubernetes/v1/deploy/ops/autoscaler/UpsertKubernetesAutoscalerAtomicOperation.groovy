@@ -27,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesScalingPolicy
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import io.fabric8.kubernetes.api.model.DoneableHorizontalPodAutoscaler
+import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerBuilder
 
 class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void> {
   KubernetesAutoscalerDescription description
@@ -80,21 +82,21 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
         description.scalingPolicy.cpuUtilization.target :
         autoscaler.spec.targetCPUUtilizationPercentage
 
-      task.updateStatus BASE_PHASE, "Deleting old autoscaler..."
-      credentials.apiAdaptor.deleteAutoscaler(namespace, name)
+      ((DoneableHorizontalPodAutoscaler) KubernetesApiConverter.toAutoscaler(
+        credentials.apiAdaptor.editAutoscaler(namespace, name), description, name, kind
+      )).done()
+    } else {
+      if (!description.scalingPolicy || !description.scalingPolicy.cpuUtilization || description.scalingPolicy.cpuUtilization.target == null) {
+        throw new KubernetesOperationException("Scaling policy must be specified when the target server group has no autoscaler.")
+      }
+
+      if (!description.capacity || description.capacity.min == null || description.capacity.max == null) {
+        throw new KubernetesOperationException("Capacity min and max must be fully specified when the target server group has no autoscaler.")
+      }
+
+      task.updateStatus BASE_PHASE, "Creating autoscaler..."
+      credentials.apiAdaptor.createAutoscaler(namespace, ((HorizontalPodAutoscalerBuilder) KubernetesApiConverter.toAutoscaler(new HorizontalPodAutoscalerBuilder(), description, name, kind)).build())
     }
-
-    if (!description.scalingPolicy || !description.scalingPolicy.cpuUtilization || description.scalingPolicy.cpuUtilization.target == null) {
-      throw new KubernetesOperationException("Scaling policy must be specified when the target server group has no autoscaler.")
-    }
-
-    if (!description.capacity || description.capacity.min == null || description.capacity.max == null) {
-      throw new KubernetesOperationException("Capacity min and max must be fully specified when the target server group has no autoscaler.")
-    }
-
-
-    task.updateStatus BASE_PHASE, "Creating autoscaler..."
-    credentials.apiAdaptor.createAutoscaler(namespace, KubernetesApiConverter.toAutoscaler(description, name, kind))
 
     return null
   }

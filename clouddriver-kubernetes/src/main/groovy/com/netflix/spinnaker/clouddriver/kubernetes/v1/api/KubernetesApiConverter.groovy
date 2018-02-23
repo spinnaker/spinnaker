@@ -86,6 +86,7 @@ import io.fabric8.kubernetes.api.model.Handler
 import io.fabric8.kubernetes.api.model.HandlerBuilder
 import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerBuilder
+import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerFluentImpl
 import io.fabric8.kubernetes.api.model.HostPathVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.IntOrString
 import io.fabric8.kubernetes.api.model.KeyToPath
@@ -800,10 +801,10 @@ class KubernetesApiConverter {
     description.scalingPolicy = new KubernetesScalingPolicy(cpuUtilization: cpuUtilization)
   }
 
-  static HorizontalPodAutoscaler toAutoscaler(KubernetesAutoscalerDescription description,
-                                              String resourceName,
-                                              String resourceKind) {
-    def autoscalerBuilder = new HorizontalPodAutoscalerBuilder()
+  static HorizontalPodAutoscalerFluentImpl toAutoscaler(HorizontalPodAutoscalerFluentImpl autoscalerBuilder,
+                                                        KubernetesAutoscalerDescription description,
+                                                        String resourceName,
+                                                        String resourceKind) {
     autoscalerBuilder.withNewMetadata()
       .withName(resourceName)
       .withNamespace(description.namespace)
@@ -816,7 +817,7 @@ class KubernetesApiConverter {
       .withKind(resourceKind)
       .withName(resourceName)
       .endScaleTargetRef()
-      .endSpec().build()
+      .endSpec()
   }
 
   static DeployKubernetesAtomicOperationDescription fromReplicationController(ReplicationController replicationController) {

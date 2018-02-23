@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.Kubernet
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.HasMetadata
+import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerBuilder
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.extensions.DeploymentFluentImpl
 import io.fabric8.kubernetes.api.model.extensions.DoneableDeployment
@@ -161,7 +162,7 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
 
       def name = hasDeployment ? clusterName : replicaSetName
       def kind = hasDeployment ? KubernetesUtil.DEPLOYMENT_KIND : KubernetesUtil.SERVER_GROUP_KIND
-      def autoscaler = KubernetesApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(replicaSetName, description), name, kind)
+      def autoscaler = ((HorizontalPodAutoscalerBuilder) KubernetesApiConverter.toAutoscaler(new HorizontalPodAutoscalerBuilder(), new KubernetesAutoscalerDescription(replicaSetName, description), name, kind)).build()
 
       if (credentials.apiAdaptor.getAutoscaler(namespace, name)) {
         credentials.apiAdaptor.deleteAutoscaler(namespace, name)
