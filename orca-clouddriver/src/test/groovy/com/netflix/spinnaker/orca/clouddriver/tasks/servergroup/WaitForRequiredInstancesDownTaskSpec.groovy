@@ -30,6 +30,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
+
 class WaitForRequiredInstancesDownTaskSpec extends Specification {
 
   @Subject task = new WaitForRequiredInstancesDownTask()
@@ -206,5 +208,39 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
     true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Up']]]] | instances.size() | instances.size() | instances.size() | 0
     true         || ['a', 'b'] | [[health: [[type: 'a', state: 'Down']]], [health: [[type: 'b', state: 'Down']]]] | instances.size() | instances.size() | instances.size() | 0
     false        || ['a', 'b'] | [[health: [[type: 'a', state: 'Up']]], [health: [[type: 'b', state: 'Down']]]] | instances.size() | instances.size() | instances.size() | 60
+  }
+
+  @Unroll
+  void "should extract instance details from resultObjects in task"() {
+    given:
+    def stage = stage {
+      context = [
+        "kato.last.task.id": [
+          id: lastTaskId
+        ],
+        "kato.tasks"       : [
+          katoTask
+        ]
+      ]
+    }
+
+    and:
+    def allInstances = [
+      [name: "i-1234"],
+      [name: "i-5678"]
+    ]
+
+    when:
+    def instanceNamesToDisable = WaitForRequiredInstancesDownTask.getInstancesToDisable(stage, allInstances)*.name
+
+    then:
+    instanceNamesToDisable == expectedInstanceNamesToDisable
+
+    where:
+    lastTaskId | katoTask                                                                             || expectedInstanceNamesToDisable
+    100        | []                                                                                   || []
+    100        | [id: 100, resultObjects: [[:]]]                                                      || []
+    100        | [id: 100, resultObjects: [[instanceIdsToDisable: ["i-1234"]]]]                       || ["i-1234"]
+    100        | [id: 100, resultObjects: [[instanceIdsToDisable: ["i-1234", "i-5678", "i-123456"]]]] || ["i-1234", "i-5678"]
   }
 }

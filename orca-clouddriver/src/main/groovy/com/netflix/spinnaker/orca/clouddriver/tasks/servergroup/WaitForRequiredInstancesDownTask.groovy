@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.AbstractWaitingForInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -34,9 +35,34 @@ class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
     def targetDesiredSize = instances.size()
 
     // During a rolling red/black we want a percentage of instances to be disabled.
-    if (stage.context.desiredPercentage != null) {
+    def desiredPercentage = stage.context.desiredPercentage
+    if (desiredPercentage != null) {
+      def instancesToDisable = getInstancesToDisable(stage, instances)
+      if (instancesToDisable) {
+        /**
+         * Ensure that any explicitly supplied (by clouddriver!) instance ids have been disabled.
+         *
+         * If no instance ids found, fall back to using `desiredPercentage` to calculate how many instances
+         * should be disabled.
+         */
+        def instancesAreDisabled = instancesToDisable.every { instance ->
+          return HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames)
+        }
+
+        log.debug(
+          "{} {}% of {}: {} (executionId: {})",
+          instancesAreDisabled ? "Disabled" : "Disabling",
+          desiredPercentage,
+          serverGroup.name,
+          instancesToDisable.collect { it.name }.join(", "),
+          stage.execution.id
+        )
+
+        return instancesAreDisabled
+      }
+
       Map capacity = (Map) serverGroup.capacity
-      Integer percentage = (Integer) stage.context.desiredPercentage
+      Integer percentage = (Integer) desiredPercentage
       targetDesiredSize = getDesiredInstanceCount(capacity, percentage)
     }
 
@@ -44,5 +70,22 @@ class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
     return instances.count { instance ->
       return HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames)
     } >= targetDesiredSize
+  }
+
+  static List<Map> getInstancesToDisable(Stage stage, List<Map> instances) {
+    TaskId lastTaskId = stage.context."kato.last.task.id" as TaskId
+    def katoTasks = stage.context."kato.tasks" as List<Map>
+    def lastKatoTask = katoTasks.find { it.id.toString() == lastTaskId.id }
+
+    if (lastKatoTask) {
+      def resultObjects = lastKatoTask.resultObjects as List<Map>
+      def instanceIdsToDisable = resultObjects.find {
+        it.containsKey("instanceIdsToDisable")
+      }?.instanceIdsToDisable ?: []
+
+      return instances.findAll { instanceIdsToDisable.contains(it.name) }
+    }
+
+    return []
   }
 }
