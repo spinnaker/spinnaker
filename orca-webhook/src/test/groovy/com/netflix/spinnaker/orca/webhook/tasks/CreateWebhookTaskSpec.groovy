@@ -280,6 +280,35 @@ class CreateWebhookTaskSpec extends Specification {
     stage.context.statusEndpoint == null
   }
 
+  // Tests https://github.com/spinnaker/spinnaker/issues/2163
+  def "should evaluate statusUrlJsonPath for differing payloads"() {
+    given:
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: "https://my-service.io/api/",
+      waitForCompletion: "true",
+      statusUrlResolution: "webhookResponse",
+      statusUrlJsonPath: 'concat("https://my-service.io/api/id/", $.id)'
+    ])
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(HttpMethod.POST, "https://my-service.io/api/", null, null) >>> [
+        new ResponseEntity<Map>([ success: true, id: "1" ], HttpStatus.CREATED),
+        new ResponseEntity<Map>([ success: true, id: "2" ], HttpStatus.CREATED)
+      ]
+    }
+
+    when:
+    def result1 = createWebhookTask.execute(stage)
+    def result2 = createWebhookTask.execute(stage)
+
+    then:
+    result1.status == ExecutionStatus.SUCCEEDED
+    result1.context.webhook.statusEndpoint == "https://my-service.io/api/id/1"
+
+    result2.status == ExecutionStatus.SUCCEEDED
+    result2.context.webhook.statusEndpoint == "https://my-service.io/api/id/2"
+  }
+
   def "should support html in response"() {
     setup:
     def stage = new Stage(pipeline, "webhook", "My webhook", [

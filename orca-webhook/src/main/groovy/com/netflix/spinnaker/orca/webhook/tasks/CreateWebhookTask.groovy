@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.webhook.tasks
 
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.PathNotFoundException
+import com.jayway.jsonpath.internal.JsonContext
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -87,7 +88,8 @@ class CreateWebhookTask implements RetryableTask {
             break
           case "webhookResponse":
             try {
-              statusUrl = JsonPath.read(response.body, stage.context.statusUrlJsonPath as String)
+              JsonPath path = JsonPath.compile(stage.context.statusUrlJsonPath as String)
+              statusUrl = new JsonContext().parse(response.body).read(path)
             } catch (PathNotFoundException e) {
               outputs.webhook << [error: e.message]
               return new TaskResult(ExecutionStatus.TERMINAL, outputs)
@@ -110,5 +112,4 @@ class CreateWebhookTask implements RetryableTask {
       return new TaskResult(ExecutionStatus.TERMINAL, outputsDeprecated + outputs)
     }
   }
-
 }
