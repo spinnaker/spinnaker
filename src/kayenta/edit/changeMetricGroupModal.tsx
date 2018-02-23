@@ -8,7 +8,6 @@ import { noop } from '@spinnaker/core';
 import * as Creators from '../actions/creators';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import { UNGROUPED } from './groupTabs';
 import Styleguide from '../layout/styleguide';
 
 interface IChangeMetricGroupModalOwnProps {
@@ -62,13 +61,8 @@ function mapStateToProps(state: ICanaryState, { metric }: IChangeMetricGroupModa
   // If a metric belongs to more than one group, allow a move into one of those groups.
   // e.g., a [system, requests] -> [requests] move should be allowed, but
   // don't offer a [system] -> [system] move.
-  let groups = state.selectedConfig.group.list.filter(g => metric.groups.length > 1 || !metric.groups.includes(g));
-  const isGroupedMetric = !!metric.groups.length;
-  if (isGroupedMetric) {
-    groups = groups.concat([UNGROUPED]);
-  }
   return {
-    groups,
+    groups: state.selectedConfig.group.list.filter(g => metric.groups.length > 1 || !metric.groups.includes(g)),
     toGroup: state.selectedConfig.changeMetricGroup.toGroup,
   };
 }

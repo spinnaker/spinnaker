@@ -23,6 +23,7 @@ export const openConfigJsonModal = createAction(Actions.CONFIG_JSON_MODAL_OPEN);
 export const editMetricCancel = createAction(Actions.EDIT_METRIC_CANCEL);
 export const editMetricConfirm = createAction(Actions.EDIT_METRIC_CONFIRM);
 export const updateMetricDirection = createAction<{id: string, direction: string}>(Actions.UPDATE_METRIC_DIRECTION);
+export const updateMetricGroup = createAction<{id: string, group: string}>(Actions.UPDATE_METRIC_GROUP);
 export const addGroup = createAction(Actions.ADD_GROUP);
 export const saveConfig = createAction(Actions.SAVE_CONFIG_REQUEST);
 export const dismissSaveConfigError = createAction(Actions.DISMISS_SAVE_CONFIG_ERROR);
