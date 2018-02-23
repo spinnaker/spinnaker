@@ -21,9 +21,9 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
-import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup

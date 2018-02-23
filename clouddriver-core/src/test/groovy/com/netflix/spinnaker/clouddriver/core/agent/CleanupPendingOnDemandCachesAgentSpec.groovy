@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.netflix.spinnaker.clouddriver.core.agent
 
-import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import org.springframework.context.ApplicationContext
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool

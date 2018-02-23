@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.compression.CompressionStrategy;
-import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache.CacheMetrics;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
 
 import java.util.Optional;
 

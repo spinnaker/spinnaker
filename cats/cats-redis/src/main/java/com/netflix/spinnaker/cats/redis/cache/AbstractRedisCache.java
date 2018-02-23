@@ -22,19 +22,13 @@ import com.google.common.collect.Iterables;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
-import com.netflix.spinnaker.cats.redis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractRedisCache implements WriteableCache {
 
@@ -42,6 +36,8 @@ public abstract class AbstractRedisCache implements WriteableCache {
   };
   protected static final TypeReference<List<String>> RELATIONSHIPS = new TypeReference<List<String>>() {
   };
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   protected final String prefix;
   protected final RedisClientDelegate redisClientDelegate;
@@ -163,7 +159,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
     return scanMembers(setKey, Optional.empty());
   }
 
-  private Set<String> scanMembers(String setKey, Optional<String> glob) {
+  protected Set<String> scanMembers(String setKey, Optional<String> glob) {
     return redisClientDelegate.withCommandsClient(client -> {
       final Set<String> matches = new HashSet<>();
       final ScanParams scanParams = new ScanParams().count(options.getScanSize());
@@ -181,13 +177,13 @@ public abstract class AbstractRedisCache implements WriteableCache {
   }
 
   protected boolean isHashingDisabled(String type) {
-     if (!options.isHashingEnabled()) {
-        return true;
-     }
-     return redisClientDelegate.withCommandsClient(client -> {
-       return client.exists(hashesDisabled(type));
-     });
-   }
+    if (!options.isHashingEnabled()) {
+      return true;
+    }
+    return redisClientDelegate.withCommandsClient(client -> {
+      return client.exists(hashesDisabled(type));
+    });
+  }
 
   protected String attributesId(String type, String id) {
     return String.format("%s:%s:attributes:%s", prefix, type, id);

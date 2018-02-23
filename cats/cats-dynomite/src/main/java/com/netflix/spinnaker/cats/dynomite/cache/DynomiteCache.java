@@ -25,10 +25,10 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.compression.CompressionStrategy;
 import com.netflix.spinnaker.cats.compression.NoopCompression;
-import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
-import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate.ClientDelegateException;
 import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate.ClientDelegateException;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
@@ -46,12 +46,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DynomiteCache extends AbstractRedisCache {
@@ -93,7 +95,7 @@ public class DynomiteCache extends AbstractRedisCache {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   // TODO rz - Make retry policy configurable
-  private static final RetryPolicy redisRetryPolicy = new RetryPolicy()
+  private static final RetryPolicy REDIS_RETRY_POLICY = new RetryPolicy()
     .retryOn(Arrays.asList(JedisException.class, DynoException.class, ClientDelegateException.class))
     .withDelay(500, TimeUnit.MILLISECONDS)
     .withMaxRetries(3);
@@ -129,9 +131,9 @@ public class DynomiteCache extends AbstractRedisCache {
 
     Map<CacheData, Map<String, String>> allHashes = getAllHashes(type, items);
     Failsafe
-      .with(redisRetryPolicy)
-      .onFailure(failure -> {
-        log.error("Encountered repeated failures while caching " + prefix + ":" + type, failure);
+      .with(REDIS_RETRY_POLICY)
+      .onRetriesExceeded(failure -> {
+        log.error("Encountered repeated failures while caching {}:{}, attempting cleanup", prefix, type, failure);
         try {
           redisClientDelegate.withPipeline(pipeline -> {
             DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
@@ -142,9 +144,9 @@ public class DynomiteCache extends AbstractRedisCache {
             p.sync();
           });
         } catch (JedisException|DynoException e) {
-          log.error("Failed cleaning up hashes in failure handler in " + prefix + ":" + type, e);
+          log.error("Failed cleaning up hashes in failure handler in {}:{}", prefix, type, e);
         }
-        throw new RuntimeException("Failed running caching agents", failure);
+        throw new ExcessiveDynoFailureRetries(format("Running cache agent %s:%s", prefix, type), failure);
       })
       .run(() -> redisClientDelegate.withPipeline(pipeline -> {
         DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
@@ -213,7 +215,10 @@ public class DynomiteCache extends AbstractRedisCache {
     AtomicInteger sremOperations = new AtomicInteger();
 
     Failsafe
-      .with(redisRetryPolicy)
+      .with(REDIS_RETRY_POLICY)
+      .onRetriesExceeded(failure -> {
+        throw new ExcessiveDynoFailureRetries(format("Evicting items for %s:%s", prefix, type), failure);
+      })
       .run(() -> redisClientDelegate.withPipeline(pipeline -> {
         DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
 
@@ -253,21 +258,25 @@ public class DynomiteCache extends AbstractRedisCache {
     }
 
     AtomicInteger hmgetAllOperations = new AtomicInteger();
-    Map<String, Map<String, String>> rawItems = redisClientDelegate.withPipeline(pipeline -> {
-      DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
+    Map<String, Map<String, String>> rawItems = Failsafe
+      .with(REDIS_RETRY_POLICY)
+      .onRetriesExceeded(failure -> {
+        throw new ExcessiveDynoFailureRetries(format("Getting items for %s:%s", prefix, type), failure);
+      })
+      .get(() -> redisClientDelegate.withPipeline(pipeline -> {
+        DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
 
-      Map<String, Response<Map<String, String>>> responses = new HashMap<>();
-      for (String id : ids) {
-        responses.put(id, pipeline.hgetAll(itemId(type, id)));
-        hmgetAllOperations.incrementAndGet();
-      }
-      p.sync();
+        Map<String, Response<Map<String, String>>> responses = new HashMap<>();
+        for (String id : ids) {
+          responses.put(id, pipeline.hgetAll(itemId(type, id)));
+          hmgetAllOperations.incrementAndGet();
+        }
+        p.sync();
 
-      return responses.entrySet().stream()
-        .filter(e -> !e.getValue().get().isEmpty())
-        .collect(Collectors.toMap(Entry::getKey, it -> it.getValue().get()));
-    });
-
+        return responses.entrySet().stream()
+          .filter(e -> !e.getValue().get().isEmpty())
+          .collect(Collectors.toMap(Entry::getKey, it -> it.getValue().get()));
+      }));
 
     Collection<CacheData> results = new ArrayList<>(ids.size());
     for (Map.Entry<String, Map<String, String>> rawItem : rawItems.entrySet()) {
@@ -312,6 +321,13 @@ public class DynomiteCache extends AbstractRedisCache {
     } catch (IOException deserializationException) {
       throw new RuntimeException("Deserialization failed", deserializationException);
     }
+  }
+
+  @Override
+  protected Set<String> scanMembers(String setKey, Optional<String> glob) {
+    return Failsafe
+      .with(REDIS_RETRY_POLICY)
+      .get(() -> super.scanMembers(setKey, glob));
   }
 
   private static class MergeOp {
@@ -386,17 +402,32 @@ public class DynomiteCache extends AbstractRedisCache {
       return new HashMap<>();
     }
 
-    return redisClientDelegate.withPipeline(pipeline -> {
-      DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
+    return Failsafe
+      .with(REDIS_RETRY_POLICY)
+      .onRetriesExceeded(failure -> {
+        throw new ExcessiveDynoFailureRetries(format("Getting all requested hashes for %s:%s", prefix, type), failure);
+      })
+      .get(() -> redisClientDelegate.withPipeline(pipeline -> {
+        DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
 
-      Map<CacheData, Response<Map<String, String>>> responses = new HashMap<>();
-      for (CacheData item : items) {
-        responses.put(item, p.hgetAll(itemHashesId(type, item.getId())));
-      }
-      p.sync();
+        Map<CacheData, Response<Map<String, String>>> responses = new HashMap<>();
+        for (CacheData item : items) {
+          responses.put(item, p.hgetAll(itemHashesId(type, item.getId())));
+        }
+        p.sync();
 
-      return responses.entrySet().stream().collect(Collectors.toMap(Entry::getKey, it -> it.getValue().get()));
-    });
+        return responses.entrySet().stream().collect(Collectors.toMap(Entry::getKey, it -> it.getValue().get()));
+      }));
+  }
+
+  @Override
+  protected boolean isHashingDisabled(String type) {
+    return Failsafe
+      .with(REDIS_RETRY_POLICY)
+      .onRetriesExceeded(failure -> {
+        throw new ExcessiveDynoFailureRetries(format("Getting hashing flag for %s:%s", prefix, type), failure);
+      })
+      .get(() -> super.isHashingDisabled(type));
   }
 
   private int getHashExpiry() {
@@ -405,35 +436,41 @@ public class DynomiteCache extends AbstractRedisCache {
   }
 
   private String itemId(String type, String id) {
-    return String.format("{%s:%s}:%s", prefix, type, id);
+    return format("{%s:%s}:%s", prefix, type, id);
   }
 
   private String itemHashesId(String type, String id) {
-    return String.format("{%s:%s}:hashes:%s", prefix, type, id);
+    return format("{%s:%s}:hashes:%s", prefix, type, id);
   }
 
   @Override
   protected String attributesId(String type, String id) {
-    return String.format("{%s:%s}:attributes:%s", prefix, type, id);
+    return format("{%s:%s}:attributes:%s", prefix, type, id);
   }
 
   @Override
   protected String relationshipId(String type, String id, String relationship) {
-    return String.format("{%s:%s}:relationships:%s:%s", prefix, type, id, relationship);
+    return format("{%s:%s}:relationships:%s:%s", prefix, type, id, relationship);
   }
 
   @Override
   protected String allRelationshipsId(String type) {
-    return String.format("{%s:%s}:relationships", prefix, type);
+    return format("{%s:%s}:relationships", prefix, type);
   }
 
   @Override
   protected String allOfTypeId(String type) {
-    return String.format("{%s:%s}:members", prefix, type);
+    return format("{%s:%s}:members", prefix, type);
   }
 
   @Override
   protected String allOfTypeReindex(String type) {
-    return String.format("{%s:%s}:members.2", prefix, type);
+    return format("{%s:%s}:members.2", prefix, type);
+  }
+
+  private static class ExcessiveDynoFailureRetries extends RuntimeException {
+    ExcessiveDynoFailureRetries(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 }

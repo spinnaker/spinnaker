@@ -29,10 +29,10 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.compression.NoopCompression
-import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache
 import com.netflix.spinnaker.cats.dynomite.cache.DynomiteCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
 import spock.lang.AutoCleanup

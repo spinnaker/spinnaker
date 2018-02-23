@@ -18,22 +18,32 @@ package com.netflix.spinnaker.clouddriver.data.task.jedis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.cats.redis.RedisClientDelegate;
+import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayStatus;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate.ClientDelegateException;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+import net.jodah.failsafe.function.CheckedConsumer;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 public class RedisTaskRepository implements TaskRepository {
 
@@ -42,6 +52,11 @@ public class RedisTaskRepository implements TaskRepository {
   private static final TypeReference<Map<String, String>> HISTORY_TYPE = new TypeReference<Map<String, String>>() {};
 
   private static final int TASK_TTL = (int) TimeUnit.HOURS.toSeconds(12);
+
+  private static final RetryPolicy REDIS_RETRY_POLICY = new RetryPolicy()
+    .retryOn(Arrays.asList(JedisException.class, DynoException.class, ClientDelegateException.class))
+    .withDelay(500, TimeUnit.MILLISECONDS)
+    .withMaxRetries(3);
 
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> redisClientDelegatePrevious;
@@ -60,15 +75,17 @@ public class RedisTaskRepository implements TaskRepository {
   @Override
   public Task create(String phase, String status, String clientRequestId) {
     String taskKey = getClientRequestKey(clientRequestId);
-    String taskId = redisClientDelegate.withCommandsClient(client -> {
+
+    String taskId = retry(() -> redisClientDelegate.withCommandsClient(client -> {
       return client.incr("taskCounter").toString();
-    });
+    }), "Creating new task ID");
+
     JedisTask task = new JedisTask(taskId, System.currentTimeMillis(), this, false);
     addToHistory(DefaultTaskStatus.create(phase, status, TaskState.STARTED), task);
     set(taskId, task);
-    Long newTask = redisClientDelegate.withCommandsClient(client -> {
+    Long newTask = retry(() -> redisClientDelegate.withCommandsClient(client -> {
       return client.setnx(taskKey, taskId);
-    });
+    }), "Registering task with index");
     if (newTask != 0) {
       return task;
     }
@@ -80,9 +97,9 @@ public class RedisTaskRepository implements TaskRepository {
 
   @Override
   public Task get(String id) {
-    Map<String, String> taskMap = redisClientDelegate.withCommandsClient(client -> {
+    Map<String, String> taskMap = retry(() -> redisClientDelegate.withCommandsClient(client -> {
       return client.hgetAll("task:" + id);
-    });
+    }), format("Getting task ID %s", id));
     boolean oldTask = redisClientDelegatePrevious.isPresent() && (taskMap == null || taskMap.isEmpty());
     if (oldTask) {
       try {
@@ -108,9 +125,9 @@ public class RedisTaskRepository implements TaskRepository {
   @Override
   public Task getByClientRequestId(String clientRequestId) {
     final String clientRequestKey = getClientRequestKey(clientRequestId);
-    String existingTask = redisClientDelegate.withCommandsClient(client -> {
+    String existingTask = retry(() -> redisClientDelegate.withCommandsClient(client -> {
       return client.get(clientRequestKey);
-    });
+    }), format("Getting task by client request ID %s", clientRequestId));
     if (existingTask == null) {
       if (redisClientDelegatePrevious.isPresent()) {
         try {
@@ -131,9 +148,9 @@ public class RedisTaskRepository implements TaskRepository {
 
   @Override
   public List<Task> list() {
-    return redisClientDelegate.withCommandsClient(client -> {
+    return retry(() -> redisClientDelegate.withCommandsClient(client -> {
       return client.smembers(RUNNING_TASK_KEY).stream().map(this::get).collect(Collectors.toList());
-    });
+    }), "Getting all running tasks");
   }
 
   public void set(String id, JedisTask task) {
@@ -141,11 +158,11 @@ public class RedisTaskRepository implements TaskRepository {
     Map<String, String> data = new HashMap<>();
     data.put("id", task.getId());
     data.put("startTimeMs", Long.toString(task.getStartTimeMs()));
-    redisClientDelegate.withCommandsClient(client -> {
+    retry(() -> redisClientDelegate.withCommandsClient(client -> {
       client.hmset(taskId, data);
       client.expire(taskId, TASK_TTL);
       client.sadd(RUNNING_TASK_KEY, id);
-    });
+    }), format("Writing task %s", id));
   }
 
   public void addToHistory(DefaultTaskStatus status, JedisTask task) {
@@ -163,20 +180,23 @@ public class RedisTaskRepository implements TaskRepository {
       throw new RuntimeException("Failed converting task history to json", e);
     }
 
-    redisClientDelegate.withCommandsClient(client -> {
+    retry(() -> redisClientDelegate.withCommandsClient(client -> {
       client.rpush(historyId, hist);
       client.expire(historyId, TASK_TTL);
       if (status.isCompleted()) {
         client.srem(RUNNING_TASK_KEY, task.getId());
       }
-    });
+    }), format("Adding status history to task %s: %s", task.getId(), status));
   }
 
   public List<Status> getHistory(JedisTask task) {
     String historyId = "taskHistory:" + task.getId();
-    return clientForTask(task).withCommandsClient(client -> {
-      return client.lrange(historyId, 0, -1);
-    }).stream()
+
+    RedisClientDelegate client = clientForTask(task);
+    return retry(() -> client.withCommandsClient(c -> {
+      return c.lrange(historyId, 0, -1);
+    }), format("Getting history for task %s", task.getId()))
+      .stream()
       .map(h -> {
         Map<String, String> history;
         try {
@@ -191,9 +211,12 @@ public class RedisTaskRepository implements TaskRepository {
 
   public DefaultTaskStatus currentState(JedisTask task) {
     String historyId = "taskHistory:" + task.getId();
-    String state = clientForTask(task).withCommandsClient(client -> {
-      return client.lindex(historyId, -1);
-    });
+
+    RedisClientDelegate client = clientForTask(task);
+    String state = retry(() -> client.withCommandsClient(c -> {
+      return c.lindex(historyId, -1);
+    }), format("Getting current state for task %s", task.getId()));
+
     Map<String, String> history;
     try {
       history = mapper.readValue(state, HISTORY_TYPE);
@@ -215,17 +238,20 @@ public class RedisTaskRepository implements TaskRepository {
       })
       .collect(Collectors.toList())
       .toArray(new String[objects.size()]);
-    redisClientDelegate.withCommandsClient(client -> {
+
+    retry(() -> redisClientDelegate.withCommandsClient(client -> {
       client.rpush(resultId, values);
       client.expire(resultId, TASK_TTL);
-    });
+    }), format("Adding results to task %s", task.getId()));
   }
 
   public List<Object> getResultObjects(JedisTask task) {
     String resultId = "taskResult:" + task.getId();
-    return redisClientDelegate.withCommandsClient(client -> {
+
+    return retry(() -> redisClientDelegate.withCommandsClient(client -> {
       return client.lrange(resultId, 0, -1);
-    }).stream()
+    }), format("Getting results for task %s", task.getId()))
+      .stream()
       .map(o -> {
         try {
           return mapper.readValue(o, Map.class);
@@ -245,5 +271,33 @@ public class RedisTaskRepository implements TaskRepository {
       return redisClientDelegatePrevious.get();
     }
     return redisClientDelegate;
+  }
+
+  private <T> T retry(Supplier<T> f, String onRetriesExceededMessage) {
+    return retry(f, failure -> { throw new ExcessiveRedisFailureRetries(onRetriesExceededMessage, failure); });
+  }
+
+  private <T> T retry(Supplier<T> f, CheckedConsumer<? extends Throwable> retryExceededListener) {
+    return Failsafe
+      .with(REDIS_RETRY_POLICY)
+      .onRetriesExceeded(retryExceededListener)
+      .get(f::get);
+  }
+
+  private void retry(Runnable f, String onRetriesExceededMessage) {
+    retry(f, failure -> { throw new ExcessiveRedisFailureRetries(onRetriesExceededMessage, failure); });
+  }
+
+  private void retry(Runnable f, CheckedConsumer<? extends Throwable> retryExceededListener) {
+    Failsafe
+      .with(REDIS_RETRY_POLICY)
+      .onRetriesExceeded(retryExceededListener)
+      .run(f::run);
+  }
+
+  private static class ExcessiveRedisFailureRetries extends RuntimeException {
+    ExcessiveRedisFailureRetries(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 }

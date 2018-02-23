@@ -2,7 +2,7 @@ dependencies {
     compile project(':cats:cats-core')
     compile spinnaker.dependency('eurekaClient')
     compile spinnaker.dependency('guava')
-    compile "redis.clients:jedis:${spinnaker.version('jedis')}"
+    compile "com.netflix.spinnaker.kork:kork-jedis:${spinnaker.version("kork")}"
     compile "com.fasterxml.jackson.core:jackson-databind:${spinnaker.version('jackson')}"
     testCompile project(':cats:cats-test')
     testCompile spinnaker.dependency('korkJedisTest')

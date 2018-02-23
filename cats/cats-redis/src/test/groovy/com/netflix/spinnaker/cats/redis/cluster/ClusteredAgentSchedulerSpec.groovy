@@ -19,9 +19,9 @@ package com.netflix.spinnaker.cats.redis.cluster
 import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
-import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.cats.test.TestAgent
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.Specification

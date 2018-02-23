@@ -22,11 +22,11 @@ import com.netflix.dyno.connectionpool.TokenMapSupplier
 import com.netflix.dyno.connectionpool.impl.ConnectionPoolConfigurationImpl
 import com.netflix.dyno.connectionpool.impl.lb.HostToken
 import com.netflix.dyno.jedis.DynoJedisClient
-import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate
-import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.clouddriver.cache.DynomiteConfigurationProperties
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.jedis.RedisTaskRepository
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

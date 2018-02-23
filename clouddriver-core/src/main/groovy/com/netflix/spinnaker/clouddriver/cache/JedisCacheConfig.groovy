@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.cache
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
-import com.netflix.spinnaker.cats.redis.JedisClientDelegate
-import com.netflix.spinnaker.cats.redis.RedisClientDelegate
 import com.netflix.spinnaker.cats.redis.cache.RedisCache.CacheMetrics
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
@@ -29,6 +27,8 @@ import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties

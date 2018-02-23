@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
-import com.netflix.spinnaker.cats.redis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 
 import java.io.IOException;
 import java.util.ArrayList;

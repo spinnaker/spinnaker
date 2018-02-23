@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.core
 
-import com.netflix.spinnaker.cats.redis.JedisClientDelegate
-import com.netflix.spinnaker.cats.redis.RedisClientDelegate
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.jedis.RedisTaskRepository
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
