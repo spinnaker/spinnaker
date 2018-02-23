@@ -49,6 +49,7 @@ const MultipleResultsTable = ({ results, select, selectedResult }: IMultipleResu
       rows={results}
       columns={columns}
       className="multiple-results-table"
+      headerClassName="sticky-header-2"
       rowClassName={r => classNames('horizontal', { selected: r.id === selectedResult })}
       rowKey={r => Object.entries(r.tags || {}).map(([key, value]) => `${key}:${value}`).join(':')}
       onRowClick={r => select(r.id)}

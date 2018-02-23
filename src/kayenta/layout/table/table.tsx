@@ -9,13 +9,14 @@ export interface ITableProps<T> {
   columns: ITableColumn<T>[];
   rowKey: (row: T) => string;
   tableBodyClassName?: string;
+  headerClassName?: string;
   rowClassName?: (row: T) => string;
   onRowClick?: (row: T) => void;
   customRow?: (row: T) => JSX.Element;
   className?: string;
 }
 
-export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick, customRow, className }: ITableProps<T>) {
+export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassName, onRowClick, customRow, className, headerClassName }: ITableProps<T>) {
   const TableRow = ({ row }: { row: T }) => (
     <li
       onClick={onRowClick ? () => onRowClick(row) : null}
@@ -33,8 +34,8 @@ export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassNa
 
   return (
     <div className={className}>
-      <TableHeader columns={columns} className="table-header"/>
       <ul className={classNames(tableBodyClassName, 'list-group')}>
+        <TableHeader columns={columns} className={`table-header sticky-header ${headerClassName}`}/>
         {
           rows.map(r => (
             customRow && customRow(r)

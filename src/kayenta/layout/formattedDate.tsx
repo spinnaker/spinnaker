@@ -8,7 +8,7 @@ export interface IDateLabelProps {
   format?: string;
 }
 
-const DEFAULT_FORMAT = 'MM/DD/YY @ HH:mm';
+const DEFAULT_FORMAT = 'YYYY-MM-DD HH:mm:ss z';
 
 export default function FormattedDate({ dateIso, format }: IDateLabelProps) {
   if (dateIso) {

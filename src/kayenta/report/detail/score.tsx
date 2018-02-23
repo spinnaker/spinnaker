@@ -6,15 +6,18 @@ import { CanaryScore } from 'kayenta/components/canaryScore';
 
 export interface ICanaryJudgeScoreProps {
   score: ICanaryJudgeScore;
+  showClassification?: boolean;
+  inverse?: boolean;
 }
 
-export default ({ score }: ICanaryJudgeScoreProps) => (
+export default ({ score, showClassification, inverse }: ICanaryJudgeScoreProps) => (
   <CanaryScore
     className="score-report"
     score={round(score.score, 2)}
     result={mapKayentaToACA(score).result}
     health={mapKayentaToACA(score).health}
-    inverse={false}
+    classification={showClassification ? score.classification : null}
+    inverse={inverse}
   />
 );
 

@@ -3,10 +3,10 @@ import { combineActions, handleActions } from 'redux-actions';
 import { get, set, has, omit, chain, pick, fromPairs, flatMap, cloneDeep } from 'lodash';
 
 import * as Actions from '../actions';
+import { ICanaryClassifierThresholdsConfig } from '../domain';
 import { IJudge } from '../domain/IJudge';
 import {
   IGroupWeights,
-  ICanaryClassifierThresholdsConfig,
   ICanaryConfig,
   ICanaryJudgeConfig,
   ICanaryMetricConfig

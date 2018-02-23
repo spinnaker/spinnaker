@@ -1,23 +1,19 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { ICanaryClassifierThresholdsConfig } from '../domain';
 
 import { ICanaryState } from '../reducers';
 import { CanaryScores } from '../components/canaryScores';
 import * as Creators from '../actions/creators';
 
-interface IScoreThresholdsStateProps {
-  pass: number;
-  marginal: number;
-}
-
-interface IScoreThresholdsDispatchProps {
+interface ICanaryClassifierThresholdsConfigDispatchProps {
   handleThresholdsChange: (thresholds: { unhealthyScore: string, successfulScore: string }) => void;
 }
 
 /*
  * Fields for updating score thresholds.
  */
-function ScoreThresholds({ pass, marginal, handleThresholdsChange }: IScoreThresholdsStateProps & IScoreThresholdsDispatchProps) {
+function ScoreThresholds({ pass, marginal, handleThresholdsChange }: ICanaryClassifierThresholdsConfig & ICanaryClassifierThresholdsConfigDispatchProps) {
   return (
     <CanaryScores
       unhealthyHelpFieldId={'pipeline.config.canary.marginalScore'}
@@ -31,14 +27,14 @@ function ScoreThresholds({ pass, marginal, handleThresholdsChange }: IScoreThres
   )
 }
 
-function mapStateToProps(state: ICanaryState): IScoreThresholdsStateProps {
+function mapStateToProps(state: ICanaryState): ICanaryClassifierThresholdsConfig {
   return {
     marginal: state.selectedConfig.thresholds.marginal,
     pass: state.selectedConfig.thresholds.pass,
   };
 }
 
-function mapDispatchToProps(dispatch: any): IScoreThresholdsDispatchProps {
+function mapDispatchToProps(dispatch: any): ICanaryClassifierThresholdsConfigDispatchProps {
   return {
     handleThresholdsChange: (thresholds: { unhealthyScore: string, successfulScore: string }) => {
       dispatch(Creators.updateScoreThresholds({

@@ -10,7 +10,7 @@ export interface ITableHeaderProps {
 
 export const TableHeader = ({ columns, className }: ITableHeaderProps) => {
   return (
-    <section className={classNames('horizontal', className)}>
+    <div className={classNames('horizontal', className)}>
       {columns.map((c, i) => (
         <div key={c.label || i} className={`flex-${c.width}`}>
           {!c.hide && (
@@ -20,6 +20,6 @@ export const TableHeader = ({ columns, className }: ITableHeaderProps) => {
           )}
         </div>
       ))}
-    </section>
+    </div>
   );
 };

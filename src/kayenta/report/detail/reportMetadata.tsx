@@ -10,19 +10,24 @@ interface IReportMetadata {
   run: ICanaryExecutionStatusResult;
 }
 
+interface IMetadataGroup {
+  label?: string;
+  entries: IMetadataEntry[];
+}
+
 interface IMetadataEntry {
   label: string;
   getContent: () => JSX.Element;
 }
 
-const Label = ({ label }: { label: string }) => (
-  <label className="label uppercase color-text-primary">
+const Label = ({ label, extraClass }: { label: string, extraClass?: string }) => (
+  <label className={`label uppercase color-text-primary ${extraClass}`}>
     {label}
   </label>
 );
 
 // TODO(dpeach): this only supports canary runs with a single scope.
-const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadataEntry[] => {
+const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadataGroup[] => {
   const scopes = Object.values(run.result.canaryExecutionRequest.scopes);
   if (scopes.length > 1) {
     return null;
@@ -46,35 +51,50 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
 
   return [
     {
-      label: 'baseline scope',
-      getContent: () => <p>{controlScope}</p>,
+      label: 'baseline',
+      entries: [
+        {
+          label: 'scope',
+          getContent: () => <p>{controlScope}</p>,
+        },
+        {
+          label: 'region',
+          getContent: () => <p>{controlRegion}</p>
+        },
+      ]
     },
     {
-      label: 'baseline region',
-      getContent: () => <p>{controlRegion}</p>
+      label: 'canary',
+      entries: [
+        {
+          label: 'scope',
+          getContent: () => <p>{experimentScope}</p>
+        },
+        {
+          label: 'region',
+          getContent: () => <p>{experimentRegion}</p>
+        },
+      ]
     },
     {
-      label: 'canary scope',
-      getContent: () => <p>{experimentScope}</p>
-    },
-    {
-      label: 'canary region',
-      getContent: () => <p>{experimentRegion}</p>
-    },
-    {
-      label: 'start',
-      getContent: () => <p><FormattedDate dateIso={start}/></p>,
-    },
-    {
-      label: 'end',
-      getContent: () => <p><FormattedDate dateIso={end}/></p>
-    },
-    {
-      label: 'step',
-      getContent: () => {
-        const mins = step / 60;
-        return <p>{mins} min{mins === 1 ? '' : 's'}</p>;
-      },
+      label: 'time',
+      entries: [
+        {
+          label: 'start',
+          getContent: () => <p><FormattedDate dateIso={start}/></p>,
+        },
+        {
+          label: 'end',
+          getContent: () => <p><FormattedDate dateIso={end}/></p>
+        },
+        {
+          label: 'step',
+          getContent: () => {
+            const mins = step / 60;
+            return <p>{mins} min{mins === 1 ? '' : 's'}</p>;
+          },
+        },
+      ]
     },
   ];
 };
@@ -87,32 +107,46 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
     },
   } = run.result.canaryExecutionRequest;
 
-  let metadataEntries: IMetadataEntry[] = [
-    {
-      label: 'marginal threshold',
-      getContent: () => <p>{marginal}</p>
-    },
-    {
-      label: 'pass threshold',
-      getContent: () => <p>{pass}</p>,
-    },
-  ];
-
-  metadataEntries = (buildScopeMetadataEntries(run) || []).concat(metadataEntries);
+  const metadataGroups = (buildScopeMetadataEntries(run) || []);
+  metadataGroups.push({
+    label: 'threshold',
+    entries: [
+      {
+        label: 'marginal',
+        getContent: () => <p>{marginal}</p>
+      },
+      {
+        label: 'pass',
+        getContent: () => <p>{pass}</p>,
+      }
+    ]
+  });
 
   return (
     <section className="report-metadata">
-      <ul className="list-unstyled list-inline">
+      <div className="horizontal space-between bottom">
         {
-          metadataEntries.map(e => (
-            <li key={e.label}>
-              <Label label={e.label}/>
-              {e.getContent()}
-            </li>
+          metadataGroups.map((group, index) => (
+            <div key={group.label || index}>
+              <Label label={group.label || ''} extraClass="label-lg"/>
+              <ul className="list-unstyled list-inline">
+                {
+                  group.entries.map(e => (
+                    <li key={e.label || index}>
+                      <Label label={e.label}/>
+                      {e.getContent()}
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
           ))
         }
-        <li><SourceLinks/></li>
-      </ul>
+        <div key="source">
+          <Label label="Source" extraClass="label-lgf"/>
+          <SourceLinks/>
+        </div>
+      </div>
     </section>
   );
 };

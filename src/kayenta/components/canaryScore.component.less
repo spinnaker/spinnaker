@@ -7,6 +7,9 @@
   height: 20px;
   line-height: 14px;
   color: white;
+  &.inverse {
+    padding: 0;
+  }
   &.label-failing {
     background-color: var(--color-alert-light);
     &.inverse {
@@ -36,6 +39,13 @@
     font-size: 100%;
     padding: 0;
   }
+  .score-classification {
+    font-size: 45%;
+    display: block;
+    margin-top: 15px;
+    font-weight: 400;
+    text-transform: uppercase;
+  }
 }
 
 .score-large.score {
@@ -54,10 +64,18 @@
 }
 
 .score.score-report {
-  height: 30px;
-  line-height: 30px;
-  padding: 0 10px 0 10px;
-  font-size: 170%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 15px;
+  font-size: 200%;
   border-radius: 0;
   min-width: 30px;
+  height: 100%;
+}
+
+.table-row {
+  .score.score-report {
+    display: inline-block;
+  }
 }

@@ -37,3 +37,12 @@ export const listCanaryExecutions = (application: string, limit: number, statuse
     .one('executions')
     .withParams({ limit, statuses, storageAccountName })
     .get();
+
+export const getHealthLabel = (health: string, result: string): string => {
+  const healthLC = (health || '').toLowerCase();
+  const resultLC = (result || '').toLowerCase();
+  return healthLC === 'unhealthy' ? 'unhealthy'
+    : resultLC === 'success' ? 'healthy'
+      : resultLC === 'failure' ? 'failing'
+        : 'unknown';
+};
