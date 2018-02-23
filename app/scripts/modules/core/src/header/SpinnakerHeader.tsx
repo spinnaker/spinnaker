@@ -5,6 +5,7 @@ import { UIRouterContext } from '@uirouter/react-hybrid';
 
 import { NgReact } from 'core/reactShims';
 import { GlobalSearch } from 'core/search/global/GlobalSearch';
+import { HelpMenu } from 'core/help/HelpMenu';
 
 import './SpinnakerHeader.css';
 
@@ -82,6 +83,7 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
               <UserMenu />
               <GlobalSearch />
               <WhatsNew />
+              <HelpMenu />
             </ul>
           </div>
         }
