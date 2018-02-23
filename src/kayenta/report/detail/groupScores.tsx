@@ -3,6 +3,7 @@ import * as classNames from 'classnames';
 import { connect, Dispatch } from 'react-redux';
 
 import { ICanaryJudgeGroupScore } from 'kayenta/domain/ICanaryJudgeResult';
+import { ICanaryClassifierThresholdsConfig } from '../../domain';
 import ClickableHeader from './clickableHeader';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers/index';
@@ -17,7 +18,7 @@ export interface IGroupScoresOwnProps {
 
 interface IGroupScoresStateProps {
   groupWeights: IGroupWeights;
-  scoreThresholds: { pass: number, marginal: number };
+  scoreThresholds: ICanaryClassifierThresholdsConfig;
   selectedGroup: string;
 }
 

@@ -25,7 +25,13 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   },
   {
     label: 'Score',
-    getContent: execution => <Score score={execution.result.judgeResult.score}/>,
+    getContent: execution => (
+      <Score
+        score={execution.result.judgeResult.score}
+        inverse={true}
+        showClassification={false}
+      />
+    ),
     width: 1,
   },
   {

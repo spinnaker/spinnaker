@@ -11,6 +11,7 @@ var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
 var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
 var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
+var canaryAccount = process.env.CANARY_ACCOUNT || 'my-google-account';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -79,8 +80,8 @@ window.spinnakerSettings = {
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
   canary: {
     reduxLogger: reduxLoggerEnabled,
-    metricsAccountName: 'my-google-account',
-    storageAccountName: 'my-google-account',
+    metricsAccountName: canaryAccount,
+    storageAccountName: canaryAccount,
     defaultJudge: 'NetflixACAJudge-v1.0',
     metricStore: defaultMetricStore,
     stagesEnabled: canaryStagesEnabled,

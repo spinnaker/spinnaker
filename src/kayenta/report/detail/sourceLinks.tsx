@@ -12,14 +12,16 @@ interface ISourceJsonStateProps {
 
 const SourceLinks = ({ reportUrl, metricListUrl }: ISourceJsonStateProps) => {
   return (
-    <ul className="list-unstyled small">
-      <li>
-        <a target="_blank" href={reportUrl}>Report Source</a>
-      </li>
-      <li>
-        <a target="_blank" href={metricListUrl}>Metrics Source</a>
-      </li>
-    </ul>
+    <p>
+      <ul className="list-unstyled small">
+        <li>
+          <a target="_blank" href={reportUrl}>Report</a>
+        </li>
+        <li>
+          <a target="_blank" href={metricListUrl}>Metrics</a>
+        </li>
+      </ul>
+    </p>
   );
 };
 

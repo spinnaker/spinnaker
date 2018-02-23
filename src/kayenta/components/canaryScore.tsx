@@ -1,5 +1,8 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
+import { ScoreClassificationLabel } from '../domain/ScoreClassificationLabel';
+
+import { getHealthLabel } from '../service/canaryRun.service';
 
 import './canaryScore.component.less';
 
@@ -9,6 +12,7 @@ export interface ICanaryScoreProps {
   result: string;
   inverse: boolean;
   className?: string;
+  classification?: ScoreClassificationLabel;
 }
 
 export interface ICanaryScoreState {
@@ -27,16 +31,10 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
   }
 
   private getLabelState(props: ICanaryScoreProps): ICanaryScoreState {
-    const health = (props.health || '').toLowerCase();
-    const result = (props.result || '').toLowerCase();
     const score = (props.score === 0 || (props.score && props.score > 0)) ? props.score : 'N/A';
-    const healthLabel = health === 'unhealthy' ? 'unhealthy'
-      : result === 'success' ? 'healthy'
-      : result === 'failure' ? 'failing'
-      : 'unknown';
 
     return {
-      healthLabel: healthLabel,
+      healthLabel: getHealthLabel(props.health, props.result),
       score: score
     };
   }
@@ -55,7 +53,12 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
       `label-${this.state.healthLabel}`
     ].join(' ');
     return (
-      <span className={classNames(className, this.props.className)}>{this.state.score}</span>
+      <span className={classNames(className, this.props.className)}>
+        {this.state.score}
+        {this.props.classification && (
+          <span className="score-classification">{this.props.classification.toString()}</span>
+        )}
+      </span>
     );
   }
 }

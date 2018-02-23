@@ -125,16 +125,17 @@ function configure(IS_TEST) {
       }),
       new webpack.EnvironmentPlugin({
         API_HOST: 'https://api-prestaging.spinnaker.mgmt.netflix.net',
+        ATLAS_WEB_COMPONENTS_URL: '',
+        CANARY_ACCOUNT: 'my-google-account',
+        CANARY_STAGES_ENABLED: true,
         ENTITY_TAGS_ENABLED: true,
         FEEDBACK_URL: 'https://hootch.test.netflix.net/submit',
         FIAT_ENABLED: false,
         INFRA_STAGES: false,
-        TIMEZONE: 'America/Los_Angeles',
         METRIC_STORE: 'atlas',
-        ATLAS_WEB_COMPONENTS_URL: '',
         REDUX_LOGGER: false,
-        CANARY_STAGES_ENABLED: true,
         TEMPLATES_ENABLED: false,
+        TIMEZONE: 'America/Los_Angeles',
       }),
     ]);
   }
