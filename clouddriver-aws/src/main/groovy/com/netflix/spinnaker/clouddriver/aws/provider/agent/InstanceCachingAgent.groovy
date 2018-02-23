@@ -164,6 +164,9 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   private void cacheImage(InstanceData data, Map<String, CacheData> images) {
     images[data.imageId].with {
       relationships[INSTANCES.ns].add(data.instanceId)
+      if (data.serverGroup) {
+        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      }
     }
   }
 
@@ -171,6 +174,7 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
     if (data.serverGroup) {
       serverGroups[data.serverGroup].with {
         relationships[INSTANCES.ns].add(data.instanceId)
+        relationships[IMAGES.ns].add(data.imageId)
       }
     }
   }
