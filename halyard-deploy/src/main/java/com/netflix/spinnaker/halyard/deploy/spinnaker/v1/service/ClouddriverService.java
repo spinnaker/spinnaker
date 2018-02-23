@@ -51,6 +51,10 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
   @Autowired
   ClouddriverProfileFactory clouddriverProfileFactory;
 
+  protected ClouddriverProfileFactory getClouddriverProfileFactory() {
+    return clouddriverProfileFactory;
+  }
+
   @Autowired
   AwsCredentialsProfileFactoryBuilder awsCredentialsProfileFactoryBuilder;
 
@@ -75,7 +79,7 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     String filename = "clouddriver.yml";
 
     String path = Paths.get(getConfigOutputPath(), filename).toString();
-    Profile profile = clouddriverProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    Profile profile = getClouddriverProfileFactory().getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
     return profiles;

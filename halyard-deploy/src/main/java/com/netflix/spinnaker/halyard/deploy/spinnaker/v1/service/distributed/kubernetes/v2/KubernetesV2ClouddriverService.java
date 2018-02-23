@@ -20,20 +20,31 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ClouddriverProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.KubernetesV2ClouddriverProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@Slf4j
 public class KubernetesV2ClouddriverService extends ClouddriverService implements KubernetesV2Service<ClouddriverService.Clouddriver> {
   @Delegate
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
+
+  @Autowired
+  KubernetesV2ClouddriverProfileFactory kubernetesV2ClouddriverProfileFactory;
+
+  protected ClouddriverProfileFactory getClouddriverProfileFactory() {
+    return kubernetesV2ClouddriverProfileFactory;
+  }
 
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {

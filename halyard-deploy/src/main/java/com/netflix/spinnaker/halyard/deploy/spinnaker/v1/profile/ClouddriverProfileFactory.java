@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.Contai
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -73,12 +74,19 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
     List<String> files = backupRequiredFiles(modifiedProviders, deploymentConfiguration.getName());
     files.addAll(backupRequiredFiles(artifacts, deploymentConfiguration.getName()));
 
+    if (deploymentConfiguration.getProviders() != null) {
+      processProviders(deploymentConfiguration.getProviders());
+    }
+
     profile.appendContents(yamlToString(modifiedProviders))
         .appendContents(yamlToString(new ArtifactWrapper(artifacts)))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
 
     deploymentConfiguration.setProviders(originalProviders);
+  }
+
+  protected void processProviders(Providers providers) {
   }
 
   @SuppressWarnings("unchecked")
