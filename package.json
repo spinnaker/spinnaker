@@ -67,8 +67,9 @@
   },
   "devDependencies": {
     "@spinnaker/amazon": "0.0.46",
-    "@spinnaker/core": "0.0.150",
+    "@spinnaker/core": "0.0.154",
     "@spinnaker/google": "^0.0.1",
+    "@spinnaker/styleguide": "^1.0.1",
     "@spinnaker/kubernetes": "^0.0.4",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",

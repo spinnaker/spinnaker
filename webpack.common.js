@@ -7,6 +7,7 @@ const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const fs = require('fs');
 const inclusionPattern = [
   path.resolve(__dirname, 'src'),
+  path.resolve(NODE_MODULE_PATH, '@spinnaker/styleguide'),
 ];
 
 function configure(IS_TEST) {
@@ -78,6 +79,7 @@ function configure(IS_TEST) {
       ],
     },
     devServer: IS_TEST ? {} : {
+      disableHostCheck: true,
       port: process.env.DECK_PORT || 9000,
       host: process.env.DECK_HOST || 'localhost',
       https: process.env.DECK_HTTPS === 'true'
