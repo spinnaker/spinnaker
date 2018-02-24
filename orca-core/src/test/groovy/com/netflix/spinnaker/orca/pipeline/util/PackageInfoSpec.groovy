@@ -44,7 +44,7 @@ class PackageInfoSpec extends Specification {
     def artifacts = artifactFilenames.collect { [fileName: it] }
 
     expect:
-    PackageInfo.artifactMatch(artifacts, pattern) == expectedMatch
+    PackageInfo.artifactMatch(artifacts, [pattern]) == expectedMatch
 
     where:
     artifactPattern  || artifactFilenames                          || expectedMatch
@@ -309,7 +309,7 @@ class PackageInfoSpec extends Specification {
     def pattern = Pattern.compile("api.*")
 
     when:
-    def buildInfo = packageInfo.findBuildInfoInUpstreamStage(bakeStage, pattern)
+    def buildInfo = packageInfo.findBuildInfoInUpstreamStage(bakeStage, [pattern])
 
     then:
     noExceptionThrown()
@@ -524,5 +524,44 @@ class PackageInfoSpec extends Specification {
         it
       }
     ]
+  }
+
+  def "should fetch artifacts from upstream stage when not specified on pipeline trigger"() {
+    given:
+    def jenkinsTrigger = new JenkinsTrigger("master", "job", 1, "propertyFile")
+    jenkinsTrigger.buildInfo = new BuildInfo("name", 0, "url", [], [], false, "result")
+
+    def pipeline = pipeline {
+      trigger = jenkinsTrigger    // has no artifacts!
+      stage {
+        refId = "1"
+        outputs = [
+          buildInfo: [
+            "artifacts": [
+              ["fileName": "spinnaker_0.2.0-114_all.deb"],
+              ["fileName": "spinnakerdeps_0.1.0-114_all.deb"]
+            ]
+          ]
+        ]
+      }
+      stage {
+        id = "2"
+        requisiteStageRefIds = ["1"]
+
+        stage {
+          id = "3"
+          context = [
+            "package": "spinnakerdeps spinnaker"
+          ]
+          parentStageId = "2"
+        }
+      }
+    }
+
+    and:
+    def packageInfo = new PackageInfo(pipeline.stageById("3"), "deb", "_", false, false, new ObjectMapper())
+
+    expect:
+    packageInfo.findTargetPackage(false).package == "spinnakerdeps_0.1.0-114_all spinnaker_0.2.0-114_all"
   }
 }

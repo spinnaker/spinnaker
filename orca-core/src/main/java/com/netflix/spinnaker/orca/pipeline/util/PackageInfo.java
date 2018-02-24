@@ -41,7 +41,7 @@ public class PackageInfo {
   private final boolean extractBuildDetails;
   private final boolean extractVersion;
   private final BuildDetailExtractor buildDetailExtractor;
-  private final Pattern packageFilePattern;
+  private final List<Pattern> packageFilePatterns = new ArrayList<>();
 
   public PackageInfo(Stage stage, String packageType, String versionDelimiter, boolean extractBuildDetails, boolean extractVersion, ObjectMapper mapper) {
     this.stage = stage;
@@ -52,7 +52,15 @@ public class PackageInfo {
     this.mapper = mapper;
     this.buildDetailExtractor = new BuildDetailExtractor();
 
-    packageFilePattern = Pattern.compile(format("%s.*\\.%s", stage.getContext().get("package"), packageType));
+    // can be a space separated set of packages
+    if (stage.getContext().containsKey("package")) {
+      String packages = stage.getContext().get("package").toString();
+      for (String p : packages.split(" ")) {
+        packageFilePatterns.add(
+          Pattern.compile(format("%s.*\\.%s", p, packageType))
+        );
+      }
+    }
   }
 
   @VisibleForTesting
@@ -73,7 +81,7 @@ public class PackageInfo {
       }
 
       if (buildInfo == null || (buildInfo.get("artifacts") != null && !((Collection) buildInfo.get("artifacts")).isEmpty())) {
-        Map<String, Object> upstreamBuildInfo = findBuildInfoInUpstreamStage(stage, packageFilePattern);
+        Map<String, Object> upstreamBuildInfo = findBuildInfoInUpstreamStage(stage, packageFilePatterns);
         if (!upstreamBuildInfo.isEmpty()) {
           buildInfo = upstreamBuildInfo;
         }
@@ -263,23 +271,28 @@ public class PackageInfo {
       .orElse(emptyMap());
   }
 
-  private static Map<String, Object> findBuildInfoInUpstreamStage(Stage currentStage, Pattern packageFilePattern) {
+  private static Map<String, Object> findBuildInfoInUpstreamStage(Stage currentStage,
+                                                                  List<Pattern> packageFilePatterns) {
     Stage upstreamStage = currentStage
       .ancestors()
       .stream()
       .filter(it -> {
         Map<String, Object> buildInfo = (Map<String, Object>) it.getOutputs().get("buildInfo");
         return buildInfo != null &&
-          artifactMatch((List<Map<String, String>>) buildInfo.get("artifacts"), packageFilePattern);
+          artifactMatch((List<Map<String, String>>) buildInfo.get("artifacts"), packageFilePatterns);
       })
       .findFirst()
       .orElse(null);
     return upstreamStage != null ? (Map<String, Object>) upstreamStage.getOutputs().get("buildInfo") : emptyMap();
   }
 
-  private static boolean artifactMatch(List<Map<String, String>> artifacts, Pattern pattern) {
+  private static boolean artifactMatch(List<Map<String, String>> artifacts, List<Pattern> patterns) {
     return artifacts != null &&
-      artifacts.stream()
-        .anyMatch((Map artifact) -> pattern.matcher(String.valueOf(artifact.get("fileName"))).matches());
+      artifacts
+        .stream()
+        .anyMatch((Map artifact) -> patterns
+          .stream()
+          .anyMatch(p -> p.matcher(String.valueOf(artifact.get("fileName"))).matches())
+        );
   }
 }
