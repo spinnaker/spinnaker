@@ -72,8 +72,7 @@ Atlas and Stackdriver are used.
       "name": "cpu",
       "query": {
         "type": "stackdriver",
-        "metricType": "compute.googleapis.com/instance/cpu/utilization",
-        "serviceType": "stackdriver"
+        "metricType": "compute.googleapis.com/instance/cpu/utilization"
       },
       "groups": ["system"],
       "analysisConfigurations": { },
