@@ -107,6 +107,15 @@ class CollectBomVersions(CommandProcessor):
 
   RELEASED_VERSION_MATCHER = re.compile(r'^\d+(?:\.\d+){2}$')
 
+  @staticmethod
+  def url_to_bom_name(url):
+    """Given a url to a bom, return the name of the bom."""
+    name = url
+    dash = name.rfind('/')
+    if dash >= 0:
+      name = name[dash + 1:]
+    return os.path.splitext(name)[0]
+
   def __init__(self, factory, options, **kwargs):
     if options.bintray_org is None != options.bintray_debian_repository is None:
       raise_and_log_error(
@@ -129,14 +138,6 @@ class CollectBomVersions(CommandProcessor):
 
     super(CollectBomVersions, self).__init__(
         factory, options, **kwargs)
-
-  def url_to_bom_name(self, url):
-    """Given a url to a bom, return the name of the bom."""
-    name = url
-    dash = name.rfind('/')
-    if dash >= 0:
-      name = name[dash + 1:]
-    return os.path.splitext(name)[0]
 
   def load_bom_from_url(self, url):
     """Returns the bom specification dict from a gcs url."""
@@ -292,7 +293,7 @@ class CollectBomVersions(CommandProcessor):
     """Get a list of all the bom versions that exist."""
     result = check_subprocess('gsutil ls ' + gcs_dir_url_prefix)
     return [line for line in result.split('\n')
-            if line.startswith(gcs_dir_url_prefix)]
+            if line.startswith(gcs_dir_url_prefix) and line.endswith('.yml')]
 
   def _do_command(self):
     """Reads the list of boms, then concurrently processes them.
@@ -809,6 +810,7 @@ class AuditArtifactVersions(CommandProcessor):
     with open(path, 'r') as stream:
       self.__unreleased_boms = yaml.load(stream.read())
 
+    self.__only_bad_and_invalid_boms = False
     self.__all_bom_versions = self.__extract_all_bom_versions(
         self.__released_boms)
     self.__all_bom_versions.update(
@@ -890,13 +892,28 @@ class AuditArtifactVersions(CommandProcessor):
         logging.error('Ignoring invalid %s version "%s": %s', name, text, ex)
     return sorted(sem_vers, cmp=SemanticVersion.compare)[-1].to_version()
 
-  def determine_prunings(self):
-    def test_buildnum(buildver):
-      dash = buildver.rfind('-')
-      if dash < 0:
-        return True
-      return buildver[dash + 1:] < self.options.prune_min_buildnum_prefix
+  def test_buildnum(self, buildver):
+    dash = buildver.rfind('-')
+    if dash < 0:
+      return True
+    buildnum = buildver[dash + 1:]
+    return buildnum < self.options.prune_min_buildnum_prefix
 
+  def determine_bom_candidates(self):
+    path = os.path.join(os.path.dirname(self.get_output_dir()),
+                        'collect_bom_versions', 'bom_list.txt')
+    candidates = []
+    with open(path, 'r') as stream:
+      for line in stream.read().split('\n'):
+        if line.endswith('-latest-unvalidated.yml'):
+          continue
+        bom = CollectBomVersions.url_to_bom_name(line)
+        if not CollectBomVersions.RELEASED_VERSION_MATCHER.match(bom):
+          candidates.append(line)
+
+    return candidates
+
+  def determine_prunings(self):
     def filter_from_candidates(newest_version, candidate_version_list):
       if self.options.prune_keep_latest_version:
         prune_version = lambda ver: not ver.startswith(newest_version)
@@ -904,26 +921,15 @@ class AuditArtifactVersions(CommandProcessor):
         prune_version = lambda ver: True
 
       if self.options.prune_min_buildnum_prefix:
-        prune_buildnum = test_buildnum
+        prune_buildnum = self.test_buildnum
       else:
         prune_buildnum = lambda ver: True
 
       return [candidate for candidate in candidate_version_list
               if prune_version(candidate) and prune_buildnum(candidate)]
 
-    # Prune all the invalid boms, but not those that were released.
-    # The boms can still be reconstituted by building the missing parts.
-    self.__prune_boms = [
-        key for key in self.__invalid_boms
-        if not CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)
-        and test_buildnum(key)]
-
-    path = os.path.join(os.path.dirname(self.get_output_dir()),
-                        'collect_bom_versions', 'bad_boms.txt')
-    if not path.endswith('-latest-unvalidated.yml') and os.path.exists(path):
-      with open(path, 'r') as stream:
-        self.__prune_boms.extend(
-            [key for key in yaml.load(stream.read()) if test_buildnum(key)])
+    self.__prune_boms = [name for name in self.determine_bom_candidates()
+                         if self.test_buildnum(name)]
 
     service_list = set(self.__found_debians.keys())
     service_list.update(set(self.__found_containers.keys()))
@@ -960,12 +966,9 @@ class AuditArtifactVersions(CommandProcessor):
 
     urls = []
     if self.__prune_boms:
-      url_prefix = 'gs://%s/bom/' % bom_config['halyard_bom_bucket']
-      urls = [url_prefix + version for version in self.__prune_boms
-              if not version.endswith('-latest-unvalidated')]
       path = os.path.join(self.get_output_dir(), 'prune_boms.txt')
       logging.info('Writing to %s', path)
-      write_to_path('\n'.join(sorted(urls)), path)
+      write_to_path('\n'.join(sorted(self.__prune_boms)), path)
 
     jar_repo_path = 'packages/%s/%s' % (
         art_config['bintray_org'], art_config['bintray_jar_repository'])
