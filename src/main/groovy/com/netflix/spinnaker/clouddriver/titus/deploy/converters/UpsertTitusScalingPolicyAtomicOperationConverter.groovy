@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.clouddriver.aws.deploy.converters.UpsertScalingPolicyDescriptionAtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.UpsertScalingPolicyAtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation

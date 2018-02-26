@@ -220,7 +220,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (description.jobType != 'batch' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups && description.useApplicationDefaultSecurityGroup != false) {
         String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
         if (!applicationSecurityGroup) {
-          applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5)
+          applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5 )
         }
         if (!securityGroups.contains(applicationSecurityGroup)) {
           securityGroups << applicationSecurityGroup
@@ -297,7 +297,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     }
   }
 
-  protected TargetGroupLookupResult validateLoadBalancers(TitusDeployDescription description) {
+  protected TargetGroupLookupHelper.TargetGroupLookupResult validateLoadBalancers(TitusDeployDescription description) {
     if (!description.targetGroups) {
       return null
     }
@@ -309,7 +309,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     return targetGroups
   }
 
-  protected void addLoadBalancers(TitusDeployDescription description, TargetGroupLookupResult targetGroups, String jobUri) {
+  protected void addLoadBalancers(TitusDeployDescription description, TargetGroupLookupHelper.TargetGroupLookupResult targetGroups, String jobUri) {
     TitusLoadBalancerClient loadBalancerClient = titusClientProvider.getTitusLoadBalancerClient(description.credentials, description.region)
     if (!loadBalancerClient) {
       task.updateStatus BASE_PHASE, "Unable to create load balancing client in target account/region"
@@ -321,7 +321,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
     }
   }
 
-  protected void copyScalingPolicies(TitusDeployDescription description, String jobUri) {
+  protected void copyScalingPolicies(TitusDeployDescription description, String jobUri, String serverGroupName) {
     if (!description.copySourceScalingPolicies) {
       return
     }
@@ -350,8 +350,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
           if (![ScalingPolicyState.Deleted, ScalingPolicyState.Deleting].contains(policy.policyState.state)) {
             Builder requestBuilder = PutPolicyRequest.newBuilder()
               .setJobId(jobUri)
-              .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy).toScalingPolicyBuilder())
-            autoscalingClient.upsertScalingPolicy(requestBuilder.build())
+              .setScalingPolicy(UpsertTitusScalingPolicyDescription.fromScalingPolicyResult(description.region, policy, serverGroupName).toScalingPolicyBuilder())
+            task.updateStatus BASE_PHASE, "Creating new policy copied from policy ${policy.id}"
+            autoscalingClient.createScalingPolicy(requestBuilder.build())
           }
         }
       }
