@@ -1,6 +1,6 @@
 dependencies {
   compile project(":kork-jedis")
-  compile("com.netflix.dyno:dyno-jedis:1.6.0") {
+  compile("com.netflix.dyno:dyno-jedis:${spinnaker.version('dynomite')}") {
     exclude group: 'joda-time'
     exclude group: 'org.apache.httpcomponents'
     exclude group: 'org.slf4j'
