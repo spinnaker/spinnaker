@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 
 @Component
@@ -95,7 +96,9 @@ public class AmazonImageFinder implements ImageFinder {
     ImageDetails toAmazonImageDetails(String region) {
       String imageId = amis.get(region).get(0);
 
-      Map<String, String> imageTags = tagsByImageId.get(imageId);
+      Map<String, String> imageTags = Optional.ofNullable(tagsByImageId)
+        .map(it -> it.get(imageId))
+        .orElse(emptyMap());
       AppVersion appVersion = AppVersion.parseName(imageTags.get("appversion"));
       JenkinsDetails jenkinsDetails = Optional
         .ofNullable(appVersion)
