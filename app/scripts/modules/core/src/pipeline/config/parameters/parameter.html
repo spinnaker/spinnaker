@@ -32,7 +32,12 @@
         </div>
       </stage-config-field>
 
-      <stage-config-field label="Description">
+      <stage-config-field label="Label" help-key="pipeline.config.parameter.label">
+        <input type="text" ng-model="parameter.label"
+               class="form-control input-sm"/>
+      </stage-config-field>
+
+      <stage-config-field label="Description" help-key="pipeline.config.parameter.description">
         <input type="text" ng-model="parameter.description"
                class="form-control input-sm"/>
       </stage-config-field>
@@ -54,7 +59,7 @@
             <span class="glyphicon glyphicon-trash" uib-tooltip="Remove Option"></span><span class="sr-only">Remove Option</span>
           </button>
         </div>
-        <button class="btn btn-sm btn-default" ng-click="parameterCtrl.addOption(parameter)">
+        <button class="btn btn-sm btn-default add-new" ng-click="parameterCtrl.addOption(parameter)" style="margin-top: 10px">
           <span class="glyphicon glyphicon-plus-sign"></span> Add New Option
         </button>
       </stage-config-field>

@@ -76,7 +76,7 @@
         <p class="manual-execution-parameters-description">This pipeline is parameterized. Please enter values for the parameters below.</p>
         <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig">
           <div class="col-md-4 sm-label-right break-word">
-            <b>{{parameter.name}}</b>
+            <b>{{parameter.label || parameter.name}}</b>
             <span ng-if="parameter.required">*</span>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
           </div>

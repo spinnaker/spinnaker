@@ -310,4 +310,7 @@ module(HELP_CONTENTS, [])
     'pipeline.config.webhook.canceledStatuses': 'Comma-separated list of strings that will be considered as CANCELED status.',
     'pipeline.config.webhook.terminalStatuses': 'Comma-separated list of strings that will be considered as TERMINAL status.',
     'pipeline.config.webhook.customHeaders': 'Key-value pairs to be sent as additional headers to the service.',
+    'pipeline.config.parameter.label': '(Optional): a label to display when users are triggering the pipeline manually',
+    'pipeline.config.parameter.description': `(Optional): if supplied, will be displayed to users as a tooltip
+        when triggering the pipeline manually. You can include HTML in this field.`,
   });
