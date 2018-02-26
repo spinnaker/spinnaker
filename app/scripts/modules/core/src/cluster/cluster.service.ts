@@ -3,7 +3,7 @@ import { forOwn, get, groupBy, has, head, keys, values } from 'lodash';
 
 import { Api, API_SERVICE } from '../api/api.service';
 import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
-import { taskMatches } from './task.matcher';
+import { taskMatcher } from './task.matcher';
 import { IServerGroup } from 'core/domain';
 import { Application } from 'core/application/application.model';
 import { ICluster, IClusterSummary } from '../domain/ICluster';
@@ -169,7 +169,7 @@ export class ClusterService {
         serverGroup.runningTasks.length = 0;
       }
       runningTasks.forEach(function(task) {
-        if (taskMatches(task, serverGroup)) {
+        if (taskMatcher.taskMatches(task, serverGroup)) {
           serverGroup.runningTasks.push(task);
         }
       });

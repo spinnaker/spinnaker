@@ -6,6 +6,70 @@ export interface ITaskMatcher {
  (task: ITask, serverGroup: IServerGroup): boolean;
 }
 
+/**
+ * Match running tasks for an application to a specific server group.
+ * This allows the tasks to be displayed in the server group details, or
+ * as a popover on the server group header.
+ */
+export class TaskMatcher {
+  private customMatchers: { [type: string]: ITaskMatcher } = {
+    createcopylastasg: createcopylastasgMatcher,
+    createdeploy: createdeployMatcher,
+    rollbackServerGroup: rollbackServerGroupTaskMatcher,
+  };
+
+  private instanceIdMatchers = [
+    'deregisterinstancesfromloadbalancer',
+    'disableinstances',
+    'disableinstancesindiscovery',
+    'enableinstancesindiscovery',
+    'rebootinstances',
+    'registerinstanceswithloadbalancer',
+    'terminateinstances',
+  ];
+
+  private baseTaskMatchers = [
+    'destroyasg',
+    'destroyservergroup',
+    'disableasg',
+    'disablegoogleservergroup',
+    'disableservergroup',
+    'enableasg',
+    'enablegoogleservergroup',
+    'enableservergroup',
+    'resizeasg',
+    'resizeservergroup',
+    'resumeasgprocessesdescription',
+  ];
+
+  public addMatcher(stageName: string, matcher: ITaskMatcher | 'instanceIdMatchers' | 'baseTaskMatchers') {
+    if (typeof matcher === 'function') {
+      this.customMatchers[stageName] = matcher;
+    } else if (matcher === 'instanceIdMatchers') {
+      this.instanceIdMatchers.push(stageName);
+    } else if (matcher === 'baseTaskMatchers') {
+      this.baseTaskMatchers.push(stageName);
+    }
+  }
+
+  public taskMatches(task: ITask, serverGroup: IServerGroup) {
+    const matchers: { [type: string]: ITaskMatcher } = Object.assign({}, this.customMatchers);
+    this.instanceIdMatchers.forEach(m => matchers[m] = instanceIdsTaskMatcher);
+    this.baseTaskMatchers.forEach(m => matchers[m] = baseTaskMatcher);
+
+    const notificationType: string = has(task, 'execution.stages') ?
+      task.execution.stages[0].context['notification.type'] ?
+        task.execution.stages[0].context['notification.type'] :
+        task.execution.stages[0].type : // TODO: good grief
+      task.getValueFor('notification.type');
+
+    if (notificationType && matchers[notificationType]) {
+      return matchers[notificationType](task, serverGroup);
+    }
+    return false;
+  }
+}
+
 function createcopylastasgMatcher(task: ITask, serverGroup: IServerGroup): boolean {
   const source: any = task.getValueFor('source'),
         targetAccount: string = task.getValueFor('deploy.account.name'),
@@ -61,30 +125,4 @@ function rollbackServerGroupTaskMatcher(task: ITask, serverGroup: IServerGroup):
   return false;
 }
 
-export function taskMatches(task: ITask, serverGroup: IServerGroup) {
-  const matchers: { [type: string]: ITaskMatcher } = {
-    createcopylastasg: createcopylastasgMatcher,
-    createdeploy: createdeployMatcher,
-    rollbackServerGroup: rollbackServerGroupTaskMatcher,
-  };
-
-  const instanceIdMatchers = ['enableinstancesindiscovery', 'disableinstancesindiscovery', 'disableinstances',
-    'registerinstanceswithloadbalancer', 'deregisterinstancesfromloadbalancer', 'terminateinstances', 'rebootinstances'];
-  instanceIdMatchers.forEach(m => matchers[m] = instanceIdsTaskMatcher);
-
-  const baseTaskMatchers = ['resizeasg', 'resizeservergroup', 'disableasg', 'disableservergroup', 'destroyasg',
-    'destroyservergroup', 'enableasg', 'enableservergroup', 'enablegoogleservergroup', 'disablegoogleservergroup',
-    'resumeasgprocessesdescription'];
-  baseTaskMatchers.forEach(m => matchers[m] = baseTaskMatcher);
-
-  const notificationType: string = has(task, 'execution.stages') ?
-    task.execution.stages[0].context['notification.type'] ?
-      task.execution.stages[0].context['notification.type'] :
-      task.execution.stages[0].type : // TODO: good grief
-    task.getValueFor('notification.type');
-
-  if (notificationType && matchers[notificationType]) {
-    return matchers[notificationType](task, serverGroup);
-  }
-  return false;
-}
+export const taskMatcher = new TaskMatcher();
