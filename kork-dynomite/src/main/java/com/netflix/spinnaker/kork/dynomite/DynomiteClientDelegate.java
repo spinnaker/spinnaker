@@ -134,17 +134,17 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
 
   @Override
   public boolean supportsScripting() {
-    return false;
+    return true;
   }
 
   @Override
   public void withScriptingClient(Consumer<ScriptingCommands> f) {
-    throw new UnsupportedOperationException("Dynomite does not support scripting operations");
+    f.accept(client);
   }
 
   @Override
   public <R> R withScriptingClient(Function<ScriptingCommands, R> f) {
-    throw new UnsupportedOperationException("Dynomite does not support scripting operations");
+    return f.apply(client);
   }
 
   public class ClientDelegateException extends RuntimeException {
