@@ -43,19 +43,19 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
         <div className="load-balancer-header sticky-header-2">
           <UISrefActive class="active">
             <UISref to=".loadBalancerDetails" params={params}>
-              <h6 className="clickable clickable-row">
-                <span className="icon icon-elb"/> {(loadBalancer.region || '').toUpperCase()}
-                <EntityNotifications
-                  entity={loadBalancer}
-                  application={application}
-                  placement="bottom"
-                  entityType="loadBalancer"
-                  pageLocation="pod"
-                  onUpdate={() => application.loadBalancers.refresh()}
-                />
-                <span className="text-right">
-                  <HealthCounts container={loadBalancer.instanceCounts}/>
-                </span>
+              <h6 className="clickable clickable-row horizontal middle">
+                <span className="icon icon-elb"/>&nbsp; {(loadBalancer.region || '').toUpperCase()}
+                <div className="flex-1">
+                  <EntityNotifications
+                    entity={loadBalancer}
+                    application={application}
+                    placement="bottom"
+                    entityType="loadBalancer"
+                    pageLocation="pod"
+                    onUpdate={() => application.loadBalancers.refresh()}
+                  />
+                </div>
+                <HealthCounts container={loadBalancer.instanceCounts}/>
               </h6>
             </UISref>
           </UISrefActive>
