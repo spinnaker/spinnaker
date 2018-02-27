@@ -42,8 +42,8 @@ class ConfigError(BuildtoolError):
         message, self.INTERNAL, cause=cause or 'config')
 
 class TimeoutError(BuildtoolError):
-  def __init__(self, message):
-    super(TimeoutError, self).__init__(message, self.RUNTIME)
+  def __init__(self, message, cause=None):
+    super(TimeoutError, self).__init__(message, self.RUNTIME, cause=cause)
 
 class ExecutionError(BuildtoolError):
   def __init__(self, message, program=None):
