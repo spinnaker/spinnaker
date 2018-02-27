@@ -42,6 +42,19 @@ class IgorConfigurationProperties {
 
         @NestedConfigurationProperty
         final BuildProperties build = new BuildProperties()
+
+        @Canonical
+        static class PollingSafeguardProperties {
+            /**
+             * Defines the upper threshold for number of new cache items before a cache update cycle will be completely
+             * rejected. This is to protect against potentially re-indexing old caches due to downstream service errors.
+             * Once this threshold is tripped, API-driven resolution may be required.
+             */
+            int itemUpperThreshold = 10
+        }
+
+        @NestedConfigurationProperty
+        final PollingSafeguardProperties pollingSafeguard = new PollingSafeguardProperties()
     }
 
     @NestedConfigurationProperty

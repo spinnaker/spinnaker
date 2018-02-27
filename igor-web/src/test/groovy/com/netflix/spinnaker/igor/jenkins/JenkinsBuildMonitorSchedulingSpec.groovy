@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
+import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
@@ -46,7 +48,16 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         BuildMasters buildMasters = Mock(BuildMasters)
         def cfg = new IgorConfigurationProperties()
         cfg.spinnaker.build.pollInterval = 1
-        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: buildMasters, igorConfigurationProperties: cfg)
+        monitor = new JenkinsBuildMonitor(
+            cfg,
+            new NoopRegistry(),
+            Optional.empty(),
+            cache,
+            buildMasters,
+            true,
+            Optional.empty(),
+            new JenkinsProperties()
+        )
         monitor.worker = scheduler.createWorker()
 
         when:
@@ -91,8 +102,16 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         BuildMasters buildMasters = Mock(BuildMasters)
         def cfg = new IgorConfigurationProperties()
         cfg.spinnaker.build.pollInterval = 1
-        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: buildMasters, igorConfigurationProperties: cfg)
-        monitor.pollingEnabled = false
+        monitor = new JenkinsBuildMonitor(
+            cfg,
+            new NoopRegistry(),
+            Optional.empty(),
+            cache,
+            buildMasters,
+            false,
+            Optional.empty(),
+            new JenkinsProperties()
+        )
         monitor.worker = scheduler.createWorker()
 
         when:

@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.igor.gitlabci;
 
+import com.netflix.discovery.DiscoveryClient;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.build.BuildCache;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
 import com.netflix.spinnaker.igor.config.GitlabCiProperties;
@@ -28,14 +31,19 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor;
+import com.netflix.spinnaker.igor.polling.DeltaItem;
+import com.netflix.spinnaker.igor.polling.PollContext;
+import com.netflix.spinnaker.igor.polling.PollingDelta;
 import com.netflix.spinnaker.igor.service.BuildMasters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import rx.Observable;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -44,64 +52,88 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 
 @Service
 @ConditionalOnProperty("gitlab-ci.enabled")
-public class GitlabCiBuildMonitor extends CommonPollingMonitor {
+public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMonitor.BuildDelta, GitlabCiBuildMonitor.BuildPollingDelta> {
     private static final int MAX_NUMBER_OF_PIPELINES = 5;
 
-    @Autowired(required = false)
-    private EchoService echoService;
-    @Autowired
-    private BuildCache buildCache;
-    @Autowired
-    private BuildMasters buildMasters;
-    @Autowired
-    private GitlabCiProperties gitlabCiProperties;
+    private final BuildCache buildCache;
+    private final BuildMasters buildMasters;
+    private final GitlabCiProperties gitlabCiProperties;
+    private final Optional<EchoService> echoService;
 
-    @Override
-    public void initialize() {
+    @Autowired
+    public GitlabCiBuildMonitor(IgorConfigurationProperties properties,
+                                Registry registry,
+                                Optional<DiscoveryClient> discoveryClient,
+                                BuildCache buildCache,
+                                BuildMasters buildMasters,
+                                GitlabCiProperties gitlabCiProperties,
+                                Optional<EchoService> echoService) {
+        super(properties, registry, discoveryClient);
+        this.buildCache = buildCache;
+        this.buildMasters = buildMasters;
+        this.gitlabCiProperties = gitlabCiProperties;
+        this.echoService = echoService;
     }
 
     @Override
-    public void poll() {
-        buildMasters.filteredMap(BuildServiceProvider.GITLAB_CI).keySet()
-            .forEach(this::changedBuilds);
+    protected void initialize() {
     }
 
-    void changedBuilds(final String master) {
+    @Override
+    protected void poll() {
+        buildMasters.filteredMap(BuildServiceProvider.GITLAB_CI).keySet().stream()
+            .map(PollContext::new)
+            .forEach(this::internalPoll);
+    }
+
+    @Override
+    protected BuildPollingDelta generateDelta(PollContext ctx) {
+        final String master = ctx.partitionName;
+
         log.info("Checking for new builds for {}", kv("master", master));
         final AtomicInteger updatedBuilds = new AtomicInteger();
         final GitlabCiService gitlabCiService = (GitlabCiService) buildMasters.getMap().get(master);
         long startTime = System.currentTimeMillis();
 
-        try {
-            final List<Project> projects = gitlabCiService.getProjects();
-            log.info("Took {} ms to retrieve {} repositories (master: {})", System.currentTimeMillis() - startTime, projects.size(), kv("master", master));
-            Observable.from(projects).subscribe(
-                project -> {
-                    List<Pipeline> pipelines = filterOldPipelines(gitlabCiService.getPipelines(project, MAX_NUMBER_OF_PIPELINES));
-                    for (Pipeline pipeline : pipelines) {
-                        String branchedRepoSlug = GitlabCiPipelineUtis.getBranchedPipelineSlug(project, pipeline);
+        final List<Project> projects = gitlabCiService.getProjects();
+        log.info("Took {} ms to retrieve {} repositories (master: {})", System.currentTimeMillis() - startTime, projects.size(), kv("master", master));
 
-                        boolean isPipelineRunning = GitlabCiResultConverter.running(pipeline.getStatus());
-                        int cachedBuildId = buildCache.getLastBuild(master, branchedRepoSlug, isPipelineRunning);
-                        // In case of Gitlab CI the pipeline ids are increasing so we can use it for ordering
-                        if (pipeline.getId() > cachedBuildId) {
-                            updatedBuilds.incrementAndGet();
-                            log.info("Build update [{}:{}:{}] [status:{}] [running:{}]", kv("master", master), branchedRepoSlug, pipeline.getId(), pipeline.getStatus(), isPipelineRunning);
-                            buildCache.setLastBuild(master, branchedRepoSlug, pipeline.getId(), isPipelineRunning, buildCacheJobTTLSeconds());
-                            buildCache.setLastBuild(master, project.getPathWithNamespace(), pipeline.getId(), isPipelineRunning, buildCacheJobTTLSeconds());
-                            sendEventForPipeline(project, pipeline, gitlabCiService.getAddress(), branchedRepoSlug, master);
-                        }
-                    }
-                },
-                throwable -> log.error(String.format("Error: %s (master: %s)", throwable, kv("master", master)), throwable));
-            if (updatedBuilds.get() > 0) {
-                log.info("Found {} new builds (master: {})", updatedBuilds.get(), kv("master", master));
+        List<BuildDelta> delta = new ArrayList<>();
+        projects.parallelStream().forEach(project -> {
+            List<Pipeline> pipelines = filterOldPipelines(gitlabCiService.getPipelines(project, MAX_NUMBER_OF_PIPELINES));
+            for (Pipeline pipeline : pipelines) {
+                String branchedRepoSlug = GitlabCiPipelineUtis.getBranchedPipelineSlug(project, pipeline);
+
+                boolean isPipelineRunning = GitlabCiResultConverter.running(pipeline.getStatus());
+                int cachedBuildId = buildCache.getLastBuild(master, branchedRepoSlug, isPipelineRunning);
+                // In case of Gitlab CI the pipeline ids are increasing so we can use it for ordering
+                if (pipeline.getId() > cachedBuildId) {
+                    updatedBuilds.incrementAndGet();
+                    delta.add(new BuildDelta(branchedRepoSlug, project, pipeline, isPipelineRunning));
+                }
             }
+        });
 
-            log.info("Last poll took {} ms (master: {})", System.currentTimeMillis() - startTime, kv("master", master));
-        } catch (Exception e) {
-            log.error("Failed to obtain the list of projects", e);
+        if (!delta.isEmpty()) {
+            log.info("Found {} new builds (master: {})", updatedBuilds.get(), kv("master", master));
         }
+
+        return new BuildPollingDelta(delta, master, startTime);
+    }
+
+    @Override
+    protected void commitDelta(BuildPollingDelta delta) {
+        int ttl = buildCacheJobTTLSeconds();
+        final GitlabCiService gitlabCiService = (GitlabCiService) buildMasters.getMap().get(delta.master);
+
+        delta.items.parallelStream().forEach(item -> {
+            log.info("Build update [{}:{}:{}] [status:{}] [running:{}]", kv("master", delta.master), item.branchedRepoSlug, item.pipeline.getId(), item.pipeline.getStatus(), item.pipelineRunning);
+            buildCache.setLastBuild(delta.master, item.branchedRepoSlug, item.pipeline.getId(), item.pipelineRunning, ttl);
+            buildCache.setLastBuild(delta.master, item.project.getPathWithNamespace(), item.pipeline.getId(), item.pipelineRunning, ttl);
+            sendEventForPipeline(item.project, item.pipeline, gitlabCiService.getAddress(), item.branchedRepoSlug, delta.master);
+        });
+
+        log.info("Last poll took {} ms (master: {})", System.currentTimeMillis() - delta.startTime, kv("master", delta.master));
     }
 
     private List<Pipeline> filterOldPipelines(List<Pipeline> pipelines) {
@@ -128,6 +160,12 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor {
     }
 
     private void sendEvent(String slug, Project project, Pipeline pipeline, String address, String master) {
+        if (!echoService.isPresent()) {
+            log.warn("Cannot send build notification: Echo is not enabled");
+            registry.counter(missedNotificationId.withTag("monitor", getClass().getSimpleName())).increment();
+            return;
+        }
+
         log.info("pushing event for {}:{}:{}", kv("master", master), slug, pipeline.getId());
         GenericProject genericProject = new GenericProject(slug, GitlabCiPipelineUtis.genericBuild(pipeline, project.getPathWithNamespace(), address));
 
@@ -138,22 +176,47 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor {
 
         GenericBuildEvent event = new GenericBuildEvent();
         event.setContent(content);
-        echoService.postEvent(event);
+        echoService.get().postEvent(event);
     }
 
-    public void setEchoService(EchoService echoService) {
-        this.echoService = echoService;
+    @Override
+    protected Integer getPartitionUpperThreshold(String partition) {
+        for (GitlabCiProperties.GitlabCiHost host : gitlabCiProperties.getMasters()) {
+            if (host.getName() != null && host.getName().equals(partition)) {
+                return host.getItemUpperThreshold();
+            }
+        }
+        return null;
     }
 
-    public void setBuildCache(BuildCache buildCache) {
-        this.buildCache = buildCache;
+    static class BuildPollingDelta implements PollingDelta<BuildDelta> {
+        private final List<BuildDelta> items;
+        private final String master;
+        private final long startTime;
+
+        public BuildPollingDelta(List<BuildDelta> items, String master, long startTime) {
+            this.items = items;
+            this.master = master;
+            this.startTime = startTime;
+        }
+
+        @Override
+        public List<BuildDelta> getItems() {
+            return items;
+        }
     }
 
-    public void setBuildMasters(BuildMasters buildMasters) {
-        this.buildMasters = buildMasters;
-    }
+    static class BuildDelta implements DeltaItem {
+        private final String branchedRepoSlug;
+        private final Project project;
+        private final Pipeline pipeline;
+        private final boolean pipelineRunning;
 
-    public void setGitlabCiProperties(GitlabCiProperties gitlabCiProperties) {
-        this.gitlabCiProperties = gitlabCiProperties;
+        public BuildDelta(String branchedRepoSlug, Project project, Pipeline pipeline, boolean pipelineRunning) {
+            this.branchedRepoSlug = branchedRepoSlug;
+            this.project = project;
+            this.pipeline = pipeline;
+            this.pipelineRunning = pipelineRunning;
+        }
     }
 }

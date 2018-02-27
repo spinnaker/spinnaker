@@ -21,8 +21,6 @@ import org.hibernate.validator.constraints.NotEmpty
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 import javax.validation.Valid
-import javax.validation.constraints.Null
-
 /**
  * Helper class to map masters in properties file into a validated property map
  */
@@ -53,5 +51,7 @@ class JenkinsProperties {
 
         // Can be used directly, if available.
         String token
+
+        Integer itemUpperThreshold;
     }
 }

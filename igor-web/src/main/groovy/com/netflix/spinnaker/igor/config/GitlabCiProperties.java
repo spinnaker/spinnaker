@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @ConfigurationProperties(prefix = "gitlab-ci")
@@ -28,7 +29,7 @@ public class GitlabCiProperties {
     private int cachedJobTTLDays = 60;
 
     @Valid
-    private List<GitlabCiHost> masters;
+    private List<GitlabCiHost> masters = new ArrayList<>();
 
 
     public int getCachedJobTTLDays() {
@@ -55,6 +56,7 @@ public class GitlabCiProperties {
         private String privateToken;
         private boolean limitByMembership = false;
         private boolean limitByOwnership = true;
+        private Integer itemUpperThreshold;
 
         public String getName() {
             return name;
@@ -102,6 +104,14 @@ public class GitlabCiProperties {
 
         public void setLimitByOwnership(boolean limitByOwnership) {
             this.limitByOwnership = limitByOwnership;
+        }
+
+        public Integer getItemUpperThreshold() {
+            return itemUpperThreshold;
+        }
+
+        public void setItemUpperThreshold(Integer itemUpperThreshold) {
+            this.itemUpperThreshold = itemUpperThreshold;
         }
     }
 }

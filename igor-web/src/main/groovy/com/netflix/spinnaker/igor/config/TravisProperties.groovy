@@ -48,5 +48,7 @@ class TravisProperties {
         String githubToken
 
         int numberOfRepositories = 25
+
+        Integer itemUpperThreshold
     }
 }

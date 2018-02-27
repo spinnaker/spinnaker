@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.igor.travis
 
+import com.netflix.discovery.DiscoveryClient
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.BuildCache
 import com.netflix.spinnaker.igor.build.model.GenericProject
 import com.netflix.spinnaker.igor.config.TravisProperties
@@ -24,6 +27,9 @@ import com.netflix.spinnaker.igor.history.model.GenericBuildContent
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
+import com.netflix.spinnaker.igor.polling.DeltaItem
+import com.netflix.spinnaker.igor.polling.PollContext
+import com.netflix.spinnaker.igor.polling.PollingDelta
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
@@ -34,38 +40,41 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import rx.Observable
-import rx.Scheduler
-import rx.schedulers.Schedulers
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
 import static net.logstash.logback.argument.StructuredArguments.kv
-
 /**
  * Monitors travis builds
  */
 @Service
 @SuppressWarnings('CatchException')
 @ConditionalOnProperty('travis.enabled')
-class TravisBuildMonitor extends CommonPollingMonitor {
-
-    Scheduler.Worker worker = Schedulers.io().createWorker()
-
-    @Autowired
-    BuildCache buildCache
-
-    @Autowired(required = false)
-    EchoService echoService
-
-    @Autowired
-    BuildMasters buildMasters
+class TravisBuildMonitor extends CommonPollingMonitor<BuildDelta, BuildPollingDelta> {
 
     static final long BUILD_STARTED_AT_THRESHOLD = TimeUnit.SECONDS.toMillis(30)
 
+    private final BuildCache buildCache
+    private final BuildMasters buildMasters
+    private final TravisProperties travisProperties
+    private final Optional<EchoService> echoService
+
     @Autowired
-    TravisProperties travisProperties
+    TravisBuildMonitor(IgorConfigurationProperties properties,
+                       Registry registry,
+                       Optional<DiscoveryClient> discoveryClient,
+                       BuildCache buildCache,
+                       BuildMasters buildMasters,
+                       TravisProperties travisProperties,
+                       Optional<EchoService> echoService) {
+        super(properties, registry, discoveryClient)
+        this.buildCache = buildCache
+        this.buildMasters = buildMasters
+        this.travisProperties = travisProperties
+        this.echoService = echoService
+    }
 
     @Override
     void initialize() {
@@ -75,8 +84,36 @@ class TravisBuildMonitor extends CommonPollingMonitor {
     @Override
     void poll() {
         buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
-            trackedBuilds(master)
-            changedBuilds(master)
+            internalPoll(new PollContext(master))
+        }
+    }
+
+    @Override
+    protected BuildPollingDelta generateDelta(PollContext ctx) {
+        String master = ctx.partitionName
+        TravisService travisService = buildMasters.map[master] as TravisService
+
+        List<BuildDelta> builds = []
+        builds.addAll(trackedBuilds(master, travisService))
+        builds.addAll(changedBuilds(master, travisService))
+
+        return new BuildPollingDelta(master: master, items: builds)
+    }
+
+    @Override
+    protected void commitDelta(BuildPollingDelta delta) {
+        String master = delta.master
+        TravisService travisService = buildMasters.map[master] as TravisService
+
+        delta.items.parallelStream().forEach { item ->
+            V3Build build = item.build
+            log.info("({}) Build update {} [running:{}]", kv("master", master), build.toString(), TravisResultConverter.running(build.state))
+            buildCache.setLastBuild(master, item.branchedRepoSlug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
+            if(build.number > buildCache.getLastBuild(master, build.repository.slug, TravisResultConverter.running(build.state))) {
+                buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
+                sendEventForBuild(build, build.repository.slug, master, travisService)
+            }
+            sendEventForBuild(build, item.branchedRepoSlug, master, travisService)
         }
     }
 
@@ -85,23 +122,21 @@ class TravisBuildMonitor extends CommonPollingMonitor {
         return "travisBuildMonitor"
     }
 
-    List<Map> trackedBuilds(String master) {
-        List<Map> results = []
-        TravisService travisService = buildMasters.map[master] as TravisService
+    List<BuildDelta> trackedBuilds(String master, TravisService travisService) {
         def trackedBuilds = buildCache.getTrackedBuilds(master)
         log.info('({}) Checking for updates on {} tracked builds', kv("master", master), trackedBuilds.size())
 
         List<V3Build> builds = trackedBuilds.collect {
             travisService.getV3Build((int) it.get("buildId").toInteger())
         }
-        processBuilds(builds, master, travisService, results)
+
+        return processBuilds(builds, master, travisService)
     }
 
-    List<Map> changedBuilds(String master) {
+    List<BuildDelta> changedBuilds(String master, TravisService travisService) {
         log.info('({}) Checking for new builds', kv("master", master))
-        List<Map> results = []
 
-        TravisService travisService = buildMasters.map[master] as TravisService
+        List<BuildDelta> results = []
 
         def startTime = System.currentTimeMillis()
         List<Repo> repos = filterOutOldBuilds(travisService.getReposForAccounts())
@@ -109,7 +144,7 @@ class TravisBuildMonitor extends CommonPollingMonitor {
         Observable.from(repos).subscribe(
             { Repo repo ->
                 List<V3Build> builds = travisService.getBuilds(repo, 5)
-                processBuilds(builds, master, travisService, results)
+                results.addAll(processBuilds(builds, master, travisService))
             }, {
                 log.error("({}) Error: ${it.message}", kv("master", master))
             }
@@ -123,12 +158,12 @@ class TravisBuildMonitor extends CommonPollingMonitor {
             travisService.syncRepos()
             log.info("({}) repositorySync: Took {}ms to sync repositories", kv("master", master), System.currentTimeMillis() - startTime)
         }
-        results
 
+        return results
     }
 
-    private void processBuilds(List<V3Build> builds, String master, TravisService travisService, List<Map> results) {
-
+    private List<BuildDelta> processBuilds(List<V3Build> builds, String master, TravisService travisService) {
+        List<BuildDelta> results = []
         for (V3Build build : builds) {
             boolean addToCache = false
             String branchedRepoSlug = build.branchedRepoSlug()
@@ -138,18 +173,17 @@ class TravisBuildMonitor extends CommonPollingMonitor {
                 log.debug("({}) New build: {}", kv("master", master), build.toString())
             }
             if (addToCache) {
-                log.info("({}) Build update {} [running:{}]", kv("master", master), build.toString(), TravisResultConverter.running(build.state))
-                buildCache.setLastBuild(master, branchedRepoSlug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
-                if(build.number > buildCache.getLastBuild(master, build.repository.slug, TravisResultConverter.running(build.state))) {
-                    buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
-                    sendEventForBuild(build, build.repository.slug, master, travisService)
-                }
-                sendEventForBuild(build, branchedRepoSlug, master, travisService)
-
-                results << [slug: branchedRepoSlug, previous: cachedBuild, current: build.number]
+                results.add(new BuildDelta(
+                    branchedRepoSlug: branchedRepoSlug,
+                    build: build,
+                    travisBaseUrl: travisService.baseUrl,
+                    currentBuildNum: build.number,
+                    previousBuildNum: cachedBuild
+                ))
             }
             setTracking(build, master)
         }
+        return results
     }
 
     private void setTracking(V3Build build, String master) {
@@ -163,12 +197,17 @@ class TravisBuildMonitor extends CommonPollingMonitor {
     }
 
     private void sendEventForBuild(V3Build build, String branchedSlug, String master, TravisService travisService) {
-        if (echoService && !build.spinnakerTriggered()) {
-            log.info("({}) pushing event for :${branchedSlug}:${build.number}", kv("master", master))
-            GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
-            echoService.postEvent(
-                new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
-            )
+        if (echoService.isPresent()) {
+            if (!build.spinnakerTriggered()) {
+                log.info("({}) pushing event for :${branchedSlug}:${build.number}", kv("master", master))
+                GenericProject project = new GenericProject(branchedSlug, TravisBuildConverter.genericBuild(build, travisService.baseUrl))
+                echoService.get().postEvent(
+                    new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: 'travis'))
+                )
+            }
+        } else {
+            log.warn("Cannot send build event notification: Echo is not configured")
+            registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
         }
     }
 
@@ -206,5 +245,23 @@ class TravisBuildMonitor extends CommonPollingMonitor {
         return repos.findAll({ repo ->
             repo.lastBuildStartedAt?.isAfter(threshold)
         })
+    }
+
+    @Override
+    protected Integer getPartitionUpperThreshold(String partition) {
+        return travisProperties.masters.find { it.name == partition }?.itemUpperThreshold
+    }
+
+    static class BuildPollingDelta implements PollingDelta<BuildDelta> {
+        String master
+        List<BuildDelta> items
+    }
+
+    static class BuildDelta implements DeltaItem {
+        String branchedRepoSlug
+        V3Build build
+        String travisBaseUrl
+        int currentBuildNum
+        int previousBuildNum
     }
 }

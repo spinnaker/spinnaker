@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.igor.docker
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.igor.IgorConfigurationProperties
+import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
@@ -24,21 +27,26 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DockerMonitorSpec extends Specification {
+
+    def properties = new IgorConfigurationProperties()
+    def registry = new NoopRegistry()
+    def discoveryClient = Optional.empty()
+    def dockerRegistryCache = Mock(DockerRegistryCache)
+    def dockerRegistryAccounts = Mock(DockerRegistryAccounts)
+    def echoService = Mock(EchoService)
+    def taggedImage = new TaggedImage(
+        tag: "tag",
+        account: "account",
+        registry: "registry",
+        repository: "repository",
+        digest: "digest"
+    )
+
     @Unroll
     void 'should only publish events if account has been indexed previously'() {
-        def echoService = Mock(EchoService)
-        def taggedImage = new TaggedImage(
-            tag: "tag",
-            account: "account",
-            registry: "registry",
-            repository: "repository",
-            digest: "digest"
-        )
-
         when:
-        new DockerMonitor().postEvent(
-            echoService, cachedImages, taggedImage, "imageId"
-        )
+        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService))
+            .postEvent(cachedImages, taggedImage, "imageId")
 
         then:
         echoServiceCallCount * echoService.postEvent({ DockerEvent event ->
@@ -51,9 +59,8 @@ class DockerMonitorSpec extends Specification {
         })
 
         when: "should short circuit if `echoService` is not available"
-        new DockerMonitor().postEvent(
-            null, ["imageId"], taggedImage, "imageId"
-        )
+        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.empty())
+            .postEvent(["imageId"], taggedImage, "imageId")
 
         then:
         notThrown(NullPointerException)
@@ -67,19 +74,9 @@ class DockerMonitorSpec extends Specification {
     }
 
     void 'should include decorated artifact in the payload'() {
-        def echoService = Mock(EchoService)
-        def taggedImage = new TaggedImage(
-            tag: "tag",
-            account: "account",
-            registry: "registry",
-            repository: "repository",
-            digest: "digest"
-        )
-
         when:
-        new DockerMonitor().postEvent(
-            echoService, ["job1"], taggedImage, "imageId"
-        )
+        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService))
+            .postEvent(["job1"], taggedImage, "imageId")
 
         then:
         1 * echoService.postEvent({ DockerEvent event ->

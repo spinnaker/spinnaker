@@ -222,7 +222,7 @@ class BuildController {
                 String path = getArtifactPathFromBuild(jenkinsService, job, buildNumber, fileName)
 
                 if (path == null) {
-                    log.error("Unable to get properties: Could not find build artifact matching requested filename '{}' on '{}' build '{}", kv("fileName", fileName), kv("master", master), kv("buildNumber", buildNumber))
+                    log.error("Unable to get igorProperties: Could not find build artifact matching requested filename '{}' on '{}' build '{}", kv("fileName", fileName), kv("master", master), kv("buildNumber", buildNumber))
                     return map
                 }
 
@@ -239,17 +239,17 @@ class BuildController {
                     map = map << properties
                 }
             } catch (e) {
-                log.error("Unable to get properties '{}'", kv("job", job), e)
+                log.error("Unable to get igorProperties '{}'", kv("job", job), e)
             }
             map
         } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
             try {
                 buildMasters.map[master].getBuildProperties(job, buildNumber)
             } catch (e) {
-                log.error("Unable to get properties '{}'", kv("job", job), e)
+                log.error("Unable to get igorProperties '{}'", kv("job", job), e)
             }
         } else {
-            throw new MasterNotFoundException("Could not find master '${master}' to get properties")
+            throw new MasterNotFoundException("Could not find master '${master}' to get igorProperties")
 
         }
 

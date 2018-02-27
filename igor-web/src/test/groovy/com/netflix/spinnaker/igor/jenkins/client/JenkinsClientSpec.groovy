@@ -64,7 +64,7 @@ class JenkinsClientSpec extends Specification {
     void 'gets build details'() {
         given:
         final BUILD_NUMBER = 24
-        setResponse '''<freeStyleProject><artifact><displayPath>mayo_1.0-h24.853b2ea_all.deb</displayPath><fileName>mayo_1.0-h24.853b2ea_all.deb</fileName><relativePath>build/distributions/mayo_1.0-h24.853b2ea_all.deb</relativePath></artifact><artifact><displayPath>dependencies.txt</displayPath><fileName>dependencies.txt</fileName><relativePath>build/reports/project/dependencies.txt</relativePath></artifact><artifact><displayPath>properties.txt</displayPath><fileName>properties.txt</fileName><relativePath>build/reports/project/properties.txt</relativePath></artifact><building>false</building><description>No longer used in test.</description><duration>231011</duration><estimatedDuration>231196</estimatedDuration><fullDisplayName>SPINNAKER-igor-netflix #24</fullDisplayName><id>2014-05-29_09-13-59</id><keepLog>false</keepLog><number>24</number><result>SUCCESS</result><timestamp>1401380039000</timestamp><url>http://builds.netflix.com/job/SPINNAKER-igor-netflix/24/</url><builtOn>ssh-dynaslave-3f220763</builtOn><changeSet><kind>git</kind></changeSet></freeStyleProject>'''
+        setResponse '''<freeStyleProject><artifact><displayPath>mayo_1.0-h24.853b2ea_all.deb</displayPath><fileName>mayo_1.0-h24.853b2ea_all.deb</fileName><relativePath>build/distributions/mayo_1.0-h24.853b2ea_all.deb</relativePath></artifact><artifact><displayPath>dependencies.txt</displayPath><fileName>dependencies.txt</fileName><relativePath>build/reports/project/dependencies.txt</relativePath></artifact><artifact><displayPath>igorProperties.txt</displayPath><fileName>igorProperties.txt</fileName><relativePath>build/reports/project/igorProperties.txt</relativePath></artifact><building>false</building><description>No longer used in test.</description><duration>231011</duration><estimatedDuration>231196</estimatedDuration><fullDisplayName>SPINNAKER-igor-netflix #24</fullDisplayName><id>2014-05-29_09-13-59</id><keepLog>false</keepLog><number>24</number><result>SUCCESS</result><timestamp>1401380039000</timestamp><url>http://builds.netflix.com/job/SPINNAKER-igor-netflix/24/</url><builtOn>ssh-dynaslave-3f220763</builtOn><changeSet><kind>git</kind></changeSet></freeStyleProject>'''
         Build build = client.getBuild('SPINNAKER-igor-netflix', BUILD_NUMBER)
 
         expect:
@@ -275,7 +275,7 @@ class JenkinsClientSpec extends Specification {
                 '<freeStyleBuild>' +
                 '<action><failCount>0</failCount><skipCount>9</skipCount><totalCount>465</totalCount><urlName>testReport</urlName></action>' +
                 '<artifact><displayPath>api.txt</displayPath><fileName>api.txt</fileName><relativePath>apiweb/build/api.txt</relativePath></artifact>' +
-                '<artifact><displayPath>deb.properties</displayPath><fileName>deb.properties</fileName><relativePath>foo/build/deb.properties</relativePath></artifact>' +
+                '<artifact><displayPath>deb.igorProperties</displayPath><fileName>deb.igorProperties</fileName><relativePath>foo/build/deb.igorProperties</relativePath></artifact>' +
                 '<artifact><displayPath>api.deb</displayPath><fileName>api.deb</fileName><relativePath>foo/build/distributions/api.deb</relativePath></artifact>' +
                 '<artifact><displayPath>dependencies.lock</displayPath><fileName>dependencies.lock</fileName><relativePath>foo/dependencies.lock</relativePath></artifact>' +
                 '<building>false</building>' +
