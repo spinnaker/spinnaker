@@ -109,6 +109,7 @@ class LoadBalancerV2UpsertHandler {
           .withHealthyThresholdCount(targetGroup.healthyThreshold)
           .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
           .withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+          .withTargetType(targetGroup.targetType)
         )
         task.updateStatus BASE_PHASE, "Target group created in ${loadBalancerName} (${targetGroup.name}:${targetGroup.port}:${targetGroup.protocol})."
         createdTargetGroup = createTargetGroupResult.getTargetGroups().get(0)

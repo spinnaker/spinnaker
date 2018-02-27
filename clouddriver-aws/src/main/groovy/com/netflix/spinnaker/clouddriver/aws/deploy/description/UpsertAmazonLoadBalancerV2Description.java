@@ -34,6 +34,7 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     private ProtocolEnum protocol;
     private Integer port;
     private Attributes attributes; // TODO: Support target group attributes
+    private String targetType = "instance";
 
     private ProtocolEnum healthCheckProtocol;
     private String healthCheckPath;
@@ -76,6 +77,10 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     public void setAttributes(Attributes attributes) {
       this.attributes = attributes;
     }
+
+    public String getTargetType() { return targetType; }
+
+    public void setTargetType(String targetType) { this.targetType = targetType; }
 
     public ProtocolEnum getHealthCheckProtocol() {
       return healthCheckProtocol;
