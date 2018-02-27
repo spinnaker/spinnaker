@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.artifacts;
+package com.netflix.spinnaker.orca.pipeline.tasks.artifacts;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
