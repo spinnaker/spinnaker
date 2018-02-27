@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Armory, Inc.
+ * Copyright 2018 Joel Wilsson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.artifacts.github;
+package com.netflix.spinnaker.clouddriver.artifacts.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -36,45 +34,42 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Configuration
-@ConditionalOnProperty("artifacts.github.enabled")
+@ConditionalOnProperty("artifacts.http.enabled")
 @EnableScheduling
 @Slf4j
-public class GitHubArtifactConfiguration {
+public class HttpArtifactConfiguration {
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
-  @ConfigurationProperties("artifacts.github")
-  GitHubArtifactProviderProperties githubArtifactProviderProperties() {
-    return new GitHubArtifactProviderProperties();
+  @ConfigurationProperties("artifacts.http")
+  HttpArtifactProviderProperties HttpArtifactProviderProperties() {
+    return new HttpArtifactProviderProperties();
   }
 
   @Autowired
-  GitHubArtifactProviderProperties gitHubArtifactProviderProperties;
+  HttpArtifactProviderProperties httpArtifactProviderProperties;
 
   @Autowired
   ArtifactCredentialsRepository artifactCredentialsRepository;
 
   @Autowired
-  OkHttpClient gitHubOkHttpClient;
-
-  @Autowired
-  ObjectMapper objectMapper;
+  OkHttpClient httpOkHttpClient;
 
   @Bean
-  OkHttpClient gitHubOkHttpClient() {
+  OkHttpClient httpOkHttpClient() {
     return new OkHttpClient();
   }
 
   @Bean
-  List<? extends GitHubArtifactCredentials> gitHubArtifactCredentials() {
-    return gitHubArtifactProviderProperties.getAccounts()
+  List<? extends HttpArtifactCredentials> httpArtifactCredentials() {
+    return httpArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
-          GitHubArtifactCredentials c = new GitHubArtifactCredentials(a, gitHubOkHttpClient, objectMapper);
+          HttpArtifactCredentials c = new HttpArtifactCredentials(a, httpOkHttpClient);
           artifactCredentialsRepository.save(c);
           return c;
         } catch (Exception e) {
-          log.warn("Failure instantiating GitHub artifact account {}: ", a, e);
+          log.warn("Failure instantiating Http artifact account {}: ", a, e);
           return null;
         }
       })
