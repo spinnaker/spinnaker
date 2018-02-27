@@ -113,7 +113,7 @@ def __load_defaults_from_path(path, visited=None):
   return defaults
 
 
-def preprocess_args(args):
+def preprocess_args(args, default_home_path_filename='buildtool.yml'):
   """Preprocess the args to determine the defaults to use.
 
   This recognizes the --default_args_file override and, if present loads them.
@@ -129,7 +129,8 @@ def preprocess_args(args):
 
   options, args = parser.parse_known_args(args)
 
-  home_path = os.path.join(os.environ['HOME'], '.spinnaker', 'buildtool.yml')
+  home_path = os.path.join(os.environ['HOME'], '.spinnaker',
+                           default_home_path_filename)
   if CHECK_HOME_FOR_CONFIG and os.path.exists(home_path):
     defaults = __load_defaults_from_path(home_path)
     defaults['default_args_file'] = home_path
@@ -244,7 +245,7 @@ def main():
   finally:
     labels['success'] = success
     MetricsManager.singleton().observe_timer(
-        'BuildTool_Outcome', labels, 'Program Execution',
+        'BuildTool_Outcome', labels,
         time.time() - start_time)
     MetricsManager.shutdown_metrics()
 

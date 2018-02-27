@@ -254,8 +254,7 @@ class BuildBomCommand(RepositoryCommandProcessor):
 
     labels = {'repository': name, 'branch': branch,
               'reason': reason, 'updated': result}
-    self.metrics.inc_counter('UpdateBomEntry', labels,
-                             'Attempts to update bom entries.')
+    self.metrics.inc_counter('UpdateBomEntry', labels)
     return result
 
   def _do_repository(self, repository):

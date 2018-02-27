@@ -44,8 +44,7 @@ class GradleMetricsUpdater(object):
   def __call__(self, retcode, output):
     """Update metrics considering the final return code and process output."""
     labels = self.determine_labels(retcode, output)
-    return self.__metrics.inc_counter(
-        'GradleOutcome', labels, 'Outcomes when running gradle')
+    return self.__metrics.inc_counter('GradleOutcome', labels)
 
   def __extract_task_failure(self, output):
     """Extract the task failure, if any."""
@@ -257,9 +256,7 @@ class GradleRunner(object):
                                   exists=exists[0], missing=missing[0])))
         logging.info('Already have %s -- skipping build', repository.name)
         labels = {'repository': repository.name, 'artifact': 'debian'}
-        self.__metrics.inc_counter(
-            'ReuseArtifact', labels,
-            'Kept existing desired debian package version.')
+        self.__metrics.inc_counter('ReuseArtifact', labels)
         return True
 
       if options.delete_existing:
@@ -289,9 +286,7 @@ class GradleRunner(object):
           'artifact': 'debian'
       }
       self.__metrics.count_call(
-          'DeleteArtifact', labels,
-          'Attempts to delete versioned artifacts on bintray',
-          urllib2.urlopen, request)
+          'DeleteArtifact', labels, urllib2.urlopen, request)
       return True
     except urllib2.HTTPError as ex:
       if ex.code == 404:
@@ -360,7 +355,7 @@ class GradleRunner(object):
         'target': target
     }
     self.__metrics.time_call(
-        'GradleBuild', labels, 'Gradle builds.',
+        'GradleBuild', labels, self.__metrics.default_determine_outcome_labels,
         check_subprocesses_to_logfile,
         name + ' gradle ' + context, logfile, [cmd], cwd=gradle_dir,
         postprocess_hook=GradleMetricsUpdater(self.__metrics,
@@ -378,14 +373,13 @@ class GradleRunner(object):
     self.__scm.ensure_local_repository(repository)
     self.__git.remove_all_non_version_tags(repository, git_dir=git_dir)
 
-    if not version or not build_number:
-      source_info = self.__scm.lookup_source_info(repository)
-      if not build_number:
-        build_number = source_info.build_number
-      if not version:
-        version = source_info.summary.version
-
-    build_version = '%s-%s' % (version, build_number)
+    if not build_number:
+      build_number = self.__scm.determine_build_number(repository)
+    if not version:
+      build_version = self.__scm.get_repository_service_build_version(
+          repository)
+    else:
+      build_version = '%s-%s' % (version, build_number)
 
     logging.debug('Tagging repository %s with "%s" for nebula',
                   git_dir, build_version)

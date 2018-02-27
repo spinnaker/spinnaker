@@ -122,6 +122,7 @@ def run_subprocess(cmd, stream=None, echo=False, **kwargs):
 
 def check_subprocess(cmd, stream=None, **kwargs):
   """Run_subprocess and raise CalledProcessError if it fails."""
+  # pylint: disable=inconsistent-return-statements
   embed_errors = kwargs.pop('embed_errors', True)
   retcode, stdout = run_subprocess(cmd, stream=stream, **kwargs)
   if retcode == 0:
