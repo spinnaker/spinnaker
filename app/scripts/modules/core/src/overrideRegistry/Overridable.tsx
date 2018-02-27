@@ -109,13 +109,14 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
       if (cloudProviderTemplateOverride) {
         const cloudProviderController = cloudProviderRegistry.getValue(cloudProvider, key + 'Controller', providerVersion);
         const controllerAs = cloudProviderController && cloudProviderController.includes(' as ') ? undefined : 'ctrl';
-        const Component = (props: any) =>
+        const Component = (props: any) => (
           <AngularJSAdapter
             {...props}
             templateUrl={cloudProviderTemplateOverride}
             controller={cloudProviderController}
             controllerAs={controllerAs}
-          />;
+          />
+        );
 
         return Component as any as T;
       }
@@ -135,13 +136,14 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
       if (templateOverride) {
         const controllerOverride: string = overrideRegistry.getController(key, null);
         const controllerAs = controllerOverride && controllerOverride.includes(' as ') ? undefined : 'ctrl';
-        const Component = (props: any) =>
+        const Component = (props: any) => (
             <AngularJSAdapter
               {...props}
               templateUrl={templateOverride}
               controller={controllerOverride}
               controllerAs={controllerAs}
-            />;
+            />
+        );
 
         return Component as any as T;
       }
