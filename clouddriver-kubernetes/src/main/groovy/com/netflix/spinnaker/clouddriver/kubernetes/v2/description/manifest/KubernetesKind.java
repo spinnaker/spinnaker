@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class KubernetesKind {
   public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
@@ -76,5 +77,11 @@ public class KubernetesKind {
 
     // separate from the above chain to avoid concurrent modification of the values list
     return kindOptional.orElseGet(() -> new KubernetesKind(name));
+  }
+
+  public static List<KubernetesKind> fromStringList(List<String> names) {
+    return names.stream()
+        .map(KubernetesKind::fromString)
+        .collect(Collectors.toList());
   }
 }

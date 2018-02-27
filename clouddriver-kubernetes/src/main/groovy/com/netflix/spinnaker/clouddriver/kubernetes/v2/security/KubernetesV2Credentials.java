@@ -61,6 +61,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final ObjectMapper mapper = new ObjectMapper();
   private final List<String> namespaces;
   private final List<String> omitNamespaces;
+  private final List<KubernetesKind> kinds;
+  private final List<KubernetesKind> omitKinds;
 
   // TODO(lwander) make configurable
   private final static int namespaceExpirySeconds = 30;
@@ -94,6 +96,16 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private String cachedDefaultNamespace;
 
   private final Path serviceAccountNamespacePath = Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+
+  public boolean isValidKind(KubernetesKind kind) {
+    if (!this.kinds.isEmpty()) {
+      return kinds.contains(kind);
+    } else if (!this.omitKinds.isEmpty()) {
+      return !omitKinds.contains(kind);
+    } else {
+      return true;
+    }
+  }
 
   public String getDefaultNamespace() {
     if (StringUtils.isEmpty(cachedDefaultNamespace)) {
@@ -137,6 +149,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     Registry registry;
     KubectlJobExecutor jobExecutor;
     List<CustomKubernetesResource> customResources;
+    List<String> kinds;
+    List<String> omitKinds;
     boolean debug;
 
     public Builder accountName(String accountName) {
@@ -204,6 +218,16 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder kinds(List<String> kinds) {
+      this.kinds = kinds;
+      return this;
+    }
+
+    public Builder omitKinds(List<String> omitKinds) {
+      this.omitKinds = omitKinds;
+      return this;
+    }
+
     public KubernetesV2Credentials build() {
       KubeConfig kubeconfig;
       try {
@@ -223,6 +247,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
       customResources = customResources == null ? new ArrayList<>() : customResources;
+      kinds = kinds == null ? new ArrayList<>() : kinds;
+      omitKinds = omitKinds == null ? new ArrayList<>() : omitKinds;
 
       return new KubernetesV2Credentials(
           accountName,
@@ -236,6 +262,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           oAuthServiceAccount,
           oAuthScopes,
           customResources,
+          KubernetesKind.fromStringList(kinds),
+          KubernetesKind.fromStringList(omitKinds),
           debug
       );
     }
@@ -252,6 +280,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       String oAuthServiceAccount,
       List<String> oAuthScopes,
       @NotNull List<CustomKubernetesResource> customResources,
+      @NotNull List<KubernetesKind> kinds,
+      @NotNull List<KubernetesKind> omitKinds,
       boolean debug) {
     this.registry = registry;
     this.clock = registry.clock();
@@ -266,6 +296,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.oAuthServiceAccount = oAuthServiceAccount;
     this.oAuthScopes = oAuthScopes;
     this.customResources = customResources;
+    this.kinds = kinds;
+    this.omitKinds = omitKinds;
 
     this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, KubernetesKind.NAMESPACE, "")
         .stream()

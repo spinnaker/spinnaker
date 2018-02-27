@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAge
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
 
   @Override
   public List<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
+    KubernetesV2Credentials v2Credentials = (KubernetesV2Credentials) credentials.getCredentials();
     List<KubernetesCachingAgent> result = new ArrayList<>();
     IntStream.range(0, credentials.getCacheThreads())
         .boxed()
@@ -54,6 +56,7 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
             .stream()
             .map(KubernetesResourceProperties::getHandler)
             .filter(Objects::nonNull)
+            .filter(h -> v2Credentials.isValidKind(h.kind()))
             .map(h -> h.buildCachingAgent(credentials, objectMapper, registry, i, credentials.getCacheThreads()))
             .filter(Objects::nonNull)
             .forEach(c -> result.add((KubernetesCachingAgent) c))

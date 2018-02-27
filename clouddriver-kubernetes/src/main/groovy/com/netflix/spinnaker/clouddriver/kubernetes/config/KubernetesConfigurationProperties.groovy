@@ -46,6 +46,8 @@ class KubernetesConfigurationProperties {
     String namingStrategy = "kubernetesAnnotations"
     Boolean debug = false
     List<CustomKubernetesResource> customResources;
+    List<String> kinds
+    List<String> omitKinds
   }
 
   List<ManagedAccount> accounts = []
