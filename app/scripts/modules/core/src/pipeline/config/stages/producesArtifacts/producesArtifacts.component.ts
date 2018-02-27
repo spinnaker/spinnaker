@@ -1,8 +1,10 @@
 import { IComponentOptions, IController, module } from 'angular';
+import { BindAll } from 'lodash-decorators';
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { IStage, IExpectedArtifact } from 'core';
 
+@BindAll()
 class ProducesArtifactsCtrl implements IController {
   public stage: IStage;
 
