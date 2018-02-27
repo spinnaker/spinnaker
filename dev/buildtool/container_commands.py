@@ -93,8 +93,7 @@ class BuildContainerCommand(GradleCommandProcessor):
       labels = {'repository': repository.name, 'artifact': 'gcr-container'}
       if self.options.skip_existing:
         logging.info('Already have %s -- skipping build', image_name)
-        self.metrics.inc_counter('ReuseArtifact', labels,
-                                 'Kept existing container image.')
+        self.metrics.inc_counter('ReuseArtifact', labels)
         return True
       if self.options.delete_existing:
         self.__delete_gcb_image(repository, image_name, version)
@@ -114,7 +113,6 @@ class BuildContainerCommand(GradleCommandProcessor):
     labels = {'repository': repository.name, 'artifact': 'gcr-container'}
     self.metrics.count_call(
         'DeleteArtifact', labels,
-        'Attempts to delete existing GCR container images.',
         check_subprocess, ' '.join(command))
 
   def __build_with_gcb(self, repository):
@@ -166,8 +164,7 @@ class BuildContainerCommand(GradleCommandProcessor):
     logfile = self.get_logfile_path(name + '-gcb-build')
     labels = {'repository': repository.name}
     self.metrics.time_call(
-        'GcrBuild', labels,
-        'Attempts to build GCR container images.',
+        'GcrBuild', labels, self.metrics.default_determine_outcome_labels,
         check_subprocesses_to_logfile,
         name + ' container build', logfile, [command], cwd=git_dir)
 

@@ -90,8 +90,9 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
         match = matcher.match(binding)
         inject_bindings[match.group(1)] = match.group(2)
       except Exception as ex:
-        raise ValueError('Invalid influxdb_add_context_labels binding "%s": %s',
-                         binding, ex)
+        raise ValueError(
+            'Invalid influxdb_add_context_labels binding "%s": %s' % (
+                binding, ex))
 
     self.__inject_labels = ','.join(['%s=%s' % (key, value)
                                      for key, value in inject_bindings.items()
@@ -160,34 +161,48 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
         # Gauge is still lingering in our reporting
         self.__recent_gauges.add(gauge)
 
-      payload.append('{name}__gauge,{labels} value={value} {time}'.format(
-          name=gauge.name, labels=self.__to_label_text(gauge),
-          value=current.value, time=to_timestamp(now)))
+      payload.append(
+          self.__to_payload_line('gauge', gauge.name,
+                                 self.__to_label_text(gauge),
+                                 current.value, now))
+
+  def __to_payload_line(self, type_name, name, labels, value, utc):
+    if labels.endswith(','):
+      # This can happen if we have a context but no labels for this occurance
+      labels = labels[:-1]
+
+    if labels:
+      series = '{name}__{type},{labels}'.format(
+          name=name, type=type_name, labels=labels)
+    else:
+      series = '{name}__{type}'.format(name=name, type=type_name)
+    return '{series} value={value} {time}'.format(
+        series=series, value=value, time=to_timestamp(utc))
 
   def __export_counter_points(self, name, label_text, metric, payload):
     for entry in metric.mark_as_delta():
-      payload.append('{name}__counter,{labels} value={value} {time}'.format(
-          name=name, labels=label_text, value=entry.value,
-          time=to_timestamp(entry.utc)))
+      payload.append(
+          self.__to_payload_line('counter', name, label_text,
+                                 entry.value, entry.utc))
 
   def __export_gauge_points(self, name, label_text, metric, payload):
     self.__recent_gauges.add(metric)
     for entry in metric.mark_as_delta():
-      payload.append('{name}__gauge,{labels} value={value} {time}'.format(
-          name=name, labels=label_text, value=entry.value,
-          time=to_timestamp(entry.utc)))
+      payload.append(
+          self.__to_payload_line('gauge', name, label_text,
+                                 entry.value, entry.utc))
 
   def __export_timer_points(self, name, label_text, metric, payload):
     for entry in metric.mark_as_delta():
       count = entry.value[0]
       total_secs = entry.value[1]
-      payload.append('{name}__count,{labels} value={value} {time}'.format(
-          name=name, labels=label_text, value=count,
-          time=to_timestamp(entry.utc)))
-      payload.append('{name}__totalSecs,{labels} value={value} {time}'.format(
-          name=name, labels=label_text, value=total_secs,
-          time=to_timestamp(entry.utc)))
+      payload.append(
+          self.__to_payload_line('count', name, label_text,
+                                 count, entry.utc))
+      payload.append(
+          self.__to_payload_line('totalSecs', name, label_text,
+                                 total_secs, entry.utc))
       avg_secs = total_secs / count
-      payload.append('{name}__AvgSecs,{labels} value={value} {time}'.format(
-          name=name, labels=label_text, value=avg_secs,
-          time=to_timestamp(entry.utc)))
+      payload.append(
+          self.__to_payload_line('AvgSecs', name, label_text,
+                                 avg_secs, entry.utc))

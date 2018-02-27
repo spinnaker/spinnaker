@@ -27,7 +27,6 @@ import yaml
 
 # pylint: disable=relative-import
 from buildtool import (
-    SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
     GitRepositorySpec,
     GitRunner,
     RepositorySummary,

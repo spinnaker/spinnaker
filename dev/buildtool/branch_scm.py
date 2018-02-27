@@ -109,9 +109,10 @@ class BranchSourceCodeManager(SpinnakerSourceCodeManager):
 
   def check_repository_is_current(self, repository):
     branch = self.options.git_branch or 'master'
-    have_branch = self.git.query_local_repository_branch(repository.git_dir)
-    if have_branch == branch:
-      return True
-    raise_and_log_error(
-        UnexpectedError(
-            '"%s" is at the wrong branch "%s"' % (repository.git_dir, branch)))
+    git_dir = repository.git_dir
+    have_branch = self.git.query_local_repository_branch(git_dir)
+    if have_branch != branch:
+      raise_and_log_error(
+          UnexpectedError(
+              '"%s" is at the wrong branch "%s"' % (git_dir, branch)))
+    return True
