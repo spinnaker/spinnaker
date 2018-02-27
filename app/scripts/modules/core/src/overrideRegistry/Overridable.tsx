@@ -7,6 +7,7 @@ import { IAccountDetails } from 'core/account';
 
 export interface IOverridableProps {
   accountId?: string;
+  OriginalComponent?: React.ComponentType;
 }
 
 /**
@@ -46,7 +47,7 @@ export function Overridable(key: string) {
  *
  * export const MyOverridableCmp = overridableComponent(MyCmp);
  */
-export function overridableComponent <P extends IOverridableProps, T extends React.ComponentClass<P>> (DefaultComponent: T, key: string): T {
+export function overridableComponent <P extends IOverridableProps, T extends React.ComponentClass<P>> (OriginalComponent: T, key: string): T {
   class OverridableComponent extends React.Component<P, { Component: T }> {
     private account$ = new Subject<string>();
     private destroy$ = new Subject();
@@ -109,7 +110,12 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
         const cloudProviderController = cloudProviderRegistry.getValue(cloudProvider, key + 'Controller', providerVersion);
         const controllerAs = cloudProviderController && cloudProviderController.includes(' as ') ? undefined : 'ctrl';
         const Component = (props: any) =>
-          <AngularJSAdapter {...props} templateUrl={cloudProviderTemplateOverride} controller={cloudProviderController} controllerAs={controllerAs}/>;
+          <AngularJSAdapter
+            {...props}
+            templateUrl={cloudProviderTemplateOverride}
+            controller={cloudProviderController}
+            controllerAs={controllerAs}
+          />;
 
         return Component as any as T;
       }
@@ -130,7 +136,12 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
         const controllerOverride: string = overrideRegistry.getController(key, null);
         const controllerAs = controllerOverride && controllerOverride.includes(' as ') ? undefined : 'ctrl';
         const Component = (props: any) =>
-            <AngularJSAdapter {...props} templateUrl={templateOverride} controller={controllerOverride} controllerAs={controllerAs} />;
+            <AngularJSAdapter
+              {...props}
+              templateUrl={templateOverride}
+              controller={controllerOverride}
+              controllerAs={controllerAs}
+            />;
 
         return Component as any as T;
       }
@@ -139,12 +150,17 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
     }
 
     private getComponent(accountDetails: IAccountDetails): T {
-      return this.getComponentFromCloudProvider(accountDetails || {} as any) || this.getComponentFromOverrideRegistry() || DefaultComponent;
+      return this.getComponentFromCloudProvider(accountDetails || {} as any) ||
+        this.getComponentFromOverrideRegistry() ||
+        OriginalComponent;
     }
 
     public render() {
       const Component = this.state && this.state.Component;
-      return Component ? <Component {...this.props} /> : <Spinner/>;
+      const isOverridden = Component && Component !== OriginalComponent;
+      const props = Object.assign({}, this.props, isOverridden ? { OriginalComponent } : {});
+
+      return Component ? <Component {...props}/> : <Spinner/>;
     }
   }
 
