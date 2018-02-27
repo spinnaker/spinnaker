@@ -29,6 +29,8 @@ from buildtool import (
     timedelta_string,
     ExecutionError)
 
+from base_metrics import BaseMetricsRegistry
+
 
 # Directory where error logfiles are copied to.
 # This is exposed so it can be configured externally since
@@ -39,6 +41,7 @@ ERROR_LOGFILE_DIR = 'errors'
 def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
   """Starts a subprocess and returns handle to it."""
   split_cmd = shlex.split(cmd)
+  actual_command = cmd if kwargs.get('shell') else split_cmd
 
   log_level = logging.INFO if echo else logging.DEBUG
   extra_log_info = ''
@@ -53,7 +56,7 @@ def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
     stream.flush()
 
   process = subprocess.Popen(
-      split_cmd,
+      actual_command,
       close_fds=True,
       stdout=stdout or subprocess.PIPE,
       stderr=subprocess.STDOUT,
@@ -198,3 +201,17 @@ def check_subprocesses_to_logfile(what, logfile, cmds, append=False, **kwargs):
       with open(error_path, 'w') as f:
         f.write(output)
       raise
+
+
+def determine_subprocess_outcome_labels(result, labels):
+  """For determining outcome labels when timing calls to subprocesses."""
+  if result is None:
+    return BaseMetricsRegistry.default_determine_outcome_labels(
+        result, labels)
+  outcome_labels = dict(labels)
+  retcode, _ = result
+  outcome_labels.update({
+      'success': retcode == 0,
+      'exception_type': 'BadExitCode'
+  })
+  return outcome_labels

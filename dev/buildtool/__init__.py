@@ -47,7 +47,8 @@ from buildtool.subprocess_support import (
     check_subprocess,
     check_subprocess_sequence,
     run_subprocess_sequence,
-    check_subprocesses_to_logfile)
+    check_subprocesses_to_logfile,
+    determine_subprocess_outcome_labels)
 
 from buildtool.git_support import (
     GitRepositorySpec,

@@ -255,7 +255,7 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
         SNAPSHOT_CATEGORY[MetricFamily.GAUGE]: {},
         SNAPSHOT_CATEGORY[MetricFamily.TIMER]: {},
         'argv': sys.argv,
-        'job': 'buildtool',
+        'job': options.program if hasattr(options, 'program') else 'buildtool',
         'options': vars(self.options),
         'pid': os.getpid(),
         'start_time': datetime.datetime.utcnow().isoformat()
@@ -274,8 +274,9 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
                 or os.path.join(options.output_dir, 'metrics'))
     self.__metrics_path = os.path.join(
         dir_path,
-        'buildtool-metrics__{command}__{pid}.json'.format(
+        'metrics__{command}__{pid}.json'.format(
             command=options.command, pid=pid))
+    logging.debug('Metrics snapshots will write to %s', self.__metrics_path)
 
   def _do_make_family(
       self, family_type, name, label_names):
@@ -307,7 +308,6 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
     tmp_path = metrics_path + '.tmp'
     write_to_path(text, tmp_path)
     os.rename(tmp_path, metrics_path)
-    logging.debug('Wrote metric snapshot to %s', metrics_path)
 
   def _do_flush_final_metrics(self):
     """Writes metrics to file."""
