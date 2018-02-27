@@ -205,23 +205,29 @@ function create_component_prototype_disk() {
       --image-project $IMAGE_PROJECT >& /dev/null&)
 
   args="--component $component --version $version"
-  command="sudo bash /spinnaker/dev/$(basename $INSTALL_SCRIPT) ${args}"
+  command_path="/spinnaker/dev/$(basename $INSTALL_SCRIPT)"
+  command="sudo bash $command_path ${args}"
   command="$command ${EXTRA_INSTALL_SCRIPT_ARGS}"
-  sleep 120 # Wait for the startup scripts to complete.
 
-  echo "`date`: Installing $component and spinnaker-monitoring onto '$BUILD_INSTANCE'"
-  for i in {1..10}; do
+  echo "`date`: Waiting for instance to be ready..."
+  sleep 30 # initial seed time
+  for i in {1..15}; do
+    # Wait for both ssh to be ready and startup script to clone the repo
     if gcloud compute ssh $BUILD_INSTANCE \
       --project $BUILD_PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --ssh-key-file $SSH_KEY_FILE \
-      --command="exit 0"
+      --command="if [[ -f $command_path ]]; then exit 0; else exit -1; fi"
     then
         break
+    else
+        echo "`date`: Not yet, wait and try again."
+        sleep 10
     fi
   done
 
+  echo "`date`: Installing $component and spinnaker-monitoring onto '$BUILD_INSTANCE'"
   gcloud compute ssh $BUILD_INSTANCE \
     --project $BUILD_PROJECT \
     --account $ACCOUNT \

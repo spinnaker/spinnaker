@@ -44,6 +44,7 @@ interface, which is provided via free functions.
 
 
 import os
+from buildtool import add_parser_argument
 
 from validate_bom__deploy import write_data_to_secure_path
 
@@ -51,7 +52,7 @@ from validate_bom__deploy import write_data_to_secure_path
 class Configurator(object):
   """Interface used to control hal configuration of a particular feature set."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Adds command-line arguments to control configuration."""
     pass
 
@@ -80,14 +81,14 @@ class AzsStorageConfiguratorHelper(Configurator):
   """Helper class for StorageConfigurator to handle AZS."""
 
   @classmethod
-  def init_argument_parser(cls, parser):
+  def init_argument_parser(cls, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--storage_azs_account_name', default=None,
+    add_parser_argument(
+        parser, 'storage_azs_account_name', defaults, None,
         help='The name for the Azure Storage Account to use.'
              ' This is only used if --spinnaker_storage=azs.')
-    parser.add_argument(
-        '--storage_azs_credentials', default=None,
+    add_parser_argument(
+        parser, 'storage_azs_credentials', defaults, None,
         help='Path to Azure Storage Account credentials to configure'
              'spinnaker storage. This is only used if --spinnaker_storage=azs.')
 
@@ -127,29 +128,30 @@ class S3StorageConfiguratorHelper(Configurator):
              'eu-central-1', 'eu-west-1', 'eu-west-2', 'sa-east-1']
 
   @classmethod
-  def init_argument_parser(cls, parser):
+  def init_argument_parser(cls, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--storage_s3_bucket', default=None,
+    add_parser_argument(
+        parser, 'storage_s3_bucket', defaults, None,
         help='The name for the AWS S3 bucket to use.'
              ' This is only used if --spinnaker_storage=s3.')
-    parser.add_argument(
-        '--storage_s3_assume_role', default='role/spinnakerManaged',
+    add_parser_argument(
+        parser, 'storage_s3_assume_role', defaults, 'role/spinnakerManaged',
         help='Use AWS SecurityToken Service to assume this role.')
 
-    parser.add_argument(
-        '--storage_s3_region', choices=cls.REGIONS,
+    add_parser_argument(
+        parser, 'storage_s3_region', defaults, None, choices=cls.REGIONS,
         help='The name for the AWS region to create the bucket in.'
              ' This is only used if the bucket does not already exist.')
 
-    parser.add_argument(
-        '--storage_s3_endpoint', help='The s3 endpoint.')
+    add_parser_argument(
+        parser, 'storage_s3_endpoint', defaults, None,
+        help='The s3 endpoint.')
 
-    parser.add_argument(
-        '--storage_s3_access_key_id', default=None,
+    add_parser_argument(
+        parser, 'storage_s3_access_key_id', defaults, None,
         help='AWS Access Key ID for AWS account owning s3 storage.')
-    parser.add_argument(
-        '--storage_s3_credentials', default=None,
+    add_parser_argument(
+        parser, 'storage_s3_credentials', defaults, None,
         help='Path to file containing the secret access key for the S3 account')
 
   @classmethod
@@ -195,13 +197,14 @@ class GcsArtifactStorageConfiguratorHelper(Configurator):
   """Helper class for ArtifactConfigurator to handle GCS."""
 
   @classmethod
-  def init_argument_parser(cls, parser):
+  def init_argument_parser(cls, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--artifact_gcs_credentials', default=None,
-        help='Path to google credentials file to configure spinnaker artifact storage.')
-    parser.add_argument(
-        '--artifact_gcs_account_name', default=None,
+    add_parser_argument(
+        parser, 'artifact_gcs_credentials', defaults, None,
+        help='Path to google credentials file to configure spinnaker'
+             ' artifact storage.')
+    add_parser_argument(
+        parser, 'artifact_gcs_account_name', defaults, None,
         help='Account name to use for artifact downloads.')
 
   @classmethod
@@ -244,22 +247,23 @@ class GcsStorageConfiguratorHelper(Configurator):
   ]
 
   @classmethod
-  def init_argument_parser(cls, parser):
+  def init_argument_parser(cls, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--storage_gcs_bucket', default=None,
+    add_parser_argument(
+        parser, 'storage_gcs_bucket', defaults, None,
         help=('URI for specific Google Storage bucket to use.'
               ' This is suggested if using gcs storage, though can be left'
               ' empty to let Halyard create one.'))
-    parser.add_argument(
-        '--storage_gcs_location', choices=cls.LOCATIONS, default='us-central1',
+    add_parser_argument(
+        parser, 'storage_gcs_location', defaults, 'us-central1',
+        choices=cls.LOCATIONS,
         help=('Location for the bucket if it needs to be created.'))
-    parser.add_argument(
-        '--storage_gcs_project', default=None,
+    add_parser_argument(
+        parser, 'storage_gcs_project', defaults, None,
         help=('URI for specific Google Storage bucket project to use.'
               ' If empty, use the --deploy_google_project.'))
-    parser.add_argument(
-        '--storage_gcs_credentials', default=None,
+    add_parser_argument(
+        parser, 'storage_gcs_credentials', defaults, None,
         help='Path to google credentials file to configure spinnaker storage.'
              ' This is only used if --spinnaker_storage=gcs.'
              ' If left empty then use application default credentials.')
@@ -300,13 +304,13 @@ class ArtifactConfigurator(Configurator):
   """Controls hal config artifact for Spinnaker artifact ."""
 
   HELPERS = [
-    GcsArtifactStorageConfiguratorHelper,
+      GcsArtifactStorageConfiguratorHelper,
   ]
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
     for helper in self.HELPERS:
-      helper.init_argument_parser(parser)
+      helper.init_argument_parser(parser, defaults)
 
   def validate_options(self, options):
     """Implements interface."""
@@ -333,13 +337,15 @@ class StorageConfigurator(Configurator):
       's3': S3StorageConfiguratorHelper
   }
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--spinnaker_storage', required=True, choices=self.HELPERS.keys(),
+    add_parser_argument(
+        parser, 'spinnaker_storage',
+        defaults, None,
+        choices=self.HELPERS.keys(),
         help='The storage type to configure.')
     for helper in self.HELPERS.values():
-      helper.init_argument_parser(parser)
+      helper.init_argument_parser(parser, defaults)
 
   def validate_options(self, options):
     """Implements interface."""
@@ -371,32 +377,32 @@ class StorageConfigurator(Configurator):
 class AwsConfigurator(Configurator):
   """Controls hal config provider aws."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
     # pylint: disable=line-too-long
-    parser.add_argument(
-        '--aws_access_key_id', default=None,
+    add_parser_argument(
+        parser, 'aws_access_key_id', defaults, None,
         help='The AWS ACCESS_KEY_ID.')
-    parser.add_argument(
-        '--aws_credentials', default=None,
+    add_parser_argument(
+        parser, 'aws_credentials', defaults, None,
         help='A path to a file containing the AWS SECRET_ACCESS_KEY')
 
-    parser.add_argument(
-        '--aws_account_name', default='my-aws-account',
+    add_parser_argument(
+        parser, 'aws_account_name', defaults, 'my-aws-account',
         help='The name of the primary AWS account to configure.')
-    parser.add_argument(
-        '--aws_account_id', default=None,
+    add_parser_argument(
+        parser, 'aws_account_id', defaults, None,
         help='The AWS account id for the account.'
              ' See http://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html')
-    parser.add_argument(
-        '--aws_account_role', default='role/spinnakerManaged',
+    add_parser_argument(
+        parser, 'aws_account_role', defaults, 'role/spinnakerManaged',
         help=' The account will assume this role.')
 
-    parser.add_argument(
-        '--aws_account_regions', default='us-east-1,us-west-2',
+    add_parser_argument(
+        parser, 'aws_account_regions', defaults, 'us-east-1,us-west-2',
         help='The AWS account regions the account will manage.')
-    parser.add_argument(
-        '--aws_account_pem_path', default=None,
+    add_parser_argument(
+        parser, 'aws_account_pem_path', defaults, None,
         help='The path to the PEM file for the keypair to use.'
              'The basename minus suffix will be the name of the keypair.')
 
@@ -454,37 +460,37 @@ class AwsConfigurator(Configurator):
 class AppengineConfigurator(Configurator):
   """Controls hal config provider for appengine"""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
     # pylint: disable=line-too-long
-    parser.add_argument(
-        '--appengine_account_project', default=None,
+    add_parser_argument(
+        parser, 'appengine_account_project', defaults, None,
         help='The Google Cloud Platform project this Spinnaker account will manage.')
 
-    parser.add_argument(
-        '--appengine_account_name', default='my-appengine-account',
+    add_parser_argument(
+        parser, 'appengine_account_name', defaults, 'my-appengine-account',
         help='The name of the primary Appengine account to configure.')
-    parser.add_argument(
-        '--appengine_account_credentials', default=None,
+    add_parser_argument(
+        parser, 'appengine_account_credentials', defaults, None,
         help='Path to file containing the JSON Oauth credentials for the AppEngine account.')
 
-    parser.add_argument(
-        '--appengine_account_git_username', default=None,
+    add_parser_argument(
+        parser, 'appengine_account_git_username', defaults, None,
         help='The name of the remote git user.')
-    parser.add_argument(
-        '--appengine_account_git_https_credentials', default=None,
+    add_parser_argument(
+        parser, 'appengine_account_git_https_credentials', defaults, None,
         help='Path to file containing the password for the remote git repository.')
-    parser.add_argument(
-        '--appengine_account_git_oauth_credentials', default=None,
+    add_parser_argument(
+        parser, 'appengine_account_git_oauth_credentials', defaults, None,
         help='Path to file containing the password for the remote git repository.')
 
-    parser.add_argument(
-        '--appengine_account_ssh_private_key_path', default=None)
-    parser.add_argument(
-        '--appengine_account_ssh_private_key_passphrase', default=None)
+    add_parser_argument(
+        parser, 'appengine_account_ssh_private_key_path', defaults, None)
+    add_parser_argument(
+        parser, 'appengine_account_ssh_private_key_passphrase', defaults, None)
 
-    parser.add_argument(
-        '--appengine_account_local_repository_directory', default=None)
+    add_parser_argument(
+        parser, 'appengine_account_local_repository_directory', defaults, None)
 
   def validate_options(self, options):
     """Implements interface."""
@@ -565,42 +571,42 @@ class AppengineConfigurator(Configurator):
 class AzureConfigurator(Configurator):
   """Controls hal config provider azure."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
     # pylint: disable=line-too-long
-    parser.add_argument(
-        '--azure_account_credentials', default=None,
+    add_parser_argument(
+        parser, 'azure_account_credentials', defaults, None,
         help='Path to Azure credentials file containing the appKey'
              ' for the service principal.')
-    parser.add_argument(
-        '--azure_account_name', default='my-azure-account',
+    add_parser_argument(
+        parser, 'azure_account_name', defaults, 'my-azure-account',
         help='The name of the primary Azure account to configure.')
-    parser.add_argument(
-        '--azure_account_client_id', default=None,
+    add_parser_argument(
+        parser, 'azure_account_client_id', defaults, None,
         help='The Azure clientId for the service principal.')
-    parser.add_argument(
-        '--azure_account_subscription_id', default=None,
+    add_parser_argument(
+        parser, 'azure_account_subscription_id', defaults, None,
         help='The subscriptionId for the service principal.')
-    parser.add_argument(
-        '--azure_account_tenant_id', default=None,
+    add_parser_argument(
+        parser, 'azure_account_tenant_id', defaults, None,
         help='The tenantId for the service principal.')
-    parser.add_argument(
-        '--azure_account_object_id', default=None,
+    add_parser_argument(
+        parser, 'azure_account_object_id', defaults, None,
         help='The objectId of the service principal.'
              ' Needed to bake Windows images.')
 
-    parser.add_argument(
-        '--azure_account_default_key_vault', default=None,
+    add_parser_argument(
+        parser, 'azure_account_default_key_vault', defaults, None,
         help='The name of the KeyValue containing the default user/password'
              ' to create VMs.')
-    parser.add_argument(
-        '--azure_account_default_resource_group', default=None,
+    add_parser_argument(
+        parser, 'azure_account_default_resource_group', defaults, None,
         help='The default for non-application specific resources.')
-    parser.add_argument(
-        '--azure_account_packer_resource_group', default=None,
+    add_parser_argument(
+        parser, 'azure_account_packer_resource_group', defaults, None,
         help='Used by packer when baking images.')
-    parser.add_argument(
-        '--azure_account_packer_storage_account', default=None,
+    add_parser_argument(
+        parser, 'azure_account_packer_storage_account', defaults, None,
         help='The storage account ot use if baking images with packer.')
 
 
@@ -665,28 +671,28 @@ class AzureConfigurator(Configurator):
 class DcosConfigurator(Configurator):
   """Controls hal config provider DC/OS."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
     # pylint: disable=line-too-long
-    parser.add_argument(
-        '--dcos_cluster_name', default='my-dcos-cluster',
+    add_parser_argument(
+        parser, 'dcos_cluster_name', defaults, 'my-dcos-cluster',
         help='The name for the primary DC/OS cluster.')
-    parser.add_argument(
-        '--dcos_cluster_url', default=None,
+    add_parser_argument(
+        parser, 'dcos_cluster_url', defaults, None,
         help='The URL to the primary DC/OS cluster.'
              ' This is required to enable DC/OS')
-    parser.add_argument(
-        '--dcos_account_name', default='my-dcos-account',
+    add_parser_argument(
+        parser, 'dcos_account_name', defaults, 'my-dcos-account',
         help='The name of the primary DC/OS account to configure.')
-    parser.add_argument(
-        '--dcos_account_docker_account',
+    add_parser_argument(
+        parser, 'dcos_account_docker_account', defaults, None,
         help='The registered docker account name to use.')
-    parser.add_argument(
-        '--dcos_account_uid', default=None,
+    add_parser_argument(
+        parser, 'dcos_account_uid', defaults, None,
         help='The DC/OS account user name the service principal.'
              'This is required if DC/OS is enabled.')
-    parser.add_argument(
-        '--dcos_account_credentials', default=None,
+    add_parser_argument(
+        parser, 'dcos_account_credentials', defaults, None,
         help='Path to DC/oS credentials file containing the password'
              ' for the uid. This is required if DC/OS is enabled.')
 
@@ -733,18 +739,17 @@ class DcosConfigurator(Configurator):
 class GoogleConfigurator(Configurator):
   """Controls hal config provider google."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--google_account_project',
-        default=None,
+    add_parser_argument(
+        parser, 'google_account_project', defaults, None,
         help='Google project to deploy to if --host_platform is gce.')
-    parser.add_argument(
-        '--google_account_credentials', default=None,
+    add_parser_argument(
+        parser, 'google_account_credentials', defaults, None,
         help='Path to google credentials file for the google account.'
              'Adding credentials enables the account.')
-    parser.add_argument(
-        '--google_account_name', default='my-google-account',
+    add_parser_argument(
+        parser, 'google_account_name', defaults, 'my-google-account',
         help='The name of the primary google account to configure.')
 
   def validate_options(self, options):
@@ -786,22 +791,22 @@ class GoogleConfigurator(Configurator):
 class KubernetesConfigurator(Configurator):
   """Controls hal config provider kubernetes."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--k8s_account_credentials', default=None,
+    add_parser_argument(
+        parser, 'k8s_account_credentials', defaults, None,
         help='Path to k8s credentials file.')
-    parser.add_argument(
-        '--k8s_account_name', default='my-kubernetes-account',
+    add_parser_argument(
+        parser, 'k8s_account_name', defaults, 'my-kubernetes-account',
         help='The name of the primary Kubernetes account to configure.')
-    parser.add_argument(
-        '--k8s_account_context',
+    add_parser_argument(
+        parser, 'k8s_account_context', defaults, None,
         help='The kubernetes context for the primary Kubernetes account.')
-    parser.add_argument(
-        '--k8s_account_namespaces', default='validate-bom',
+    add_parser_argument(
+        parser, 'k8s_account_namespaces', defaults, 'validate-bom',
         help='The kubernetes namespaces for the primary Kubernetes account.')
-    parser.add_argument(
-        '--k8s_account_docker_account', default=None,
+    add_parser_argument(
+        parser, 'k8s_account_docker_account', defaults, None,
         help='The docker registry account to use with the --k8s_account')
 
   def validate_options(self, options):
@@ -843,22 +848,22 @@ class KubernetesConfigurator(Configurator):
 class DockerConfigurator(Configurator):
   """Controls hal config provider docker."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--docker_account_address', default=None,
+    add_parser_argument(
+        parser, 'docker_account_address', defaults, None,
         help='Registry address to pull and deploy images from.')
-    parser.add_argument(
-        '--docker_account_name', default='my-docker-account',
+    add_parser_argument(
+        parser, 'docker_account_name', defaults, 'my-docker-account',
         help='The name of the primary Docker account to configure.')
-    parser.add_argument(
-        '--docker_account_registry_username', default=None,
+    add_parser_argument(
+        parser, 'docker_account_registry_username', defaults, None,
         help='The username for the docker registry.')
-    parser.add_argument(
-        '--docker_account_credentials', default=None,
+    add_parser_argument(
+        parser, 'docker_account_credentials', defaults, None,
         help='Path to plain-text password file.')
-    parser.add_argument(
-        '--docker_account_repositories', default=None,
+    add_parser_argument(
+        parser, 'docker_account_repositories', defaults, None,
         help='Additional list of repositories to cache images from.')
 
   def validate_options(self, options):
@@ -897,30 +902,30 @@ class DockerConfigurator(Configurator):
 class JenkinsConfigurator(Configurator):
   """Controls hal config ci."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--jenkins_master_name', default=None,
+    add_parser_argument(
+        parser, 'jenkins_master_name', defaults, None,
         help='The name of the jenkins master to configure.'
         ' If provided, this also needs --jenkins_master_address, '
         ' --jenkins_master_user, and --jenkins_master_credentials'
         ' or an environment variable JENKINS_MASTER_PASSWORD')
-    parser.add_argument(
-        '--jenkins_master_address', default=None,
+    add_parser_argument(
+        parser, 'jenkins_master_address', defaults, None,
         help='The network address of the jenkins master to configure.'
         ' If provided, this also needs --jenkins_master_name, '
         ' --jenkins_master_user, and --jenkins_master_credentials'
         ' or an environment variable JENKINS_MASTER_PASSWORD')
-    parser.add_argument(
-        '--jenkins_master_user', default=None,
+    add_parser_argument(
+        parser, 'jenkins_master_user', defaults, None,
         help='The name of the jenkins master to configure.'
         ' If provided, this also needs --jenkins_master_address, '
         ' --jenkins_master_name, and --jenkins_master_credentials'
         ' or an environment variable JENKINS_MASTER_PASSWORD')
-    parser.add_argument(
-        '--jenkins_master_credentials', default=None,
+    add_parser_argument(
+        parser, 'jenkins_master_credentials', defaults, None,
         help='The password for the jenkins master to configure.'
-             ' If provided, this takes pre cedence over'
+             ' If provided, this takes precedence over'
              ' any JENKINS_MASTER_PASSWORD environment variable value.')
 
   def validate_options(self, options):
@@ -991,10 +996,10 @@ class JenkinsConfigurator(Configurator):
 class LoggingConfigurator(Configurator):
   """Controls hal config logging."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--google_cloud_logging', default=False, action='store_true',
+    add_parser_argument(
+        parser, 'google_cloud_logging', defaults, False, type=bool,
         help='Install Google Cloud Logging agent.')
 
   def add_files_to_upload(self, options, file_set):
@@ -1022,14 +1027,14 @@ class LoggingConfigurator(Configurator):
 class MonitoringConfigurator(Configurator):
   """Controls hal config monitoring."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
-    parser.add_argument(
-        '--monitoring_prometheus_gateway', default=None,
+    add_parser_argument(
+        parser, 'monitoring_prometheus_gateway', defaults, None,
         help='If provided, and which is "prometheus",'
              ' configure to use the gateway server at thsi URL.')
-    parser.add_argument(
-        '--monitoring_install_which', default=None,
+    add_parser_argument(
+        parser, 'monitoring_install_which', defaults, None,
         help='If provided, install monitoring with these params.')
 
   def validate_options(self, options):
@@ -1067,7 +1072,7 @@ class MonitoringConfigurator(Configurator):
         'sudo chmod 644 /etc/init/node_exporter.conf',
 
         'sudo service node_exporter restart'
-      ]
+    ]
 
     # Prepend install_node_exporter to the beginning of the list.
     # This is so we can monitor installation process itself,
@@ -1120,7 +1125,7 @@ class SecurityConfigurator(Configurator):
 class SpinnakerConfigurator(Configurator):
   """Controls spinnaker-local overrides."""
 
-  def init_argument_parser(self, parser):
+  def init_argument_parser(self, parser, defaults):
     """Implements interface."""
     pass
 
@@ -1159,14 +1164,14 @@ CONFIGURATOR_LIST = [
 ]
 
 
-def init_argument_parser(parser):
+def init_argument_parser(parser, defaults):
   """Initialize the argument parser with configuration options.
 
   Args:
     parser: [ArgumentParser] The argument parser to add the options to.
   """
   for configurator in CONFIGURATOR_LIST:
-    configurator.init_argument_parser(parser)
+    configurator.init_argument_parser(parser, defaults)
 
 
 def validate_options(options):

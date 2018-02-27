@@ -58,6 +58,15 @@ import argparse
 import logging
 import os
 import sys
+import yaml
+
+from buildtool.__main__ import (
+    STANDARD_LOG_LEVELS,
+    preprocess_args,
+    add_standard_parser_args)
+from buildtool.metrics import MetricsManager
+from buildtool import add_parser_argument
+
 
 import validate_bom__config
 import validate_bom__deploy
@@ -72,7 +81,7 @@ def build_report(test_controller):
   citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
   if not os.path.exists(citest_log_dir):
     logging.warning('%s does not exist -- no citest logs.', citest_log_dir)
-    return
+    return None
 
   response = run_quick(
       'cd {log_dir}'
@@ -85,38 +94,66 @@ def build_report(test_controller):
   return test_controller.build_summary()
 
 
-def get_options():
+def get_options(args):
   """Resolve all the command-line options."""
 
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--log_dir', default='./validate_bom_results',
+  args, defaults = preprocess_args(
+      args, default_home_path_filename='validate_bom.yml')
+
+  parser = argparse.ArgumentParser(prog='validate_bom.sh')
+  add_standard_parser_args(parser, defaults)
+# DEPRECATED - use output_dir instead
+  add_parser_argument(parser, 'log_dir', defaults, './validate_bom_results',
                       help='Path to root directory for report output.')
 
-  validate_bom__config.init_argument_parser(parser)
-  validate_bom__deploy.init_argument_parser(parser)
-  validate_bom__test.init_argument_parser(parser)
+  MetricsManager.init_argument_parser(parser, defaults)
+  validate_bom__config.init_argument_parser(parser, defaults)
+  validate_bom__deploy.init_argument_parser(parser, defaults)
+  validate_bom__test.init_argument_parser(parser, defaults)
 
-  options = parser.parse_args()
+  options = parser.parse_args(args)
+  options.program = 'validate_bom'
+  options.command = 'validate_bom'        # metrics assumes a "command" value.
+  options.log_dir = options.output_dir    # deprecated
   validate_bom__config.validate_options(options)
   validate_bom__test.validate_options(options)
 
   if not os.path.exists(options.log_dir):
     os.makedirs(options.log_dir)
 
+  if options.influxdb_database == 'SpinnakerBuildTool':
+    options.influxdb_database = 'SpinnakerValidate'
+
+  # Add platform/spinnaker_type to each influxdb metric we produce.
+  # We'll use this to distinguish what was being tested.
+  context_labels = 'platform=%s,deployment_type=%s' % (
+      options.deploy_hal_platform, options.deploy_spinnaker_type)
+  latest_unvalidated_suffix = '-latest-unvalidated'
+  if options.deploy_version.endswith(latest_unvalidated_suffix):
+    bom_series = options.deploy_version[:-len(latest_unvalidated_suffix)]
+  else:
+    bom_series = options.deploy_version[:options.deploy_version.rfind('-')]
+  context_labels += ',version=%s' % bom_series
+
+  if options.influxdb_add_context_labels:
+    context_labels += ',' + options.influxdb_add_context_labels
+  options.influxdb_add_context_labels = context_labels
+
   return options
 
 
-def main():
+def main(options, metrics):
   """The main controller."""
-  options = get_options()
-  deployer = validate_bom__deploy.make_deployer(options)
+  outcome_success = False
+  deployer = validate_bom__deploy.make_deployer(options, metrics)
   test_controller = validate_bom__test.ValidateBomTestController(deployer)
   init_script, config_script = validate_bom__config.make_scripts(options)
   file_set = validate_bom__config.get_files_to_upload(options)
 
   try:
     deployer.deploy(init_script, config_script, file_set)
-    test_controller.run_tests()
+    _, failed, _ = test_controller.run_tests()
+    outcome_success = not failed
   finally:
     if sys.exc_info()[0] is not None:
       logging.error('Caught Exception')
@@ -129,15 +166,41 @@ def main():
       logging.info('Skipping undeploy because --deploy_undeploy=false')
 
     summary = build_report(test_controller)
-    print summary
+    if summary:
+      print summary
 
+    if summary or not outcome_success:
+      # Mark failures for any reason (e.g. failure to deploy)
+      # as well as test phase outcome. If we dont have a summary
+      # then we did a one-off deploy or undeploy which we only count
+      # if it failed. When tests are run, they'll count here.
+      metrics.inc_counter('ValidationControllerOutcome',
+                          {'success': outcome_success})
+
+  logging.info('Exiting with code=%d', test_controller.exit_code)
   return test_controller.exit_code
 
 
-if __name__ == '__main__':
-  logging.basicConfig(
-      format='%(levelname).1s %(asctime)s.%(msecs)03d %(message)s',
-      datefmt='%H:%M:%S',
-      level=logging.DEBUG)
+def wrapped_main():
+  options = get_options(sys.argv[1:])
 
-  sys.exit(main())
+  logging.basicConfig(
+      format='%(levelname).1s %(asctime)s.%(msecs)03d'
+             ' [%(threadName)s.%(process)d] %(message)s',
+      datefmt='%H:%M:%S',
+      level=STANDARD_LOG_LEVELS[options.log_level])
+
+  logging.debug(
+      'Running with options:\n   %s',
+      '\n   '.join(yaml.dump(vars(options), default_flow_style=False)
+                   .split('\n')))
+
+  metrics = MetricsManager.startup_metrics(options)
+  try:
+    return main(options, metrics)
+  finally:
+    MetricsManager.shutdown_metrics()
+
+
+if __name__ == '__main__':
+  sys.exit(wrapped_main())

@@ -191,6 +191,7 @@ def init_options_and_registry(args, command_modules):
 
   registry = make_registry(command_modules, parser, defaults)
   options = parser.parse_args(args)
+  options.program = 'buildtool'
   return options, registry
 
 
