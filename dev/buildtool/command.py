@@ -16,7 +16,6 @@
 
 import os
 import logging
-import sys
 
 # pylint: disable=relative-import
 from buildtool.metrics import MetricsManager
@@ -123,19 +122,9 @@ class CommandProcessor(object):
   def metrics(self):
     return self.__metrics
 
-  def determine_tracking_metric_labels(self):
+  def determine_metric_labels(self):
     """Returns the label bindings for the invocation tracking metrics."""
     return {'command': self.name}
-
-  def determine_outcome_metric_labels(self):
-    """Returns the label bindings for the invocation outcome metrics."""
-    ex_type, _, _ = sys.exc_info()
-
-    return {
-        'command': self.name,
-        'success': ex_type is None,
-        'exception_type': '' if ex_type is None else ex_type.__name__
-    }
 
   def __init__(self, factory, options):
     self.__factory = factory
@@ -145,10 +134,10 @@ class CommandProcessor(object):
   def __call__(self):
     logging.debug('Running command=%s...', self.name)
     try:
-      tracking_labels = self.determine_tracking_metric_labels()
-      result = self.metrics.instrument_track_and_outcome(
-          'RunCommand', 'Command Invocations', tracking_labels,
-          self.determine_outcome_metric_labels,
+      metric_labels = self.determine_metric_labels()
+      result = self.metrics.track_and_time_call(
+          'RunCommand',
+          metric_labels, self.metrics.default_determine_outcome_labels,
           self._do_command)
       logging.debug('Finished command=%s', self.name)
       return result

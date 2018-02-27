@@ -29,19 +29,13 @@ def _do_call_do_repository(repository, command):
   This will track the invocation and its outcome.
   """
   # pylint: disable=protected-access
-  def determine_outcome_labels():
-    """Add a repository label in addition to whatever the command wanted."""
-    result = command.determine_outcome_metric_labels()
-    result['repository'] = repository.name
-    return result
-
   logging.info('%s processing %s', command.name, repository.name)
   try:
-    tracking_labels = command.determine_tracking_metric_labels()
-    tracking_labels['repository'] = repository.name
-    result = command.metrics.instrument_track_and_outcome(
-        'RunRepositoryCommand', 'Command invocations scoped to one repository',
-        tracking_labels, determine_outcome_labels,
+    metric_labels = command.determine_metric_labels()
+    metric_labels['repository'] = repository.name
+    result = command.metrics.track_and_time_call(
+        'RunRepositoryCommand',
+        metric_labels, command.metrics.default_determine_outcome_labels,
         command._do_repository_wrapper, repository)
     logging.info('%s finished %s', command.name, repository.name)
     return result
@@ -158,8 +152,7 @@ class RepositoryCommandProcessor(CommandProcessor):
     if self._do_can_skip_repository(repository):
       self.metrics.inc_counter(
           'SkipRepositoryCommand',
-          {'command': self.name, 'repository': repository.name},
-          'Full command not needed for an individual repository.')
+          {'command': self.name, 'repository': repository.name})
       logging.debug('Skipping repository %s', repository.name)
       return None
 

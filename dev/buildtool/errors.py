@@ -33,8 +33,7 @@ class BuildtoolError(Exception):
         'cause': cause,
         'classification': classification
     }
-    MetricsManager.singleton().inc_counter(
-        'BuildtoolError', labels, 'Errors raised during execution.')
+    MetricsManager.singleton().inc_counter('BuildtoolError', labels)
 
 
 class ConfigError(BuildtoolError):

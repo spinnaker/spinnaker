@@ -182,8 +182,7 @@ class BuildHalyardCommand(GradleCommandProcessor):
       if entry:
         logging.info('Found existing halyard version "%s"', entry)
         labels = {'repository': repository.name, 'artifact': 'halyard'}
-        self.metrics.inc_counter('ReuseArtifact', labels,
-                                 'Kept existing desired artifact build.')
+        self.metrics.inc_counter('ReuseArtifact', labels)
         self.__emit_last_commit_entry(entry)
         return True
     return False
