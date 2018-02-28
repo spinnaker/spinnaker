@@ -110,6 +110,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
           ports: serverGroup.resources.ports,
           allocateIpAddress: serverGroup.resources.allocateIpAddress,
         },
+        targetGroups: serverGroup.targetGroups,
         capacity: {
           min: serverGroup.capacity.min,
           max: serverGroup.capacity.max,
