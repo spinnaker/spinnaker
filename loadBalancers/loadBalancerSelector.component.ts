@@ -45,8 +45,8 @@ class LoadBalancerSelectorController implements IController {
     });
     this.$q.all([credentialLoader, loadBalancerLoader]).then(() => this.configureLoadBalancerOptions());
     this.subscriptions = [
-      this.accountChanged.subscribe(() => this.configureLoadBalancerOptions()),
-      this.regionChanged.subscribe(() => this.configureLoadBalancerOptions())
+      this.command.viewState.accountChangedStream.subscribe(() => this.configureLoadBalancerOptions()),
+      this.command.viewState.regionChangedStream.subscribe(() => this.configureLoadBalancerOptions())
     ];
   }
 

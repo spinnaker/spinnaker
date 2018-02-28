@@ -12,6 +12,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
 
 
     function configureCommand(command) {
+      command.viewState.accountChangedStream = new Subject();
+      command.viewState.regionChangedStream = new Subject();
+      command.viewState.groupsRemovedStream = new Subject();
       command.onStrategyChange = function (strategy) {
         // Any strategy other than None or Custom should force traffic to be enabled
         if (strategy.key !== '' && strategy.key !== 'custom') {
@@ -39,9 +42,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.configura
     }
 
     function attachEventHandlers(command) {
-      command.viewState.accountChangedStream = new Subject();
-      command.viewState.regionChangedStream = new Subject();
-      command.viewState.groupsRemovedStream = new Subject();
       command.viewState.removedGroups = [];
       command.credentialsChanged = function credentialsChanged() {
         var result = { dirty: {} };
