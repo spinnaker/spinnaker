@@ -13,6 +13,7 @@ export interface IWizardPageProps {
   dirtyCallback?: (name: string, dirty: boolean) => void;
   ref?: () => void;
   revalidate?: () => void;
+  setWaiting?: (section: string, isWaiting: boolean) => void;
 }
 
 export interface IWizardPageState {

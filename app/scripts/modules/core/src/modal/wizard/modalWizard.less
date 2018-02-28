@@ -80,6 +80,11 @@ v2-modal-wizard, .wizard-modal {
           content: "\e088";
         }
       }
+      &.waiting {
+        a:before {
+          background-color: var(--color-seashell);
+        }
+      }
     }
   }
 
@@ -117,6 +122,11 @@ v2-modal-wizard, .wizard-modal {
               color: var(--color-danger);
               background-color: transparent;
               content: "\e088";
+            }
+          }
+          &.waiting {
+            &:before {
+              background-color: var(--color-seashell);
             }
           }
 

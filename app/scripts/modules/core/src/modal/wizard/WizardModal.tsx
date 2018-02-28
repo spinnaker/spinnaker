@@ -37,6 +37,7 @@ export interface IWizardModalState {
   errorPages: Set<string>;
   formInvalid: boolean;
   pages: string[];
+  waiting: Set<string>;
 }
 
 @BindAll()
@@ -53,6 +54,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
       errorPages: new Set<string>(),
       formInvalid: false,
       pages: [],
+      waiting: new Set(),
     };
 
   }
@@ -153,9 +155,15 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     setErrors(this.validate(values));
   }
 
+  private setWaiting(section: string, isWaiting: boolean): void {
+    const waiting = new Set(this.state.waiting);
+    isWaiting ? waiting.add(section) : waiting.delete(section);
+    this.setState({ waiting });
+  }
+
   public render(): React.ReactElement<WizardModal<T>> {
     const { dismiss, heading, hideSections, initialValues, show, submitButtonLabel, taskMonitor } = this.props;
-    const { currentPage, dirtyPages, errorPages, formInvalid, pages } = this.state;
+    const { currentPage, dirtyPages, errorPages, formInvalid, pages, waiting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
     const pagesToShow = pages.filter((page) => !hideSections.has(page));
@@ -186,6 +194,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
                           dirty={dirtyPages.has(this.pages[pageName].label) || errorPages.has(this.pages[pageName].label)}
                           pageState={this.pages[pageName]}
                           onClick={this.setCurrentPage}
+                          waiting={waiting.has(pageName)}
                         />
                       ))}
                     </ul>
@@ -193,7 +202,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
                   <div className="col-md-9 col-sm-12">
                     <div className="steps" ref={(ele) => this.stepsElement = ele} onScroll={this.handleStepsScroll}>
                       {this.getFilteredChildren().map((child: React.ReactElement<any>) => {
-                        return React.cloneElement(child, { ...props, dirtyCallback: this.dirtyCallback, onMount: this.onMount, revalidate: () => this.revalidate(props.values, props.setErrors) });
+                        return React.cloneElement(child, { ...props, dirtyCallback: this.dirtyCallback, onMount: this.onMount, revalidate: () => this.revalidate(props.values, props.setErrors), setWaiting: this.setWaiting });
                       })}
                     </div>
                   </div>
@@ -209,7 +218,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
                   Cancel
                 </button>
                 <SubmitButton
-                  isDisabled={formInvalid || submitting}
+                  isDisabled={formInvalid || submitting || waiting.size > 0}
                   submitting={submitting}
                   isFormSubmit={true}
                   label={submitButtonLabel}
@@ -223,13 +232,14 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   }
 }
 
-const WizardStepLabel = (props: { current: boolean, dirty: boolean, pageState: IWizardPageData, onClick: (pageState: IWizardPageData) => void }): JSX.Element => {
-  const { current, dirty, onClick, pageState } = props;
+const WizardStepLabel = (props: { current: boolean, dirty: boolean, pageState: IWizardPageData, onClick: (pageState: IWizardPageData) => void, waiting: boolean }): JSX.Element => {
+  const { current, dirty, onClick, pageState, waiting } = props;
   const className = classNames({
     default: !pageState.props.done,
     dirty,
     current,
     done: pageState.props.done,
+    waiting
   });
   const handleClick = () => { onClick(pageState); };
 
