@@ -14,40 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.openstack.model
+package com.netflix.spinnaker.clouddriver.model;
 
-/**
- * Image interface to be promoted to core.
- * //TODO - promote to core.
- */
-interface Image {
+public interface Image {
 
   /**
    * Returns an image identifier.
-   * @return
+   * @return image id
    */
-  String getId()
+  String getId();
 
   /**
    * Returns an image name.
-   * @return
+   * @return image name
    */
-  String getName()
+  String getName();
 
   /**
    * Returns the region the image exists in.
-   * @return
+   * @return image region
    */
-  String getRegion()
+  String getRegion();
 
-  /**
-   * Returns an images status.
-   * @return
-   */
-  String getStatus()
-
-  /**
-   * Contains images properties used to create an image.
-   */
-  Map<String, Object> properties
 }

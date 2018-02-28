@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.openstack.controllers
 
 import com.netflix.spinnaker.cats.mem.InMemoryCache
-import com.netflix.spinnaker.clouddriver.openstack.model.Image
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackImage
 import com.netflix.spinnaker.clouddriver.openstack.provider.ImageProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,9 +42,9 @@ class OpenstackImageLookupController {
   }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
-  Set<Image> find(@RequestParam(required = false) String account, @RequestParam(required = false) String q, @RequestParam(required = false) String region) {
-    Set<Image> result
-    Map<String, Set<Image>> imageMap = this.imageProvider.listImagesByAccount()
+  Set<OpenstackImage> find(@RequestParam(required = false) String account, @RequestParam(required = false) String q, @RequestParam(required = false) String region) {
+    Set<OpenstackImage> result
+    Map<String, Set<OpenstackImage>> imageMap = this.imageProvider.listImagesByAccount()
     if (!imageMap) {
       result = Collections.emptySet()
     } else {
@@ -55,7 +55,7 @@ class OpenstackImageLookupController {
           .map{it.value}
           .flatMap{it.stream()}
           .collect(Collectors.toSet())
-          .sort { Image a, Image b -> a.name <=> b.name }
+          .sort { OpenstackImage a, OpenstackImage b -> a.name <=> b.name }
       }
 
       if (region) {

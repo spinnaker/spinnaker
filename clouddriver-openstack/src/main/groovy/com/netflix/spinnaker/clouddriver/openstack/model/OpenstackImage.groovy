@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.model
 
+import com.netflix.spinnaker.clouddriver.model.Image
 import groovy.transform.builder.Builder
 
 @Builder

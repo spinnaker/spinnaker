@@ -22,7 +22,6 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackCloudProvider
 import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
-import com.netflix.spinnaker.clouddriver.openstack.model.Image
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackImage
 import redis.clients.jedis.exceptions.JedisException
 import spock.lang.Specification
@@ -53,7 +52,7 @@ class OpenstackImageProviderSpec extends Specification {
     OpenstackImage openstackImage = Mock(OpenstackImage)
 
     when:
-    Map<String, Set<Image>> result = imageProvider.listImagesByAccount()
+    Map<String, Set<OpenstackImage>> result = imageProvider.listImagesByAccount()
 
     then:
     1 * cache.filterIdentifiers(IMAGES.ns, "$OpenstackCloudProvider.ID:*") >> filters

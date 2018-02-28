@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.provider
 
-import com.netflix.spinnaker.clouddriver.openstack.model.Image
+import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackImage
 
 /**
  * Provider image interface to be promoted to core.
  * //TODO - Promote to core.
  */
 interface ImageProvider {
-  Map<String, Set<Image>> listImagesByAccount()
+  Map<String, Set<OpenstackImage>> listImagesByAccount()
 }
