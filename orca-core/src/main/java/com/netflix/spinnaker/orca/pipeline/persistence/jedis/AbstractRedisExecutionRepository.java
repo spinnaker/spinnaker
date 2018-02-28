@@ -463,7 +463,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
       execution.setOrigin(map.get("origin"));
       execution.setTrigger(map.get("trigger") != null ? mapper.readValue(map.get("trigger"), Trigger.class) : NO_TRIGGER);
     } catch (Exception e) {
-      throw new ExecutionSerializationException("Failed serializing execution json", e);
+      throw new ExecutionSerializationException(String.format("Failed serializing execution json, id: %s", execution.getId()), e);
     }
 
     stageIds.forEach(stageId -> {
