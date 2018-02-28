@@ -125,6 +125,7 @@ export interface IALBTargetGroupDescription {
   name: string;
   protocol: 'HTTP' | 'HTTPS';
   port: number;
+  targetType: 'instance' | 'ip';
   attributes: {
     // Defaults to 300
     deregistrationDelay?: number;

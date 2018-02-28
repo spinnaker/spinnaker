@@ -27,6 +27,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
   public static LABEL = 'Target Groups';
 
   public protocols = ['HTTP', 'HTTPS'];
+  public targetTypes = ['instance', 'ip'];
   private destroy$ = new Subject();
 
   constructor(props: ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>) {
@@ -117,6 +118,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
       name: `targetgroup${tgLength ? `${tgLength}` : ''}`,
       protocol: 'HTTP',
       port: 7001,
+      targetType: 'instance',
       healthCheckProtocol: 'HTTP',
       healthCheckPort: '7001',
       healthCheckPath: '/healthcheck',
@@ -159,6 +161,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     const { oldTargetGroupCount } = this.state;
 
     const ProtocolOptions = this.protocols.map((p) => <option key={p}>{p}</option>);
+    const TargetTypeOptions = this.targetTypes.map((p) => <option key={p}>{p}</option>);
 
     return (
       <div className="container-fluid form-horizontal">
@@ -184,6 +187,25 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                           <a className="sm-label clickable" onClick={() => this.removeTargetGroup(index)}><span className="glyphicon glyphicon-trash"/></a>
                         </div>
                         {tgErrors.name && <div className="wizard-pod-row-errors"><ValidationError message={tgErrors.name}/></div>}
+                      </div>
+                    </div>
+                    <div className="wizard-pod-row">
+                      <div className="wizard-pod-row-title">
+                        <HelpField id="aws.targetGroup.targetType"/> <span>Target Type&nbsp;</span>
+                      </div>
+                      <div className="wizard-pod-row-contents">
+                        <div className="wizard-pod-row-data">
+                          <span className="wizard-pod-content">
+                            <select
+                              className="form-control input-sm"
+                              value={targetGroup.targetType}
+                              onChange={(event) => this.targetGroupFieldChanged(index, 'targetType', event.target.value)}
+                              disabled={index < oldTargetGroupCount}
+                            >
+                              {TargetTypeOptions}
+                            </select>
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div className="wizard-pod-row">
