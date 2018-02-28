@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spinnaker.orca.ext.afterStages
-import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage

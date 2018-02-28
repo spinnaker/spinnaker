@@ -18,11 +18,9 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
-import com.netflix.spinnaker.orca.ext.shouldContinueOnFailure
-import com.netflix.spinnaker.orca.ext.shouldFailPipeline
-import com.netflix.spinnaker.orca.ext.syntheticStages
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.q.syntheticStages
 
 fun Stage.determineStatus(): ExecutionStatus {
   val syntheticStatuses = syntheticStages().map(Stage::getStatus)
@@ -44,3 +42,9 @@ fun Stage.failureStatus(default: ExecutionStatus = TERMINAL) =
     shouldFailPipeline() -> default
     else -> STOPPED
   }
+
+private fun Stage.shouldFailPipeline() =
+  context["failPipeline"] in listOf(null, true)
+
+private fun Stage.shouldContinueOnFailure() =
+  context["continuePipeline"] == true

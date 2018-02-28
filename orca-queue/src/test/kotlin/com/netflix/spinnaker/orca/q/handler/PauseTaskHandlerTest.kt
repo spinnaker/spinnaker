@@ -19,14 +19,9 @@ package com.netflix.spinnaker.orca.q.handler
 import com.natpryce.hamkrest.absent
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.PauseStage
-import com.netflix.spinnaker.orca.q.PauseTask
-import com.netflix.spinnaker.orca.q.buildTasks
-import com.netflix.spinnaker.orca.q.multiTaskStage
+import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*

@@ -14,8 +14,22 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/groovy.gradle"
+apply from: "$rootDir/gradle/kotlin.gradle"
+
 dependencies {
   compile project(":orca-core")
-  compile spinnaker.dependency("korkJedisTest")
-  compile spinnaker.dependency("spectatorApi")
+  compile project(":orca-queue-redis")
+  compile spinnaker.dependency('spock')
+  compile spinnaker.dependency('spockSpring')
+  compile spinnaker.dependency('junit')
+  compile spinnaker.dependency('hamcrestCore')
+  compile spinnaker.dependency('springTest')
+  compile spinnaker.dependency('korkJedisTest')
+  compile spinnaker.dependency('spectatorApi')
+  runtime spinnaker.dependency('objenesis')
+  runtime spinnaker.dependency('cglib')
+  compile spinnaker.dependency('eurekaClient')
+  compile spinnaker.dependency('bootAutoConfigure')
+  compile "org.hamcrest:hamcrest-all:1.3"
 }

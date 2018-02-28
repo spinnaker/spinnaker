@@ -18,10 +18,11 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.BucketCounter
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.events.StageComplete
-import com.netflix.spinnaker.orca.ext.afterStages
-import com.netflix.spinnaker.orca.ext.firstAfterStages
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository

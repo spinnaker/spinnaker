@@ -40,11 +40,9 @@ dependencies {
   compile spinnaker.dependency("logstashEncoder")
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${spinnaker.version('jackson')}"
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version('jackson')}"
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version('jackson')}"
 
   compileOnly spinnaker.dependency("lombok")
 
   testCompile project(":orca-test")
-  testCompile project(":orca-test-groovy")
   testCompile spinnaker.dependency("korkJedisTest")
 }

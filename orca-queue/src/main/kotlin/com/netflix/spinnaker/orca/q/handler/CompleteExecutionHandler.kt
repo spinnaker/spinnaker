@@ -17,14 +17,21 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
+import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.events.ExecutionComplete
-import com.netflix.spinnaker.orca.ext.allUpstreamStagesComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
+import com.netflix.spinnaker.orca.q.allUpstreamStagesComplete
 import com.netflix.spinnaker.q.AttemptsAttribute
 import com.netflix.spinnaker.q.MaxAttemptsAttribute
 import com.netflix.spinnaker.q.Queue

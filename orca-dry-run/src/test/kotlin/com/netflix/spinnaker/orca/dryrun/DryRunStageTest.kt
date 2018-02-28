@@ -18,11 +18,18 @@ package com.netflix.spinnaker.orca.dryrun
 
 import com.natpryce.hamkrest.greaterThan
 import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.buildSyntheticStages
+import com.netflix.spinnaker.orca.q.buildTasks
+import com.netflix.spinnaker.orca.q.multiTaskStage
+import com.netflix.spinnaker.orca.q.pipeline
+import com.netflix.spinnaker.orca.q.singleTaskStage
+import com.netflix.spinnaker.orca.q.stage
+import com.netflix.spinnaker.orca.q.stageWithParallelBranches
+import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
+import com.netflix.spinnaker.orca.q.stageWithSyntheticBeforeAndNoTasks
+import com.netflix.spinnaker.orca.q.zeroTaskStage
 import com.netflix.spinnaker.spek.shouldEqual
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe

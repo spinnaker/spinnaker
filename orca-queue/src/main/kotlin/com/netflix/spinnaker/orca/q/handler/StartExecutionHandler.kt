@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionStarted
-import com.netflix.spinnaker.orca.ext.initialStages
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.initialStages
 import com.netflix.spinnaker.q.Queue
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.Logger

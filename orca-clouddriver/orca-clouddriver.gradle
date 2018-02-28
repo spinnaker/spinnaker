@@ -24,6 +24,4 @@ dependencies {
   compile project(":orca-bakery")
   compile 'com.netflix.spinnaker.moniker:moniker:0.2.0'
   testCompile project(":orca-test")
-  testCompile project(":orca-test-groovy")
-  testCompile "com.github.tomakehurst:wiremock:2.15.0"
 }

@@ -25,6 +25,7 @@ dependencies {
   compile project(":orca-dry-run")
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('bootAutoConfigure')
+  testCompile project(":orca-test")
   testCompile "com.squareup.retrofit:retrofit-mock:${spinnaker.version('retrofit')}"
 }
 
