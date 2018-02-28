@@ -16,14 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.titus.caching.utils
 
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonVpc
+import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonSecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
+import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -31,6 +36,7 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 import static com.netflix.spinnaker.clouddriver.aws.cache.Keys.Namespace.SECURITY_GROUPS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 
 @Component
 class AwsLookupUtil {
@@ -49,6 +55,12 @@ class AwsLookupUtil {
 
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
+
+  @Autowired
+  AwsProvider awsProvider
+
+  @Autowired
+  AmazonLoadBalancerProvider amazonLoadBalancerProvider
 
   Set<TitusSecurityGroup> lookupSecurityGroupNames(Map<String, TitusSecurityGroup> titusSecurityGroupLookupCache,
                                                    String account,
@@ -126,29 +138,63 @@ class AwsLookupUtil {
     applicationSecurityGroup
   }
 
-  String awsAccountId(account, region){
+  void lookupTargetGroupHealth( Collection<CacheData> instanceData, Map<String, TitusInstance> instances){
+
+    def loadBalancingHealthAgents = awsProvider.healthAgents.findAll { it.healthId.contains('load-balancer-v2-target-group')}
+    // Adding health to instances
+    Map<String, String> healthKeysToInstance = [:]
+    instanceData.each { instanceEntry ->
+      loadBalancingHealthAgents.each {
+        String key = getTargetGroupHealthKey(instanceEntry, it.healthId)
+        healthKeysToInstance.put(key, instanceEntry.id)
+      }
+    }
+
+    Collection<CacheData> healths = amazonLoadBalancerProvider.cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
+
+    healths.findAll { it.attributes.type == 'TargetGroup' && it.attributes.targetGroups }.each { healthEntry ->
+      def instanceId = healthKeysToInstance.get(healthEntry.id)
+      def interestingHealth = healthEntry.attributes.targetGroups
+      instances[instanceId].health.addAll(interestingHealth.collect {
+        [
+          targetGroupName: it.targetGroupName,
+          state: it.state,
+          reasonCode: it.reason,
+          description: it.description
+        ]
+      })
+    }
+  }
+
+  private String getTargetGroupHealthKey(CacheData instanceEntry, String healthKey) {
+    String region = instanceEntry.attributes.task.region
+    String account = instanceEntry.attributes.job.labels.spinnakerAccount
+    String awsAccount = lookupAccount(account, region).awsAccount
+    String containerIp = instanceEntry.attributes.task.containerIp
+    return com.netflix.spinnaker.clouddriver.aws.data.Keys.getInstanceHealthKey(containerIp, awsAccount, region, healthKey)
+  }
+
+  private Map lookupAccount(account, region) {
     Map awsDetails = awsAccountLookup.find {
       it.titusAccount == account && it.region == region
     }
-    if(!awsDetails){
+    if (!awsDetails) {
       return null
     }
+    awsDetails
+  }
+
+  String awsAccountId(account, region) {
     accountCredentialsProvider.all.find {
-      it instanceof AmazonCredentials && it.name == awsDetails.awsAccount
+      it instanceof AmazonCredentials && it.name == lookupAccount(account, region).awsAccount
     }?.accountId
   }
 
-  String awsVpcId(account, region){
-    Map awsDetails = awsAccountLookup.find {
-      it.titusAccount == account && it.region == region
-    }
-    if(!awsDetails){
-      return null
-    }
-    awsDetails.vpcId
+  String awsVpcId(account, region) {
+    lookupAccount(account, region)?.vpcId
   }
 
-  String stack(account){
+  String stack(account) {
     accountCredentialsProvider.all.find {
       it instanceof NetflixTitusCredentials && it.name == account
     }?.stack

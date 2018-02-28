@@ -254,7 +254,8 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       healthEntry.attributes.remove('lastUpdatedTimestamp')
       instances[instanceId].health << healthEntry.attributes
     }
-
+    // lookup target group health
+    awsLookupUtil.lookupTargetGroupHealth(instanceData, instances)
     instances
   }
 
