@@ -61,7 +61,7 @@ class ProducesArtifactsComponent implements IComponentOptions {
         expected-artifact="expectedArtifact"
         application="application">
       </expected-artifact>
-      <div class="row" ng-if="ctrl.hasExpectedArtifacts()">
+      <div class="row" ng-if="!ctrl.hasExpectedArtifacts()">
         <p class="col-md-12">
           You don't have any expected artifacts for {{ ctrl.stage.name }}.
         </p>
