@@ -2,6 +2,7 @@ import { IPromise } from 'angular';
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { Observable, Subject } from 'rxjs';
+import * as ReactGA from 'react-ga';
 
 import { IRecentHistoryEntry } from 'core/history';
 import { ReactInjector } from 'core/reactShims';
@@ -10,6 +11,7 @@ import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchR
 
 export interface IChildComponentProps {
   results: ISearchResultPodData[];
+  onResultClick: (categoryName: string) => void;
   onRemoveItem?: (categoryName: string, itemId: string) => void;
   onRemoveProject?: (projectId: string) => void;
 }
@@ -83,6 +85,10 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
     this.updateRecentItems();
   }
 
+  private handleResultClick(categoryName: string): void {
+    ReactGA.event({ category: 'Global Search', action: `Recent item selected from ${categoryName}` });
+  }
+
   public render() {
     const { Component } = this.props;
 
@@ -91,6 +97,7 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
         <Component
           results={this.state.recentItems}
           onRemoveItem={this.handleRemoveItem}
+          onResultClick={this.handleResultClick}
           onRemoveProject={this.handleRemoveProject}
         />
        ) : (
@@ -99,6 +106,7 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
         <SearchResultPods
           results={this.state.recentItems}
           onRemoveItem={this.handleRemoveItem}
+          onResultClick={this.handleResultClick}
           onRemoveProject={this.handleRemoveProject}
         />
        )

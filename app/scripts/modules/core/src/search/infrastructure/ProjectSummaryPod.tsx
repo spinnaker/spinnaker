@@ -12,7 +12,8 @@ export interface IProjectSummaryPodProps {
   id: string;
   projectName: string;
   applications: string[];
-  onRemoveProject?: (projectName: any) => void;
+  onRemoveProject?: (projectName: string) => void;
+  onResultClick: (categoryName: string) => void;
 }
 
 @UIRouterContext
@@ -23,12 +24,18 @@ export class ProjectSummaryPod extends React.Component<IProjectSummaryPodProps> 
     this.props.onRemoveProject(this.props.id);
   }
 
+  private handleResultClick(): void {
+    if (this.props.onResultClick) {
+      this.props.onResultClick('projects');
+    }
+  }
+
   public render() {
     const { projectName, applications, onRemoveProject } = this.props;
     const showRemoveButton = !!onRemoveProject;
 
     return (
-      <div className="infrastructure-project">
+      <div className="infrastructure-project" onClick={this.handleResultClick}>
         <div className="project-summary">
           <div className="project-name">
             <UISref to="home.project.dashboard" params={{ project: projectName }}>

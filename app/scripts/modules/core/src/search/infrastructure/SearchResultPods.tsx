@@ -19,6 +19,7 @@ export interface ISearchResultPodsProps {
   results: ISearchResultPodData[];
   onRemoveProject?: (projectId: string) => void;
   onRemoveItem?: (categoryName: string, itemId: string) => void;
+  onResultClick: (categoryName: string) => void;
 }
 
 export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
@@ -45,6 +46,7 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
                         projectName={get(project, 'params.project')}
                         applications={get(project, 'extraData.config.applications', [])}
                         onRemoveProject={this.props.onRemoveProject}
+                        onResultClick={this.props.onResultClick}
                       />
                     ))}
                   </div>
@@ -59,6 +61,7 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
                     key={category.category}
                     podData={category}
                     onRemoveItem={this.props.onRemoveItem}
+                    onResultClick={() => this.props.onResultClick(category.category)}
                   />
                 ))}
               </div>

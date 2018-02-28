@@ -7,7 +7,7 @@ import { SearchResult } from 'core/search/infrastructure/SearchResult';
 export interface IGlobalSearchRecentItemsProps {
   categories: ISearchResultPodData[];
   onItemKeyDown: React.EventHandler<React.KeyboardEvent<HTMLAnchorElement>>;
-  onResultClick: React.EventHandler<React.MouseEvent<HTMLLIElement>>;
+  onResultClick: (category: string) => void;
   resultRef: (categoryIndex: number, resultIndex: number, ref: HTMLAnchorElement) => any;
 }
 
@@ -35,7 +35,7 @@ export const GlobalSearchRecentItems = ({
             <li
               key={result.id}
               className="result"
-              onClick={onResultClick}
+              onClick={() => onResultClick(category.category)}
             >
               <UISref to={result.state} params={result.params}>
                 <a

@@ -7,6 +7,7 @@ import { ISearchResultPodData } from './SearchResultPods';
 
 export interface ISearchResultPodProps {
   podData: ISearchResultPodData;
+  onResultClick: (category: string) => void;
   onRemoveItem: (category: string, itemId: string) => void;
 }
 
@@ -31,6 +32,7 @@ export class SearchResultPod extends React.Component<ISearchResultPodProps> {
                 key={result.id}
                 categoryName={category}
                 result={result}
+                onResultClick={this.props.onResultClick}
                 onRemoveItem={this.props.onRemoveItem}
               />
             ))}

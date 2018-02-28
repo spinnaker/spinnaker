@@ -338,9 +338,9 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
           <GlobalSearchRecentItems
             categories={results}
             onItemKeyDown={this.navigateResult}
-            onResultClick={() => {
+            onResultClick={(category: string) => {
               this.hideDropdown();
-              ReactGA.event({ category: 'Global Search', action: 'Recent Item Selected' });
+              ReactGA.event({ category: 'Global Search', action: `Recent item selected from ${category}` });
             }}
             resultRef={(categoryIndex, resultIndex, ref) => {
               if (this.resultRefs[categoryIndex]) {
