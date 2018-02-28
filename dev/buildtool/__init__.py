@@ -5,9 +5,9 @@
 # These would be required if running from source code
 SPINNAKER_RUNNABLE_REPOSITORY_NAMES = [
     'clouddriver',
-    'deck', 'kayenta',
+    'deck',
     'echo', 'fiat', 'front50',
-    'gate', 'igor', 'orca', 'rosco']
+    'gate', 'igor', 'kayenta', 'orca', 'rosco']
 
 SPINNAKER_HALYARD_REPOSITORY_NAME = 'halyard'
 SPINNAKER_GITHUB_IO_REPOSITORY_NAME = 'spinnaker.github.io'

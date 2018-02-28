@@ -83,12 +83,13 @@ class HalRunner(object):
 
     logging.debug('Retrieving halyard runtime configuration.')
     url = 'http://' + options.halyard_daemon + '/resolvedEnv'
-    response = urllib2.urlopen(url)
-    if response.getcode() >= 300:
+    try:
+      response = urllib2.urlopen(url)
+    except urllib2.HTTPError as error:
       raise_and_log_error(
           ResponseError(
               '{url}: {code}\n{body}'.format(
-                  url=url, code=response.getcode(), body=response.read()),
+                  url=url, code=error.code, body=response.read()),
               server='halyard'))
     self.__halyard_runtime_config = yaml.load(response)
 
