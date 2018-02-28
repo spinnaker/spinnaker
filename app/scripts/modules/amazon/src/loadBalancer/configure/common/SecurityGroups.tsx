@@ -127,6 +127,7 @@ class SecurityGroupsImpl extends React.Component<IWizardPageProps & FormikProps<
 
   private refreshSecurityGroups(): void {
     this.setState({ refreshing: true });
+    this.props.setWaiting(SecurityGroups.label, true);
 
     Observable.fromPromise(ReactInjector.cacheInitializer.refreshCache('securityGroups'))
       .takeUntil(this.destroy$)
@@ -135,6 +136,7 @@ class SecurityGroupsImpl extends React.Component<IWizardPageProps & FormikProps<
           refreshing: false,
           refreshTime: ReactInjector.infrastructureCaches.get('securityGroups').getStats().ageMax,
         });
+        this.props.setWaiting(SecurityGroups.label, false);
 
         Observable.fromPromise(this.preloadSecurityGroups())
           .takeUntil(this.destroy$)
