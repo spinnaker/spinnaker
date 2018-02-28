@@ -29,4 +29,9 @@ class ThreadPoolQueueExecutor(
     executor.threadPoolExecutor.run {
       activeCount < maximumPoolSize
     }
+
+  override fun availableCapacity() =
+    executor.threadPoolExecutor.run {
+      maximumPoolSize - activeCount
+    }
 }

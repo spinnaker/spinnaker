@@ -34,6 +34,7 @@ redis:
 
 keiko:
   queue:
+    fillExecutorEachCycle: true
     redis:
       queueName: orca.task.queue
       deadLetterQueueName: orca.task.deadLetterQueue
