@@ -2,7 +2,7 @@ An issue is not a place to ask questions. Please use [Slack](http://join.spinnak
 
 Before you open an issue, please check if a similar issue already exists or has been closed before.
 
-Make sure you have followed the steps of the [Troubleshooting Guide](http://www.spinnaker.io/docs/troubleshooting-guide) to provide as much information as possible. 
+Make sure you have read through the [Spinnaker FAQ](https://www.spinnaker.io/community/faqs/) and [Halyard FAQ](https://www.spinnaker.io/setup/quickstart/faq/) to provide as much information as possible.
 
 Please provide:
 
