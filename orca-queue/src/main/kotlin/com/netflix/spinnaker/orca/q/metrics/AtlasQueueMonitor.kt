@@ -50,7 +50,7 @@ class AtlasQueueMonitor
   fun onQueueEvent(event: QueueEvent) {
     when (event) {
       is QueuePolled -> _lastQueuePoll.set(clock.instant())
-      is MessageProcessing -> _messageLags.add(Duration.between(event.scheduledTime, clock.instant()))
+      is MessageProcessing -> _messageLags.add(event.lag)
       is RetryPolled -> _lastRetryPoll.set(clock.instant())
       is MessagePushed -> event.counter.increment()
       is MessageAcknowledged -> event.counter.increment()

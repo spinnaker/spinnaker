@@ -105,7 +105,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
         Duration.ofSeconds(7)
       )
       val events = lag.mapIndexed { i, lag ->
-        MessageProcessing(StartExecution(PIPELINE, "$i", "covfefe"), clock.instant().minus(lag))
+        MessageProcessing(StartExecution(PIPELINE, "$i", "covfefe"), lag)
       }
 
       on("receiving a ${events.first().javaClass.simpleName} event") {
