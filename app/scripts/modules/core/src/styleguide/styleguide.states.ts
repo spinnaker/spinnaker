@@ -12,7 +12,7 @@ angular.module(STYLEGUIDE_STATES, [STATE_CONFIG_PROVIDER])
     name: 'styleguide',
     views: {
       'main@': {
-        templateUrl: require('@spinnaker/styleguide/public/styleguide.html')
+        templateUrl: '/styleguide.html'
       }
     },
     data: {
