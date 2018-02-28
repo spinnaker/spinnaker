@@ -130,7 +130,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
             )}
           </Dropdown.Menu>
         </Dropdown>
-        {application && (
+        {application && showEditModal && (
           <LoadBalancerModal
             app={application}
             loadBalancer={loadBalancer}
