@@ -47,6 +47,16 @@
     </div>
   </div>
 
+  <render-if-feature feature="fiatEnabled">
+    <div class="form-group">
+      <run-as-user-selector
+        service-accounts="vm.serviceAccounts"
+        component="vm.trigger"
+        field="runAsUser">
+      </run-as-user-selector>
+    </div>
+  </render-if-feature>
+
   <div ng-if="!vm.subscriptionsLoaded">
     <loading-spinner size="'small'"></loading-spinner>
   </div>
