@@ -185,8 +185,12 @@ class AwsLookupUtil {
   }
 
   String awsAccountId(account, region) {
+    Map awsDetails = lookupAccount(account, region)
+    if (!awsDetails) {
+      return null
+    }
     accountCredentialsProvider.all.find {
-      it instanceof AmazonCredentials && it.name == lookupAccount(account, region).awsAccount
+      it instanceof AmazonCredentials && it.name == awsDetails.awsAccount
     }?.accountId
   }
 
