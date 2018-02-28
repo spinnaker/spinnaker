@@ -6,6 +6,8 @@ const angular = require('angular');
 
 require('./editNotification.html');
 
+import './editNotification.less';
+
 module.exports = angular
   .module('spinnaker.core.notification.modal.editNotification.modal.controller', [])
   .controller('EditNotificationController', function ($scope, $uibModalInstance, notification, level, stageType) {
