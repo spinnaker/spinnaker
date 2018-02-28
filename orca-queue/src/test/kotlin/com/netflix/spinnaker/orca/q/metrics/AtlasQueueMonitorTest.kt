@@ -71,7 +71,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when the queue is polled") {
       afterGroup(::resetMocks)
 
-      val event = QueuePolled()
+      val event = QueuePolled
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onQueueEvent(event)
@@ -85,7 +85,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when the retry queue is polled") {
       afterGroup(::resetMocks)
 
-      val event = RetryPolled()
+      val event = RetryPolled
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onQueueEvent(event)
@@ -93,6 +93,27 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
 
       it("updates the last poll time") {
         subject.lastRetryPoll shouldEqual clock.instant()
+      }
+    }
+
+    describe("when a message is being processed") {
+      afterGroup(::resetMocks)
+
+      val lag = sequenceOf(
+        Duration.ofSeconds(5),
+        Duration.ofSeconds(13),
+        Duration.ofSeconds(7)
+      )
+      val events = lag.mapIndexed { i, lag ->
+        MessageProcessing(StartExecution(PIPELINE, "$i", "covfefe"), clock.instant().minus(lag))
+      }
+
+      on("receiving a ${events.first().javaClass.simpleName} event") {
+        events.forEach(subject::onQueueEvent)
+      }
+
+      it("averages the lag time") {
+        subject.averageMessageLag shouldEqual lag.map { it.toMillis() }.average().let { Duration.ofMillis(it.toLong()) }
       }
     }
 
@@ -113,7 +134,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is acknowledged") {
       afterGroup(::resetMocks)
 
-      val event = MessageAcknowledged()
+      val event = MessageAcknowledged
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onQueueEvent(event)
@@ -127,7 +148,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is retried") {
       afterGroup(::resetMocks)
 
-      val event = MessageRetried()
+      val event = MessageRetried
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onQueueEvent(event)
@@ -141,7 +162,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is dead") {
       afterGroup(::resetMocks)
 
-      val event = MessageDead()
+      val event = MessageDead
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onQueueEvent(event)
@@ -169,7 +190,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     describe("when an instance fails to lock a message") {
       afterGroup(::resetMocks)
 
-      val event = LockFailed()
+      val event = LockFailed
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onQueueEvent(event)

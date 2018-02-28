@@ -19,14 +19,11 @@ package com.netflix.spinnaker.orca.q.metrics
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.ApplicationAware
-import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.q.metrics.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.event.EventListener
-import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -53,6 +50,7 @@ class AtlasQueueMonitor
   fun onQueueEvent(event: QueueEvent) {
     when (event) {
       is QueuePolled -> _lastQueuePoll.set(clock.instant())
+      is MessageProcessing -> _messageLags.add(Duration.between(event.scheduledTime, clock.instant()))
       is RetryPolled -> _lastRetryPoll.set(clock.instant())
       is MessagePushed -> event.counter.increment()
       is MessageAcknowledged -> event.counter.increment()
@@ -98,6 +96,11 @@ class AtlasQueueMonitor
         .toMillis()
         .toDouble()
     })
+    registry.gauge("queue.message.lag", this, {
+      it.averageMessageLag
+        .toMillis()
+        .toDouble()
+    })
   }
 
   /**
@@ -117,6 +120,16 @@ class AtlasQueueMonitor
   val lastState: QueueState
     get() = _lastState.get()
   private val _lastState = AtomicReference<QueueState>(QueueState(0, 0, 0))
+
+  val averageMessageLag: Duration
+    get() = _messageLags.run {
+      val avg = map { it.toMillis() }
+        .average()
+        .let { Duration.ofMillis(it.toLong()) }
+      clear()
+      return avg
+    }
+  private val _messageLags = mutableListOf<Duration>()
 
   /**
    * Count of messages pushed to the queue.
