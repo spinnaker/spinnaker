@@ -109,6 +109,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
   public render() {
     const { execution, showingDetails, standalone } = this.props;
     const artifacts: IArtifact[] = execution.trigger.artifacts;
+    const resolvedExpectedArtifacts = execution.trigger.resolvedExpectedArtifacts;
     return (
       <div className="execution-status-section">
         <span className={`trigger-type ${this.state.sortFilter.groupBy !== name ? 'subheading' : ''}`}>
@@ -133,7 +134,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
           </span>
           {this.state.parameters.map((p) => <li key={p.key} className="break-word"><span className="parameter-key">{p.key}</span>: {p.value}</li>)}
         </ul>
-        <ArtifactList artifacts={artifacts} />
+        <ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />
         {!standalone && <a className="clickable" onClick={this.toggleDetails}><span className={`small glyphicon ${showingDetails ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}/>Details</a>}
       </div>
     )

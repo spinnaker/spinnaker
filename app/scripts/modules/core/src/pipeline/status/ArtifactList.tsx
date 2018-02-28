@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { IArtifact } from 'core/domain';
+import { IArtifact, IExpectedArtifact } from 'core/domain';
 
 import './artifactList.less';
 
 export interface IArtifactListProps {
   artifacts: IArtifact[],
+  resolvedExpectedArtifacts?: IExpectedArtifact[]
 };
 
 export interface IArtifactListState {}
@@ -14,8 +15,11 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
     super(props);
   }
 
-  private tooltip(artifact: IArtifact): string {
+  private tooltip(artifact: IArtifact, isDefault: boolean): string {
     const tooltipEntries = [];
+    if (isDefault) {
+      tooltipEntries.push('Default Artifact');
+    }
     if (artifact.name) {
       tooltipEntries.push(`Name: ${artifact.name}`);
     }
@@ -32,16 +36,23 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
   }
 
   public render() {
-    const { artifacts } = this.props;
+    const { artifacts, resolvedExpectedArtifacts = [] } = this.props;
+    const defaultArtifactRefs = new Set();
+    resolvedExpectedArtifacts.forEach(rea => {
+      if (rea && rea.defaultArtifact && rea.defaultArtifact.reference) {
+        defaultArtifactRefs.add(rea.defaultArtifact.reference);
+      }
+    });
     if (!artifacts || artifacts.length === 0) {
       return null;
     }
     return (
       <ul className="trigger-details artifacts">
         {artifacts.map((artifact: IArtifact, i: number) => {
-          const { name, version, type } = artifact;
+          const { name, version, type, reference } = artifact;
+          const isDefault = defaultArtifactRefs.has(reference);
           return (
-            <li key={`${i}-${name}`} className="break-word" title={this.tooltip(artifact)}>
+            <li key={`${i}-${name}`} className="break-word" title={this.tooltip(artifact, isDefault)}>
               <dl>
                 <div>
                   <dt>
@@ -53,7 +64,7 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
                 </div>
                 <div>
                   <dt>
-                    Artifact
+                    Artifact{isDefault && '*'}
                   </dt>
                   <dd>
                     {name}
