@@ -12,3 +12,13 @@ The tasks of a stage share a common context and can publish to a global context 
 For example a _bake_ stage publishes details of the image it creates which is then used by a _deploy_ stage.
 
 Orca persists a running execution to Redis.
+
+### Debugging
+
+To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+```
+./gradlew -DDEBUG=true
+```
+
+The JVM will then listen for a debugger to be attached on port 8183.  The JVM will _not_ wait for the debugger
+to be attached before starting Orca; the relevant JVM arguments can seen and be modified as needed in `build.gradle`.
