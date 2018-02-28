@@ -203,10 +203,15 @@ class BuildHalyardCommand(GradleCommandProcessor):
       args.append('-x test')
 
     args.extend(self.gradle.get_debian_args('trusty-nightly,xenial-nightly'))
-    self.gradle.check_run(args, self, repository, 'candidate', 'debian-build')
+    build_number = source_info.build_number,
+    version = source_info.summary.version
+    self.gradle.check_run(args, self, repository, 'candidate', 'debian-build',
+                          version=version, build_number=build_number)
 
     ## Tags above were written back. Nebula chokes on branches with that.
-    self.gradle.prepare_local_git_for_nebula(repository.git_dir, repository)
+    self.gradle.prepare_local_git_for_nebula(
+        repository.git_dir, repository,
+        version=version, build_number=build_number)
     build_halyard_docs(self, repository)
     self.build_all_halyard_deployments(repository)
     self.publish_halyard_version_commits(repository)

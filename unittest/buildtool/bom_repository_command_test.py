@@ -49,6 +49,7 @@ class TestBomRepositoryCommandProcessor(BaseGitRepoTestFixture):
     options.bom_path = os.path.join(self.test_root, 'bom.yml')
     options.one_at_a_time = False
     options.only_repositories = None
+    options.exclude_repositories = None
     options.github_disable_upstream_push = True
     options.git_branch = PATCH_BRANCH
     write_to_path(yaml.dump(self.golden_bom), options.bom_path)

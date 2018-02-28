@@ -173,7 +173,7 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
             upstream='https://github.com/spinnaker/' + name)
         for name in sorted(['clouddriver', 'deck', 'echo', 'fiat', 'front50',
                             'gate', 'igor', 'orca', 'rosco', 'spinnaker',
-                            'spinnaker-monitoring'])
+                            'spinnaker-monitoring', 'kayenta'])
     ]
     mock_remote.assert_called_once_with(test_repository.origin,
                                         options.git_branch)
