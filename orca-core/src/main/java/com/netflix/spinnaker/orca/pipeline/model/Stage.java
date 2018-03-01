@@ -15,22 +15,26 @@
  */
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
+import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDeserializer;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Stream;
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
@@ -270,15 +274,24 @@ public class Stage implements Serializable {
     this.parentStageId = parentStageId;
   }
 
+  @JsonDeserialize(using = RequisiteStageRefIdDeserializer.class)
   private Collection<String> requisiteStageRefIds = emptySet();
 
   public @Nonnull Collection<String> getRequisiteStageRefIds() {
     return ImmutableSet.copyOf(requisiteStageRefIds);
   }
 
+  @JsonDeserialize(using = RequisiteStageRefIdDeserializer.class)
   public void setRequisiteStageRefIds(
     @Nonnull Collection<String> requisiteStageRefIds) {
-    this.requisiteStageRefIds = ImmutableSet.copyOf(requisiteStageRefIds);
+    // This looks super weird, but when a custom deserializer is used on the method, null is passed along and the
+    // Nonnull check isn't triggered. Furthermore, some conditions only pick up the deserializer from the setter method,
+    // while others pick it up from the field. Sorry.
+    if (requisiteStageRefIds == null) {
+      this.requisiteStageRefIds = ImmutableSet.of();
+    } else {
+      this.requisiteStageRefIds = ImmutableSet.copyOf(requisiteStageRefIds);
+    }
   }
 
   /**
