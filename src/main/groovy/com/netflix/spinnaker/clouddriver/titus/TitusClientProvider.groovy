@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusAutoscalingClient
-import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
+
 import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusLoadBalancerClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
@@ -47,7 +47,7 @@ class TitusClientProvider {
   TitusClient getTitusClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
-    return titusClients.computeIfAbsent(key, { k -> k.region.apiVersion == '3' ? new RegionScopedV3TitusClient(k.region, registry, titusJobCustomizers, account.environment, account.eurekaName) : new RegionScopedTitusClient(k.region, registry, titusJobCustomizers) })
+    return titusClients.computeIfAbsent(key, { k -> new RegionScopedV3TitusClient(k.region, registry, titusJobCustomizers, account.environment, account.eurekaName) })
   }
 
   TitusAutoscalingClient getTitusAutoscalingClient(NetflixTitusCredentials account, String region) {

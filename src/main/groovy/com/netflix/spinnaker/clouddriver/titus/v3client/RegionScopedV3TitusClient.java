@@ -33,8 +33,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NegotiationType;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.util.RoundRobinLoadBalancerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -47,7 +45,6 @@ import com.netflix.eureka2.grpc.nameresolver.Eureka2NameResolverFactory;
 
 @Log
 public class RegionScopedV3TitusClient implements TitusClient {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TitusRestAdapter.class);
 
   /**
    * Default connect timeout in milliseconds
@@ -60,7 +57,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
   private static final long DEFAULT_READ_TIMEOUT = 20000;
 
   /**
-   * An instance of {@link TitusRegion} that this RegionScopedTitusClient will use
+   * An instance of {@link TitusRegion} that this RegionScopedV3TitusClient will use
    */
   private final TitusRegion titusRegion;
 
