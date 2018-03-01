@@ -19,8 +19,12 @@
 package com.netflix.spinnaker.halyard.core.resource.v1;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract public class StringReplaceTemplatedResource extends TemplatedResource {
+  public static Logger log = LoggerFactory.getLogger(StringReplaceTemplatedResource.class);
+
   protected String formatKey(String key) {
     return "{%" + key + "%}";
   }
@@ -32,7 +36,9 @@ abstract public class StringReplaceTemplatedResource extends TemplatedResource {
       Object value = binding.getValue();
       contents = contents.replace(formatKey(binding.getKey()), value != null ? value.toString() : "");
     }
-
+    if (contents.matches("(?s).*\\" + formatKey(".*") + ".*")) {
+      log.warn("Found part of template that still contains a format key, likely a missing template value for a key, template: " + contents);
+    }
     return contents;
   }
 }
