@@ -1,6 +1,9 @@
 server:
   port: 8064
 
+grpc:
+  enabled: false
+
 halconfig:
   filesystem:
     path: ~/.hal/config
