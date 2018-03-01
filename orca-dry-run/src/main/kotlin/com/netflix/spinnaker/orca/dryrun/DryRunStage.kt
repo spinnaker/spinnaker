@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.ext.withTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -35,6 +35,5 @@ class DryRunStage(private val delegate: StageDefinitionBuilder) : StageDefinitio
 
   override fun getType() = delegate.type
 
-  private inline fun <reified T : Task> Builder.withTask(name: String) =
-    withTask(name, T::class.java)
 }
+

@@ -20,5 +20,5 @@ dependencies {
   compile project(":orca-retrofit")
   spinnaker.group("fiat")
 
-  testCompile project(":orca-test")
+  testCompile project(":orca-test-groovy")
 }

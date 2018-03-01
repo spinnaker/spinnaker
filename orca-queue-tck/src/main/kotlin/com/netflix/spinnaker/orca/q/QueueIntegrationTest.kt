@@ -27,6 +27,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.fixture.pipeline
+import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
@@ -118,7 +120,8 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(SUCCEEDED)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+      .isEqualTo(SUCCEEDED)
   }
 
   @Test
@@ -137,7 +140,8 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(SUCCEEDED)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+      .isEqualTo(SUCCEEDED)
   }
 
   @Test
@@ -237,7 +241,8 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(SUCCEEDED)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+      .isEqualTo(SUCCEEDED)
 
     verify(dummyTask, never()).execute(any())
   }
@@ -257,7 +262,8 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(TERMINAL)
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status)
+      .isEqualTo(TERMINAL)
   }
 
   @Test

@@ -18,9 +18,14 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.fixture.pipeline
+import com.netflix.spinnaker.orca.fixture.stage
+import com.netflix.spinnaker.orca.fixture.task
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
+import com.netflix.spinnaker.orca.q.ResumeTask
+import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
@@ -73,7 +78,7 @@ object ResumeTaskHandlerTest : SubjectSpek<ResumeTaskHandler>({
     }
 
     it("resumes all paused tasks") {
-      verify(queue).push(RunTask(message, DummyTask::class.java))
+      verify(queue).push(RunTask(message, NoOpTask::class.java))
       verifyNoMoreInteractions(queue)
     }
   }

@@ -16,22 +16,19 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.pipeline.WaitStage;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Nonnull;
+import java.time.Clock;
+import java.time.Instant;
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL;
 import static java.util.Collections.singletonMap;
 
 @Component
@@ -44,7 +41,7 @@ public class WaitTask implements RetryableTask {
 
   @Override
   public @Nonnull TaskResult execute(@Nonnull Stage stage) {
-    WaitStageContext context = stage.mapTo(WaitStageContext.class);
+    WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
 
     if (context.getWaitTime() == null) {
       return new TaskResult(SUCCEEDED);
@@ -69,39 +66,5 @@ public class WaitTask implements RetryableTask {
 
   @Override public long getTimeout() {
     return Integer.MAX_VALUE;
-  }
-
-  private static final class WaitStageContext {
-    private final Long waitTime;
-    private final boolean skipRemainingWait;
-    private final Instant startTime;
-
-    @JsonCreator
-    private WaitStageContext(
-      @JsonProperty("waitTime") @Nullable Long waitTime,
-      @JsonProperty("skipRemainingWait") @Nullable Boolean skipRemainingWait,
-      @JsonProperty("startTime") @Nullable Instant startTime
-    ) {
-      this.waitTime = waitTime;
-      this.skipRemainingWait = skipRemainingWait == null ? false : skipRemainingWait;
-      this.startTime = startTime;
-    }
-
-    @Nullable Long getWaitTime() {
-      return waitTime;
-    }
-
-    @JsonIgnore
-    @Nullable Duration getWaitDuration() {
-      return waitTime == null ? null : Duration.ofSeconds(waitTime);
-    }
-
-    boolean isSkipRemainingWait() {
-      return skipRemainingWait;
-    }
-
-    @Nullable Instant getStartTime() {
-      return startTime;
-    }
   }
 }

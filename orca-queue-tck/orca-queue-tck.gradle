@@ -22,5 +22,9 @@ dependencies {
 
   compile "org.springframework.boot:spring-boot-test:${spinnaker.version('springBoot')}"
   compile "com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion"
+  compile project(":orca-queue")
   compile project(":orca-test")
+  compile project(":orca-test-kotlin")
+  compile spinnaker.dependency("junit")
+  compile spinnaker.dependency("springTest")
 }

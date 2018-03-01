@@ -19,5 +19,5 @@ apply from: "$rootDir/gradle/groovy.gradle"
 dependencies {
   compile project(":orca-retrofit")
 
-  testCompile project(":orca-test")
+  testCompile project(":orca-test-groovy")
 }
