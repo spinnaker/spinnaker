@@ -132,7 +132,7 @@ public class RegionScopedTitusClient implements TitusClient {
          try {
            retrofit2.Response<T> response = call.clone().execute();
            responseCode = response.code();
-           success = response.isSuccess();
+           success = response.isSuccessful();
            if (success) {
              return response.body();
            }
