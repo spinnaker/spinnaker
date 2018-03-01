@@ -40,7 +40,7 @@ class GceAddressReader {
       return this.listAddresses(null /* region */).then(addresses => addresses.filter(address => address.region === region));
     } else {
       return this.searchService
-        .search<IAddressSearchResults>({ q: '***', type: 'addresses' }, this.infrastructureCaches.get('addresses'))
+        .search<IAddressSearchResults>({ q: '', type: 'addresses', allowShortQuery: 'true' }, this.infrastructureCaches.get('addresses'))
         .then((searchResults: ISearchResults<IAddressSearchResults>) => {
           if (searchResults && searchResults.results) {
             return searchResults.results

@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.deck.gce.backendService.reader.servic
         return API
           .all('search')
           .useCache(infrastructureCaches.get('backendServices'))
-          .getList({q:'', type: 'backendServices'});
+          .getList({q:'', type: 'backendServices', allowShortQuery: 'true'});
       }
     }
 
