@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.time.fixedClock
@@ -25,14 +26,13 @@ import com.netflix.spinnaker.q.metrics.*
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import java.time.Duration
-import java.time.Duration.ZERO
 import java.time.Instant.now
+import java.util.concurrent.TimeUnit.MILLISECONDS
 
 object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
 
@@ -45,6 +45,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
   val deadCounter: Counter = mock()
   val duplicateCounter: Counter = mock()
   val lockFailedCounter: Counter = mock()
+  val messageLagTimer: Timer = mock()
 
   val registry: Registry = mock {
     on { counter(eq("queue.pushed.messages"), anyVararg<String>()) } doReturn pushCounter
@@ -53,6 +54,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     on { counter("queue.dead.messages") } doReturn deadCounter
     on { counter(eq("queue.duplicate.messages"), anyVararg<String>()) } doReturn duplicateCounter
     on { counter("queue.lock.failed") } doReturn lockFailedCounter
+    on { timer("queue.message.lag") } doReturn messageLagTimer
   }
 
   subject(GROUP) {
@@ -98,50 +100,17 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
       }
     }
 
-    describe("message lag metrics") {
-      given("no messages have been processed") {
-        afterGroup(::resetMocks)
+    describe("when a message is processed") {
+      afterGroup(::resetMocks)
 
-        it("reports zero lag time") {
-          assertThat(subject.meanMessageLag).isEqualTo(ZERO)
-          assertThat(subject.medianMessageLag).isEqualTo(ZERO)
-          assertThat(subject.maxMessageLag).isEqualTo(ZERO)
-        }
+      val event = MessageProcessing(StartExecution(PIPELINE, "1", "covfefe"), Duration.ofSeconds(5))
+
+      on("receiving a ${event.javaClass.simpleName} event") {
+        subject.onQueueEvent(event)
       }
 
-      given("some messages have been processed") {
-        afterGroup(::resetMocks)
-
-        val lag = sequenceOf(
-          Duration.ofSeconds(5),
-          Duration.ofSeconds(13),
-          Duration.ofSeconds(7)
-        )
-        val events = lag.mapIndexed { i, lag ->
-          MessageProcessing(StartExecution(PIPELINE, "$i", "covfefe"), lag)
-        }
-
-        on("receiving a ${events.first().javaClass.simpleName} event") {
-          events.forEach(subject::onQueueEvent)
-        }
-
-        it("averages the lag time") {
-          assertThat(subject.meanMessageLag).isEqualTo(lag.average())
-          // after reading the mean should reset
-          assertThat(subject.meanMessageLag).isEqualTo(ZERO)
-        }
-
-        it("records the median lag time") {
-          assertThat(subject.medianMessageLag).isEqualTo(lag.sorted().toList()[1])
-          // after reading the mean should reset
-          assertThat(subject.medianMessageLag).isEqualTo(ZERO)
-        }
-
-        it("records the max lag time") {
-          assertThat(subject.maxMessageLag).isEqualTo(lag.max())
-          // after reading the max should reset
-          assertThat(subject.maxMessageLag).isEqualTo(ZERO)
-        }
+      it("records the lag") {
+        verify(messageLagTimer).record(event.lag.toMillis(), MILLISECONDS)
       }
     }
 

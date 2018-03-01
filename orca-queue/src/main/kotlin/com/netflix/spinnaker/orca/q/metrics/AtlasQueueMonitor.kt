@@ -29,9 +29,9 @@ import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PostConstruct
-import kotlin.math.max
 
 /**
  * Monitors a queue and generates Atlas metrics.
@@ -52,9 +52,7 @@ class AtlasQueueMonitor
     when (event) {
       QueuePolled -> _lastQueuePoll.set(clock.instant())
       is MessageProcessing -> {
-        _meanMessageLag.updateAndGet { it + event.lag.toMillis() }
-        _medianMessageLag.updateAndGet { it + event.lag.toMillis() }
-        _maxMessageLag.updateAndGet { max(it, event.lag.toMillis()) }
+        registry.timer("queue.message.lag").record(event.lag.toMillis(), MILLISECONDS)
       }
       is RetryPolled -> _lastRetryPoll.set(clock.instant())
       is MessagePushed -> event.counter.increment()
@@ -101,21 +99,6 @@ class AtlasQueueMonitor
         .toMillis()
         .toDouble()
     })
-    registry.gauge("queue.mean.lag", this, {
-      it.meanMessageLag
-        .toMillis()
-        .toDouble()
-    })
-    registry.gauge("queue.median.lag", this, {
-      it.medianMessageLag
-        .toMillis()
-        .toDouble()
-    })
-    registry.gauge("queue.max.lag", this, {
-      it.maxMessageLag
-        .toMillis()
-        .toDouble()
-    })
   }
 
   /**
@@ -135,26 +118,6 @@ class AtlasQueueMonitor
   val lastState: QueueState
     get() = _lastState.get()
   private val _lastState = AtomicReference<QueueState>(QueueState(0, 0, 0))
-
-  val meanMessageLag: Duration
-    get() = _meanMessageLag
-      .getAndSet(emptyList())
-      .average()
-      .let { Duration.ofMillis(it.toLong()) }
-  private val _meanMessageLag = AtomicReference<List<Long>>(emptyList())
-
-  val medianMessageLag: Duration
-    get() = _medianMessageLag
-      .getAndSet(emptyList())
-      .median()
-      .let { Duration.ofMillis(it.toLong()) }
-  private val _medianMessageLag = AtomicReference<List<Long>>(emptyList())
-
-  val maxMessageLag: Duration
-    get() = _maxMessageLag
-      .getAndSet(0)
-      .let { Duration.ofMillis(it) }
-  private val _maxMessageLag = AtomicReference<Long>(0)
 
   /**
    * Count of messages pushed to the queue.
@@ -214,10 +177,3 @@ class AtlasQueueMonitor
   private val MessageNotFound.counter: Counter
     get() = registry.counter("queue.message.notfound")
 }
-
-private fun List<Long>.median(): Double =
-  when {
-    isEmpty() -> Double.NaN
-    size % 2 == 1 -> sorted()[size / 2].toDouble()
-    else -> sorted().subList((size / 2) - 1, (size / 2) + 1).average()
-  }
