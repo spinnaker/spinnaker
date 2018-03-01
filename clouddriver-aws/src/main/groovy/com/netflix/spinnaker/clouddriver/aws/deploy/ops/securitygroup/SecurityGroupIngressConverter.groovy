@@ -33,7 +33,26 @@ class SecurityGroupIngressConverter {
   @Immutable
   static class ConvertedIngress {
     List<IpPermission> converted
-    List<SecurityGroupIngress> missingSecurityGroups
+    MissingSecurityGroups missingSecurityGroups
+  }
+
+  @Immutable
+  static class MissingSecurityGroups {
+    List<SecurityGroupIngress> all
+    List<SecurityGroupIngress> selfReferencing
+
+    boolean anyMissing(boolean ignoreSelfReferencing) {
+      if (all.isEmpty()) {
+        return false;
+      } else if (ignoreSelfReferencing) {
+        return all.size() > selfReferencing.size()
+      }
+      return true
+    }
+
+    boolean hasMissingNonSelfReferencingGroups() {
+      return !all.isEmpty() && all.size() > selfReferencing.size()
+    }
   }
 
   static ConvertedIngress convertIngressToIpPermissions(SecurityGroupLookup securityGroupLookup,
@@ -75,7 +94,10 @@ class SecurityGroupIngressConverter {
         ipPermissions.add(newIpPermission)
       }
     }
-    new ConvertedIngress(ipPermissions, missing)
+    new ConvertedIngress(ipPermissions, new MissingSecurityGroups(
+      all: missing,
+      selfReferencing: missing.findAll { it.name == description.name && it.accountName == description.credentialAccount }
+    ))
   }
 
   static List<IpPermission> flattenPermissions(SecurityGroup securityGroup) {

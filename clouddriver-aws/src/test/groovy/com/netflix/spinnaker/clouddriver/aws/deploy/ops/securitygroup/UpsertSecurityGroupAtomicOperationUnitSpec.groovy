@@ -20,19 +20,15 @@ import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.IpIngress
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory.SecurityGroupUpdater
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.UpsertSecurityGroupAtomicOperation
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGroupLookupFactory
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription.IpIngress
 import spock.lang.Specification
 import spock.lang.Subject
-
-import javax.swing.text.html.Option
 
 class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
   def setupSpec() {
@@ -349,6 +345,33 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     IllegalStateException ex = thrown()
     ex.message == "The following security groups do not exist: 'bar' in 'test' vpc-123"
+  }
+
+  void "should two-phase create self-referential security group in vpc"() {
+    final createdSecurityGroup = Mock(SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "foo", accountName: "test", startPort: 111, endPort: 112, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    2 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.empty()
+    1 * securityGroupLookup.createSecurityGroup(description) >> createdSecurityGroup
+
+    and:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", "vpc-123") >> Optional.of(createdSecurityGroup)
+    2 * createdSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupId: "id-foo")
+
+    and:
+    1 * createdSecurityGroup.addIngress([
+      new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+        new UserIdGroupPair(userId: "accountId1", groupId: "id-foo")
+      ])
+    ])
   }
 
   void "should add ingress by name for missing ingress security group in EC2 classic"() {
