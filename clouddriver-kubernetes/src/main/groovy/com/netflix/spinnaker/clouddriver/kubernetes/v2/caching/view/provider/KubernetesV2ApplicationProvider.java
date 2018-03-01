@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.ApplicationCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.ClusterCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Application;
 import com.netflix.spinnaker.clouddriver.model.Application;
@@ -33,7 +32,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind.CLUSTERS;
 
 @Component
@@ -47,37 +45,24 @@ public class KubernetesV2ApplicationProvider implements ApplicationProvider {
 
   @Override
   public Set<? extends Application> getApplications(boolean expand) {
-    if (expand) {
-      String clusterGlobKey = Keys.cluster("*", "*", "*");
-      Map<String, Set<ClusterCacheKey>> keysByApplication = cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
-          .map(Keys::parseKey)
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .filter(ClusterCacheKey.class::isInstance)
-          .map(k -> (ClusterCacheKey) k)
-          .collect(Collectors.groupingBy(
-              ClusterCacheKey::getApplication, Collectors.toSet())
-          );
+    // TODO(lwander) performance optimization: rely on expand parameter to make a more cache-efficient call
+    String clusterGlobKey = Keys.cluster("*", "*", "*");
+    Map<String, Set<ClusterCacheKey>> keysByApplication = cacheUtils.getAllKeysMatchingPattern(CLUSTERS.toString(), clusterGlobKey).stream()
+        .map(Keys::parseKey)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .filter(ClusterCacheKey.class::isInstance)
+        .map(k -> (ClusterCacheKey) k)
+        .collect(Collectors.groupingBy(
+            ClusterCacheKey::getApplication, Collectors.toSet())
+        );
 
-     return keysByApplication.entrySet()
-         .stream()
-         .map(e -> KubernetesV2Application.builder()
-             .name(e.getKey())
-             .clusterNames(groupClustersByAccount(e.getValue())).build())
-         .collect(Collectors.toSet());
-    } else {
-      String appGlobKey = Keys.application("*");
-
-      return cacheUtils.getAllKeysMatchingPattern(APPLICATIONS.toString(), appGlobKey)
-          .stream()
-          .map(Keys::parseKey)
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .filter(ApplicationCacheKey.class::isInstance)
-          .map(k -> (ApplicationCacheKey) k)
-          .map(k -> KubernetesV2Application.builder().name(k.getName()).build())
-          .collect(Collectors.toSet());
-    }
+    return keysByApplication.entrySet()
+        .stream()
+        .map(e -> KubernetesV2Application.builder()
+            .name(e.getKey())
+            .clusterNames(groupClustersByAccount(e.getValue())).build())
+        .collect(Collectors.toSet());
   }
 
   @Override
