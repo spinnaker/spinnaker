@@ -175,25 +175,27 @@ class RunTaskHandler(
   private fun Task.checkForTaskTimeout(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, stage: Stage, message: Message) {
     if (this is RetryableTask) {
       val startTime = taskModel.startTime.toInstant()
-      val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
-      val elapsedTime = Duration.between(startTime, clock.instant())
-      val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
-      val actualTimeout = (
-        if (this is OverridableTimeoutRetryableTask && stage.parentWithTimeout.isPresent)
-          stage.parentWithTimeout.get().timeout.get().toDuration()
-        else
-          timeout.toDuration()
-        )
-      if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > actualTimeout) {
-        val durationString = formatTimeout(elapsedTime.toMillis())
-        val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.name} timed out after $durationString. ")
-        msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")
-        msg.append("throttleTime: ${formatTimeout(throttleTime)}, ")
-        msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())},")
-        msg.append("timeoutValue: ${formatTimeout(actualTimeout.toMillis())}")
+      if (startTime != null) {
+        val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
+        val elapsedTime = Duration.between(startTime, clock.instant())
+        val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
+        val actualTimeout = (
+          if (this is OverridableTimeoutRetryableTask && stage.parentWithTimeout.isPresent)
+            stage.parentWithTimeout.get().timeout.get().toDuration()
+          else
+            timeout.toDuration()
+          )
+        if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > actualTimeout) {
+          val durationString = formatTimeout(elapsedTime.toMillis())
+          val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.name} timed out after $durationString. ")
+          msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")
+          msg.append("throttleTime: ${formatTimeout(throttleTime)}, ")
+          msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())},")
+          msg.append("timeoutValue: ${formatTimeout(actualTimeout.toMillis())}")
 
-        log.warn(msg.toString())
-        throw TimeoutException(msg.toString())
+          log.warn(msg.toString())
+          throw TimeoutException(msg.toString())
+        }
       }
     }
   }
@@ -201,11 +203,13 @@ class RunTaskHandler(
   private fun checkForStageTimeout(stage: Stage) {
     stage.parentWithTimeout.ifPresent {
       val startTime = it.startTime.toInstant()
-      val elapsedTime = Duration.between(startTime, clock.instant())
-      val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
-      val timeout = Duration.ofMillis(it.timeout.get())
-      if (elapsedTime.minus(pausedDuration) > timeout) {
-        throw TimeoutException("Stage ${stage.name} timed out after ${formatTimeout(elapsedTime.toMillis())}")
+      if (startTime != null) {
+        val elapsedTime = Duration.between(startTime, clock.instant())
+        val pausedDuration = stage.execution.pausedDurationRelativeTo(startTime)
+        val timeout = Duration.ofMillis(it.timeout.get())
+        if (elapsedTime.minus(pausedDuration) > timeout) {
+          throw TimeoutException("Stage ${stage.name} timed out after ${formatTimeout(elapsedTime.toMillis())}")
+        }
       }
     }
   }
