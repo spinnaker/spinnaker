@@ -88,12 +88,16 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
         .map(i -> ((LocalDebianService) i).getUpstartServiceName())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
+    List<String> systemdServiceConfigs = upstartNames.stream()
+        .map(n -> n + ".service")
+        .collect(Collectors.toList());
     List<String> serviceInstalls = serviceTypes.stream()
         .map(t -> installCommands.get(t.getCanonicalName()))
         .collect(Collectors.toList());
 
     TemplatedResource resource = new StringReplaceJarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
+    bindings.put("systemd-service-configs", Strings.join(systemdServiceConfigs, " "));
     String upstartInit = resource.setBindings(bindings).toString();
     BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 
