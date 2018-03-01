@@ -203,7 +203,7 @@ class BuildHalyardCommand(GradleCommandProcessor):
       args.append('-x test')
 
     args.extend(self.gradle.get_debian_args('trusty-nightly,xenial-nightly'))
-    build_number = source_info.build_number,
+    build_number = source_info.build_number
     version = source_info.summary.version
     self.gradle.check_run(args, self, repository, 'candidate', 'debian-build',
                           version=version, build_number=build_number)
