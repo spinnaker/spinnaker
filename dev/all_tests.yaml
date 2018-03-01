@@ -218,6 +218,22 @@ tests:
       test_gcs_bucket: $storage_gcs_bucket
       branch: master
 
+  # gcs_pubsub_gae_test:
+  #   requires:
+  #     configuration:
+  #       appengine_account_enabled: true
+  #     services: [clouddriver, front50, gate, orca, echo]
+  #   quota:
+  #     # TODO: Loadbalancer?
+  #     appengine_deployment: 1
+  #   path: citest/tests/gcs_pubsub_gae_test
+  #   api: gate
+  #   args:
+  #     alias: [standard_appengine_provider_params]
+  #     git_repo_url: https://github.com/GoogleCloudPlatform/python-docs-samples.git
+  #     app_directory_root: appengine/standard/hello_world
+  #     test_gcs_bucket: $storage_gcs_bucket
+  #     branch: master
 
   dcos_smoke_test:
     requires:
