@@ -33,3 +33,7 @@ compileKotlin {
     jvmTarget = "1.8"
   }
 }
+
+kapt {
+  mapDiagnosticLocations = true
+}
