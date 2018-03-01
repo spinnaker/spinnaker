@@ -104,6 +104,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
 
         it("reports zero lag time") {
           assertThat(subject.meanMessageLag).isEqualTo(ZERO)
+          assertThat(subject.medianMessageLag).isEqualTo(ZERO)
           assertThat(subject.maxMessageLag).isEqualTo(ZERO)
         }
       }
@@ -128,6 +129,12 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
           assertThat(subject.meanMessageLag).isEqualTo(lag.average())
           // after reading the mean should reset
           assertThat(subject.meanMessageLag).isEqualTo(ZERO)
+        }
+
+        it("records the median lag time") {
+          assertThat(subject.medianMessageLag).isEqualTo(lag.sorted().toList()[1])
+          // after reading the mean should reset
+          assertThat(subject.medianMessageLag).isEqualTo(ZERO)
         }
 
         it("records the max lag time") {
