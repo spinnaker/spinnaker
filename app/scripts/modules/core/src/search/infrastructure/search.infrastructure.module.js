@@ -5,7 +5,6 @@ import { RECENTLY_VIEWED_ITEMS_COMPONENT } from './recentlyViewedItems.component
 import { SEARCH_COMPONENT } from '../widgets/search.component';
 import { SEARCH_INFRASTRUCTURE_V2_CONTROLLER } from './infrastructureSearchV2.component';
 import { SEARCH_RESULT_COMPONENT } from './searchResult.component';
-import { SEARCH_RESULT_PODS_COMPONENT } from './searchResultPods.component';
 
 import './infrastructure.less';
 
@@ -17,5 +16,4 @@ module(SEARCH_INFRASTRUCTURE, [
   SEARCH_COMPONENT,
   SEARCH_INFRASTRUCTURE_V2_CONTROLLER,
   SEARCH_RESULT_COMPONENT,
-  SEARCH_RESULT_PODS_COMPONENT,
 ]);

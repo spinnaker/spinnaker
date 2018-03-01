@@ -11,9 +11,9 @@ import { ISearchResult, ISearchResultPodData, SearchResultPods } from './SearchR
 
 export interface IChildComponentProps {
   results: ISearchResultPodData[];
-  onResultClick: (categoryName: string) => void;
   onRemoveItem?: (categoryName: string, itemId: string) => void;
   onRemoveProject?: (projectId: string) => void;
+  onResultClick: (categoryName: string) => void;
 }
 
 export interface IRecentlyViewedItemsProps {
@@ -86,7 +86,7 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
   }
 
   private handleResultClick(categoryName: string): void {
-    ReactGA.event({ category: 'Global Search', action: `Recent item selected from ${categoryName}` });
+    ReactGA.event({ category: 'Primary Search', action: `Recent item selected from ${categoryName}` });
   }
 
   public render() {
@@ -97,8 +97,8 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
         <Component
           results={this.state.recentItems}
           onRemoveItem={this.handleRemoveItem}
-          onResultClick={this.handleResultClick}
           onRemoveProject={this.handleRemoveProject}
+          onResultClick={this.handleResultClick}
         />
        ) : (
         // Once RecentlyViewedItems is no longer rendered as part of any angular
@@ -106,8 +106,8 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
         <SearchResultPods
           results={this.state.recentItems}
           onRemoveItem={this.handleRemoveItem}
-          onResultClick={this.handleResultClick}
           onRemoveProject={this.handleRemoveProject}
+          onResultClick={this.handleResultClick}
         />
        )
     );
