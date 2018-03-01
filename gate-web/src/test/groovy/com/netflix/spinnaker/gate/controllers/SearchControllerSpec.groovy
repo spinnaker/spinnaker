@@ -31,19 +31,24 @@ class SearchControllerSpec extends Specification {
   def controller = new SearchController(searchService: searchService)
 
   @Unroll
-  def "should return empty results when `q` parameter is < 3 characters"() {
+  def "should return empty results when `q` parameter is < 3 characters and rejectShortQuery is true or omitted"() {
     when:
-    controller.search(query, null, null, 100, 0, null, httpServletRequest).isEmpty()
+    controller.search(query, null, null, 100, 0, allowShortQuery, null, httpServletRequest).isEmpty()
 
     then:
     expectedSearches * searchService.search(query, null, null, null, 100, 0, [:]) >> { return [] }
 
     where:
-    query || expectedSearches
-    null  || 0
-    ""    || 0
-    "a"   || 0
-    "ab"  || 0
-    "abc" || 1
+    query || allowShortQuery || expectedSearches
+    null  || false           || 0
+    ""    || false           || 0
+    "a"   || false           || 0
+    "ab"  || false           || 0
+    "abc" || false           || 1
+    null  || true            || 1
+    ""    || true            || 1
+    "a"   || true            || 1
+    "ab"  || true            || 1
+    "abc" || true            || 1
   }
 }
