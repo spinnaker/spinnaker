@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.natpryce.hamkrest.absent
-import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
@@ -64,8 +62,8 @@ object PauseTaskHandlerTest : SubjectSpek<PauseTaskHandler>({
     it("updates the task state in the stage") {
       verify(repository).storeStage(check {
         it.tasks.first().apply {
-          status shouldEqual ExecutionStatus.PAUSED
-          endTime shouldMatch absent()
+          assertThat(status).isEqualTo(PAUSED)
+          assertThat(endTime).isNull()
         }
       })
     }

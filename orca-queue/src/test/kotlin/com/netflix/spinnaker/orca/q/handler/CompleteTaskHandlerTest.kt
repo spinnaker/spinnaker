@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.natpryce.hamkrest.allElements
-import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.TaskComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -29,8 +26,8 @@ import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
@@ -75,8 +72,8 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
           it.tasks.first().apply {
-            status shouldEqual SUCCEEDED
-            endTime shouldEqual clock.millis()
+            assertThat(status).isEqualTo(SUCCEEDED)
+            assertThat(endTime).isEqualTo(clock.millis())
           }
         })
       }
@@ -94,11 +91,11 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<TaskComplete> {
-          it.executionType shouldEqual pipeline.type
-          it.executionId shouldEqual pipeline.id
-          it.stageId shouldEqual message.stageId
-          it.taskId shouldEqual message.taskId
-          it.status shouldEqual SUCCEEDED
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.stageId).isEqualTo(message.stageId)
+          assertThat(it.taskId).isEqualTo(message.taskId)
+          assertThat(it.status).isEqualTo(SUCCEEDED)
         })
       }
     }
@@ -126,8 +123,8 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
           it.tasks.last().apply {
-            status shouldEqual SUCCEEDED
-            endTime shouldEqual clock.millis()
+            assertThat(status).isEqualTo(SUCCEEDED)
+            assertThat(endTime).isEqualTo(clock.millis())
           }
         })
       }
@@ -167,8 +164,8 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
           it.tasks.last().apply {
-            status shouldEqual SUCCEEDED
-            endTime shouldEqual clock.millis()
+            assertThat(status).isEqualTo(SUCCEEDED)
+            assertThat(endTime).isEqualTo(clock.millis())
           }
         })
       }
@@ -215,13 +212,13 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
         it("repeats the loop") {
           verify(queue).push(check<StartTask> {
-            it.taskId shouldEqual "2"
+            assertThat(it.taskId).isEqualTo("2")
           })
         }
 
         it("resets the status of the loop tasks") {
           verify(repository).storeStage(check {
-            it.tasks[1..3].map(Task::getStatus) shouldMatch allElements(equalTo(NOT_STARTED))
+            assertThat(it.tasks[1..3].map(Task::getStatus)).allMatch { it == NOT_STARTED }
           })
         }
 
@@ -257,8 +254,8 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       it("updates the task state in the stage") {
         verify(repository).storeStage(check {
           it.tasks.first().apply {
-            status shouldEqual status
-            endTime shouldEqual clock.millis()
+            assertThat(status).isEqualTo(status)
+            assertThat(endTime).isEqualTo(clock.millis())
           }
         })
       }
@@ -278,11 +275,11 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<TaskComplete> {
-          it.executionType shouldEqual pipeline.type
-          it.executionId shouldEqual pipeline.id
-          it.stageId shouldEqual message.stageId
-          it.taskId shouldEqual message.taskId
-          it.status shouldEqual status
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.stageId).isEqualTo(message.stageId)
+          assertThat(it.taskId).isEqualTo(message.taskId)
+          assertThat(it.status).isEqualTo(status)
         })
       }
     }

@@ -18,7 +18,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
   compile "com.nhaarman:mockito-kotlin:1.5.0"
-  compile "com.natpryce:hamkrest:1.4.2.0"
+  compile "org.assertj:assertj-core:3.9.0"
 
   compile "org.springframework.boot:spring-boot-test:${spinnaker.version('springBoot')}"
   compile "com.netflix.spinnaker.keiko:keiko-mem:$keikoVersion"

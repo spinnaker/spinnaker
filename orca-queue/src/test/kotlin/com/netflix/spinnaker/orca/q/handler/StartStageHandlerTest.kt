@@ -17,16 +17,8 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.natpryce.hamkrest.assertion.assertThat
-import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.hasElement
-import com.natpryce.hamkrest.isEmpty
-import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
@@ -40,54 +32,13 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundExceptio
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.CompleteExecution
-import com.netflix.spinnaker.orca.q.CompleteStage
-import com.netflix.spinnaker.orca.q.DummyTask
-import com.netflix.spinnaker.orca.q.InvalidExecutionId
-import com.netflix.spinnaker.orca.q.InvalidStageId
-import com.netflix.spinnaker.orca.q.SkipStage
-import com.netflix.spinnaker.orca.q.StartStage
-import com.netflix.spinnaker.orca.q.StartTask
-import com.netflix.spinnaker.orca.q.buildSyntheticStages
-import com.netflix.spinnaker.orca.q.buildTasks
-import com.netflix.spinnaker.orca.q.failPlanningStage
-import com.netflix.spinnaker.orca.q.get
-import com.netflix.spinnaker.orca.q.multiTaskStage
-import com.netflix.spinnaker.orca.q.pipeline
-import com.netflix.spinnaker.orca.q.rollingPushStage
-import com.netflix.spinnaker.orca.q.singleTaskStage
-import com.netflix.spinnaker.orca.q.stage
-import com.netflix.spinnaker.orca.q.stageWithParallelBranches
-import com.netflix.spinnaker.orca.q.stageWithSyntheticAfter
-import com.netflix.spinnaker.orca.q.stageWithSyntheticAfterAndNoTasks
-import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
-import com.netflix.spinnaker.orca.q.webhookStage
-import com.netflix.spinnaker.orca.q.zeroTaskStage
+import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
-import com.netflix.spinnaker.spek.shouldAllEqual
-import com.netflix.spinnaker.spek.shouldEqual
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.anyOrNull
-import com.nhaarman.mockito_kotlin.argumentCaptor
-import com.nhaarman.mockito_kotlin.check
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.doThrow
-import com.nhaarman.mockito_kotlin.isA
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.times
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.nhaarman.mockito_kotlin.whenever
-import org.jetbrains.spek.api.dsl.context
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
@@ -157,20 +108,20 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("updates the stage status") {
         verify(repository).storeStage(check {
-          it.status shouldEqual RUNNING
-          it.startTime shouldEqual clock.millis()
+          assertThat(it.status).isEqualTo(RUNNING)
+          assertThat(it.startTime).isEqualTo(clock.millis())
         })
       }
 
       it("attaches tasks to the stage") {
         verify(repository).storeStage(check {
-          it.tasks.size shouldEqual 1
+          assertThat(it.tasks.size).isEqualTo(1)
           it.tasks.first().apply {
-            id shouldEqual "1"
-            name shouldEqual "dummy"
-            implementingClass shouldEqual DummyTask::class.java.name
-            isStageStart shouldEqual true
-            isStageEnd shouldEqual true
+            assertThat(id).isEqualTo("1")
+            assertThat(name).isEqualTo("dummy")
+            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+            assertThat(isStageStart).isEqualTo(true)
+            assertThat(isStageEnd).isEqualTo(true)
           }
         })
       }
@@ -181,9 +132,9 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<StageStarted> {
-          it.executionType shouldEqual pipeline.type
-          it.executionId shouldEqual pipeline.id
-          it.stageId shouldEqual message.stageId
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.stageId).isEqualTo(message.stageId)
         })
       }
     }
@@ -211,8 +162,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("updates the stage status") {
           verify(repository).storeStage(check {
-            it.status shouldEqual RUNNING
-            it.startTime shouldEqual clock.millis()
+            assertThat(it.status).isEqualTo(RUNNING)
+            assertThat(it.startTime).isEqualTo(clock.millis())
           })
         }
 
@@ -223,9 +174,9 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("publishes an event") {
           verify(publisher).publishEvent(check<StageStarted> {
-            it.executionType shouldEqual pipeline.type
-            it.executionId shouldEqual pipeline.id
-            it.stageId shouldEqual message.stageId
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.stageId).isEqualTo(message.stageId)
           })
         }
       }
@@ -252,8 +203,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("updates the stage status") {
           verify(repository).storeStage(check {
-            it.status shouldEqual RUNNING
-            it.startTime shouldEqual clock.millis()
+            assertThat(it.status).isEqualTo(RUNNING)
+            assertThat(it.startTime).isEqualTo(clock.millis())
           })
         }
 
@@ -264,9 +215,9 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("publishes an event") {
           verify(publisher).publishEvent(check<StageStarted> {
-            it.executionType shouldEqual pipeline.type
-            it.executionId shouldEqual pipeline.id
-            it.stageId shouldEqual message.stageId
+            assertThat(it.executionType).isEqualTo(pipeline.type)
+            assertThat(it.executionId).isEqualTo(pipeline.id)
+            assertThat(it.stageId).isEqualTo(message.stageId)
           })
         }
       }
@@ -293,27 +244,27 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("attaches tasks to the stage") {
         verify(repository).storeStage(check {
-          it.tasks.size shouldEqual 3
+          assertThat(it.tasks.size).isEqualTo(3)
           it.tasks[0].apply {
-            id shouldEqual "1"
-            name shouldEqual "dummy1"
-            implementingClass shouldEqual DummyTask::class.java.name
-            isStageStart shouldEqual true
-            isStageEnd shouldEqual false
+            assertThat(id).isEqualTo("1")
+            assertThat(name).isEqualTo("dummy1")
+            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+            assertThat(isStageStart).isEqualTo(true)
+            assertThat(isStageEnd).isEqualTo(false)
           }
           it.tasks[1].apply {
-            id shouldEqual "2"
-            name shouldEqual "dummy2"
-            implementingClass shouldEqual DummyTask::class.java.name
-            isStageStart shouldEqual false
-            isStageEnd shouldEqual false
+            assertThat(id).isEqualTo("2")
+            assertThat(name).isEqualTo("dummy2")
+            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+            assertThat(isStageStart).isEqualTo(false)
+            assertThat(isStageEnd).isEqualTo(false)
           }
           it.tasks[2].apply {
-            id shouldEqual "3"
-            name shouldEqual "dummy3"
-            implementingClass shouldEqual DummyTask::class.java.name
-            isStageStart shouldEqual false
-            isStageEnd shouldEqual true
+            assertThat(id).isEqualTo("3")
+            assertThat(name).isEqualTo("dummy3")
+            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+            assertThat(isStageStart).isEqualTo(false)
+            assertThat(isStageEnd).isEqualTo(true)
           }
         })
       }
@@ -351,8 +302,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("attaches the synthetic stage to the pipeline") {
           verify(repository, times(2)).addStage(check {
-            it.parentStageId shouldEqual message.stageId
-            it.syntheticStageOwner shouldEqual STAGE_BEFORE
+            assertThat(it.parentStageId).isEqualTo(message.stageId)
+            assertThat(it.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
           })
         }
 
@@ -387,8 +338,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
         it("attaches the synthetic stage to the pipeline") {
           verify(repository, times(2)).addStage(check {
-            it.parentStageId shouldEqual message.stageId
-            it.syntheticStageOwner shouldEqual STAGE_AFTER
+            assertThat(it.parentStageId).isEqualTo(message.stageId)
+            assertThat(it.syntheticStageOwner).isEqualTo(STAGE_AFTER)
           })
         }
 
@@ -437,7 +388,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         }
 
         it("doesn't build its tasks") {
-          pipeline.stageByRef("3").tasks shouldMatch isEmpty
+          assertThat(pipeline.stageByRef("3").tasks).isEmpty()
         }
 
         it("waits for the other upstream stage to complete") {
@@ -547,16 +498,16 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
           argumentCaptor<Stage>().apply {
             verify(repository, times(3)).addStage(capture())
-            firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
-            firstValue.parentStageId shouldEqual message.stageId
-            firstValue.syntheticStageOwner shouldEqual STAGE_BEFORE
-            secondValue.requisiteStageRefIds shouldEqual setOf(firstValue.refId)
+            assertThat(firstValue.type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+            assertThat(firstValue.parentStageId).isEqualTo(message.stageId)
+            assertThat(firstValue.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
+            assertThat(secondValue.requisiteStageRefIds).isEqualTo(setOf(firstValue.refId))
           }
         }
 
         it("starts the 'wait for execution window' stage") {
           verify(queue).push(check<StartStage> {
-            it.stageId shouldEqual pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id
+            assertThat(it.stageId).isEqualTo(pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id)
           })
           verifyNoMoreInteractions(queue)
         }
@@ -586,19 +537,20 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
           argumentCaptor<Stage>().apply {
             verify(repository, times(4)).addStage(capture())
-            firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
-            firstValue.parentStageId shouldEqual message.stageId
-            firstValue.syntheticStageOwner shouldEqual STAGE_BEFORE
+            assertThat(firstValue.type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+            assertThat(firstValue.parentStageId).isEqualTo(message.stageId)
+            assertThat(firstValue.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
             allValues[1..3].forEach {
-              it.requisiteStageRefIds shouldEqual setOf(firstValue.refId)
+              assertThat(it.requisiteStageRefIds).isEqualTo(setOf(firstValue.refId))
             }
-            allValues[1..3].map { it.type } shouldAllEqual singleTaskStage.type
+            assertThat(allValues[1..3].map { it.type })
+              .allMatch { it == singleTaskStage.type }
           }
         }
 
         it("starts the 'wait for execution window' stage") {
           verify(queue).push(check<StartStage> {
-            it.stageId shouldEqual pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id
+            assertThat(it.stageId).isEqualTo(pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id)
           })
           verifyNoMoreInteractions(queue)
         }
@@ -627,21 +579,21 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("starts the stage") {
         verify(repository).storeStage(check {
-          it.type shouldEqual "bar"
-          it.status shouldEqual RUNNING
-          it.startTime shouldEqual clock.millis()
+          assertThat(it.type).isEqualTo("bar")
+          assertThat(it.status).isEqualTo(RUNNING)
+          assertThat(it.startTime).isEqualTo(clock.millis())
         })
       }
 
       it("attaches a task to the stage") {
         verify(repository).storeStage(check {
-          it.tasks.size shouldEqual 1
+          assertThat(it.tasks.size).isEqualTo(1)
           it.tasks.first().apply {
-            id shouldEqual "1"
-            name shouldEqual "createWebhook"
-            implementingClass shouldEqual DummyTask::class.java.name
-            isStageStart shouldEqual true
-            isStageEnd shouldEqual true
+            assertThat(id).isEqualTo("1")
+            assertThat(name).isEqualTo("createWebhook")
+            assertThat(implementingClass).isEqualTo(DummyTask::class.java.name)
+            assertThat(isStageStart).isEqualTo(true)
+            assertThat(isStageEnd).isEqualTo(true)
           }
         })
       }
@@ -684,7 +636,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
-              it.context["exception"] shouldEqual exceptionDetails
+              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
             })
           }
         }
@@ -713,7 +665,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
-              it.context["exception"] shouldEqual exceptionDetails
+              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
             })
           }
         }
@@ -742,7 +694,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
-              it.context["exception"] shouldEqual exceptionDetails
+              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
             })
           }
         }
@@ -799,33 +751,29 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("builds tasks for the main branch") {
         val stage = pipeline.stageById(message.stageId)
-        stage.tasks.map(Task::getName) shouldEqual listOf("post-branch")
+        assertThat(stage.tasks.map(Task::getName)).isEqualTo(listOf("post-branch"))
       }
 
       it("builds synthetic stages for each parallel branch") {
-        pipeline.stages.size shouldEqual 4
-        assertThat(
-          pipeline.stages.map { it.type },
-          equalTo(listOf(singleTaskStage.type, singleTaskStage.type, singleTaskStage.type, stageWithParallelBranches.type))
-        )
+        assertThat(pipeline.stages.size).isEqualTo(4)
+        assertThat(pipeline.stages.map { it.type })
+          .isEqualTo(listOf(singleTaskStage.type, singleTaskStage.type, singleTaskStage.type, stageWithParallelBranches.type))
       }
 
       it("builds stages that will run in parallel") {
-        assertThat(
-          pipeline.stages.flatMap { it.requisiteStageRefIds },
-          isEmpty
-        )
+        assertThat(pipeline.stages.flatMap { it.requisiteStageRefIds })
+          .isEmpty()
         // TODO: contexts, etc.
       }
 
       it("renames each parallel branch") {
         val stage = pipeline.stageByRef("1")
-        pipeline.stages.filter { it.parentStageId == stage.id }.map { it.name } shouldEqual listOf("run in us-east-1", "run in us-west-2", "run in eu-west-1")
+        assertThat(pipeline.stages.filter { it.parentStageId == stage.id }.map { it.name }).isEqualTo(listOf("run in us-east-1", "run in us-west-2", "run in eu-west-1"))
       }
 
       it("runs the parallel stages") {
         verify(queue, times(3)).push(check<StartStage> {
-          pipeline.stageById(it.stageId).parentStageId shouldEqual message.stageId
+          assertThat(pipeline.stageById(it.stageId).parentStageId).isEqualTo(message.stageId)
         })
       }
     }
@@ -855,13 +803,14 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("builds tasks for the branch") {
         val stage = pipeline.stageById(message.stageId)
-        assertThat(stage.tasks, !isEmpty)
-        stage.tasks.map(Task::getName) shouldEqual listOf("dummy")
+        assertThat(stage.tasks).isNotEmpty
+        assertThat(stage.tasks.map(Task::getName)).isEqualTo(listOf("dummy"))
       }
 
       it("does not build more synthetic stages") {
         val stage = pipeline.stageById(message.stageId)
-        pipeline.stages.mapNotNull(Stage::getParentStageId) shouldMatch !hasElement(stage.id)
+        assertThat(pipeline.stages.mapNotNull(Stage::getParentStageId))
+          .doesNotContain(stage.id)
       }
     }
   }
@@ -890,23 +839,23 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
       it("builds tasks for the main branch") {
         pipeline.stageById(message.stageId).let { stage ->
-          stage.tasks.size shouldEqual 5
-          stage.tasks[0].isLoopStart shouldEqual false
-          stage.tasks[1].isLoopStart shouldEqual true
-          stage.tasks[2].isLoopStart shouldEqual false
-          stage.tasks[3].isLoopStart shouldEqual false
-          stage.tasks[4].isLoopStart shouldEqual false
-          stage.tasks[0].isLoopEnd shouldEqual false
-          stage.tasks[1].isLoopEnd shouldEqual false
-          stage.tasks[2].isLoopEnd shouldEqual false
-          stage.tasks[3].isLoopEnd shouldEqual true
-          stage.tasks[4].isLoopEnd shouldEqual false
+          assertThat(stage.tasks.size).isEqualTo(5)
+          assertThat(stage.tasks[0].isLoopStart).isEqualTo(false)
+          assertThat(stage.tasks[1].isLoopStart).isEqualTo(true)
+          assertThat(stage.tasks[2].isLoopStart).isEqualTo(false)
+          assertThat(stage.tasks[3].isLoopStart).isEqualTo(false)
+          assertThat(stage.tasks[4].isLoopStart).isEqualTo(false)
+          assertThat(stage.tasks[0].isLoopEnd).isEqualTo(false)
+          assertThat(stage.tasks[1].isLoopEnd).isEqualTo(false)
+          assertThat(stage.tasks[2].isLoopEnd).isEqualTo(false)
+          assertThat(stage.tasks[3].isLoopEnd).isEqualTo(true)
+          assertThat(stage.tasks[4].isLoopEnd).isEqualTo(false)
         }
       }
 
       it("runs the parallel stages") {
         verify(queue).push(check<StartTask> {
-          it.taskId shouldEqual "1"
+          assertThat(it.taskId).isEqualTo("1")
         })
       }
     }
@@ -971,11 +920,12 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
 
       it("doesn't build any tasks") {
-        pipeline.stageById(message.stageId).tasks shouldMatch isEmpty
+        assertThat(pipeline.stageById(message.stageId).tasks).isEmpty()
       }
 
       it("doesn't build any synthetic stages") {
-        pipeline.stages.filter { it.parentStageId == message.stageId } shouldMatch isEmpty
+        assertThat(pipeline.stages.filter { it.parentStageId == message.stageId })
+          .isEmpty()
       }
     }
 

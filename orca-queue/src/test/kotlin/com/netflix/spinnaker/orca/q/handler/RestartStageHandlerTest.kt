@@ -16,22 +16,17 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.natpryce.hamkrest.*
-import com.natpryce.hamkrest.should.shouldMatch
-import com.natpryce.hamkrest.should.shouldNotMatch
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.spek.shouldEqual
-import com.netflix.spinnaker.spek.shouldNotEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
@@ -92,7 +87,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         }
 
         it("does not modify the stage status") {
-          verify(repository, never()).store(any<Execution>())
+          verify(repository, never()).store(any())
         }
 
         it("does not run the stage") {
@@ -143,27 +138,27 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
       it("resets the stage's status") {
         verify(repository).storeStage(check {
-          it.id shouldEqual message.stageId
-          it.status shouldEqual NOT_STARTED
-          it.startTime shouldMatch absent()
-          it.endTime shouldMatch absent()
+          assertThat(it.id).isEqualTo(message.stageId)
+          assertThat(it.status).isEqualTo(NOT_STARTED)
+          assertThat(it.startTime).isNull()
+          assertThat(it.endTime).isNull()
         })
       }
 
       it("removes the stage's tasks") {
         verify(repository).storeStage(check {
-          it.tasks shouldMatch isEmpty
+          assertThat(it.tasks).isEmpty()
         })
       }
 
       it("adds restart details to the stage context") {
         verify(repository).storeStage(check {
-          it.context.keys shouldNotMatch hasElement("exception")
-          it.context["restartDetails"] shouldEqual mapOf(
+          assertThat(it.context.keys).doesNotContain("exception")
+          assertThat(it.context["restartDetails"]).isEqualTo(mapOf(
             "restartedBy" to "fzlem@netflix.com",
             "restartTime" to clock.millis(),
             "previousException" to "o noes"
-          )
+          ))
         })
       }
 
@@ -183,7 +178,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         .map(Stage::getId)
 
       it("removes the nested synthetic stages") {
-        nestedSyntheticStageIds shouldMatch !isEmpty
+        assertThat(nestedSyntheticStageIds).isNotEmpty
         pipeline
           .stages
           .filter { it.parentStageId in nestedSyntheticStageIds }
@@ -208,10 +203,10 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
       it("runs the stage") {
         verify(queue).push(check<StartStage> {
-          it.executionType shouldEqual message.executionType
-          it.executionId shouldEqual message.executionId
-          it.application shouldEqual message.application
-          it.stageId shouldEqual message.stageId
+          assertThat(it.executionType).isEqualTo(message.executionType)
+          assertThat(it.executionId).isEqualTo(message.executionId)
+          assertThat(it.application).isEqualTo(message.application)
+          assertThat(it.stageId).isEqualTo(message.stageId)
         })
       }
     }
@@ -264,10 +259,10 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       argumentCaptor<Stage>().apply {
         verify(repository, atLeast(2)).storeStage(capture())
         downstreamStageIds.forEach {
-          allValues.map { it.id } shouldMatch anyElement(equalTo(it))
+          assertThat(allValues.map { it.id }).contains(it)
         }
         allValues.forEach {
-          it.tasks shouldMatch isEmpty
+          assertThat(it.tasks).isEmpty()
         }
       }
     }
@@ -336,9 +331,9 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
       val downstreamStageIds = setOf("1", "3", "4").map { pipeline.stageByRef(it).id }
       argumentCaptor<Stage>().apply {
         verify(repository, times(3)).storeStage(capture())
-        allValues.map { it.id } shouldEqual downstreamStageIds
+        assertThat(allValues.map { it.id }).isEqualTo(downstreamStageIds)
         allValues.forEach {
-          it.tasks shouldMatch isEmpty
+          assertThat(it.tasks).isEmpty()
         }
       }
     }
@@ -388,18 +383,18 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
     it("runs the parent stage") {
       verify(queue).push(check<StartStage> {
-        it.stageId shouldEqual pipeline.stageByRef("1").id
-        it.stageId shouldNotEqual syntheticStage.id
-        it.stageId shouldNotEqual message.stageId
-        it.executionType shouldEqual message.executionType
-        it.executionId shouldEqual message.executionId
-        it.application shouldEqual message.application
+        assertThat(it.stageId).isEqualTo(pipeline.stageByRef("1").id)
+        assertThat(it.stageId).isNotEqualTo(syntheticStage.id)
+        assertThat(it.stageId).isNotEqualTo(message.stageId)
+        assertThat(it.executionType).isEqualTo(message.executionType)
+        assertThat(it.executionId).isEqualTo(message.executionId)
+        assertThat(it.application).isEqualTo(message.application)
       })
     }
   }
 })
 
-fun  StageDefinitionBuilder.plan(stage: Stage) {
+fun StageDefinitionBuilder.plan(stage: Stage) {
   stage.type = type
   buildTasks(stage)
   buildSyntheticStages(stage)

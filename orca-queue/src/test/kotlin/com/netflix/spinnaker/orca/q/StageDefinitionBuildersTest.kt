@@ -16,15 +16,14 @@
 
 package com.netflix.spinnaker.orca.q
 
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.on
-
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import com.netflix.spinnaker.spek.shouldEqual
+import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.spek.api.Spek
+import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 
 object StageDefinitionBuildersTest : Spek({
   val stageBuilder = MyStageDefinitionBuilder()
@@ -46,8 +45,8 @@ object StageDefinitionBuildersTest : Spek({
 
     it("sets the refId with _no_ offset") {
       val stage = pipeline.stageById("2")
-      stage.refId shouldEqual "1>1"
-      stage.requisiteStageRefIds shouldEqual emptySet()
+      assertThat(stage.refId).isEqualTo("1>1")
+      assertThat(stage.requisiteStageRefIds).isEmpty()
     }
 
     on("adding another synthetic stage") {
@@ -59,8 +58,8 @@ object StageDefinitionBuildersTest : Spek({
 
     it("sets the refId with an initial offset") {
       val stage = pipeline.stageById("3")
-      stage.refId shouldEqual "1>2"
-      stage.requisiteStageRefIds shouldEqual setOf("1>1")
+      assertThat(stage.refId).isEqualTo("1>2")
+      assertThat(stage.requisiteStageRefIds).containsExactly("1>1")
     }
   }
 })

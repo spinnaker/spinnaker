@@ -25,8 +25,8 @@ import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.pipeline
 import com.netflix.spinnaker.orca.q.stage
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
@@ -34,9 +34,7 @@ import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Duration
-import kotlin.collections.forEach
 import kotlin.collections.set
-import kotlin.collections.setOf
 
 object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
@@ -78,9 +76,9 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
-          it.executionType shouldEqual pipeline.type
-          it.executionId shouldEqual pipeline.id
-          it.status shouldEqual stageStatus
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.status).isEqualTo(stageStatus)
         })
       }
 
@@ -165,9 +163,9 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
-          it.executionType shouldEqual pipeline.type
-          it.executionId shouldEqual pipeline.id
-          it.status shouldEqual stageStatus
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.status).isEqualTo(stageStatus)
         })
       }
 
@@ -215,9 +213,9 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
     it("publishes an event") {
       verify(publisher).publishEvent(check<ExecutionComplete> {
-        it.executionType shouldEqual pipeline.type
-        it.executionId shouldEqual pipeline.id
-        it.status shouldEqual TERMINAL
+        assertThat(it.executionType).isEqualTo(pipeline.type)
+        assertThat(it.executionId).isEqualTo(pipeline.id)
+        assertThat(it.status).isEqualTo(TERMINAL)
       })
     }
 
@@ -262,9 +260,9 @@ object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({
 
     it("publishes an event") {
       verify(publisher).publishEvent(check<ExecutionComplete> {
-        it.executionType shouldEqual pipeline.type
-        it.executionId shouldEqual pipeline.id
-        it.status shouldEqual SUCCEEDED
+        assertThat(it.executionType).isEqualTo(pipeline.type)
+        assertThat(it.executionId).isEqualTo(pipeline.id)
+        assertThat(it.status).isEqualTo(SUCCEEDED)
       })
     }
 

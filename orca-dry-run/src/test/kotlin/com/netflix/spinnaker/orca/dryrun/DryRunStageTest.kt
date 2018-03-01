@@ -16,21 +16,10 @@
 
 package com.netflix.spinnaker.orca.dryrun
 
-import com.natpryce.hamkrest.greaterThan
-import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.q.buildSyntheticStages
-import com.netflix.spinnaker.orca.q.buildTasks
-import com.netflix.spinnaker.orca.q.multiTaskStage
-import com.netflix.spinnaker.orca.q.pipeline
-import com.netflix.spinnaker.orca.q.singleTaskStage
-import com.netflix.spinnaker.orca.q.stage
-import com.netflix.spinnaker.orca.q.stageWithParallelBranches
-import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
-import com.netflix.spinnaker.orca.q.stageWithSyntheticBeforeAndNoTasks
-import com.netflix.spinnaker.orca.q.zeroTaskStage
-import com.netflix.spinnaker.spek.shouldEqual
+import com.netflix.spinnaker.orca.q.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -61,8 +50,8 @@ object DryRunStageTest : Spek({
 
       it("constructs a single task") {
         pipeline.stageByRef("1").tasks.let {
-          it.size shouldEqual 1
-          it.first().implementingClass shouldEqual DryRunTask::class.qualifiedName
+          assertThat(it.size).isEqualTo(1)
+          assertThat(it.first().implementingClass).isEqualTo(DryRunTask::class.qualifiedName)
         }
       }
     }
@@ -84,7 +73,7 @@ object DryRunStageTest : Spek({
       }
 
       it("does not build any synthetic stages") {
-        pipeline.stages.size shouldEqual 1
+        assertThat(pipeline.stages.size).isEqualTo(1)
       }
     }
   }
@@ -105,7 +94,7 @@ object DryRunStageTest : Spek({
       }
 
       it("builds the usual synthetic stages") {
-        pipeline.stages.size shouldMatch greaterThan(1)
+        assertThat(pipeline.stages.size).isGreaterThan(1)
       }
     }
   }
@@ -126,7 +115,7 @@ object DryRunStageTest : Spek({
       }
 
       it("builds the usual parallel stages") {
-        pipeline.stages.size shouldMatch greaterThan(1)
+        assertThat(pipeline.stages.size).isGreaterThan(1)
       }
     }
   }

@@ -24,8 +24,8 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
@@ -68,8 +68,8 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
     it("marks the task as running") {
       verify(repository).storeStage(check {
         it.tasks.first().apply {
-          status shouldEqual RUNNING
-          startTime shouldEqual clock.millis()
+          assertThat(status).isEqualTo(RUNNING)
+          assertThat(startTime).isEqualTo(clock.millis())
         }
       })
     }
@@ -89,10 +89,10 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
       argumentCaptor<TaskStarted>().apply {
         verify(publisher).publishEvent(capture())
         firstValue.apply {
-          executionType shouldEqual pipeline.type
-          executionId shouldEqual pipeline.id
-          stageId shouldEqual message.stageId
-          taskId shouldEqual message.taskId
+          assertThat(executionType).isEqualTo(pipeline.type)
+          assertThat(executionId).isEqualTo(pipeline.id)
+          assertThat(stageId).isEqualTo(message.stageId)
+          assertThat(taskId).isEqualTo(message.taskId)
         }
       }
     }

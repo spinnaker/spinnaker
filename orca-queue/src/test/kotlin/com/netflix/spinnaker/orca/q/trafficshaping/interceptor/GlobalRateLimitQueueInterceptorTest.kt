@@ -30,9 +30,9 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
-import org.junit.Assert.*
 import java.time.Clock
 import java.time.Duration
 
@@ -49,12 +49,12 @@ object GlobalRateLimitQueueInterceptorTest : Spek({
     describe("when learning") {
       describe("when limited no callback is returned") {
         whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ZERO, enforcing = false)
-        assertNull(subject.interceptMessage(message))
+        assertThat(subject.interceptMessage(message)).isNull()
       }
 
       describe("when not limited, no callback is returned") {
         whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = false, duration = Duration.ZERO, enforcing = false)
-        assertNull(subject.interceptMessage(message))
+        assertThat(subject.interceptMessage(message)).isNull()
       }
     }
 
@@ -65,21 +65,21 @@ object GlobalRateLimitQueueInterceptorTest : Spek({
 
         describe("when limited callback is returned") {
           whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ZERO, enforcing = true)
-          assertNotNull(subject.interceptMessage(message))
+          assertThat(subject.interceptMessage(message)).isNotNull()
         }
 
         describe("callback message contains throttle time") {
           val msg: Message = StartStage(PIPELINE, "1", "foo", "1")
           whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ZERO, enforcing = true)
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
-          assertNotNull(msg.getAttribute<TotalThrottleTimeAttribute>())
+          assertThat(msg.getAttribute<TotalThrottleTimeAttribute>()).isNotNull()
         }
 
         describe("throttle time is being set") {
           val msg: Message = StartStage(PIPELINE, "1", "foo", "1")
           whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ofMillis(5), enforcing = true)
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
-          assertEquals(5L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+          assertThat(msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs).isEqualTo(5L)
         }
 
         describe("throttle time is being added") {
@@ -87,13 +87,13 @@ object GlobalRateLimitQueueInterceptorTest : Spek({
           whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ofMillis(5), enforcing = true)
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
-          assertEquals(10L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+          assertThat(msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs).isEqualTo(10L)
         }
       }
 
       describe("when not limited, no callback is returned") {
         whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = false, duration = Duration.ZERO, enforcing = true)
-        assertNull(subject.interceptMessage(message))
+        assertThat(subject.interceptMessage(message)).isNull()
       }
     }
   }

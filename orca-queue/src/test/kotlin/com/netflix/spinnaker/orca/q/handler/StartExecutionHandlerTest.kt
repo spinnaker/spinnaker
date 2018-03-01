@@ -22,8 +22,8 @@ import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -77,8 +77,8 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<ExecutionStarted> {
-          it.executionType shouldEqual message.executionType
-          it.executionId shouldEqual message.executionId
+          assertThat(it.executionType).isEqualTo(message.executionType)
+          assertThat(it.executionId).isEqualTo(message.executionId)
         })
       }
     }
@@ -105,9 +105,9 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
-          it.executionType shouldEqual message.executionType
-          it.executionId shouldEqual message.executionId
-          it.status shouldEqual ExecutionStatus.CANCELED
+          assertThat(it.executionType).isEqualTo(message.executionType)
+          assertThat(it.executionId).isEqualTo(message.executionId)
+          assertThat(it.status).isEqualTo(ExecutionStatus.CANCELED)
         })
       }
 
@@ -138,9 +138,9 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
-          it.executionType shouldEqual message.executionType
-          it.executionId shouldEqual message.executionId
-          it.status shouldEqual ExecutionStatus.NOT_STARTED
+          assertThat(it.executionType).isEqualTo(message.executionType)
+          assertThat(it.executionId).isEqualTo(message.executionId)
+          assertThat(it.status).isEqualTo(ExecutionStatus.NOT_STARTED)
         })
       }
 
@@ -173,7 +173,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       it("starts all the initial stages") {
         argumentCaptor<StartStage>().apply {
           verify(queue, times(2)).push(capture())
-          allValues.map { it.stageId }.toSet() shouldEqual pipeline.stages.map { it.id }.toSet()
+          assertThat(allValues.map { it.stageId }.toSet()).isEqualTo(pipeline.stages.map { it.id }.toSet())
         }
       }
     }
@@ -207,9 +207,9 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
       it("publishes an event with TERMINAL status") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
-          it.executionType shouldEqual message.executionType
-          it.executionId shouldEqual message.executionId
-          it.status shouldEqual ExecutionStatus.TERMINAL
+          assertThat(it.executionType).isEqualTo(message.executionType)
+          assertThat(it.executionId).isEqualTo(message.executionId)
+          assertThat(it.status).isEqualTo(ExecutionStatus.TERMINAL)
         })
       }
     }

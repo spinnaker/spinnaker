@@ -29,9 +29,9 @@ import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.q.memory.InMemoryQueue
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
-import org.junit.Assert.*
 import java.time.Clock
 
 object PriorityCapacityQueueInterceptorTest : Spek({
@@ -63,12 +63,12 @@ object PriorityCapacityQueueInterceptorTest : Spek({
 
       describe("when under capacity") {
         whenever(repository.getGlobalCapacity()) doReturn GlobalCapacity(ceiling = 10, criticalUsage = 0, highUsage = 0, mediumUsage = 0, lowUsage = 0)
-        assertNull(subject.interceptMessage(message))
+        assertThat(subject.interceptMessage(message)).isNull()
       }
 
       describe("when over capacity") {
         whenever(repository.getGlobalCapacity()) doReturn GlobalCapacity(ceiling = 10, criticalUsage = 10, highUsage = 10, mediumUsage = 10, lowUsage = 10)
-        assertNull(subject.interceptMessage(message))
+        assertThat(subject.interceptMessage(message)).isNull()
       }
     }
 
@@ -83,7 +83,7 @@ object PriorityCapacityQueueInterceptorTest : Spek({
         val message = StartExecution(PIPELINE, "1", "foo")
 
         whenever(repository.getGlobalCapacity()) doReturn GlobalCapacity(ceiling = 10, criticalUsage = 0, highUsage = 0, mediumUsage = 0, lowUsage = 0)
-        assertNull(subject.interceptMessage(message))
+        assertThat(subject.interceptMessage(message)).isNull()
       }
 
       describe("when over capacity") {
@@ -98,7 +98,7 @@ object PriorityCapacityQueueInterceptorTest : Spek({
 
           val message = StartExecution(PIPELINE, "1", "foo")
 
-          assertNull(subject.interceptMessage(message))
+          assertThat(subject.interceptMessage(message)).isNull()
         }
 
         describe("when intercepting low message") {
@@ -106,7 +106,7 @@ object PriorityCapacityQueueInterceptorTest : Spek({
 
           val message = StartExecution(PIPELINE, "1", "foo")
 
-          assertNotNull(subject.interceptMessage(message))
+          assertThat(subject.interceptMessage(message)).isNotNull()
         }
       }
 
@@ -118,20 +118,20 @@ object PriorityCapacityQueueInterceptorTest : Spek({
         describe("callback message contains throttle time") {
           val msg: Message = StartExecution(PIPELINE, "1", "foo")
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
-          assertNotNull(msg.getAttribute<TotalThrottleTimeAttribute>())
+          assertThat(msg.getAttribute<TotalThrottleTimeAttribute>()).isNotNull()
         }
 
         describe("throttle time is being set") {
           val msg: Message = StartExecution(PIPELINE, "1", "foo")
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
-          assertEquals(5000L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+          assertThat(msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs).isEqualTo(5000L)
         }
 
         describe("throttle time is being added") {
           val msg: Message = StartExecution(PIPELINE, "1", "foo")
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
           subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
-          assertEquals(10000L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+          assertThat(msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs).isEqualTo(10000L)
         }
 
       }

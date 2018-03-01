@@ -21,8 +21,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELIN
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
@@ -74,8 +74,8 @@ object ResumeStageHandlerTest : SubjectSpek<ResumeStageHandler>({
 
     it("sets the stage status to running") {
       verify(repository).storeStage(check {
-        it.id shouldEqual message.stageId
-        it.status shouldEqual RUNNING
+        assertThat(it.id).isEqualTo(message.stageId)
+        assertThat(it.status).isEqualTo(RUNNING)
       })
     }
 

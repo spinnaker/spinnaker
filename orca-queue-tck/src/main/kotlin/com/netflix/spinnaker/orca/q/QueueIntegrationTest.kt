@@ -16,26 +16,14 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.natpryce.hamkrest.allElements
-import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.should.shouldMatch
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING
-import com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
+import com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OrcaQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
@@ -56,18 +44,8 @@ import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.q.memory.InMemoryQueue
 import com.netflix.spinnaker.q.metrics.EventPublisher
-import com.netflix.spinnaker.spek.shouldAllEqual
-import com.netflix.spinnaker.spek.shouldEqual
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argThat
-import com.nhaarman.mockito_kotlin.check
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -96,11 +74,16 @@ import java.time.ZoneId
 @RunWith(SpringRunner::class)
 class QueueIntegrationTest {
 
-  @Autowired lateinit var queue: Queue
-  @Autowired lateinit var runner: QueueExecutionRunner
-  @Autowired lateinit var repository: ExecutionRepository
-  @Autowired lateinit var dummyTask: DummyTask
-  @Autowired lateinit var context: ConfigurableApplicationContext
+  @Autowired
+  lateinit var queue: Queue
+  @Autowired
+  lateinit var runner: QueueExecutionRunner
+  @Autowired
+  lateinit var repository: ExecutionRepository
+  @Autowired
+  lateinit var dummyTask: DummyTask
+  @Autowired
+  lateinit var context: ConfigurableApplicationContext
 
   @Value("\${tasks.executionWindow.timezone:America/Los_Angeles}")
   lateinit var timeZoneId: String
@@ -135,7 +118,7 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual SUCCEEDED
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(SUCCEEDED)
   }
 
   @Test
@@ -154,7 +137,7 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual SUCCEEDED
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(SUCCEEDED)
   }
 
   @Test
@@ -189,11 +172,11 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      stageByRef("1").status shouldEqual SUCCEEDED
-      stageByRef("2a").status shouldEqual SUCCEEDED
-      stageByRef("2b").status shouldEqual SUCCEEDED
-      stageByRef("3").status shouldEqual SUCCEEDED
+      assertThat(status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2a").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("3").status).isEqualTo(SUCCEEDED)
     }
   }
 
@@ -229,11 +212,11 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      stageByRef("1").status shouldEqual SUCCEEDED
-      stageByRef("2a").status shouldEqual SUCCEEDED
-      stageByRef("2b1").status shouldEqual SUCCEEDED
-      stageByRef("2b2").status shouldEqual SUCCEEDED
+      assertThat(status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2a").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2b1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2b2").status).isEqualTo(SUCCEEDED)
     }
   }
 
@@ -254,7 +237,7 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual SUCCEEDED
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(SUCCEEDED)
 
     verify(dummyTask, never()).execute(any())
   }
@@ -274,7 +257,7 @@ class QueueIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start, repository)
 
-    repository.retrieve(PIPELINE, pipeline.id).status shouldEqual TERMINAL
+    assertThat(repository.retrieve(PIPELINE, pipeline.id).status).isEqualTo(TERMINAL)
   }
 
   @Test
@@ -315,12 +298,12 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual TERMINAL
-      stageByRef("1").status shouldEqual SUCCEEDED
-      stageByRef("2a1").status shouldEqual TERMINAL
-      stageByRef("2a2").status shouldEqual NOT_STARTED
-      stageByRef("2b").status shouldEqual SUCCEEDED
-      stageByRef("3").status shouldEqual NOT_STARTED
+      assertThat(status).isEqualTo(TERMINAL)
+      assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2a1").status).isEqualTo(TERMINAL)
+      assertThat(stageByRef("2a2").status).isEqualTo(NOT_STARTED)
+      assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("3").status).isEqualTo(NOT_STARTED)
     }
   }
 
@@ -363,12 +346,12 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      stageByRef("1").status shouldEqual SUCCEEDED
-      stageByRef("2a1").status shouldEqual FAILED_CONTINUE
-      stageByRef("2a2").status shouldEqual SUCCEEDED
-      stageByRef("2b").status shouldEqual SUCCEEDED
-      stageByRef("3").status shouldEqual SUCCEEDED
+      assertThat(status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2a1").status).isEqualTo(FAILED_CONTINUE)
+      assertThat(stageByRef("2a2").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("3").status).isEqualTo(SUCCEEDED)
     }
   }
 
@@ -418,13 +401,13 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual TERMINAL
-      stageByRef("1").status shouldEqual SUCCEEDED
-      stageByRef("2a1").status shouldEqual STOPPED
-      stageByRef("2a2").status shouldEqual NOT_STARTED
-      stageByRef("2b1").status shouldEqual SUCCEEDED
-      stageByRef("2b2").status shouldEqual SUCCEEDED
-      stageByRef("3").status shouldEqual NOT_STARTED
+      assertThat(status).isEqualTo(TERMINAL)
+      assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2a1").status).isEqualTo(STOPPED)
+      assertThat(stageByRef("2a2").status).isEqualTo(NOT_STARTED)
+      assertThat(stageByRef("2b1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2b2").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("3").status).isEqualTo(NOT_STARTED)
     }
   }
 
@@ -457,10 +440,10 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      stages.size shouldEqual 2
-      stages.first().type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
-      stages.map { it.status } shouldMatch allElements(equalTo(SUCCEEDED))
+      assertThat(status).isEqualTo(SUCCEEDED)
+      assertThat(stages.size).isEqualTo(2)
+      assertThat(stages.first().type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+      assertThat(stages.map { it.status }).allMatch { it == SUCCEEDED }
     }
   }
 
@@ -493,12 +476,12 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      stages.size shouldEqual 5
-      stages.first().type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
-      stages[1..3].map { it.type } shouldAllEqual "dummy"
-      stages.last().type shouldEqual "parallel"
-      stages.map { it.status } shouldMatch allElements(equalTo(SUCCEEDED))
+      assertThat(status).isEqualTo(SUCCEEDED)
+      assertThat(stages.size).isEqualTo(5)
+      assertThat(stages.first().type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+      assertThat(stages[1..3].map { it.type }).allMatch { it == "dummy" }
+      assertThat(stages.last().type).isEqualTo("parallel")
+      assertThat(stages.map { it.status }).allMatch { it == SUCCEEDED }
     }
   }
 
@@ -527,15 +510,15 @@ class QueueIntegrationTest {
 
     verify(dummyTask).execute(check {
       // expressions should be resolved in the stage passes to tasks
-      it.context["expr"] shouldEqual true
-      (it.context["key"] as Map<String, Any>)["expr"] shouldEqual true
+      assertThat(it.context["expr"]).isEqualTo(true)
+      assertThat((it.context["key"] as Map<String, Any>)["expr"]).isEqualTo(true)
     })
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
+      assertThat(status).isEqualTo(SUCCEEDED)
       // resolved expressions should be persisted
-      stages.first().context["expr"] shouldEqual true
-      (stages.first().context["key"] as Map<String, Any>)["expr"] shouldEqual true
+      assertThat(stages.first().context["expr"]).isEqualTo(true)
+      assertThat((stages.first().context["key"] as Map<String, Any>)["expr"]).isEqualTo(true)
     }
   }
 
@@ -575,9 +558,9 @@ class QueueIntegrationTest {
     context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual CANCELED
-      stageByRef("1").status shouldEqual SUCCEEDED
-      stageByRef("2").status shouldEqual CANCELED
+      assertThat(status).isEqualTo(CANCELED)
+      assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2").status).isEqualTo(CANCELED)
     }
   }
 
@@ -623,10 +606,10 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      stageByRef("1").status shouldEqual SUCCEEDED
-      stageByRef("2a").status shouldEqual SKIPPED
-      stageByRef("2b").status shouldEqual SUCCEEDED
+      assertThat(status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2a").status).isEqualTo(SKIPPED)
+      assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
     }
   }
 
@@ -680,9 +663,9 @@ class QueueIntegrationTest {
     context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      stageByRef("2a").status shouldEqual SKIPPED
-      stageByRef("2b").status shouldEqual SUCCEEDED
+      assertThat(status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2a").status).isEqualTo(SKIPPED)
+      assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
     }
   }
 }
@@ -700,15 +683,19 @@ class QueueIntegrationTest {
   OrcaQueueConfiguration::class
 )
 class TestConfig {
-  @Bean fun queueRedisPool(jedisPool: Pool<Jedis>) = jedisPool
+  @Bean
+  fun queueRedisPool(jedisPool: Pool<Jedis>) = jedisPool
 
-  @Bean fun registry(): Registry = NoopRegistry()
+  @Bean
+  fun registry(): Registry = NoopRegistry()
 
-  @Bean fun dummyTask(): DummyTask = mock {
+  @Bean
+  fun dummyTask(): DummyTask = mock {
     on { timeout } doReturn Duration.ofMinutes(2).toMillis()
   }
 
-  @Bean fun dummyStage() = object : StageDefinitionBuilder {
+  @Bean
+  fun dummyStage() = object : StageDefinitionBuilder {
     override fun taskGraph(stage: Stage, builder: Builder) {
       builder.withTask("dummy", DummyTask::class.java)
     }
@@ -716,7 +703,8 @@ class TestConfig {
     override fun getType() = "dummy"
   }
 
-  @Bean fun parallelStage() = object : StageDefinitionBuilder {
+  @Bean
+  fun parallelStage() = object : StageDefinitionBuilder {
     override fun parallelStages(stage: Stage) =
       listOf("us-east-1", "us-west-2", "eu-west-1").map { region ->
         newStage(stage.execution, "dummy", "dummy $region", stage.context + mapOf("region" to region), stage, STAGE_BEFORE)
@@ -725,11 +713,14 @@ class TestConfig {
     override fun getType() = "parallel"
   }
 
-  @Bean fun currentInstanceId() = "localhost"
+  @Bean
+  fun currentInstanceId() = "localhost"
 
-  @Bean fun contextParameterProcessor() = ContextParameterProcessor()
+  @Bean
+  fun contextParameterProcessor() = ContextParameterProcessor()
 
-  @Bean fun defaultExceptionHandler() = DefaultExceptionHandler()
+  @Bean
+  fun defaultExceptionHandler() = DefaultExceptionHandler()
 
   @Bean
   fun deadMessageHandler(): DeadMessageCallback = { _, _ -> }

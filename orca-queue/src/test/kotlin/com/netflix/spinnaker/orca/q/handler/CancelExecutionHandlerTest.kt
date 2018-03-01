@@ -21,9 +21,9 @@ import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
-import com.netflix.spinnaker.spek.shouldEqual
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
@@ -76,9 +76,9 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
 
       it("publishes an execution complete event") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
-          it.executionType shouldEqual pipeline.type
-          it.executionId shouldEqual pipeline.id
-          it.status shouldEqual CANCELED
+          assertThat(it.executionType).isEqualTo(pipeline.type)
+          assertThat(it.executionId).isEqualTo(pipeline.id)
+          assertThat(it.status).isEqualTo(CANCELED)
         })
       }
 

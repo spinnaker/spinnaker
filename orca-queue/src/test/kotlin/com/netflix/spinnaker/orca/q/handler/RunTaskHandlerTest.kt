@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.natpryce.hamkrest.and
-import com.natpryce.hamkrest.has
-import com.natpryce.hamkrest.hasElement
-import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
@@ -34,8 +30,8 @@ import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
@@ -108,7 +104,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         it("completes the task") {
           verify(queue).push(check<CompleteTask> {
-            it.status shouldEqual SUCCEEDED
+            assertThat(it.status).isEqualTo(SUCCEEDED)
           })
         }
 
@@ -134,7 +130,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         it("updates the stage context") {
           verify(repository).storeStage(check {
-            stageOutputs shouldEqual it.context
+            assertThat(stageOutputs).isEqualTo(it.context)
           })
         }
       }
@@ -156,7 +152,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         it("updates the stage outputs") {
           verify(repository).storeStage(check {
-            it.outputs shouldEqual outputs
+            assertThat(it.outputs).isEqualTo(outputs)
           })
         }
       }
@@ -181,7 +177,9 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         it("does not write stageTimeoutMs to outputs") {
           verify(repository).storeStage(check {
-            it.outputs shouldMatch has(Map<String, Any>::keys, hasElement("foo") and !hasElement("stageTimeoutMs"))
+            assertThat(it.outputs)
+              .containsKey("foo")
+              .doesNotContainKey("stageTimeoutMs")
           })
         }
 
@@ -248,7 +246,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
           it("marks the task $taskStatus") {
             verify(queue).push(check<CompleteTask> {
-              it.status shouldEqual taskStatus
+              assertThat(it.status).isEqualTo(taskStatus)
             })
           }
         }
@@ -273,7 +271,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
           it("marks the task STOPPED") {
             verify(queue).push(check<CompleteTask> {
-              it.status shouldEqual STOPPED
+              assertThat(it.status).isEqualTo(STOPPED)
             })
           }
         }
@@ -298,7 +296,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
           it("marks the task FAILED_CONTINUE") {
             verify(queue).push(check<CompleteTask> {
-              it.status shouldEqual FAILED_CONTINUE
+              assertThat(it.status).isEqualTo(FAILED_CONTINUE)
             })
           }
         }
@@ -342,13 +340,13 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
           it("marks the task as terminal") {
             verify(queue).push(check<CompleteTask> {
-              it.status shouldEqual TERMINAL
+              assertThat(it.status).isEqualTo(TERMINAL)
             })
           }
 
           it("attaches the exception to the stage context") {
             verify(repository).storeStage(check {
-              it.context["exception"] shouldEqual exceptionDetails
+              assertThat(it.context["exception"]).isEqualTo(exceptionDetails)
             })
           }
         }
@@ -375,7 +373,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
           it("marks the task STOPPED") {
             verify(queue).push(check<CompleteTask> {
-              it.status shouldEqual STOPPED
+              assertThat(it.status).isEqualTo(STOPPED)
             })
           }
         }
@@ -402,7 +400,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
           it("marks the task FAILED_CONTINUE") {
             verify(queue).push(check<CompleteTask> {
-              it.status shouldEqual FAILED_CONTINUE
+              assertThat(it.status).isEqualTo(FAILED_CONTINUE)
             })
           }
         }
@@ -1024,7 +1022,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         it("parses the expression") {
           verify(task).execute(check {
-            it.context["expr"] shouldEqual expected
+            assertThat(it.context["expr"]).isEqualTo(expected)
           })
         }
       }
@@ -1072,7 +1070,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
       it("resolves deployed server groups") {
         verify(task).execute(check {
-          it.context["command"] shouldEqual "serverGroupDetails.groovy mgmttest us-west-1 spindemo-test-v008"
+          assertThat(it.context["command"]).isEqualTo("serverGroupDetails.groovy mgmttest us-west-1 spindemo-test-v008")
         })
       }
     }
@@ -1107,7 +1105,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
       it("does not overwrite the stage's parameters with the pipeline's") {
         verify(task).execute(check {
-          it.context["parameters"] shouldEqual mapOf("message" to "o hai")
+          assertThat(it.context["parameters"]).isEqualTo(mapOf("message" to "o hai"))
         })
       }
     }
@@ -1144,7 +1142,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
       it("passes the decoded expression to the task") {
         verify(task).execute(check {
-          it.context["expression"] shouldEqual "bar"
+          assertThat(it.context["expression"]).isEqualTo("bar")
         })
       }
     }
@@ -1225,7 +1223,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     ).forEach { minutes, expectedBucket ->
       given("a task that is ${minutes} minutes old") {
         val millis = TimeUnit.MINUTES.toMillis(minutes.toLong())
-        subject.bucketDuration(millis) shouldEqual expectedBucket
+        assertThat(subject.bucketDuration(millis)).isEqualTo(expectedBucket)
       }
     }
   }

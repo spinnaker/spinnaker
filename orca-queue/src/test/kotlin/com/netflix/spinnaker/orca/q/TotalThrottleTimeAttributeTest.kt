@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.orca.q
 
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
-import org.junit.Assert
 
 /*
  * Copyright 2017 Netflix, Inc.
@@ -24,17 +24,17 @@ object TotalThrottleTimeAttributeSpec : Spek({
 
   describe("defaults to zero") {
     val attr = TotalThrottleTimeAttribute()
-    Assert.assertEquals(0, attr.totalThrottleTimeMs)
+    assertThat(attr.totalThrottleTimeMs).isEqualTo(0)
   }
 
   describe("uses default") {
     val attr = TotalThrottleTimeAttribute(3)
-    Assert.assertEquals(3, attr.totalThrottleTimeMs)
+    assertThat(attr.totalThrottleTimeMs).isEqualTo(3)
   }
 
   describe("add is additive") {
     val attr = TotalThrottleTimeAttribute(4)
     attr.add(5)
-    Assert.assertEquals(9, attr.totalThrottleTimeMs)
+    assertThat(attr.totalThrottleTimeMs).isEqualTo(9)
   }
 })

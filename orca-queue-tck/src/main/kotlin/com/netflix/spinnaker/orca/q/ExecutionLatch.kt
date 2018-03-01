@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.natpryce.hamkrest.Matcher
-import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.has
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -29,19 +26,19 @@ import org.springframework.context.ApplicationListener
 import org.springframework.context.ConfigurableApplicationContext
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.function.Predicate
 
 /**
  * An [ApplicationListener] implementation you can use to wait for an execution
  * to complete. Much better than `Thread.sleep(whatever)` in your tests.
  */
-class ExecutionLatch(matcher: Matcher<ExecutionComplete>)
+class ExecutionLatch(private val predicate: Predicate<ExecutionComplete>)
   : ApplicationListener<ExecutionComplete> {
 
-  private val predicate = matcher.asPredicate()
   private val latch = CountDownLatch(1)
 
   override fun onApplicationEvent(event: ExecutionComplete) {
-    if (predicate.invoke(event)) {
+    if (predicate.test(event)) {
       latch.countDown()
     }
   }
@@ -50,9 +47,9 @@ class ExecutionLatch(matcher: Matcher<ExecutionComplete>)
 }
 
 fun ConfigurableApplicationContext.runToCompletion(execution: Execution, launcher: (Execution) -> Unit, repository: ExecutionRepository) {
-  val latch = ExecutionLatch(
-    has(ExecutionComplete::getExecutionId, equalTo(execution.id))
-  )
+  val latch = ExecutionLatch(Predicate<ExecutionComplete> {
+    it.executionId == execution.id
+  })
   addApplicationListener(latch)
   launcher.invoke(execution)
   assert(latch.await()) { "Pipeline did not complete" }
@@ -62,9 +59,9 @@ fun ConfigurableApplicationContext.runToCompletion(execution: Execution, launche
 
 fun ConfigurableApplicationContext.restartAndRunToCompletion(stage: Stage, launcher: (Execution, String) -> Unit, repository: ExecutionRepository) {
   val execution = stage.execution
-  val latch = ExecutionLatch(
-    has(ExecutionComplete::getExecutionId, equalTo(execution.id))
-  )
+  val latch = ExecutionLatch(Predicate {
+    it.executionId == execution.id
+  })
   addApplicationListener(latch)
   launcher.invoke(execution, stage.id)
   assert(latch.await()) { "Pipeline did not complete after restarting" }
@@ -77,10 +74,10 @@ private fun ExecutionRepository.waitForAllStagesToComplete(execution: Execution)
   while (!complete) {
     Thread.sleep(100)
     complete = retrieve(PIPELINE, execution.id)
-    .run {
-      status.isComplete && stages
-        .map(Stage::getStatus)
-        .all { it.isComplete || it == NOT_STARTED }
-    }
+      .run {
+        status.isComplete && stages
+          .map(Stage::getStatus)
+          .all { it.isComplete || it == NOT_STARTED }
+      }
   }
 }
