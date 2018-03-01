@@ -31,10 +31,9 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
   public componentDidMount() {
     const { versionedCloudProviderService } = ReactInjector;
 
-    this.props$.next(this.props);
     this.props$
       .do(() => this.setState({ loading: true, accountId: null }))
-      .mergeMap(({ app, $stateParams }) => {
+      .switchMap(({ app, $stateParams }) => {
         const acct = versionedCloudProviderService.getAccountForInstance($stateParams.provider, $stateParams.instanceId, app);
         return Observable.fromPromise(acct);
       })
@@ -42,6 +41,8 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
       .subscribe((accountId: string) => {
         this.setState({ accountId, loading: false })
       });
+
+    this.props$.next(this.props);
   }
 
   public componentWillReceiveProps(nextProps: IInstanceDetailsProps) {
