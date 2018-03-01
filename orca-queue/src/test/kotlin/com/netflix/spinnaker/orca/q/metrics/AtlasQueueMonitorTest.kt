@@ -22,14 +22,16 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELIN
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.q.metrics.*
-import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
+import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import java.time.Duration
+import java.time.Duration.ZERO
 import java.time.Instant.now
 
 object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
@@ -62,8 +64,8 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
 
   describe("default values") {
     it("reports system uptime if the queue has never been polled") {
-      subject.lastQueuePoll shouldEqual clock.instant()
-      subject.lastRetryPoll shouldEqual clock.instant()
+      assertThat(subject.lastQueuePoll).isEqualTo(clock.instant())
+      assertThat(subject.lastRetryPoll).isEqualTo(clock.instant())
     }
   }
 
@@ -78,7 +80,7 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
       }
 
       it("updates the last poll time") {
-        subject.lastQueuePoll shouldEqual clock.instant()
+        assertThat(subject.lastQueuePoll).isEqualTo(clock.instant())
       }
     }
 
@@ -92,28 +94,47 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
       }
 
       it("updates the last poll time") {
-        subject.lastRetryPoll shouldEqual clock.instant()
+        assertThat(subject.lastRetryPoll).isEqualTo(clock.instant())
       }
     }
 
-    describe("when a message is being processed") {
-      afterGroup(::resetMocks)
+    describe("message lag metrics") {
+      given("no messages have been processed") {
+        afterGroup(::resetMocks)
 
-      val lag = sequenceOf(
-        Duration.ofSeconds(5),
-        Duration.ofSeconds(13),
-        Duration.ofSeconds(7)
-      )
-      val events = lag.mapIndexed { i, lag ->
-        MessageProcessing(StartExecution(PIPELINE, "$i", "covfefe"), lag)
+        it("reports zero lag time") {
+          assertThat(subject.meanMessageLag).isEqualTo(ZERO)
+          assertThat(subject.maxMessageLag).isEqualTo(ZERO)
+        }
       }
 
-      on("receiving a ${events.first().javaClass.simpleName} event") {
-        events.forEach(subject::onQueueEvent)
-      }
+      given("some messages have been processed") {
+        afterGroup(::resetMocks)
 
-      it("averages the lag time") {
-        subject.averageMessageLag shouldEqual lag.map { it.toMillis() }.average().let { Duration.ofMillis(it.toLong()) }
+        val lag = sequenceOf(
+          Duration.ofSeconds(5),
+          Duration.ofSeconds(13),
+          Duration.ofSeconds(7)
+        )
+        val events = lag.mapIndexed { i, lag ->
+          MessageProcessing(StartExecution(PIPELINE, "$i", "covfefe"), lag)
+        }
+
+        on("receiving a ${events.first().javaClass.simpleName} event") {
+          events.forEach(subject::onQueueEvent)
+        }
+
+        it("averages the lag time") {
+          assertThat(subject.meanMessageLag).isEqualTo(lag.average())
+          // after reading the mean should reset
+          assertThat(subject.meanMessageLag).isEqualTo(ZERO)
+        }
+
+        it("records the max lag time") {
+          assertThat(subject.maxMessageLag).isEqualTo(lag.max())
+          // after reading the max should reset
+          assertThat(subject.maxMessageLag).isEqualTo(ZERO)
+        }
       }
     }
 
@@ -216,7 +237,12 @@ object AtlasQueueMonitorTest : SubjectSpek<AtlasQueueMonitor>({
     }
 
     it("updates the queue state") {
-      subject.lastState shouldEqual queueState
+      assertThat(subject.lastState).isEqualTo(queueState)
     }
   }
 })
+
+private fun Sequence<Duration>.average() =
+  map { it.toMillis() }
+    .average()
+    .let { Duration.ofMillis(it.toLong()) }

@@ -31,6 +31,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PostConstruct
+import kotlin.math.max
 
 /**
  * Monitors a queue and generates Atlas metrics.
@@ -49,8 +50,11 @@ class AtlasQueueMonitor
   @EventListener
   fun onQueueEvent(event: QueueEvent) {
     when (event) {
-      is QueuePolled -> _lastQueuePoll.set(clock.instant())
-      is MessageProcessing -> _messageLags.add(event.lag)
+      QueuePolled -> _lastQueuePoll.set(clock.instant())
+      is MessageProcessing -> {
+        _messageLags.updateAndGet { it + event.lag.toMillis() }
+        _maxMessageLag.updateAndGet { max(it, event.lag.toMillis()) }
+      }
       is RetryPolled -> _lastRetryPoll.set(clock.instant())
       is MessagePushed -> event.counter.increment()
       is MessageAcknowledged -> event.counter.increment()
@@ -96,8 +100,13 @@ class AtlasQueueMonitor
         .toMillis()
         .toDouble()
     })
-    registry.gauge("queue.message.lag", this, {
-      it.averageMessageLag
+    registry.gauge("queue.mean.lag", this, {
+      it.meanMessageLag
+        .toMillis()
+        .toDouble()
+    })
+    registry.gauge("queue.max.lag", this, {
+      it.maxMessageLag
         .toMillis()
         .toDouble()
     })
@@ -121,15 +130,18 @@ class AtlasQueueMonitor
     get() = _lastState.get()
   private val _lastState = AtomicReference<QueueState>(QueueState(0, 0, 0))
 
-  val averageMessageLag: Duration
-    get() = _messageLags.run {
-      val avg = map { it.toMillis() }
-        .average()
-        .let { Duration.ofMillis(it.toLong()) }
-      clear()
-      return avg
-    }
-  private val _messageLags = mutableListOf<Duration>()
+  val meanMessageLag: Duration
+    get() = _messageLags
+      .getAndSet(emptyList())
+      .average()
+      .let { Duration.ofMillis(it.toLong()) }
+  private val _messageLags = AtomicReference<List<Long>>(emptyList())
+
+  val maxMessageLag: Duration
+    get() = _maxMessageLag
+      .getAndSet(0)
+      .let { Duration.ofMillis(it) }
+  private val _maxMessageLag = AtomicReference<Long>(0)
 
   /**
    * Count of messages pushed to the queue.
