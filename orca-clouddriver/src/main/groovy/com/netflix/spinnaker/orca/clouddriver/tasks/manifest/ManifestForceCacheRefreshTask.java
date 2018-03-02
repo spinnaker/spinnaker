@@ -32,7 +32,7 @@ import java.util.Map;
 
 @Component
 public class ManifestForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements Task {
-  private final static String REFRESH_TYPE = "Manifest";
+  private final static String REFRESH_TYPE = "manifest";
   public final static String TASK_NAME = "forceCacheRefresh";
 
   @Autowired
