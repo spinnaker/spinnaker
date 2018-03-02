@@ -15,11 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
-import com.amazonaws.auth.policy.Condition;
-import com.amazonaws.auth.policy.Policy;
-import com.amazonaws.auth.policy.Principal;
-import com.amazonaws.auth.policy.Resource;
-import com.amazonaws.auth.policy.Statement;
+import com.amazonaws.auth.policy.*;
 import com.amazonaws.auth.policy.Statement.Effect;
 import com.amazonaws.auth.policy.actions.SNSActions;
 import com.amazonaws.auth.policy.actions.SQSActions;
@@ -44,19 +40,13 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import retrofit.RetrofitError;
-import retrofit.RetrofitError.Kind;
 
 import javax.inject.Provider;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class InstanceTerminationLifecycleWorker implements Runnable {
@@ -203,9 +193,14 @@ public class InstanceTerminationLifecycleWorker implements Runnable {
         eureka.updateInstanceStatus(app, instanceId, DiscoveryStatus.Disable.getValue());
         return true;
       } catch (RetrofitError e) {
-        log.warn(String.format("Failed marking app out of service (status: %s, app: %s, instance: %s, retry: %d)", e.getResponse().getStatus(), app, instanceId, retry), e);
-        if (e.getKind() != Kind.NETWORK) {
-          return false;
+        final String recoverableMessage = "Failed marking app out of service (status: {}, app: {}, instance: {}, retry: {})";
+        if (HttpStatus.NOT_FOUND.value() == e.getResponse().getStatus()) {
+          log.warn(recoverableMessage, e.getResponse().getStatus(), app, instanceId, retry);
+        } else if (e.getKind() == RetrofitError.Kind.NETWORK) {
+          log.error(recoverableMessage, e.getResponse().getStatus(), app, instanceId, retry, e);
+        } else {
+          log.error("Irrecoverable error while marking app out of service (app: {}, instance: {}, retry: {})", app, instanceId, retry, e);
+          break;
         }
       }
     }
