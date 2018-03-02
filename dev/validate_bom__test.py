@@ -583,7 +583,7 @@ class ValidateBomTestController(object):
     options = self.options
     if not options.testing_enabled:
       logging.info('--testing_enabled=false skips test phase entirely.')
-      return
+      return 0, 0, 0
 
     all_test_profiles = self.test_suite['tests']
 

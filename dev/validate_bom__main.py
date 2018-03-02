@@ -127,7 +127,8 @@ def get_options(args):
   # Add platform/spinnaker_type to each influxdb metric we produce.
   # We'll use this to distinguish what was being tested.
   context_labels = 'platform=%s,deployment_type=%s' % (
-      options.deploy_hal_platform, options.deploy_spinnaker_type)
+      validate_bom__deploy.determine_deployment_platform(options),
+      options.deploy_spinnaker_type)
   latest_unvalidated_suffix = '-latest-unvalidated'
   if options.deploy_version.endswith(latest_unvalidated_suffix):
     bom_series = options.deploy_version[:-len(latest_unvalidated_suffix)]
@@ -169,11 +170,9 @@ def main(options, metrics):
     if summary:
       print summary
 
-    if summary or not outcome_success:
-      # Mark failures for any reason (e.g. failure to deploy)
-      # as well as test phase outcome. If we dont have a summary
-      # then we did a one-off deploy or undeploy which we only count
-      # if it failed. When tests are run, they'll count here.
+    if options.testing_enabled or not outcome_success:
+      # Only record the outcome if we were testing
+      # or if we failed [to deploy/undeploy].
       metrics.inc_counter('ValidationControllerOutcome',
                           {'success': outcome_success})
 
