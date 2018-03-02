@@ -240,9 +240,9 @@ function selectedJudgeReducer(state: ISelectedConfigState = null, action: Action
   switch (action.type) {
     case Actions.SELECT_CONFIG:
       if (has(action, 'payload.config.judge')) {
-        return { ...state, judge: { ...state.judge, judgeConfig: { ...action.payload.config.judge } }};
+        return { ...state, judge: { ...state.judge, judgeConfig: { ...action.payload.config.judge } } };
       } else {
-        return { ...state, judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} }}};
+        return { ...state, judge: { ...state.judge, judgeConfig: { name: CanarySettings.defaultJudge, judgeConfigurations: {} } } };
       }
 
     default:
@@ -255,33 +255,33 @@ export function editGroupConfirmReducer(state: ISelectedConfigState = null, acti
     return state;
   }
 
-  const { payload: { group, edit } } = action;
+  const { payload } = action;
   const allGroups = flatMap(state.metricList, metric => metric.groups);
-  if (!edit || edit === ALL || allGroups.includes(edit)) {
+  if (!payload.edit || payload.edit === ALL || allGroups.includes(payload.edit)) {
     return state;
   }
 
   const metricUpdator = (c: ICanaryMetricConfig): ICanaryMetricConfig => ({
     ...c,
-    groups: (c.groups || []).includes(group) ? [edit].concat((c.groups || []).filter(g => g !== group)) : c.groups,
+    groups: (c.groups || []).includes(payload.group) ? [payload.edit].concat((c.groups || []).filter(g => g !== payload.group)) : c.groups,
   });
 
   const weightsUpdator = (weights: IGroupWeights): IGroupWeights => {
-    const weight = weights[group];
-    weights = omit(weights, group);
+    const weight = weights[payload.group];
+    weights = omit(weights, payload.group);
     return {
       ...weights,
-      [edit]: weight,
+      [payload.edit]: weight,
     };
   };
 
-  const listUpdator = (groupList: string[]): string[] => [edit].concat((groupList || []).filter(g => g !== group));
+  const listUpdator = (groupList: string[]): string[] => [payload.edit].concat((groupList || []).filter(g => g !== payload.group));
   return {
     ...state,
     metricList: state.metricList.map(metricUpdator),
     group: {
       ...state.group,
-      selected: edit,
+      selected: payload.edit,
       groupWeights: weightsUpdator(state.group.groupWeights),
       list: listUpdator(state.group.list),
     },

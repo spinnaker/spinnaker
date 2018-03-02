@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint-react"],
+  "extends": ["tslint-eslint-rules", "tslint-react"],
   "rules": {
     "class-name": true,
     "comment-format": [
@@ -13,7 +13,6 @@
       true,
       "spaces"
     ],
-    "jsx-no-lambda": false,
     "label-position": true,
     "max-line-length": false,
     "member-access": true,
@@ -45,8 +44,9 @@
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": [true, "allow-fast-null-checks"],
-    "no-use-before-declare": true,
+    "no-use-before-declare": false,
     "no-var-keyword": true,
+    "object-curly-spacing": "always",
     "object-literal-sort-keys": false,
     "one-line": [
       true,
@@ -102,6 +102,7 @@
       "check-separator",
       "check-type"
     ],
-    "jsx-no-multiline-js": false
+    "jsx-no-multiline-js": false,
+    "jsx-no-lambda": false
   }
 }

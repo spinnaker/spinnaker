@@ -8,7 +8,7 @@ export const getCanaryRun = (configId: string, canaryExecutionId: string): Promi
     .one('v2/canaries/canary')
     .one(configId)
     .one(canaryExecutionId)
-    .withParams({storageAccountName: CanarySettings.storageAccountName})
+    .withParams({ storageAccountName: CanarySettings.storageAccountName })
     .useCache()
     .get()
     .then((run: ICanaryExecutionStatusResult) => {
@@ -22,7 +22,7 @@ export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: s
   ReactInjector.API
     .one('v2/canaries/metricSetPairList')
     .one(metricSetPairListId)
-    .withParams({storageAccountName: CanarySettings.storageAccountName})
+    .withParams({ storageAccountName: CanarySettings.storageAccountName })
     .useCache()
     .get()
     .then(

@@ -27,9 +27,9 @@ export const asyncDispatchMiddleware: Middleware = (store: MiddlewareAPI<any>) =
     }
   };
 
-  const a = next({ ...action, asyncDispatch });
+  const nextAction = next({ ...action, asyncDispatch });
   syncActivityFinished = true;
   flushQueue();
 
-  return a;
+  return nextAction;
 };

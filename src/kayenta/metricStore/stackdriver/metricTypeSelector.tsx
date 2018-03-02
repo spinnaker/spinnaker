@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import { ICanaryState } from 'kayenta/reducers';
 import { IStackdriverMetricDescriptor } from './domain/IStackdriverMetricDescriptor';
 import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
@@ -12,13 +12,13 @@ interface IStackdriverMetricTypeSelectorDispatchProps {
 }
 
 interface IStackdriverMetricTypeSelectorStateProps {
-  options: Select.Option[]
+  options: Option[]
   loading: boolean;
 }
 
 interface IStackdriverMetricTypeSelectorOwnProps {
   value: string;
-  onChange: (option: Select.Option) => void;
+  onChange: (option: Option) => void;
 }
 
 const StackdriverMetricTypeSelector = ({ loading, load, options, value, onChange }: IStackdriverMetricTypeSelectorDispatchProps & IStackdriverMetricTypeSelectorStateProps & IStackdriverMetricTypeSelectorOwnProps) => {
@@ -45,7 +45,7 @@ const StackdriverMetricTypeSelector = ({ loading, load, options, value, onChange
 
 const mapStateToProps = (state: ICanaryState, ownProps: IStackdriverMetricTypeSelectorOwnProps) => {
   const descriptors = state.data.metricsServiceMetadata.data as IStackdriverMetricDescriptor[];
-  const options: Select.Option[] = descriptors.map(d => ({ label: d.type, value: d.type }));
+  const options: Option[] = descriptors.map(d => ({ label: d.type, value: d.type }));
   return {
     options,
     loading: state.data.metricsServiceMetadata.load === AsyncRequestState.Requesting,

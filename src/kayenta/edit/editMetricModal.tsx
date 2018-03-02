@@ -2,11 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import { noop } from '@spinnaker/core';
 import * as Creators from '../actions/creators';
-import {ICanaryState} from '../reducers/index';
-import {ICanaryMetricConfig} from 'kayenta/domain';
+import { ICanaryState } from '../reducers/index';
+import { ICanaryMetricConfig } from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import Styleguide from '../layout/styleguide';
@@ -22,20 +22,20 @@ interface IEditMetricModalDispatchProps {
   updateDirection: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
-  selectTemplate: (template: Select.Option) => void;
+  selectTemplate: (template: Option) => void;
   updateScopeName: (event: any) => void;
 }
 
 interface IEditMetricModalStateProps {
   metric: ICanaryMetricConfig;
-  templates: Select.Option[];
+  templates: Option[];
   filterTemplate: string;
   groups: string[];
 }
 
 function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
   return (
-    <label style={{fontWeight: 'normal', marginRight: '1em'}}>
+    <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
       <input name="direction" type="radio" value={value} onClick={action} checked={value === current}/> {label}
     </label>
   );
@@ -43,9 +43,9 @@ function DirectionChoice({ value, label, current, action }: { value: string, lab
 
 interface IFilterTemplateSelectorProps {
   metricStore: string;
-  templates: Select.Option[];
+  templates: Option[];
   template: string;
-  select: (template: Select.Option) => void;
+  select: (template: Option) => void;
 }
 
 function FilterTemplateSelector({ metricStore, template, templates, select }: IFilterTemplateSelectorProps) {
@@ -157,7 +157,7 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     updateDirection: (event: any) => {
       dispatch(Creators.updateMetricDirection({ id: event.target.dataset.id, direction: event.target.value }))
     },
-    selectTemplate: (template: Select.Option) =>
+    selectTemplate: (template: Option) =>
       dispatch(Creators.selectTemplate({ name: template ? template.value as string : null })),
     updateScopeName: (event: any) =>
       dispatch(Creators.updateMetricScopeName({ scopeName: event.target.value }))

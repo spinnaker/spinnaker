@@ -1,3 +1,8 @@
+import { configure } from 'enzyme';
+import Adapter from 'enzyme-adapter-react-15';
+
+configure({ adapter: new Adapter() });
+
 Error.stackTraceLimit = Infinity;
 
 // jquery has to be first or many a test will break

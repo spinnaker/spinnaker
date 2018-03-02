@@ -27,8 +27,9 @@ interface IResultLoaderStateParams {
 class ResultDetailLoader extends React.Component<IResultLoaderDispatchProps & IResultLoaderStateParamsProps> {
   private subscription: Subscription;
 
-  constructor({ resultIdStream, loadResult }: IResultLoaderDispatchProps & IResultLoaderStateParamsProps) {
-    super();
+  constructor(props: IResultLoaderDispatchProps & IResultLoaderStateParamsProps) {
+    super(props);
+    const { resultIdStream, loadResult } = props;
     this.subscription = resultIdStream.subscribe(loadResult);
   }
 

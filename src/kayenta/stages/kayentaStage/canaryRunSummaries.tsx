@@ -80,7 +80,7 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
 
 function CanaryRunHeader() {
   return (
-    <section className="horizontal small grey-border-bottom" style={{paddingLeft: 0}}>
+    <section className="horizontal small grey-border-bottom" style={{ paddingLeft: 0 }}>
       {
         canaryRunColumns.map((column, i) => (
           <div

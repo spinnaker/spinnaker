@@ -8,7 +8,7 @@ import MetricResultStats from './metricResultStats';
 * pair for the result has loaded successfully.
 * */
 export default () => (
-  <section className="vertical flex-1" style={{overflowY: 'auto'}}>
+  <section className="vertical flex-1" style={{ overflowY: 'auto' }}>
     <Graph/>
     <MetricResultStats/>
   </section>

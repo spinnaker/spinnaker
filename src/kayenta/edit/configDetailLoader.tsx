@@ -29,8 +29,9 @@ class ConfigDetailLoader extends React.Component<IConfigLoaderDispatchProps & IC
 
   private subscription: Subscription;
 
-  constructor({ configNameStream, loadConfig }: IConfigLoaderDispatchProps & IConfigLoaderStateParamsProps) {
-    super();
+  constructor(props: IConfigLoaderDispatchProps & IConfigLoaderStateParamsProps) {
+    const { configNameStream, loadConfig } = props;
+    super(props);
     this.subscription = configNameStream.subscribe(loadConfig);
   }
 

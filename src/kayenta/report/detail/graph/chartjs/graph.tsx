@@ -6,7 +6,7 @@ import { buildChartConfig } from './chartConfigFactory';
 
 export default class ChartJSGraph extends React.Component<IMetricSetPairGraphProps> {
   private canvas: HTMLCanvasElement;
-  private chart: Chart;
+  public chart: Chart;
 
   public componentDidMount(): void {
     const context = this.canvas.getContext('2d');
