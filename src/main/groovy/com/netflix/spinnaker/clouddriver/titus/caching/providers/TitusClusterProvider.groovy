@@ -255,7 +255,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       instances[instanceId].health << healthEntry.attributes
     }
     // lookup target group health
-    awsLookupUtil.lookupTargetGroupHealth(instanceData, instances)
+    // awsLookupUtil.lookupTargetGroupHealth(instanceData, instances)
     instances
   }
 
