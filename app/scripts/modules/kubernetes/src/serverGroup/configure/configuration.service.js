@@ -57,14 +57,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
         // If we search for *nginx* and *nginx:1.11.1*, we might get two copies of nginx:1.11.1.
         backingData.allImages = _.uniqWith(backingData.allImages, _.isEqual);
 
-        command.backingData = backingData;
 
         var accountMap = _.fromPairs(_.map(backingData.accounts, function(account) {
           return [account.name, accountService.getAccountDetails(account.name)];
         }));
 
         return $q.all(accountMap).then(function(accountMap) {
-          command.backingData.accountMap = accountMap;
+          backingData.accountMap = accountMap;
+          command.backingData = backingData;
           configureAccount(command);
           attachEventHandlers(command);
         });
