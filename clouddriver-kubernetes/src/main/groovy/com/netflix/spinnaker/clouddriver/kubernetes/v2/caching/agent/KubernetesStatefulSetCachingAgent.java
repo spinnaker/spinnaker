@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
@@ -69,20 +70,28 @@ public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachi
 
   @Override
   protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> primaryResourceList) {
+    BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
+
     Map<String, KubernetesManifest> services = namespaces.stream()
         .map(n -> credentials.list(KubernetesKind.SERVICE, n))
         .flatMap(Collection::stream)
-        .collect(Collectors.toMap(KubernetesManifest::getName, (m) -> m));
+        .collect(Collectors.toMap((m) -> manifestName.apply(m.getNamespace(), m.getName()), (m) -> m));
 
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
 
     for (KubernetesManifest manifest : primaryResourceList) {
       String serviceName = KubernetesStatefulSetHandler.serviceName(manifest);
-      if (StringUtils.isEmpty(serviceName) || !services.containsKey(serviceName)) {
+      if (StringUtils.isEmpty(serviceName)) {
         continue;
       }
 
-      KubernetesManifest service = services.get(serviceName);
+      String key = manifestName.apply(manifest.getNamespace(), serviceName);
+
+      if (!services.containsKey(key)) {
+        continue;
+      }
+
+      KubernetesManifest service = services.get(key);
       result.put(manifest, Collections.singletonList(service));
     }
 
