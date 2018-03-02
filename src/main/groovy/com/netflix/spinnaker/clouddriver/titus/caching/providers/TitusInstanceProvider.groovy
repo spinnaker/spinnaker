@@ -91,7 +91,7 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
         }
       }
     }
-    awsLookupUtil.lookupTargetGroupHealth([instanceEntry], [(instanceEntry.id):instance])
+    awsLookupUtil.lookupTargetGroupHealth(job, [instance])
     instance
   }
 

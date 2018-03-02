@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
@@ -138,31 +139,27 @@ class AwsLookupUtil {
     applicationSecurityGroup
   }
 
-  void lookupTargetGroupHealth( Collection<CacheData> instanceData, Map<String, TitusInstance> instances){
-
-    def loadBalancingHealthAgents = awsProvider.healthAgents.findAll { it.healthId.contains('load-balancer-v2-target-group')}
-    // Adding health to instances
-    Map<String, String> healthKeysToInstance = [:]
-    instanceData.each { instanceEntry ->
+  void lookupTargetGroupHealth(Job job, Set<TitusInstance> instances) {
+    def loadBalancingHealthAgents = awsProvider.healthAgents.findAll {
+      it.healthId.contains('load-balancer-v2-target-group')
+    }
+    Map<String, TitusInstance> keysToInstance = [:]
+    instances.each { instance ->
       loadBalancingHealthAgents.each {
-        String key = getTargetGroupHealthKey(instanceEntry, it.healthId)
-        healthKeysToInstance.put(key, instanceEntry.id)
+        keysToInstance[getTargetGroupHealthKey(job, instance, it.healthId)] = instance
       }
     }
-
-    Collection<CacheData> healths = amazonLoadBalancerProvider.cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
-
+    Collection<CacheData> healths = amazonLoadBalancerProvider.cacheView.getAll(HEALTH.ns, keysToInstance.keySet(), RelationshipCacheFilter.none())
     healths.findAll { it.attributes.type == 'TargetGroup' && it.attributes.targetGroups }.each { healthEntry ->
-      def instanceId = healthKeysToInstance.get(healthEntry.id)
-      instances[instanceId].health.addAll(healthEntry.attributes)
+      keysToInstance.get(healthEntry.id).health.addAll(healthEntry.attributes)
     }
   }
 
-  private String getTargetGroupHealthKey(CacheData instanceEntry, String healthKey) {
-    String region = instanceEntry.attributes.task.region
-    String account = instanceEntry.attributes.job.labels.spinnakerAccount
+  private String getTargetGroupHealthKey(Job job, TitusInstance instance, String healthKey) {
+    String region = instance.placement.region
+    String account = job.labels.spinnakerAccount
     String awsAccount = lookupAccount(account, region).awsAccount
-    String containerIp = instanceEntry.attributes.task.containerIp
+    String containerIp = instance.placement.containerIp
     return com.netflix.spinnaker.clouddriver.aws.data.Keys.getInstanceHealthKey(containerIp, awsAccount, region, healthKey)
   }
 
@@ -212,13 +209,13 @@ class AwsLookupUtil {
       return null
     }
 
-    [name      : awsSecurityGroupProvider.getById(awsDetails.awsAccount,
+    [name: awsSecurityGroupProvider.getById(awsDetails.awsAccount,
       region,
       securityGroupId,
       awsDetails.vpcId
     )?.name,
      awsAccount: awsDetails.awsAccount,
-     vpcId     : awsDetails.vpcId
+     vpcId: awsDetails.vpcId
     ]
 
   }

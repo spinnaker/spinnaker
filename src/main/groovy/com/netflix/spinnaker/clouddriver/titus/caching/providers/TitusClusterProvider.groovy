@@ -218,9 +218,11 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
           new TitusInstance(it as Map)
         }
       }
-      serverGroup.targetGroups = serverGroupEntry.attributes.targetGroups
       serverGroup.instances = serverGroup.instances ?: []
-
+      serverGroup.targetGroups = serverGroupEntry.attributes.targetGroups
+      if(serverGroup.targetGroups){
+        awsLookupUtil.lookupTargetGroupHealth(job, serverGroup.instances)
+      }
       [(serverGroupEntry.id): serverGroup]
     }
     serverGroups
@@ -254,8 +256,6 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       healthEntry.attributes.remove('lastUpdatedTimestamp')
       instances[instanceId].health << healthEntry.attributes
     }
-    // lookup target group health
-    // awsLookupUtil.lookupTargetGroupHealth(instanceData, instances)
     instances
   }
 
