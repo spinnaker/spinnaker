@@ -61,7 +61,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
     SUCCESS,
     FAILURE
   }
- 
+
   private final JedisPool jedisPool;
   private final NodeStatusProvider nodeStatusProvider;
   private final AgentIntervalProvider intervalProvider;
@@ -279,8 +279,8 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware implements Agen
 
   private ScoreTuple conditionalReleaseAgent(Agent agent, String acquireScore, Status status) {
     try (Jedis jedis = jedisPool.getResource()) {
-      long newInterval = status == Status.SUCCESS 
-        ? intervalProvider.getInterval(agent).getInterval() 
+      long newInterval = status == Status.SUCCESS
+        ? intervalProvider.getInterval(agent).getInterval()
         : intervalProvider.getInterval(agent).getErrorInterval();
       String newAcquireScore = score(jedis, newInterval);
       Object releaseScore = jedis.evalsha(getScriptSha(CONDITIONAL_SWAP_SET_SCRIPT, jedis),

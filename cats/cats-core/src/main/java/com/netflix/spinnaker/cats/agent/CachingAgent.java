@@ -68,6 +68,7 @@ public interface CachingAgent extends Agent {
       this.providerRegistry = providerRegistry;
     }
 
+    @Override
     public void executeAgent(Agent agent) {
       storeAgentResult(agent, executeAgentWithoutStore(agent));
     }

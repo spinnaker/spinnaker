@@ -25,7 +25,7 @@ public class ClusteredSortAgentLock extends AgentLock {
   // The score the agent was release from the WAITING set with (Used to ensure it is readded to the WAITING set with the right score).
   private final String releaseScore;
 
-  ClusteredSortAgentLock(Agent agent, String acquireScore, String releaseScore) {
+  public ClusteredSortAgentLock(Agent agent, String acquireScore, String releaseScore) {
     super(agent);
     this.acquireScore = acquireScore;
     this.releaseScore = releaseScore;

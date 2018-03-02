@@ -79,6 +79,8 @@ import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
 import org.springframework.web.client.RestTemplate
 
+import java.time.Clock
+
 @Configuration
 @Import([
   RedisConfig,
@@ -87,6 +89,12 @@ import org.springframework.web.client.RestTemplate
 ])
 @PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
 class CloudDriverConfig {
+
+  @Bean
+  @ConditionalOnMissingBean(Clock)
+  Clock clock() {
+    Clock.systemDefaultZone()
+  }
 
   @Bean
   String clouddriverUserAgentApplicationName(Environment environment) {

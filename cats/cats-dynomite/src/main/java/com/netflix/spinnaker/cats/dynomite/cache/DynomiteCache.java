@@ -25,10 +25,11 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.compression.CompressionStrategy;
 import com.netflix.spinnaker.cats.compression.NoopCompression;
+import com.netflix.spinnaker.cats.dynomite.DynomiteUtils;
+import com.netflix.spinnaker.cats.dynomite.ExcessiveDynoFailureRetries;
 import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache;
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
-import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate.ClientDelegateException;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.Logger;
@@ -38,18 +39,9 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -95,10 +87,7 @@ public class DynomiteCache extends AbstractRedisCache {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   // TODO rz - Make retry policy configurable
-  private static final RetryPolicy REDIS_RETRY_POLICY = new RetryPolicy()
-    .retryOn(Arrays.asList(JedisException.class, DynoException.class, ClientDelegateException.class))
-    .withDelay(500, TimeUnit.MILLISECONDS)
-    .withMaxRetries(3);
+  private static final RetryPolicy REDIS_RETRY_POLICY = DynomiteUtils.greedyRetryPolicy(500);
 
   private final CacheMetrics cacheMetrics;
 
@@ -466,11 +455,5 @@ public class DynomiteCache extends AbstractRedisCache {
   @Override
   protected String allOfTypeReindex(String type) {
     return format("{%s:%s}:members.2", prefix, type);
-  }
-
-  private static class ExcessiveDynoFailureRetries extends RuntimeException {
-    ExcessiveDynoFailureRetries(String message, Throwable cause) {
-      super(message, cause);
-    }
   }
 }
