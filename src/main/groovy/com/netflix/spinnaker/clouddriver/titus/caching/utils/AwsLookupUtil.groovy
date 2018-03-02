@@ -154,15 +154,7 @@ class AwsLookupUtil {
 
     healths.findAll { it.attributes.type == 'TargetGroup' && it.attributes.targetGroups }.each { healthEntry ->
       def instanceId = healthKeysToInstance.get(healthEntry.id)
-      def interestingHealth = healthEntry.attributes.targetGroups
-      instances[instanceId].health.addAll(interestingHealth.collect {
-        [
-          targetGroupName: it.targetGroupName,
-          state: it.state,
-          reasonCode: it.reason,
-          description: it.description
-        ]
-      })
+      instances[instanceId].health.addAll(healthEntry.attributes)
     }
   }
 
