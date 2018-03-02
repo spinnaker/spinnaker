@@ -63,8 +63,8 @@ const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.q', '');
 @autoBindMethods
 class AtlasMetricConfigurer extends React.Component<IAtlasMetricConfigurerProps, IAtlasMetricConfigurerState> {
 
-  constructor() {
-    super();
+  constructor(props: IAtlasMetricConfigurerProps) {
+    super(props);
     this.state = { webComponent: null };
   }
 

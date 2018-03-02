@@ -86,7 +86,6 @@ function configure(IS_TEST) {
     },
     watch: IS_TEST,
     externals: {
-      'cheerio': 'window',
       'react/addons': 'react',
       'react/lib/ExecutionEnvironment': 'react',
       'react/lib/ReactContext': 'react',

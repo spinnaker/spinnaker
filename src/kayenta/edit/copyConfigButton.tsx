@@ -12,7 +12,7 @@ interface ICopyConfigButtonStateProps {
  */
 function CopyConfigButton({ disabled }: ICopyConfigButtonStateProps) {
   return (
-    <UISref to="^.configDetail" params={{copy: true}}>
+    <UISref to="^.configDetail" params={{ copy: true }}>
       <button className="passive" disabled={disabled}>
         <i className="fa fa-copy"/>
         <span>Copy</span>

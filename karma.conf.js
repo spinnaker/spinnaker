@@ -46,7 +46,6 @@ module.exports = function (config) {
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
-      require('karma-phantomjs-launcher'),
     ],
 
     // list of files / patterns to exclude
@@ -56,13 +55,8 @@ module.exports = function (config) {
     port: 8081,
 
     browsers: [
-      'PhantomJS'
+      process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive',
     ],
-
-    phantomjsLauncher: {
-      // Have phantomjs exit if a ResourceError is encountered (useful if karma exits without killing phantom)
-      exitOnResourceError: true
-    },
 
     colors: true,
 

@@ -5,7 +5,7 @@ export interface IKayentaTextareaProps {
   className?: string;
 }
 
-export default (props: IKayentaTextareaProps & React.ChangeTargetHTMLProps<HTMLTextAreaElement>) => {
+export default (props: IKayentaTextareaProps & React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>) => {
   const { className, ...textareaProps } = props;
   return (
     <textarea

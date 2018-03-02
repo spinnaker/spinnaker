@@ -33,7 +33,7 @@ describe('Reducer: selectedConfig (templates)', () => {
         name: 'my-template',
         value: 'my-value'
       }),
-      createAction(EDIT_TEMPLATE_NAME, {name: 'my-edited-template'}),
+      createAction(EDIT_TEMPLATE_NAME, { name: 'my-edited-template' }),
       createAction(EDIT_TEMPLATE_VALUE, {
         value: 'resource.metadata.tag.my-custom-tag-1=${tag1} ' +
                'AND resource.metadata.tag.my-custom-tag-2=${tag2}'
@@ -70,7 +70,7 @@ describe('Reducer: selectedConfig (templates)', () => {
         name: 'my-template',
         value: 'my-value'
       }),
-      createAction(EDIT_TEMPLATE_NAME, {name: 'my-edited-template'}),
+      createAction(EDIT_TEMPLATE_NAME, { name: 'my-edited-template' }),
       createAction(EDIT_TEMPLATE_VALUE, {
         value: 'resource.metadata.tag.my-custom-tag-1=${tag1} ' +
                'AND resource.metadata.tag.my-custom-tag-2=${tag2}'

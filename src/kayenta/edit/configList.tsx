@@ -23,11 +23,11 @@ function ConfigList({ configs, selectedConfigId }: IConfigListStateProps) {
         {configs.map(config => (
           <li key={config.id} className={config.id === selectedConfigId ? 'selected' : ''}>
             <UISrefActive class="active">
-              <UISref to=".configDetail" params={{id: config.id, 'new': false, copy: false}}>
+              <UISref to=".configDetail" params={{ id: config.id, 'new': false, copy: false }}>
                 <a className="heading-4">{config.name}</a>
               </UISref>
             </UISrefActive>
-            <p className="body-small color-text-caption caption" style={{marginTop: '5px', marginBottom: '0'}}>
+            <p className="body-small color-text-caption caption" style={{ marginTop: '5px', marginBottom: '0' }}>
               Edited: <FormattedDate dateIso={config.updatedTimestampIso}/>
             </p>
           </li>

@@ -182,7 +182,7 @@ class CanaryStage implements IComponentController {
     if (!isEmpty(this.stage.canaryConfig.scopes) && !scopeNames.includes(this.stage.canaryConfig.scopes[0].scopeName)) {
       delete this.stage.canaryConfig.scopes[0].scopeName;
     } else if (isEmpty(this.stage.canaryConfig.scopes)) {
-      this.stage.canaryConfig.scopes = [{scopeName: scopeNames[0]}] as IKayentaStageCanaryConfigScope[];
+      this.stage.canaryConfig.scopes = [{ scopeName: scopeNames[0] }] as IKayentaStageCanaryConfigScope[];
     }
   }
 
@@ -313,13 +313,13 @@ module(KAYENTA_CANARY_STAGE, [
         { type: 'requiredField', fieldName: 'canaryConfig.canaryConfigId', fieldLabel: 'Config Name' },
         { type: 'requiredField', fieldName: 'canaryConfig.scopes[0].controlScope', fieldLabel: 'Baseline Scope' },
         { type: 'requiredField', fieldName: 'canaryConfig.scopes[0].experimentScope', fieldLabel: 'Canary Scope' },
-        { type: 'requiredField', fieldName: 'canaryConfig.metricsAccountName', fieldLabel: 'Metrics Account'},
-        { type: 'requiredField', fieldName: 'canaryConfig.storageAccountName', fieldLabel: 'Storage Account'},
-        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeHours', 'Lifetime')},
-        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].startTimeIso', 'Start Time')},
-        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].endTimeIso', 'End Time')},
-        { type: 'custom', validate: allScopesMustBeConfigured},
-        { type: 'custom', validate: allConfiguredScopesMustBeDefined},
+        { type: 'requiredField', fieldName: 'canaryConfig.metricsAccountName', fieldLabel: 'Metrics Account' },
+        { type: 'requiredField', fieldName: 'canaryConfig.storageAccountName', fieldLabel: 'Storage Account' },
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.RealTime, 'canaryConfig.lifetimeHours', 'Lifetime') },
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].startTimeIso', 'Start Time') },
+        { type: 'custom', validate: requiredForAnalysisType(KayentaAnalysisType.Retrospective, 'canaryConfig.scopes[0].endTimeIso', 'End Time') },
+        { type: 'custom', validate: allScopesMustBeConfigured },
+        { type: 'custom', validate: allConfiguredScopesMustBeDefined },
       ]
     });
   })

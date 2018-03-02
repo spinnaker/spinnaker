@@ -3,7 +3,7 @@ import { Action } from 'redux';
 
 import * as Actions from './index';
 import { ConfigJsonModalTabState } from '../edit/configJsonModal';
-import {ICanaryConfig, ICanaryMetricConfig} from '../domain/ICanaryConfig';
+import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { IJudge } from '../domain/IJudge';
 import { IMetricSetPair } from '../domain/IMetricSetPair';
