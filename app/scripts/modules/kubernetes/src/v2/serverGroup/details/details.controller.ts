@@ -48,7 +48,7 @@ class KubernetesServerGroupDetailsController implements IController {
 
   private ownerReferences(): [any] {
     const manifest = this.serverGroup.manifest;
-    if (manifest !== null && manifest.hasOwnProperty('metadata')
+    if (manifest != null && manifest.hasOwnProperty('metadata')
       && manifest.metadata.hasOwnProperty('ownerReferences')
       && Array.isArray(manifest.metadata.ownerReferences)) {
       return manifest.metadata.ownerReferences;

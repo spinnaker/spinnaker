@@ -1,5 +1,6 @@
 import { copy, IComponentOptions, IController, IRootScopeService, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
+import { trim } from 'lodash';
 import { dump } from 'js-yaml';
 
 class KubernetesShowManifestYaml implements IController {
@@ -30,9 +31,9 @@ class KubernetesShowManifestYamlComponent implements IComponentOptions {
   public bindings: any = { manifest: '<', linkName: '<' };
   public controller: any = KubernetesShowManifestYaml;
   public controllerAs = 'ctrl';
-  public template = `
+  public template = trim(`
     <a href ng-click='ctrl.openYaml()'>{{ctrl.linkName}}</a>
-  `;
+  `);
 }
 
 export const KUBERNETES_SHOW_MANIFEST_YAML = 'spinnaker.kubernetes.v2.manifest.showYaml';

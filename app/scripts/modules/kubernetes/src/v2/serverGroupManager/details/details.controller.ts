@@ -63,7 +63,7 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   }
 
   public canUndoRolloutServerGroupManager(): boolean {
-    return this.serverGroupManager.serverGroups && this.serverGroupManager.serverGroups.length > 0;
+    return this.serverGroupManager && this.serverGroupManager.serverGroups && this.serverGroupManager.serverGroups.length > 0;
   }
 
   public undoRolloutServerGroupManager(): void {
