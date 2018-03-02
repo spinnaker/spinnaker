@@ -11,11 +11,18 @@
         </label>
         <div class="col-md-9">
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <input type="text" required ng-model="parameter.name"
                      class="form-control input-sm"/>
             </div>
-            <div class="col-md-1 col-md-offset-5">
+            <div class="col-md-2 sm-label-right">
+              <span class="label-text">Label <help-field key="pipeline.config.parameter.label"></help-field></span>
+            </div>
+            <div class="col-md-4">
+              <input type="text" ng-model="parameter.label"
+                     class="form-control input-sm"/>
+            </div>
+            <div class="col-md-1 col-md-offset-1">
               <button class="btn-link" ng-click="parameterCtrl.remove(parameter)">
                 <span class="glyphicon glyphicon-trash" uib-tooltip="Remove parameter"></span><span class="sr-only">Remove Parameter</span>
               </button>
@@ -30,11 +37,6 @@
             <input type="checkbox" ng-model="parameter.required" />
           </label>
         </div>
-      </stage-config-field>
-
-      <stage-config-field label="Label" help-key="pipeline.config.parameter.label">
-        <input type="text" ng-model="parameter.label"
-               class="form-control input-sm"/>
       </stage-config-field>
 
       <stage-config-field label="Description" help-key="pipeline.config.parameter.description">

@@ -74,20 +74,22 @@
 
       <div ng-if="vm.command.pipeline.parameterConfig !== undefined && vm.command.pipeline.parameterConfig.length">
         <p class="manual-execution-parameters-description">This pipeline is parameterized. Please enter values for the parameters below.</p>
-        <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig">
+        <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig" ng-if="!vm.hiddenParameters.has(parameter.name)">
           <div class="col-md-4 sm-label-right break-word">
-            <b>{{parameter.label || parameter.name}}</b>
+            {{parameter.label || parameter.name}}
             <span ng-if="parameter.required">*</span>
             <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
           </div>
           <div class="col-md-6" ng-if="!parameter.hasOptions">
             <input class="form-control input-sm"
                    ng-model="vm.parameters[parameter.name]"
+                   ng-change="vm.updateParameters()"
                    ng-required="parameter.required"/>
           </div>
           <div class="col-md-6" ng-if="parameter.hasOptions">
             <ui-select ng-model="vm.parameters[parameter.name]"
                        ng-required="parameter.required"
+                       on-select="vm.updateParameters()"
                        style="width:100%"
                        class="form-control input-sm">
               <ui-select-match>
