@@ -291,7 +291,7 @@ public class DynoClusteredSortAgentScheduler extends CatsModuleAware implements 
     Object releaseScore = withRetry(
       format("Releasing %s", agent.getAgentType()),
       () -> redisClientDelegate.withScriptingClient(client -> {
-        return client.evalsha(getScript(SWAP_SET_SCRIPT),
+        return client.eval(getScript(SWAP_SET_SCRIPT),
           Arrays.asList(WORKING_SET, WAITING_SET),
           Arrays.asList(agent.getAgentType(), acquireScore)).toString();
       })
