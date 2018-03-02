@@ -36,7 +36,7 @@ public class NotificationMessage {
   String statusMessage;
 
   @JsonProperty("Details")
-  Map<String, String> details;
+  Map<String, Object> details;
 
   @JsonProperty("RequestID")
   Integer requestId;
