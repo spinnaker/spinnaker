@@ -1208,6 +1208,20 @@ def make_deployer(options, metrics):
   return hal_klass(options, metrics, runtime_class=spin_klass)
 
 
+def determine_deployment_platform(options):
+  """Helper function to determine the deployment platform being tested.
+
+  This is used for instrumentation purposes.
+  """
+  platform = options.deploy_hal_platform
+  if options.deploy_spinnaker_type == 'distributed':
+    if platform == 'gce':
+      platform = 'gke'
+    else:
+      platform += '+k8s'
+  return platform
+
+
 def init_argument_parser(parser, defaults):
   """Initialize the argument parser with deployment and configuration params.
 
@@ -1266,7 +1280,7 @@ def init_argument_parser(parser, defaults):
   add_parser_argument(
       parser, 'deploy_distributed_platform', defaults, 'kubernetes',
       choices=SUPPORTED_DISTRIBUTED_PLATFORMS,
-      help='The paltform to deploy spinnaker to when'
+      help='The platform to deploy spinnaker to when'
            ' --deploy_spinnaker_type=distributed')
 
   add_parser_argument(
