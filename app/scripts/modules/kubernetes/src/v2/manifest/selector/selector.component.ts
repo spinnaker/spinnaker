@@ -30,8 +30,9 @@ class KubernetesManifestSelectorCtrl implements IController {
     }
   }
 
-  public buildName(): void {
+  public onNameChange(): void {
     this.selector.manifestName = this.rawKind + ' ' + this.rawName;
+    this.selector.kind = this.rawKind;
   }
 }
 
@@ -55,12 +56,12 @@ class KubernetesMultiManifestSelectorComponent implements IComponentOptions {
       <stage-config-field label="Kind">
         <input type="text" placeholder="e.g. deployment"
           class="form-control input-sm highlight-pristine"
-          ng-model="ctrl.rawKind" ng-change="ctrl.buildName()"/>
+          ng-model="ctrl.rawKind" ng-change="ctrl.onNameChange()"/>
       </stage-config-field>
       <stage-config-field label="Name">
         <input type="text"
           class="form-control input-sm highlight-pristine"
-          ng-model="ctrl.rawName" ng-change="ctrl.buildName()"/>
+          ng-model="ctrl.rawName" ng-change="ctrl.onNameChange()"/>
       </stage-config-field>
     </div>
   `;

@@ -7,6 +7,7 @@ export interface IMultiManifestSelector extends IManifestSelector {
 
 export interface IManifestSelector {
   manifestName?: string,
+  kind?: string,
   location: string,
   account: string,
 }
