@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.providers.titus;
+package com.netflix.spinnaker.orca.clouddriver.tasks.providers.titus
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.JobRunner
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -27,6 +27,10 @@ class TitusJobRunner implements JobRunner {
 
   boolean katoResultExpected = false
   String cloudProvider = "titus"
+
+  static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
+
+  List<String> defaultSecurityGroups = DEFAULT_SECURITY_GROUPS
 
   @Override
   List<Map> getOperations(Stage stage) {
@@ -41,7 +45,21 @@ class TitusJobRunner implements JobRunner {
       operation.put('user', stage.execution.authentication?.user)
     }
 
+    operation.securityGroups = operation.securityGroups ?: []
+
+    addAllNonEmpty(operation.securityGroups as List<String>, defaultSecurityGroups)
+
     return [[(OPERATION): operation]]
+  }
+
+  private static void addAllNonEmpty(List<String> baseList, List<String> listToBeAdded) {
+    if (listToBeAdded) {
+      listToBeAdded.each { itemToBeAdded ->
+        if (itemToBeAdded) {
+          baseList << itemToBeAdded
+        }
+      }
+    }
   }
 }
 
