@@ -10,12 +10,6 @@ export interface ISearchResultGridProps {
   resultSet: ISearchResultSet;
 }
 
-const NoQuery = () => (
-  <div className="flex-grow vertical center middle">
-    <h2>Please enter a search query to get started</h2>
-  </div>
-);
-
 export const Searching = () => (
   <div className="flex-grow vertical center middle">
     <Spinner size="large" message="Fetching search results ..."/>
@@ -57,7 +51,7 @@ export class SearchResultGrid extends React.Component<ISearchResultGridProps> {
     switch (status) {
       case SearchStatus.INITIAL:
       case undefined:
-        return <NoQuery/>;
+        return null;
 
       case SearchStatus.ERROR:
         return <FetchError resultSet={resultSet}/>;

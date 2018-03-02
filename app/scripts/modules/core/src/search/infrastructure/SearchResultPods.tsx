@@ -25,6 +25,11 @@ export interface ISearchResultPodsProps {
 export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
   public render() {
     const { results } = this.props;
+
+    if (!results.length) {
+      return null;
+    }
+
     const projects: ISearchResultPodData = results.find(x => x.category === 'projects');
     const otherCategories: ISearchResultPodData[] = results.filter(x => x.category !== 'projects')
       .sort((a, b) => a.category.localeCompare(b.category));

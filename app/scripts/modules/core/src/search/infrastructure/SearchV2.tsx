@@ -155,7 +155,6 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
         <div className="container flex-fill" style={{ overflowY: 'auto' }}>
           {!hasSearchQuery && (
             <div>
-              <h3 style={{ textAlign: 'center' }}>Please enter a search query to get started</h3>
               <RecentlyViewedItems Component={SearchResultPods}/>
             </div>
           )}
