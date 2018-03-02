@@ -153,6 +153,10 @@ public class LaunchFailureNotificationCleanupAgent implements RunnableAgent, Cus
   }
 
   private static AmazonServiceException amazonServiceException(Exception e) {
+    if (e instanceof AmazonServiceException) {
+      return (AmazonServiceException) e;
+    }
+
     if (!(e instanceof UndeclaredThrowableException)) {
       return null;
     }
