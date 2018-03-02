@@ -39,7 +39,7 @@ def _host_regex_token():
   ip6_abbrev_host_token='(?:{group}::?){{1,6}}:?'.format(group=ip6_group)
   ip6_host_token='(?:{full}|{abbrev})'.format(
       full=ip6_full_host_token, abbrev=ip6_abbrev_host_token)
-    
+
   ip4_host_token = '(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
   name_host_token = '(?:[a-z]|(?:[a-z][-\.a-z0-9]*[a-z0-9]))'
   host_token = '(?:{ip4})|(?:{ip6})|(?:{name})'.format(
@@ -81,7 +81,7 @@ class ValidateConfig(object):
     self.verify_external_dependencies()
     self.verify_security()
 
-    found_local = False   
+    found_local = False
     for ymldir in [self.__user_config_dir, self.__installation_config_dir]:
       yml_path = yml_or_yaml_path(ymldir, 'spinnaker-local')
       if not os.path.exists(yml_path):

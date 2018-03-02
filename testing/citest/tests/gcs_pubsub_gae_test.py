@@ -275,7 +275,7 @@ class GcsPubsubGaeTestScenario(sk.SpinnakerTestScenario):
 
     pipeline_config_path = 'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP)
     builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline')
+    (builder.new_clause_builder('Has Pipeline', retryable_for_secs=15)
      .get_url_path(pipeline_config_path)
      .EXPECT(
        jp.LIST_MATCHES([self.make_dict_matcher(pipeline_spec)])))

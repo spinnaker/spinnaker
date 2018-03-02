@@ -43,10 +43,16 @@ interface, which is provided via free functions.
 """
 
 
+import logging
 import os
-from buildtool import add_parser_argument
+
+from buildtool import add_parser_argument, check_options_set, check_path_exists, raise_and_log_error, ConfigError
 
 from validate_bom__deploy import write_data_to_secure_path
+
+from google.cloud import pubsub
+from google.cloud import storage
+from google.oauth2 import service_account
 
 
 class Configurator(object):
@@ -70,6 +76,14 @@ class Configurator(object):
 
   def add_config(self, options, script):
     """Writes bash commands (e.g. hal) to configure feature set."""
+    pass
+
+  def setup_environment(self, options):
+    """Configures external platform infrastructure."""
+    pass
+
+  def teardown_environment(self, options):
+    """Tears down external platform infrastructure created in setup_environment()."""
     pass
 
   def add_files_to_upload(self, options, file_set):
@@ -899,6 +913,142 @@ class DockerConfigurator(Configurator):
       file_set.add(options.docker_account_credentials)
 
 
+class GooglePubsubConfigurator(Configurator):
+  """Controls hal config google pub/sub configuration."""
+
+  def init_argument_parser(self, parser, defaults):
+    """Implements interface."""
+    add_parser_argument(
+        parser, 'pubsub_google_project', defaults, None,
+        help='The name of the GCE project the subscription lives in.')
+    add_parser_argument(
+        parser, 'pubsub_google_credentials_path', defaults, None,
+        help='Path to service account credentials with access to the subscription.')
+    add_parser_argument(
+        parser, 'pubsub_google_subscription_name', defaults, None,
+        help='The name of the pub/sub subscription to pull from.')
+    add_parser_argument(
+        parser, 'pubsub_google_name', defaults, None,
+        help='The logical name of the configured subscription in Spinnaker.')
+    add_parser_argument(
+        parser, 'pubsub_google_template_path', defaults, None,
+        help='Path to the Jinja message translation template.')
+
+  def validate_options(self, options):
+    """Implements interface."""
+    check_options_set(options, ['pubsub_google_project', 'pubsub_google_credentials_path', 'pubsub_google_subscription_name', 'pubsub_google_template_path'])
+    check_path_exists(options.pubsub_google_credentials_path, "pubsub_credentials_path")
+    check_path_exists(options.pubsub_google_template_path, "pubsub_template_path")
+    options.pubsub_google_enabled = options.pubsub_google_subscription_name is not None
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if options.pubsub_google_name is None:
+      return
+
+    script.append('hal -q --log=info config pubsub google enable')
+    subscription_cmd = ['hal -q --log=info config pubsub google subscription']
+    if options.pubsub_google_name:
+      subscription_cmd.append('add {}'.format(options.pubsub_google_name))
+    if options.pubsub_google_project:
+      subscription_cmd.append('--project {}'.format(options.pubsub_google_project))
+    if options.pubsub_google_credentials_path:
+      subscription_cmd.append('--json-path {}'.format(os.path.basename(options.pubsub_google_credentials_path)))
+    if options.pubsub_google_subscription_name:
+      subscription_cmd.append('--subscription-name {}'.format(options.pubsub_google_subscription_name))
+    if options.pubsub_google_template_path:
+      subscription_cmd.append('--template-path {}'.format(os.path.basename(options.pubsub_google_template_path)))
+    script.append(' '.join(subscription_cmd))
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    if options.pubsub_google_credentials_path:
+      file_set.add(options.pubsub_google_credentials_path)
+    if options.pubsub_google_template_path:
+      file_set.add(options.pubsub_google_template_path)
+
+
+class GcsPubsubNotficationConfigurator(Configurator):
+  """Controls external (to Spinnaker) GCS -> Google Pubsub config."""
+
+  def init_argument_parser(self, parser, defaults):
+    """Implements interface."""
+    add_parser_argument(
+        parser, 'gcs_pubsub_bucket', defaults, None,
+        help='The name of the bucket to create.')
+    add_parser_argument(
+        parser, 'gcs_pubsub_credentials_path', defaults, None,
+        help='The path to the credentials used to manipulate GCS and pub/sub.')
+    add_parser_argument(
+        parser, 'gcs_pubsub_project', defaults, None,
+        help='The name of the project that houses the bucket, topic, and subscription.')
+    add_parser_argument(
+        parser, 'gcs_pubsub_topic', defaults, None,
+        help='The name of the topic to create.')
+    add_parser_argument(
+        parser, 'gcs_pubsub_subscription', defaults, None,
+        help='The name of the subscription to create.')
+
+  def validate_options(self, options):
+    """Implements interface."""
+    check_options_set(options, ['gcs_pubsub_bucket', 'gcs_pubsub_topic', 'gcs_pubsub_project', 'gcs_pubsub_credentials_path', 'gcs_pubsub_subscription'])
+    if options.gcs_pubsub_subscription != options.pubsub_google_subscription_name:
+      raise_and_log_error(ConfigError('Inconsistent pub/sub subscription reference in configuration: '
+                                      ' --gcs_pubsub_subscription="{}"'
+                                      ' --pubsub_google_subscription_name="{}"'
+                                      .format(options.gcs_pubsub_subscription,
+                                              options.pubsub_google_subscription_name)))
+
+  def __instantiate_clients(self, options):
+    """Instantiates and returns publisher, subscriber, and storage clients.
+
+    Returns:
+      Tuple of (publisher_client, subscriber_client, storage_client)
+    """
+    SCOPES = [
+      'https://www.googleapis.com/auth/devstorage.full_control',
+      'https://www.googleapis.com/auth/cloud-platform',
+      'https://www.googleapis.com/auth/pubsub',
+    ]
+    credentials = service_account.Credentials.from_service_account_file(
+      options.gcs_pubsub_credentials_path,
+      scopes=SCOPES)
+    publisher_client = pubsub.PublisherClient(credentials=credentials)
+    subscriber_client = pubsub.SubscriberClient(credentials=credentials)
+    storage_client = storage.Client(credentials=credentials, project=options.gcs_pubsub_project)
+    return (publisher_client, subscriber_client, storage_client)
+
+  def setup_environment(self, options):
+    """Implements interface."""
+    publisher_client, subscriber_client, storage_client = self.__instantiate_clients(options)
+
+    logging.info('Creating topic %s in project %s', options.gcs_pubsub_topic, options.gcs_pubsub_project)
+    topic_ref = publisher_client.topic_path(options.gcs_pubsub_project, options.gcs_pubsub_topic)
+    publisher_client.create_topic(topic_ref)
+
+    logging.info('Creating subscription %s in project %s', options.gcs_pubsub_subscription, options.gcs_pubsub_project)
+    subscription_ref = subscriber_client.subscription_path(options.gcs_pubsub_project,
+                                                           options.gcs_pubsub_subscription)
+    subscriber_client.create_subscription(subscription_ref, topic_ref)
+    storage_client.create_bucket(options.gcs_pubsub_bucket)
+
+    bucket = storage_client.get_bucket(options.gcs_pubsub_bucket)
+    notification = bucket.notification(options.gcs_pubsub_topic, topic_project=options.gcs_pubsub_project,
+                                       payload_format=storage.notification.JSON_API_V1_PAYLOAD_FORMAT)
+    notification.create()
+    logging.debug('Created bucket notification %s', notification)
+
+  def teardown_environment(self, options):
+    """Implements interface."""
+    publisher_client, subscriber_client, storage_client = self.__instantiate_clients(options)
+
+    deploy_platform = options.hal_deploy_platform
+
+    subscriber_client.delete_subscription(options.gcs_pubsub_subscription)
+    publisher_client.delete_topic(options.gcs_pubsub_topic)
+    storage_client.delete_bucket(options.gcs_pubsub_bucket)
+
+
 class JenkinsConfigurator(Configurator):
   """Controls hal config ci."""
 
@@ -1155,6 +1305,8 @@ CONFIGURATOR_LIST = [
     JenkinsConfigurator(),
     NotificationConfigurator(),
     SecurityConfigurator(),
+    GcsPubsubNotficationConfigurator(),
+    GooglePubsubConfigurator()
 ]
 
 
@@ -1192,6 +1344,20 @@ def make_scripts(options):
     configurator.add_config(options, config_script)
 
   return init_script, config_script
+
+
+def setup_environment(options):
+  """Performs any external infrastructure or cloud provider config.
+  """
+  for configurator in CONFIGURATOR_LIST:
+    configurator.setup_environment(options)
+
+
+def teardown_environment(options):
+  """Tears down any external infrastructure or cloud provider config.
+  """
+  for configurator in CONFIGURATOR_LIST:
+    configurator.teardown_environment(options)
 
 
 def get_files_to_upload(options):

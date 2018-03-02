@@ -148,6 +148,8 @@ def main(options, metrics):
   outcome_success = False
   deployer = validate_bom__deploy.make_deployer(options, metrics)
   test_controller = validate_bom__test.ValidateBomTestController(deployer)
+  if options.deploy_deploy:
+    validate_bom__config.setup_environment(options)
   init_script, config_script = validate_bom__config.make_scripts(options)
   file_set = validate_bom__config.get_files_to_upload(options)
 
@@ -162,7 +164,10 @@ def main(options, metrics):
     if options.deploy_undeploy or options.deploy_always_collect_logs:
       deployer.collect_logs()
     if options.deploy_undeploy:
-      deployer.undeploy()
+      try:
+        deployer.undeploy()
+      finally:
+        validate_bom__config.teardown_environment(options)
     else:
       logging.info('Skipping undeploy because --deploy_undeploy=false')
 
