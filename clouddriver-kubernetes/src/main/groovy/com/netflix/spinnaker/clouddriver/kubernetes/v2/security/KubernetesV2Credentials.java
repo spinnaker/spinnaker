@@ -345,7 +345,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   public List<String> delete(KubernetesKind kind, String namespace, String name, KubernetesSelectorList labelSelectors, V1DeleteOptions options) {
-    return runAndRecordMetrics("scale", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
+    return runAndRecordMetrics("delete", kind, namespace, () -> jobExecutor.delete(this, kind, namespace, name, labelSelectors, options));
   }
 
   public void deploy(KubernetesManifest manifest) {
