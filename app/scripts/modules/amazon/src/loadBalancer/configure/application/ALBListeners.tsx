@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { difference, flatten, get, uniq } from 'lodash';
 import { BindAll } from 'lodash-decorators';
@@ -295,7 +295,7 @@ class ALBListenersImpl extends React.Component<IWizardPageProps & FormikProps<IA
                           clearable={false}
                           required={true}
                           options={certificateOptions}
-                          onChange={(value: Select.Option<string>) => this.handleCertificateChanged(certificate, value.value)}
+                          onChange={(value: Option<string>) => this.handleCertificateChanged(certificate, value.value)}
                           value={certificate.name}
                         />
                     )}

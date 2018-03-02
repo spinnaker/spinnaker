@@ -153,7 +153,7 @@ module.exports = angular.module('spinnaker.ecs.cloneServerGroup.controller', [
       };
     }
 
-    function processCommandUpdateResult(result) {
+    function processCommandUpdateResult() {
       // TODO(Bruno Carrier) - Implement marking sections either dirty or complete
     }
 

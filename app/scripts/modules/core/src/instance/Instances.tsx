@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import { Transition } from '@uirouter/core';
 import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
@@ -19,8 +20,8 @@ export interface IInstancesState {
 export class Instances extends React.Component<IInstancesProps, IInstancesState> {
   // context from enclosing UIView
   public static contextTypes = {
-    router: React.PropTypes.object,
-    parentUIViewAddress: React.PropTypes.object,
+    router: PropTypes.object,
+    parentUIViewAddress: PropTypes.object,
   };
 
   private subscription: Subscription;

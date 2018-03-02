@@ -50,7 +50,7 @@ describe('<LoadBalancersTag />', () => {
     component = mount(<LoadBalancersTag {...props}/>);
 
     $scope.$digest();
-    expect(component.find('span.btn-load-balancer').length).toBe(1);
+    expect(component.render().find('span.btn-load-balancer').length).toBe(1);
   });
 
   it('extracts two load balancers from data', (done) => {
@@ -71,11 +71,12 @@ describe('<LoadBalancersTag />', () => {
     // Make sure the application dataSource promises resolve
     $scope.$digest();
 
+    component.update();
     const popover = component.find(HoverablePopover);
     expect(popover.length).toBe(1);
 
     // Wait for the popover to show
-    (popover.getNode() as any).showHide$.take(1).toPromise().then(() => {
+    (popover.instance() as any).showHide$.take(1).toPromise().then(() => {
       const menuChildren = popoverContainerEl.querySelector('.popover-content div.menu-load-balancers').children;
 
       expect(menuChildren.length).toBe(3);

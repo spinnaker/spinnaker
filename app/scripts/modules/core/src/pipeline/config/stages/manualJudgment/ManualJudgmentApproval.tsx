@@ -1,6 +1,6 @@
 import { IPromise } from 'angular';
 import * as React from 'react';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import 'react-select/dist/react-select.css';
 import { BindAll } from 'lodash-decorators';
 
@@ -59,7 +59,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
       (this.state.submitting && this.state.judgmentDecision === decision);
   }
 
-  private handleJudgementChanged(option: Select.Option): void {
+  private handleJudgementChanged(option: Option): void {
     this.setState({ judgmentInput: { value: option.value as string } });
   }
 
@@ -75,7 +75,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
     const stage: IExecutionStage = this.props.stage,
           status: string = stage.status;
 
-    const options: Select.Option[] = (stage.context.judgmentInputs || [])
+    const options: Option[] = (stage.context.judgmentInputs || [])
       .map((o: {value: string}) => { return { value: o.value, label: o.value }; });
 
     const showOptions = !['SKIPPED', 'SUCCEEDED'].includes(status) && (!stage.context.judgmentStatus || status === 'RUNNING');

@@ -41,8 +41,8 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   private query$ = new Subject<string>();
   private destroy$ = new Subject();
 
-  constructor() {
-    super();
+  constructor(props: {}) {
+    super(props);
     this.state = {
       showDropdown: false,
       showMinLengthWarning: false,

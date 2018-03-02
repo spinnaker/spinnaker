@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as Select from 'react-select';
+import Select, { Creatable, Option } from 'react-select';
 import { intersection, uniq, without, cloneDeep, compact } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { Button } from 'react-bootstrap';
@@ -26,13 +26,13 @@ export interface IPermissionsConfigurerProps {
 
 export interface IPermissionsConfigurerState {
   permissionRows: IPermissionRow[];
-  roleOptions: Select.Option[];
+  roleOptions: Option[];
 }
 
 @BindAll()
 export class PermissionsConfigurer extends React.Component<IPermissionsConfigurerProps, IPermissionsConfigurerState> {
 
-  private static accessTypes: Select.Option[] = [
+  private static accessTypes: Option[] = [
     { value: 'READ', label: 'Read only' },
     { value: 'READ,WRITE', label: 'Read and write' },
   ];
@@ -79,7 +79,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     return permissionRows;
   }
 
-  private getRoleOptions(permissions: IPermissions): Select.Option[] {
+  private getRoleOptions(permissions: IPermissions): Option[] {
     const availableRoles = ReactInjector.authenticationService.getAuthenticatedUser().roles;
     return without(
       availableRoles || [],
@@ -139,16 +139,16 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
         compact(this.props.permissions.WRITE).length === 0;
   }
 
-  private handleRoleSelect(rowIndex: number): (option: Select.Option) => void {
-    return (option: Select.Option) => {
+  private handleRoleSelect(rowIndex: number): (option: Option) => void {
+    return (option: Option) => {
       const permissionRows = cloneDeep(this.state.permissionRows);
       permissionRows[rowIndex].group = option.value as string;
       this.props.onPermissionsChange(this.buildPermissions(permissionRows));
     };
   }
 
-  private handleAccessTypeSelect(rowIndex: number): (option: Select.Option) => void {
-    return (option: Select.Option) => {
+  private handleAccessTypeSelect(rowIndex: number): (option: Option) => void {
+    return (option: Option) => {
       const permissionRows = cloneDeep(this.state.permissionRows);
       permissionRows[rowIndex].access = option.value as string;
       this.props.onPermissionsChange(this.buildPermissions(permissionRows));
@@ -180,7 +180,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
             return (
               <div key={row.group || i} className="permissions-row clearfix">
                 <div className="col-md-5 permissions-group">
-                  <Select.Creatable
+                  <Creatable
                     clearable={false}
                     value={{ value: row.group, label: row.group }}
                     options={this.state.roleOptions}

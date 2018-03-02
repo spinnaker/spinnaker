@@ -17,8 +17,8 @@ export interface ISpinnakerHeaderState {
 @BindAll()
 export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> {
 
-  constructor() {
-    super();
+  constructor(props: {}) {
+    super(props);
     this.state = {
       navExpanded: !this.isDevicePhoneOrSmaller()
     };

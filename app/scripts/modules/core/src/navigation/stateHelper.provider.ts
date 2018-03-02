@@ -1,5 +1,5 @@
 import { copy, module } from 'angular';
-import { StateRegistry, StateDeclaration } from '@uirouter/core';
+import { StateRegistry } from '@uirouter/core';
 import { INestedState } from './state.provider';
 
 export class StateHelper implements ng.IServiceProvider {
@@ -17,7 +17,7 @@ export class StateHelper implements ng.IServiceProvider {
     }
     if (!this.registeredStates.includes(newState.name)) {
       this.registeredStates.push(newState.name);
-      this.$stateRegistryProvider.register(newState as StateDeclaration);
+      this.$stateRegistryProvider.register(newState as any);
     }
 
     if (newState.children && newState.children.length) {

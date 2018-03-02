@@ -145,7 +145,6 @@ function configure(IS_TEST) {
       stats: 'errors-only',
     },
     externals: {
-      'cheerio': 'window',
       'react/addons': 'react',
       'react/lib/ExecutionEnvironment': 'react',
       'react/lib/ReactContext': 'react',

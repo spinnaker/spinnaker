@@ -1,7 +1,7 @@
 import { isDate, isObject, isUndefined } from 'lodash';
 import { module } from 'angular';
 
-import { StateService } from '@uirouter/angularjs';
+import { StateService } from '@uirouter/core';
 import { ITask } from 'core/domain';
 import { urlBuilderRegistry } from './urlBuilder.registry';
 import { NamingService } from 'core/naming/naming.service';

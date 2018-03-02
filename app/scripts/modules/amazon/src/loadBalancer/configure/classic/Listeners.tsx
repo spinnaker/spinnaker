@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import { get } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { FormikProps } from 'formik';
@@ -94,7 +94,7 @@ class ListenersImpl extends React.Component<IWizardPageProps & FormikProps<IAmaz
     this.updateListeners();
   }
 
-  private handleListenerCertificateChanged(listener: IClassicListenerDescription, newCertificate: Select.Option<string>): void {
+  private handleListenerCertificateChanged(listener: IClassicListenerDescription, newCertificate: Option<string>): void {
     listener.sslCertificateName = newCertificate.value;
     this.updateListeners();
   }
@@ -196,7 +196,7 @@ class ListenersImpl extends React.Component<IWizardPageProps & FormikProps<IAmaz
                           clearable={false}
                           required={true}
                           options={certificateOptions}
-                          onChange={(value: Select.Option<string>) => this.handleListenerCertificateChanged(listener, value)}
+                          onChange={(value: Option<string>) => this.handleListenerCertificateChanged(listener, value)}
                           value={listener.sslCertificateName}
                         />
                       )}

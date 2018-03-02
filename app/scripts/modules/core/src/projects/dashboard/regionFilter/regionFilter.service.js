@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import { FILTER_MODEL_SERVICE} from "core/filterModel";
+import { FILTER_MODEL_SERVICE} from 'core/filterModel';
 
 const angular = require('angular');
 

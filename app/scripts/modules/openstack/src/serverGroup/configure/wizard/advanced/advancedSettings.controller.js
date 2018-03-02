@@ -2,15 +2,13 @@
 
 const angular = require('angular');
 
-import {V2_MODAL_WIZARD_SERVICE} from '@spinnaker/core';
-
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.wizard.advancedSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     require('../../../../common/cacheBackedMultiSelectField.directive.js').name,
   ])
-  .controller('openstackServerGroupAdvancedSettingsCtrl', function ($scope, v2modalWizardService) {
+  .controller('openstackServerGroupAdvancedSettingsCtrl', function ($scope) {
 
     $scope.selectedAZs = $scope.command.zones ?
       $scope.command.zones.map(i => {

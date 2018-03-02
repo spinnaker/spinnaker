@@ -35,20 +35,20 @@ describe('<Filters/>', () => {
 
   it('should render a list of filters', () => {
     component = getNewFilters(true);
-    expect(component.hasClass('filter-list')).toBeTruthy();
+    expect(component.render().hasClass('filter-list')).toBeTruthy();
   });
 
   it('should open the filter list when isOpen is true', () => {
     component = getNewFilters(true);
-    expect(component.hasClass('filter-list')).toBeTruthy();
-    expect(component.hasClass('filter-list__open')).toBeTruthy();
-    expect(component.hasClass('filter-list__closed')).toBeFalsy();
+    expect(component.render().hasClass('filter-list')).toBeTruthy();
+    expect(component.render().hasClass('filter-list__open')).toBeTruthy();
+    expect(component.render().hasClass('filter-list__closed')).toBeFalsy();
   });
 
   it('should close the filter list when isOpen is false', () => {
     component = getNewFilters(false);
-    expect(component.hasClass('filter-list')).toBeTruthy();
-    expect(component.hasClass('filter-list__open')).toBeFalsy();
-    expect(component.hasClass('filter-list__closed')).toBeTruthy();
+    expect(component.render().hasClass('filter-list')).toBeTruthy();
+    expect(component.render().hasClass('filter-list__open')).toBeFalsy();
+    expect(component.render().hasClass('filter-list__closed')).toBeTruthy();
   });
 });

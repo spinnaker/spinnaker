@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as Select from 'react-select';
+import Select, { Option } from 'react-select';
 import { BindAll } from 'lodash-decorators';
 
 import { HelpField } from '@spinnaker/core';
@@ -20,8 +20,8 @@ export interface ICustomInstanceConfigurerProps {
 @BindAll()
 export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
-    const vCpuOptions: Select.Option[] = (this.props.vCpuList || []).map(vCpu => ({ label: vCpu + '', value: vCpu }));
-    const memoryOptions: Select.Option[] = (this.props.memoryList || []).map(memory => ({ label: memory + '', value: memory }));
+    const vCpuOptions: Option[] = (this.props.vCpuList || []).map(vCpu => ({ label: vCpu + '', value: vCpu }));
+    const memoryOptions: Option[] = (this.props.memoryList || []).map(memory => ({ label: memory + '', value: memory }));
     const selectedVCpuCountLabel = this.props.selectedVCpuCount ? this.props.selectedVCpuCount + '' : null;
     const selectedMemoryLabel = this.props.selectedMemory ? this.props.selectedMemory + '' : null;
 
@@ -59,12 +59,12 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
     );
   }
 
-  private handleVCpuChange(option: Select.Option) {
+  private handleVCpuChange(option: Option) {
     const value = (option ? option.value : null) as number;
     this.props.onChange({ vCpuCount: value, memory: this.props.selectedMemory });
   }
 
-  private handleMemoryChange(option: Select.Option) {
+  private handleMemoryChange(option: Option) {
     const value = (option ? option.value : null) as number;
     this.props.onChange({ vCpuCount: this.props.selectedVCpuCount, memory: value });
   }

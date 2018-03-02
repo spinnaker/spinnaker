@@ -21,7 +21,7 @@ describe('<TagList/>', () => {
 
   it('should display a tag list', () => {
     component = getNewTagList();
-    expect(component.hasClass('tag-list')).toBeTruthy();
+    expect(component.render().hasClass('tag-list')).toBeTruthy();
     expect(component.find('div.tag').length).toBe(3);
   });
 });
