@@ -16,6 +16,7 @@
 
 import datetime
 import logging
+import re
 import sys
 import threading
 import time
@@ -238,6 +239,25 @@ class BaseMetricsRegistry(object):
     """Return all the metric families."""
     return self.__metric_families.values()
 
+  @staticmethod
+  def __make_context_labels(options):
+    if not hasattr(options, 'monitoring_context_labels'):
+      return {}
+    
+    labels = {}
+    matcher = re.compile(r'(\w+)=(.*)')
+    for binding in (options.monitoring_context_labels or '').split(','):
+      if not binding:
+        continue
+      try:
+        match = matcher.match(binding)
+        labels[match.group(1)] = match.group(2)
+      except Exception as ex:
+        raise ValueError(
+            'Invalid monitoring_context_labels binding "%s": %s' % (
+                binding, ex))
+    return labels
+
   def __init__(self, options):
     """Constructs registry with options from init_argument_parser."""
     self.__start_time = datetime.datetime.utcnow()
@@ -248,9 +268,12 @@ class BaseMetricsRegistry(object):
     self.__family_mutex = threading.Lock()
     self.__updated_metrics = set([])
     self.__update_mutex = threading.Lock()
+    self.__inject_labels = self.__make_context_labels(options)
+    if self.__inject_labels:
+      logging.debug('Injecting additional metric labels %s',
+                    self.__inject_labels)
 
-  def _do_make_family(
-      self, family_type, name, label_names):
+  def _do_make_family(self, family_type, name, label_names):
     """Creates new metric-system specific gauge family.
 
     Args:
@@ -270,7 +293,7 @@ class BaseMetricsRegistry(object):
 
   def inc_counter(self, name, labels, **kwargs):
     """Track number of completed calls to the given function."""
-    counter = self.__ensure_metric(MetricFamily.COUNTER, name, labels)
+    counter = self.get_metric(MetricFamily.COUNTER, name, labels)
     counter.inc(**kwargs)
     return counter
 
@@ -288,19 +311,18 @@ class BaseMetricsRegistry(object):
 
   def set(self, name, labels, value):
     """Sets the implied gauge with the specified value."""
-    gauge = self.__ensure_metric(
-        MetricFamily.GAUGE, name, labels)
+    gauge = self.get_metric(MetricFamily.GAUGE, name, labels)
     gauge.set(value)
     return gauge
 
   def track_call(self, name, labels, func, *pos_args, **kwargs):
     """Track number of active calls to the given function."""
-    gauge = self.__ensure_metric(MetricFamily.GAUGE, name, labels)
+    gauge = self.get_metric(MetricFamily.GAUGE, name, labels)
     return gauge.track(func, *pos_args, **kwargs)
 
   def observe_timer(self, name, labels, seconds):
     """Add an observation to the specified timer."""
-    timer = self.__ensure_metric(MetricFamily.TIMER, name, labels)
+    timer = self.get_metric(MetricFamily.TIMER, name, labels)
     timer.observe(seconds)
     return timer
 
@@ -316,15 +338,23 @@ class BaseMetricsRegistry(object):
       outcome_labels = label_func(None, labels)
       raise
     finally:
-      timer = self.__ensure_metric(MetricFamily.TIMER, name, outcome_labels)
+      timer = self.get_metric(MetricFamily.TIMER, name, outcome_labels)
       timer.observe(time.time() - start_time)
 
   def lookup_family_or_none(self, name):
     return self.__metric_families.get(name)
 
-  def __ensure_metric(
-      self, family_type, name, labels, *pos_args):
-    """Find family with given name if it exists already, otherwise make one."""
+  def __normalize_labels(self, labels):
+    result = dict(self.__inject_labels)
+    result.update(labels)
+    return result
+
+  def get_metric(self, family_type, name, labels):
+    """Return instance in family with given name and labels.
+
+    Returns the existing instance if present, otherwise makes a new one.
+    """
+    labels = self.__normalize_labels(labels)
     family = self.__metric_families.get(name)
     if family:
       if family.family_type != family_type:
@@ -332,7 +362,7 @@ class BaseMetricsRegistry(object):
             have=family, want=family_type))
       return family.get(labels)
 
-    family = self._do_make_family(family_type, name, labels.keys(), *pos_args)
+    family = self._do_make_family(family_type, name, labels.keys())
     with self.__family_mutex:
       if name not in self.__metric_families:
         self.__metric_families[name] = family

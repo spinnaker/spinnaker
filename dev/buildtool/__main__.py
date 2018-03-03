@@ -165,6 +165,25 @@ def make_registry(command_modules, parser, defaults):
   return registry
 
 
+def add_monitoring_context_labels(options):
+  option_dict = vars(options)
+  version_name = option_dict.get('git_branch', None)
+  if not version_name:
+    bom_name = option_dict.get('bom_version') or option_dict.get('bom_path')
+    if bom_name:
+      if bom_name.find('-unbuilt') > 0:
+        version_name = bom_name[:bom_name.find('-unbuilt')]
+      elif bom_name.find('-latest') > 0:
+        version_name = bom_name[:bom_name.find('-latest')]
+      else:
+        version_name = bom_name[:bom_name.rfind('-')]
+  if version_name:
+    context_labels = 'version=' + version_name
+    if options.monitoring_context_labels:
+      context_labels += ',' + options.monitoring_context_labels
+    options.monitoring_context_labels = context_labels
+
+
 def init_options_and_registry(args, command_modules):
   """Register command modules and determine options from commandline.
 
@@ -192,6 +211,11 @@ def init_options_and_registry(args, command_modules):
   registry = make_registry(command_modules, parser, defaults)
   options = parser.parse_args(args)
   options.program = 'buildtool'
+
+  # Determine the version for monitoring purposes.
+  # Depending on the options defined, this is either the branch or bom prefix.
+  add_monitoring_context_labels(options)
+
   return options, registry
 
 

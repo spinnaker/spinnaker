@@ -124,7 +124,7 @@ def get_options(args):
   if options.influxdb_database == 'SpinnakerBuildTool':
     options.influxdb_database = 'SpinnakerValidate'
 
-  # Add platform/spinnaker_type to each influxdb metric we produce.
+  # Add platform/spinnaker_type to each metric we produce.
   # We'll use this to distinguish what was being tested.
   context_labels = 'platform=%s,deployment_type=%s' % (
       validate_bom__deploy.determine_deployment_platform(options),
@@ -136,9 +136,9 @@ def get_options(args):
     bom_series = options.deploy_version[:options.deploy_version.rfind('-')]
   context_labels += ',version=%s' % bom_series
 
-  if options.influxdb_add_context_labels:
-    context_labels += ',' + options.influxdb_add_context_labels
-  options.influxdb_add_context_labels = context_labels
+  if options.monitoring_context_labels:
+    context_labels += ',' + options.monitoring_context_labels
+  options.monitoring_context_labels = context_labels
 
   return options
 

@@ -33,7 +33,6 @@ To create a database:
 
 import datetime
 import logging
-import re
 import urllib2
 
 from buildtool import add_parser_argument
@@ -67,11 +66,6 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
         help='Reiterate gauge values for the specified period of seconds.'
              ' This is because when they get chunked into time blocks, the'
              'values become lost, in particular settling back to 0.')
-    add_parser_argument(
-        parser, 'influxdb_add_context_labels', defaults, None,
-        help='A comma-separated list of additional name=value'
-             ' labels to add to each event to associate them together.'
-             ' (e.g. xRelease=release-1.2.x)')
 
   def __init__(self, *pos_args, **kwargs):
     super(InfluxDbMetricsRegistry, self).__init__(*pos_args, **kwargs)
@@ -81,26 +75,6 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
         'TIMER': self.__export_timer_points,
     }
     self.__recent_gauges = set([])
-    matcher = re.compile(r'(\w+)=(.*)')
-    inject_bindings = {}
-    for binding in (self.options.influxdb_add_context_labels or '').split(','):
-      if not binding:
-        continue
-      try:
-        match = matcher.match(binding)
-        inject_bindings[match.group(1)] = match.group(2)
-      except Exception as ex:
-        raise ValueError(
-            'Invalid influxdb_add_context_labels binding "%s": %s' % (
-                binding, ex))
-
-    self.__inject_labels = ','.join(['%s=%s' % (key, value)
-                                     for key, value in inject_bindings.items()
-                                     if value != ''])
-    if self.__inject_labels:
-      logging.debug('Injecting additional metric labels %s',
-                    self.__inject_labels)
-      self.__inject_labels += ','
 
   def _do_flush_final_metrics(self):
     """Implements interface."""
@@ -145,10 +119,9 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
       logging.error('Cannot write metrics to %s:\n%s', url, ioex)
 
   def __to_label_text(self, metric):
-    metric_label_text = ','.join(['%s=%s' % (key, value)
-                                  for key, value in metric.labels.items()
-                                  if value != ''])
-    return self.__inject_labels + metric_label_text
+    return ','.join(['%s=%s' % (key, value)
+                     for key, value in metric.labels.items()
+                     if value != ''])
 
   def __reiterate_recent_gauges(self, gauges, payload):
     now = datetime.datetime.utcnow()
@@ -180,10 +153,13 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
         series=series, value=value, time=to_timestamp(utc))
 
   def __export_counter_points(self, name, label_text, metric, payload):
+    prev_value = 0
     for entry in metric.mark_as_delta():
+      delta_value = entry.value - prev_value
+      prev_value = entry.value
       payload.append(
           self.__to_payload_line('counter', name, label_text,
-                                 entry.value, entry.utc))
+                                 delta_value, entry.utc))
 
   def __export_gauge_points(self, name, label_text, metric, payload):
     self.__recent_gauges.add(metric)
@@ -193,16 +169,22 @@ class InfluxDbMetricsRegistry(InMemoryMetricsRegistry):
                                  entry.value, entry.utc))
 
   def __export_timer_points(self, name, label_text, metric, payload):
+    prev_count = 0
+    prev_total = 0
     for entry in metric.mark_as_delta():
       count = entry.value[0]
       total_secs = entry.value[1]
+      delta_count = count - prev_count
+      delta_total = total_secs - prev_total
+      prev_count = count
+      prev_total = total_secs
       payload.append(
           self.__to_payload_line('count', name, label_text,
-                                 count, entry.utc))
+                                 delta_count, entry.utc))
       payload.append(
           self.__to_payload_line('totalSecs', name, label_text,
-                                 total_secs, entry.utc))
-      avg_secs = total_secs / count
+                                 delta_total, entry.utc))
+      avg_secs = delta_total / delta_count
       payload.append(
           self.__to_payload_line('AvgSecs', name, label_text,
                                  avg_secs, entry.utc))
