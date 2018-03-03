@@ -30,7 +30,7 @@ public class StaticHostSupplier implements HostSupplier {
   }
 
   @Override
-  public Collection<Host> getHosts() {
+  public List<Host> getHosts() {
     return hosts;
   }
 }
