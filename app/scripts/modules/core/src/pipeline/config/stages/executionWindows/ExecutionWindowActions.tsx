@@ -26,6 +26,8 @@ export interface IExecutionWindowWhitelistEntry {
   endMin: number;
 }
 
+export const DEFAULT_SKIP_WINDOW_TEXT = 'The pipeline will proceed immediately, continuing to the next step in the stage.';
+
 @BindAll()
 export class ExecutionWindowActions extends React.Component<IExecutionWindowActionsProps, IExecutionWindowActionsState> {
   constructor(props: IExecutionWindowActionsProps) {
@@ -55,7 +57,7 @@ export class ExecutionWindowActions extends React.Component<IExecutionWindowActi
     confirmationModalService.confirm({
       header: 'Really skip execution window?',
       buttonText: 'Skip',
-      body: '<p>The pipeline will proceed immediately, continuing to the next step in the stage.</p>',
+      body: stage.context.skipWindowText || `<p>${DEFAULT_SKIP_WINDOW_TEXT}</p>`,
       submitMethod: () => {
         return executionService.patchExecution(executionId, stage.id, data)
           .then(() => executionService.waitUntilExecutionMatches(executionId, matcher));
