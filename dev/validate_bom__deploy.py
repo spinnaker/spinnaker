@@ -405,7 +405,6 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
         ' | tail -1'.format(
             command=kubectl_command, service=service),
         shell=True)
-    logging.info('***** RAN "%s" ->\n"%s"\n', kubectl_command, stdout)
     pod = stdout.strip()
     if not pod:
       message = 'There is no pod for "{service}" in {namespace}'.format(
