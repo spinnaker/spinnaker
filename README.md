@@ -49,6 +49,16 @@ docker run -it --link redis:redis --rm redis redis-cli -h redis -p 6379
 ./gradlew bootRun
 ```
 
+### Debugging
+
+To start the JVM in debug mode, set the Java system property `DEBUG=true`:
+```
+./gradlew -DDEBUG=true
+```
+
+The JVM will then listen for a debugger to be attached on port 8187.  The JVM will _not_ wait for the debugger
+to be attached before starting Rosco; the relevant JVM arguments can be seen and modified as needed in `build.gradle`.
+
 ## Verifying
 ```
 curl -v localhost:8087/bakeOptions
