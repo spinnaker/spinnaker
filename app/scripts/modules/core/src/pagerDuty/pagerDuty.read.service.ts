@@ -9,6 +9,7 @@ export interface IPagerDutyService {
   lastIncidentTimestamp: string;
   name: string;
   policy: string;
+  status: string;
 }
 
 export interface IOnCall {
