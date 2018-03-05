@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { set } from 'lodash';
+import { get, set } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
@@ -18,7 +18,7 @@ export interface ITargetGroupsProps {
 }
 
 export interface ITargetGroupsState {
-  existingTargetGroupNames: string[];
+  existingTargetGroupNames: { [account: string]: { [region: string]: string[] } };
   oldTargetGroupCount: number;
 }
 
@@ -35,7 +35,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
 
     const oldTargetGroupCount = !props.isNew ? props.initialValues.targetGroups.length : 0;
     this.state = {
-      existingTargetGroupNames: [],
+      existingTargetGroupNames: {},
       oldTargetGroupCount,
     };
   }
@@ -47,7 +47,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     const targetGroupsErrors = values.targetGroups.map((targetGroup: any) => {
       const tgErrors: { [key: string]: string } = {};
 
-      if (targetGroup.name && this.state.existingTargetGroupNames.includes(targetGroup.name.toLowerCase())) {
+      if (targetGroup.name && get(this.state.existingTargetGroupNames, [ values.credentials, values.region ], []).includes(targetGroup.name.toLowerCase())) {
         tgErrors.name = `There is already a target group in ${values.credentials}:${values.region} with that name.`;
       }
 
@@ -76,31 +76,26 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     return name.replace(`${this.props.app.name}-`, '');
   }
 
-  protected updateLoadBalancerNames(): void {
-    const { app, loadBalancer, values: { credentials: account, region } } = this.props;
+  protected updateLoadBalancerNames(props: ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>): void {
+    const { app, loadBalancer } = props;
 
-    const accountLoadBalancersByRegion: { [region: string]: string[] } = {};
-    const accountTargetGroupsByRegion: { [region: string]: string[] } = {};
+    const targetGroupsByAccountAndRegion: { [account: string]: { [region: string]: string[] } } = {};
     Observable.fromPromise(app.getDataSource('loadBalancers').refresh(true))
       .takeUntil(this.destroy$)
       .subscribe(() => {
         app.getDataSource('loadBalancers').data.forEach((lb: IAmazonApplicationLoadBalancer) => {
-          if (lb.account === account) {
-            accountLoadBalancersByRegion[lb.region] = accountLoadBalancersByRegion[lb.region] || [];
-            accountLoadBalancersByRegion[lb.region].push(lb.name);
-
-            if (lb.loadBalancerType === 'application') {
-              if (!loadBalancer || lb.name !== loadBalancer.name) {
-                lb.targetGroups.forEach((targetGroup) => {
-                  accountTargetGroupsByRegion[lb.region] = accountTargetGroupsByRegion[lb.region] ||  [];
-                  accountTargetGroupsByRegion[lb.region].push(this.removeAppName(targetGroup.name));
-                });
-              }
+          if (lb.loadBalancerType === 'application') {
+            if (!loadBalancer || lb.name !== loadBalancer.name) {
+              lb.targetGroups.forEach((targetGroup) => {
+                targetGroupsByAccountAndRegion[lb.account] = targetGroupsByAccountAndRegion[lb.account] ||  {};
+                targetGroupsByAccountAndRegion[lb.account][lb.region] = targetGroupsByAccountAndRegion[lb.account][lb.region] ||  [];
+                targetGroupsByAccountAndRegion[lb.account][lb.region].push(this.removeAppName(targetGroup.name));
+              });
             }
           }
         });
 
-      this.setState({ existingTargetGroupNames: accountTargetGroupsByRegion[region] || [] });
+      this.setState({ existingTargetGroupNames: targetGroupsByAccountAndRegion }, this.props.revalidate);
     });
   }
 
@@ -148,7 +143,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
   }
 
   public componentDidMount(): void {
-    this.updateLoadBalancerNames();
+    this.updateLoadBalancerNames(this.props);
   }
 
   public componentWillUnmount(): void {
