@@ -61,7 +61,7 @@ public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerCli
       .nameResolverFactory(new Eureka2NameResolverFactory(eurekaChannel)) // This enables the client to resolve the Eureka URI above into a set of addressable service endpoints.
       .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
       .intercept(new GrpcMetricsInterceptor(registry, titusRegion))
-      .intercept(new GrpcRetryInterceptor(DEFAULT_CONNECT_TIMEOUT))
+      .intercept(new GrpcRetryInterceptor(DEFAULT_CONNECT_TIMEOUT, titusRegion))
       .intercept(new SpectatorMetricsClientInterceptor(registry))
       .build();
 

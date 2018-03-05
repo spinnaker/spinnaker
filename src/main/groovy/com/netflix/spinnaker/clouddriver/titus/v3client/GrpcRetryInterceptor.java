@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.v3client;
 
+import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion;
 import io.grpc.*;
 import io.grpc.internal.SharedResourceHolder;
 
@@ -26,14 +27,21 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static io.grpc.internal.GrpcUtil.TIMER_SERVICE;
 
 public class GrpcRetryInterceptor implements ClientInterceptor {
 
-  private static long deadline;
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public GrpcRetryInterceptor(long deadline) {
+  private static long deadline;
+  private final TitusRegion titusRegion;
+
+  public GrpcRetryInterceptor(long deadline, TitusRegion titusRegion) {
     this.deadline = deadline;
+    this.titusRegion = titusRegion;
   }
 
   @Override
@@ -128,36 +136,41 @@ public class GrpcRetryInterceptor implements ClientInterceptor {
         return;
       }
 
-      // retries all methods that start with find but nothing else
-      if (!extractSimpleMethodName(method.getFullMethodName()).startsWith("Find") &&
-        !extractSimpleMethodName(method.getFullMethodName()).startsWith("Get")) {
+      Status.Code code = status.getCode();
+      String methodName = extractSimpleMethodName(method.getFullMethodName());
+
+      if( code.equals(Status.Code.UNAVAILABLE ) || (
+          code.equals(Status.Code.DEADLINE_EXCEEDED) && (
+            methodName.startsWith("Find") || methodName.startsWith("Get")))) {
+
+        latestResponse = attempt;
+        retries++;
+        log.info( titusRegion.getAccount() + ":" + titusRegion.getName() + ":Retry #" + retries + " due to code: " + code + " for method " + methodName);
+        long timeout = (long) Math.pow(2, retries) * backOff;
+
+        retryTask = scheduledExecutor.schedule(context.wrap(new Runnable() {
+          @Override
+          public void run() {
+            // need to reset the deadline here
+            ClientCall<ReqT, RespT> nextCall = channel.newCall(method, callOptions.withDeadlineAfter(deadline, TimeUnit.MILLISECONDS));
+            AttemptListener nextAttemptListener = new AttemptListener(nextCall);
+            attemptListeners.add(nextAttemptListener);
+            nextCall.start(nextAttemptListener, requestHeaders);
+            nextCall.setMessageCompression(compressionEnabled);
+            nextCall.sendMessage(requestMessage);
+            nextCall.request(1);
+            nextCall.halfClose();
+          }
+        }), timeout, TimeUnit.MILLISECONDS);
+      } else {
+        log.info( titusRegion.getAccount() + ":" + titusRegion.getName() + "Skip retry for code:" + code + " and method " + methodName);
         AttemptListener latest = latestResponse;
         if (latest != null) {
           useResponse(latest);
         } else {
           useResponse(attempt);
         }
-        return;
       }
-      latestResponse = attempt;
-
-      retries++;
-      long timeout = (long) Math.pow(2, retries) * backOff;
-
-      retryTask = scheduledExecutor.schedule(context.wrap(new Runnable() {
-        @Override
-        public void run() {
-          // need to reset the deadline here
-          ClientCall<ReqT, RespT> nextCall = channel.newCall(method, callOptions.withDeadlineAfter(deadline, TimeUnit.MILLISECONDS));
-          AttemptListener nextAttemptListener = new AttemptListener(nextCall);
-          attemptListeners.add(nextAttemptListener);
-          nextCall.start(nextAttemptListener, requestHeaders);
-          nextCall.setMessageCompression(compressionEnabled);
-          nextCall.sendMessage(requestMessage);
-          nextCall.request(1);
-          nextCall.halfClose();
-        }
-      }), timeout, TimeUnit.MILLISECONDS);
     }
 
     private void useResponse(AttemptListener attempt) {
