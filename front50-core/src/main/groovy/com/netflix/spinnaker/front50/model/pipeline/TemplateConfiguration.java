@@ -35,6 +35,8 @@ public class TemplateConfiguration {
 
   public static class TemplateSource {
 
+    public static final String SPINNAKER_PREFIX = "spinnaker://";
+
     private String source;
 
     public String getSource() { return source; }

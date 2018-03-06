@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.front50.exception.BadRequestException
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
-
+import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
+import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
@@ -32,6 +36,9 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
+import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED
+import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX
+
 /**
  * Controller for presets
  */
@@ -39,8 +46,17 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping('pipelines')
 class PipelineController {
 
-  @Autowired
+  @Autowired(required = false)
+  PipelineTemplateDAO pipelineTemplateDAO = null;
+
   PipelineDAO pipelineDAO
+  ObjectMapper objectMapper;
+
+  @Autowired
+  public PipelineController(PipelineDAO pipelineDAO, ObjectMapper objectMapper) {
+    this.pipelineDAO = pipelineDAO
+    this.objectMapper = objectMapper
+  }
 
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
@@ -82,13 +98,12 @@ class PipelineController {
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#pipeline.application, 'APPLICATION', 'WRITE') and @authorizationSupport.hasRunAsUserPermission(#pipeline)")
   @RequestMapping(value = '', method = RequestMethod.POST)
   void save(@RequestBody Pipeline pipeline) {
-    if (!pipeline.application || !pipeline.name) {
-      throw new InvalidEntityException("A pipeline requires name and application fields")
-    }
+
+    validatePipeline(pipeline)
+
     pipeline.name = pipeline.getName().trim()
 
     if (!pipeline.id) {
-      checkForDuplicatePipeline(pipeline.getApplication(), pipeline.getName())
       // ensure that cron triggers are assigned a unique identifier for new pipelines
       def triggers = (pipeline.triggers ?: []) as List<Map>
       triggers.findAll { it.type == "cron" }.each { Map trigger ->
@@ -124,21 +139,64 @@ class PipelineController {
     if (pipeline.id != existingPipeline.id) {
       throw new InvalidRequestException("The provided id ${id} doesn't match the pipeline id ${pipeline.id}")
     }
-    pipeline.name = pipeline.getName().trim()
 
-    if (pipelineDAO.getPipelinesByApplication(pipeline.getApplication()).any {
-      it.getName().equalsIgnoreCase(pipeline.getName()) && it.getId() != id }) {
-      throw new DuplicateEntityException("A pipeline with name ${pipeline.getName()} already exists in application ${pipeline.application}")
-    }
+    validatePipeline(pipeline)
+
+    pipeline.name = pipeline.getName().trim()
 
     pipeline.updateTs = System.currentTimeMillis()
     pipelineDAO.update(id, pipeline)
     return pipeline
   }
 
-  private void checkForDuplicatePipeline(String application, String name) {
+  /**
+   * Ensure basic validity of the pipeline. Invalid pipelines will raise runtime exceptions.
+   *
+   *
+   * @param pipeline The Pipeline to validate
+   */
+  private void validatePipeline(Pipeline pipeline) {
+
+    // Pipelines must have an application and a name
+    if (!pipeline.application || !pipeline.name) {
+      throw new InvalidEntityException("A pipeline requires name and application fields")
+    }
+
+    //Check if pipeline type is templated
+    if(pipeline.getType() == TYPE_TEMPLATED) {
+      PipelineTemplateDAO templateDAO = getTemplateDAO()
+
+      //Check templated pipelines to ensure template is valid
+      TemplateConfiguration config = objectMapper.convertValue(pipeline.getConfig(), TemplateConfiguration.class);
+
+      //With the source check if it starts with "spinnaker://"
+      //Check if template id which is after :// is in the store
+      String source = config.pipeline.template.source
+      if (source.startsWith(SPINNAKER_PREFIX)) {
+        String templateId = source.substring(SPINNAKER_PREFIX.length())
+
+        try {
+          templateDAO.findById(templateId)
+        } catch (NotFoundException notFoundEx) {
+          throw new BadRequestException("Configured pipeline template not found", notFoundEx)
+        }
+      }
+    }
+
+    checkForDuplicatePipeline(pipeline.getApplication(), pipeline.getName().trim(), pipeline.getId())
+  }
+
+  private PipelineTemplateDAO getTemplateDAO() {
+    if (pipelineTemplateDAO == null) {
+      throw new BadRequestException("Pipeline Templates are not supported with your current storage backend");
+    }
+    return pipelineTemplateDAO;
+  }
+
+  private void checkForDuplicatePipeline(String application, String name, String id = null) {
     if (pipelineDAO.getPipelinesByApplication(application).any {
-      it.getName().equalsIgnoreCase(name)
+      it.getName().equalsIgnoreCase(name) &&
+      it.getId() != id
     }) {
       throw new DuplicateEntityException("A pipeline with name ${name} already exists in application ${application}")
     }

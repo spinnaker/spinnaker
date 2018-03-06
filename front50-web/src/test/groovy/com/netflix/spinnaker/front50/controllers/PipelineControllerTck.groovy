@@ -56,7 +56,7 @@ abstract class PipelineControllerTck extends Specification {
     this.pipelineDAO = createPipelineDAO()
 
     mockMvc = MockMvcBuilders
-      .standaloneSetup(new PipelineController(pipelineDAO: pipelineDAO))
+      .standaloneSetup(new PipelineController(pipelineDAO, new ObjectMapper()))
       .setHandlerExceptionResolvers(createExceptionResolver())
       .build()
   }

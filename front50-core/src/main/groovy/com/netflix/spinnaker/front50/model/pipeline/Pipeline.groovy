@@ -21,6 +21,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.front50.model.Timestamped
 
 class Pipeline extends HashMap<String, Object> implements Timestamped {
+
+  public static final String TYPE_TEMPLATED = "templatedPipeline"
+
   @JsonIgnore
   String getApplication() {
     return super.get("application")
