@@ -158,7 +158,7 @@ class AwsLookupUtil {
   private String getTargetGroupHealthKey(Job job, TitusInstance instance, String healthKey) {
     String region = instance.placement.region
     String account = job.labels.spinnakerAccount
-    String awsAccount = lookupAccount(account, region).awsAccount
+    String awsAccount = lookupAccount(account, region)?.awsAccount
     String containerIp = instance.placement.containerIp
     return com.netflix.spinnaker.clouddriver.aws.data.Keys.getInstanceHealthKey(containerIp, awsAccount, region, healthKey)
   }
