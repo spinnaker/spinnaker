@@ -32,6 +32,7 @@ export class DeployInitializerController implements IController {
 
   public application: Application;
   public command: any;
+  public dismiss: () => void;
   public onTemplateSelected: () => void;
   public selectedTemplate: IDeployTemplate;
   public cloudProvider: string;
@@ -119,6 +120,7 @@ const component: IComponentOptions = {
     application: '<',
     cloudProvider: '@',
     command: '<',
+    dismiss: '&',
     onTemplateSelected: '&',
     parentState: '<',
     templateSelectionText: '<',
