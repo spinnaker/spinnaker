@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
+import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -75,7 +76,7 @@ public class PrometheusFetchTask implements RetryableTask {
     int metricIndex = (Integer)stage.getContext().get("metricIndex");
     CanaryScope canaryScope;
     try {
-      canaryScope = kayentaObjectMapper.readValue((String)stage.getContext().get("canaryScope"), CanaryScope.class);
+      canaryScope = kayentaObjectMapper.readValue((String)stage.getContext().get("canaryScope"), PrometheusCanaryScope.class);
     } catch (IOException e) {
       log.warn("Unable to parse JSON scope", e);
       throw new RuntimeException(e);

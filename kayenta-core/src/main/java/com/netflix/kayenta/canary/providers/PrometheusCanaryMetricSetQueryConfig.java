@@ -34,16 +34,10 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
   private String metricName;
 
   @Getter
-  private String aggregationPeriod;
-
-  @Getter
-  private String instancePattern;
-
-  @Getter
   private List<String> labelBindings;
 
   @Getter
-  private List<String> sumByFields;
+  private List<String> groupByFields;
 
   @Override
   public String getServiceType() {

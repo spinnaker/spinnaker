@@ -22,6 +22,7 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
@@ -33,11 +34,14 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -70,15 +74,25 @@ public class PrometheusMetricsService implements MetricsService {
     return accountNames.contains(accountName);
   }
 
-  private StringBuilder addScopeFilter(StringBuilder queryBuilder, String scope, PrometheusCanaryMetricSetQueryConfig queryConfig) {
+  private StringBuilder addScopeFilter(StringBuilder queryBuilder,
+                                       PrometheusCanaryScope prometheusCanaryScope,
+                                       String resourceType,
+                                       PrometheusCanaryMetricSetQueryConfig queryConfig) {
+    String scope = prometheusCanaryScope.getScope();
+    String projectId = prometheusCanaryScope.getProject();
+    String region = prometheusCanaryScope.getRegion();
     List<String> filters = queryConfig.getLabelBindings();
     if (filters == null) {
-      filters = new ArrayList<String>();
+      filters = new ArrayList<>();
     }
 
-    if (scope != null && (!scope.isEmpty() || !scope.equals(".*"))) {
-      filters.add(scopeLabel + "=~\"" + scope + "\"");
+    // TODO(duftler): Add support for custom filter templates.
+    if ("gce_instance".equals(resourceType)) {
+      addGCEFilters(scopeLabel, scope, projectId, region, filters);
+    } else {
+      log.warn("There is no explicit support for resourceType '" + resourceType + "'. Your mileage may vary.");
     }
+    // TODO(duftler): Add support for AWS & K8S resource types.
 
     if (!filters.isEmpty()) {
       String sep = "";
@@ -94,27 +108,43 @@ public class PrometheusMetricsService implements MetricsService {
     return queryBuilder;
   }
 
-  private StringBuilder addRateQuery(StringBuilder queryBuilder, PrometheusCanaryMetricSetQueryConfig queryConfig) {
-    String period = queryConfig.getAggregationPeriod();
-    if (period != null && !period.trim().isEmpty()) {
-      queryBuilder.insert(0, "rate(");
-      queryBuilder.append("[" + period + "])");
+  private static void addGCEFilters(String scopeLabel, String scope, String projectId, String region, List<String> filters) {
+    if (StringUtils.isEmpty(region)) {
+      throw new IllegalArgumentException("Region is required when resourceType is 'gce_instance'.");
     }
-    return queryBuilder;
+
+    if (!StringUtils.isEmpty(scope)) {
+      scope += "-.{4}";
+
+      filters.add(scopeLabel + "=~\"" + scope + "\"");
+    }
+
+    String zoneRegex = ".+/";
+
+    if (!StringUtils.isEmpty(projectId)) {
+      zoneRegex += "projects/" + projectId + "/";
+    }
+
+    zoneRegex += "zones/" + region + "-.{1}";
+    filters.add("zone=~\"" + zoneRegex + "\"");
   }
 
-  private StringBuilder addSumQuery(StringBuilder queryBuilder, PrometheusCanaryMetricSetQueryConfig queryConfig) {
-    List<String> sumByFields = queryConfig.getSumByFields();
-    if (sumByFields != null && !sumByFields.isEmpty()) {
-        queryBuilder.insert(0, "sum (");
-        queryBuilder.append(") by (");
-        String sep = "";
-        for (String elem : sumByFields) {
-          queryBuilder.append(sep);
-          queryBuilder.append(elem);
-          sep = ",";
-        }
-        queryBuilder.append(")");
+  private static StringBuilder addAvgQuery(StringBuilder queryBuilder) {
+    return queryBuilder.insert(0, "avg(").append(")");
+  }
+
+  private static StringBuilder addGroupByQuery(StringBuilder queryBuilder, PrometheusCanaryMetricSetQueryConfig queryConfig) {
+    List<String> groupByFields = queryConfig.getGroupByFields();
+
+    if (!CollectionUtils.isEmpty(groupByFields)) {
+      queryBuilder.append(" by (");
+      String sep = "";
+      for (String elem : groupByFields) {
+        queryBuilder.append(sep);
+        queryBuilder.append(elem);
+        sep = ",";
+      }
+      queryBuilder.append(")");
     }
     return queryBuilder;
   }
@@ -124,25 +154,31 @@ public class PrometheusMetricsService implements MetricsService {
                                       CanaryConfig canaryConfig,
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
+    if (!(canaryScope instanceof PrometheusCanaryScope)) {
+      throw new IllegalArgumentException("Canary scope not instance of PrometheusCanaryScope: " + canaryScope);
+    }
+
+    PrometheusCanaryScope prometheusCanaryScope = (PrometheusCanaryScope)canaryScope;
     PrometheusNamedAccountCredentials credentials = (PrometheusNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     PrometheusRemoteService prometheusRemoteService = credentials.getPrometheusRemoteService();
     PrometheusCanaryMetricSetQueryConfig queryConfig = (PrometheusCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
+    String resourceType = prometheusCanaryScope.getResourceType();
 
     StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
-    queryBuilder = addScopeFilter(queryBuilder, canaryScope.getScope(), queryConfig);
-    queryBuilder = addRateQuery(queryBuilder, queryConfig);
-    queryBuilder = addSumQuery(queryBuilder, queryConfig);
+    queryBuilder = addScopeFilter(queryBuilder, prometheusCanaryScope, resourceType, queryConfig);
+    queryBuilder = addAvgQuery(queryBuilder);
+    queryBuilder = addGroupByQuery(queryBuilder, queryConfig);
 
     long startTime = registry.clock().monotonicTime();
     List<PrometheusResults> prometheusResultsList;
 
     try {
       prometheusResultsList = prometheusRemoteService.fetch(queryBuilder.toString(),
-                                                            canaryScope.getStart().toString(),
-                                                            canaryScope.getEnd().toString(),
-                                                            canaryScope.getStep());
+                                                            prometheusCanaryScope.getStart().toString(),
+                                                            prometheusCanaryScope.getEnd().toString(),
+                                                            prometheusCanaryScope.getStep());
     } finally {
       long endTime = registry.clock().monotonicTime();
       // TODO(ewiseblatt/duftler): Add appropriate tags.
@@ -153,21 +189,37 @@ public class PrometheusMetricsService implements MetricsService {
 
     List<MetricSet> metricSetList = new ArrayList<>();
 
-    for (PrometheusResults prometheusResults : prometheusResultsList) {
-        Instant responseStartTimeInstant = Instant.ofEpochSecond(prometheusResults.getStartSecs());
+    if (!CollectionUtils.isEmpty(prometheusResultsList)) {
+      for (PrometheusResults prometheusResults : prometheusResultsList) {
+        Instant responseStartTimeInstant = Instant.ofEpochMilli(prometheusResults.getStartTimeMillis());
+        MetricSet.MetricSetBuilder metricSetBuilder =
+          MetricSet.builder()
+            .name(canaryMetricConfig.getName())
+            .startTimeMillis(prometheusResults.getStartTimeMillis())
+            .startTimeIso(responseStartTimeInstant.toString())
+            .stepMillis(TimeUnit.SECONDS.toMillis(prometheusResults.getStepSecs()))
+            .values(prometheusResults.getValues());
+
+        Map<String, String> tags = prometheusResults.getTags();
+
+        if (tags != null) {
+          metricSetBuilder.tags(tags);
+        }
+
+        metricSetBuilder.attribute("query", queryBuilder.toString());
+
+        metricSetList.add(metricSetBuilder.build());
+      }
+    } else {
       MetricSet.MetricSetBuilder metricSetBuilder =
         MetricSet.builder()
           .name(canaryMetricConfig.getName())
-          .startTimeMillis(TimeUnit.NANOSECONDS.toMillis(prometheusResults.getStartSecs()))
-          .startTimeIso(responseStartTimeInstant.toString())
-          .stepMillis(TimeUnit.SECONDS.toMillis(prometheusResults.getStepSecs()))
-          .values(prometheusResults.getValues());
+          .startTimeMillis(prometheusCanaryScope.getStart().toEpochMilli())
+          .startTimeIso(prometheusCanaryScope.getStart().toString())
+          .stepMillis(TimeUnit.SECONDS.toMillis(prometheusCanaryScope.getStep()))
+          .values(Collections.emptyList());
 
-      Map<String, String> tags = prometheusResults.getTags();
-
-      if (tags != null) {
-        metricSetBuilder.tags(tags);
-      }
+      metricSetBuilder.attribute("query", queryBuilder.toString());
 
       metricSetList.add(metricSetBuilder.build());
     }

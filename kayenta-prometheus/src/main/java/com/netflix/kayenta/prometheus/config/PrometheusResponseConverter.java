@@ -21,6 +21,7 @@ import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
 import retrofit.mime.TypedInput;
@@ -33,6 +34,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -52,31 +54,32 @@ public class PrometheusResponseConverter implements Converter {
       Map responseMap = kayentaObjectMapper.readValue(json, Map.class);
       Map data = (Map)responseMap.get("data");
       List<Map> resultList = (List<Map>)data.get("result");
-      if (resultList == null || resultList.isEmpty()) {
-        log.error("Received no data from Prometheus.");
+      List<PrometheusResults> prometheusResultsList = new ArrayList<PrometheusResults>(resultList.size());
+
+      if (CollectionUtils.isEmpty(resultList)) {
+        log.warn("Received no data from Prometheus.");
         return null;
       }
 
-      List<PrometheusResults> prometheusResultsList = new ArrayList<PrometheusResults>(resultList.size());
       for (Map elem : resultList) {
           Map<String, String> tags = (Map<String, String>)elem.get("metric");
-          String id = tags.get("__name__");
-          String query = id; // !!! I dont know the original query
-          tags.remove("__name__");
-
+          String id = tags.remove("__name__");
           List<List> values = (List<List>)elem.get("values");
           List<Double> dataValues = new ArrayList<Double>(values.size());
+
           for (List tuple : values) {
-              dataValues.add(Double.valueOf((String)tuple.get(1)));
+            dataValues.add(Double.valueOf((String)tuple.get(1)));
           }
 
-          long startSecs = ((Integer)values.get(0).get(0)).longValue();
-          long stepSecs = ((Integer)values.get(1).get(0)).longValue() - startSecs;
-          long endSecs = startSecs + values.size() * stepSecs;
-          prometheusResultsList.add(
-              new PrometheusResults(id, query,
-                                    startSecs, stepSecs, endSecs,
-                                    tags, dataValues));
+          long startTimeMillis = doubleTimestampSecsToLongTimestampMillis(values.get(0).get(0) + "");
+          // If there aren't at least two data points, consider the step size to be zero.
+          long stepSecs =
+            values.size() > 1
+            ? TimeUnit.MILLISECONDS.toSeconds(doubleTimestampSecsToLongTimestampMillis(values.get(1).get(0) + "") - startTimeMillis)
+            : 0;
+          long endTimeMillis = startTimeMillis + values.size() * stepSecs * 1000;
+
+          prometheusResultsList.add(new PrometheusResults(id, startTimeMillis, stepSecs, endTimeMillis, tags, dataValues));
       }
 
       return prometheusResultsList;
@@ -85,6 +88,10 @@ public class PrometheusResponseConverter implements Converter {
     }
 
     return null;
+  }
+
+  private static long doubleTimestampSecsToLongTimestampMillis(String doubleTimestampSecsAsString) {
+    return (long)(Double.parseDouble(doubleTimestampSecsAsString) * 1000);
   }
 
   @Override

@@ -20,6 +20,8 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
 public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
 
@@ -29,7 +31,27 @@ public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  public CanaryScope buildCanaryScope(CanaryScope scope) {
-    return scope;
+  public CanaryScope buildCanaryScope(CanaryScope canaryScope){
+    PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
+    prometheusCanaryScope.setScope(canaryScope.getScope());
+    prometheusCanaryScope.setRegion(canaryScope.getRegion());
+    prometheusCanaryScope.setStart(canaryScope.getStart());
+    prometheusCanaryScope.setEnd(canaryScope.getEnd());
+    prometheusCanaryScope.setStep(canaryScope.getStep());
+    prometheusCanaryScope.setExtendedScopeParams(canaryScope.getExtendedScopeParams());
+
+    Map<String, String> extendedScopeParams = prometheusCanaryScope.getExtendedScopeParams();
+
+    if (extendedScopeParams != null) {
+      if (extendedScopeParams.containsKey("project")) {
+        prometheusCanaryScope.setProject(extendedScopeParams.get("project"));
+      }
+
+      if (extendedScopeParams.containsKey("resourceType")) {
+        prometheusCanaryScope.setResourceType(extendedScopeParams.get("resourceType"));
+      }
+    }
+
+    return prometheusCanaryScope;
   }
 }

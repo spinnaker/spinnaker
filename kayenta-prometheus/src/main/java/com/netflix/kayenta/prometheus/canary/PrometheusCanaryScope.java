@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.prometheus.model;
+package com.netflix.kayenta.prometheus.canary;
 
-import lombok.*;
+import com.netflix.kayenta.canary.CanaryScope;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
 
-@Builder
-@ToString
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class PrometheusResults {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class PrometheusCanaryScope extends CanaryScope {
+
+  private String project;
 
   @NotNull
-  @Getter
-  private String id;
-
-  @NotNull
-  @Getter
-  private long startTimeMillis;
-
-  @NotNull
-  @Getter
-  private long stepSecs;
-
-  @NotNull
-  @Getter
-  private long endTimeMillis;
-
-  @NotNull
-  @Getter
-  private Map<String, String> tags;
-
-  @NotNull
-  @Getter
-  private List<Double> values;
+  private String resourceType;
 }

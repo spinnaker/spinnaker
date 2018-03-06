@@ -27,7 +27,7 @@ public interface PrometheusRemoteService {
   // See https://prometheus.io/docs/querying/api/#range-queries
   @GET("/api/v1/query_range")
   List<PrometheusResults> fetch(@Query("query") String query,
-                           @Query("start") String start,
-                           @Query("end") String end,
-                           @Query("step") Long step);
+                                @Query("start") String start,
+                                @Query("end") String end,
+                                @Query("step") Long step);
 }

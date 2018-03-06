@@ -6,7 +6,7 @@ This config defines the metrics and analysis thresholds set for a canary run.
 Typically, thresholds can be overridden at execution time as well.
 
 It is normal to have all metrics for a given canary run come from the same source.  In these examples,
-Atlas and Stackdriver are used.
+Atlas, Stackdriver and Prometheus are used.
 
 
 ```JSON
@@ -90,7 +90,44 @@ Atlas and Stackdriver are used.
   }
 }
 ```
-
+```JSON
+{
+  "name": "MySamplePrometheusCanaryConfig",
+  "description": "Example Kayenta Configuration using Prometheus",
+  "configVersion": "1.0",
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": { }
+  },
+  "metrics": [
+    {
+      "name": "cpu",
+      "query": {
+        "type": "prometheus",
+        "metricName": "node_cpu",
+        "labelBindings": [
+          "mode=~\"user|system\""
+        ]
+      },
+      "groups": ["system"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "system": 100.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}
+```
 ## Canary Data Archival Format
 
 This format is used to store the results from a specific canary run.

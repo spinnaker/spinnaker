@@ -22,35 +22,31 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO(ewiseblatt):
-// @Data this class instead of @Getter/Setter and final the "accounts".
 public class PrometheusConfigurationProperties {
 
   /**
-   * TODO(ewiseblatt):
-   * We're saying "instance" here by default, which is built-in to Prometheus.
-   * However, in practice this should be overriden to "host" where "host"
-   * is injected on scrape by the prometheus.yml configuration. The install
-   * for prometheus when using the --gce option does this, but that is the
-   * only configuration that does at this time.
-   *
-   * The difference is that prometheus adds "instance" as the __address__,
-   * which is the <host>:<port> but the <host> is typically an IP address.
-   * Instance can be explicitly overriden as well, but should be the particular
-   * service endpoint.
-   *
-   * In general, you do want the particular service endpoint in order to get
-   * the particular service of interest. In the case of looking for node_cpu,
-   * which is the default, then you would need to add the node_exporter service
-   * to the request (i.e. instance is <host>:9100). Using the above "host", this
-   * would collect *all* node_cpu from that host. However we assume that only
-   * the node_exporter is exporting "node_cpu" so there is only one (port 9100).
-   *
-   * I need to clean this up. Perhaps by configuring default prometheus to use
-   * the dns name instead of the IP in general for the __address__. Regardless,
-   * the application scraping can determine its own "instance" value (as well
-   * as "host") in which case the operator might need to compensate in how they
-   * configure this scopeLabel value and query using it.
+   * TODO(duftler): Once we've finished docs for all target platforms, move this somewhere more appropriate.
+   * GCE:
+   * This default assumes you've configured Prometheus service discovery to automatically identify
+   * the GCE instances to scrape. The following sample configuration also does the required relabelling
+   * such that the instance names are used instead of the ip addresses.
+
+   - job_name: 'gce_svc_disco'
+
+     gce_sd_configs:
+     - project: $PROJECT-ID
+       zone: $ZONE
+       refresh_interval: 60s
+       port: 9100
+
+     relabel_configs:
+     - source_labels: [__meta_gce_instance_name]
+       target_label: instance
+       replacement: $1
+     - source_labels: [__meta_gce_zone]
+       target_label: zone
+       replacement: $1
+
    */
   @Getter
   @Setter

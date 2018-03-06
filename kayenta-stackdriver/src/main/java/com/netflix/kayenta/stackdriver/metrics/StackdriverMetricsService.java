@@ -126,6 +126,7 @@ public class StackdriverMetricsService implements MetricsService {
 
     // TODO(duftler): Replace direct string-manipulating with helper functions.
     // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
+    // TODO(duftler): Throw exceptions when required parameters (e.g. projectId, region) for the specified resourceType are missing.
     if (StringUtils.isEmpty(customFilter)) {
       if ("gce_instance".equals(resourceType)) {
         filter += " AND resource.labels.project_id=" + projectId +

@@ -18,15 +18,16 @@ package com.netflix.kayenta.prometheus.controllers;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
+import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,16 +57,17 @@ public class PrometheusFetchController {
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public Map queryMetrics(@RequestParam(required = false) final String metricsAccountName,
                           @RequestParam(required = false) final String storageAccountName,
-                          @ApiParam(defaultValue = "node_cpu") @RequestParam String metricName,
-                          @RequestParam(required = false, defaultValue = "60s") String aggregationPeriod,
-                          @RequestParam(required = false, defaultValue = "localhost:9100") String scope,
-                          @RequestParam(required = false, defaultValue = "mode=~\"user|system\"\njob=\"node\"") List<String> labelBindings,
-                          @RequestParam(required = false) List<String> sumByFields,
-
                           @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                          @ApiParam(defaultValue = "2017-08-17T21:13:00Z") @RequestParam Instant start,
-                          @ApiParam(defaultValue = "2017-08-17T21:30:00Z") @RequestParam Instant end,
-                          @ApiParam(defaultValue = "300") @RequestParam Long step) throws IOException {
+                          @ApiParam(defaultValue = "node_cpu") @RequestParam String metricName,
+                          @RequestParam(required = false) List<String> groupByFields,
+                          @RequestParam(required = false) final String project,
+                          @ApiParam(defaultValue = "gce_instance") @RequestParam String resourceType,
+                          @ApiParam(defaultValue = "us-central1") @RequestParam(required = false) String region,
+                          @RequestParam(required = false, defaultValue = "myapp-dev-v055") String scope,
+                          @ApiParam(defaultValue = "mode=~\"user|system\"") @RequestParam(required = false) List<String> labelBindings,
+                          @ApiParam(defaultValue = "2018-03-04T22:02:53Z") @RequestParam Instant start,
+                          @ApiParam(defaultValue = "2018-03-04T22:12:22Z") @RequestParam Instant end,
+                          @ApiParam(defaultValue = "60") @RequestParam Long step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -77,9 +79,8 @@ public class PrometheusFetchController {
       PrometheusCanaryMetricSetQueryConfig
         .builder()
         .metricName(metricName)
-        .aggregationPeriod(aggregationPeriod)
         .labelBindings(labelBindings)
-        .sumByFields(sumByFields)
+        .groupByFields(groupByFields)
         .build();
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig
@@ -88,13 +89,23 @@ public class PrometheusFetchController {
         .query(prometheusCanaryMetricSetQueryConfig)
         .build();
 
-    CanaryScope canaryScope = new CanaryScope(scope, null /* region */, start, end, step, Collections.emptyMap());
+    PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
+    prometheusCanaryScope.setScope(scope);
+    prometheusCanaryScope.setRegion(region);
+    prometheusCanaryScope.setResourceType(resourceType);
+    prometheusCanaryScope.setStart(start);
+    prometheusCanaryScope.setEnd(end);
+    prometheusCanaryScope.setStep(step);
+
+    if (!StringUtils.isEmpty(project)) {
+      prometheusCanaryScope.setProject(project);
+    }
 
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,
                                                                     CanaryConfig.builder().metric(canaryMetricConfig).build(),
                                                                     0,
-                                                                    canaryScope);
+                                                                    prometheusCanaryScope);
 
     return Collections.singletonMap("metricSetListId", metricSetListId);
   }
