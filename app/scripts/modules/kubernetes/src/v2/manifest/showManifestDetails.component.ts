@@ -1,6 +1,6 @@
 import { module, IComponentOptions, IController } from 'angular';
 import { trim } from 'lodash';
-import { ReactInjector } from 'core/reactShims';
+import { ReactInjector } from '@spinnaker/core';
 
 const supportedKinds = ['deployment', 'replicaset'];
 
