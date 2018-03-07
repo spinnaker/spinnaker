@@ -1,23 +1,19 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { has, get } from 'lodash';
+import { has } from 'lodash';
 import * as classNames from 'classnames';
 import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
+import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
-import { CloudProviderLogo } from 'core/cloudProvider';
 import { IInstance, IServerGroup } from 'core/domain';
-import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
-import { HealthCounts } from 'core/healthCounts';
 import { InstanceList } from 'core/instance/InstanceList';
 import { Instances } from 'core/instance/Instances';
-import { LoadBalancersTagWrapper } from 'core/loadBalancer';
-import { NamingService } from 'core/naming';
-import { NgReact, ReactInjector } from 'core/reactShims';
 import { ScrollToService } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
-import { ServerGroupManagerTag } from 'core/serverGroupManager/ServerGroupManagerTag';
+
+import { ServerGroupHeader } from './ServerGroupHeader';
 
 export interface JenkinsViewModel {
   number: number;
@@ -34,18 +30,10 @@ export interface IServerGroupProps {
 }
 
 export interface IServerGroupState {
-  serverGroup: IServerGroup;
-  serverGroupSequence: string;
   jenkins: JenkinsViewModel;
-  hasBuildInfo: boolean;
   instances: IInstance[];
   images?: string;
 
-  filter: string;
-  showAllInstances: boolean;
-  listInstances: boolean;
-
-  multiselect: boolean;
   isSelected: boolean; // single select mode
   isMultiSelected: boolean; // multiselect mode
 }
@@ -62,12 +50,9 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
   private getState(props: IServerGroupProps): IServerGroupState {
     const { serverGroup } = props;
-    const { showAllInstances, listInstances, multiselect, filter } = props.sortFilter;
     const instances = serverGroup.instances.filter(i => ReactInjector.clusterFilterService.shouldShowInstance(i));
-    const serverGroupSequence = new NamingService().getSequence(serverGroup.moniker.sequence);
-    const hasBuildInfo = !!serverGroup.buildInfo;
     const isSelected = this.isSelected(serverGroup);
-    const isMultiSelected = this.isMultiSelected(multiselect, serverGroup);
+    const isMultiSelected = this.isMultiSelected(props.sortFilter.multiselect, serverGroup);
     const jenkinsConfig = serverGroup.buildInfo && serverGroup.buildInfo.jenkins;
 
     let jenkins: JenkinsViewModel = null;
@@ -80,23 +65,16 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
       jenkins = {
         number: jenkinsConfig.number,
-        href: fromBuildInfo || fromFullUrl || fromHost ,
+        href: fromBuildInfo || fromFullUrl || fromHost,
       };
     } else if (has(serverGroup, 'buildInfo.images')) {
       images = serverGroup.buildInfo.images.join(', ');
     }
 
     return {
-      serverGroup,
-      serverGroupSequence,
       jenkins,
-      hasBuildInfo,
       instances,
       images,
-      filter,
-      showAllInstances,
-      listInstances,
-      multiselect,
       isSelected,
       isMultiSelected,
     };
@@ -118,14 +96,14 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   private onServerGroupsChanged() {
-    const isMultiSelected = this.isMultiSelected(this.state.multiselect, this.state.serverGroup);
+    const isMultiSelected = this.isMultiSelected(this.props.sortFilter.multiselect, this.props.serverGroup);
     this.setState({ isMultiSelected });
     // Enables the (angular) details pane to detect the changes
     ReactInjector.$rootScope.$applyAsync(() => false);
   }
 
   private onStateChanged() {
-    this.setState({ isSelected: this.isSelected(this.state.serverGroup) });
+    this.setState({ isSelected: this.isSelected(this.props.serverGroup) });
   }
 
   public componentDidMount(): void {
@@ -143,15 +121,6 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
 
   public componentWillReceiveProps(nextProps: IServerGroupProps) {
     this.setState(this.getState(nextProps));
-  }
-
-  public headerIsSticky(): boolean {
-    const { showAllInstances, listInstances, instances } = this.state;
-    if (!showAllInstances) {
-      return false;
-    }
-
-    return listInstances ? instances.length > 1 : instances.length > 20;
   }
 
   public loadDetails(event: React.MouseEvent<any>): void {
@@ -172,16 +141,11 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   public render() {
-    const { RunningTasksTag } = NgReact;
-    const { filter, instances, images, jenkins, isSelected, multiselect, isMultiSelected, showAllInstances, listInstances } = this.state;
+    const { instances, images, jenkins, isSelected, isMultiSelected } = this.state;
     const { serverGroup, application, sortFilter, hasDiscovery, hasLoadBalancers } = this.props;
-    const { account, region, name, type } = serverGroup;
+    const { account, region, name } = serverGroup;
+    const { showAllInstances, listInstances } = sortFilter;
     const key = ScrollToService.toDomId(['serverGroup', account, region, name].join('-'));
-
-    const hasJenkins = !!jenkins;
-    const hasImages = !!images;
-    const hasRunningExecutions = !!serverGroup.runningExecutions.length || !!serverGroup.runningTasks.length;
-    const hasLoadBalancer = !!get(serverGroup, 'loadBalancers.length') || !!get(serverGroup, 'targetGroups.length');
 
     const serverGroupClassName = classNames({
       'server-group': true,
@@ -192,74 +156,33 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       'active': isSelected,
     });
 
-    const headerClassName = classNames({
-      'server-group-title': true,
-      'sticky-header-3': this.headerIsSticky(),
-    });
-
-    const col1ClassName = `col-md-${images ? 9 : 8 } col-sm-6 section-title horizontal bottom`;
-    const col2ClassName = `col-md-${images ? 3 : 4 } col-sm-6 text-right`;
-
     return (
-      <div key={key} id={key} className={serverGroupClassName} onClick={this.handleServerGroupClicked}>
+      <div id={key} className={serverGroupClassName} onClick={this.handleServerGroupClicked}>
         <div className="cluster-container">
-          <div className={headerClassName}>
-            <div className="container-fluid no-padding">
-              <div className="row">
-                <div className={col1ClassName}>
-                  {multiselect && <input type="checkbox" checked={isMultiSelected}/>}
-
-                  <CloudProviderLogo provider={type} height="16px" width="16px"/>
-
-                  <span className="server-group-sequence"> {this.state.serverGroupSequence}</span>
-                  {(hasJenkins || hasImages) && <span>: </span>}
-                  {hasJenkins && <a className="build-link" href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
-                  {hasImages && <span>{images}</span>}
-
-                  <EntityNotifications
-                    entity={serverGroup}
-                    application={application}
-                    placement="top"
-                    hOffsetPercent="20%"
-                    entityType="serverGroup"
-                    pageLocation="pod"
-                    onUpdate={() => application.serverGroups.refresh()}
-                  />
-                </div>
-
-                <div className={col2ClassName}>
-                  <HealthCounts container={serverGroup.instanceCounts}/>
-
-                  {hasRunningExecutions && (
-                    <RunningTasksTag
-                      application={application}
-                      tasks={serverGroup.runningTasks}
-                      executions={serverGroup.runningExecutions}
-                    />
-                  )}
-
-                  {hasLoadBalancer && <LoadBalancersTagWrapper application={application} serverGroup={serverGroup}/>}
-                  <ServerGroupManagerTag application={application} serverGroup={serverGroup}/>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ServerGroupHeader
+            application={application}
+            images={images}
+            isMultiSelected={isMultiSelected}
+            jenkins={jenkins}
+            serverGroup={serverGroup}
+            sortFilter={sortFilter}
+          />
 
           {showAllInstances && (
             <div className="instance-list">
               {listInstances ? (
                 <div>
                   <InstanceList
-                    serverGroup={serverGroup}
-                    instances={instances}
-                    sortFilter={sortFilter}
                     hasDiscovery={hasDiscovery}
                     hasLoadBalancers={hasLoadBalancers}
+                    instances={instances}
+                    serverGroup={serverGroup}
+                    sortFilter={sortFilter}
                   />
                 </div>
               ) : (
                 <div>
-                  <Instances highlight={filter} instances={instances}/>
+                  <Instances highlight={sortFilter.filter} instances={instances}/>
                 </div>
               )}
             </div>

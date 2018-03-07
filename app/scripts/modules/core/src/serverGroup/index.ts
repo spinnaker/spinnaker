@@ -8,3 +8,5 @@ export * from './metrics/cloudMetrics.read.service';
 export * from './configure/common/serverGroupCommandBuilder.service';
 export * from './configure/common/serverGroupCommandRegistry.provider';
 export * from './templates';
+export * from './ServerGroup';
+export * from './ServerGroupHeader';
