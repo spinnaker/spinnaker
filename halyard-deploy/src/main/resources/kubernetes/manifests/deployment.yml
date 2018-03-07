@@ -17,6 +17,10 @@ spec:
       cluster: spin-{{ name }}
   template:
     metadata:
+      annotations: {
+      {% for key, value in podAnnotations.items() %}
+              "{{ key }}" : "{{ value }}"{% if not loop.last %}, {% endif %}
+      {% endfor %}}
       labels:
         app: spin
         cluster: spin-{{ name }}

@@ -348,6 +348,7 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     }
 
     description.setVolumeSources(volumeSources);
+    description.setPodAnnotations(settings.getKubernetes().getPodAnnotations());
 
     List<String> loadBalancers = new ArrayList<>();
     loadBalancers.add(name);
@@ -568,6 +569,7 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
         .endSelector()
         .withNewTemplate()
         .withNewMetadata()
+        .withAnnotations(settings.getKubernetes().getPodAnnotations())
         .withLabels(podLabels)
         .endMetadata()
         .withNewSpec()

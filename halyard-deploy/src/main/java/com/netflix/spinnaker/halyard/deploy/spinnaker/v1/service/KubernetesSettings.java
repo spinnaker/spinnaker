@@ -20,11 +20,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class KubernetesSettings {
   List<String> imagePullSecrets = new ArrayList<>();
+  Map<String, String> podAnnotations = new HashMap<>();
+
 }
