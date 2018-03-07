@@ -11,4 +11,4 @@ if [ -z `getent passwd spinnaker` ]; then
   useradd --gid spinnaker spinnaker -m --home-dir /home/spinnaker
 fi
 
-install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/clouddriver 
+install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/fiat
