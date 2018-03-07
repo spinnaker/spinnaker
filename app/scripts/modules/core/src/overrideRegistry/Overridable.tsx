@@ -49,6 +49,8 @@ export function Overridable(key: string) {
  */
 export function overridableComponent <P extends IOverridableProps, T extends React.ComponentClass<P>> (OriginalComponent: T, key: string): T {
   class OverridableComponent extends React.Component<P, { Component: T }> {
+    public static OriginalComponent: T = OriginalComponent;
+
     private account$ = new Subject<string>();
     private destroy$ = new Subject();
 
@@ -165,6 +167,11 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
       return Component ? <Component {...props}/> : <Spinner/>;
     }
   }
+
+  // Copy static properties
+  Object.getOwnPropertyNames(OriginalComponent)
+    .filter(key => key !== 'constructor' && !OverridableComponent.hasOwnProperty(key))
+    .forEach(key => (OverridableComponent as any)[key] = (OriginalComponent as any)[key]);
 
   return OverridableComponent as any as T;
 }
