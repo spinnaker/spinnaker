@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -42,5 +43,10 @@ public class KubernetesDeleteManifestValidator extends DescriptionValidator<Kube
     if (!util.validateV2Credentials(provider, description.getAccount())) {
       return;
     }
+  }
+
+  @Override
+  public boolean acceptsVersion(ProviderVersion version) {
+    return version == ProviderVersion.v2;
   }
 }
