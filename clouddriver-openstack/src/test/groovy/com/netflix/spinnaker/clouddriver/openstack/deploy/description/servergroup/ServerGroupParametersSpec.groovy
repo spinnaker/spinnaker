@@ -16,26 +16,58 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup
 
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.ServerGroupConstants
 import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ServerGroupParametersSpec extends Specification {
 
-  def "test toParamsMap"() {
+  @Unroll
+  def "resolves resource filename: #description"() {
+    expect:
+    ServerGroupParameters.resolveResourceFilename(params) == expected
+
+    where:
+    description                             | params                                | expected
+    'from stack params if present'          | ['resource_filename': 'valueinparam'] | 'valueinparam'
+    'from constants if not in stack params' | [:]                                   | ServerGroupConstants.SUBTEMPLATE_FILE
+  }
+
+  def "converts params object to map"() {
     given:
     ServerGroupParameters params = createServerGroupParams()
     Map expected = getMap()
-
 
     when:
     Map result = params.toParamsMap()
 
     then:
     //need to compare string values due to some map formatting issue
-    result.toString() == expected.toString()
+    result.sort{ a, b -> a.key <=> b.key }.toString() == expected.sort{ a, b -> a.key <=> b.key }.toString()
   }
 
-  def "test fromParamsMap"() {
+  @Unroll
+  def "toParamsMap - output excludes #mapKey when null in the input"() {
+    given:
+    ServerGroupParameters params = createServerGroupParams()
+    params[serverGroupProperty] = null
+
+    when:
+    Map result = params.toParamsMap()
+
+    then:
+    //need to compare string values due to some map formatting issue
+    ! result.containsKey(mapKey)
+
+    where:
+    description                    | mapKey              | serverGroupProperty
+    "no zones present"             | "zones"             | "zones"
+    "no scheduler hints present"   | "scheduler_hints"   | "schedulerHints"
+    "no resource filename present" | "resource_filename" | "resourceFilename"
+  }
+
+  def "converts map to params object"() {
     given:
     ServerGroupParameters expected = createServerGroupParams()
     Map params = getMap()
@@ -47,7 +79,8 @@ class ServerGroupParametersSpec extends Specification {
     result == expected
   }
 
-  def "test handle unicode list"() {
+  @Unroll
+  def "converts unicode list to list: #input"() {
     when:
     List<String> result = ServerGroupParameters.unescapePythonUnicodeJsonList(input)
 
@@ -57,13 +90,25 @@ class ServerGroupParametersSpec extends Specification {
     where:
     input                             | expected
     'test'                            | ['test']
+    'test, test2'                     | ['test', 'test2']
     '[test]'                          | ['test']
     '[u\'test\']'                     | ['test']
     'u\'test\''                       | ['test']
     '[u\'test\',u\'test\',u\'test\']' | ['test', 'test', 'test']
+    "[u\'\',u'']"                     | ["", ""]
+// Is this really how it should behave?
+    null                              | []
+    "[]"                              | [""]
+// Shouldn't these work, too?
+//    '["test"]'                        | ["test"]
+//    '["test", "test"]'                | ["test", "test"]
   }
 
-  def "test handle unicode map"() {
+  @Unroll
+  def "converts #inType to map: #description"() {
+    // Older versions of OpenStack return python-encoded dictionaries for several fields. Newer ones have converted them
+    // to JSON. For forward and backward compatibility, we need to handle either.
+
     when:
     Map<String, String> result = ServerGroupParameters.unescapePythonUnicodeJsonMap(input)
 
@@ -71,10 +116,38 @@ class ServerGroupParametersSpec extends Specification {
     result == expected
 
     where:
-    input                                 | expected
-    '{"test":"test"}'                     | ['test': 'test']
-    '{u\'test\':\'test\'}'                | ['test': 'test']
-    '{u\'test\':u\'test\',u\'a\':u\'a\'}' | ['test': 'test', 'a': 'a']
+    inType   | description               | input                                                       | expected
+    'python' | 'one entry'               | '{u\'test\':u\'test\'}'                                     | ['test': 'test']
+    'python' | 'multiple entries'        | '{u\'test\':u\'test\',u\'a\':u\'a\'}'                       | ['test': 'test', 'a': 'a']
+    'python' | 'spaces in value'         | '{u\'test\': u\'this is a string\'}'                        | ['test': "this is a string"]
+    'python' | 'comma in value'          | '{u\'test\':u\'test1,test2\'}'                              | ['test': 'test1,test2']
+    'python' | 'colon in value'          | '{u\'url\':u\'http://localhost:8080\'}'                     | ['url': 'http://localhost:8080']
+    'python' | 'value is Empty'          | '{u\'test\':u\'\'}'                                         | ['test': '']
+    'python' | 'value is None'           | '{u\'test\': None}'                                         | ['test': null]
+    'python' | 'multiple None values'    | "{u'test': \t None \t \n, u'test2': None\n}"                | ['test': null, 'test2': null]
+    'python' | 'string contains "None"'  | '{u\'test\': u\'And None Either\'}'                         | ['test': "And None Either"]
+    'python' | 'integer value'           | '{u\'port\': 1337}'                                         | ['port': 1337]
+    'python' | 'single quotes in value'  | '{u\'test\': u"\'this is a string\'"}'                      | ['test': "'this is a string'"]
+    'python' | '1 single quote in value' | '{u\'test\': u"Surf\'s up!"}'                               | ['test': "Surf\'s up!"]
+    'python' | 'string ends in "u"'      | '{u\'SuperValu\':u\'test\',u\'a\':u\'a\'}'                  | ['SuperValu': 'test', 'a': 'a']
+    'python' | 'json object in value'    | '{u\'health\':{u\'http\':u\'http://lh:80\',u\'a\':u\'b\'}}' | ['health': '{"http":"http://lh:80","a":"b"}']
+    'python' | 'layers of objects'       | '{u\'a\': {u\'b\': {u\'c\': u\'d\', u\'e\': u\'f\'}}}'      | ['a': '{"b":{"c":"d","e":"f"}}']
+    'json'   | 'empty map'               | '{}'                                                        | [:]
+    'json'   | 'one entry'               | '{"test":"test"}'                                           | ['test': 'test']
+    'json'   | 'multiple entries'        | '{"test":"test","a": "a"}'                                  | ['test': 'test', 'a': 'a']
+    'json'   | 'spaces in value'         | '{"test": "this is a string"}'                              | ['test': "this is a string"]
+    'json'   | 'comma in value'          | '{"test":"test1,test2"}'                                    | ['test': 'test1,test2']
+    'json'   | 'colon in value'          | '{"url":"http://lh:80"}'                                    | ['url': 'http://lh:80']
+    'json'   | 'value is Empty'          | '{"test": ""}'                                              | ['test': '']
+    'json'   | 'value is null'           | '{"test": null}'                                            | ['test': null]
+    'json'   | 'multiple null values'    | '{"test": \t null \t, "test2":\tnull\n}'                    | ['test': null, 'test2': null]
+    'json'   | 'string contains "None"'  | '{"test": "And None Either"}'                               | ['test': "And None Either"]
+    'json'   | 'integer value'           | '{"port": 1337}'                                            | ['port': 1337]
+    'json'   | 'single quotes in value'  | '{"test": "\'this is a string\'"}'                          | ['test': "'this is a string'"]
+    'json'   | '1 single quote in value' | '{"test": "Surf\'s up!"}'                                   | ['test': "Surf\'s up!"]
+    'json'   | 'string ends in "u"'      | '{"SuperValu":"test","a":"a"}'                              | ['SuperValu': 'test', 'a': 'a']
+    'json'   | 'json object in value'    | '{"health":{"http":"http://lh:80", "a": "b"}}'              | ['health': '{"http":"http://lh:80","a":"b"}']
+    'json'   | 'layers of objects'       | '{"a": {"b": {"c": "d", "e": "f"}}}'                        | ['a': '{"b":{"c":"d","e":"f"}}']
   }
 
   @Ignore
@@ -96,7 +169,8 @@ class ServerGroupParametersSpec extends Specification {
                               sourceUserDataType: 'Text',
                               sourceUserData: 'echo foobar',
                               zones: ["az1", "az2"],
-                              schedulerHints: ["key": "value"])
+                              schedulerHints: ["key": "value"],
+                              resourceFilename: "fileMcFileface")
   }
 
   @Ignore
@@ -124,7 +198,8 @@ class ServerGroupParametersSpec extends Specification {
       tags: '{"foo":"bar"}',
       user_data: "echo foobar",
       zones: "az1,az2",
-      scheduler_hints: '{"key":"value"}'
+      scheduler_hints: '{"key":"value"}',
+      resource_filename: "fileMcFileface"
     ]
   }
 

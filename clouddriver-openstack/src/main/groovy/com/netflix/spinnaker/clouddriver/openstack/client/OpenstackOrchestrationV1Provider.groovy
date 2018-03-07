@@ -129,7 +129,7 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
     if (parts && parts.size() > 2) {
       String instanceResourceId = parts.get(2)
       resources?.find {
-        it.type == stack.parameters.get(ServerGroupConstants.SUBTEMPLATE_FILENAME) && it.resourceName == instanceResourceId
+        it.type == ServerGroupParameters.resolveResourceFilename(stack.parameters) && it.resourceName == instanceResourceId
       }
     } else {
       null

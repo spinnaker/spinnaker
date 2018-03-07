@@ -218,7 +218,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       }
     }
     Stack stackDetail = Mock(Stack) { getParameters() >> ['load_balancers': loadBalancerId] }
-    OpenstackServerGroup openstackServerGroup = OpenstackServerGroup.builder().account(account).name(serverGroupName).build()
+    OpenstackServerGroup openstackServerGroup = OpenstackServerGroup.builder().account(account).name(serverGroupName).tags([foo:'the bar', port:'5050']).build()
     Map<String, Object> serverGroupAttributes = objectMapper.convertValue(openstackServerGroup, OpenstackInfrastructureProvider.ATTRIBUTES)
     CacheResultBuilder cacheResultBuilder = new CacheResultBuilder()
 
@@ -297,7 +297,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
     String subnetId = UUID.randomUUID().toString()
     Stack stack = Mock(Stack) {
       it.name >> { 'name' }
-      it.parameters >> { [subnet_id: subnetId, tags:'{foo: bar}'] }
+      it.parameters >> { [subnet_id: subnetId, tags:'{"foo": "the bar","port":"5050"}'] }
       it.creationTime >> { DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(createdTime) }
     }
 
@@ -322,7 +322,7 @@ class OpenstackServerGroupCachingAgentSpec extends Specification {
       .buildInfo(buildInfo)
       .disabled(disabled)
       .subnetId(subnetId)
-      .tags([foo:'bar'])
+      .tags([foo:'the bar', port:'5050'])
       .build()
 
     when:

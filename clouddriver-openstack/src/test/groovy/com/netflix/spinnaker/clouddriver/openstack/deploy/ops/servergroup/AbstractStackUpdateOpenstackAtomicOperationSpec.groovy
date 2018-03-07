@@ -60,7 +60,7 @@ class AbstractStackUpdateOpenstackAtomicOperationSpec extends Specification {
     stack = Mock(Stack) {
       it.id >> { serverGroupName }
       it.name >> { serverGroupName }
-      it.parameters >> { [(ServerGroupConstants.SUBTEMPLATE_FILENAME):'asg_resource.yaml'] }
+      it.parameters >> { [:] }
       it.outputs >> { [[output_key: ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: yaml], [output_key: ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: yaml]] }
       it.tags >> { tags }
     }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergro
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.base.Splitter
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.ServerGroupConstants
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
@@ -54,6 +53,12 @@ class ServerGroupParameters {
   List<String> zones
   Map<String, String> schedulerHints
 
+  // This is only used when migrating a stack from a previous version of clouddriver
+  static String resolveResourceFilename(Map<String, String> paramsMap) {
+    return paramsMap.get(ServerGroupConstants.LEGACY_RESOURCE_FILENAME_KEY) ?: ServerGroupConstants.SUBTEMPLATE_FILE
+  }
+  String resourceFilename
+
   static final ObjectMapper objectMapper = new ObjectMapper()
 
   Map<String, String> toParamsMap() {
@@ -80,12 +85,24 @@ class ServerGroupParameters {
       source_user_data     : sourceUserData ?: null,
       tags                 : objectMapper.writeValueAsString(tags ?: [:]) ?: null,
       user_data            : rawUserData ?: null,
-      zones                : zones?.join(',') ?: null,
-      scheduler_hints      : objectMapper.writeValueAsString(schedulerHints ?: [:]) ?: null,
     ]
     if (floatingNetworkId) {
       params << [floating_network_id: floatingNetworkId]
     }
+
+    // This is only used when migrating a stack from a previous version of clouddriver
+    if (resourceFilename) {
+      params << [resource_filename: resourceFilename]
+    }
+
+    // These are new properties. We include them conditionally so as not to mess up resize operations on older, pre-existing stacks.
+    if (zones) {
+      params << [zones: zones.join(',')]
+    }
+    if (schedulerHints) {
+      params << [scheduler_hints: objectMapper.writeValueAsString(schedulerHints ?: [:])]
+    }
+
     params
   }
 
@@ -118,8 +135,9 @@ class ServerGroupParameters {
       tags: unescapePythonUnicodeJsonMap(params.get('tags') ?: '{}'),
       sourceUserDataType: params.get('source_user_data_type'),
       sourceUserData: params.get('source_user_data'),
-      zones: unescapePythonUnicodeJsonList(params.get('zones')),
+      zones: unescapePythonUnicodeJsonList(params.get('zones') ),
       schedulerHints: unescapePythonUnicodeJsonMap(params.get('scheduler_hints') ?: '{}'),
+      resourceFilename: params.get('resource_filename')
     )
   }
 
@@ -132,13 +150,14 @@ class ServerGroupParameters {
    * @return
    */
   static List<String> unescapePythonUnicodeJsonList(String string) {
-    string?.split(",")?.collect { s ->
+    List result = string?.split(",")?.collect { s ->
       s.replace("u'", "").replace("'", "").replace("[", "").replace("]", "").replaceAll("([ ][ ]*)", "")
     } ?: []
+    return result
   }
 
   /**
-   * Stack parameters of type 'comma_delimited_list' come back as a unicode json string. We need to split that up.
+   * Some stack parameters of type 'json' come back as a unicode json string. We need to split that up.
    *
    * TODO See https://bugs.launchpad.net/heat/+bug/1613415
    *
@@ -146,8 +165,18 @@ class ServerGroupParameters {
    * @return
    */
   static Map<String, String> unescapePythonUnicodeJsonMap(String string) {
-    String parsed = string?.replace("u'", "")?.replace("'", "")?.replace("{", "")?.replace("}", "")?.replace("\"", "")?.replaceAll("([ ][ ]*)", "")
-    parsed ? Splitter.on(",").withKeyValueSeparator(":").split(parsed) : [:]
+    String parsed = string
+      ?.replaceAll(':\\p{javaWhitespace}*None\\p{javaWhitespace}*([,}])', ': null$1') // first replace python None with json null
+      ?.replaceAll("u'(.*?)'", '"$1"') // replace u'python strings' with "python strings" (actually json strings)
+      ?.replaceAll('u"(.*?\'.*?)"', '"$1"') // replace u"python strings containing a ' char" with "python strings containing a ' char" (actually json)
+    def m = objectMapper.readValue(parsed, Map)
+    def result = m.collectEntries { k, v ->
+      if (v instanceof Collection || v instanceof Map) {
+        return [(k): objectMapper.writeValueAsString(v)]
+      }
+      [(k): v]
+    }
+    return result
   }
 
   /**
