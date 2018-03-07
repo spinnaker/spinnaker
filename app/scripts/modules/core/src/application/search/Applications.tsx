@@ -143,7 +143,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
     return (
       <div className="infrastructure">
         <div className="infrastructure-section search-header">
-          <div className="container">
+          <div className="container" style={{ overflowY: 'auto' }}>
             <h2 className="header-section">
               <span className="search-label">Applications</span>
               <input
