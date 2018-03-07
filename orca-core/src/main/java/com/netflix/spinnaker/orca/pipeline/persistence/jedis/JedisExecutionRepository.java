@@ -263,6 +263,11 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
   }
 
   @Override
+  protected String executionKey(ExecutionType type, String id) {
+    return format("%s:%s", type, id);
+  }
+
+  @Override
   protected String pipelineKey(String id) {
     return format("%s:%s", PIPELINE, id);
   }

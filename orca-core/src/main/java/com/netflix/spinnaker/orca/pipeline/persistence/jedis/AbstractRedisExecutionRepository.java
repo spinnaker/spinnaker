@@ -49,6 +49,7 @@ import rx.functions.Func2;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.NO_TRIGGER;
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.*;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.emptyList;
@@ -97,6 +98,8 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
 
   abstract protected String executionKey(Stage stage);
 
+  abstract protected String executionKey(ExecutionType type, String id);
+
   abstract protected String pipelineKey(String id);
 
   abstract protected String orchestrationKey(String id);
@@ -104,7 +107,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
   @Override
   public @Nonnull
   Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id) {
-    return retrieveInternal(getRedisDelegateForId(format("%s:%s", type, id)), type, id);
+    return retrieveInternal(getRedisDelegateForId(executionKey(type, id)), type, id);
   }
 
   @Override
@@ -294,7 +297,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
 
       if (orchestrationId != null) {
         Execution orchestration = retrieveInternal(
-          getRedisDelegateForId(orchestrationId),
+          getRedisDelegateForId(orchestrationKey(orchestrationId)),
           ORCHESTRATION,
           orchestrationId);
         if (!orchestration.getStatus().isComplete()) {
@@ -437,7 +440,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
 
   @Override
   public void delete(@Nonnull ExecutionType type, @Nonnull String id) {
-    String key = format("%s:%s", type, id);
+    String key = executionKey(type, id);
     getRedisDelegateForId(key).withCommandsClient(c -> {
       deleteInternal(c, type, id);
     });
@@ -466,6 +469,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
       throw new ExecutionSerializationException(String.format("Failed serializing execution json, id: %s", execution.getId()), e);
     }
 
+    List<Stage> stages = new ArrayList<>();
     stageIds.forEach(stageId -> {
       String prefix = format("stage.%s.", stageId);
       Stage stage = new Stage();
@@ -508,11 +512,36 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
           stage.setLastModified(mapper.readValue(map.get(prefix + "lastModified"), Stage.LastModifiedDetails.class));
         }
         stage.setExecution(execution);
-        execution.getStages().add(stage);
+        stages.add(stage);
       } catch (IOException e) {
         throw new StageSerializationException("Failed serializing stage json", e);
       }
     });
+
+    /* Ensure proper stage ordering even when stageIndex is an unsorted set or absent */
+
+    if (stages.stream().map(Stage::getRefId).allMatch(Objects::nonNull)) {
+      execution.getStages().addAll(
+        stages.stream()
+          .filter(s -> s.getParentStageId() == null)
+          .sorted(Comparator.comparing(Stage::getRefId))
+          .collect(Collectors.toList()));
+
+      stages.stream()
+        .filter(s -> s.getParentStageId() != null)
+        .sorted(Comparator.comparing(Stage::getRefId))
+        .forEach(
+          s -> {
+            Integer index = execution.getStages().indexOf(s.getParent());
+            if (s.getSyntheticStageOwner() == STAGE_AFTER) {
+              index++;
+            }
+            execution.getStages().add(index, s);
+          }
+        );
+    } else {
+      execution.getStages().addAll(stages);
+    }
 
     if (execution.getType() == PIPELINE) {
       execution.setName(map.get("name"));
@@ -612,7 +641,7 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
   }
 
   private void deleteInternal(JedisCommands c, ExecutionType type, String id) {
-    String key = format("%s:%s", type, id);
+    String key = executionKey(type, id);
     try {
       String application = c.hget(key, "application");
       String appKey = appKey(type, application);

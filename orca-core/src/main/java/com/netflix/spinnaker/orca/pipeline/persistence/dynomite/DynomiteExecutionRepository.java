@@ -198,7 +198,7 @@ public class DynomiteExecutionRepository extends AbstractRedisExecutionRepositor
 
   @Override
   protected Execution retrieveInternal(RedisClientDelegate redisClientDelegate, ExecutionType type, String id) throws ExecutionNotFoundException {
-    String key = format("{%s:%s}", type, id);
+    String key = executionKey(type, id);
     String indexKey = format("%s:stageIndex", key);
 
     boolean exists = redisClientDelegate.withCommandsClient(c -> {
@@ -251,6 +251,11 @@ public class DynomiteExecutionRepository extends AbstractRedisExecutionRepositor
   @Override
   protected String executionKey(Stage stage) {
     return format("{%s:%s}", stage.getExecution().getType(), stage.getExecution().getId());
+  }
+
+  @Override
+  protected String executionKey(ExecutionType type, String id) {
+    return format("{%s:%s}", type, id);
   }
 
   @Override
