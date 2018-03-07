@@ -41,6 +41,7 @@
     "lodash": "^4.16.1",
     "lodash-decorators": "^4.4.1",
     "moment-timezone": "^0.4.0",
+    "n3-charts": "^2.0.18",
     "ngimport": "^0.6.0",
     "react": "15.6.2",
     "react-bootstrap": "^0.32.1",
