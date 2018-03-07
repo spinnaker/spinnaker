@@ -61,7 +61,17 @@ class ElasticSearchAmazonInstanceCachingAgent(
 
   override fun run() {
     val prefix = "aws_instances"
-    val previousIndexes = elasticSearchClient.getPreviousIndexes(prefix)
+    var previousIndexes = elasticSearchClient.getPreviousIndexes(prefix)
+    if (previousIndexes.size > 2) {
+      log.warn("Found multiple previous indexes: {}", previousIndexes.joinToString(", "))
+
+      // TODO-AJ revisit this safe guard ... at least emit a metric that can be alerted upon when this goes production
+      for (previousIndex in previousIndexes) {
+        elasticSearchClient.deleteIndex(previousIndex)
+      }
+      previousIndexes = emptySet()
+    }
+
     val index = elasticSearchClient.createIndex(prefix)
 
     val instanceCount = AtomicInteger(0)
