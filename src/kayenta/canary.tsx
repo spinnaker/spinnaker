@@ -36,13 +36,23 @@ export default class Canary extends React.Component<ICanaryProps> {
   constructor(props: ICanaryProps) {
     super(props);
     this.store = canaryStore;
+    this.initializeAppState(props.app);
+  }
+
+  public componentWillReceiveProps(nextProps: ICanaryProps) {
+    if (this.props.app.name !== nextProps.app.name) {
+      this.initializeAppState(nextProps.app)
+    }
+  }
+
+  private initializeAppState(app: Application): void {
     this.store.dispatch({
       type: INITIALIZE,
       state: {
         data: {
-          application: props.app,
-          configSummaries: props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
-          judges: props.app.getDataSource('canaryJudges').data as IJudge[],
+          application: app,
+          configSummaries: app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
+          judges: app.getDataSource('canaryJudges').data as IJudge[],
         },
       },
     });
