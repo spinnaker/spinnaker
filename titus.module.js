@@ -65,6 +65,7 @@ module.exports = angular.module('spinnaker.titus', [
       },
       loadBalancer: {
         LoadBalancersTag: TitusLoadBalancersTag,
+        useProvider: 'aws'
       },
       instance: {
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
