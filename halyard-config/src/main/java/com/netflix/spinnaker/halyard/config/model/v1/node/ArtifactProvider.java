@@ -50,7 +50,8 @@ abstract public class ArtifactProvider<A extends ArtifactAccount> extends Node {
 
   public enum ProviderType {
     GCS("gcs"),
-    GITHUB("github");
+    GITHUB("github"),
+    HTTP("http");
 
     @Getter
     final private String name;

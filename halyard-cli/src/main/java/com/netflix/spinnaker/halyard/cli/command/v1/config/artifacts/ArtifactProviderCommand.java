@@ -22,6 +22,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.gcs.GcsArtifactProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.github.GitHubArtifactProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.http.HttpArtifactProviderCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -41,6 +42,7 @@ public class ArtifactProviderCommand extends NestableCommand {
   public ArtifactProviderCommand() {
     registerSubcommand(new GcsArtifactProviderCommand());
     registerSubcommand(new GitHubArtifactProviderCommand());
+    registerSubcommand(new HttpArtifactProviderCommand());
   }
 
   @Override

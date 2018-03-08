@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifactProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,6 +34,7 @@ import java.util.Optional;
 public class Artifacts extends Node {
   GcsArtifactProvider gcs = new GcsArtifactProvider();
   GitHubArtifactProvider github = new GitHubArtifactProvider();
+  HttpArtifactProvider http = new HttpArtifactProvider();
 
   @Override
   public String getNodeName() {

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
@@ -91,6 +92,9 @@ public class ArtifactProviderService {
         break;
       case GITHUB:
         artifacts.setGithub((GitHubArtifactProvider) provider);
+        break;
+      case HTTP:
+        artifacts.setHttp((HttpArtifactProvider) provider);
         break;
       default:
         throw new IllegalArgumentException("Unknonwn provider type " + provider.providerType());
