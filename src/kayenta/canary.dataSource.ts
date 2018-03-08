@@ -31,6 +31,9 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     const afterConfigsLoad = (application: Application) => {
+      if (application !== canaryStore.getState().data.application) {
+        return;
+      }
       canaryStore.dispatch(Creators.updateConfigSummaries({
         configSummaries: application.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
       }));
@@ -56,6 +59,9 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     const afterJudgesLoad = (application: Application) => {
+      if (application !== canaryStore.getState().data.application) {
+        return;
+      }
       canaryStore.dispatch(Creators.updateJudges({
         judges: application.getDataSource('canaryJudges').data as IJudge[],
       }));
@@ -86,6 +92,9 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     };
 
     const afterCanaryExecutionsLoaded = (application: Application) => {
+      if (application !== canaryStore.getState().data.application) {
+        return;
+      }
       canaryStore.dispatch(Creators.loadExecutionsSuccess({
         executions: application.getDataSource('canaryExecutions').data as ICanaryExecutionStatusResult[],
       }));
