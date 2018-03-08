@@ -183,6 +183,8 @@ export class ConfigurePipelineTemplateModalController implements IController {
         value = dump(value);
       }
       return value;
+    } else if (variable.type === 'object' && has(variable, 'defaultValue')) {
+      return dump(variable.defaultValue);
     } else {
       return (variable.type === 'list' && !variable.defaultValue) ? [''] : variable.defaultValue;
     }

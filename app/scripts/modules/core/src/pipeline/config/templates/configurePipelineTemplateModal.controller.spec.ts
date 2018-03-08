@@ -23,10 +23,24 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
                '  capacity: 1\n' +
                '  keyPair: example-keypair\n' +
                '  loadBalancers:\n' +
-               '   - orca-test\n' +
+               '    - orca-test\n' +
                '  securityGroups: []\n' +
                '  strategy: highlander\n' +
-               '  instanceType: m3.xlarge';
+               '  instanceType: m3.xlarge\n';
+
+  const yamlAsObj = [{
+    name: 'orca-test',
+    region: 'us-west-2',
+    availabilityZones: [] as any[],
+    capacity: 1,
+    keyPair: 'example-keypair',
+    loadBalancers: [
+      'orca-test',
+    ],
+    securityGroups: [] as any[],
+    strategy: 'highlander',
+    instanceType: 'm3.xlarge',
+  }];
 
   const template: any = {
     variables: [
@@ -46,7 +60,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         name: 'someObject',
         group: 'Advanced Settings',
         type: 'object',
-        defaultValue: yaml,
+        defaultValue: yamlAsObj,
       },
       {
         name: 'someList',
@@ -239,17 +253,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       expect(templateConfig.config.pipeline.variables).toEqual({
         credentials: 'my-google-account',
         cloudProvider: 'gce',
-        someObject: [{
-          name: 'orca-test',
-          region: 'us-west-2',
-          availabilityZones: [],
-          capacity: 1,
-          keyPair: 'example-keypair',
-          loadBalancers: ['orca-test'],
-          securityGroups: [],
-          strategy: 'highlander',
-          instanceType: 'm3.xlarge'
-        }],
+        someObject: yamlAsObj,
         someList: ['a', 'b', 'c'],
         someInt: 42
       });
