@@ -23,10 +23,14 @@ import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
+import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptor;
+import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import com.netflix.kayenta.prometheus.security.PrometheusNamedAccountCredentials;
 import com.netflix.kayenta.prometheus.service.PrometheusRemoteService;
+import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import lombok.Builder;
@@ -34,6 +38,7 @@ import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -44,7 +49,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Builder
 @Slf4j
@@ -63,6 +70,9 @@ public class PrometheusMetricsService implements MetricsService {
 
   @Autowired
   private final Registry registry;
+
+  @Builder.Default
+  private List<PrometheusMetricDescriptor> metricDescriptorsCache = Collections.emptyList();
 
   @Override
   public String getType() {
@@ -175,10 +185,10 @@ public class PrometheusMetricsService implements MetricsService {
     List<PrometheusResults> prometheusResultsList;
 
     try {
-      prometheusResultsList = prometheusRemoteService.fetch(queryBuilder.toString(),
-                                                            prometheusCanaryScope.getStart().toString(),
-                                                            prometheusCanaryScope.getEnd().toString(),
-                                                            prometheusCanaryScope.getStep());
+      prometheusResultsList = prometheusRemoteService.rangeQuery(queryBuilder.toString(),
+                                                                 prometheusCanaryScope.getStart().toString(),
+                                                                 prometheusCanaryScope.getEnd().toString(),
+                                                                 prometheusCanaryScope.getStep());
     } finally {
       long endTime = registry.clock().monotonicTime();
       // TODO(ewiseblatt/duftler): Add appropriate tags.
@@ -225,5 +235,56 @@ public class PrometheusMetricsService implements MetricsService {
     }
 
     return metricSetList;
+  }
+
+  @Override
+  public List<Map> getMetadata(String metricsAccountName, String filter) throws IOException {
+    if (!StringUtils.isEmpty(filter)) {
+      String lowerCaseFilter = filter.toLowerCase();
+
+      return metricDescriptorsCache
+        .stream()
+        .filter(metricDescriptor -> metricDescriptor.getName().toLowerCase().contains(lowerCaseFilter))
+        .map(metricDescriptor -> metricDescriptor.getMap())
+        .collect(Collectors.toList());
+    } else {
+      return metricDescriptorsCache
+        .stream()
+        .map(metricDescriptor -> metricDescriptor.getMap())
+        .collect(Collectors.toList());
+    }
+  }
+
+  @Scheduled(fixedDelayString = "#{@prometheusConfigurationProperties.metadataCachingIntervalMS}")
+  public void updateMetricDescriptorsCache() throws IOException {
+    Set<AccountCredentials> accountCredentialsSet =
+      CredentialsHelper.getAllAccountsOfType(AccountCredentials.Type.METRICS_STORE, accountCredentialsRepository);
+
+    for (AccountCredentials credentials : accountCredentialsSet) {
+      if (credentials instanceof PrometheusNamedAccountCredentials) {
+        PrometheusNamedAccountCredentials prometheusCredentials = (PrometheusNamedAccountCredentials)credentials;
+        PrometheusRemoteService prometheusRemoteService = prometheusCredentials.getPrometheusRemoteService();
+        PrometheusMetricDescriptorsResponse prometheusMetricDescriptorsResponse = prometheusRemoteService.listMetricDescriptors();
+
+        if (prometheusMetricDescriptorsResponse != null && prometheusMetricDescriptorsResponse.getStatus().equals("success")) {
+          List<String> data = prometheusMetricDescriptorsResponse.getData();
+
+          if (!CollectionUtils.isEmpty(data)) {
+            // TODO(duftler): Should we instead be building the union across all accounts? This doesn't seem quite right yet.
+            metricDescriptorsCache =
+              data
+                .stream()
+                .map(metricName -> new PrometheusMetricDescriptor(metricName))
+                .collect(Collectors.toList());
+
+            log.debug("Updated cache with {} metric descriptors via account {}.", metricDescriptorsCache.size(), prometheusCredentials.getName());
+          } else {
+            log.debug("While updating cache, found no metric descriptors via account {}.", prometheusCredentials.getName());
+          }
+        } else {
+          log.debug("While updating cache, found no metric descriptors via account {}.", prometheusCredentials.getName());
+        }
+      }
+    }
   }
 }

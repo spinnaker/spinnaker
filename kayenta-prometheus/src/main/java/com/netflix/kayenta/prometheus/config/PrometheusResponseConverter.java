@@ -17,6 +17,7 @@
 package com.netflix.kayenta.prometheus.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.kayenta.prometheus.model.PrometheusMetricDescriptorsResponse;
 import com.netflix.kayenta.prometheus.model.PrometheusResults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import retrofit.converter.ConversionException;
 import retrofit.converter.Converter;
+import retrofit.converter.JacksonConverter;
 import retrofit.mime.TypedInput;
 import retrofit.mime.TypedOutput;
 
@@ -48,20 +50,23 @@ public class PrometheusResponseConverter implements Converter {
   }
 
   @Override
-  public List<PrometheusResults> fromBody(TypedInput body, Type type) throws ConversionException {
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(body.in()))) {
-      String json = reader.readLine();
-      Map responseMap = kayentaObjectMapper.readValue(json, Map.class);
-      Map data = (Map)responseMap.get("data");
-      List<Map> resultList = (List<Map>)data.get("result");
-      List<PrometheusResults> prometheusResultsList = new ArrayList<PrometheusResults>(resultList.size());
+  public Object fromBody(TypedInput body, Type type) throws ConversionException {
+    if (type == PrometheusMetricDescriptorsResponse.class) {
+      return new JacksonConverter(kayentaObjectMapper).fromBody(body, type);
+    } else {
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(body.in()))) {
+        String json = reader.readLine();
+        Map responseMap = kayentaObjectMapper.readValue(json, Map.class);
+        Map data = (Map)responseMap.get("data");
+        List<Map> resultList = (List<Map>)data.get("result");
+        List<PrometheusResults> prometheusResultsList = new ArrayList<PrometheusResults>(resultList.size());
 
-      if (CollectionUtils.isEmpty(resultList)) {
-        log.warn("Received no data from Prometheus.");
-        return null;
-      }
+        if (CollectionUtils.isEmpty(resultList)) {
+          log.warn("Received no data from Prometheus.");
+          return null;
+        }
 
-      for (Map elem : resultList) {
+        for (Map elem : resultList) {
           Map<String, String> tags = (Map<String, String>)elem.get("metric");
           String id = tags.remove("__name__");
           List<List> values = (List<List>)elem.get("values");
@@ -80,14 +85,15 @@ public class PrometheusResponseConverter implements Converter {
           long endTimeMillis = startTimeMillis + values.size() * stepSecs * 1000;
 
           prometheusResultsList.add(new PrometheusResults(id, startTimeMillis, stepSecs, endTimeMillis, tags, dataValues));
+        }
+
+        return prometheusResultsList;
+      } catch (IOException e) {
+        e.printStackTrace();
       }
 
-      return prometheusResultsList;
-    } catch (IOException e) {
-      e.printStackTrace();
+      return null;
     }
-
-    return null;
   }
 
   private static long doubleTimestampSecsToLongTimestampMillis(String doubleTimestampSecsAsString) {

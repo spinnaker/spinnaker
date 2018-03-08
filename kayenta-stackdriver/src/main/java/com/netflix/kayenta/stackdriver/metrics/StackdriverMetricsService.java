@@ -147,7 +147,7 @@ public class StackdriverMetricsService implements MetricsService {
       } else if (Arrays.asList("k8s_container", "k8s_pod", "k8s_node").contains(resourceType)) {
         // TODO(duftler): Figure out where it makes sense to use 'scope'. It is available as a template variable binding,
         // and maps to the control and experiment scopes. Will probably be useful to use expressions in those fields in
-        // the ui, and then map 'scope' to some user label value in a customer filter template.
+        // the ui, and then map 'scope' to some user label value in a custom filter template.
         // TODO(duftler): Should cluster_name be automatically included or required?
         filter += " AND resource.labels.project_id=" + projectId;
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
@@ -379,6 +379,7 @@ public class StackdriverMetricsService implements MetricsService {
         List<MetricDescriptor> metricDescriptors = listMetricDescriptorsResponse.getMetricDescriptors();
 
         if (!CollectionUtils.isEmpty(metricDescriptors)) {
+          // TODO(duftler): Should we instead be building the union across all accounts? This doesn't seem quite right yet.
           metricDescriptorsCache = metricDescriptors;
 
           log.debug("Updated cache with {} metric descriptors via account {}.", metricDescriptors.size(), stackdriverCredentials.getName());

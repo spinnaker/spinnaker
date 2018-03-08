@@ -19,10 +19,15 @@ package com.netflix.kayenta.prometheus.config;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PrometheusConfigurationProperties {
+
+  @Getter
+  @Setter
+  private long metadataCachingIntervalMS = Duration.ofSeconds(60).toMillis();
 
   /**
    * TODO(duftler): Once we've finished docs for all target platforms, move this somewhere more appropriate.
