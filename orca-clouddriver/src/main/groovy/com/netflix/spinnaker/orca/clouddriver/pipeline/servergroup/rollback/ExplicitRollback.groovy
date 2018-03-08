@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSour
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -54,9 +55,25 @@ class ExplicitRollback implements Rollback {
   ApplySourceServerGroupCapacityStage applySourceServerGroupCapacityStage
 
   @JsonIgnore
-  def List<Stage> buildStages(Stage parentStage) {
-    def stages = []
+  @Override
+  List<Stage> buildStages(Stage parentStage) {
+    Map disableServerGroupContext = new HashMap(parentStage.context)
+    disableServerGroupContext.serverGroupName = rollbackServerGroupName
+    def disableServerGroupStage = newStage(
+      parentStage.execution, disableServerGroupStage.type, "disable", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
+    )
 
+    def parentDeployStage = getParentDeployStage(parentStage)
+    def parentDeployStageStrategy = parentDeployStage?.context?.strategy as String
+    if (Strategy.fromStrategy(parentDeployStageStrategy) == Strategy.ROLLING_RED_BLACK) {
+      // no need to do anything but disable the newly deployed (and failing!) server group when dealing with a
+      // rolling red/black deployment
+      return [
+        disableServerGroupStage
+      ]
+    }
+
+    def stages = []
     Map enableServerGroupContext = new HashMap(parentStage.context)
     enableServerGroupContext.targetHealthyDeployPercentage = targetHealthyRollbackPercentage
     enableServerGroupContext.serverGroupName = restoreServerGroupName
@@ -84,12 +101,7 @@ class ExplicitRollback implements Rollback {
       parentStage.execution, resizeServerGroupStage.type, "resize", resizeServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
-    Map disableServerGroupContext = new HashMap(parentStage.context)
-    disableServerGroupContext.serverGroupName = rollbackServerGroupName
-    stages << newStage(
-      parentStage.execution, disableServerGroupStage.type, "disable", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
-    )
-
+    stages << disableServerGroupStage
     stages << buildApplySourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))
     return stages
   }
@@ -137,5 +149,13 @@ class ExplicitRollback implements Rollback {
       parentStage,
       SyntheticStageOwner.STAGE_AFTER
     )
+  }
+
+  static Stage getParentDeployStage(Stage parentStage) {
+    while (parentStage && !parentStage.context.containsKey("strategy")) {
+      parentStage = parentStage.parent
+    }
+
+    return parentStage
   }
 }

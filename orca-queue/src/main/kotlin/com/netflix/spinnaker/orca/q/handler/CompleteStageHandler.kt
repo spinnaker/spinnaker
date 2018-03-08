@@ -165,8 +165,15 @@ class CompleteStageHandler(
       }
 
       val notStartedSynthetics = execution.stages.filter { it.parentStageId == id && it.status == NOT_STARTED}
+      val notStartedSyntheticRefIds = notStartedSynthetics.map { it.refId }
 
       builder.buildAfterStages(this, onFailureStages) { it: Stage ->
+        // Avoid having a NOT_STARTED synthetic stage as a prerequisite as it will be subsequently removed
+        // from the execution.
+        it.requisiteStageRefIds = it.requisiteStageRefIds.filter {
+          !notStartedSyntheticRefIds.contains(it)
+        }
+
         repository.addStage(it)
       }
 

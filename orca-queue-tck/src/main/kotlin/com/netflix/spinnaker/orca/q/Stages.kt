@@ -64,7 +64,8 @@ val stageWithSyntheticOnFailure = object : StageDefinitionBuilder {
   }
 
   override fun onFailureStages(stage: Stage) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "onFailure1", stage.context, stage, STAGE_AFTER)
+    newStage(stage.execution, singleTaskStage.type, "onFailure1", stage.context, stage, STAGE_AFTER),
+    newStage(stage.execution, singleTaskStage.type, "onFailure2", stage.context, stage, STAGE_AFTER)
   )
 }
 

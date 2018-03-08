@@ -23,6 +23,7 @@ import java.util.List;
 
 public enum Strategy implements StrategyFlowComposer{
   RED_BLACK("redblack"),
+  ROLLING_RED_BLACK("rollingredblack"),
   HIGHLANDER("highlander"),
   ROLLING_PUSH("rollingpush"),
   CUSTOM("custom"),
@@ -34,7 +35,7 @@ public enum Strategy implements StrategyFlowComposer{
     this.key = key;
   }
 
-  static Strategy fromStrategy(String key) {
+  public static Strategy fromStrategy(String key) {
     if (key == null) {
       return NONE;
     }

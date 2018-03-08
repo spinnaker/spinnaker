@@ -932,19 +932,25 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
       afterGroup(::resetMocks)
 
       it("plans the first 'OnFailure' stage") {
-        val onFailureStage = pipeline.stages.first { it.name.equals("onFailure1") }
-        verify(queue).push(StartStage(onFailureStage))
+        val onFailure1Stage = pipeline.stages.first { it.name.equals("onFailure1") }
+        assertThat(onFailure1Stage.requisiteStageRefIds).isEmpty()
+
+        val onFailure2Stage = pipeline.stages.first { it.name.equals("onFailure2") }
+        assertThat(onFailure2Stage.requisiteStageRefIds).isEqualTo(setOf(onFailure1Stage.refId))
+
+        verify(queue).push(StartStage(onFailure1Stage))
       }
 
       on("receiving the message again") {
-        val onFailureStage = pipeline.stages.first { it.name.equals("onFailure1") }
-        onFailureStage.status = ExecutionStatus.SUCCEEDED
+        val onFailure1Stage = pipeline.stages.first { it.name.equals("onFailure1") }
+        onFailure1Stage.status = ExecutionStatus.SUCCEEDED
         subject.handle(message)
       }
 
       it("does not re-plan any 'OnFailure' stages") {
         verify(queue).push(CancelStage(message))
       }
+
     }
   }
 })
