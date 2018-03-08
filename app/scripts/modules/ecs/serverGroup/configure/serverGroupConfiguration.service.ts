@@ -162,6 +162,7 @@ export class EcsServerGroupConfigurationService {
   public configureAvailabilityZones(command: IEcsServerGroupCommand): void {
     command.backingData.filtered.availabilityZones =
       find<IRegion>(command.backingData.credentialsKeyedByAccount[command.credentials].regions, { name: command.region }).availabilityZones;
+    command.availabilityZones = command.backingData.filtered.availabilityZones;
   }
 
   public configureAvailableMetricAlarms(command: IEcsServerGroupCommand): void {
@@ -339,15 +340,12 @@ export class EcsServerGroupConfigurationService {
 
     command.regionChanged = (): IServerGroupCommandResult => {
       const result: IEcsServerGroupCommandResult = { dirty: {} };
-      const filteredData = command.backingData.filtered;
       extend(result.dirty, this.configureSubnetPurposes(command).dirty);
       if (command.region) {
         extend(result.dirty, command.subnetChanged().dirty);
         this.configureAvailabilityZones(command);
         this.configureAvailableMetricAlarms(command);
         this.configureAvailableEcsClusters(command);
-      } else {
-        filteredData.regionalAvailabilityZones = null;
       }
 
       return result;
