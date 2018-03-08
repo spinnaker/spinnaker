@@ -35,9 +35,21 @@
     justify-content: flex-end;
   }
 
-  &.margin-between {
+  &.margin-between-sm {
     > * + * {
-      margin-left: 1em;
+      margin-left: 4px;
+    }
+  }
+
+  &.margin-between-md {
+    > * + * {
+      margin-left: 8px;
+    }
+  }
+
+  &.margin-between-lg {
+    > * + * {
+      margin-left: 12px;
     }
   }
 }
@@ -99,15 +111,15 @@
 
 // Flex item
 .flex-grow {
-  flex: 1 1 auto;
+  flex: auto; /* Same as flex: 1 1 auto; */
 }
 
 .flex-nogrow {
-  flex: 0 1 auto;
+  flex: 0 1 auto; /* Same as flex: initial, or omitting flex: */
 }
 
 .flex-none {
-  flex: 0 0 auto;
+  flex: none; /* Same as flex: 0 0 auto */
 }
 
 .flex-pull-right {

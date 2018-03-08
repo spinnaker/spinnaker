@@ -152,7 +152,7 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
     const error = spelError ? <span className="error-message">{this.getErrorMessage(spelError)}</span> : null;
 
     return (
-      <div className="flex-container-h baseline margin-between">
+      <div className="flex-container-h baseline margin-between-lg">
         <div className="sm-label-right" style={{ minWidth: '120px' }}>{label} {Help}</div>
           <div className="flex-grow flex-container-v">
             <div className="flex-container-v">
@@ -166,7 +166,7 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
                 required={required}
               />
               {spelPreview && (
-                <div className="flex-container-h baseline margin-between">
+                <div className="flex-container-h baseline margin-between-lg">
                   <span className="no-grow">Preview:</span> {markdown ? <Markdown message={spelPreview} /> : <span>{spelPreview}</span>}
                 </div>
               )}
