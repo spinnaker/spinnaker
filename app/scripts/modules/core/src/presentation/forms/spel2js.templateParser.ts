@@ -1,27 +1,25 @@
 import * as spel2js from 'spel2js';
 import { SpelExpression } from 'spel2js';
 
-(spel2js as any).TemplateParser = {
-  parse(template: string): SpelExpression[] {
-    const spelExpressions = new TemplateAwareExpressionParser().parseExpressions(template);
+export function parseSpelExpressions(template: string): SpelExpression[] {
+  const spelExpressions = new TemplateAwareExpressionParser().parseExpressions(template);
 
-    // A Monkey patch which adds the current context when an exception occurs
-    spelExpressions.forEach(expr => {
-      const getValue = expr._compiledExpression.getValue;
-      expr._compiledExpression.getValue = function() {
-        const state = arguments[0];
-        try {
-          return getValue.apply(expr._compiledExpression, arguments);
-        } catch (err) {
-          err.state = state;
-          throw err;
-        }
+  // A Monkey patch which adds the current context when an exception occurs
+  spelExpressions.forEach(expr => {
+    const getValue = expr._compiledExpression.getValue;
+    expr._compiledExpression.getValue = function() {
+      const state = arguments[0];
+      try {
+        return getValue.apply(expr._compiledExpression, arguments);
+      } catch (err) {
+        err.state = state;
+        throw err;
       }
-    });
+    }
+  });
 
-    return spelExpressions;
-  }
-};
+  return spelExpressions;
+}
 
 const literalExpression = (literalString: string) =>
   spel2js.SpelExpressionEvaluator.compile(`'${literalString.replace(/'/g, "''")}'`);

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as spel2js from 'spel2js';
+import { parseSpelExpressions } from '../spel2js.templateParser';
 import { BindAll } from 'lodash-decorators';
 import { truncate } from 'lodash';
 
@@ -66,7 +66,7 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
     };
 
     try {
-      const exprs = spel2js.TemplateParser.parse(value);
+      const exprs = parseSpelExpressions(value);
       const results = exprs.map(expr => expr.eval(context, locals));
       this.setState({ spelError: null, spelPreview: results.join(''), value });
 
