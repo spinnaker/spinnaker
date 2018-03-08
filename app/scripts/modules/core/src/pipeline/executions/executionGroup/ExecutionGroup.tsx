@@ -218,7 +218,10 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                       <h4 style={{ visibility: pipelineDisabled ? 'hidden' : 'visible' }}>
                         <a className="btn btn-xs btn-link" onClick={this.handleTriggerClicked}>
                           { this.state.triggeringExecution ?
-                            <span><Spinner size="nano" /> Starting Manual Execution&hellip;</span> :
+                            <div className="horizontal middle inline-spinner">
+                              <Spinner size="nano" />
+                              <span>{' '}Starting Manual Execution</span>
+                            </div> :
                             <span><span className="glyphicon glyphicon-play"/> Start Manual Execution</span>
                           }
                         </a>
