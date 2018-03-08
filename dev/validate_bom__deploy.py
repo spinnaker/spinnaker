@@ -640,7 +640,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
                 ssh_key=self.ssh_key_path,
                 service=service,
                 log_dir=log_dir))
-    if not retcode:
+    if retcode != 0:
       logging.warning('Failed obtaining %s.log: %s', service, stdout)
       write_to_path(stdout, os.path.join(log_dir, service + '.log'))
 
