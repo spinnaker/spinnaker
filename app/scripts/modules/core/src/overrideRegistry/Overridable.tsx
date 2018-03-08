@@ -170,8 +170,8 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
 
   // Copy static properties
   Object.getOwnPropertyNames(OriginalComponent)
-    .filter(key => key !== 'constructor' && !OverridableComponent.hasOwnProperty(key))
-    .forEach(key => (OverridableComponent as any)[key] = (OriginalComponent as any)[key]);
+    .filter(propName => propName !== 'constructor' && !OverridableComponent.hasOwnProperty(propName))
+    .forEach(propName => (OverridableComponent as any)[propName] = (OriginalComponent as any)[propName]);
 
   return OverridableComponent as any as T;
 }
