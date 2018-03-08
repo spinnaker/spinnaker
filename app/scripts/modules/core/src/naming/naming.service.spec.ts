@@ -63,7 +63,7 @@ describe('namingService', function () {
     expect(this.namingService.getSequence(0)).toBe('v000');
     expect(this.namingService.getSequence(10)).toBe('v010');
     expect(this.namingService.getSequence(100)).toBe('v100');
-    expect(this.namingService.getSequence(null)).toBe('N/A');
-    expect(this.namingService.getSequence(undefined)).toBe('N/A');
+    expect(this.namingService.getSequence(null)).toBe(null);
+    expect(this.namingService.getSequence(undefined)).toBe(null);
   });
 });
