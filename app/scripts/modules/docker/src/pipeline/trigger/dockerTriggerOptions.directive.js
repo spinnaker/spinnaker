@@ -65,8 +65,22 @@ module.exports = angular
         }));
     };
 
-    this.updateSelectedTag = (item) => {
-      this.command.extraFields.tag = item;
+    this.updateSelectedTag = (tag) => {
+      this.command.extraFields.tag = tag;
+
+      if (this.command.trigger && this.command.trigger.repository) {
+        let imageName = '';
+        if (this.command.trigger.registry) {
+          imageName += this.command.trigger.registry + '/';
+        }
+        imageName += this.command.trigger.repository;
+        this.command.extraFields.artifacts = [{
+          type: 'docker/image',
+          name: imageName,
+          version: tag,
+          reference: imageName + ':' + tag,
+        }];
+      }
     };
 
     let queryStream = new Subject();
