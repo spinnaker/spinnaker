@@ -20,9 +20,11 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
   @Override
   String getClouddriverOperation() {
@@ -72,6 +74,8 @@ class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
 
     //result will be sorted in priority order to retain
     def prioritized = filteredGroups.sort(false, new CompositeComparator(comparators))
+
+    log.info("Retained $prioritized from $serverGroups, will drop $dropCount")
 
     return prioritized.drop(dropCount)
   }
