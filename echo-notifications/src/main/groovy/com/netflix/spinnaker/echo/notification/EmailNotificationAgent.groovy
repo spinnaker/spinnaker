@@ -75,7 +75,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       status == 'complete' ? 'completed successfully' : status
     }"""
 
-    subject = context.customSubject ?: subject
+    subject = preference.customSubject ?: context.customSubject ?: subject
 
     log.info('Sending email {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
 
@@ -88,7 +88,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       status,
       config.link,
       preference.message?."$config.type.$status"?.text,
-      context.customBody
+      preference.customBody ?: context.customBody
     )
   }
 

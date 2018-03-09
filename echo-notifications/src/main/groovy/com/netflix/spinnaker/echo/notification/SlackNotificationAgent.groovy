@@ -93,7 +93,7 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
         body += "\n\n" + preference.message."$config.type.$status".text
       }
 
-      String customMessage = event.content?.context?.customMessage
+      String customMessage = preference.customMessage ?: event.content?.context?.customMessage
       if (customMessage) {
         body = customMessage
           .replace("{{executionId}}", (String) event.content.execution?.id ?: "")
