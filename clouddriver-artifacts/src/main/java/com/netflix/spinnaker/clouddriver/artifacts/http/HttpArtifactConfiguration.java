@@ -61,7 +61,7 @@ public class HttpArtifactConfiguration {
 
   @Bean
   List<? extends HttpArtifactCredentials> httpArtifactCredentials() {
-    return httpArtifactProviderProperties.getAccounts()
+    List<HttpArtifactCredentials> result = httpArtifactProviderProperties.getAccounts()
       .stream()
       .map(a -> {
         try {
@@ -75,5 +75,15 @@ public class HttpArtifactConfiguration {
       })
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
+
+    if (httpArtifactProviderProperties.getAccounts().stream().noneMatch(HttpArtifactAccount::usesAuth)) {
+      HttpArtifactAccount noAuthAccount = new HttpArtifactAccount()
+          .setName("no-auth-http-account");
+      HttpArtifactCredentials noAuthCredentials = new HttpArtifactCredentials(noAuthAccount, httpOkHttpClient);
+
+      result.add(noAuthCredentials);
+    }
+
+    return result;
   }
 }

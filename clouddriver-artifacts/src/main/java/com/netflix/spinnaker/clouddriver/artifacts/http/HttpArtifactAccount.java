@@ -18,9 +18,11 @@
 package com.netflix.spinnaker.clouddriver.artifacts.http;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactAccount;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -34,4 +36,9 @@ public class HttpArtifactAccount extends ArtifactAccount {
   private String username;
   private String password;
   private String usernamePasswordFile;
+
+  @JsonIgnore
+  public boolean usesAuth() {
+    return !(StringUtils.isEmpty(username) && StringUtils.isEmpty(password) && StringUtils.isEmpty(usernamePasswordFile));
+  }
 }
