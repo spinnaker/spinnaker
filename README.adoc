@@ -11,7 +11,7 @@ If you want more information on how Spinnaker is designed, see the https://www.s
 
 = Setting Up Spinnaker For Development
 
-These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts. 
+These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts.
 
 To build from source and run on localhost follow the https://www.spinnaker.io/setup/install/#getting-started[Getting Started Documentation].
 
@@ -34,7 +34,7 @@ git clone git@github.com:spinnaker/spinnaker.git
 
 == Configure your environment
 
-The Spinnaker platform has a few prerequisites, which are installed as a part of this configuration process. They are: 
+The Spinnaker platform has a few prerequisites, which are installed as a part of this configuration process. They are:
 
 * https://www.oracle.com/java/index.html[JDK8]
 * http://redis.io/[Redis]
@@ -49,7 +49,7 @@ You need to have http://brew.sh/[homebrew] installed and ensure your version of 
 ----
 brew tap caskroom/cask
 brew install brew-cask
-brew install redis homebrew/versions/cassandra21 packer
+brew install redis cassandra@2.1 packer
 brew cask install java
 cd $SPINNAKER_HOME
 mkdir build
