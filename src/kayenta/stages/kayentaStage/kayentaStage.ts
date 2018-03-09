@@ -48,7 +48,7 @@ interface IKayentaStageCanaryConfigScope {
   experimentRegion: string,
   startTimeIso?: string;
   endTimeIso?: string;
-  step?: string;
+  step?: number;
   extendedScopeParams: {[key: string]: string};
 }
 
