@@ -20,10 +20,11 @@ module.exports = angular
       scope: {}
     };
   })
-  .controller('PipelineTriggerOptionsCtrl', function ($scope, executionService) {
+  .controller('PipelineTriggerOptionsCtrl', function ($scope, executionService, executionsTransformer) {
     let executionLoadSuccess = (executions) => {
       this.executions = executions;
       if (this.executions.length) {
+        this.executions.forEach(execution => executionsTransformer.addBuildInfo(execution));
         // default to what is supplied by the trigger if possible; otherwise, use the latest
         let defaultSelection = this.executions.find(e => e.id === this.command.trigger.parentPipelineId) || this.executions[0];
         this.viewState.selectedExecution = defaultSelection;

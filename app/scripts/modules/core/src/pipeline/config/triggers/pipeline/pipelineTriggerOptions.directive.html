@@ -6,7 +6,7 @@
     </p>
   </div>
   <div class="col-md-6" ng-if="vm.viewState.loadError">Error loading executions!</div>
-  <div class="col-md-6" ng-if="!vm.viewState.executionsLoading">
+  <div class="col-md-7" ng-if="!vm.viewState.executionsLoading">
     <div ng-if="!vm.executions.length"><p class="form-control-static">No recent executions found</p></div>
     <ui-select class="form-control input-sm"
                ng-model="vm.viewState.selectedExecution"
@@ -14,14 +14,15 @@
                ng-if="vm.executions.length">
       <ui-select-match placeholder="Select...">
                 <span>
-                  {{$select.selected.buildTime | timestamp}}
+                  <execution-build-title execution="$select.selected" default-to-timestamp="true" ></execution-build-title>
                   <strong>({{$select.selected.status}})</strong>
                 </span>
       </ui-select-match>
       <ui-select-choices repeat="execution in vm.executions | anyFieldFilter: {status: $select.search}">
               <span>
-                {{execution.buildTime | timestamp}}
-                <strong>({{execution.status}})</strong>
+                <strong><execution-build-title execution="execution" default-to-timestamp="false" ></execution-build-title></strong>
+                {{execution.buildTime | timestamp}} ({{execution.status}})
+                <span ng-if="execution.buildInfo.scm"><br />{{execution.buildInfo.scm[0].branch}} ({{execution.buildInfo.scm[0].sha1 | limitTo:6}}): {{execution.buildInfo.scm[0].message | limitTo:30}}<span ng-if="execution.buildInfo.scm[0].message.length > 30">…</span></span></span>
               </span>
       </ui-select-choices>
     </ui-select>

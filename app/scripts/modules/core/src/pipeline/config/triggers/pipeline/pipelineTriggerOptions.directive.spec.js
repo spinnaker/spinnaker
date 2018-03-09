@@ -2,7 +2,7 @@
 
 describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
 
-  var $scope, executionService, ctrl, $q, command;
+  var $scope, executionService, executionsTransformer, ctrl, $q, command;
 
   beforeEach(
     window.module(
@@ -16,9 +16,10 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
       $qProvider.errorOnUnhandledRejections(false);
   }));
 
-  beforeEach(window.inject(function($rootScope, _executionService_, $controller, _$q_) {
+  beforeEach(window.inject(function($rootScope, _executionService_, _executionsTransformer_, $controller, _$q_) {
     $scope = $rootScope.$new();
     executionService = _executionService_;
+    executionsTransformer = _executionsTransformer_;
     $q = _$q_;
 
     command = {
@@ -32,6 +33,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
     this.initialize = function() {
       ctrl = $controller('PipelineTriggerOptionsCtrl', {
         executionService: executionService,
+        executionsTransformer: executionsTransformer,
         $scope: $scope,
       }, { command: command });
       ctrl.$onInit();
@@ -41,6 +43,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
   it('loads executions on initialization, setting state flags', function () {
     let executions = [];
     spyOn(executionService, 'getExecutionsForConfigIds').and.returnValue($q.when(executions));
+    spyOn(executionsTransformer, 'addBuildInfo');
 
     this.initialize();
     expect(ctrl.viewState.executionsLoading).toBe(true);
@@ -57,6 +60,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
       { pipelineConfigId: 'b', buildTime: 1, id: 'b-1', application: 'a' },
     ];
     spyOn(executionService, 'getExecutionsForConfigIds').and.returnValue($q.when(executions));
+    spyOn(executionsTransformer, 'addBuildInfo');
 
     this.initialize();
     expect(ctrl.viewState.executionsLoading).toBe(true);
@@ -71,6 +75,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
 
   it('sets flags when execution load fails', function () {
     spyOn(executionService, 'getExecutionsForConfigIds').and.returnValue($q.reject('does not matter'));
+    spyOn(executionsTransformer, 'addBuildInfo');
 
     this.initialize();
     expect(ctrl.viewState.executionsLoading).toBe(true);
@@ -98,6 +103,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
       }
       return $q.when(executions);
     });
+    spyOn(executionsTransformer, "addBuildInfo");
 
     this.initialize();
     $scope.$digest();
