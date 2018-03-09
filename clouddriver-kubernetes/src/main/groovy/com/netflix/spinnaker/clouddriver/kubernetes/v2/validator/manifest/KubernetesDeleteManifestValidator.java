@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.manifest;
 
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeleteManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -40,8 +41,10 @@ public class KubernetesDeleteManifestValidator extends DescriptionValidator<Kube
   @Override
   public void validate(List priorDescriptions, KubernetesDeleteManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("deleteKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount())) {
-      return;
+    for (KubernetesCoordinates coordinate : description.getAllCoordinates()) {
+      if (!util.validateV2Credentials(provider, description.getAccount(), coordinate.getNamespace())) {
+        return;
+      }
     }
   }
 

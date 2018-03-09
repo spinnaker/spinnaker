@@ -59,7 +59,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Clock clock;
   private final String accountName;
   private final ObjectMapper mapper = new ObjectMapper();
+  @Getter
   private final List<String> namespaces;
+  @Getter
   private final List<String> omitNamespaces;
   private final List<KubernetesKind> kinds;
   private final List<KubernetesKind> omitKinds;

@@ -40,7 +40,7 @@ public class KubernetesResumeRolloutManifestValidator extends DescriptionValidat
   @Override
   public void validate(List priorDescriptions, KubernetesResumeRolloutManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("resumeRolloutKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount())) {
+    if (!util.validateV2Credentials(provider, description.getAccount(), description.getPointCoordinates().getNamespace())) {
       return;
     }
   }

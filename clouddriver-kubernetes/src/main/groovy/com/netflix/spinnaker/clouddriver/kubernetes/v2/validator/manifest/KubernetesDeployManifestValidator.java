@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.manifest;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.validator.KubernetesValidationUtil;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
@@ -40,8 +41,10 @@ public class KubernetesDeployManifestValidator extends DescriptionValidator<Kube
   @Override
   public void validate(List priorDescriptions, KubernetesDeployManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("deployKubernetesManifest", errors);
-    if (!util.validateV2Credentials(provider, description.getAccount())) {
-      return;
+    for (KubernetesManifest manifest:description.getManifests()) {
+      if (!util.validateV2Credentials(provider, description.getAccount(), manifest.getNamespace())) {
+        return;
+      }
     }
   }
 
