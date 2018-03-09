@@ -44,6 +44,12 @@ public class StackdriverConfiguration {
   }
 
   @Bean
+  @ConfigurationProperties("kayenta.stackdriver.testControllerDefaults")
+  StackdriverConfigurationTestControllerDefaultProperties stackdriverConfigurationTestControllerDefaultProperties() {
+    return new StackdriverConfigurationTestControllerDefaultProperties();
+  }
+
+  @Bean
   @DependsOn({"registerGoogleCredentials"})
   MetricsService stackdriverMetricsService(AccountCredentialsRepository accountCredentialsRepository) {
     StackdriverMetricsService.StackdriverMetricsServiceBuilder stackdriverMetricsServiceBuilder = StackdriverMetricsService.builder();

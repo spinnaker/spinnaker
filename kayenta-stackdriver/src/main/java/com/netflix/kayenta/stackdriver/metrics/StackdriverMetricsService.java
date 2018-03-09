@@ -114,6 +114,7 @@ public class StackdriverMetricsService implements MetricsService {
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     String projectId = stackdriverCanaryScope.getProject();
     String region = stackdriverCanaryScope.getRegion();
+    String scope = stackdriverCanaryScope.getScope();
     String resourceType = stackdriverCanaryScope.getResourceType();
 
     if (StringUtils.isEmpty(projectId)) {
@@ -128,16 +129,40 @@ public class StackdriverMetricsService implements MetricsService {
     // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
     // TODO(duftler): Throw exceptions when required parameters (e.g. projectId, region) for the specified resourceType are missing.
     if (StringUtils.isEmpty(customFilter)) {
+      if (StringUtils.isEmpty(resourceType)) {
+        throw new IllegalArgumentException("Resource type is required.");
+      }
+
       if ("gce_instance".equals(resourceType)) {
+        if (StringUtils.isEmpty(region)) {
+          throw new IllegalArgumentException("Region is required when resourceType is 'gce_instance'.");
+        }
+
+        if (StringUtils.isEmpty(scope)) {
+          throw new IllegalArgumentException("Scope is required when resourceType is 'gce_instance'.");
+        }
+
         filter += " AND resource.labels.project_id=" + projectId +
                   " AND metadata.user_labels.\"spinnaker-region\"=" + region +
-                  " AND metadata.user_labels.\"spinnaker-server-group\"=" + stackdriverCanaryScope.getScope();
+                  " AND metadata.user_labels.\"spinnaker-server-group\"=" + scope;
       } else if ("aws_ec2_instance".equals(resourceType)) {
+        if (StringUtils.isEmpty(region)) {
+          throw new IllegalArgumentException("Region is required when resourceType is 'aws_ec2_instance'.");
+        }
+
+        if (StringUtils.isEmpty(scope)) {
+          throw new IllegalArgumentException("Scope is required when resourceType is 'aws_ec2_instance'.");
+        }
+
         filter += " AND resource.labels.region=\"aws:" + region + "\"" +
-                  " AND metadata.user_labels.\"aws:autoscaling:groupname\"=" + stackdriverCanaryScope.getScope();
+                  " AND metadata.user_labels.\"aws:autoscaling:groupname\"=" + scope;
       } else if ("gae_app".equals(resourceType)) {
+        if (StringUtils.isEmpty(scope)) {
+          throw new IllegalArgumentException("Scope is required when resourceType is 'gae_app'.");
+        }
+
         filter += " AND resource.labels.project_id=" + projectId +
-                  " AND resource.labels.version_id=" + stackdriverCanaryScope.getScope();
+                  " AND resource.labels.version_id=" + scope;
 
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
 
@@ -177,6 +202,14 @@ public class StackdriverMetricsService implements MetricsService {
     }
 
     log.debug("filter={}", filter);
+
+    if (StringUtils.isEmpty(stackdriverCanaryScope.getStart())) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(stackdriverCanaryScope.getEnd())) {
+      throw new IllegalArgumentException("End time is required.");
+    }
 
     long alignmentPeriodSec = stackdriverCanaryScope.getStep();
     Monitoring.Projects.TimeSeries.List list = monitoring

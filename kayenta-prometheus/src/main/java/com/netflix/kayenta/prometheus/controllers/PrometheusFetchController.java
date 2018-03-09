@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.netflix.kayenta.canary.util.FetchControllerUtils.determineDefaultProperty;
+
 @RestController
 @RequestMapping("/fetch/prometheus")
 @Slf4j
@@ -77,29 +79,17 @@ public class PrometheusFetchController {
                           @ApiParam(defaultValue = "mode=~\"user|system\"")
                             @RequestParam(required = false) List<String> labelBindings,
                           @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-08T01:02:53Z")
-                            @RequestParam(required = false) Instant start,
+                            @RequestParam(required = false) String start,
                           @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-08T01:12:22Z")
-                            @RequestParam(required = false) Instant end,
-                          @ApiParam(defaultValue = "60") @RequestParam Long step) throws IOException {
+                            @RequestParam(required = false) String end,
+                          @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step) throws IOException {
     // Apply defaults.
-    if (StringUtils.isEmpty(project) && !StringUtils.isEmpty(prometheusConfigurationTestControllerDefaultProperties.getProject())) {
-      project = prometheusConfigurationTestControllerDefaultProperties.getProject();
-    }
-    if (StringUtils.isEmpty(resourceType) && !StringUtils.isEmpty(prometheusConfigurationTestControllerDefaultProperties.getResourceType())) {
-      resourceType = prometheusConfigurationTestControllerDefaultProperties.getResourceType();
-    }
-    if (StringUtils.isEmpty(region) && !StringUtils.isEmpty(prometheusConfigurationTestControllerDefaultProperties.getRegion())) {
-      region = prometheusConfigurationTestControllerDefaultProperties.getRegion();
-    }
-    if (StringUtils.isEmpty(scope) && !StringUtils.isEmpty(prometheusConfigurationTestControllerDefaultProperties.getScope())) {
-      scope = prometheusConfigurationTestControllerDefaultProperties.getScope();
-    }
-    if (start == null && !StringUtils.isEmpty(prometheusConfigurationTestControllerDefaultProperties.getStart())) {
-      start = Instant.parse(prometheusConfigurationTestControllerDefaultProperties.getStart());
-    }
-    if (end == null && !StringUtils.isEmpty(prometheusConfigurationTestControllerDefaultProperties.getEnd())) {
-      end = Instant.parse(prometheusConfigurationTestControllerDefaultProperties.getEnd());
-    }
+    project = determineDefaultProperty(project, "project", prometheusConfigurationTestControllerDefaultProperties);
+    resourceType = determineDefaultProperty(resourceType, "resourceType", prometheusConfigurationTestControllerDefaultProperties);
+    region = determineDefaultProperty(region, "region", prometheusConfigurationTestControllerDefaultProperties);
+    scope = determineDefaultProperty(scope, "scope", prometheusConfigurationTestControllerDefaultProperties);
+    start = determineDefaultProperty(start, "start", prometheusConfigurationTestControllerDefaultProperties);
+    end = determineDefaultProperty(end, "end", prometheusConfigurationTestControllerDefaultProperties);
 
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
@@ -126,8 +116,8 @@ public class PrometheusFetchController {
     prometheusCanaryScope.setScope(scope);
     prometheusCanaryScope.setRegion(region);
     prometheusCanaryScope.setResourceType(resourceType);
-    prometheusCanaryScope.setStart(start);
-    prometheusCanaryScope.setEnd(end);
+    prometheusCanaryScope.setStart(Instant.parse(start));
+    prometheusCanaryScope.setEnd(Instant.parse(end));
     prometheusCanaryScope.setStep(step);
 
     if (!StringUtils.isEmpty(project)) {
