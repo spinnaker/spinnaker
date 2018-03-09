@@ -4,17 +4,18 @@ const path = require('path');
 // Regarding the asterisks:
 // https://github.com/davglass/license-checker#how-licenses-are-found
 const ALLOWED_LICENSES = [
-  'MIT',
-  'MIT*',
-  'BSD',
-  'Apache-2.0',
   'Apache*',
+  'Apache-2.0',
+  'Apache v2.0',
+  'BSD',
+  'BSD-2-Clause',
+  'BSD-3-Clause',
   'BSD-3-Clause OR MIT',
   '(GPL-2.0 OR MIT)',
-  'BSD-3-Clause',
-  'BSD-2-Clause',
+  'ISC',
+  'MIT',
+  'MIT*',
   'MPL-2.0 OR Apache-2.0',
-  'Apache v2.0',
 ];
 
 const cb = (err, licenses) => {
