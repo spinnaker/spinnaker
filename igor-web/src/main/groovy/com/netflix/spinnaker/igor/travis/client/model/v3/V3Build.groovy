@@ -48,8 +48,7 @@ class V3Build {
     TravisBuildState state
     @JsonProperty("finished_at")
     Instant finishedAt
-    @JsonProperty(value = "job_ids")
-    List <Integer> job_ids
+    List<V3Job> jobs
     Config config
 
     long timestamp() {

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
@@ -37,17 +38,20 @@ import com.netflix.spinnaker.igor.travis.client.model.GithubAuth
 import com.netflix.spinnaker.igor.travis.client.model.Job
 import com.netflix.spinnaker.igor.travis.client.model.Jobs
 import com.netflix.spinnaker.igor.travis.client.model.Repo
-import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
+import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
+
+import javax.annotation.Nullable
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
@@ -61,16 +65,18 @@ class TravisService implements BuildService {
     final TravisClient travisClient
     final TravisCache travisCache
     final private Set<String> artifactRegexes
+    final private ArtifactDecorator artifactDecorator
     protected AccessToken accessToken
     private Accounts accounts
 
-    TravisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Iterable<String> artifactRegexes) {
+    TravisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, @Nullable ArtifactDecorator artifactDecorator, Iterable<String> artifactRegexes) {
         this.numberOfRepositories = numberOfRepositories
         this.groupKey             = "${travisHostId}"
         this.gitHubAuth           = new GithubAuth(githubToken)
         this.travisClient         = travisClient
         this.baseUrl              = baseUrl
         this.travisCache          = travisCache
+        this.artifactDecorator    = artifactDecorator
         this.artifactRegexes      = artifactRegexes ?: []
     }
 
@@ -244,43 +250,35 @@ class TravisService implements BuildService {
     }
 
     String getLog(Build build) {
-        String buildLog = ""
+        StringBuilder buildLog = new StringBuilder()
         build.job_ids.each {
             Job job = getJob(it.intValue())
             if (job.logId) {
-                buildLog += getLog(job.logId)
+                buildLog << getLog(job.logId)
             } else {
-                buildLog += getJobLog(job.id)
+                buildLog << getJobLog(job.id)?.content
             }
         }
-        return buildLog
+        return buildLog.toString()
     }
 
     String getLog(V3Build build) {
-        String buildLog = ""
-        build.job_ids.each {
-            Job job = getJob(it.intValue())
-            if (job.logId) {
-                buildLog += getLog(job.logId)
-            } else {
-                buildLog += getJobLog(job.id)
-            }
+        StringBuilder buildLog = new StringBuilder()
+        build.jobs.each {
+            buildLog << getJobLog(it.id)?.content
         }
-        return buildLog
+        return buildLog.toString()
     }
 
     String getLog(int logId) {
         log.debug "fetching log by logId ${logId}"
         Response response = travisClient.log(getAccessToken(), logId)
-        String job_log = new String(((TypedByteArray) response.getBody()).getBytes());
-        return job_log
+        return new String(((TypedByteArray) response.getBody()).getBytes())
     }
 
-    String getJobLog(int jobId) {
+    V3Log getJobLog(int jobId) {
         log.debug "fetching log by jobId ${jobId}"
-        Response response = travisClient.jobLog(getAccessToken(), jobId)
-        String job_log = new String(((TypedByteArray) response.getBody()).getBytes());
-        return job_log
+        return travisClient.jobLog(getAccessToken(), jobId)
     }
 
     Repo getRepo(int repositoryId) {
@@ -293,13 +291,13 @@ class TravisService implements BuildService {
 
     GenericBuild getGenericBuild(Build build, String repoSlug) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, repoSlug, baseUrl)
-        genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(getLog(build), artifactRegexes)
+        parseAndDecorateArtifacts(getLog(build), genericBuild)
         return genericBuild
     }
 
     GenericBuild getGenericBuild(V3Build build) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, baseUrl)
-        genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(getLog(build), artifactRegexes)
+        parseAndDecorateArtifacts(getLog(build), genericBuild)
         return genericBuild
     }
 
@@ -384,6 +382,7 @@ class TravisService implements BuildService {
     protected static boolean branchIsTagsVirtualBranch(String inputRepoSlug) {
         return extractBranchFromRepoSlug(inputRepoSlug).equalsIgnoreCase("tags")
     }
+
     protected static boolean branchIsPullRequestVirtualBranch(String inputRepoSlug) {
         return extractBranchFromRepoSlug(inputRepoSlug).startsWith("pull_request_")
     }
@@ -447,5 +446,12 @@ class TravisService implements BuildService {
 
     private String buildCommandKey(String id) {
         return "${groupKey}-${id}"
+    }
+
+    private void parseAndDecorateArtifacts(String log, GenericBuild genericBuild) {
+        genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(log, artifactRegexes)
+        if (artifactDecorator) {
+            artifactDecorator.decorate(genericBuild)
+        }
     }
 }

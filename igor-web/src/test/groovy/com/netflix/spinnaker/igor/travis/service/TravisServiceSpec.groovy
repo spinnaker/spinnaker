@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.igor.travis.service
 
+import com.netflix.spinnaker.igor.build.artifact.decorator.DebDetailsDecorator
+import com.netflix.spinnaker.igor.build.artifact.decorator.RpmDetailsDecorator
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.Result
+import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.travis.client.TravisClient
 import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Build
@@ -38,9 +41,13 @@ class TravisServiceSpec extends Specification{
     @Shared
     TravisService service
 
+    @Shared
+    ArtifactDecorator artifactDecorator
+
     void setup() {
         client = Mock(TravisClient)
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, null, [])
+        artifactDecorator = new ArtifactDecorator([new DebDetailsDecorator(), new RpmDetailsDecorator()], null)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', 25, client, null, artifactDecorator, [])
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
+import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.igor.travis.TravisCache
 import com.netflix.spinnaker.igor.travis.client.TravisClient
@@ -48,21 +49,21 @@ import java.util.concurrent.TimeUnit
 class TravisConfig {
 
     @Bean
-    Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper) {
+    Map<String, TravisService> travisMasters(BuildMasters buildMasters, TravisCache travisCache, IgorConfigurationProperties igorConfigurationProperties, @Valid TravisProperties travisProperties, ObjectMapper objectMapper, ArtifactDecorator artifactDecorator) {
         log.info "creating travisMasters"
         Map<String, TravisService> travisMasters = (travisProperties?.masters?.collectEntries { TravisProperties.TravisHost host ->
             String travisName = "travis-${host.name}"
             log.info "bootstrapping ${host.address} as ${travisName}"
 
             def client = travisClient(host.address, igorConfigurationProperties.client.timeout, objectMapper)
-            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, host.numberOfRepositories, client, travisCache, travisProperties?.regexes)]
+            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, host.numberOfRepositories, client, travisCache, artifactDecorator, travisProperties?.regexes)]
         })
         buildMasters.map.putAll travisMasters
         travisMasters
     }
 
-    static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, Iterable<String> artifactRexeges) {
-        return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactRexeges)
+    static TravisService travisService(String travisHostId, String baseUrl, String githubToken, int numberOfRepositories, TravisClient travisClient, TravisCache travisCache, ArtifactDecorator artifactDecorator, Iterable<String> artifactRexeges) {
+        return new TravisService(travisHostId, baseUrl, githubToken, numberOfRepositories, travisClient, travisCache, artifactDecorator, artifactRexeges)
     }
 
     static TravisClient travisClient(String address, int timeout = 30000, ObjectMapper objectMapper = new ObjectMapper()) {
