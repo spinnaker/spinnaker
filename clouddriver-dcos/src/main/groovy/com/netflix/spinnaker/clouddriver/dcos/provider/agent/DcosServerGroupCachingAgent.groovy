@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
 import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerAppId
+import com.netflix.spinnaker.clouddriver.dcos.model.DcosInstance
 import com.netflix.spinnaker.clouddriver.dcos.model.DcosServerGroup
 import com.netflix.spinnaker.clouddriver.dcos.provider.DcosProvider
 import com.netflix.spinnaker.clouddriver.dcos.provider.MutableCacheData
@@ -57,7 +58,7 @@ class DcosServerGroupCachingAgent implements CachingAgent, AccountAware, OnDeman
                                   AUTHORITATIVE.forType(Keys.Namespace.SERVER_GROUPS.ns),
                                   AUTHORITATIVE.forType(Keys.Namespace.APPLICATIONS.ns),
                                   AUTHORITATIVE.forType(Keys.Namespace.CLUSTERS.ns),
-                                  INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns),
+                                  AUTHORITATIVE.forType(Keys.Namespace.INSTANCES.ns),
                                   INFORMATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
                                 ] as Set)
 
@@ -328,10 +329,19 @@ class DcosServerGroupCachingAgent implements CachingAgent, AccountAware, OnDeman
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)
         }
 
+
         app.tasks.forEach { task ->
-          String instanceKey = Keys.getInstanceKey(spinnakerId, task.id)
+          final String safeGroup = DcosSpinnakerAppId.parse(task.getAppId()).get().getSafeGroup()
+          def groupName = clusterName
+          if (!safeGroup.isEmpty()) {
+            groupName = "${clusterName}_${safeGroup}"
+          }
+          final String instanceKey = Keys.getInstanceKey(accountName, groupName, task.id)
           instanceKeys << instanceKey
+          final boolean isDeploying = app.deployments != null && !app.deployments.empty
           cachedInstances[instanceKey].with {
+            attributes.name = task.id
+            attributes.instance = new DcosInstance(task, accountName, clusterName, clusterUrl, isDeploying)
             relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
             relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
             relationships[Keys.Namespace.SERVER_GROUPS.ns].add(serverGroupKey)

@@ -25,7 +25,7 @@ import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
 import com.netflix.spinnaker.clouddriver.dcos.provider.DcosProvider
-import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosInstanceCachingAgent
+
 import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosSecretsCachingAgent
 import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosServerGroupCachingAgent
@@ -103,9 +103,6 @@ class DcosProviderConfig {
 
           newlyAddedAgents << new DcosLoadBalancerCachingAgent(credentials.account, clusterCredentials.cluster,
                                                                credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
-
-          newlyAddedAgents << new DcosInstanceCachingAgent(credentials.account, clusterCredentials.cluster,
-                                                           credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper)
         }
       }
     }
