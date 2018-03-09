@@ -46,20 +46,14 @@ export class CloudProviderIcon extends React.Component<IServerGroupHeaderProps> 
   }
 }
 
-export class Sequence extends React.Component<IServerGroupHeaderProps> {
+export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeaderProps> {
   public render() {
-    const { serverGroup } = this.props;
+    const { serverGroup, jenkins, images } = this.props;
     const serverGroupSequence = ReactInjector.namingService.getSequence(serverGroup.moniker.sequence);
-    return <span className="server-group-sequence"> {serverGroupSequence}</span>;
-  }
-}
-
-export class BuildAndImages extends React.Component<IServerGroupHeaderProps> {
-  public render() {
-    const { jenkins, images } = this.props;
     return (
       <div>
-        {(!!jenkins || !!images) && <span>: </span>}
+        {!!serverGroupSequence && <span className="server-group-sequence"> {serverGroupSequence}</span>}
+        {(!!serverGroupSequence && (!!jenkins || !!images)) && <span>: </span>}
         {!!jenkins && <a className="build-link" href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
         {!!images && <span>{images}</span>}
       </div>
@@ -125,8 +119,7 @@ export class ServerGroupHeader extends React.Component<IServerGroupHeaderProps> 
         <div className="flex-container-h baseline section-title">
           <MultiSelectCheckbox {...props}/>
           <CloudProviderIcon {...props}/>
-          <Sequence {...props}/>
-          <BuildAndImages {...props}/>
+          <SequenceAndBuildAndImages {...props}/>
           <Alerts {...props}/>
         </div>
 
