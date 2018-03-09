@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-
 import { Application } from 'core/application/application.model';
 import { IExecution, IServerGroup, ITask } from 'core/domain';
 import { CollapsibleSection, robotToHuman } from 'core/presentation';
@@ -36,23 +35,18 @@ export class RunningTasks extends React.Component<IRunningTasksProps> {
 }
 
 const Task = (props: { task: ITask, application: Application }): JSX.Element => (
-  <div className="container-fluid no-padding">
-    <div className="row">
-      <div className="col-md-12">
-        <strong>
-          {props.task.name}
-        </strong>
-      </div>
-    </div>
+  <div>
+    <strong>{props.task.name}</strong>
     {displayableTasks(props.task.steps).map((step, index) => (
-      <div className="row" key={index}>
-        <div className="col-md-7 col-md-offset-0">
-          <span className="small"><StatusGlyph item={step}/></span>{' '}{robotToHuman(step.name)}
+      <div className="flex-container-h baseline margin-between-sm" key={index}>
+        <span className="small"><StatusGlyph item={step}/></span>
+        <div>
+          <span>{robotToHuman(step.name)}</span>
           {step.name === 'waitForUpInstances' && (
-            <PlatformHealthOverrideMessage step={step} task={props.task} application={props.application} />
+            <PlatformHealthOverrideMessage step={step} task={props.task} application={props.application}/>
           )}
         </div>
-        <div className="col-md-4 text-right">
+        <div className="flex-pull-right">
           {duration(step.runningTimeInMs)}
         </div>
       </div>
@@ -61,23 +55,16 @@ const Task = (props: { task: ITask, application: Application }): JSX.Element => 
 );
 
 const Execution = (props: { execution: IExecution }): JSX.Element => (
-  <div className="container-fluid no-padding">
-    <div className="row">
-      <div className="col-md-12">
-        <strong>
-          Pipeline: {props.execution.name}
-        </strong>
-      </div>
-    </div>
+  <div>
+    <strong>Pipeline: {props.execution.name}</strong>
     {props.execution.stages.map((stage) => (
-    <div className="row">
-      <div className="col-md-7 col-md-offset-0">
-        <span className="small"><StatusGlyph item={stage}/></span> {robotToHuman(stage.name)}
+      <div className="flex-container-h baseline margin-between-sm">
+        <span className="small"><StatusGlyph item={stage}/></span>
+        <span>{robotToHuman(stage.name)}</span>
+        <div className="flex-pull-right">
+          {duration(stage.runningTimeInMs)}
+        </div>
       </div>
-      <div className="col-md-4 text-right">
-        {duration(stage.runningTimeInMs)}
-      </div>
-    </div>
-  ))}
+    ))}
   </div>
 );
