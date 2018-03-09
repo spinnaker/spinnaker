@@ -41,7 +41,8 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     CanScale,
     CanPauseRollout,
     CanResumeRollout,
-    CanUndoRollout {
+    CanUndoRollout,
+    ServerGroupManagerHandler {
 
   public KubernetesDeploymentHandler() {
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
 import com.netflix.spinnaker.clouddriver.model.Instance;
@@ -96,7 +97,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     return disabled;
   }
 
-  private KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances, Set<String> loadBalancers) {
+  protected KubernetesV2ServerGroup(KubernetesManifest manifest, String key, List<KubernetesV2Instance> instances, Set<String> loadBalancers) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();
     this.instances = new HashSet<>(instances);
@@ -118,15 +119,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .build();
   }
 
-  public static KubernetesV2ServerGroup fromCacheData(CacheData cd) {
-    return fromCacheData(cd, new ArrayList<>(), new ArrayList<>());
-  }
-
-  public static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData) {
-    return fromCacheData(cd, instanceData, new ArrayList<>());
-  }
-
-  public static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData, List<CacheData> loadBalancerData) {
+  private static KubernetesV2ServerGroup fromCacheData(CacheData cd, List<CacheData> instanceData, List<CacheData> loadBalancerData) {
     if (cd == null) {
       return null;
     }
@@ -157,6 +150,10 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
         .collect(Collectors.toSet());
 
     return new KubernetesV2ServerGroup(manifest, cd.getId(), instances, loadBalancers);
+  }
+
+  public static KubernetesV2ServerGroup fromCacheData(KubernetesV2ServerGroupCacheData cacheData) {
+    return fromCacheData(cacheData.getServerGroupData(), cacheData.getInstanceData(), cacheData.getLoadBalancerData());
   }
 
   public ServerGroupSummary toServerGroupSummary() {

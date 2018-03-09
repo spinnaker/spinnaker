@@ -20,8 +20,17 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.ManifestBasedModel;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2CacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.ModelHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,11 +49,17 @@ import java.util.stream.Collectors;
 public class KubernetesCacheUtils {
   private final Cache cache;
   private final KubernetesSpinnakerKindMap kindMap;
+  private final KubernetesResourcePropertyRegistry registry;
 
   @Autowired
-  public KubernetesCacheUtils(Cache cache, KubernetesSpinnakerKindMap kindMap) {
+  public KubernetesCacheUtils(
+    Cache cache,
+    KubernetesSpinnakerKindMap kindMap,
+    KubernetesResourcePropertyRegistry resourcePropertyRegistry
+  ) {
     this.cache = cache;
     this.kindMap = kindMap;
+    this.registry = resourcePropertyRegistry;
   }
 
   public Collection<CacheData> getAllKeys(String type) {
@@ -137,5 +152,19 @@ public class KubernetesCacheUtils {
     }
 
     return result;
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T extends ManifestBasedModel> T resourceModelFromCacheData(KubernetesV2CacheData cacheData) {
+    Keys.InfrastructureCacheKey key = (Keys.InfrastructureCacheKey) Keys.parseKey(cacheData.primaryData().getId()).get();
+    KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cacheData.primaryData());
+
+    KubernetesResourceProperties properties = registry.get(key.getAccount(), manifest.getKind());
+    KubernetesHandler handler = properties.getHandler();
+    if (handler instanceof ModelHandler) {
+      return (T) ((ModelHandler) handler).fromCacheData(cacheData);
+    } else {
+      return null;
+    }
   }
 }

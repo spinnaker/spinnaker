@@ -20,6 +20,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupManagerCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManager;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupSummary;
@@ -47,7 +49,7 @@ public class KubernetesV2ServerGroupManager extends ManifestBasedModel implement
     this.serverGroups = serverGroups;
   }
 
-  public static KubernetesV2ServerGroupManager fromCacheData(CacheData cd, List<CacheData> serverGroupData) {
+  private static KubernetesV2ServerGroupManager fromCacheData(CacheData cd, List<CacheData> serverGroupData) {
     if (cd == null) {
       return null;
     }
@@ -64,11 +66,20 @@ public class KubernetesV2ServerGroupManager extends ManifestBasedModel implement
     }
 
     Set<ServerGroupSummary> serverGroups = serverGroupData.stream()
-        .map(KubernetesV2ServerGroup::fromCacheData)
+        .map(data -> KubernetesV2ServerGroup.fromCacheData(
+          KubernetesV2ServerGroupCacheData.builder()
+            .serverGroupData(data)
+            .instanceData(new ArrayList<>())
+            .loadBalancerData(new ArrayList<>())
+            .build()))
         .filter(Objects::nonNull)
         .map(KubernetesV2ServerGroup::toServerGroupSummary)
         .collect(Collectors.toSet());
 
     return new KubernetesV2ServerGroupManager(manifest, cd.getId(), serverGroups);
+  }
+
+  public static KubernetesV2ServerGroupManager fromCacheData(KubernetesV2ServerGroupManagerCacheData data) {
+    return fromCacheData(data.getServerGroupManagerData(), data.getServerGroupData());
   }
 }

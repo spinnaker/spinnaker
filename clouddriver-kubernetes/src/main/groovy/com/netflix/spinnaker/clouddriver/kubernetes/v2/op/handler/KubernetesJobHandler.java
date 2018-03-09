@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesJobHandler extends KubernetesHandler implements
-  CanDelete {
+  CanDelete,
+  ServerGroupHandler {
 
   public KubernetesJobHandler() {
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());

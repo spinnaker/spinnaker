@@ -19,8 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroupManager;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupManagerCacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManagerProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -61,7 +66,11 @@ public class KubernetesV2ServerGroupManagerProvider implements ServerGroupManage
     Map<String, List<CacheData>> managerToServerGroupMap = cacheUtils.mapByRelationship(serverGroupData, SERVER_GROUP_MANAGERS);
 
     return serverGroupManagerData.stream()
-        .map(cd -> KubernetesV2ServerGroupManager.fromCacheData(cd, managerToServerGroupMap.getOrDefault(cd.getId(), new ArrayList<>())))
+        .map(cd ->
+          cacheUtils.<KubernetesV2ServerGroupManager>resourceModelFromCacheData(KubernetesV2ServerGroupManagerCacheData.builder()
+            .serverGroupManagerData(cd)
+            .serverGroupData(managerToServerGroupMap.getOrDefault(cd.getId(), new ArrayList<>()))
+            .build()))
         .collect(Collectors.toSet());
   }
 }

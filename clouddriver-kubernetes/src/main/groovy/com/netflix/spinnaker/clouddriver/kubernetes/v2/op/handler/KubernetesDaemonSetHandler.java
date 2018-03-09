@@ -38,7 +38,8 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
     CanDelete,
     CanPauseRollout,
     CanResumeRollout,
-    CanUndoRollout {
+    CanUndoRollout,
+    ServerGroupHandler {
 
   @Override
   public KubernetesKind kind() {

@@ -41,7 +41,8 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     CanResize,
     CanDelete,
-    CanScale {
+    CanScale,
+    ServerGroupHandler {
 
   public KubernetesReplicaSetHandler() {
     registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());

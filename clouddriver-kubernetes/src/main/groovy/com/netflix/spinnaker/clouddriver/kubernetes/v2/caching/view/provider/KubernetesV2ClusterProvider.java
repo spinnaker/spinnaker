@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Cluster;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2LoadBalancer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroup;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -151,7 +152,12 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
           .flatMap(Collection::stream)
           .collect(Collectors.toList());
 
-      return KubernetesV2ServerGroup.fromCacheData(cd, instanceData, loadBalancerData);
+      return cacheUtils.<KubernetesV2ServerGroup>resourceModelFromCacheData(
+        KubernetesV2ServerGroupCacheData.builder()
+          .serverGroupData(cd)
+          .instanceData(instanceData)
+          .loadBalancerData(loadBalancerData)
+          .build());
     }).orElse(null);
   }
 
@@ -268,9 +274,12 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
     }
 
     List<KubernetesV2ServerGroup> serverGroups = serverGroupData.stream()
-        .map(cd -> KubernetesV2ServerGroup.fromCacheData(cd,
-            instanceDataByServerGroup.getOrDefault(cd.getId(), new ArrayList<>()),
-            loadBalancerDataByServerGroup.getOrDefault(cd.getId(), new ArrayList<>()))
+        .map(cd -> cacheUtils.<KubernetesV2ServerGroup>resourceModelFromCacheData(
+          KubernetesV2ServerGroupCacheData.builder()
+            .serverGroupData(cd)
+            .instanceData(instanceDataByServerGroup.getOrDefault(cd.getId(), new ArrayList<>()))
+            .loadBalancerData(loadBalancerDataByServerGroup.getOrDefault(cd.getId(), new ArrayList<>()))
+            .build())
         )
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

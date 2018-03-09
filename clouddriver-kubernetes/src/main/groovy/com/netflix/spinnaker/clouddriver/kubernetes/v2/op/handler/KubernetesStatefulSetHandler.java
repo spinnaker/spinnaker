@@ -41,7 +41,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
     CanScale,
     CanPauseRollout,
     CanResumeRollout,
-    CanUndoRollout {
+    CanUndoRollout,
+    ServerGroupHandler {
 
   public KubernetesStatefulSetHandler() {
     registerReplacer(
