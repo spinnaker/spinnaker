@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.q
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.NoopRegistry
@@ -68,6 +70,7 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant.now
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit.HOURS
 
 @SpringBootTest(
   classes = [TestConfig::class],
@@ -419,6 +422,7 @@ class QueueIntegrationTest {
 
   @Test
   fun `can run a stage with an execution window`() {
+    val now = now().atZone(timeZone)
     val pipeline = pipeline {
       application = "spinnaker"
       stage {
@@ -429,9 +433,9 @@ class QueueIntegrationTest {
           "restrictedExecutionWindow" to mapOf(
             "days" to (1..7).toList(),
             "whitelist" to listOf(mapOf(
-              "startHour" to now().atZone(timeZone).hour,
+              "startHour" to now.hour,
               "startMin" to 0,
-              "endHour" to now().atZone(timeZone).hour + 1,
+              "endHour" to now.plus(1, HOURS).hour,
               "endMin" to 0
             ))
           )
@@ -455,6 +459,7 @@ class QueueIntegrationTest {
 
   @Test
   fun `parallel stages do not duplicate execution windows`() {
+    val now = now().atZone(timeZone)
     val pipeline = pipeline {
       application = "spinnaker"
       stage {
@@ -465,9 +470,9 @@ class QueueIntegrationTest {
           "restrictedExecutionWindow" to mapOf(
             "days" to (1..7).toList(),
             "whitelist" to listOf(mapOf(
-              "startHour" to now().atZone(timeZone).hour,
+              "startHour" to now.hour,
               "startMin" to 0,
-              "endHour" to now().atZone(timeZone).hour + 1,
+              "endHour" to now.plus(1, HOURS).hour,
               "endMin" to 0
             ))
           )

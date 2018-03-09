@@ -41,10 +41,6 @@ include "orca-extensionpoint",
   "orca-pipelinetemplate",
   "orca-validation"
 
-if (!Boolean.parseBoolean(System.getProperty('skip.loadtest'))) {
-  include "orca-loadtest"
-}
-
 rootProject.name = "orca"
 
 def setBuildFile(project) {
