@@ -99,10 +99,12 @@ public class PrometheusMetricsService implements MetricsService {
     // TODO(duftler): Add support for custom filter templates.
     if ("gce_instance".equals(resourceType)) {
       addGCEFilters(scopeLabel, scope, projectId, region, filters);
+    } else if ("aws_ec2_instance".equals(resourceType)) {
+      addEC2Filters("asg_groupName", scope, region, filters);
     } else {
       log.warn("There is no explicit support for resourceType '" + resourceType + "'. Your mileage may vary.");
     }
-    // TODO(duftler): Add support for AWS & K8S resource types.
+    // TODO(duftler): Add support for K8S resource types.
 
     if (!filters.isEmpty()) {
       String sep = "";
@@ -137,6 +139,18 @@ public class PrometheusMetricsService implements MetricsService {
 
     zoneRegex += "zones/" + region + "-.{1}";
     filters.add("zone=~\"" + zoneRegex + "\"");
+  }
+
+  private static void addEC2Filters(String scopeLabel, String scope, String region, List<String> filters) {
+    if (StringUtils.isEmpty(region)) {
+      throw new IllegalArgumentException("Region is required when resourceType is 'aws_ec2_instance'.");
+    }
+
+    if (!StringUtils.isEmpty(scope)) {
+      filters.add(scopeLabel + "=\"" + scope + "\"");
+    }
+
+    filters.add("zone=~\"" + region + ".{1}\"");
   }
 
   private static StringBuilder addAvgQuery(StringBuilder queryBuilder) {
@@ -185,6 +199,14 @@ public class PrometheusMetricsService implements MetricsService {
     List<PrometheusResults> prometheusResultsList;
 
     try {
+      if (StringUtils.isEmpty(prometheusCanaryScope.getStart())) {
+        throw new IllegalArgumentException("Start time is required.");
+      }
+
+      if (StringUtils.isEmpty(prometheusCanaryScope.getEnd())) {
+        throw new IllegalArgumentException("End time is required.");
+      }
+
       prometheusResultsList = prometheusRemoteService.rangeQuery(queryBuilder.toString(),
                                                                  prometheusCanaryScope.getStart().toString(),
                                                                  prometheusCanaryScope.getEnd().toString(),

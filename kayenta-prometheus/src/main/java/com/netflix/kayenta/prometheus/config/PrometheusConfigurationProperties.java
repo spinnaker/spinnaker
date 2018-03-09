@@ -32,11 +32,10 @@ public class PrometheusConfigurationProperties {
   /**
    * TODO(duftler): Once we've finished docs for all target platforms, move this somewhere more appropriate.
    * GCE:
-   * This default assumes you've configured Prometheus service discovery to automatically identify
-   * the GCE instances to scrape. The following sample configuration also does the required relabelling
-   * such that the instance names are used instead of the ip addresses.
+   * Configures Prometheus service discovery to automatically identify the GCE instances to scrape. The following sample
+   * configuration also does the required relabelling such that the instance names are used instead of the ip addresses.
 
-   - job_name: 'gce_svc_disco'
+   - job_name: 'gce_svc_discovery'
 
      gce_sd_configs:
      - project: $PROJECT-ID
@@ -49,6 +48,25 @@ public class PrometheusConfigurationProperties {
        target_label: instance
        replacement: $1
      - source_labels: [__meta_gce_zone]
+       target_label: zone
+       replacement: $1
+
+   * AWS/EC2:
+   * Configures Prometheus service discovery to automatically identify the EC2 instances to scrape. The following sample
+   * configuration also does the required relabelling such that the asg names are retrieved from the instance tags.
+
+   - job_name: 'aws_svc_discovery'
+
+     ec2_sd_configs:
+     - region: $REGION
+       access_key: ***
+       secret_key: ***
+       port: 9100
+
+     relabel_configs:
+     - source_labels: [__meta_ec2_tag_aws_autoscaling_groupName]
+       target_label: asg_groupName
+     - source_labels: [__meta_ec2_availability_zone]
        target_label: zone
        replacement: $1
 

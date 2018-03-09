@@ -51,6 +51,12 @@ public class PrometheusConfiguration {
   }
 
   @Bean
+  @ConfigurationProperties("kayenta.prometheus.testControllerDefaults")
+  PrometheusConfigurationTestControllerDefaultProperties prometheusConfigurationTestControllerDefaultProperties() {
+    return new PrometheusConfigurationTestControllerDefaultProperties();
+  }
+
+  @Bean
   MetricsService prometheusMetricsService(PrometheusResponseConverter prometheusConverter,
                                           PrometheusConfigurationProperties prometheusConfigurationProperties,
                                           RetrofitClientFactory retrofitClientFactory,

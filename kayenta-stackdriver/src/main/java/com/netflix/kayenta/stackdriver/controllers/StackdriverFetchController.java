@@ -68,8 +68,8 @@ public class StackdriverFetchController {
                           @ApiParam(defaultValue = "gce_instance") @RequestParam String resourceType,
                           @ApiParam(defaultValue = "us-central1") @RequestParam(required = false) String region,
                           @ApiParam(defaultValue = "myapp-v059") @RequestParam(required = false) String scope,
-                          @ApiParam(defaultValue = "2018-01-21T12:48:00Z") @RequestParam Instant startTimeIso,
-                          @ApiParam(defaultValue = "2018-01-21T12:51:00Z") @RequestParam Instant endTimeIso,
+                          @ApiParam(defaultValue = "2018-02-21T12:48:00Z") @RequestParam Instant startTimeIso,
+                          @ApiParam(defaultValue = "2018-02-21T12:51:00Z") @RequestParam Instant endTimeIso,
                           @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
                           @RequestParam(required = false) final String customFilter,
                           @ApiParam @RequestBody final Map<String, String> extendedScopeParams) throws IOException {
