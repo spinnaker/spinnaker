@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts;
 
+import com.netflix.spinnaker.clouddriver.artifacts.embedded.EmbeddedArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.gcs.GcsArtifactConfiguration;
 import com.netflix.spinnaker.clouddriver.artifacts.github.GitHubArtifactConfiguration;
+import com.netflix.spinnaker.clouddriver.artifacts.http.HttpArtifactConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -33,8 +35,10 @@ import org.springframework.stereotype.Component;
 @Component
 @ComponentScan({"com.netflix.spinnaker.clouddriver.artifacts"})
 @Import({
+  EmbeddedArtifactConfiguration.class,
   GcsArtifactConfiguration.class,
-  GitHubArtifactConfiguration.class
+  GitHubArtifactConfiguration.class,
+  HttpArtifactConfiguration.class
 })
 public class ArtifactConfiguration {
   @Bean
