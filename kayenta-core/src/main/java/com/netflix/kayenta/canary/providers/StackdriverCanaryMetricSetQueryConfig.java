@@ -37,14 +37,9 @@ public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQue
   @Getter
   private List<String> groupByFields;
 
-  // Optionally defines an explicit stackdriver filter to be used when composing the query. Takes precedence over
-  // customFilterTemplate.
   @Getter
   private String customFilter;
 
-  // Optionally refers by name to a FreeMarker template defined in the canary config top-level 'templates' map. It is
-  // expanded by using the key/value pairs in extendedScopeParams as the variable bindings. Once expanded, the
-  // resulting stackdriver filter is used when composing the query.
   @Getter
   private String customFilterTemplate;
 

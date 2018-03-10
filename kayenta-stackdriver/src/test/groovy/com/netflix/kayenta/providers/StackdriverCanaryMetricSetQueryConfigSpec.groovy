@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.stackdriver.metrics
+package com.netflix.kayenta.providers
 
 import com.netflix.kayenta.canary.CanaryConfig
+import com.netflix.kayenta.canary.providers.QueryConfigUtils
 import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
-class StackdriverMetricsServiceSpec extends Specification {
-
-  @Subject
-  StackdriverMetricsService stackdriverMetricsService = StackdriverMetricsService.builder().build()
+class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
 
   @Unroll
   void "Referenced template #customFilterTemplate expands properly"() {
@@ -37,7 +34,7 @@ class StackdriverMetricsServiceSpec extends Specification {
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(extendedScopeParams: scopeParams)
 
     expect:
-    stackdriverMetricsService.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == expectedExpandedTemplate
+    QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == expectedExpandedTemplate
 
     where:
     templates                                             | customFilterTemplate | scopeParams       || expectedExpandedTemplate
@@ -61,7 +58,7 @@ class StackdriverMetricsServiceSpec extends Specification {
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(extendedScopeParams: scopeParams)
 
     expect:
-    stackdriverMetricsService.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == expectedExpandedTemplate
+    QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == expectedExpandedTemplate
 
     where:
     templates                                             | customFilterTemplate | customFilter          | scopeParams       || expectedExpandedTemplate
@@ -85,7 +82,7 @@ class StackdriverMetricsServiceSpec extends Specification {
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(extendedScopeParams: scopeParams)
 
     when:
-    stackdriverMetricsService.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope)
+    QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope)
 
     then:
     thrown IllegalArgumentException
@@ -105,15 +102,19 @@ class StackdriverMetricsServiceSpec extends Specification {
     given:
     CanaryConfig canaryConfig = CanaryConfig.builder().templates(templates).build()
     StackdriverCanaryMetricSetQueryConfig stackdriverCanaryMetricSetQueryConfig =
-      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate(customFilterTemplate).build()
-    StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope(scope: scope, extendedScopeParams: scopeParams)
+      StackdriverCanaryMetricSetQueryConfig.builder().customFilterTemplate("my-template").build()
+    StackdriverCanaryScope stackdriverCanaryScope =
+      new StackdriverCanaryScope(project: "my-project", resourceType: "gce_instance", scope: "myapp-dev-v001", region: "us-east1", extendedScopeParams: [key1: "value-1"])
 
     expect:
-    stackdriverMetricsService.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope) == expectedExpandedTemplate
+    QueryConfigUtils.expandCustomFilter(canaryConfig, stackdriverCanaryMetricSetQueryConfig, stackdriverCanaryScope, (String[])["project", "resourceType", "scope", "region"]) == expectedExpandedTemplate
 
     where:
-    templates                                                     | customFilterTemplate | scope            | scopeParams       || expectedExpandedTemplate
-    ["my-template": 'A test: myGroupName=${scope} key1=${key1}.'] | "my-template"        | "myapp-dev-v001" | [key1: "value-1"] || "A test: myGroupName=myapp-dev-v001 key1=value-1."
-    ["my-template": 'A test: myGroupName=${scope} key1=${key1}.'] | "my-template"        | "myapp-dev-v002" | [key1: "value-1"] || "A test: myGroupName=myapp-dev-v002 key1=value-1."
+    templates                                                             || expectedExpandedTemplate
+    ["my-template": 'A test: myGroupName=${scope} key1=${key1}.']         || "A test: myGroupName=myapp-dev-v001 key1=value-1."
+    ["my-template": 'A test: project=${project} key1=${key1}.']           || "A test: project=my-project key1=value-1."
+    ["my-template": 'A test: resourceType=${resourceType} key1=${key1}.'] || "A test: resourceType=gce_instance key1=value-1."
+    ["my-template": 'A test: scope=${scope} key1=${key1}.']               || "A test: scope=myapp-dev-v001 key1=value-1."
+    ["my-template": 'A test: region=${region} key1=${key1}.']             || "A test: region=us-east1 key1=value-1."
   }
 }

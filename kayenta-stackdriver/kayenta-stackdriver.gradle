@@ -5,8 +5,6 @@ dependencies {
   // compile spinnaker.dependency('bootWeb')
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
 
-  compile "org.springframework.boot:spring-boot-starter-freemarker:$springBootVersion"
-
   // compile spinnaker.dependency("korkSwagger")
   compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
 

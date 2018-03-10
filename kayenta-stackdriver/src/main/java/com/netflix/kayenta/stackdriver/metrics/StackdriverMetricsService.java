@@ -24,10 +24,10 @@ import com.google.api.services.monitoring.v3.model.MetricDescriptor;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
-import com.google.common.annotations.VisibleForTesting;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.canary.providers.QueryConfigUtils;
 import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.metrics.MetricSet;
@@ -39,27 +39,21 @@ import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import com.netflix.kayenta.stackdriver.config.StackdriverConfigurationProperties;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.io.StringReader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -121,7 +115,11 @@ public class StackdriverMetricsService implements MetricsService {
       projectId = stackdriverCredentials.getProject();
     }
 
-    String customFilter = expandCustomFilter(canaryConfig, stackdriverMetricSetQuery, stackdriverCanaryScope);
+    String customFilter = QueryConfigUtils.expandCustomFilter(
+      canaryConfig,
+      stackdriverMetricSetQuery,
+      stackdriverCanaryScope,
+      new String[]{"project", "resourceType", "scope", "region"});
     String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
                     " AND resource.type=" + resourceType;
 
@@ -315,68 +313,6 @@ public class StackdriverMetricsService implements MetricsService {
     return metricSetList;
   }
 
-  @VisibleForTesting
-  String expandCustomFilter(CanaryConfig canaryConfig,
-                            StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery,
-                            StackdriverCanaryScope stackdriverCanaryScope) throws IOException {
-    String customFilter = stackdriverMetricSetQuery.getCustomFilter();
-    String customFilterTemplate = stackdriverMetricSetQuery.getCustomFilterTemplate();
-
-    log.debug("customFilter={}", customFilter);
-    log.debug("customFilterTemplate={}", customFilterTemplate);
-
-    if (StringUtils.isEmpty(customFilter) && !StringUtils.isEmpty(customFilterTemplate)) {
-      Map<String, String> templates = canaryConfig.getTemplates();
-
-      // TODO(duftler): Handle this as a config validation step instead.
-      if (CollectionUtils.isEmpty(templates)) {
-        throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was referenced, " +
-                                           "but no templates were defined.");
-      } else if (!templates.containsKey(customFilterTemplate)) {
-        throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was not found.");
-      }
-
-      Configuration configuration = new Configuration(Configuration.VERSION_2_3_26);
-      String templateStr = templates.get(customFilterTemplate);
-      Template template = new Template(customFilterTemplate, new StringReader(templateStr), configuration);
-
-      try {
-        log.debug("extendedScopeParams={}", stackdriverCanaryScope.getExtendedScopeParams());
-
-        Map<String, String> templateBindings = new LinkedHashMap<>();
-
-        if (!StringUtils.isEmpty(stackdriverCanaryScope.getProject())) {
-          templateBindings.put("project", stackdriverCanaryScope.getProject());
-        }
-
-        if (!StringUtils.isEmpty(stackdriverCanaryScope.getResourceType())) {
-          templateBindings.put("resourceType", stackdriverCanaryScope.getResourceType());
-        }
-
-        if (!StringUtils.isEmpty(stackdriverCanaryScope.getScope())) {
-          templateBindings.put("scope", stackdriverCanaryScope.getScope());
-        }
-
-        if (!StringUtils.isEmpty(stackdriverCanaryScope.getRegion())) {
-          templateBindings.put("region", stackdriverCanaryScope.getRegion());
-        }
-
-        if (!CollectionUtils.isEmpty(stackdriverCanaryScope.getExtendedScopeParams())) {
-          templateBindings.putAll(stackdriverCanaryScope.getExtendedScopeParams());
-        }
-
-        log.debug("templateBindings={}", templateBindings);
-
-        customFilter = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateBindings);
-      } catch (TemplateException e) {
-        throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
-      }
-    }
-
-    log.debug("Expanded: customFilter={}", customFilter);
-
-    return customFilter;
-  }
 
   @Override
   public List<Map> getMetadata(String metricsAccountName, String filter) throws IOException {

@@ -30,6 +30,8 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
   compile "org.springframework.boot:spring-boot-starter-data-rest:$springBootVersion"
 
+  compile "org.springframework.boot:spring-boot-starter-freemarker:$springBootVersion"
+
   compile "com.fasterxml.jackson.core:jackson-core:2.9.2"
   compile "com.fasterxml.jackson.core:jackson-databind:2.9.2"
   compile "com.fasterxml.jackson.module:jackson-module-parameter-names:2.9.2"

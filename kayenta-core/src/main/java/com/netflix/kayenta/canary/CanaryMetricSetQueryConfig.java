@@ -30,5 +30,18 @@ import lombok.NonNull;
                @JsonSubTypes.Type(value = StackdriverCanaryMetricSetQueryConfig.class, name = "stackdriver")})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface CanaryMetricSetQueryConfig {
+
+  // Optionally defines an explicit filter to be used when composing the query. Takes precedence over customFilterTemplate.
+  default String getCustomFilter() {
+    return null;
+  }
+
+  // Optionally refers by name to a FreeMarker template defined in the canary config top-level 'templates' map. It is
+  // expanded by using the key/value pairs in extendedScopeParams as the variable bindings. Once expanded, the
+  // resulting filter is used when composing the query.
+  default String getCustomFilterTemplate() {
+    return null;
+  }
+
   @NonNull String getServiceType();
 }
