@@ -76,9 +76,7 @@ public class RedisTaskRepository implements TaskRepository {
   public Task create(String phase, String status, String clientRequestId) {
     String taskKey = getClientRequestKey(clientRequestId);
 
-    String taskId = retry(() -> redisClientDelegate.withCommandsClient(client -> {
-      return client.incr("taskCounter").toString();
-    }), "Creating new task ID");
+    String taskId = UUID.randomUUID().toString();
 
     JedisTask task = new JedisTask(taskId, System.currentTimeMillis(), this, false);
     addToHistory(DefaultTaskStatus.create(phase, status, TaskState.STARTED), task);
