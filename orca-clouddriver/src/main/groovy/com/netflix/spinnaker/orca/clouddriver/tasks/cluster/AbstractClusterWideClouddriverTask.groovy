@@ -140,7 +140,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(stage)).flatten()
 
     if (!katoOps) {
-      log.warn("No server groups to operate on from $targetServerGroupsByLocation in $locations")
+      log.warn("$stage.execution.id: No server groups to operate on from $targetServerGroupsByLocation in $locations")
       return TaskResult.SUCCEEDED
     }
 

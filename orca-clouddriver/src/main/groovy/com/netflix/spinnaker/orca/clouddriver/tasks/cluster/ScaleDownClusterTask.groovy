@@ -75,7 +75,7 @@ class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
     //result will be sorted in priority order to retain
     def prioritized = filteredGroups.sort(false, new CompositeComparator(comparators))
 
-    log.info("Retained $prioritized from $serverGroups, will drop $dropCount")
+    log.info("$stage.execution.id: Retained $prioritized from $serverGroups, will drop $dropCount")
 
     return prioritized.drop(dropCount)
   }
