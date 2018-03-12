@@ -36,6 +36,7 @@ export interface IServerGroupCommandViewState {
   disableImageSelection: boolean;
   imageId?: string;
   instanceProfile: string;
+  showImageSourceSelector: true;
   useAllImageSelection: boolean;
   useSimpleCapacity: boolean;
   usePreferredZones: boolean;

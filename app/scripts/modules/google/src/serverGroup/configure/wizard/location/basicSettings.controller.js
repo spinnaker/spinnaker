@@ -97,4 +97,8 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
       }
     };
 
+    this.imageSources = [
+      'artifact',
+      'priorStage'
+    ];
   });

@@ -28,6 +28,7 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..bakeStage', [
       extraLabelLines: (stage) => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
+      producesArtifacts: true,
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         { type: 'requiredField', fieldName: 'package', },

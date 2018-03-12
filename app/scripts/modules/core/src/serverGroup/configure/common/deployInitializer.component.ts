@@ -78,7 +78,9 @@ export class DeployInitializerController implements IController {
     const { viewState } = command;
     const baseCommand = this.command;
     viewState.disableImageSelection = true;
+    viewState.showImageSourceSelector = true;
     viewState.disableStrategySelection = baseCommand.viewState.disableStrategySelection || false;
+    viewState.expectedArtifacts = baseCommand.viewState.expectedArtifacts || [];
     viewState.imageId = null;
     viewState.readOnlyFields = baseCommand.viewState.readOnlyFields || {};
     viewState.submitButtonLabel = 'Add';

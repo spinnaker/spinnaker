@@ -1,7 +1,7 @@
 import { copy, module } from 'angular';
 
 import { IArtifact, IExpectedArtifact, IPipeline, IStage } from 'core/domain';
-import { PipelineConfigService } from 'core';
+import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 
 export class ExpectedArtifactService {
   constructor(private pipelineConfigService: PipelineConfigService) {
@@ -42,8 +42,7 @@ export function summarizeExpectedArtifact() {
 }
 
 export const EXPECTED_ARTIFACT_SERVICE = 'spinnaker.core.artifacts.expected.service';
-module(EXPECTED_ARTIFACT_SERVICE , [])
-  .filter('summarizeExpectedArtifact', summarizeExpectedArtifact)
+module(EXPECTED_ARTIFACT_SERVICE , [
+  PIPELINE_CONFIG_SERVICE
+]).filter('summarizeExpectedArtifact', summarizeExpectedArtifact)
   .service('expectedArtifactService', ExpectedArtifactService);
-
-

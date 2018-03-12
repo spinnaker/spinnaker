@@ -23,13 +23,12 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = `
     <render-if-feature feature="artifacts">
-      <div class="container-fluid form-horizontal">
         <ng-form name="artifact">
           <div class="form-group">
             <label class="col-md-3 sm-label-right">Expected Artifact <help-field key="{{ ctrl.helpFieldKey }}"/></label>
             <div class="col-md-7">
               <ui-select ng-model="ctrl.command[ctrl.idField]"
-                         class="form-control input-sm">
+                         class="form-control input-sm" required>
                 <ui-select-match>{{ $select.selected | summarizeExpectedArtifact }}</ui-select-match>
                 <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
                   <span>{{ expected | summarizeExpectedArtifact }}</span>
@@ -37,7 +36,7 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
               </ui-select>
             </div>
           </div>
-          <div class="form-group">
+          <div ng-if="ctrl.accountField" class="form-group">
             <label class="col-md-3 sm-label-right">Artifact Account</label>
             <div class="col-md-7">
               <ui-select ng-model="ctrl.command[ctrl.accountField]"
@@ -50,7 +49,6 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
             </div>
           </div>
         </ng-form>
-      </div>
     </render-if-feature>
   `;
 }

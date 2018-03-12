@@ -13,6 +13,16 @@ const helpContents: {[key: string]: string} = {
       and can be configured within the server group creation dialogue under <b>Port Name Mapping</b>.`,
   'gce.httpLoadBalancer.pathRule.paths': 'For example, <b>/path</b> in <b>example.com/path</b>',
   'gce.httpLoadBalancer.port': 'HTTP requests can be load balanced based on port 80 or port 8080. HTTPS requests can be load balanced on port 443.',
+  'gce.image.artifact': 'The artifact that is to be deployed to this cluster.  The artifact should represent a deployable image.',
+  'gce.image.source': `
+      <p>Where the image to deploy is read from.</p>
+      <p>
+        <b>Artifact:</b> Deploy an artifact that was supplied/created upstream. The expected artifact must be referenced here, and will be bound at runtime.
+      </p>
+      <p>
+        <b>Prior Stage:</b> Deploy the result of the most recent Bake or Find Image stage.
+      </p>
+  `,
   'gce.instance.customInstance.cores': '<ul><li>Above 1, vCPU count must be even.</li><li>Zones that support Haswell and Ivy Bridge processors can support custom machine types up to 32 vCPUs.</li><li>Zones that support Sandy Bridge processors can support up to 16 vCPUs.</li></ul>',
   'gce.instance.customInstance.memory': '<ul><li>Memory per vCPU must be between .9 GB and 6.5 GB.</li><li>Total memory must be a multiple of 256 MB.</li></ul>',
   'gce.instance.customMetadata.instance-template': 'The instance template used to configure this instance.',

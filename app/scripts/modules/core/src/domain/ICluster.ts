@@ -9,6 +9,7 @@ export interface IClusterSummary {
 export interface ICluster extends IClusterSummary {
   category: string;
   cloudProvider: string;
+  imageSource?: string;
   instanceCounts?: IInstanceCounts;
   serverGroups: IServerGroup[];
 }

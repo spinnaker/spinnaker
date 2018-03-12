@@ -37,14 +37,15 @@
                              metadata="ctrl.metadata" change="ctrl.change()">
   </kubernetes-manifest-entry>
 
-  <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
-                              command="ctrl.$scope.stage"
-                              id-field="manifestArtifactId"
-                              account-field="manifestArtifactAccount"
-                              accounts="ctrl.metadata.backingData.artifactAccounts"
-                              expected-artifacts="ctrl.expectedArtifacts"
-                              help-field-key="kubernetes.manifest.expectedArtifact">
-  </expected-artifact-selector>
+  <div class="container-fluid form-horizontal" ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
+    <expected-artifact-selector command="ctrl.$scope.stage"
+                                id-field="manifestArtifactId"
+                                account-field="manifestArtifactAccount"
+                                accounts="ctrl.metadata.backingData.artifactAccounts"
+                                expected-artifacts="ctrl.expectedArtifacts"
+                                help-field-key="kubernetes.manifest.expectedArtifact">
+    </expected-artifact-selector>
+  </div>
 
   <hr>
 

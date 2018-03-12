@@ -3,20 +3,21 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, EXPECTED_ARTIFACT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
 import { GCEProviderSettings } from 'google/gce.settings';
 
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,
+  EXPECTED_ARTIFACT_SERVICE,
   INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
   require('google/common/xpnNaming.gce.service.js').name,
   require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
   require('./wizard/hiddenMetadataKeys.value.js').name,
 ])
-  .factory('gceServerGroupCommandBuilder', function ($q, accountService, instanceTypeService, namingService,
-                                                     gceCustomInstanceBuilderService, gceServerGroupHiddenMetadataKeys,
-                                                     gceXpnNamingService) {
+  .factory('gceServerGroupCommandBuilder', function ($q, accountService, expectedArtifactService, instanceTypeService,
+                                                     namingService, gceCustomInstanceBuilderService,
+                                                     gceServerGroupHiddenMetadataKeys, gceXpnNamingService) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
@@ -312,6 +313,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           { type: 'pd-ssd', sizeGb: 10 },
           { type: 'local-ssd', sizeGb: 375 },
         ],
+        imageSource: 'priorStage',
         instanceMetadata: {},
         tags: [],
         labels: {},
@@ -338,6 +340,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
+          expectedArtifacts: [],
         }
       };
 
@@ -350,9 +353,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   }
 
     // Only used to prepare view requiring template selecting
-    function buildNewServerGroupCommandForPipeline() {
+    function buildNewServerGroupCommandForPipeline(currentStage, pipeline) {
+      var expectedArtifacts = expectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
       return $q.when({
         viewState: {
+          expectedArtifacts: expectedArtifacts,
           requiresTemplateSelection: true,
         }
       });
@@ -449,7 +454,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       return $q.when(command);
     }
 
-    function buildServerGroupCommandFromPipeline(application, originalCluster) {
+    function buildServerGroupCommandFromPipeline(application, originalCluster, currentStage, pipeline) {
 
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
@@ -461,9 +466,12 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
 
+        var expectedArtifacts = expectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
         var viewState = {
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
+          expectedArtifacts: expectedArtifacts,
+          showImageSourceSelector: true,
           useSimpleCapacity: !pipelineCluster.autoscalingPolicy,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',

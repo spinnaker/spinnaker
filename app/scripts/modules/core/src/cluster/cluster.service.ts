@@ -176,6 +176,10 @@ export class ClusterService {
     });
   }
 
+  public isDeployingArtifact(cluster: ICluster): boolean {
+    return cluster.imageSource === 'artifact';
+  }
+
   private getClusters(application: string): IPromise<IClusterSummary[]> {
     return this.API.one('applications').one(application).one('clusters').get().then((clustersMap: {[account: string]: string[]}) => {
       const clusters: IClusterSummary[] = [];
