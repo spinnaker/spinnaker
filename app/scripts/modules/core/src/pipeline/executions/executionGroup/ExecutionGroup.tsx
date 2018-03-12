@@ -10,7 +10,8 @@ import { Application } from 'core/application/application.model';
 import { Execution } from '../execution/Execution';
 import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
-import { Tooltip } from 'core/presentation/Tooltip';
+import { Popover } from 'core/presentation/Popover';
+
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ReactInjector } from 'core/reactShims';
@@ -200,7 +201,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                 <h4 className="execution-group-title">
                   {group.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
                   {group.heading}
-                  {pipelineDescription && <span> <Tooltip value={pipelineDescription}><span className="glyphicon glyphicon-info-sign"/></Tooltip></span>}
+                  {pipelineDescription && <span> <Popover value={pipelineDescription}><span className="glyphicon glyphicon-info-sign"/></Popover></span>}
                   {pipelineDisabled && <span> (disabled)</span>}
                   {hasRunningExecutions && <span> <span className="badge">{group.runningExecutions.length}</span></span>}
                 </h4>

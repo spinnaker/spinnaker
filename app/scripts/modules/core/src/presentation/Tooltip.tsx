@@ -2,7 +2,7 @@ import * as React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
 import { BindAll } from 'lodash-decorators';
 
-import { Placement } from 'core/presentation';
+import { Placement, Markdown } from 'core/presentation';
 
 export interface ITooltipProps {
   id?: string;
@@ -42,7 +42,7 @@ export class Tooltip extends React.Component<ITooltipProps> {
     const { delayShow, id, placement, template, value } = this.props;
     const useId = id || value || 'tooltip';
 
-    let tooltip = <BSTooltip id={useId}>{value}</BSTooltip>;
+    let tooltip = <BSTooltip id={useId}><Markdown message={value}/></BSTooltip>;
     if (template) {
       tooltip = <BSTooltip id={useId}>{template}</BSTooltip>;
     }
