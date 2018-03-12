@@ -64,6 +64,15 @@ class IgorConfigurationProperties {
     static class RedisProperties {
         String connection = "redis://localhost:6379"
         int timeout = 2000
+
+        @Canonical
+        static class DockerV1KeyMigration {
+            int ttlDays = 30
+            int batchSize = 100
+        }
+
+        @NestedConfigurationProperty
+        DockerV1KeyMigration dockerV1KeyMigration = new DockerV1KeyMigration()
     }
 
     @NestedConfigurationProperty

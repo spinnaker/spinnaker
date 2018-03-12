@@ -45,7 +45,7 @@ class DockerMonitorSpec extends Specification {
     @Unroll
     void 'should only publish events if account has been indexed previously'() {
         when:
-        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService))
+        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty())
             .postEvent(cachedImages, taggedImage, "imageId")
 
         then:
@@ -59,7 +59,7 @@ class DockerMonitorSpec extends Specification {
         })
 
         when: "should short circuit if `echoService` is not available"
-        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.empty())
+        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.empty(), Optional.empty())
             .postEvent(["imageId"], taggedImage, "imageId")
 
         then:
@@ -75,7 +75,7 @@ class DockerMonitorSpec extends Specification {
 
     void 'should include decorated artifact in the payload'() {
         when:
-        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService))
+        new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty())
             .postEvent(["job1"], taggedImage, "imageId")
 
         then:

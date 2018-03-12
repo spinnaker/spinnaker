@@ -24,10 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 @Service
 public class DockerRegistryCache {
 
-    private final static String ID = "dockerRegistry";
+    final static String ID = "dockerRegistry";
 
     // docker-digest must conform to hash:hashvalue. The string "~" explicitly avoids this to act as an "empty" placeholder.
     private final static String EMPTY_DIGEST = "~";
@@ -44,12 +46,12 @@ public class DockerRegistryCache {
 
     public List<String> getImages(String account) {
         return redisClientDelegate.withMultiClient(c -> {
-            return new ArrayList<>(c.keys(prefix() + ":" + ID + ":" + account + "*"));
+            return new ArrayList<>(c.keys(makeIndexPattern(prefix(), account)));
         });
     }
 
     public String getLastDigest(String account, String registry, String repository, String tag) {
-        String key = makeKey(account, registry, repository, tag);
+        String key = new DockerRegistryV2Key(prefix(), ID, account, registry, tag).toString();
         return redisClientDelegate.withCommandsClient(c -> {
             Map<String, String> res = c.hgetAll(key);
             if (res.get("digest").equals(EMPTY_DIGEST)) {
@@ -60,21 +62,15 @@ public class DockerRegistryCache {
     }
 
     public void setLastDigest(String account, String registry, String repository, String tag, String digest) {
-        String key = makeKey(account, registry, repository, tag);
+        String key = new DockerRegistryV2Key(prefix(), ID, account, registry, tag).toString();
         String d = digest == null ? EMPTY_DIGEST : digest;
         redisClientDelegate.withCommandsClient(c -> {
             c.hset(key, "digest", d);
         });
     }
 
-    public void remove(String imageId) {
-        redisClientDelegate.withCommandsClient(c -> {
-            c.del(imageId);
-        });
-    }
-
-    private String makeKey(String account, String registry, String repository, String tag) {
-        return prefix() + ":" + ID + ":" + account + ":" + registry + ":" + repository + ":" + tag;
+    static String makeIndexPattern(String prefix, String account) {
+        return format("%s:%s:v2:%s:*", prefix, ID, account);
     }
 
     private String prefix() {

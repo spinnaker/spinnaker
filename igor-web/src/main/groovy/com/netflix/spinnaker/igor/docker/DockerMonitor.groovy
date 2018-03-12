@@ -42,6 +42,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
     private final DockerRegistryCache cache
     private final DockerRegistryAccounts dockerRegistryAccounts
     private final Optional<EchoService> echoService
+    private final Optional<DockerRegistryCacheV2KeysMigration> keysMigration;
 
     @Autowired
     DockerMonitor(IgorConfigurationProperties properties,
@@ -49,11 +50,13 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                   Optional<DiscoveryClient> discoveryClient,
                   DockerRegistryCache cache,
                   DockerRegistryAccounts dockerRegistryAccounts,
-                  Optional<EchoService> echoService) {
+                  Optional<EchoService> echoService,
+                  Optional<DockerRegistryCacheV2KeysMigration> keysMigration) {
         super(properties, registry, discoveryClient)
         this.cache = cache
         this.dockerRegistryAccounts = dockerRegistryAccounts
         this.echoService = echoService
+        this.keysMigration = keysMigration;
     }
 
     @Override
@@ -62,6 +65,11 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
 
     @Override
     void poll() {
+        if (keysMigration.isPresent() && keysMigration.get().running) {
+            log.warn("Skipping poll cycle: Keys migration is in progress")
+            return
+        }
+
         dockerRegistryAccounts.updateAccounts()
         dockerRegistryAccounts.accounts.forEach({ account ->
             internalPoll(new PollContext((String) account.name, account))
