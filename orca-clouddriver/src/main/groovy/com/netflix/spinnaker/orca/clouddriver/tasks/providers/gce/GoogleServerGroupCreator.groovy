@@ -19,7 +19,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
@@ -28,6 +30,9 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
 
   boolean katoResultExpected = false
   String cloudProvider = "gce"
+
+  @Autowired
+  ArtifactResolver artifactResolver
 
   @Override
   List<Map> getOperations(Stage stage) {
@@ -44,19 +49,37 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       operation.credentials = operation.account
     }
 
-    withImageFromPrecedingStage(stage, null, cloudProvider) {
-      operation.image = operation.image ?: it.imageId
-    }
-
-    withImageFromDeploymentDetails(stage, null, cloudProvider) {
-      operation.image = operation.image ?: it.imageId
-    }
+    operation.image = getImage(stage)
 
     if (!operation.image) {
       throw new IllegalStateException("No image could be found in ${stage.context.region}.")
     }
 
     return [[(ServerGroupCreator.OPERATION): operation]]
+  }
+
+  private String getImage(Stage stage) {
+    def stageContext = stage.getContext()
+    String image
+
+    if (stageContext.imageSource == "artifact") {
+      def artifactId = stageContext.imageArtifactId
+      if (artifactId == null) {
+        throw new IllegalStateException("Image source was set to artifact but no artifact was specified.")
+      }
+      def resolvedArtifact = artifactResolver.getBoundArtifactForId(stage, artifactId)
+      image = resolvedArtifact.getName()
+    } else {
+      withImageFromPrecedingStage(stage, null, cloudProvider) {
+        image = image ?: it.imageId
+      }
+
+      withImageFromDeploymentDetails(stage, null, cloudProvider) {
+        image = image ?: it.imageId
+      }
+    }
+
+    return image
   }
 
   @Override

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
-import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.Task
@@ -27,10 +26,14 @@ import com.netflix.spinnaker.orca.bakery.tasks.MonitorBakeTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
+
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 
 @Slf4j
@@ -50,6 +53,7 @@ class BakeStage implements StageDefinitionBuilder, RestartableStage {
         .withTask("createBake", CreateBakeTask)
         .withTask("monitorBake", MonitorBakeTask)
         .withTask("completedBake", CompletedBakeTask)
+        .withTask("bindProducedArtifacts", BindProducedArtifactsTask)
     }
   }
 

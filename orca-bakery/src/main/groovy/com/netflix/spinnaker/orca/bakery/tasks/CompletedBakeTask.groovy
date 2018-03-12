@@ -40,7 +40,11 @@ class CompletedBakeTask implements Task {
     def bakeStatus = stage.context.status as BakeStatus
     def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
     // This treatment of ami allows both the aws and gce bake results to be propagated.
-    def results = [ami: bake.ami ?: bake.imageName, imageId: bake.ami ?: bake.imageName, artifact: bake.artifact ?: new Artifact()]
+    def results = [
+      ami: bake.ami ?: bake.imageName,
+      imageId: bake.ami ?: bake.imageName,
+      artifacts: bake.artifact ? [bake.artifact] : []
+    ]
     /**
      * TODO:
      * It would be good to standardize on the key here. "imageId" works for all providers.
