@@ -82,7 +82,8 @@ public class PrometheusFetchController {
                             @RequestParam(required = false) String start,
                           @ApiParam(value = "An ISO format timestamp, e.g.: 2018-03-08T01:12:22Z")
                             @RequestParam(required = false) String end,
-                          @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step) throws IOException {
+                          @ApiParam(defaultValue = "60", value = "seconds") @RequestParam Long step,
+                          @RequestParam(required = false) final String customFilter) throws IOException {
     // Apply defaults.
     project = determineDefaultProperty(project, "project", prometheusConfigurationTestControllerDefaultProperties);
     resourceType = determineDefaultProperty(resourceType, "resourceType", prometheusConfigurationTestControllerDefaultProperties);
@@ -98,18 +99,22 @@ public class PrometheusFetchController {
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
 
-    PrometheusCanaryMetricSetQueryConfig prometheusCanaryMetricSetQueryConfig =
+    PrometheusCanaryMetricSetQueryConfig.PrometheusCanaryMetricSetQueryConfigBuilder prometheusCanaryMetricSetQueryConfigBuilder =
       PrometheusCanaryMetricSetQueryConfig
         .builder()
         .metricName(metricName)
         .labelBindings(labelBindings)
-        .groupByFields(groupByFields)
-        .build();
+        .groupByFields(groupByFields);
+
+    if (!StringUtils.isEmpty(customFilter)) {
+      prometheusCanaryMetricSetQueryConfigBuilder.customFilter(customFilter);
+    }
+
     CanaryMetricConfig canaryMetricConfig =
       CanaryMetricConfig
         .builder()
         .name(metricSetName)
-        .query(prometheusCanaryMetricSetQueryConfig)
+        .query(prometheusCanaryMetricSetQueryConfigBuilder.build())
         .build();
 
     PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();

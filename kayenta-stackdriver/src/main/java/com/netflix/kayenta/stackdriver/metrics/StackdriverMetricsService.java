@@ -97,7 +97,9 @@ public class StackdriverMetricsService implements MetricsService {
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
     if (!(canaryScope instanceof StackdriverCanaryScope)) {
-      throw new IllegalArgumentException("Canary scope not instance of StackdriverCanaryScope: " + canaryScope);
+      throw new IllegalArgumentException("Canary scope not instance of StackdriverCanaryScope: " + canaryScope +
+                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
+                                         "neglecting to explicitly specify which account to use for a given request.");
     }
 
     StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
@@ -115,6 +117,14 @@ public class StackdriverMetricsService implements MetricsService {
       projectId = stackdriverCredentials.getProject();
     }
 
+    if (StringUtils.isEmpty(stackdriverCanaryScope.getStart())) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(stackdriverCanaryScope.getEnd())) {
+      throw new IllegalArgumentException("End time is required.");
+    }
+
     String customFilter = QueryConfigUtils.expandCustomFilter(
       canaryConfig,
       stackdriverMetricSetQuery,
@@ -125,7 +135,6 @@ public class StackdriverMetricsService implements MetricsService {
 
     // TODO(duftler): Replace direct string-manipulating with helper functions.
     // TODO-maybe(duftler): Replace this logic with a library of templates, one for each resource type.
-    // TODO(duftler): Throw exceptions when required parameters (e.g. projectId, region) for the specified resourceType are missing.
     if (StringUtils.isEmpty(customFilter)) {
       if (StringUtils.isEmpty(resourceType)) {
         throw new IllegalArgumentException("Resource type is required.");
@@ -200,14 +209,6 @@ public class StackdriverMetricsService implements MetricsService {
     }
 
     log.debug("filter={}", filter);
-
-    if (StringUtils.isEmpty(stackdriverCanaryScope.getStart())) {
-      throw new IllegalArgumentException("Start time is required.");
-    }
-
-    if (StringUtils.isEmpty(stackdriverCanaryScope.getEnd())) {
-      throw new IllegalArgumentException("End time is required.");
-    }
 
     long alignmentPeriodSec = stackdriverCanaryScope.getStep();
     Monitoring.Projects.TimeSeries.List list = monitoring

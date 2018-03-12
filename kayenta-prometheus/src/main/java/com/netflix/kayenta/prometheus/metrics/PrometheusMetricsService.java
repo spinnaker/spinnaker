@@ -20,6 +20,7 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.providers.PrometheusCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.QueryConfigUtils;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.prometheus.canary.PrometheusCanaryScope;
@@ -46,6 +47,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +89,8 @@ public class PrometheusMetricsService implements MetricsService {
   private StringBuilder addScopeFilter(StringBuilder queryBuilder,
                                        PrometheusCanaryScope prometheusCanaryScope,
                                        String resourceType,
-                                       PrometheusCanaryMetricSetQueryConfig queryConfig) {
+                                       PrometheusCanaryMetricSetQueryConfig queryConfig,
+                                       String customFilter) {
     String scope = prometheusCanaryScope.getScope();
     String projectId = prometheusCanaryScope.getProject();
     String region = prometheusCanaryScope.getRegion();
@@ -96,15 +99,21 @@ public class PrometheusMetricsService implements MetricsService {
       filters = new ArrayList<>();
     }
 
-    // TODO(duftler): Add support for custom filter templates.
-    if ("gce_instance".equals(resourceType)) {
-      addGCEFilters(scopeLabel, scope, projectId, region, filters);
-    } else if ("aws_ec2_instance".equals(resourceType)) {
-      addEC2Filters("asg_groupName", scope, region, filters);
+    if (StringUtils.isEmpty(customFilter)) {
+      if ("gce_instance".equals(resourceType)) {
+        addGCEFilters(scopeLabel, scope, projectId, region, filters);
+      } else if ("aws_ec2_instance".equals(resourceType)) {
+        addEC2Filters("asg_groupName", scope, region, filters);
+      } else {
+        log.warn("There is no explicit support for resourceType '" + resourceType + "'. Your mileage may vary.");
+      }
+      // TODO(duftler): Add support for K8S resource types.
     } else {
-      log.warn("There is no explicit support for resourceType '" + resourceType + "'. Your mileage may vary.");
+      List<String> customFilterTokens = Arrays.asList(customFilter.split(","));
+
+      filters = new ArrayList(filters);
+      filters.addAll(0, customFilterTokens);
     }
-    // TODO(duftler): Add support for K8S resource types.
 
     if (!filters.isEmpty()) {
       String sep = "";
@@ -179,7 +188,9 @@ public class PrometheusMetricsService implements MetricsService {
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
     if (!(canaryScope instanceof PrometheusCanaryScope)) {
-      throw new IllegalArgumentException("Canary scope not instance of PrometheusCanaryScope: " + canaryScope);
+      throw new IllegalArgumentException("Canary scope not instance of PrometheusCanaryScope: " + canaryScope +
+                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
+                                         "neglecting to explicitly specify which account to use for a given request.");
     }
 
     PrometheusCanaryScope prometheusCanaryScope = (PrometheusCanaryScope)canaryScope;
@@ -190,23 +201,31 @@ public class PrometheusMetricsService implements MetricsService {
     PrometheusCanaryMetricSetQueryConfig queryConfig = (PrometheusCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     String resourceType = prometheusCanaryScope.getResourceType();
 
+    if (StringUtils.isEmpty(prometheusCanaryScope.getStart())) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(prometheusCanaryScope.getEnd())) {
+      throw new IllegalArgumentException("End time is required.");
+    }
+
+    String customFilter = QueryConfigUtils.expandCustomFilter(
+      canaryConfig,
+      queryConfig,
+      prometheusCanaryScope,
+      new String[]{"project", "resourceType", "scope", "region"});
+
     StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
-    queryBuilder = addScopeFilter(queryBuilder, prometheusCanaryScope, resourceType, queryConfig);
+    queryBuilder = addScopeFilter(queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);
     queryBuilder = addAvgQuery(queryBuilder);
     queryBuilder = addGroupByQuery(queryBuilder, queryConfig);
+
+    log.debug("query={}", queryBuilder);
 
     long startTime = registry.clock().monotonicTime();
     List<PrometheusResults> prometheusResultsList;
 
     try {
-      if (StringUtils.isEmpty(prometheusCanaryScope.getStart())) {
-        throw new IllegalArgumentException("Start time is required.");
-      }
-
-      if (StringUtils.isEmpty(prometheusCanaryScope.getEnd())) {
-        throw new IllegalArgumentException("End time is required.");
-      }
-
       prometheusResultsList = prometheusRemoteService.rangeQuery(queryBuilder.toString(),
                                                                  prometheusCanaryScope.getStart().toString(),
                                                                  prometheusCanaryScope.getEnd().toString(),

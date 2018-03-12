@@ -39,6 +39,12 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
   @Getter
   private List<String> groupByFields;
 
+  @Getter
+  private String customFilter;
+
+  @Getter
+  private String customFilterTemplate;
+
   @Override
   public String getServiceType() {
     return "prometheus";

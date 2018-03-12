@@ -93,7 +93,9 @@ public class AtlasMetricsService implements MetricsService {
     okHttpClient.setReadTimeout(90, TimeUnit.SECONDS);
 
     if (!(canaryScope instanceof AtlasCanaryScope)) {
-      throw new IllegalArgumentException("Canary scope not instance of AtlasCanaryScope: " + canaryScope);
+      throw new IllegalArgumentException("Canary scope not instance of AtlasCanaryScope: " + canaryScope +
+                                         ". One common cause is having multiple METRICS_STORE accounts configured but " +
+                                         "neglecting to explicitly specify which account to use for a given request.");
     }
 
     AtlasCanaryScope atlasCanaryScope = (AtlasCanaryScope)canaryScope;

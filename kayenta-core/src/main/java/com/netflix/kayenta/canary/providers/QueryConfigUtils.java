@@ -59,7 +59,7 @@ public class QueryConfigUtils {
       // TODO(duftler): Handle this as a config validation step instead.
       if (CollectionUtils.isEmpty(templates)) {
         throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was referenced, " +
-                "but no templates were defined.");
+                                           "but no templates were defined.");
       } else if (!templates.containsKey(customFilterTemplate)) {
         throw new IllegalArgumentException("Custom filter template '" + customFilterTemplate + "' was not found.");
       }
