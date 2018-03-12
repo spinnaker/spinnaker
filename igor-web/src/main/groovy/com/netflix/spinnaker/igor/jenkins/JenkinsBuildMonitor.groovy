@@ -88,11 +88,11 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     }
 
     @Override
-    void poll() {
+    void poll(boolean sendEvents) {
         long startTime = System.currentTimeMillis()
         log.info "Polling cycle started: ${new Date()}"
         buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
-            { master -> internalPoll(new PollContext(master)) }
+            { master -> pollSingle(new PollContext(master)) }
         )
         log.info "Polling cycle done in ${System.currentTimeMillis() - startTime}ms"
     }
@@ -202,7 +202,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     }
 
     @Override
-    protected void commitDelta(JobPollingDelta delta) {
+    protected void commitDelta(JobPollingDelta delta, boolean sendEvents) {
         String master = delta.master
 
         delta.items.parallelStream().forEach { job ->
@@ -211,8 +211,10 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
                 Boolean eventPosted = cache.getEventPosted(master, job.name, job.cursor, build.number)
                 if (!eventPosted) {
                     log.debug("[${master}:${job.name}]:${build.number} event posted")
-                    postEvent(new Project(name: job.name, lastBuild: build), master)
                     cache.setEventPosted(master, job.name, job.cursor, build.number)
+                    if (sendEvents) {
+                        postEvent(new Project(name: job.name, lastBuild: build), master)
+                    }
                 }
             }
 

@@ -66,7 +66,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         jenkinsService.getProjects().getList() >> new Exception("failed")
 
         when:
-        monitor.internalPoll(new PollContext(MASTER))
+        monitor.pollSingle(new PollContext(MASTER))
 
         then:
         notThrown(Exception)
@@ -77,7 +77,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         jenkinsService.getProjects() >> new ProjectsList(list: [new Project(name: 'job2', lastBuild: null)])
 
         when:
-        monitor.internalPoll(new PollContext(MASTER))
+        monitor.pollSingle(new PollContext(MASTER))
 
         then:
         0 * cache.getLastPollCycleTimestamp(MASTER, 'job2')
@@ -96,10 +96,28 @@ class JenkinsBuildMonitorSpec extends Specification {
         jenkinsService.getBuilds('job') >> new BuildsList(list: [ lastBuild ])
 
         when:
-        monitor.internalPoll(new PollContext(MASTER))
+        monitor.pollSingle(new PollContext(MASTER))
 
         then:
         1 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
+    }
+
+    def 'should process on first build but not send notifications'() {
+        given: 'the first time a build is seen'
+        Long previousCursor = null //indicating a first build
+        def lastBuild = new Build(number: 1, timestamp: '1494624092610', building: false, result: 'SUCCESS')
+
+        and:
+        cache.getLastPollCycleTimestamp(MASTER, 'job') >> previousCursor
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
+        cache.getEventPosted(_,_,_,_) >> false
+        jenkinsService.getBuilds('job') >> new BuildsList(list: [ lastBuild ])
+
+        when:
+        monitor.pollSingle(new PollContext(MASTER).fastForward())
+
+        then:
+        0 * echoService.postEvent(_)
     }
 
     def 'should only post an event for completed builds between last poll and last build'() {
@@ -131,7 +149,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         )
 
         when:
-        monitor.internalPoll(new PollContext(MASTER))
+        monitor.pollSingle(new PollContext(MASTER))
 
         then: 'only builds between lowerBound(previousCursor) and upperbound(stamp3) will fire events'
         1 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
@@ -166,7 +184,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         )
 
         when:
-        monitor.internalPoll(new PollContext(MASTER))
+        monitor.pollSingle(new PollContext(MASTER))
 
         then: 'only builds between lowerBound(previousCursor) and upperbound(stamp3) will fire events'
         1 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
@@ -214,7 +232,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         )
 
         when:
-        monitor.internalPoll(new PollContext(MASTER))
+        monitor.pollSingle(new PollContext(MASTER))
 
         then: 'build #3 only will be processed'
         0 * echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
@@ -253,7 +271,7 @@ class JenkinsBuildMonitorSpec extends Specification {
         monitor.log = Mock(Logger);
 
         when:
-        monitor.internalPoll(new PollContext(MASTER))
+        monitor.pollSingle(new PollContext(MASTER))
 
         then: 'Builds are processed for job1'
         1 * echoService.postEvent({ it.content.project.name == 'job1'} as Event)

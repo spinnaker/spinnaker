@@ -67,7 +67,7 @@ class TravisBuildMonitorSpec extends Specification {
 
         when:
         List<TravisBuildMonitor.BuildDelta> receivedBuilds = travisBuildMonitor.changedBuilds(MASTER, travisService)
-        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: receivedBuilds))
+        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: receivedBuilds), true)
 
         then:
         1 * travisService.getReposForAccounts() >> repos
@@ -107,7 +107,7 @@ class TravisBuildMonitorSpec extends Specification {
 
         when:
         List<TravisBuildMonitor.BuildDelta> builds = travisBuildMonitor.changedBuilds(MASTER, travisService)
-        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: builds))
+        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: builds), true)
 
         then:
         1 * travisService.getReposForAccounts() >> repos
@@ -142,7 +142,7 @@ class TravisBuildMonitorSpec extends Specification {
 
         when:
         List<TravisBuildMonitor.BuildDelta> builds = travisBuildMonitor.changedBuilds(MASTER, travisService)
-        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: builds))
+        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: builds), true)
 
         then:
         1 * travisService.getReposForAccounts() >> repos
@@ -168,6 +168,37 @@ class TravisBuildMonitorSpec extends Specification {
         })
     }
 
+    void 'suppress echo notifications'() {
+        Repo repo = new Repo()
+        repo.slug = "test-org/test-repo"
+        repo.lastBuildNumber = 4
+        repo.lastBuildState = "passed"
+        repo.lastBuildStartedAt = Instant.now()
+        List<Repo> repos = [repo]
+        V3Build build = Mock(V3Build)
+        V3Repository repository = Mock(V3Repository)
+
+        when:
+        List<TravisBuildMonitor.BuildDelta> builds = travisBuildMonitor.changedBuilds(MASTER, travisService)
+        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: builds), false)
+
+        then:
+        1 * travisService.getReposForAccounts() >> repos
+        1 * travisService.getBuilds(repo, 5) >> [ build ]
+        build.branchedRepoSlug() >> "test-org/test-repo/my_branch"
+        build.getNumber() >> 4
+
+        1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/my_branch', false) >> 3
+        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false, CACHED_JOB_TTL_SECONDS)
+        1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
+
+        build.repository >> repository
+        repository.slug >> 'test-org/test-repo'
+        build.getState() >> "passed"
+
+        0 * echoService.postEvent(_)
+    }
+
     void 'send events when two different branches build at the same time.'() {
         Repo repo = new Repo()
         repo.slug = "test-org/test-repo"
@@ -181,7 +212,7 @@ class TravisBuildMonitorSpec extends Specification {
 
         when:
         List<TravisBuildMonitor.BuildDelta> result = travisBuildMonitor.changedBuilds(MASTER, travisService)
-        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: result))
+        travisBuildMonitor.commitDelta(new TravisBuildMonitor.BuildPollingDelta(master: MASTER, items: result), true)
 
         then:
         1 * travisService.getReposForAccounts() >> repos

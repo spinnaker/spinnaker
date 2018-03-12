@@ -84,9 +84,9 @@ class TravisBuildMonitor extends CommonPollingMonitor<BuildDelta, BuildPollingDe
     }
 
     @Override
-    void poll() {
+    void poll(boolean sendEvents) {
         buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
-            internalPoll(new PollContext(master))
+            pollSingle(new PollContext(master, sendEvents))
         }
     }
 
@@ -103,7 +103,7 @@ class TravisBuildMonitor extends CommonPollingMonitor<BuildDelta, BuildPollingDe
     }
 
     @Override
-    protected void commitDelta(BuildPollingDelta delta) {
+    protected void commitDelta(BuildPollingDelta delta, boolean sendEvents) {
         String master = delta.master
         TravisService travisService = buildMasters.map[master] as TravisService
 
@@ -115,9 +115,13 @@ class TravisBuildMonitor extends CommonPollingMonitor<BuildDelta, BuildPollingDe
             }
             if (build.number > buildCache.getLastBuild(master, build.repository.slug, TravisResultConverter.running(build.state))) {
                 buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())
-                sendEventForBuild(item, build.repository.slug, master)
+                if (sendEvents) {
+                    sendEventForBuild(item, build.repository.slug, master)
+                }
             }
-            sendEventForBuild(item, item.branchedRepoSlug, master)
+            if (sendEvents) {
+                sendEventForBuild(item, item.branchedRepoSlug, master)
+            }
         }
     }
 
@@ -153,7 +157,7 @@ class TravisBuildMonitor extends CommonPollingMonitor<BuildDelta, BuildPollingDe
                 log.error("({}) Error: ${it.message}", kv("master", master))
             }
         )
-        if (results.size() > 0 ) {
+        if (!results.isEmpty()) {
             log.info("({}) Found {} new builds", kv("master", master), results.size())
         }
         log.info("({}) Last poll took {}ms", kv("master", master), System.currentTimeMillis() - startTime)

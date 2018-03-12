@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -80,10 +79,10 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
     }
 
     @Override
-    protected void poll() {
+    public void poll(boolean sendEvents) {
         buildMasters.filteredMap(BuildServiceProvider.GITLAB_CI).keySet().stream()
-            .map(PollContext::new)
-            .forEach(this::internalPoll);
+            .map(it -> new PollContext(it, sendEvents))
+            .forEach(this::pollSingle);
     }
 
     @Override
@@ -122,7 +121,7 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
     }
 
     @Override
-    protected void commitDelta(BuildPollingDelta delta) {
+    protected void commitDelta(BuildPollingDelta delta, boolean sendEvents) {
         int ttl = buildCacheJobTTLSeconds();
         final GitlabCiService gitlabCiService = (GitlabCiService) buildMasters.getMap().get(delta.master);
 
@@ -130,7 +129,9 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
             log.info("Build update [{}:{}:{}] [status:{}] [running:{}]", kv("master", delta.master), item.branchedRepoSlug, item.pipeline.getId(), item.pipeline.getStatus(), item.pipelineRunning);
             buildCache.setLastBuild(delta.master, item.branchedRepoSlug, item.pipeline.getId(), item.pipelineRunning, ttl);
             buildCache.setLastBuild(delta.master, item.project.getPathWithNamespace(), item.pipeline.getId(), item.pipelineRunning, ttl);
-            sendEventForPipeline(item.project, item.pipeline, gitlabCiService.getAddress(), item.branchedRepoSlug, delta.master);
+            if (sendEvents) {
+                sendEventForPipeline(item.project, item.pipeline, gitlabCiService.getAddress(), item.branchedRepoSlug, delta.master);
+            }
         });
 
         log.info("Last poll took {} ms (master: {})", System.currentTimeMillis() - delta.startTime, kv("master", delta.master));

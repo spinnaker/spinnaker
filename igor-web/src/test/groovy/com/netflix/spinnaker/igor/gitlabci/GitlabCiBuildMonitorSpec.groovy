@@ -64,7 +64,7 @@ class GitlabCiBuildMonitorSpec extends Specification {
         buildCache.getLastBuild(MASTER, _, false) >> lastBuildNr
 
         when:
-        buildMonitor.internalPoll(new PollContext(MASTER))
+        buildMonitor.pollSingle(new PollContext(MASTER))
 
         then:
         1 * buildCache.setLastBuild(MASTER, "user1/project1", 101, false, CACHED_JOB_TTL_SECONDS)
@@ -87,6 +87,32 @@ class GitlabCiBuildMonitorSpec extends Specification {
         ["user1/project1/master"]   | 100
     }
 
+    def "dont send events if suppressed"() {
+        given:
+        Project project = new Project(pathWithNamespace: 'user1/project1')
+        Pipeline pipeline = new Pipeline(id: 101, tag: false, ref: 'master', finishedAt: new Date(), status: PipelineStatus.success)
+
+        service.getProjects() >> [project]
+        service.getPipelines(project, _) >> [pipeline]
+        buildCache.getJobNames(MASTER) >> jobsInCache
+        buildCache.getLastBuild(MASTER, _, false) >> lastBuildNr
+
+        when:
+        buildMonitor.pollSingle(new PollContext(MASTER).fastForward())
+
+        then:
+        1 * buildCache.setLastBuild(MASTER, "user1/project1", 101, false, CACHED_JOB_TTL_SECONDS)
+        1 * buildCache.setLastBuild(MASTER, "user1/project1/master", 101, false, CACHED_JOB_TTL_SECONDS)
+
+        and:
+        0 * echoService.postEvent(_)
+
+        where:
+        jobsInCache                 | lastBuildNr
+        []                          | 0
+        ["user1/project1/master"]   | 100
+    }
+
     def "ignore very old events"() {
         given:
         Project project = new Project(pathWithNamespace: 'user1/project1')
@@ -97,7 +123,7 @@ class GitlabCiBuildMonitorSpec extends Specification {
         buildCache.getJobNames(MASTER) >> []
 
         when:
-        buildMonitor.internalPoll(new PollContext(MASTER))
+        buildMonitor.pollSingle(new PollContext(MASTER))
 
         then:
         0 * buildCache.setLastBuild(_, _, _, _, _)
@@ -117,7 +143,7 @@ class GitlabCiBuildMonitorSpec extends Specification {
         buildCache.getLastBuild(MASTER, "user1/project1/master", false) >> 102
 
         when:
-        buildMonitor.internalPoll(new PollContext(MASTER))
+        buildMonitor.pollSingle(new PollContext(MASTER))
 
         then:
         0 * buildCache.setLastBuild(_, _, _, _, _)

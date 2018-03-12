@@ -21,13 +21,27 @@ import java.util.Map;
 public class PollContext {
     public final String partitionName;
     public final Map<String, Object> context;
+    public final boolean fastForward;
 
     public PollContext(String partitionName) {
         this(partitionName, new HashMap<>());
     }
 
     public PollContext(String partitionName, Map<String, Object> context) {
+        this(partitionName, context, true);
+    }
+
+    public PollContext(String partitionName, boolean fastForward) {
+        this(partitionName, new HashMap<>(), fastForward);
+    }
+
+    public PollContext(String partitionName, Map<String, Object> context, boolean fastForward) {
         this.partitionName = partitionName;
         this.context = context;
+        this.fastForward = fastForward;
+    }
+
+    public PollContext fastForward() {
+        return new PollContext(partitionName, context, false);
     }
 }

@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-public abstract class CommonPollingMonitor<I extends DeltaItem, T extends PollingDelta<I>> implements PollingMonitor {
+public abstract class CommonPollingMonitor<I extends DeltaItem, T extends PollingDelta<I>> implements PollingMonitor, PollAccess {
 
     protected Logger log = LoggerFactory.getLogger(getClass());
 
@@ -77,7 +77,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
         worker.schedulePeriodically(() -> {
             if (isInService()) {
                 lastPoll = System.currentTimeMillis();
-                poll();
+                poll(true);
             } else {
                 log.info("not in service (lastPoll: {})", (lastPoll == null) ? "n/a" : lastPoll.toString());
                 lastPoll = null;
@@ -86,12 +86,6 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     }
 
     protected abstract void initialize();
-
-    /**
-     * Poll entry point. Each poller should be capable of breaking its polling
-     * work into partitions and then call internalPoll for each.
-     */
-    protected abstract void poll();
 
     /**
      * Returns a delta of stored state versus newly polled data. A polling
@@ -103,9 +97,14 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
      * Commits a delta of polled state that was created in generateDelta,
      * assuming circuit breakers have not been tripped.
      */
-    protected abstract void commitDelta(T delta);
+    protected abstract void commitDelta(T delta, boolean sendEvents);
 
-    protected void internalPoll(PollContext ctx) {
+    public PollContext getPollContext(String partition) {
+        return new PollContext(partition);
+    }
+
+    @Override
+    public void pollSingle(PollContext ctx) {
         String monitorName = getClass().getSimpleName();
 
         try {
@@ -117,15 +116,24 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
 
             int deltaSize = delta.getItems().size();
             if (deltaSize > upperThreshold) {
-                log.warn(
-                    "Number of items ({}) to cache exceeds upper threshold ({}) in {} {}",
-                    deltaSize, upperThreshold, kv("monitor", monitorName), kv("partition", ctx.partitionName)
-                );
-                registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
-                return;
+                if (ctx.fastForward) {
+                    log.warn(
+                        "Fast forwarding items ({}) in {} {}",
+                        deltaSize, kv("monitor", monitorName), kv("partition", ctx.partitionName)
+                    );
+                } else {
+                    log.warn(
+                        "Number of items ({}) to cache exceeds upper threshold ({}) in {} {}",
+                        deltaSize, upperThreshold, kv("monitor", monitorName), kv("partition", ctx.partitionName)
+                    );
+                    registry
+                        .gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName))
+                        .set(deltaSize);
+                    return;
+                }
             }
 
-            commitDelta(delta);
+            commitDelta(delta, ctx.fastForward);
             registry.gauge(itemsCachedId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
             registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
         } catch (Exception e) {
