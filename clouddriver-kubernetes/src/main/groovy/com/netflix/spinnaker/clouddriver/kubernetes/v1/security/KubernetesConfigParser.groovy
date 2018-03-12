@@ -85,7 +85,19 @@ class KubernetesConfigParser {
 
     Cluster currentCluster = KubeConfigUtils.getCluster(kubeConfig, currentContext)
     config.setApiVersion("v1") // TODO(lwander) Make config parameter when new versions arrive.
-    config.setNoProxy([] as String[])
+    String httpProxy = System.getenv("HTTP_PROXY") ?: System.getenv("http_proxy")
+    String httpsProxy = System.getenv("HTTPS_PROXY") ?: System.getenv("https_proxy")
+    String noProxy = System.getenv("NO_PROXY") ?: System.getenv("no_proxy")
+    if (httpProxy != null && httpProxy != "") {
+      config.setHttpProxy(httpProxy)
+    }
+    if (httpsProxy != null && httpsProxy != "") {
+      config.setHttpsProxy(httpsProxy)
+    }
+    if (noProxy != null && noProxy != "") {
+      String[] noProxyList = noProxy.split(",")
+      config.setNoProxy(noProxyList)
+    }
     if (currentCluster != null) {
       if (!currentCluster.getServer().endsWith("/")) {
         config.setMasterUrl(currentCluster.getServer() + "/")
