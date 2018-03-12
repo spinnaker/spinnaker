@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.kork.artifacts.model;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -37,4 +39,13 @@ public class Artifact {
   private String artifactAccount;
   private String provenance;
   private String uuid;
+
+  // Add extra, unknown data to the metadata map:
+  @JsonAnySetter
+  public void putMetadata(String key, Object value) {
+    if (metadata == null) {
+      metadata = new HashMap<>();
+    }
+    metadata.put(key, value);
+  }
 }
