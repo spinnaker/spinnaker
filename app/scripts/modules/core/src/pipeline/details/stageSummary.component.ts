@@ -1,5 +1,6 @@
 import { module, IController, IComponentOptions, IScope } from 'angular';
 import { StateParams, StateService } from '@uirouter/angularjs';
+import { HtmlRenderer, Parser } from 'commonmark';
 
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStage } from 'core/domain';
@@ -11,6 +12,9 @@ export class StageSummaryController implements IController {
   public sourceUrl: string;
   public stage: IExecutionStage;
   public stageSummary: IExecutionStageSummary;
+
+  private parser: Parser = new Parser();
+  private renderer: HtmlRenderer = new HtmlRenderer();
 
   constructor(private $scope: IScope,
               private $stateParams: StateParams,
@@ -45,6 +49,11 @@ export class StageSummaryController implements IController {
     } else {
       return require('../../pipeline/config/stages/core/stepLabel.html');
     }
+  }
+
+  public getComments(): string {
+    const parsed = this.parser.parse(this.stageSummary.comments);
+    return this.renderer.render(parsed);
   }
 
   public getCurrentStep() {

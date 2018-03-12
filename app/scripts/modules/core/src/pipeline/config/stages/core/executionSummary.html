@@ -55,6 +55,6 @@
   </table>
   <div ng-if="stageSummary.comments">
     <strong>Comments</strong>
-    <p ng-bind-html="stageSummary.comments"></p>
+    <p ng-bind-html="$ctrl.getComments()"></p>
   </div>
 </div>
