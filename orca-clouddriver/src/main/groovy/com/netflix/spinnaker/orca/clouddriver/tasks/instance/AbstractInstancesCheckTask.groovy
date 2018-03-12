@@ -77,7 +77,7 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   }
 
   @Override
-  long getDynamicBackoffPeriod(Duration taskDuration) {
+  long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
     if (taskDuration.toMillis() > TimeUnit.MINUTES.toMillis(60)) {
       // task has been running > 60min, drop retry interval to every 2 minutes
       return Math.max(backoffPeriod, TimeUnit.SECONDS.toMillis(120))

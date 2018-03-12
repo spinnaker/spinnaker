@@ -20,13 +20,17 @@ import java.time.Duration
 import com.netflix.spinnaker.orca.time.MutableClock
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.util.concurrent.TimeUnit
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class WaitTaskSpec extends Specification {
   def clock = new MutableClock()
-  @Subject task = new WaitTask(clock)
+  @Subject
+    task = new WaitTask(clock)
 
   void "should wait for a configured period"() {
     setup:
@@ -54,6 +58,27 @@ class WaitTaskSpec extends Specification {
     then:
     result.status == SUCCEEDED
     result.context.startTime == null
+
+  }
+
+  void "should return backoff based on waitTime"() {
+    def wait = 300
+    def stage = stage {
+      refId = "1"
+      type = "wait"
+      context["waitTime"] = wait
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    and:
+    stage.context.putAll(result.context)
+    def backOff = task.getDynamicBackoffPeriod(stage, null)
+
+    then:
+    result.status == RUNNING
+    backOff == TimeUnit.SECONDS.toMillis(wait)
 
   }
 

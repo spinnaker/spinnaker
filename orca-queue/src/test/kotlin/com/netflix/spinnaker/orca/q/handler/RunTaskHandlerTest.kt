@@ -205,7 +205,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
       beforeGroup {
         whenever(task.execute(any())) doReturn taskResult
-        whenever(task.getDynamicBackoffPeriod(any())) doReturn taskBackoffMs
+        whenever(task.getDynamicBackoffPeriod(any(), any())) doReturn taskBackoffMs
         whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
 
@@ -419,7 +419,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         )
 
         beforeGroup {
-          whenever(task.getDynamicBackoffPeriod(any())) doReturn taskBackoffMs
+          whenever(task.getDynamicBackoffPeriod(any(), any())) doReturn taskBackoffMs
           whenever(task.execute(any())) doThrow RuntimeException("o noes")
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
           whenever(exceptionHandler.handles(any())) doReturn true

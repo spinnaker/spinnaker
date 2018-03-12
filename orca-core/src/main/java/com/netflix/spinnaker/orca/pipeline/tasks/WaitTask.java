@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
@@ -37,10 +38,13 @@ public class WaitTask implements RetryableTask {
   private final Clock clock;
 
   @Autowired
-  public WaitTask(Clock clock) {this.clock = clock;}
+  public WaitTask(Clock clock) {
+    this.clock = clock;
+  }
 
   @Override
-  public @Nonnull TaskResult execute(@Nonnull Stage stage) {
+  public @Nonnull
+  TaskResult execute(@Nonnull Stage stage) {
     WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
 
     if (context.getWaitTime() == null) {
@@ -60,11 +64,33 @@ public class WaitTask implements RetryableTask {
     }
   }
 
-  @Override public long getBackoffPeriod() {
-    return 15_000;
+  @Override
+  public long getBackoffPeriod() {
+    return 1_000;
   }
 
-  @Override public long getTimeout() {
+  @Override
+  public long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+    WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
+
+    if (context.isSkipRemainingWait()) {
+      return 0L;
+    }
+    // Return a backoff time that reflects the requested waitTime
+    if (context.getStartTime() != null && context.getWaitDuration() != null) {
+      Instant now = clock.instant();
+      Instant completion = context.getStartTime().plus(context.getWaitDuration());
+
+      if (completion.isAfter(now)) {
+        return completion.toEpochMilli() - now.toEpochMilli();
+      }
+    }
+    return getBackoffPeriod();
+  }
+
+
+  @Override
+  public long getTimeout() {
     return Integer.MAX_VALUE;
   }
 }
