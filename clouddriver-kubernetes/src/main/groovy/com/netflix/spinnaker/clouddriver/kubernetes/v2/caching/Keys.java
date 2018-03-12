@@ -88,6 +88,7 @@ public class Keys {
   private static String createKey(Object... elems) {
     List<String> components = Arrays.stream(elems)
         .map(s -> s == null ? "" : s.toString())
+        .map(s -> s.replaceAll(":", ";"))
         .collect(Collectors.toList());
     components.add(0, provider);
     return String.join(":", components);
@@ -118,6 +119,10 @@ public class Keys {
 
     if (parts.length < 3 || !parts[0].equals(provider)) {
       return Optional.empty();
+    }
+
+    for (String part : parts) {
+      part.replaceAll(";", ":");
     }
 
     try {
