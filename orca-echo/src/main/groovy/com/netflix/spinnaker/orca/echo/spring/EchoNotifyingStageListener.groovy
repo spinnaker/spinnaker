@@ -82,7 +82,10 @@ class EchoNotifyingStageListener implements StageListener {
     // STOPPED stages are "successful" because they allow the pipeline to
     // proceed but they are still failures in terms of the stage and should
     // send failure notifications
-    if (stage.status in [SUCCEEDED, SKIPPED]) {
+    if (stage.status == SKIPPED) {
+      log.debug("***** $stage.execution.id Echo stage $stage.name skipped v2")
+      recordEvent('stage', 'skipped', stage)
+    } else if (stage.status == SUCCEEDED) {
       log.debug("***** $stage.execution.id Echo stage $stage.name complete v2")
       recordEvent('stage', 'complete', stage)
     } else {
