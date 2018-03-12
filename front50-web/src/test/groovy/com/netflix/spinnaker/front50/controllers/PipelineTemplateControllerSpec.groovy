@@ -25,6 +25,9 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED;
+import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
+
 class PipelineTemplateControllerSpec extends Specification {
   def pipelineDAO = Mock(PipelineDAO)
   def pipelineTemplateDAO = Mock(PipelineTemplateDAO)
@@ -42,11 +45,11 @@ class PipelineTemplateControllerSpec extends Specification {
       id: "myTemplate"
     )
     def pipeline = new Pipeline(
-      type: "templatedPipeline",
+      type: TYPE_TEMPLATED,
       config: [
         pipeline: [
           template: [
-            source: "spinnaker://myTemplate"
+            source: SPINNAKER_PREFIX + "myTemplate"
           ]
         ]
       ]
@@ -66,7 +69,7 @@ class PipelineTemplateControllerSpec extends Specification {
     def templateId = "myTemplate"
     def pipelineTemplate = new PipelineTemplate(
       id: "myDependentTemplate",
-      source: "spinnaker://myTemplate"
+      source: SPINNAKER_PREFIX + "myTemplate"
     )
 
     when:
@@ -84,11 +87,11 @@ class PipelineTemplateControllerSpec extends Specification {
     )
     def childTemplate = new PipelineTemplate(
       id: 'childTemplate',
-      source: 'spinnaker://rootTemplate'
+      source: SPINNAKER_PREFIX + 'rootTemplate'
     )
     def grandchildTemplate = new PipelineTemplate(
       id: 'grandchildTemplate',
-      source: 'spinnaker://childTemplate'
+      source: SPINNAKER_PREFIX + 'childTemplate'
     )
     def unrelatedTemplate = new PipelineTemplate(
       id: 'unrelatedTemplate'

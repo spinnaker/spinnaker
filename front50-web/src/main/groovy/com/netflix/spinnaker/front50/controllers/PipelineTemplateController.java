@@ -40,6 +40,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED;
+import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX;
+
 @RestController
 @RequestMapping("pipelineTemplates")
 public class PipelineTemplateController {
@@ -110,7 +113,7 @@ public class PipelineTemplateController {
 
     pipelineDAO.all()
       .stream()
-      .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals("templatedPipeline"))
+      .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals(TYPE_TEMPLATED))
       .forEach(templatedPipeline -> {
         String source;
         try {
@@ -131,10 +134,10 @@ public class PipelineTemplateController {
 
   private List<String> convertAllTemplateIdsToSources(String rootTemplateId, boolean recursive) {
     List<String> templateIds = new ArrayList<>();
-    templateIds.add("spinnaker://" + rootTemplateId);
+    templateIds.add(SPINNAKER_PREFIX + rootTemplateId);
     if (recursive) {
       for (String id : getDependentTemplates(rootTemplateId, Optional.empty())) {
-        templateIds.add("spinnaker://" + id);
+        templateIds.add(SPINNAKER_PREFIX + id);
       }
     }
     return templateIds;
@@ -165,7 +168,7 @@ public class PipelineTemplateController {
     final Collection<PipelineTemplate> pipelineTemplates = templates.orElse(getPipelineTemplateDAO().all());
     pipelineTemplates.forEach(template -> {
         if (template.getSource() != null
-          && template.getSource().equalsIgnoreCase("spinnaker://" + templateId)) {
+          && template.getSource().equalsIgnoreCase(SPINNAKER_PREFIX + templateId)) {
           dependentTemplateIds.add(template.getId());
           dependentTemplateIds.addAll(getDependentTemplates(template.getId(), Optional.of(pipelineTemplates)));
         }
