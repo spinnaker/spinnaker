@@ -95,6 +95,14 @@ public class StackdriverFetchController {
     startTimeIso = determineDefaultProperty(startTimeIso, "start", stackdriverConfigurationTestControllerDefaultProperties);
     endTimeIso = determineDefaultProperty(endTimeIso, "end", stackdriverConfigurationTestControllerDefaultProperties);
 
+    if (StringUtils.isEmpty(startTimeIso)) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(endTimeIso)) {
+      throw new IllegalArgumentException("End time is required.");
+    }
+
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);

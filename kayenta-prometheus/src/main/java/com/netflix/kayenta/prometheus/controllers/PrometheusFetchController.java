@@ -92,6 +92,14 @@ public class PrometheusFetchController {
     start = determineDefaultProperty(start, "start", prometheusConfigurationTestControllerDefaultProperties);
     end = determineDefaultProperty(end, "end", prometheusConfigurationTestControllerDefaultProperties);
 
+    if (StringUtils.isEmpty(start)) {
+      throw new IllegalArgumentException("Start time is required.");
+    }
+
+    if (StringUtils.isEmpty(end)) {
+      throw new IllegalArgumentException("End time is required.");
+    }
+
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);

@@ -105,9 +105,10 @@ public class PrometheusMetricsService implements MetricsService {
       } else if ("aws_ec2_instance".equals(resourceType)) {
         addEC2Filters("asg_groupName", scope, region, filters);
       } else {
-        log.warn("There is no explicit support for resourceType '" + resourceType + "'. Your mileage may vary.");
+        throw new IllegalArgumentException("There is no explicit support for resourceType '" + resourceType + "'. " +
+                                           "You may build whatever query makes sense for your environment via label " +
+                                           "bindings and custom filter templates.");
       }
-      // TODO(duftler): Add support for K8S resource types.
     } else {
       List<String> customFilterTokens = Arrays.asList(customFilter.split(","));
 

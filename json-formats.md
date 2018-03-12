@@ -128,6 +128,46 @@ Atlas, Stackdriver and Prometheus are used.
   }
 }
 ```
+```JSON
+{
+  "name": "MySampleK8SPrometheusCanaryConfigWithCustomFilterTemplate",
+  "description": "Example Kayenta Configuration with Custom Filter Template using Prometheus for K8S",
+  "configVersion": "1.0",
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": { }
+  },
+  "metrics": [
+    {
+      "name": "cpu_usage_seconds",
+      "query": {
+        "type": "prometheus",
+        "metricName": "container_cpu_usage_seconds_total",
+        "labelBindings": [ ],
+        "customFilterTemplate": "my-template"
+      },
+      "groups": ["system"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
+    }
+  ],
+  "templates": {
+    "my-template": "container_name='${container_name}'"
+  },
+  "classifier": {
+    "groupWeights": {
+      "system": 100.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}
+```
 ## Canary Data Archival Format
 
 This format is used to store the results from a specific canary run.
