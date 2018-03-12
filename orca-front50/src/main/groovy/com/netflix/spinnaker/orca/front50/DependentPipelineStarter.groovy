@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.front50
 
 import java.util.concurrent.Callable
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -53,6 +54,11 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
   Execution trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
+
+    if (pipelineConfig.disabled) {
+      throw new InvalidRequestException("Pipeline '${pipelineConfig.name}' is disabled and cannot be triggered")
+    }
+
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
 
     User principal = getUser(parentPipeline)
