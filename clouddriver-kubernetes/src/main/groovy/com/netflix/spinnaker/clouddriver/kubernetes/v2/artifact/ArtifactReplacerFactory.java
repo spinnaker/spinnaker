@@ -22,11 +22,28 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer
 import java.util.regex.Pattern;
 
 public class ArtifactReplacerFactory {
+  // The following was derived from
+  // https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
+  private final static String DOCKER_NAME_COMPONENT = "[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?";
+  private final static String DOCKER_OPTIONAL_TAG = "(?::[\\w][\\w.-]{0,127})?";
+  private final static String DOCKER_OPTIONAL_DIGEST = "(?:@[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][0-9A-Fa-f]{32,})?";
+  private final static String DOCKER_DOMAIN = "(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:(?:\\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))+)?";
+  private final static String DOCKER_OPTIONAL_PORT = "(?::[0-9]+)?";
+  private final static String DOCKER_OPTIONAL_DOMAIN_AND_PORT = "(?:" + DOCKER_DOMAIN + DOCKER_OPTIONAL_PORT + "/)?";
+  private final static String DOCKER_IMAGE_NAME = DOCKER_OPTIONAL_DOMAIN_AND_PORT + DOCKER_NAME_COMPONENT + "(?:/" + DOCKER_NAME_COMPONENT + ")+";
+  private final static String DOCKER_IMAGE_REFERENCE = "(" + DOCKER_IMAGE_NAME + ")" + "(" + DOCKER_OPTIONAL_TAG + "|"+ DOCKER_OPTIONAL_DIGEST + ")";
+
+  public static final Pattern DOCKER_IMAGE_NAME_PATTERN = Pattern.compile(DOCKER_IMAGE_NAME);
+  // the image reference pattern has two capture groups.
+  // - the first captures the image name
+  // - the second captures the image tag (including the leading ":") or digest (including the leading "@").
+  public static final Pattern DOCKER_IMAGE_REFERENCE_PATTERN = Pattern.compile(DOCKER_IMAGE_REFERENCE);
+
   public static Replacer dockerImageReplacer() {
     return Replacer.builder()
         .replacePath("$.spec.template.spec.containers.[?( @.image == \"{%name%}\" )].image")
         .findPath("$.spec.template.spec.containers.*.image")
-        .namePattern(Pattern.compile("([0-9A-Za-z./]+).*"))
+        .namePattern(DOCKER_IMAGE_NAME_PATTERN)
         .type(ArtifactTypes.DOCKER_IMAGE)
         .build();
   }
