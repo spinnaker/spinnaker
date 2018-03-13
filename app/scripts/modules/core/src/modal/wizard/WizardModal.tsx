@@ -166,7 +166,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     const { currentPage, dirtyPages, errorPages, formInvalid, pages, waiting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
-    const pagesToShow = pages.filter((page) => !hideSections.has(page));
+    const pagesToShow = pages.filter((page) => !hideSections.has(page) && this.pages[page]);
 
     const submitting = taskMonitor && taskMonitor.submitting;
 
