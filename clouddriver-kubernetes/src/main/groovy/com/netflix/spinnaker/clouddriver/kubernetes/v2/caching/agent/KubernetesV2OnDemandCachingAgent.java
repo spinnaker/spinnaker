@@ -250,8 +250,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     reloadNamespaces();
     if (StringUtils.isEmpty(account)
         || StringUtils.isEmpty(name)
-        || StringUtils.isEmpty(namespace)
-        || !namespaces.contains(namespace)) {
+        || (!StringUtils.isEmpty(namespace) && !namespaces.contains(namespace))) {
       return null;
     }
 
@@ -292,7 +291,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
     List<String> matchingKeys = infraKeys.stream()
         .filter(i -> i.getAccount().equals(getAccountName())
-            && namespaces.contains(i.getNamespace())
+            && (StringUtils.isEmpty(i.getNamespace())) || namespaces.contains(i.getNamespace())
             && i.getKubernetesKind().equals(primaryKind()))
         .map(Keys.InfrastructureCacheKey::toString)
         .collect(Collectors.toList());

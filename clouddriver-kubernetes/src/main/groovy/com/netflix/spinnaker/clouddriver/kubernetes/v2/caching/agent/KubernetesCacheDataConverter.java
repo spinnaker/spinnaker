@@ -357,7 +357,7 @@ public class KubernetesCacheDataConverter {
       log.warn("{}: manifest name may not be null, {}", contextMessage.get(), manifest);
     }
 
-    if (StringUtils.isEmpty(manifest.getNamespace()) && manifest.getKind() != KubernetesKind.NAMESPACE) {
+    if (StringUtils.isEmpty(manifest.getNamespace()) && manifest.getKind().isNamespaced()) {
       log.warn("{}: manifest namespace may not be null, {}", contextMessage.get(), manifest);
     }
   }

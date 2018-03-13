@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class KubernetesKind {
+  public static KubernetesKind CLUSTER_ROLE = new KubernetesKind("clusterRole", false);
+  public static KubernetesKind CLUSTER_ROLE_BINDING = new KubernetesKind("clusterRoleBinding", false);
   public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
   public static KubernetesKind CONTROLLER_REVISION = new KubernetesKind("controllerRevision");
   public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds");
@@ -36,31 +38,48 @@ public class KubernetesKind {
   public static KubernetesKind JOB = new KubernetesKind("job");
   public static KubernetesKind POD = new KubernetesKind("pod", "po");
   public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs");
-  public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns");
+  public static KubernetesKind ROLE = new KubernetesKind("role", false);
+  public static KubernetesKind ROLE_BINDING = new KubernetesKind("roleBinding", false);
+  public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false);
   public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol");
-  public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv");
+  public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false);
   public static KubernetesKind PERSISTENT_VOLUME_CLAIM = new KubernetesKind("persistentVolumeClaim", "pvc");
   public static KubernetesKind SECRET = new KubernetesKind("secret");
   public static KubernetesKind SERVICE = new KubernetesKind("service", "svc");
+  public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
   public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet");
 
   private final String name;
   private final String alias;
+  private final boolean isNamespaced;
 
   private static List<KubernetesKind> values;
 
-  protected KubernetesKind(String name, String alias) {
+  protected KubernetesKind(String name, String alias, boolean isNamespaced) {
     if (values == null) {
       values = Collections.synchronizedList(new ArrayList<>());
     }
 
     this.name = name;
     this.alias = alias;
+    this.isNamespaced = isNamespaced;
     values.add(this);
   }
 
   protected KubernetesKind(String name) {
-    this(name, null);
+    this(name, null, true);
+  }
+
+  protected KubernetesKind(String name, String alias) {
+    this(name, alias, true);
+  }
+
+  protected KubernetesKind(String name, boolean isNamespaced) {
+    this(name, null, isNamespaced);
+  }
+
+  public boolean isNamespaced() {
+    return this.isNamespaced;
   }
 
   @Override

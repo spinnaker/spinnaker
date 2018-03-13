@@ -76,4 +76,10 @@ public class ManifestController {
 
     return manifests.get(0);
   }
+
+  @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
+  Manifest getForAccountLocationAndName(@PathVariable String account,
+                                        @PathVariable String name) {
+    return getForAccountLocationAndName(account, "", name);
+  }
 }
