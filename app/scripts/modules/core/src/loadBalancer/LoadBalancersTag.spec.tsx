@@ -75,8 +75,9 @@ describe('<LoadBalancersTag />', () => {
     const popover = component.find(HoverablePopover);
     expect(popover.length).toBe(1);
 
+    popover.instance().setState({ popoverIsOpen: true, animation: false });
     // Wait for the popover to show
-    (popover.instance() as any).showHide$.take(1).toPromise().then(() => {
+    setTimeout(() => {
       const menuChildren = popoverContainerEl.querySelector('.popover-content div.menu-load-balancers').children;
 
       expect(menuChildren.length).toBe(3);
@@ -86,7 +87,5 @@ describe('<LoadBalancersTag />', () => {
 
       done();
     });
-
-    popover.simulate('mouseEnter');
   });
 });

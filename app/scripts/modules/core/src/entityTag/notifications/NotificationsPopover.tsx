@@ -6,10 +6,11 @@ import { uniq, pick } from 'lodash';
 import { Application } from 'core/application';
 import { IEntityTags, IEntityTag } from 'core/domain';
 import { EntityTagEditor, GroupedNotificationList, IEntityTagEditorProps, NotificationList } from 'core/entityTag';
-import { Placement, HoverablePopover } from 'core/presentation';
+import { Placement, HoverablePopover, IHoverablePopoverContentsProps } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { noop } from 'core/utils';
 import { ITaskMonitorConfig } from 'core/task';
+
 import { CategorizedNotifications } from './CategorizedNotifications';
 import { NotificationCategories, INotificationCategory } from './notificationCategories';
 
@@ -158,23 +159,10 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     ReactGA.event({ action: 'SPAN', category: 'Alerts hovered', label: analyticsLabel });
   }
 
-  private renderNotifications(): JSX.Element {
-    const { type, grouped, categorized } = this.props;
-    const { notifications } = this.state;
-    const { title } = types[type];
-
-    if (categorized) {
-      return <CategorizedNotifications notifications={notifications} onEditTag={this.handleEditNotification} onDeleteTag={this.handleDeleteNotification} grouped={grouped} title={title} />
-    } else if (grouped) {
-      return <GroupedNotificationList notifications={notifications} />
-    } else {
-      return <NotificationList notifications={notifications} onEditTag={this.handleEditNotification} onDeleteTag={this.handleDeleteNotification} />;
-    }
-  }
 
   public render() {
-    const { type, className, placement, hOffsetPercent } = this.props;
-    const { count, severity } = this.state;
+    const { type, categorized, grouped, className, placement, hOffsetPercent } = this.props;
+    const { count, severity, notifications } = this.state;
     if (count < 1) {
       return null;
     }
@@ -183,7 +171,30 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     const severityClass = `${type}-severity-${Math.min(Math.max(severity, 0), 2)}`;
 
     const { title, icon } = types[type];
-    const Notifications = this.renderNotifications();
+
+    const PopoverContent = ({ hidePopover }: IHoverablePopoverContentsProps) => {
+      const handleEditNotification = (notification: INotification) => {
+        hidePopover();
+        this.handleEditNotification(notification);
+      };
+
+      const handleDeleteNotification = (notification: INotification) => {
+        hidePopover();
+        this.handleDeleteNotification(notification);
+      };
+
+      return (
+        <NotificationsPopoverContents
+          type={type}
+          categorized={categorized}
+          grouped={grouped}
+          notifications={notifications}
+          hidePopover={hidePopover}
+          handleEditNotification={handleEditNotification}
+          handleDeleteNotification={handleDeleteNotification}
+        />
+      );
+    };
 
     return (
       <span className={`tag-marker small ${className || ''}`} onMouseEnter={this.fireGAEvent}>
@@ -191,7 +202,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
           delayShow={100}
           placement={placement}
           hOffsetPercent={hOffsetPercent}
-          template={Notifications}
+          Component={PopoverContent}
           title={title}
           className={`no-padding notifications-popover ${severityClass}`}
         >
@@ -202,3 +213,41 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
   }
 }
 
+interface INotificationsProps extends IHoverablePopoverContentsProps {
+  type: 'alerts' | 'notices';
+  grouped: boolean;
+  categorized: boolean;
+  notifications: INotification[];
+  hidePopover: () => void;
+  handleEditNotification: (notification: INotification) => void;
+  handleDeleteNotification: (notification: INotification) => void;
+}
+
+const NotificationsPopoverContents = (props: INotificationsProps) => {
+  const { type, grouped, categorized, notifications, handleEditNotification, handleDeleteNotification } = props;
+  const { title } = types[type];
+
+  if (categorized) {
+    return (
+      <CategorizedNotifications
+        notifications={notifications}
+        onEditTag={handleEditNotification}
+        onDeleteTag={handleDeleteNotification}
+        grouped={grouped}
+        title={title}
+      />
+    );
+  } else if (grouped) {
+    return (
+      <GroupedNotificationList notifications={notifications} />
+    );
+  } else {
+    return (
+      <NotificationList
+        notifications={notifications}
+        onEditTag={handleEditNotification}
+        onDeleteTag={handleDeleteNotification}
+      />
+    );
+  }
+};
