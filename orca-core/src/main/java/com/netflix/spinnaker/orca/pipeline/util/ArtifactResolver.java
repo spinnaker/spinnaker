@@ -153,16 +153,20 @@ public class ArtifactResolver {
   }
 
   public void resolveArtifacts(@Nonnull Map pipeline) {
+    Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
     List<ExpectedArtifact> expectedArtifacts = (List<ExpectedArtifact>) Optional.ofNullable((List) pipeline.get("expectedArtifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, ExpectedArtifact.class)).collect(toList()))
       .orElse(emptyList());
-    List<Artifact> receivedArtifacts = (List<Artifact>) Optional.ofNullable((List) pipeline.get("receivedArtifacts"))
+    List<Artifact> receivedArtifactsFromPipeline = (List<Artifact>) Optional.ofNullable((List) pipeline.get("receivedArtifacts"))
       .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
       .orElse(emptyList());
+    List<Artifact> artifactsFromTrigger = (List<Artifact>) Optional.ofNullable((List) trigger.get("artifacts"))
+      .map(list -> list.stream().map(it -> objectMapper.convertValue(it, Artifact.class)).collect(toList()))
+      .orElse(emptyList());
+    List<Artifact> receivedArtifacts = Stream.concat(receivedArtifactsFromPipeline.stream(), artifactsFromTrigger.stream()).collect(toList());
 
     if (expectedArtifacts.isEmpty()) {
       try {
-        Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
         trigger.put("artifacts", objectMapper.readValue(objectMapper.writeValueAsString(receivedArtifacts), List.class));
       } catch (IOException e) {
         log.warn("Failure storing received artifacts: {}", e.getMessage(), e);
@@ -176,7 +180,6 @@ public class ArtifactResolver {
 
     allArtifacts.addAll(resolvedArtifacts);
 
-    Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
     try {
       trigger.put("artifacts", objectMapper.readValue(objectMapper.writeValueAsString(allArtifacts), List.class));
       trigger.put("resolvedExpectedArtifacts", objectMapper.readValue(objectMapper.writeValueAsString(expectedArtifacts), List.class)); // Add the actual expectedArtifacts we included in the ids.
