@@ -34,12 +34,34 @@ class GoogleServerGroupCreatorSpec extends Specification {
       deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
     ].asImmutable()
 
-    when:
+    when: "image is specified directly in context"
     def ctx = [:] << basectx
+    ctx.image = "specifiedImage"
+    ctx.remove("deploymentDetails")
     def stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
     def ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
+
+    then:
+    ops == [
+      [
+        "createServerGroup": [
+          account          : "abc",
+          credentials      : "abc",
+          image            : "specifiedImage",
+          region           : "north-pole",
+          zone             : "north-pole-1",
+        ],
+      ]
+    ]
+
+    when: "fall back to deployment details when image is not specified directly on context"
+    ctx = [:] << basectx
+    stage = ExecutionBuilder.stage {
+      context.putAll(ctx)
+    }
+    ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
 
     then:
     ops == [

@@ -49,7 +49,7 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       operation.credentials = operation.account
     }
 
-    operation.image = getImage(stage)
+    operation.image = operation.image ?: getImage(stage)
 
     if (!operation.image) {
       throw new IllegalStateException("No image could be found in ${stage.context.region}.")
