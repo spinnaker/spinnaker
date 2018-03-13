@@ -16,6 +16,7 @@ module(SCRIPT_STAGE, [
       pipelineConfigProvider.registerStage({
         label: 'Script',
         description: 'Runs a script',
+        defaultTimeoutMs: 1000 * 60 * 60 * 2, // 2 hours
         key: 'script',
         restartable: true,
         controller: 'ScriptStageCtrl',
