@@ -94,7 +94,13 @@ class TitusServerGroup implements ServerGroup, Serializable {
     runtimeLimitSecs = job.runtimeLimitSecs
     efs = job.efs
     migrationPolicy = job.migrationPolicy
-    buildInfo = [images: ["${image.dockerImageName}:${image.dockerImageVersion}".toString()]]
+    buildInfo = [
+      images: ["${image.dockerImageName}:${image.dockerImageVersion}".toString()],
+      docker: [
+        "image":"${image.dockerImageName}".toString(),
+        "tag":"${image.dockerImageVersion}".toString()
+      ]
+    ]
   }
 
   @Override
