@@ -85,8 +85,8 @@ public class KubernetesValidationUtil {
       return false;
     }
 
-    if (!validateNotEmpty("namespace", namespace)) {
-      return false;
+    if (StringUtils.isEmpty(namespace)) {
+      return true;
     }
 
     AccountCredentials credentials = provider.getCredentials(accountName);

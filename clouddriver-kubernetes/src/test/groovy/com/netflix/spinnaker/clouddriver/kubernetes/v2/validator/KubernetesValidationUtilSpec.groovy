@@ -49,6 +49,8 @@ class KubernetesValidationUtilSpec extends Specification {
 
     where:
     testNamespace       || expectedResult
+    null                || true
+    ""                  || true
     "test-namespace"    || true
     "omit-namespace"    || false
     "unknown-namespace" || false
