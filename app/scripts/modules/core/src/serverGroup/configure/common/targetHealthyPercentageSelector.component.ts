@@ -1,8 +1,8 @@
 import { module } from 'angular';
 
-export const HEALTH_PERCENT_SELECTOR = 'spinnaker.amazon.serverGroup.configure.wizard.capacity.targetHealthyPercentageSelector';
+export const HEALTH_PERCENT_SELECTOR = 'spinnaker.core.serverGroup.configure.wizard.capacity.targetHealthyPercentageSelector';
 module(HEALTH_PERCENT_SELECTOR, [])
-  .component('awsTargetHealthyPercentageSelector', {
+  .component('targetHealthyPercentageSelector', {
     bindings: {
       command: '='
     },
