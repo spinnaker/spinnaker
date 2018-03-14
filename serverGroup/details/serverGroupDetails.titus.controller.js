@@ -166,6 +166,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
 
     accountService.getAccountDetails(serverGroup.accountId).then(details => {
       const awsAccount = details.awsAccount;
+      $scope.titusUiEndpoint = _.filter(details.regions, {name: serverGroup.region})[0].endpoint;
       accountService.getAccountDetails(awsAccount).then(awsDetails => {
         this.awsAccountId = awsDetails.accountId;
         this.env = awsDetails.environment;

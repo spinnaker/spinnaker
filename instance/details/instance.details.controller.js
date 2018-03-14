@@ -268,9 +268,10 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
 
       if (discoveryHealth) {
           this.discoveryInfoLink = `http://discoveryreadonly.${$scope.instance.region}.dyn${details.environment}.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
-        }
-        this.titusUiEndpoint = filter(details.regions, {name: region})[0].endpoint;
-        $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${$scope.instance.region} -id ${$scope.instance.id}'`;
+      }
+
+      this.titusUiEndpoint = filter(details.regions, {name: region})[0].endpoint;
+      $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${$scope.instance.region} -id ${$scope.instance.id}'`;
       });
     };
 

@@ -82,7 +82,7 @@
     <collapsible-section heading="Titus Job Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Job Id</dt>
-        <dd><a href="{{ gateUrl }}/titus/job/{{serverGroup.account}}/{{serverGroup.region}}/{{serverGroup.id}}" target="_blank">{{serverGroup.id}}</a></dd>
+        <dd><a href="{{titusUiEndpoint}}jobs/{{serverGroup.id}}" target="_blank">{{serverGroup.id}}</a></dd>
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
         <entity-source metadata="serverGroup.entityTags.creationMetadata"></entity-source>
