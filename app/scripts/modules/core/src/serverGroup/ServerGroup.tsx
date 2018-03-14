@@ -77,7 +77,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
         number: jenkinsConfig.number,
         href: fromBuildInfo || fromFullUrl || fromHost,
       };
-    } else if(SETTINGS.dockerInsights.enabled && dockerConfig){
+    } else if (SETTINGS.dockerInsights.enabled && dockerConfig) {
       docker = {
         tag: dockerConfig.tag,
         image: dockerConfig.image,

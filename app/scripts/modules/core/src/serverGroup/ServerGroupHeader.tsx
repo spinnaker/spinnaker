@@ -49,7 +49,7 @@ export class CloudProviderIcon extends React.Component<IServerGroupHeaderProps> 
 
 export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeaderProps> {
   public render() {
-    const { serverGroup, jenkins, images, docker} = this.props;
+    const { serverGroup, jenkins, images, docker } = this.props;
     const serverGroupSequence = ReactInjector.namingService.getSequence(serverGroup.moniker.sequence);
     return (
       <div>
