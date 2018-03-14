@@ -129,7 +129,14 @@ class TaskController {
   @PreAuthorize("hasPermission(this.getOrchestration(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.DELETE)
   void deleteTask(@PathVariable String id) {
-    executionRepository.delete(ORCHESTRATION, id)
+    executionRepository.retrieve(ORCHESTRATION, id).with {
+      if (it.status.complete) {
+        executionRepository.delete(ORCHESTRATION, id)
+      } else {
+        log.warn("Not deleting $ORCHESTRATION $id as it is $it.status")
+        throw new CannotDeleteRunningExecution(ORCHESTRATION, id)
+      }
+    }
   }
 
   @PreAuthorize("hasPermission(this.getOrchestration(#id)?.application, 'APPLICATION', 'WRITE')")
