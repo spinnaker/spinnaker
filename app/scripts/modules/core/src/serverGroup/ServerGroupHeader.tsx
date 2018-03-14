@@ -4,7 +4,7 @@ import { get } from 'lodash';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
-import { JenkinsViewModel } from 'core/serverGroup/ServerGroup';
+import { JenkinsViewModel, DockerViewModel } from 'core/serverGroup/ServerGroup';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
 import { CloudProviderLogo } from 'core/cloudProvider';
@@ -18,6 +18,7 @@ export interface IServerGroupHeaderProps {
   images?: string;
   isMultiSelected: boolean;
   jenkins: JenkinsViewModel;
+  docker: DockerViewModel;
   serverGroup: IServerGroup;
   sortFilter: ISortFilter;
 }
@@ -48,13 +49,14 @@ export class CloudProviderIcon extends React.Component<IServerGroupHeaderProps> 
 
 export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeaderProps> {
   public render() {
-    const { serverGroup, jenkins, images } = this.props;
+    const { serverGroup, jenkins, images, docker} = this.props;
     const serverGroupSequence = ReactInjector.namingService.getSequence(serverGroup.moniker.sequence);
     return (
       <div>
         {!!serverGroupSequence && <span className="server-group-sequence"> {serverGroupSequence}</span>}
         {(!!serverGroupSequence && (!!jenkins || !!images)) && <span>: </span>}
         {!!jenkins && <a className="build-link" href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
+        {!!docker && <a className="build-link" href={docker.href} target="_blank">{docker.image}:{docker.tag}</a>}
         {!!images && <span>{images}</span>}
       </div>
     );

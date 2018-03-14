@@ -14,9 +14,16 @@ import { ScrollToService } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
+import { SETTINGS } from 'core';
 
 export interface JenkinsViewModel {
   number: number;
+  href?: string;
+}
+
+export interface DockerViewModel {
+  image: string;
+  tag: string;
   href?: string;
 }
 
@@ -31,6 +38,7 @@ export interface IServerGroupProps {
 
 export interface IServerGroupState {
   jenkins: JenkinsViewModel;
+  docker: DockerViewModel;
   instances: IInstance[];
   images?: string;
 
@@ -54,9 +62,11 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     const isSelected = this.isSelected(serverGroup);
     const isMultiSelected = this.isMultiSelected(props.sortFilter.multiselect, serverGroup);
     const jenkinsConfig = serverGroup.buildInfo && serverGroup.buildInfo.jenkins;
+    const dockerConfig = serverGroup.buildInfo && serverGroup.buildInfo.docker;
 
     let jenkins: JenkinsViewModel = null;
     let images: string = null;
+    let docker: DockerViewModel = null;
 
     if (jenkinsConfig && (jenkinsConfig.host || jenkinsConfig.fullUrl || serverGroup.buildInfo.buildInfoUrl)) {
       const fromHost = jenkinsConfig.host && [jenkinsConfig.host + 'job', jenkinsConfig.name, jenkinsConfig.number, ''].join('/');
@@ -67,6 +77,12 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
         number: jenkinsConfig.number,
         href: fromBuildInfo || fromFullUrl || fromHost,
       };
+    } else if(SETTINGS.dockerInsights.enabled && dockerConfig){
+      docker = {
+        tag: dockerConfig.tag,
+        image: dockerConfig.image,
+        href: SETTINGS.dockerInsights.url + 'image/' + encodeURIComponent(dockerConfig.image) + '/tag/' + dockerConfig.tag
+      };
     } else if (has(serverGroup, 'buildInfo.images')) {
       images = serverGroup.buildInfo.images.join(', ');
     }
@@ -75,6 +91,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       jenkins,
       instances,
       images,
+      docker,
       isSelected,
       isMultiSelected,
     };
@@ -141,7 +158,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   public render() {
-    const { instances, images, jenkins, isSelected, isMultiSelected } = this.state;
+    const { instances, images, jenkins, docker, isSelected, isMultiSelected } = this.state;
     const { serverGroup, application, sortFilter, hasDiscovery, hasLoadBalancers } = this.props;
     const { account, region, name } = serverGroup;
     const { showAllInstances, listInstances } = sortFilter;
@@ -166,6 +183,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
             jenkins={jenkins}
             serverGroup={serverGroup}
             sortFilter={sortFilter}
+            docker={docker}
           />
 
           {showAllInstances && (
