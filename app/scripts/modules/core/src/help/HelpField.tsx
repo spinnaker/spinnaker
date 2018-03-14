@@ -45,8 +45,9 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
       contentString = this.helpContentsRegistry.getHelpField(id) || this.helpContents[id] || fallback;
     }
 
+    const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"
     return {
-      contents: <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString) }}/>,
+      contents: <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString, config) }}/>,
     }
   }
 
