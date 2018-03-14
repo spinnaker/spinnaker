@@ -80,6 +80,7 @@ export const loadMetricsServiceMetadataSuccess = createAction<{data: IMetricsSer
 export const loadMetricsServiceMetadataFailure = createAction<{error: Error}>(Actions.LOAD_METRICS_SERVICE_METADATA_FAILURE);
 export const updateStackdriverMetricDescriptorFilter = createAction<{filter: string}>(Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER);
 export const updateStackdriverMetricType = createAction<{metricType: string}>(Actions.UPDATE_STACKDRIVER_METRIC_TYPE);
+export const updateDatadogMetricName = createAction<{metricName: string}>(Actions.UPDATE_DATADOG_METRIC_NAME);
 export const loadExecutionsRequest = createAction(Actions.LOAD_EXECUTIONS_REQUEST);
 export const loadExecutionsFailure = createAction<{error: Error}>(Actions.LOAD_EXECUTIONS_FAILURE);
 export const loadExecutionsSuccess = createAction<{executions: ICanaryExecutionStatusResult[]}>(Actions.LOAD_EXECUTIONS_SUCCESS);

@@ -115,6 +115,9 @@ const editingMetric = handleActions({
   [Actions.UPDATE_ATLAS_QUERY]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, q: action.query }
   }),
+  [Actions.UPDATE_DATADOG_METRIC_NAME]: (state: ICanaryMetricConfig, action: Action & any) => ({
+    ...state, query: { ...state.query, metricName: action.payload.metricName }
+  }),
   [Actions.SELECT_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, query: { ...state.query, customFilterTemplate: action.payload.name }
   }),
