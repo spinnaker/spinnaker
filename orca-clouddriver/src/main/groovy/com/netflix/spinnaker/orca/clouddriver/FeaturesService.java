@@ -21,11 +21,18 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class FeaturesService {
+  private final FeaturesRestService featuresRestService;
 
   @Autowired
-  private FeaturesRestService featuresRestService;
+  public FeaturesService(FeaturesRestService featuresRestService) {
+    this.featuresRestService = featuresRestService;
+  }
 
   public boolean isStageAvailable(String stageType) {
     return featuresRestService.getStages().stream().anyMatch(s -> s.enabled && stageType.equals(s.name));
+  }
+
+  public boolean areEntityTagsAvailable() {
+    return isStageAvailable("upsertEntityTags");
   }
 }

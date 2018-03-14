@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import spock.lang.Specification
 import spock.lang.Subject;
@@ -25,18 +26,20 @@ import spock.lang.Subject;
 class PreviousImageRollbackSupportSpec extends Specification {
   def objectMapper = new ObjectMapper()
   def oortService = Mock(OortService)
+  def featuresService = Mock(FeaturesService)
   def retrySupport = Spy(RetrySupport) {
     _ * sleep(_) >> { /* do nothing */ }
   }
 
   @Subject
-  def rollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, retrySupport)
+  def rollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, featuresService, retrySupport)
 
   def "should raise exception if multiple entity tags found"() {
     when:
     rollbackSupport.getImageDetailsFromEntityTags("aws", "test", "us-west-2", "application-v002")
 
     then:
+    1 * featuresService.areEntityTagsAvailable() >> { return true }
     1 * oortService.getEntityTags(*_) >> {
       return [
         [id: "1"],
@@ -46,5 +49,16 @@ class PreviousImageRollbackSupportSpec extends Specification {
 
     def e = thrown(IllegalStateException)
     e.message == "More than one set of entity tags found for aws:serverGroup:application-v002:test:us-west-2"
+  }
+
+  def "should not attempt to fetch entity tags when not enabled"() {
+    when:
+    def imageDetails = rollbackSupport.getImageDetailsFromEntityTags("aws", "test", "us-west-2", "application-v002")
+
+    then:
+    1 * featuresService.areEntityTagsAvailable() >> { return false }
+    0 * oortService.getEntityTags(*_)
+
+    imageDetails == null
   }
 }

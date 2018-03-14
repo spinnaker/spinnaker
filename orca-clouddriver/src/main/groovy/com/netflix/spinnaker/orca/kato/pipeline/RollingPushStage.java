@@ -46,7 +46,7 @@ public class RollingPushStage implements StageDefinitionBuilder {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    boolean taggingEnabled = featuresService.isStageAvailable("upsertEntityTags");
+    boolean taggingEnabled = featuresService.areEntityTagsAvailable();
     builder
       .withTask("captureParentInterestingHealthProviderNames", CaptureParentInterestingHealthProviderNamesTask.class)
       .withTask("determineTerminationCandidates", DetermineTerminationCandidatesTask.class)

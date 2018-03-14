@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
@@ -32,12 +33,14 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 class DetermineRollbackCandidatesTaskSpec extends Specification {
   def objectMapper = new ObjectMapper()
   def oortService = Mock(OortService)
+  def featuresService = Mock(FeaturesService)
 
   @Subject
   def task = new DetermineRollbackCandidatesTask(
     objectMapper,
     new RetrySupport(),
-    oortService
+    oortService,
+    featuresService
   )
 
   def stage = stage {
@@ -77,6 +80,8 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
         ]
       ])
     }
+    1 * featuresService.areEntityTagsAvailable() >> { return areEntityTagsEnabled }
+    (shouldFetchEntityTags ? 1 : 0) * oortService.getEntityTags(*_) >> { return [] }
 
     result.context == [
       imagesToRestore: [
@@ -97,9 +102,9 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
     ]
 
     where:
-    additionalStageContext                           || shouldFetchServerGroup
-    [:]                                              || false                   // stage context includes moniker, no need to fetch server group
-    [moniker: null, serverGroup: "servergroup-v001"] || true
+    additionalStageContext                           | areEntityTagsEnabled || shouldFetchServerGroup || shouldFetchEntityTags
+    [:]                                              | true                 || false                  || true       // stage context includes moniker, no need to fetch server group
+    [moniker: null, serverGroup: "servergroup-v001"] | false                || true                   || false
   }
 
   def "should build PREVIOUS_IMAGE rollback context when there are _only_ entity tags"() {
@@ -114,7 +119,8 @@ class DetermineRollbackCandidatesTaskSpec extends Specification {
         ]
       ])
     }
-    1 * oortService.getEntityTags(_, _, _, _, _) >> {
+    1 * featuresService.areEntityTagsAvailable() >> { return true }
+    1 * oortService.getEntityTags(*_) >> {
       return [buildSpinnakerMetadata("my_image-0", "ami-xxxxx0", "5")]
     }
 

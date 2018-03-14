@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -47,11 +48,15 @@ class PreviousImageRollback implements Rollback {
 
   @Autowired
   @JsonIgnore
+  FeaturesService featuresService
+
+  @Autowired
+  @JsonIgnore
   RetrySupport retrySupport
 
   @Override
   List<Stage> buildStages(Stage parentStage) {
-    def previousImageRollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, retrySupport)
+    def previousImageRollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, featuresService, retrySupport)
     def stages = []
 
     def parentStageContext = parentStage.context

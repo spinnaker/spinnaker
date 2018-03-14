@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -31,6 +32,9 @@ class PreviousImageRollbackSpec extends Specification {
   def objectMapper = new ObjectMapper()
   def cloneServerGroupStage = new CloneServerGroupStage()
   def oortService = Mock(OortService)
+  def featuresService = Mock(FeaturesService) {
+    _ * areEntityTagsAvailable() >> { return true }
+  }
   def retrySupport = Spy(RetrySupport) {
     _ * sleep(_) >> { /* do nothing */ }
   }
@@ -41,6 +45,7 @@ class PreviousImageRollbackSpec extends Specification {
 
     cloneServerGroupStage: cloneServerGroupStage,
     oortService: oortService,
+    featuresService: featuresService,
     retrySupport: retrySupport
   )
 
@@ -66,7 +71,7 @@ class PreviousImageRollbackSpec extends Specification {
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    (imageName ? 0 : 1) * oortService.getEntityTags(_, _, _, _, _) >> {
+    (imageName ? 0 : 1) * oortService.getEntityTags(*_) >> {
       // should only call `getEntityTags()` if an image was not explicitly provided to the rollback
       return [[
                 tags: [

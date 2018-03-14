@@ -54,7 +54,7 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
-    def taggingEnabled = featuresService.isStageAvailable("upsertEntityTags")
+    def taggingEnabled = featuresService.areEntityTagsAvailable()
 
     def tasks = [
       TaskNode.task("createServerGroup", CreateServerGroupTask),

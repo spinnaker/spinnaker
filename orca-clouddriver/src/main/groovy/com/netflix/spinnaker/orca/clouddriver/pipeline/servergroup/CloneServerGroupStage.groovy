@@ -48,7 +48,7 @@ class CloneServerGroupStage extends AbstractDeployStrategyStage {
 
   @Override
   protected List<TaskNode.TaskDefinition> basicTasks(Stage stage) {
-    def taggingEnabled = featuresService.isStageAvailable("upsertEntityTags")
+    def taggingEnabled = featuresService.areEntityTagsAvailable()
 
     def tasks = [
       new TaskNode.TaskDefinition("cloneServerGroup", CloneServerGroupTask),

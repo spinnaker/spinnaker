@@ -69,7 +69,7 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
   @Override
   List<Stage> afterStages(@Nonnull Stage stage) {
     try {
-      def taggingEnabled = featuresService.isStageAvailable("upsertEntityTags")
+      def taggingEnabled = featuresService.areEntityTagsAvailable()
       if (!taggingEnabled) {
         return []
       }

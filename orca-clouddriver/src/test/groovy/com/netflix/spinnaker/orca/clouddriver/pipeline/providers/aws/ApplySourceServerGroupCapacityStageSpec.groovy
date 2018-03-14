@@ -53,7 +53,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     def afterStages = stageBuilder.afterStages(stage)
 
     then:
-    1 * featuresService.isStageAvailable("upsertEntityTags") >> { return false }
+    1 * featuresService.areEntityTagsAvailable() >> { return false }
     0 * oortService.getEntityTags(_)
 
     afterStages.isEmpty()
@@ -64,7 +64,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     def afterStages = stageBuilder.afterStages(stage)
 
     then:
-    1 * featuresService.isStageAvailable("upsertEntityTags") >> { return true }
+    1 * featuresService.areEntityTagsAvailable() >> { return true }
     1 * oortService.getEntityTags(_) >> { return [] }
 
     afterStages.isEmpty()
@@ -77,7 +77,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     then:
     notThrown(RuntimeException)
 
-    1 * featuresService.isStageAvailable("upsertEntityTags") >> { throw new RuntimeException("An Exception!") }
+    1 * featuresService.areEntityTagsAvailable() >> { throw new RuntimeException("An Exception!") }
     0 * oortService.getEntityTags(_)
 
     afterStages.isEmpty()
@@ -88,7 +88,7 @@ class ApplySourceServerGroupCapacityStageSpec extends Specification {
     def afterStages = stageBuilder.afterStages(stage)
 
     then:
-    1 * featuresService.isStageAvailable("upsertEntityTags") >> { return true }
+    1 * featuresService.areEntityTagsAvailable() >> { return true }
     1 * oortService.getEntityTags([
       "tag:spinnaker:pinned_capacity": "*",
       "entityId"                     : "app-stack-details-v001",

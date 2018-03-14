@@ -24,6 +24,7 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.PreviousImageRollbackSupport;
@@ -71,17 +72,22 @@ public class DetermineRollbackCandidatesTask extends AbstractCloudProviderAwareT
   private final ObjectMapper objectMapper;
   private final RetrySupport retrySupport;
   private final OortService oortService;
+  private final FeaturesService featuresService;
   private final PreviousImageRollbackSupport previousImageRollbackSupport;
 
   @Autowired
   public DetermineRollbackCandidatesTask(ObjectMapper objectMapper,
                                          RetrySupport retrySupport,
-                                         OortService oortService) {
+                                         OortService oortService,
+                                         FeaturesService featuresService) {
     this.objectMapper = objectMapper;
     this.retrySupport = retrySupport;
     this.oortService = oortService;
+    this.featuresService = featuresService;
 
-    this.previousImageRollbackSupport = new PreviousImageRollbackSupport(objectMapper, oortService, retrySupport);
+    this.previousImageRollbackSupport = new PreviousImageRollbackSupport(
+      objectMapper, oortService, featuresService, retrySupport
+    );
   }
 
   @Override
