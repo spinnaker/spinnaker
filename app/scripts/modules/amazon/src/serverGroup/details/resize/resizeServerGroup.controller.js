@@ -26,13 +26,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.con
 
     $scope.command = angular.copy($scope.currentSize);
     $scope.command.advancedMode = serverGroup.asg.minSize !== serverGroup.asg.maxSize;
-    $scope.command.constraints = {
-      capacity: {
-        min: serverGroup.asg.minSize,
-        max: serverGroup.asg.maxSize,
-        desired: serverGroup.asg.desiredCapacity
-      }
-    };
+    $scope.command.constraints = {};
 
     if (application && application.attributes) {
       if (application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
