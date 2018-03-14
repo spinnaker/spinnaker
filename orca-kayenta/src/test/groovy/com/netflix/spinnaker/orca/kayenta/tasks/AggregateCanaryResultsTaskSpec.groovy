@@ -45,7 +45,10 @@ class AggregateCanaryResultsTaskSpec extends Specification {
         type = "kayentaCanary"
         name = "kayentaCanary"
         context = [
-          canaryConfig: [scoreThresholds: scoreThresholds]
+          canaryConfig: [
+            canaryConfigId : UUID.randomUUID().toString(),
+            scoreThresholds: scoreThresholds
+          ]
         ]
       }
     }
