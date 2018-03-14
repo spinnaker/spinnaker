@@ -26,10 +26,11 @@ class AppEngineBranchFinderSpec extends Specification {
   @Unroll
   def "(git trigger) should resolve branch in trigger if it matches regex (if provided). If no regex is provided, the branch from the trigger will be used."() {
     given:
-    def trigger = new GitTrigger("github", "spinnaker", triggerBranch, "orca")
+    def trigger = new GitTrigger("c681a6af-1096-4727-ac9e-70d3b2460228", "github", "spinnaker", triggerBranch, "orca")
 
     def operation = [
       trigger: [
+        hash   : "c681a6af-1096-4727-ac9e-70d3b2460228",
         source : "github",
         project: "spinnaker",
         slug   : "orca",
@@ -48,10 +49,11 @@ class AppEngineBranchFinderSpec extends Specification {
 
   def "(git trigger) should throw appropriate error if method cannot resolve a branch"() {
     given:
-    def trigger = new GitTrigger("github", "spinnaker", "no-match", "orca")
+    def trigger = new GitTrigger("c681a6af-1096-4727-ac9e-70d3b2460228", "github", "spinnaker", "no-match", "orca")
 
     def operation = [
       trigger      : [
+        hash   : "c681a6af-1096-4727-ac9e-70d3b2460228",
         source : "github",
         project: "spinnaker",
         slug   : "orca",

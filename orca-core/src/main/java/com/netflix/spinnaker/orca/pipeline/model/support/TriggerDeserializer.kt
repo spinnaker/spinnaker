@@ -82,6 +82,7 @@ internal class TriggerDeserializer
           get("rebake")?.booleanValue() == true,
           get("dryRun")?.booleanValue() == true,
           get("strategy")?.booleanValue() == true,
+          get("hash").textValue(),
           get("source").textValue(),
           get("project").textValue(),
           get("branch").textValue(),

@@ -30,6 +30,7 @@ data class GitTrigger
   override var isRebake: Boolean = false,
   override var isDryRun: Boolean = false,
   override var isStrategy: Boolean = false,
+  val hash: String,
   val source: String,
   val project: String,
   val branch: String,

@@ -196,6 +196,7 @@ class TriggerSpec extends Specification {
     expect:
     trigger instanceof GitTrigger
     with(trigger) {
+      hash == "adb2554e870ae86622f05de2a15f4539030d87a7"
       source == "stash"
       project == "CAD"
       branch == "bladerunner-release"
