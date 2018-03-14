@@ -9,6 +9,8 @@ export interface ICanaryExecutionStatusResult {
   stageStatus: { [key: string]: string };
   startTimeIso: string;
   application: string;
+  pipelineId: string;
+  parentPipelineExecutionId: string;
 }
 
 export interface ICanaryResult {
@@ -16,8 +18,6 @@ export interface ICanaryResult {
   config: ICanaryConfig;
   canaryExecutionRequest: ICanaryExecutionRequest;
   metricSetPairListId: string;
-  parentPipelineExecutionId: string;
-  pipelineId: string;
 }
 
 export interface ICanaryExecutionRequest {

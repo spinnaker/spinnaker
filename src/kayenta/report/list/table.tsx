@@ -42,7 +42,7 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   {
     getContent: execution => (
       <PipelineLink
-        parentPipelineExecutionId={execution.result.parentPipelineExecutionId}
+        parentPipelineExecutionId={execution.parentPipelineExecutionId}
         application={execution.application}
       />
     ),
@@ -52,7 +52,7 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
     getContent: execution => (
       <ReportLink
         configName={execution.result.config.name}
-        executionId={execution.result.pipelineId}
+        executionId={execution.pipelineId}
         application={execution.application}
       />
     ),
@@ -78,14 +78,14 @@ const ExecutionListTable = ({ executions }: IExecutionListTableStateProps) => {
       rows={executions}
       className="vertical flex-1 execution-list-table"
       columns={columns}
-      rowKey={execution => execution.result.pipelineId}
+      rowKey={execution => execution.pipelineId}
       tableBodyClassName="flex-1"
     />
   );
 };
 
 const mapStateToProps = (state: ICanaryState) => ({
-  executions: state.data.executions.data,
+  executions: Object.values(state.data.executions.data).filter(e => e.result),
 });
 
 export default connect(mapStateToProps)(ExecutionListTable);
