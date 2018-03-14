@@ -24,6 +24,8 @@ export class ClusterService {
     'ngInject';
   }
 
+  // Retrieves and normalizes all server groups. If a server group for an unsupported cloud provider (i.e. one that does
+  // not have a server group transformer) is encountered, it will be omitted from the result.
   public loadServerGroups(application: Application): IPromise<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
@@ -40,7 +42,8 @@ export class ClusterService {
       return serverGroupLoader.getList().then((serverGroups: IServerGroup[]) => {
         serverGroups.forEach(sg => this.addHealthStatusCheck(sg));
         serverGroups.forEach(sg => this.addNameParts(sg));
-        return this.$q.all(serverGroups.map(sg => this.serverGroupTransformer.normalizeServerGroup(sg, application)));
+        return this.$q.all(serverGroups.map(sg => this.serverGroupTransformer.normalizeServerGroup(sg, application)))
+          .then(normalized => normalized.filter(Boolean));
       });
     });
   }
