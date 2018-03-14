@@ -48,6 +48,7 @@ interface AmazonReservationReportBuilder {
       "m3.medium": 0.25,
       "m3.large" : 0.5,
       "m4.large" : 0.5,
+      "m5.large" : 0.5,
 
       "c1.medium": 0.25,
       "c3.large" : 0.5,
