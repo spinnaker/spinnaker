@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -31,12 +32,15 @@ class ReservationReportController {
   List<ReservationReportProvider> reservationProviders
 
   @RequestMapping(method = RequestMethod.GET)
-  Collection<ReservationReport> getReservationReports() {
-    reservationProviders.collect { it.getReservationReport("v1") } - null
+  Collection<ReservationReport> getReservationReports(@RequestParam Map<String, String> filters) {
+    return getReservationReportsByName("v1", filters)
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{name}")
-  Collection<ReservationReport> getReservationReportsByName(@PathVariable String name) {
-    reservationProviders.collect { it.getReservationReport(name) } - null
+  Collection<ReservationReport> getReservationReportsByName(@PathVariable String name,
+                                                            @RequestParam Map<String, String> filters) {
+    return reservationProviders.collect {
+      it.getReservationReport(name, filters)
+    } - null
   }
 }

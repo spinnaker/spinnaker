@@ -34,13 +34,40 @@ class AmazonReservationReportProvider implements ReservationReportProvider {
   ObjectMapper objectMapper
 
   @Override
-  ReservationReport getReservationReport(String name) {
+  ReservationReport getReservationReport(String name, Map<String, String> filters) {
     def cacheData = cacheView.get(RESERVATION_REPORTS.ns, name)
     if (!cacheData) {
       return null
     }
 
-    return objectMapper.readValue(objectMapper.writeValueAsString(cacheData.attributes.report), MapBackedReservationReport)
+    def reservationReport = objectMapper.readValue(
+      objectMapper.writeValueAsString(cacheData.attributes.report),
+      MapBackedReservationReport
+    )
+
+    def instanceFamily = filters.instanceFamily
+    def region = filters.region
+    def os = filters.os
+
+    reservationReport.reservations = reservationReport.reservations.findAll { Map reservation ->
+      def shouldKeep = true
+
+      if (instanceFamily && reservation.instanceType) {
+        shouldKeep = shouldKeep && reservation.instanceType.toString().toLowerCase().startsWith(instanceFamily)
+      }
+
+      if (region && reservation.region) {
+        shouldKeep = shouldKeep && region.equalsIgnoreCase(reservation.region.toString())
+      }
+
+      if (os && reservation.os) {
+        shouldKeep = shouldKeep && os.equalsIgnoreCase(reservation.os.toString())
+      }
+
+      return shouldKeep
+    }
+
+    return reservationReport
   }
 
   static class MapBackedReservationReport extends HashMap implements ReservationReport {

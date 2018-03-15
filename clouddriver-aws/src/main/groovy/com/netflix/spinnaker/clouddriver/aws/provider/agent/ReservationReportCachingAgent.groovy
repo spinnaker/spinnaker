@@ -234,13 +234,24 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       Map
     )
 
+
+    def v4 = objectMapper.readValue(
+      objectMapper
+        .writerWithView(AmazonReservationReport.Views.V4.class)
+        .writeValueAsString(
+        new AmazonReservationReportBuilder.V4().build(objectMapper.convertValue(v2, AmazonReservationReport))
+      ),
+      Map
+    )
+
     metricsSupport.registerMetrics(objectMapper.convertValue(v2, AmazonReservationReport))
 
     return new DefaultCacheResult(
       (RESERVATION_REPORTS.ns): [
         new MutableCacheData("v1", ["report": v1], [:]),
         new MutableCacheData("v2", ["report": v2], [:]),
-        new MutableCacheData("v3", ["report": v3], [:])
+        new MutableCacheData("v3", ["report": v3], [:]),
+        new MutableCacheData("v4", ["report": v4], [:])
       ]
     )
   }

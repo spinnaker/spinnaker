@@ -75,6 +75,10 @@ class AmazonReservationReport implements ReservationReport {
     static class V3 extends V2 {
 
     }
+
+    static class V4 extends V3 {
+
+    }
   }
 
   @JsonPropertyOrder(["availabilityZone", "region", "availabilityZoneId", "instanceType", "os", "totalReserved", "totalUsed", "totalSurplus", "details", "accounts"])
@@ -211,6 +215,18 @@ class AmazonReservationReport implements ReservationReport {
 
     @JsonView(Views.V3.class)
     int index
+
+    @JsonView(Views.V4.class)
+    int totalRegionalSurplusForFamily
+
+    @JsonView(Views.V4.class)
+    int totalShortfallForFamily
+
+    @JsonView(Views.V4.class)
+    double percentageOfShortfall
+
+    @JsonView(Views.V4.class)
+    int portionOfAvailableSurplus
   }
 
   static class DescendingOverallReservationDetailComparator implements Comparator<OverallReservationDetail> {
