@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+
 import static com.netflix.kayenta.canary.util.FetchControllerUtils.determineDefaultProperty;
 
 
