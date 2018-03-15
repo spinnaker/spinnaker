@@ -37,6 +37,16 @@ kayenta:
 #          - OBJECT_STORE
 #          - CONFIGURATION_STORE
 
+  datadog:
+    enabled: false
+#    accounts:
+#      - name: my-datadog-account
+#        apiKey: xxxx
+#        applicationKey: xxxx
+#        supportedTypes:
+#          - METRICS_STORE
+#        endpoint.baseUrl: https://app.datadoghq.com
+
   gcs:
     enabled: false
 

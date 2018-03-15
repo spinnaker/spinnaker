@@ -1,0 +1,14 @@
+dependencies {
+    compile project(":kayenta-core")
+
+    // compile spinnaker.dependency('bootWeb')
+    compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+
+    // compile spinnaker.dependency("korkSwagger")
+    compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
+
+    // compile spinnaker.dependency('lombok')
+    compile "org.projectlombok:lombok:1.16.18"
+
+    compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
+}

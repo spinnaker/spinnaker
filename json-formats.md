@@ -168,6 +168,41 @@ Atlas, Stackdriver and Prometheus are used.
   }
 }
 ```
+```JSON
+{
+  "name": "MySampleDatadogCanaryConfig",
+  "description": "Example Kayenta Configuration using Datadog",
+  "configVersion": "1.0",
+  "applications": [
+    "myapp"
+  ],
+  "judge": {
+    "name": "dredd-v1.0",
+    "judgeConfigurations": { }
+  },
+  "metrics": [
+    {
+      "name": "CPU",
+      "query": {
+        "type": "datadog",
+        "metricName": "avg:system.cpu.user"
+      },
+      "groups": ["system"],
+      "analysisConfigurations": { },
+      "scopeName": "default"
+    }
+  ],
+  "classifier": {
+    "groupWeights": {
+      "system": 100.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}
+```
 ## Canary Data Archival Format
 
 This format is used to store the results from a specific canary run.

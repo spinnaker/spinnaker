@@ -19,6 +19,7 @@ dependencies {
   compile project(':kayenta-atlas')
   compile project(':kayenta-aws')
   compile project(':kayenta-core')
+  compile project(':kayenta-datadog')
   compile project(':kayenta-gcs')
   compile project(':kayenta-google')
   compile project(':kayenta-judge')
