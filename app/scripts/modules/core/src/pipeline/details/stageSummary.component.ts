@@ -52,7 +52,8 @@ export class StageSummaryController implements IController {
   }
 
   public getComments(): string {
-    const parsed = this.parser.parse(this.stageSummary.comments);
+    // cast comments field to string in case it is set to a number via SpEL
+    const parsed = this.parser.parse(this.stageSummary.comments + '');
     return this.renderer.render(parsed);
   }
 
