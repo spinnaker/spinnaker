@@ -80,7 +80,7 @@ data class CanaryResults(
   val startTimeIso: Instant?,
   val endTimeIso: Instant?,
   val storageAccountName: String?,
-  val exception: String?
+  val exception: Map<String, Any>?
 ) {
   @JsonIgnore
   val executionStatus = ExecutionStatus.valueOf(status.toUpperCase())

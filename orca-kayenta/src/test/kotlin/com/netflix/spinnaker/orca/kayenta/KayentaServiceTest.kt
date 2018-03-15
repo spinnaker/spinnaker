@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import retrofit.Endpoint
@@ -124,9 +125,11 @@ object KayentaServiceTest : Spek({
 
     describe("fetching canary results") {
 
-      val canaryId = "666fa25b-b0c6-421b-b84f-f93826932994"
+      given("a successful canary result") {
+        val canaryId = "666fa25b-b0c6-421b-b84f-f93826932994"
+        val storageAccountName = "my-google-account"
 
-      val responseJson = """
+        val responseJson = """
 {
   "application": "myapp",
   "parentPipelineExecutionId": "9cf4ec2e-29fb-4968-ae60-9182b575b30a",
@@ -401,30 +404,96 @@ object KayentaServiceTest : Spek({
 }
 """
 
-      beforeGroup {
-        stubFor(
-          get(urlPathEqualTo("/canary/$canaryId"))
-            .withQueryParam("storageAccountName", equalTo("whatever"))
-            .willReturn(
-              aResponse()
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseJson)
-            )
-        )
+        beforeGroup {
+          stubFor(
+            get(urlPathEqualTo("/canary/$canaryId"))
+              .withQueryParam("storageAccountName", equalTo(storageAccountName))
+              .willReturn(
+                aResponse()
+                  .withHeader("Content-Type", "application/json")
+                  .withBody(responseJson)
+              )
+          )
+        }
+
+        it("parses the JSON response correctly") {
+          subject.getCanaryResults(storageAccountName, canaryId)
+            .let { response ->
+              assertThat(response.complete).isTrue()
+              assertThat(response.buildTimeIso).isEqualTo(Instant.ofEpochMilli(1521059331684))
+              assertThat(response.endTimeIso).isEqualTo(Instant.ofEpochMilli(1521059341101))
+              assertThat(response.startTimeIso).isEqualTo(Instant.ofEpochMilli(1521059331909))
+              assertThat(response.result!!.application).isEqualTo("myapp")
+              assertThat(response.result!!.canaryDuration).isEqualTo(Duration.ofHours(1))
+              assertThat(response.result!!.judgeResult.score.score).isEqualTo(33)
+              assertThat(response.exception).isNull()
+            }
+        }
       }
 
-      it("parses the JSON response correctly") {
-        subject.getCanaryResults("whatever", canaryId)
-          .let { response ->
-            assertThat(response.complete).isTrue()
-            assertThat(response.buildTimeIso).isEqualTo(Instant.ofEpochMilli(1521059331684))
-            assertThat(response.endTimeIso).isEqualTo(Instant.ofEpochMilli(1521059341101))
-            assertThat(response.startTimeIso).isEqualTo(Instant.ofEpochMilli(1521059331909))
-            assertThat(response.result!!.application).isEqualTo("myapp")
-            assertThat(response.result!!.canaryDuration).isEqualTo(Duration.ofHours(1))
-            assertThat(response.result!!.judgeResult.score.score).isEqualTo(33)
-            assertThat(response.exception).isNull()
-          }
+      given("an exception") {
+
+        val canaryId = "02a95d21-290c-49f9-8be1-fb0b7779a73a"
+        val storageAccountName = "my-google-account"
+
+        val responseJson = """
+{
+  "application": "myapp",
+  "parentPipelineExecutionId": "88086da2-3e5a-4a9e-ada7-089ab70a9578",
+  "pipelineId": "02a95d21-290c-49f9-8be1-fb0b7779a73a",
+  "stageStatus": {
+    "fetchControl0": "terminal",
+    "mixMetrics": "not_started",
+    "fetchExperiment0": "terminal",
+    "judge": "not_started",
+    "setupContext": "succeeded"
+  },
+  "complete": true,
+  "status": "terminal",
+  "exception": {
+    "timestamp": 1521127342802,
+    "exceptionType": "IllegalArgumentException",
+    "operation": "prometheusFetch",
+    "details": {
+      "stackTrace": "java.lang.IllegalArgumentException: Either a resource type or a custom filter is required.\n\tat com.netflix.kayenta.prometheus.metrics.PrometheusMetricsService.addScopeFilter(PrometheusMetricsService.java:112)\n\tat com.netflix.kayenta.prometheus.metrics.PrometheusMetricsService.queryMetrics(PrometheusMetricsService.java:222)\n",
+      "error": "Unexpected Task Failure",
+      "errors": [
+        "Either a resource type or a custom filter is required."
+      ]
+    },
+    "shouldRetry": false
+  },
+  "buildTimeMillis": 1521127342562,
+  "buildTimeIso": "2018-03-15T15:22:22.562Z",
+  "startTimeMillis": 1521127342569,
+  "startTimeIso": "2018-03-15T15:22:22.569Z",
+  "endTimeMillis": 1521127342887,
+  "endTimeIso": "2018-03-15T15:22:22.887Z",
+  "storageAccountName": "my-google-account"
+}
+"""
+
+        beforeGroup {
+          stubFor(
+            get(urlPathEqualTo("/canary/$canaryId"))
+              .withQueryParam("storageAccountName", equalTo(storageAccountName))
+              .willReturn(
+                aResponse()
+                  .withHeader("Content-Type", "application/json")
+                  .withBody(responseJson)
+              )
+          )
+        }
+
+        it("parses the JSON response correctly") {
+          subject.getCanaryResults(storageAccountName, canaryId)
+            .let { response ->
+              assertThat(response.complete).isTrue()
+              assertThat(response.result).isNull()
+              assertThat(response.exception)
+                .containsEntry("exceptionType", "IllegalArgumentException")
+            }
+        }
       }
     }
   }
