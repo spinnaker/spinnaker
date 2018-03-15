@@ -196,6 +196,15 @@ function configure_kubernetes() {
 
   echo "Kubernetes provider enabled"
 
+  # Install kubectl if it's not installed by the system image.
+  if [ "$(which kubectl)" = "" ]; then
+    local kubectl=/usr/local/bin/kubectl
+    local release=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+    curl -s -L -o $kubectl \
+      https://storage.googleapis.com/kubernetes-release/release/$release/bin/linux/amd64/kubectl
+    chmod 0755 $kubectl
+  fi
+
   local config_path="$KUBE_FILE"
   mkdir -p $(dirname $config_path)
   chown -R $HALYARD_USER:$HALYARD_GROUP $(dirname $config_path)
