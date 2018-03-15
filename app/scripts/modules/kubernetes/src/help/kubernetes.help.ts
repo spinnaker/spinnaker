@@ -15,6 +15,7 @@ const helpContents: {[key: string]: string} = {
   'kubernetes.serverGroup.autoscaling.max': 'The largest number of pods to be deployed.',
   'kubernetes.serverGroup.autoscaling.desired': 'The initial number of pods to be deployed.',
   'kubernetes.serverGroup.autoscaling.cpuTarget': 'The target CPU utilization to be achieved by the autoscaler.',
+  'kubernetes.serverGroup.useSourceCapacity.enabled': 'Use same number of pods as current.',
   'kubernetes.serverGroup.deployment.enabled': 'Check this box if you want to spawn a deployment for this replica set.',
   'kubernetes.serverGroup.deployment.strategy': `
       <p><b>RollingUpdate</b> Deploy new pods in groups while killing old ones off.</p>

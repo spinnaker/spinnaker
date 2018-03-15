@@ -67,6 +67,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
             target: 40,
           },
         },
+        useSourceCapacity: false,
         deployment: {
           enabled: false,
           minReadySeconds: 0,
