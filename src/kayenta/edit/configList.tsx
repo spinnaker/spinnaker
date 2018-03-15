@@ -19,7 +19,7 @@ interface IConfigListStateProps {
 function ConfigList({ configs, selectedConfigId }: IConfigListStateProps) {
   return (
     <section className="config-list">
-      <ul className="tabs-vertical list-unstyled">
+      <ul className="tabs-vertical list-unstyled" style={{ wordBreak: 'break-all' }}>
         {configs.map(config => (
           <li key={config.id} className={config.id === selectedConfigId ? 'selected' : ''}>
             <UISrefActive class="active">

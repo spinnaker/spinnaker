@@ -35,7 +35,7 @@ export function Table<T>({ rows, columns, rowKey, tableBodyClassName, rowClassNa
   return (
     <div className={className}>
       <ul className={classNames(tableBodyClassName, 'list-group')}>
-        <TableHeader columns={columns} className={`table-header sticky-header ${headerClassName}`}/>
+        <TableHeader columns={columns} className={classNames('table-header', 'sticky-header', headerClassName)}/>
         {
           rows.map(r => (
             customRow && customRow(r)

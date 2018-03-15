@@ -1,29 +1,33 @@
 import * as React from 'react';
 import { UISref } from '@uirouter/react';
-
-import { ReactInjector } from '@spinnaker/core';
+import { connect } from 'react-redux';
 
 import { Tab, Tabs } from '../layout/tabs';
 import { ICanaryHeaderTabConfig } from './canaryTabs';
+import { ICanaryState } from '../reducers';
 
 import './canaryHeader.less';
 
-export interface ICanaryHeaderProps {
+export interface ICanaryHeaderOwnProps {
   title: string;
   tabs: ICanaryHeaderTabConfig[];
+}
+
+interface ICanaryHeaderStateProps {
+  activeTab: string;
 }
 
 /*
 * Layout for top-level canary header.
 * */
-export const CanaryHeader = ({ title, tabs }: ICanaryHeaderProps) => {
+const CanaryHeader = ({ title, tabs, activeTab }: ICanaryHeaderOwnProps & ICanaryHeaderStateProps) => {
   return (
     <nav className="horizontal">
       <Tabs className="flex-2">
         <CanaryTitle title={title}/>
       </Tabs>
       <Tabs className="flex-9">
-        {tabs.filter(t => !t.hide).map(t => <CanaryTab key={t.title} tab={t}/>)}
+        {tabs.filter(t => !t.hide).map(t => <CanaryTab key={t.title} activeTab={activeTab} tab={t}/>)}
       </Tabs>
     </nav>
   );
@@ -35,8 +39,8 @@ const CanaryTitle = ({ title }: { title: string }) => {
   );
 };
 
-const CanaryTab = ({ tab }: { tab: ICanaryHeaderTabConfig }) => {
-  const isSelected = tab.activeStates.some(s => ReactInjector.$state.includes(s));
+const CanaryTab = ({ tab, activeTab }: { tab: ICanaryHeaderTabConfig, activeTab: string }) => {
+  const isSelected = tab.title === activeTab;
   return (
     <Tab selected={isSelected}>
       <UISref to={tab.sref}>
@@ -45,3 +49,10 @@ const CanaryTab = ({ tab }: { tab: ICanaryHeaderTabConfig }) => {
     </Tab>
   );
 };
+
+const mapStateToProps = (state: ICanaryState, ownProps: ICanaryHeaderOwnProps): ICanaryHeaderStateProps & ICanaryHeaderOwnProps => ({
+  activeTab: state.app.activeTab,
+  ...ownProps
+});
+
+export default connect(mapStateToProps)(CanaryHeader);

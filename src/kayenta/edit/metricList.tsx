@@ -70,6 +70,7 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
         columns={columns}
         rows={metrics}
         rowKey={metric => metric.id}
+        headerClassName="background-white"
       />
       {(!metrics.length && selectedGroup) ? (
         <p>

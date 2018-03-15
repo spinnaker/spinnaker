@@ -119,6 +119,13 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
       }
     },
     children: [config, report],
+    resolve: [
+      {
+        token: 'success$',
+        deps: [UIRouter],
+        resolveFn: (uiRouter: any) => uiRouter.globals.success$,
+      }
+    ]
   };
 
   applicationStateProvider.addChildState(canaryRoot);

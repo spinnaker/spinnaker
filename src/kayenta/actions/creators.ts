@@ -88,3 +88,4 @@ export const updateDatadogMetricName = createAction<{metricName: string}>(Action
 export const loadExecutionsRequest = createAction(Actions.LOAD_EXECUTIONS_REQUEST);
 export const loadExecutionsFailure = createAction<{error: Error}>(Actions.LOAD_EXECUTIONS_FAILURE);
 export const loadExecutionsSuccess = createAction<{executions: ICanaryExecutionStatusResult[]}>(Actions.LOAD_EXECUTIONS_SUCCESS);
+export const setActiveTab = createAction<{tab: string}>(Actions.SET_ACTIVE_TAB);

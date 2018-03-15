@@ -56,6 +56,7 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
         rows={templates}
         columns={columns}
         rowKey={t => t.name}
+        headerClassName="background-white"
       />
       <button
         className="passive"
