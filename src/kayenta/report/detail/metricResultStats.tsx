@@ -21,8 +21,8 @@ export interface IMetricResultStatsStateProps {
   service: string;
 }
 
-const getStats = (run: ICanaryExecutionStatusResult, metricName: string, target: string): ICanaryAnalysisResultsStats => {
-  const result = run.result.judgeResult.results.find(r => r.name === metricName);
+const getStats = (run: ICanaryExecutionStatusResult, id: string, target: string): ICanaryAnalysisResultsStats => {
+  const result = run.result.judgeResult.results.find(r => r.id === id);
   if (target === 'experiment') {
     return result.experimentMetadata.stats;
   } else if (target === 'control') {
@@ -105,19 +105,19 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultSt
     },
     {
       label: 'count',
-      getValue: target => <span>{getStats(run, metricConfig.name, target).count}</span>,
+      getValue: target => <span>{getStats(run, metricSetPair.id, target).count}</span>,
     },
     {
       label: 'avg',
-      getValue: target => <span>{round(getStats(run, metricConfig.name, target).mean, 2)}</span>,
+      getValue: target => <span>{round(getStats(run, metricSetPair.id, target).mean, 2)}</span>,
     },
     {
       label: 'max',
-      getValue: target => <span>{round(getStats(run, metricConfig.name, target).max, 2)}</span>,
+      getValue: target => <span>{round(getStats(run, metricSetPair.id, target).max, 2)}</span>,
     },
     {
       label: 'min',
-      getValue: target => <span>{round(getStats(run, metricConfig.name, target).min, 2)}</span>,
+      getValue: target => <span>{round(getStats(run, metricSetPair.id, target).min, 2)}</span>,
     },
   ];
 
@@ -138,7 +138,7 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultSt
       label: 'classification reason',
       getContent: () => {
         const result =
-          run.result.judgeResult.results.find(r => r.name === metricConfig.name);
+          run.result.judgeResult.results.find(r => r.id === metricSetPair.id);
 
         if (!result.classificationReason) {
           return null;
