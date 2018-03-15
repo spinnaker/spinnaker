@@ -99,6 +99,13 @@ const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: Middlew
         .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
     });
 
+const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(typeMatches(Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER))
+    .filter(action => action.payload.filter && action.payload.filter.length > 2)
+    .debounceTime(200 /* milliseconds */)
+    .map(action => Creators.loadMetricsServiceMetadataRequest({ filter: action.payload.filter }));
+
 const updateStackdriverMetricDescriptionFilterEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER))
@@ -123,6 +130,7 @@ const rootEpic = combineEpics(
   deleteConfigSuccessEpic,
   loadCanaryRunRequestEpic,
   loadMetricSetPairEpic,
+  updatePrometheusMetricDescriptionFilterEpic,
   updateStackdriverMetricDescriptionFilterEpic,
   loadMetricsServiceMetadataEpic,
 );
