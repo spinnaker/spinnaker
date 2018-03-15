@@ -4,11 +4,13 @@ import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
 import { ReactInjector } from 'core/reactShims';
 import { duration } from 'core/utils/timeFormatters';
+import { OrchestratedItemRunningTime } from 'core/pipeline/executions/execution/OrchestratedItemRunningTime';
 
 export interface ISkipWaitProps {
   execution: IExecution;
   stage: IExecutionStage;
   application: Application;
+  autoRefresh?: boolean;
 }
 
 export interface ISkipWaitState {
@@ -16,6 +18,7 @@ export interface ISkipWaitState {
 }
 
 export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
+  private runningTime: OrchestratedItemRunningTime;
 
   constructor(props: ISkipWaitProps) {
     super(props);
@@ -49,8 +52,20 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
     });
   };
 
+  public componentWillReceiveProps() {
+    this.runningTime && this.runningTime.checkStatus();
+  }
+
   public componentDidMount() {
-    this.setRemainingWait(Date.now() - this.props.stage.startTime);
+    if (this.props.autoRefresh) {
+      this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setRemainingWait(time));
+    } else {
+      this.setRemainingWait(Date.now() - this.props.stage.startTime);
+    }
+  }
+
+  public componentWillUnmount() {
+    this.runningTime && this.runningTime.reset();
   }
 
   public render() {
