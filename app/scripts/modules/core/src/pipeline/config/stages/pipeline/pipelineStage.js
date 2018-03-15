@@ -56,7 +56,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipelineStage', [
     });
 
     function initializeMasters() {
-      if ($scope.stage.application) {
+      if ($scope.stage.application && !$scope.stage.application.includes('${')) {
         pipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
           $scope.pipelines = _.filter( pipelines, function(pipeline) { return pipeline.id !== $scope.pipeline.id; } );
           if (!_.find( pipelines, function(pipeline) { return pipeline.id === $scope.stage.pipeline; })) {
