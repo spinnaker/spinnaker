@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.NonNull;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +33,13 @@ import rx.Observable;
 import rx.functions.Action1;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.anyArtifactsMatchExpected;
 
 /**
  * Triggers pipelines on _Orca_ when a trigger-enabled build completes successfully.
@@ -78,7 +84,8 @@ public class BuildEventMonitor extends TriggerMonitor {
   @Override
   protected Function<Trigger, Pipeline> buildTrigger(Pipeline pipeline, TriggerEvent event) {
     BuildEvent buildEvent = (BuildEvent) event;
-    return trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildEvent.getBuildNumber()));
+    return trigger -> pipeline.withTrigger(trigger.atBuildNumber(buildEvent.getBuildNumber()))
+      .withReceivedArtifacts(getArtifacts(buildEvent));
   }
 
   @Override
@@ -96,7 +103,10 @@ public class BuildEventMonitor extends TriggerMonitor {
     BuildEvent buildEvent = (BuildEvent) event;
     String jobName = buildEvent.getContent().getProject().getName();
     String master = buildEvent.getContent().getMaster();
-    return trigger -> isBuildTrigger(trigger) && trigger.getJob().equals(jobName) && trigger.getMaster().equals(master);
+    return trigger -> isBuildTrigger(trigger)
+      && trigger.getJob().equals(jobName)
+      && trigger.getMaster().equals(master)
+      && anyArtifactsMatchExpected(getArtifacts(buildEvent), trigger, pipeline);
   }
 
   @Override
@@ -113,5 +123,13 @@ public class BuildEventMonitor extends TriggerMonitor {
 
   private boolean isBuildTrigger(Trigger trigger) {
     return Arrays.stream(BUILD_TRIGGER_TYPES).anyMatch(triggerType -> triggerType.equals(trigger.getType()));
+  }
+
+  private List<Artifact> getArtifacts(BuildEvent event) {
+    return Optional.ofNullable(event.getContent())
+      .map(BuildEvent.Content::getProject)
+      .map(BuildEvent.Project::getLastBuild)
+      .map(BuildEvent.Build::getArtifacts)
+      .orElse(Collections.emptyList());
   }
 }

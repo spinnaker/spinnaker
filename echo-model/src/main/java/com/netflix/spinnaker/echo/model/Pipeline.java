@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.echo.model;
 
-import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
-import java.util.List;
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.Wither;
+
+import java.util.List;
+import java.util.Map;
 
 @JsonDeserialize(builder = Pipeline.PipelineBuilder.class)
 @Builder
