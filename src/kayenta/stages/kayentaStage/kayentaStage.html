@@ -189,6 +189,14 @@
         type="text"/>
     </stage-config-field>
 
+    <stage-config-field label="Resource Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'prometheus'">
+      <select
+        class="form-control input-sm"
+        ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].extendedScopeParams.resourceType"
+        ng-options="option for option in ['', 'gce_instance', 'aws_ec2_instance']">
+      </select>
+    </stage-config-field>
+
     <stage-config-field label="Resource Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'stackdriver'">
       <select
         class="form-control input-sm"

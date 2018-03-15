@@ -79,6 +79,13 @@ const metricsServiceMetadata = combineReducers<IMetricsServiceMetadataState>({
   data: handleActions({
     [Actions.LOAD_METRICS_SERVICE_METADATA_SUCCESS]:
       (_state: IMetricsServiceMetadata[], action: Action & any) => action.payload.data,
+    [Actions.UPDATE_PROMETHEUS_METRIC_TYPE]:
+      (state: IMetricsServiceMetadata, action: Action & any) => {
+        // When the user clears the Prometheus metric type dropdown,
+        // clear the backing set of metric descriptors, since they
+        // no longer apply to the filter.
+        return action.payload.metricName ? state : [];
+      },
     [Actions.UPDATE_STACKDRIVER_METRIC_TYPE]:
       (state: IMetricsServiceMetadata, action: Action & any) => {
         // When the user clears the Stackdriver metric type dropdown,

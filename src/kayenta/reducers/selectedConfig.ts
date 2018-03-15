@@ -18,6 +18,7 @@ import { ALL } from '../edit/groupTabs';
 import { AsyncRequestState } from './asyncRequest';
 import { IConfigValidationError } from './validators';
 import { editingTemplate, IEditingTemplateState } from './editingTemplate';
+import { prometheusMetricConfigReducer } from './prometheusMetricConfig';
 import { stackdriverMetricConfigReducer } from './stackdriverMetricConfig';
 
 export interface ILoadState {
@@ -380,7 +381,7 @@ const combined = combineReducers<ISelectedConfigState>({
   judge,
   metricList,
   editingMetric: (metric, action) =>
-    [editingMetric, stackdriverMetricConfigReducer].reduce((s, reducer) => reducer(s, action), metric),
+    [editingMetric, prometheusMetricConfigReducer, stackdriverMetricConfigReducer].reduce((s, reducer) => reducer(s, action), metric),
   group,
   thresholds,
   changeMetricGroup,
