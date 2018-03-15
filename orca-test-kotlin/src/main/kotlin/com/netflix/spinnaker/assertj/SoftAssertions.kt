@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/kotlin.gradle"
+package com.netflix.spinnaker.assertj
 
-dependencies {
-  compile project(":orca-core")
-  compile "org.assertj:assertj-core:3.9.0"
+import org.assertj.core.api.SoftAssertions
+
+fun assertSoftly(softly: SoftAssertions.() -> Unit) {
+  val assertions = SoftAssertions()
+  assertions.softly()
+  assertions.assertAll()
 }

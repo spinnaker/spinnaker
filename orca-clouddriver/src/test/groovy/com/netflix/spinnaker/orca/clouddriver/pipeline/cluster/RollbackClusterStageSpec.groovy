@@ -18,10 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.cluster
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.RollbackServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.WaitStage
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class RollbackClusterStageSpec extends Specification {
@@ -56,7 +57,7 @@ class RollbackClusterStageSpec extends Specification {
     }
 
     when:
-    def afterStages = stageBuilder.afterStages(stage)
+    def afterStages = buildAfterStages(stage)
 
     then:
     afterStages*.type == ["rollbackServerGroup", "wait", "rollbackServerGroup"]
@@ -64,7 +65,7 @@ class RollbackClusterStageSpec extends Specification {
 
     when: 'no wait between stages'
     stage.context.remove("waitTimeBetweenRegions")
-    afterStages = stageBuilder.afterStages(stage)
+    afterStages = buildAfterStages(stage)
 
     then:
     afterStages*.type == ["rollbackServerGroup", "rollbackServerGroup"]
@@ -72,11 +73,17 @@ class RollbackClusterStageSpec extends Specification {
 
     when: 'nothing to rollback in us-west-2'
     stage.outputs.rollbackTypes.remove("us-west-2")
-    afterStages = stageBuilder.afterStages(stage)
+    afterStages = buildAfterStages(stage)
 
     then:
     afterStages*.type == ["rollbackServerGroup"]
     afterStages*.context.region == ["us-east-1"]
+  }
+
+  private Iterable<Stage> buildAfterStages(Stage stage) {
+    def graph = StageGraphBuilder.afterStages(stage)
+    stageBuilder.afterStages(stage, graph)
+    return graph.build()
   }
 
   @Unroll

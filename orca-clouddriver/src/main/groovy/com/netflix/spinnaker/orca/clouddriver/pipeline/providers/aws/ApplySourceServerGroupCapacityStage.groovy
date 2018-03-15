@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
+import javax.annotation.Nonnull
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -25,14 +25,11 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import javax.annotation.Nonnull
-
 import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.PinnedServerGroupTagGenerator.PINNED_CAPACITY_TAG
 
 /**
@@ -67,31 +64,26 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
   }
 
   @Override
-  List<Stage> afterStages(@Nonnull Stage stage) {
+  void afterStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
     try {
       def taggingEnabled = featuresService.areEntityTagsAvailable()
       if (!taggingEnabled) {
-        return []
+        return
       }
 
       def entityTags = fetchEntityTags(oortService, retrySupport, stage)?.getAt(0)
       if (!entityTags) {
-        return []
+        return
       }
 
-      return [
-        newStage(
-          stage.execution,
-          deleteEntityTagsStage.type,
-          "Cleanup Server Group Tags",
-          [
-            id  : entityTags.id,
-            tags: Collections.singletonList(PINNED_CAPACITY_TAG)
-          ],
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
-        )
-      ]
+      graph.add {
+        it.type = deleteEntityTagsStage.type
+        it.name = "Cleanup Server Group Tags"
+        it.context = [
+          id  : entityTags.id,
+          tags: Collections.singletonList(PINNED_CAPACITY_TAG)
+        ]
+      }
     } catch (Exception e) {
       log.error(
         "Unable to determine whether server group is pinned (serverGroup: {}, account: {}, region: {})",
@@ -102,7 +94,6 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
       )
 
       // any false negatives (pinned server groups that were not detected) will be caught by the RestorePinnedServerGroupsAgent
-      return []
     }
   }
 

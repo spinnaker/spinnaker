@@ -22,7 +22,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.ext.afterStages
 import com.netflix.spinnaker.orca.ext.firstAfterStages
+import com.netflix.spinnaker.orca.ext.syntheticStages
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -67,9 +69,10 @@ class CompleteStageHandler(
         }
 
         if (status.isFailure) {
-          val onFailureStages = stage.planOnFailureStages()
-          if (!onFailureStages.isEmpty()) {
-            queue.push(StartStage(message, onFailureStages.get(0).id))
+          if (stage.planOnFailureStages()) {
+            stage.firstAfterStages().forEach {
+              queue.push(StartStage(it))
+            }
             return@withStage
           }
         }
@@ -135,11 +138,9 @@ class CompleteStageHandler(
   private fun Stage.planAfterStages() {
     var hasPlannedStages = false
 
-    builder().let { builder ->
-      builder.buildAfterStages(this, builder.afterStages(this)) { it: Stage ->
-        repository.addStage(it)
-        hasPlannedStages = true
-      }
+    builder().buildAfterStages(this) { it: Stage ->
+      repository.addStage(it)
+      hasPlannedStages = true
     }
 
     if (hasPlannedStages) {
@@ -150,50 +151,40 @@ class CompleteStageHandler(
   /**
    * Plan any outstanding synthetic on failure stages.
    */
-  private fun Stage.planOnFailureStages(): List<Stage> {
-    builder().let { builder ->
-      /*
-       * Avoid planning failure stages if _any_ with the same name are already complete
-       */
-      val previouslyPlannedAfterStageNames = afterStages().filter { it.status.isComplete }.map { it.name }
+  private fun Stage.planOnFailureStages(): Boolean {
+    // Avoid planning failure stages if _any_ with the same name are already complete
+    val previouslyPlannedAfterStageNames = afterStages().filter { it.status.isComplete }.map { it.name }
 
-      val onFailureStages = builder.onFailureStages(this)
-      val alreadyPlanned = onFailureStages.any { previouslyPlannedAfterStageNames.contains(it.name) }
+    val graph = StageGraphBuilder.afterStages(this)
+    builder().onFailureStages(this, graph)
+    val onFailureStages = graph.build().toList()
 
-      if (alreadyPlanned || onFailureStages.isEmpty()) {
-        return emptyList()
-      }
+    val alreadyPlanned = onFailureStages.any { previouslyPlannedAfterStageNames.contains(it.name) }
 
-      val notStartedSynthetics = execution.stages.filter { it.parentStageId == id && it.status == NOT_STARTED}
-      val notStartedSyntheticRefIds = notStartedSynthetics.map { it.refId }
-
-      builder.buildAfterStages(this, onFailureStages) { it: Stage ->
-        // Avoid having a NOT_STARTED synthetic stage as a prerequisite as it will be subsequently removed
-        // from the execution.
-        it.requisiteStageRefIds = it.requisiteStageRefIds.filter {
-          !notStartedSyntheticRefIds.contains(it)
-        }
-
+    return if (alreadyPlanned || onFailureStages.isEmpty()) {
+      false
+    } else {
+      removeNotStartedSynthetics() // should be all synthetics (nothing should have been started!)
+      appendAfterStages(onFailureStages) {
         repository.addStage(it)
       }
-
-      notStartedSynthetics.forEach {
-        it.removeNotStartedSynthetics() // should be all synthetics (nothing should have been started!)
-        repository.removeStage(execution, it.id)
-      }
-
-      this.execution = repository.retrieve(this.execution.type, this.execution.id)
-      return onFailureStages
+      true
     }
   }
 
   private fun Stage.removeNotStartedSynthetics() {
-    execution
-      .stages
-      .filter { it.parentStageId == id && it.status == NOT_STARTED}
-      .forEach {
-        it.removeNotStartedSynthetics() // should be all synthetics!
-        repository.removeStage(execution, it.id)
+    syntheticStages()
+      .filter { it.status == NOT_STARTED }
+      .forEach { stage ->
+        execution
+          .stages
+          .filter { it.requisiteStageRefIds.contains(stage.id) }
+          .forEach {
+            it.requisiteStageRefIds = it.requisiteStageRefIds - stage.id
+            repository.addStage(it)
+          }
+        stage.removeNotStartedSynthetics() // should be all synthetics!
+        repository.removeStage(execution, stage.id)
       }
   }
 }

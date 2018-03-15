@@ -54,7 +54,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           stage {
             refId = "1"
             type = stageWithSyntheticBefore.type
-            stageWithSyntheticBefore.buildSyntheticStages(this)
+            stageWithSyntheticBefore.buildBeforeStages(this)
             stageWithSyntheticBefore.buildTasks(this)
           }
         }
@@ -84,7 +84,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           stage {
             refId = "1"
             type = stageWithSyntheticBefore.type
-            stageWithSyntheticBefore.buildSyntheticStages(this)
+            stageWithSyntheticBefore.buildBeforeStages(this)
             stageWithSyntheticBefore.buildTasks(this)
           }
         }
@@ -114,7 +114,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           stage {
             refId = "1"
             type = stageWithSyntheticBefore.type
-            stageWithSyntheticBefore.buildSyntheticStages(this)
+            stageWithSyntheticBefore.buildBeforeStages(this)
             stageWithSyntheticBefore.buildTasks(this)
           }
         }
@@ -165,7 +165,7 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
           stage {
             refId = "1"
             type = stageWithSyntheticBeforeAndNoTasks.type
-            stageWithSyntheticBeforeAndNoTasks.buildSyntheticStages(this)
+            stageWithSyntheticBeforeAndNoTasks.buildBeforeStages(this)
             stageWithSyntheticBeforeAndNoTasks.buildTasks(this)
           }
         }
@@ -185,57 +185,6 @@ object ContinueParentStageHandlerTest : SubjectSpek<ContinueParentStageHandler>(
 
         it("completes the stage with $status") {
           verify(queue).push(CompleteStage(pipeline.stageByRef("1")))
-        }
-      }
-    }
-
-    given("the parent stage has no tasks but does have after stages") {
-      val pipeline = pipeline {
-        application = "foo"
-        stage {
-          refId = "1"
-          type = stageWithSyntheticBeforeAndAfterAndNoTasks.type
-          stageWithSyntheticBeforeAndAfterAndNoTasks.buildSyntheticStages(this)
-          stageWithSyntheticBeforeAndAfterAndNoTasks.buildTasks(this)
-        }
-      }
-
-      val message = ContinueParentStage(pipeline.stageByRef("1"))
-
-      beforeGroup {
-        pipeline.stageByRef("1").beforeStages().forEach { it.status = SUCCEEDED }
-      }
-
-      and("they didn't start yet") {
-        beforeGroup {
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
-        }
-
-        afterGroup(::resetMocks)
-
-        on("receiving $message") {
-          subject.handle(message)
-        }
-
-        it("starts the first after stage") {
-          verify(queue).push(StartStage(pipeline.stageByRef("1>1")))
-        }
-      }
-
-      and("they already started") {
-        beforeGroup {
-          pipeline.stageByRef("1>1").status = RUNNING
-          whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
-        }
-
-        afterGroup(::resetMocks)
-
-        on("receiving $message") {
-          subject.handle(message)
-        }
-
-        it("ignores the message") {
-          verifyZeroInteractions(queue)
         }
       }
     }

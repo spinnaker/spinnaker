@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.spek
 
+import org.jetbrains.spek.api.dsl.Pending
 import org.jetbrains.spek.api.dsl.SpecBody
 
 /**
@@ -25,9 +26,17 @@ fun SpecBody.and(description: String, body: SpecBody.() -> Unit) {
   group("and $description", body = body)
 }
 
+fun SpecBody.xand(description: String, reason: String? = null, body: SpecBody.() -> Unit) {
+  group("and $description", Pending.Yes(reason), body = body)
+}
+
 /**
  * Creates a [group][SpecBody.group].
  */
 fun SpecBody.but(description: String, body: SpecBody.() -> Unit) {
   group("but $description", body = body)
+}
+
+fun SpecBody.but(description: String, reason: String? = null, body: SpecBody.() -> Unit) {
+  group("but $description", Pending.Yes(reason), body = body)
 }

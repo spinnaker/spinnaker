@@ -21,21 +21,17 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.DetermineRollbackCan
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage;
 
 @Component
 public class RollbackClusterStage implements StageDefinitionBuilder {
@@ -58,12 +54,11 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       .withTask("determineRollbackCandidates", DetermineRollbackCandidatesTask.class);
   }
 
-  @Nonnull
   @Override
-  public List<Stage> afterStages(@Nonnull Stage stage) {
-    StageData stageData = stage.mapTo(StageData.class);
+  public void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    StageData stageData = parent.mapTo(StageData.class);
 
-    Map<String, String> rollbackTypes = (Map<String, String>) stage.getOutputs().get("rollbackTypes");
+    Map<String, String> rollbackTypes = (Map<String, String>) parent.getOutputs().get("rollbackTypes");
 
     // filter out any regions that do _not_ have a rollback target
     List<String> regionsToRollback = stageData.regions
@@ -71,16 +66,15 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       .filter(rollbackTypes::containsKey)
       .collect(Collectors.toList());
 
-    List<Stage> stages = new ArrayList<>();
     for (String region : regionsToRollback) {
       Map<String, Object> context = new HashMap<>();
       context.put(
         "rollbackType",
-        ((Map) stage.getOutputs().get("rollbackTypes")).get(region)
+        ((Map) parent.getOutputs().get("rollbackTypes")).get(region)
       );
       context.put(
         "rollbackContext",
-        ((Map) stage.getOutputs().get("rollbackContexts")).get(region)
+        ((Map) parent.getOutputs().get("rollbackContexts")).get(region)
       );
       context.put("type", rollbackServerGroupStage.getType());
       context.put("region", region);
@@ -88,35 +82,25 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       context.put("cloudProvider", stageData.cloudProvider);
 
       // propagate any attributes of the parent stage that are relevant to this rollback
-      context.putAll(propagateParentStageContext(stage.getParent()));
+      context.putAll(propagateParentStageContext(parent.getParent()));
 
-      stages.add(
-        newStage(
-          stage.getExecution(),
-          rollbackServerGroupStage.getType(),
-          "Rollback " + region,
-          context,
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
-        )
-      );
+      Stage rollbackStage = graph.add((it) -> {
+        it.setType(rollbackServerGroupStage.getType());
+        it.setName("Rollback " + region);
+        it.setContext(context);
+      });
 
       if (stageData.waitTimeBetweenRegions != null && regionsToRollback.indexOf(region) < regionsToRollback.size() - 1) {
         // only add the waitStage if we're not the very last region!
-        stages.add(
-          newStage(
-            stage.getExecution(),
-            waitStage.getType(),
-            "Wait after " + region,
-            Collections.singletonMap("waitTime", stageData.waitTimeBetweenRegions),
-            stage,
-            SyntheticStageOwner.STAGE_AFTER
-          )
-        );
+        graph.connect(
+          rollbackStage,
+          (it) -> {
+            it.setType(waitStage.getType());
+            it.setName("Wait after " + region);
+            it.setContext(Collections.singletonMap("waitTime", stageData.waitTimeBetweenRegions));
+          });
       }
     }
-
-    return stages;
   }
 
   private static Map<String, Object> propagateParentStageContext(Stage parent) {

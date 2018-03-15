@@ -131,7 +131,7 @@ class StartStageHandler(
   private fun Stage.plan() {
     builder().let { builder ->
       builder.buildTasks(this)
-      builder.buildSyntheticStages(this) { it: Stage ->
+      builder.buildBeforeStages(this) { it: Stage ->
         repository.addStage(it.withMergedContext())
       }
     }

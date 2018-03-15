@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.PauseStage
-import com.netflix.spinnaker.orca.q.buildSyntheticStages
+import com.netflix.spinnaker.orca.q.buildBeforeStages
 import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.orca.q.stageWithSyntheticBefore
 import com.netflix.spinnaker.q.Queue
@@ -88,7 +88,7 @@ object PauseStageHandlerTest : SubjectSpek<PauseStageHandler>({
       stage {
         refId = "1"
         type = stageWithSyntheticBefore.type
-        stageWithSyntheticBefore.buildSyntheticStages(this)
+        stageWithSyntheticBefore.buildBeforeStages(this)
       }
     }
     val message = PauseStage(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1<1").id)

@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 class HighlanderStrategySpec extends Specification {
 
-  def ShrinkClusterStage shrinkClusterStage = new ShrinkClusterStage()
+  def shrinkClusterStage = new ShrinkClusterStage()
 
   @Unroll
   def "should compose flow"() {

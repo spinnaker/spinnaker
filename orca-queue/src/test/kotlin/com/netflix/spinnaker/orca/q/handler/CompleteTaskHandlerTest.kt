@@ -53,13 +53,19 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
   describe("when a task completes successfully") {
     given("the stage contains further tasks") {
       val pipeline = pipeline {
-        application = "foo"
         stage {
           type = multiTaskStage.type
           multiTaskStage.buildTasks(this)
         }
       }
-      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
+      val message = CompleteTask(
+        pipeline.type,
+        pipeline.id,
+        pipeline.application,
+        pipeline.stages.first().id,
+        "1",
+        SUCCEEDED
+      )
 
       beforeGroup {
         whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
@@ -85,7 +91,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           .push(StartTask(
             message.executionType,
             message.executionId,
-            "foo",
+            message.application,
             message.stageId,
             "2"
           ))
@@ -104,13 +110,19 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
     given("the stage is complete") {
       val pipeline = pipeline {
-        application = "foo"
         stage {
           type = singleTaskStage.type
           singleTaskStage.buildTasks(this)
         }
       }
-      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
+      val message = CompleteTask(
+        pipeline.type,
+        pipeline.id,
+        pipeline.application,
+        pipeline.stages.first().id,
+        "1",
+        SUCCEEDED
+      )
 
       beforeGroup {
         whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
@@ -136,56 +148,14 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           .push(CompleteStage(
             message.executionType,
             message.executionId,
-            "foo",
+            message.application,
             message.stageId
-          ))
-      }
-    }
-
-    given("the stage has synthetic after stages") {
-      val pipeline = pipeline {
-        application = "foo"
-        stage {
-          type = stageWithSyntheticAfter.type
-          stageWithSyntheticAfter.buildTasks(this)
-          stageWithSyntheticAfter.buildSyntheticStages(this)
-        }
-      }
-      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", SUCCEEDED)
-
-      beforeGroup {
-        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-      }
-
-      afterGroup(::resetMocks)
-
-      action("the handler receives a message") {
-        subject.handle(message)
-      }
-
-      it("updates the task state in the stage") {
-        verify(repository).storeStage(check {
-          it.tasks.last().apply {
-            assertThat(status).isEqualTo(SUCCEEDED)
-            assertThat(endTime).isEqualTo(clock.millis())
-          }
-        })
-      }
-
-      it("triggers the first after stage") {
-        verify(queue)
-          .push(StartStage(
-            message.executionType,
-            message.executionId,
-            "foo",
-            pipeline.stages[1].id
           ))
       }
     }
 
     given("the task is the end of a rolling push loop") {
       val pipeline = pipeline {
-        application = "foo"
         stage {
           refId = "1"
           type = rollingPushStage.type
@@ -194,7 +164,14 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
       }
 
       and("when the task returns REDIRECT") {
-        val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stageByRef("1").id, "4", REDIRECT)
+        val message = CompleteTask(
+          pipeline.type,
+          pipeline.id,
+          pipeline.application,
+          pipeline.stageByRef("1").id,
+          "4",
+          REDIRECT
+        )
 
         beforeGroup {
           pipeline.stageByRef("1").apply {
@@ -235,13 +212,19 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
   setOf(TERMINAL, CANCELED).forEach { status ->
     describe("when a task completes with $status status") {
       val pipeline = pipeline {
-        application = "foo"
         stage {
           type = multiTaskStage.type
           multiTaskStage.buildTasks(this)
         }
       }
-      val message = CompleteTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", status)
+      val message = CompleteTask(
+        pipeline.type,
+        pipeline.id,
+        pipeline.application,
+        pipeline.stages.first().id,
+        "1",
+        status
+      )
 
       beforeGroup {
         whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
@@ -266,7 +249,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         verify(queue).push(CompleteStage(
           message.executionType,
           message.executionId,
-          "foo",
+          message.application,
           message.stageId
         ))
       }

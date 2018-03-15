@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ext.*
+import com.netflix.spinnaker.orca.ext.allBeforeStagesComplete
+import com.netflix.spinnaker.orca.ext.anyBeforeStagesFailed
+import com.netflix.spinnaker.orca.ext.firstAfterStages
+import com.netflix.spinnaker.orca.ext.hasTasks
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CompleteStage
@@ -46,7 +49,6 @@ class ContinueParentStageHandler(
       if (stage.allBeforeStagesComplete()) {
         when {
           stage.hasTasks() -> stage.runFirstTask()
-          stage.hasAfterStages() -> stage.runAfterStages()
           else -> queue.push(CompleteStage(stage))
         }
       } else if (!stage.anyBeforeStagesFailed()) {

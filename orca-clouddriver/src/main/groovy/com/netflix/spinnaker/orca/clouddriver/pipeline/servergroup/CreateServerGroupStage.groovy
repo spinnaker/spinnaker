@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import javax.annotation.Nonnull
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
@@ -23,19 +24,17 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterSt
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CreateServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AddServerGroupEntityTagsTask
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import javax.annotation.Nonnull
-import java.util.concurrent.TimeUnit
+import static java.util.concurrent.TimeUnit.MINUTES
 
 @Slf4j
 @Component
@@ -73,37 +72,33 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
   }
 
   @Override
-  List<Stage> onFailureStages(@Nonnull Stage stage) {
-    def onFailureStages = super.onFailureStages(stage)
+  void onFailureStages(@Nonnull Stage stage, StageGraphBuilder graph) {
+    super.onFailureStages(stage, graph)
 
     def stageData = stage.mapTo(StageData)
     if (!stageData.rollback?.onFailure) {
       // rollback on failure is not enabled
-      return onFailureStages
+      return
     }
 
     if (!stageData.getServerGroup()) {
       // did not get far enough to create a new server group
       log.warn("No server group was created, skipping rollback! (executionId: ${stage.execution.id}, stageId: ${stage.id})")
-      return onFailureStages
+      return
     }
 
-    onFailureStages << newStage(
-      stage.execution,
-      rollbackClusterStage.type,
-      "Rollback ${stageData.getCluster()}",
-      [
-        "credentials"   : stageData.getCredentials(),
-        "cloudProvider" : stageData.getCloudProvider(),
-        "regions"       : [stageData.getRegion()],
-        "serverGroup"   : stageData.getServerGroup(),
-        "stageTimeoutMs": TimeUnit.MINUTES.toMillis(30) // timebox a rollback to 30 minutes
-      ],
-      stage,
-      SyntheticStageOwner.STAGE_AFTER
-    )
-
-    return onFailureStages
+    // TODO: should this append after any existing stages in the graph?
+    graph.add {
+      it.type = rollbackClusterStage.type
+      it.name = "Rollback ${stageData.cluster}"
+      it.context = [
+        "credentials"   : stageData.credentials,
+        "cloudProvider" : stageData.cloudProvider,
+        "regions"       : [stageData.region],
+        "serverGroup"   : stageData.serverGroup,
+        "stageTimeoutMs": MINUTES.toMillis(30) // timebox a rollback to 30 minutes
+      ]
+    }
   }
 
   private static class StageData {

@@ -28,10 +28,10 @@ import spock.lang.Specification
 
 class RedBlackStrategySpec extends Specification {
 
-  def ShrinkClusterStage shrinkClusterStage = new ShrinkClusterStage()
-  def ScaleDownClusterStage scaleDownClusterStage = new ScaleDownClusterStage()
-  def DisableClusterStage disableClusterStage = new DisableClusterStage()
-  def WaitStage waitStage = new WaitStage()
+  def shrinkClusterStage = new ShrinkClusterStage()
+  def scaleDownClusterStage = new ScaleDownClusterStage()
+  def disableClusterStage = new DisableClusterStage()
+  def waitStage = new WaitStage()
 
   def "should compose flow"() {
     given:

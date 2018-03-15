@@ -118,6 +118,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
           refId = "2"
           requisiteStageRefIds = listOf("1")
           stageWithNestedSynthetics.plan(this)
+          stageWithNestedSynthetics.buildAfterStages(this)
           status = stageStatus
           startTime = clock.instant().minus(59, MINUTES).toEpochMilli()
           endTime = clock.instant().minus(30, MINUTES).toEpochMilli()
@@ -399,5 +400,5 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 fun StageDefinitionBuilder.plan(stage: Stage) {
   stage.type = type
   buildTasks(stage)
-  buildSyntheticStages(stage)
+  buildBeforeStages(stage)
 }

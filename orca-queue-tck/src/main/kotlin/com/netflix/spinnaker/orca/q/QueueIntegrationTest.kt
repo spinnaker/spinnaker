@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.config.OrcaQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
@@ -29,12 +28,14 @@ import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.ext.withTask
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
@@ -487,12 +488,14 @@ class QueueIntegrationTest {
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
-      assertThat(status).isEqualTo(SUCCEEDED)
-      assertThat(stages.size).isEqualTo(5)
-      assertThat(stages.first().type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
-      assertThat(stages[1..3].map { it.type }).allMatch { it == "dummy" }
-      assertThat(stages.last().type).isEqualTo("parallel")
-      assertThat(stages.map { it.status }).allMatch { it == SUCCEEDED }
+      assertSoftly {
+        assertThat(status).isEqualTo(SUCCEEDED)
+        assertThat(stages.size).isEqualTo(5)
+        assertThat(stages.first().type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+        assertThat(stages[1..3].map { it.type }).allMatch { it == "dummy" }
+        assertThat(stages.last().type).isEqualTo("parallel")
+        assertThat(stages.map { it.status }).allMatch { it == SUCCEEDED }
+      }
     }
   }
 
@@ -679,6 +682,40 @@ class QueueIntegrationTest {
       assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
     }
   }
+
+  @Test
+  fun `stages with synthetic failure stages will run those before terminating`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "syntheticFailure"
+      }
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doAnswer {
+      val stage = it.arguments.first() as Stage
+      if (stage.refId == "1") {
+        TaskResult(TERMINAL)
+      } else {
+        TaskResult.SUCCEEDED
+      }
+    }
+
+    context.runToCompletion(pipeline, runner::start, repository)
+
+    repository.retrieve(PIPELINE, pipeline.id).apply {
+      assertSoftly {
+        assertThat(status).isEqualTo(TERMINAL)
+        assertThat(stageByRef("1>1").name).isEqualTo("onFailure1")
+        assertThat(stageByRef("1>1").status).isEqualTo(SUCCEEDED)
+        assertThat(stageByRef("1>2").name).isEqualTo("onFailure2")
+        assertThat(stageByRef("1>2").status).isEqualTo(SUCCEEDED)
+      }
+    }
+  }
 }
 
 @Configuration
@@ -708,7 +745,7 @@ class TestConfig {
   @Bean
   fun dummyStage() = object : StageDefinitionBuilder {
     override fun taskGraph(stage: Stage, builder: Builder) {
-      builder.withTask("dummy", DummyTask::class.java)
+      builder.withTask<DummyTask>("dummy")
     }
 
     override fun getType() = "dummy"
@@ -722,6 +759,28 @@ class TestConfig {
       }
 
     override fun getType() = "parallel"
+  }
+
+  @Bean
+  fun syntheticFailureStage() = object : StageDefinitionBuilder {
+    override fun getType() = "syntheticFailure"
+
+    override fun taskGraph(stage: Stage, builder: Builder) {
+      builder.withTask<DummyTask>("dummy")
+    }
+
+    override fun onFailureStages(stage: Stage, graph: StageGraphBuilder) {
+      val stage1 = graph.add {
+        it.type = "dummy"
+        it.name = "onFailure1"
+        it.context = stage.context
+      }
+      graph.connect(stage1) {
+        it.type = "dummy"
+        it.name = "onFailure2"
+        it.context = stage.context
+      }
+    }
   }
 
   @Bean

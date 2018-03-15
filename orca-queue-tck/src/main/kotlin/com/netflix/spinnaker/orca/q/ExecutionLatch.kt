@@ -47,7 +47,7 @@ class ExecutionLatch(private val predicate: Predicate<ExecutionComplete>)
 }
 
 fun ConfigurableApplicationContext.runToCompletion(execution: Execution, launcher: (Execution) -> Unit, repository: ExecutionRepository) {
-  val latch = ExecutionLatch(Predicate<ExecutionComplete> {
+  val latch = ExecutionLatch(Predicate {
     it.executionId == execution.id
   })
   addApplicationListener(latch)

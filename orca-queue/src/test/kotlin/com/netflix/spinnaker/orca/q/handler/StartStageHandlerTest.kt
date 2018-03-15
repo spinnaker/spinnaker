@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
@@ -210,8 +210,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           })
         }
 
-        it("immediately starts the first after stage") {
-          verify(queue).push(StartStage(pipeline.stageByRef("1>1")))
+        it("completes the stage") {
+          verify(queue).push(CompleteStage(message))
           verifyNoMoreInteractions(queue)
         }
 
@@ -338,11 +338,8 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           subject.handle(message)
         }
 
-        it("attaches the synthetic stage to the pipeline") {
-          verify(repository, times(2)).addStage(check {
-            assertThat(it.parentStageId).isEqualTo(message.stageId)
-            assertThat(it.syntheticStageOwner).isEqualTo(STAGE_AFTER)
-          })
+        it("defers planning the after stages") {
+          verify(repository, never()).addStage(any())
         }
 
         it("raises an event to indicate the first task is starting") {
@@ -500,10 +497,12 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
           argumentCaptor<Stage>().apply {
             verify(repository, times(3)).addStage(capture())
-            assertThat(firstValue.type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
-            assertThat(firstValue.parentStageId).isEqualTo(message.stageId)
-            assertThat(firstValue.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
-            assertThat(secondValue.requisiteStageRefIds).isEqualTo(setOf(firstValue.refId))
+            assertSoftly {
+              assertThat(firstValue.type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+              assertThat(firstValue.parentStageId).isEqualTo(message.stageId)
+              assertThat(firstValue.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
+              assertThat(secondValue.requisiteStageRefIds).isEqualTo(setOf(firstValue.refId))
+            }
           }
         }
 
@@ -539,14 +538,18 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         it("injects a 'wait for execution window' stage before any other synthetic stages") {
           argumentCaptor<Stage>().apply {
             verify(repository, times(4)).addStage(capture())
-            assertThat(firstValue.type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
-            assertThat(firstValue.parentStageId).isEqualTo(message.stageId)
-            assertThat(firstValue.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
-            allValues[1..3].forEach {
-              assertThat(it.requisiteStageRefIds).isEqualTo(setOf(firstValue.refId))
+            assertSoftly {
+              assertThat(firstValue.type)
+                .isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+              assertThat(firstValue.parentStageId).isEqualTo(message.stageId)
+              assertThat(firstValue.syntheticStageOwner).isEqualTo(STAGE_BEFORE)
+              allValues[1..3].forEach {
+                assertThat(it.requisiteStageRefIds)
+                  .isEqualTo(setOf(firstValue.refId))
+              }
+              assertThat(allValues[1..3].map { it.type })
+                .allMatch { it == singleTaskStage.type }
             }
-            assertThat(allValues[1..3].map { it.type })
-              .allMatch { it == singleTaskStage.type }
           }
         }
 
@@ -787,7 +790,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
           refId = "1"
           name = "parallel"
           type = stageWithParallelBranches.type
-          stageWithParallelBranches.buildSyntheticStages(this)
+          stageWithParallelBranches.buildBeforeStages(this)
           stageWithParallelBranches.buildTasks(this)
         }
       }

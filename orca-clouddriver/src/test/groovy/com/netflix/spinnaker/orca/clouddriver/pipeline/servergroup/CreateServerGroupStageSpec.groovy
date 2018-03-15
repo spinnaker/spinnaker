@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
-import java.util.concurrent.TimeUnit
-
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class CreateServerGroupStageSpec extends Specification {
@@ -50,7 +49,9 @@ class CreateServerGroupStageSpec extends Specification {
     }
 
     when:
-    def onFailureStageContexts = createServerGroupStage.onFailureStages(stage)*.getContext()
+    def graph = StageGraphBuilder.afterStages(stage)
+    createServerGroupStage.onFailureStages(stage, graph)
+    def onFailureStageContexts = graph.build()*.getContext()
 
     then:
     onFailureStageContexts == expectedOnFailureStageContexts

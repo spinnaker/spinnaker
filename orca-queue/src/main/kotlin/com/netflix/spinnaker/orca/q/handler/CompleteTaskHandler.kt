@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.TaskComplete
-import com.netflix.spinnaker.orca.ext.firstAfterStages
 import com.netflix.spinnaker.orca.ext.nextTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -53,15 +52,7 @@ class CompleteTaskHandler(
         if (message.status != SUCCEEDED) {
           queue.push(CompleteStage(message))
         } else if (task.isStageEnd) {
-          mergedContextStage.firstAfterStages().let { afterStages ->
-            if (afterStages.isEmpty()) {
-              queue.push(CompleteStage(message))
-            } else {
-              afterStages.forEach {
-                queue.push(StartStage(message, it.id))
-              }
-            }
-          }
+          queue.push(CompleteStage(message))
         } else {
           mergedContextStage.nextTask(task).let {
             if (it == null) {

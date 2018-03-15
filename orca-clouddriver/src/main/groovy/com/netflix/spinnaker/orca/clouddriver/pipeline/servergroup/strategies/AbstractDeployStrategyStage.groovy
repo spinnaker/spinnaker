@@ -25,10 +25,12 @@ import com.netflix.spinnaker.orca.kato.pipeline.strategy.DetermineSourceServerGr
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StageDefinition
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Slf4j
@@ -133,20 +135,18 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
   }
 
   @Override
-  List<Stage> onFailureStages(Stage stage) {
-    return deployStagePreProcessors.findAll { it.supports(stage) }
+  void onFailureStages(Stage stage, StageGraphBuilder graph) {
+    deployStagePreProcessors
+      .findAll { it.supports(stage) }
       .collect { it.onFailureStageDefinitions(stage) }
       .flatten()
-      .collect { DeployStagePreProcessor.StageDefinition stageDefinition ->
-        newStage(
-          stage.execution,
-          stageDefinition.stageDefinitionBuilder.type,
-          stageDefinition.name,
-          stageDefinition.context,
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
-        )
+      .forEach { StageDefinition stageDefinition ->
+      graph.add {
+        it.type = stageDefinition.stageDefinitionBuilder.type
+        it.name = stageDefinition.name
+        it.context = stageDefinition.context
       }
+    }
   }
 
   /**

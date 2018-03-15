@@ -297,7 +297,7 @@ public class Execution implements Serializable {
   public Stage stageByRef(String refId) {
     return stages
       .stream()
-      .filter(it -> it.getRefId().equals(refId))
+      .filter(it -> refId.equals(it.getRefId()))
       .findFirst()
       .orElseThrow(() -> new IllegalArgumentException(String.format("No stage with refId %s exists", refId)));
   }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.dryrun
 import com.netflix.spinnaker.orca.ext.withTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class DryRunStage(private val delegate: StageDefinitionBuilder) : StageDefinitionBuilder {
@@ -32,6 +33,15 @@ class DryRunStage(private val delegate: StageDefinitionBuilder) : StageDefinitio
 
   override fun parallelStages(stage: Stage): List<Stage>
     = delegate.parallelStages(stage)
+
+  override fun beforeStages(parent: Stage, graph: StageGraphBuilder) =
+    delegate.beforeStages(parent, graph)
+
+  override fun afterStages(parent: Stage, graph: StageGraphBuilder) =
+    delegate.afterStages(parent, graph)
+
+  override fun onFailureStages(stage: Stage, graph: StageGraphBuilder) =
+    delegate.onFailureStages(stage, graph)
 
   override fun getType() = delegate.type
 

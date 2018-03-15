@@ -32,7 +32,7 @@ object DryRunStageTest : Spek({
   fun StageDefinitionBuilder.plan(stage: Stage) {
     stage.type = type
     buildTasks(stage)
-    buildSyntheticStages(stage)
+    buildBeforeStages(stage)
   }
 
   setOf(zeroTaskStage, singleTaskStage, multiTaskStage, stageWithSyntheticBefore, stageWithSyntheticBeforeAndNoTasks).forEach { proxiedStage ->
