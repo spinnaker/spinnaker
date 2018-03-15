@@ -1,7 +1,7 @@
 # Kayenta
 [WIP] Automated Canary Analysis
 
-[![Build Status](https://api.travis-ci.com/Netflix-Skunkworks/kayenta.svg?token=3dcx5xdA8twyS9T3VLnX&branch=master)](https://travis-ci.com/Netflix-Skunkworks/kayenta)
+[![Build Status](https://api.travis-ci.com/spinnaker/kayenta.svg?token=3dcx5xdA8twyS9T3VLnX&branch=master)](https://travis-ci.com/spinnaker/kayenta)
 
 ## Kayenta Judge Setup
 The Kayenta Judge currently uses R to perform the Mann-Whitney statistical test; Kayenta uses RServe to interface with R.
