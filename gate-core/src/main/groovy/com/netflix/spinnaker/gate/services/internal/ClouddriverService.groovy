@@ -217,11 +217,11 @@ interface ClouddriverService {
 
   @Headers("Accept: application/json")
   @GET("/reports/reservation")
-  List<Map> getReservationReports()
+  List<Map> getReservationReports(@QueryMap Map<String, String> filters)
 
   @Headers("Accept: application/json")
   @GET("/reports/reservation/{name}")
-  List<Map> getReservationReports(@Path("name") String name)
+  List<Map> getReservationReports(@Path("name") String name, @QueryMap Map<String, String> filters)
 
   @Headers("Accept: application/json")
   @GET("/{provider}/images/find")
