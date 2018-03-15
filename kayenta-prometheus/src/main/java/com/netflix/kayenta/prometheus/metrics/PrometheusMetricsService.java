@@ -104,10 +104,12 @@ public class PrometheusMetricsService implements MetricsService {
         addGCEFilters(scopeLabel, scope, projectId, region, filters);
       } else if ("aws_ec2_instance".equals(resourceType)) {
         addEC2Filters("asg_groupName", scope, region, filters);
-      } else {
+      } else if (!StringUtils.isEmpty(resourceType)) {
         throw new IllegalArgumentException("There is no explicit support for resourceType '" + resourceType + "'. " +
                                            "You may build whatever query makes sense for your environment via label " +
                                            "bindings and custom filter templates.");
+      } else {
+        throw new IllegalArgumentException("Either a resource type or a custom filter is required.");
       }
     } else {
       List<String> customFilterTokens = Arrays.asList(customFilter.split(","));

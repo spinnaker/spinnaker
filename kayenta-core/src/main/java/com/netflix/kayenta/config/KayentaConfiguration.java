@@ -32,12 +32,12 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan({
   "com.netflix.kayenta.canary",
   "com.netflix.kayenta.config",
+  "com.netflix.kayenta.events",
+  "com.netflix.kayenta.external",
   "com.netflix.kayenta.index.config",
   "com.netflix.kayenta.metrics",
   "com.netflix.kayenta.persistence.config",
-  "com.netflix.kayenta.retrofit.config",
-  "com.netflix.kayenta.events",
-  "com.netflix.kayenta.external"
+  "com.netflix.kayenta.retrofit.config"
 })
 public class KayentaConfiguration {
 

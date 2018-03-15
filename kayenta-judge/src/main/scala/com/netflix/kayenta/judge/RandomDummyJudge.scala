@@ -71,6 +71,7 @@ class RandomDummyJudge extends CanaryJudge {
       CanaryAnalysisResult.builder()
         .name(metricPair.getName)
         .id(metricPair.getId)
+        .tags(metricPair.getTags)
         .classification(classification)
         .groups(metricConfig.getGroups)
         .experimentMetadata(Map("stats" -> DescriptiveStatistics.toMap(experimentStats).asJava.asInstanceOf[Object]).asJava)
