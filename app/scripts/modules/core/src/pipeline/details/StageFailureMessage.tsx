@@ -73,7 +73,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
     const { message, messages } = this.props;
     const { isFailed, failedTask, failedExecutionId, failedStageName, failedStageId } = this.state;
     if (isFailed || failedTask || message || messages.length) {
-      const exceptionTitle = messages.length ? 'Exceptions' : 'Exception';
+      const exceptionTitle = isFailed ? messages.length ? 'Exceptions' : 'Exception' : 'Warning';
       const displayMessages = message || !messages.length ?
         <Markdown message={message || 'No reason provided.'} className="break-word" /> :
         messages.map((m, i) => <Markdown key={i} message={m || 'No reason provided.'} className="break-word" />);
@@ -82,7 +82,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
         return (
           <div className="row">
             <div className="col-md-12">
-              <div className="alert alert-danger">
+              <div className={`alert ${ (exceptionTitle === 'Warning') ? 'alert-warning' : 'alert-danger'}`}>
                 <div>
                   <h5>{exceptionTitle} {failedTask && <span>( {robotToHuman(failedTask.name)} )</span>}</h5>
                   {displayMessages}
