@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import Graph from './graph/graph';
 import MetricResultStats from './metricResultStats';
+import GraphTypeSelector from './graphTypeSelector';
 
 /*
 * Responsible for layout of the metric result detail view after the metric set
@@ -10,6 +11,7 @@ import MetricResultStats from './metricResultStats';
 export default () => (
   <section className="vertical flex-1" style={{ overflowY: 'auto' }}>
     <Graph/>
+    <GraphTypeSelector/>
     <MetricResultStats/>
   </section>
 );

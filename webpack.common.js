@@ -54,6 +54,11 @@ function configure(IS_TEST) {
           include: inclusionPattern.concat(path.resolve(__dirname, 'settings.js'))
         },
         {
+          test: /\.js$/,
+          use: ['ify-loader', 'transform-loader?plotly.js/tasks/util/compress_attributes.js'],
+          exclude: /node_modules\/react/
+        },
+        {
           test: /\.less$/,
           use: ['cache-loader', 'style-loader', 'css-loader', 'less-loader'],
           include: inclusionPattern
@@ -90,6 +95,9 @@ function configure(IS_TEST) {
       'react/lib/ExecutionEnvironment': 'react',
       'react/lib/ReactContext': 'react',
     },
+    node: {
+      fs: 'empty',
+    }
   };
 
   if (!IS_TEST) {

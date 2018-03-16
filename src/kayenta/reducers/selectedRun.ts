@@ -1,10 +1,10 @@
 import { combineReducers, Action, Reducer } from 'redux'
 import { handleActions } from 'redux-actions';
 
-import * as Actions from 'kayenta/actions/index';
+import * as Actions from 'kayenta/actions';
 import { AsyncRequestState } from './asyncRequest';
-import { IMetricSetPair } from '../domain/IMetricSetPair';
-import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
+import { IMetricSetPair, ICanaryExecutionStatusResult } from 'kayenta/domain';
+import { GraphType } from 'kayenta/report/detail/graph/metricSetPairGraph.service';
 
 interface IMetricSetPairState {
   pair: IMetricSetPair;
@@ -17,6 +17,7 @@ export interface ISelectedRunState {
   selectedGroup: string;
   selectedMetric: string;
   metricSetPair: IMetricSetPairState;
+  graphType: GraphType;
 }
 
 const run = handleActions({
@@ -49,10 +50,15 @@ const metricSetPair = combineReducers<IMetricSetPairState>({
   }, AsyncRequestState.Fulfilled),
 });
 
+const graphType = handleActions<GraphType>({
+  [Actions.SELECT_GRAPH_TYPE]: (_state: GraphType, action: Action & any) => action.payload.type,
+}, GraphType.AmplitudeVsTime);
+
 export const selectedRun: Reducer<ISelectedRunState> = combineReducers<ISelectedRunState>({
   run,
   load,
   selectedGroup,
   selectedMetric,
   metricSetPair,
+  graphType,
 });

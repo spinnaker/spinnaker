@@ -24,6 +24,7 @@
     "lib": "node ./build_scripts/checkLicenses.js && rimraf lib && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
   },
   "dependencies": {
+    "@types/plotly.js": "^1.28.12",
     "@uirouter/angularjs": "^1.0.15",
     "@uirouter/react-hybrid": "^0.1.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
@@ -37,12 +38,14 @@
     "classnames": "^2.2.5",
     "diff-match-patch": "^1.0.0",
     "dompurify": "^0.8.5",
+    "ify-loader": "^1.1.0",
     "js-yaml": "^3.8.3",
     "lodash": "^4.16.1",
     "lodash-decorators": "^4.4.1",
     "moment-timezone": "^0.4.0",
     "n3-charts": "^2.0.18",
     "ngimport": "^0.6.0",
+    "plotly.js": "^1.35.2",
     "react": "16.2.0",
     "react-bootstrap": "^0.32.1",
     "react-dom": "16.2.0",
@@ -64,6 +67,7 @@
     "source-sans-pro": "^2.0.10",
     "spel2js": "^0.2.3",
     "spin.js": "git://github.com/fgnass/spin.js.git#2.3.1",
+    "transform-loader": "^0.2.4",
     "ui-router-visualizer": "^4.0.0",
     "ui-select": "^0.19.6"
   },

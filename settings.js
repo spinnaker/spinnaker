@@ -85,7 +85,6 @@ window.spinnakerSettings = {
     defaultJudge: 'NetflixACAJudge-v1.0',
     metricStore: defaultMetricStore,
     stagesEnabled: canaryStagesEnabled,
-    graphImplementation: 'chartjs',
     atlasWebComponentsUrl: atlasWebComponentsUrl,
     templatesEnabled: templatesEnabled,
     showAllConfigs: false,

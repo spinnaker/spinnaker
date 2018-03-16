@@ -74,3 +74,4 @@ export const LOAD_EXECUTIONS_REQUEST = 'load_executions_request';
 export const LOAD_EXECUTIONS_SUCCESS = 'load_executions_success';
 export const LOAD_EXECUTIONS_FAILURE = 'load_executions_failure';
 export const SET_ACTIVE_TAB = 'set_active_tab';
+export const SELECT_GRAPH_TYPE = 'select_graph_type';

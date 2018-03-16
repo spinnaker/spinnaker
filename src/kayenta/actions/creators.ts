@@ -10,6 +10,7 @@ import { IMetricSetPair } from '../domain/IMetricSetPair';
 import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
 import { IUpdateListPayload } from '../layout/list';
 import { IMetricsServiceMetadata } from '../domain/IMetricsServiceMetadata';
+import { GraphType } from 'kayenta/report/detail/graph/metricSetPairGraph.service';
 
 export interface IKayentaAction<T> extends Action {
   payload: T;
@@ -89,3 +90,4 @@ export const loadExecutionsRequest = createAction(Actions.LOAD_EXECUTIONS_REQUES
 export const loadExecutionsFailure = createAction<{error: Error}>(Actions.LOAD_EXECUTIONS_FAILURE);
 export const loadExecutionsSuccess = createAction<{executions: ICanaryExecutionStatusResult[]}>(Actions.LOAD_EXECUTIONS_SUCCESS);
 export const setActiveTab = createAction<{tab: string}>(Actions.SET_ACTIVE_TAB);
+export const selectGraphType = createAction<{type: GraphType}>(Actions.SELECT_GRAPH_TYPE);

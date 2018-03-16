@@ -8,6 +8,7 @@ import { CANARY_STAGES } from 'kayenta/stages/stages.module';
 import { CANARY_STATES } from 'kayenta/navigation/canary.states';
 import 'kayenta/metricStore/index';
 import 'kayenta/report/detail/graph/chartjs';
+import 'kayenta/report/detail/graph/plotly';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
