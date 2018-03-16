@@ -33,11 +33,11 @@ export class ExecutionService {
       return this.getFilteredExecutions(applicationName, this.activeStatuses, this.runningLimit);
     }
 
-    private getFilteredExecutions(applicationName: string, statuses: string[], limit: number, pipelineConfigIds: string[] = null): IPromise<IExecution[]> {
+    private getFilteredExecutions(applicationName: string, statuses: string[], limit: number, pipelineConfigIds: string[] = null, expand = false): IPromise<IExecution[]> {
         const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
         const call = pipelineConfigIds ?
           this.API.all('executions').getList({ limit, pipelineConfigIds, statuses }) :
-          this.API.one('applications', applicationName).all('pipelines').getList({ limit, statuses: statusString, pipelineConfigIds });
+          this.API.one('applications', applicationName).all('pipelines').getList({ limit, statuses: statusString, pipelineConfigIds, expand });
 
         return call.then((data: IExecution[]) => {
           if (data) {
@@ -55,17 +55,17 @@ export class ExecutionService {
    * application will be used to correlate and filter the retrieved executions to only include those pipelines
    * @return {<IExecution[]>}
    */
-    public getExecutions(applicationName: string, application: Application = null): IPromise<IExecution[]> {
+    public getExecutions(applicationName: string, application: Application = null, expand = false): IPromise<IExecution[]> {
       const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
       const pipelines = Object.keys(sortFilter.pipeline);
       const statuses = Object.keys(pickBy(sortFilter.status || {}, identity));
       const limit = sortFilter.count;
       if (application && pipelines.length) {
         return this.getConfigIdsFromFilterModel(application).then(pipelineConfigIds => {
-          return this.getFilteredExecutions(application.name, statuses, limit, pipelineConfigIds);
+          return this.getFilteredExecutions(application.name, statuses, limit, pipelineConfigIds, expand);
         });
       }
-      return this.getFilteredExecutions(applicationName, statuses, limit);
+      return this.getFilteredExecutions(applicationName, statuses, limit, null, expand);
     }
 
     public getExecution(executionId: string): IPromise<IExecution> {

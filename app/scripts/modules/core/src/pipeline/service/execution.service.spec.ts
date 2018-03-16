@@ -158,7 +158,7 @@ describe('Service: executionService', () => {
           SETTINGS.gateUrl,
           'applications',
           'deck',
-          'pipelines?limit=3',
+          'pipelines?limit=3&expand=false',
         ].join('/');
 
       $httpBackend.expectGET(url).respond(200, []);
@@ -182,7 +182,7 @@ describe('Service: executionService', () => {
         SETTINGS.gateUrl,
         'applications',
         'deck',
-        'pipelines?limit=3',
+        'pipelines?limit=3&expand=false',
       ].join('/');
 
       $httpBackend.expectGET(url).respond(429, []);

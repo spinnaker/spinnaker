@@ -17,8 +17,8 @@
               {{[container.imageDescription.repository, execution.trigger.tag].join(':')}}
             </dd>
           </span>
-          <dt ng-if="stage.context.jobStatus.logs">Logs</dt>
-          <dd ng-if="stage.context.jobStatus.logs">
+          <dt ng-if="hasLogs">Logs</dt>
+          <dd ng-if="hasLogs">
             <dl><a href="" ng-click="displayLogs()">Console Output (Raw)</a></dl>
           </dd>
         </dl>

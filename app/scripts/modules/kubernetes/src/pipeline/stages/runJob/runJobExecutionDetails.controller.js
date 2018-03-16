@@ -1,3 +1,5 @@
+import { get, has } from 'lodash';
+
 'use strict';
 
 const angular = require('angular');
@@ -6,9 +8,11 @@ module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller', [
     require('@uirouter/angularjs').default,
   ])
-  .controller('kubernetesRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $uibModal) {
+  .controller('kubernetesRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionService, executionDetailsSectionService, $uibModal) {
 
     $scope.configSections = ['runJobConfig', 'taskStatus'];
+    $scope.hasLogs = has($scope.stage, 'context.jobStatus.logs');
+    $scope.executionId = $stateParams.executionId;
 
     // if the stage is pre-multi-containers
     if ($scope.stage.context.container) {
@@ -28,11 +32,23 @@ module.exports = angular
     $scope.displayLogs = () => {
       $scope.logs = $scope.stage.context.jobStatus.logs || '';
       $scope.jobName = $scope.stage.context.jobStatus.name || '';
-      return $uibModal.open({
+      $scope.loading = $scope.logs === '';
+      $uibModal.open({
         templateUrl: require('./runJobLogs.html'),
         scope: $scope,
         size: 'lg'
       });
+      if ($scope.logs === '') {
+        const getExecutionPromise = executionService.getExecution($scope.executionId);
+        getExecutionPromise.finally(() => {
+          $scope.loading = false;
+        });
+        getExecutionPromise.then(execution => {
+          const fullStage = execution.stages.find(s => s.id === $scope.stage.id);
+          if (fullStage) {
+            $scope.logs = get(fullStage, 'context.jobStatus.logs', 'No log output found');
+          }
+        });
+      }
     };
-
   });
