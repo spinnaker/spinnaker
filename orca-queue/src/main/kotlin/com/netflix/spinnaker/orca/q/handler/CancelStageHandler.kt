@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelStage
+import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.q.Queue
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
@@ -37,6 +40,39 @@ class CancelStageHandler(
 
   override fun handle(message: CancelStage) {
     message.withStage { stage ->
+      /**
+       * When an execution ends with status !SUCCEEDED, still-running stages
+       * remain in the RUNNING state until their running tasks are dequeued
+       * to RunTaskHandler. For tasks leveraging getDynamicBackoffPeriod(),
+       * stages may incorrectly report as RUNNING for a considerable length
+       * of time, unless we short-circuit their backoff time.
+       *
+       * For !SUCCEEDED executions, CompleteExecutionHandler enqueues CancelStage
+       * messages for all top-level stages. For stages still RUNNING, we requeue
+       * RunTask messages for any RUNNING tasks, for immediate execution. This
+       * ensures prompt stage cancellation and correct handling of onFailure or
+       * cancel conditions. This is safe as RunTaskHandler validates execution
+       * status before processing work. RunTask messages are idempotent for
+       * cancelled executions, though additional work is generally avoided due
+       * to queue deduplication.
+       *
+       */
+      if (stage.status == RUNNING) {
+        stage.tasks
+          .filter { it.status == RUNNING }
+          .forEach {
+            queue.reschedule(
+              RunTask(
+                stage.execution.type,
+                stage.execution.id,
+                stage.execution.application,
+                stage.id,
+                it.id,
+                it.type
+              )
+            )
+          }
+      }
       if (stage.status.isHalt) {
         stage.builder().let { builder ->
           if (builder is CancellableStage) {
@@ -51,4 +87,8 @@ class CancelStageHandler(
       }
     }
   }
+
+  @Suppress("UNCHECKED_CAST")
+  private val com.netflix.spinnaker.orca.pipeline.model.Task.type
+    get() = Class.forName(implementingClass) as Class<out Task>
 }
