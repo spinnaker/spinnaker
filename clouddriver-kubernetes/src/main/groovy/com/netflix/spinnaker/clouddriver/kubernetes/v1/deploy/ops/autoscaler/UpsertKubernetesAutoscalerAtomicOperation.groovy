@@ -61,6 +61,7 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
     def hasDeployment = credentials.apiAdaptor.hasDeployment(replicaSet)
     def name = hasDeployment ? parsedName.cluster : serverGroupName
     def kind = hasDeployment ? KubernetesUtil.DEPLOYMENT_KIND : KubernetesUtil.SERVER_GROUP_KIND
+    def version = hasDeployment ? credentials.apiAdaptor.getDeployment(namespace, parsedName.cluster).getApiVersion() : replicaSet.getApiVersion()
 
     task.updateStatus BASE_PHASE, "Looking up existing autoscaler..."
 
@@ -83,7 +84,7 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
         autoscaler.spec.targetCPUUtilizationPercentage
 
       ((DoneableHorizontalPodAutoscaler) KubernetesApiConverter.toAutoscaler(
-        credentials.apiAdaptor.editAutoscaler(namespace, name), description, name, kind
+        credentials.apiAdaptor.editAutoscaler(namespace, name), description, name, kind, version
       )).done()
     } else {
       if (!description.scalingPolicy || !description.scalingPolicy.cpuUtilization || description.scalingPolicy.cpuUtilization.target == null) {
@@ -95,7 +96,7 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
       }
 
       task.updateStatus BASE_PHASE, "Creating autoscaler..."
-      credentials.apiAdaptor.createAutoscaler(namespace, ((HorizontalPodAutoscalerBuilder) KubernetesApiConverter.toAutoscaler(new HorizontalPodAutoscalerBuilder(), description, name, kind)).build())
+      credentials.apiAdaptor.createAutoscaler(namespace, ((HorizontalPodAutoscalerBuilder) KubernetesApiConverter.toAutoscaler(new HorizontalPodAutoscalerBuilder(), description, name, kind, version)).build())
     }
 
     return null

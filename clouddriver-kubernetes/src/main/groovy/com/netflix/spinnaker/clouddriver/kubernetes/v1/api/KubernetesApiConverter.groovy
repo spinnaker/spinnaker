@@ -804,7 +804,8 @@ class KubernetesApiConverter {
   static HorizontalPodAutoscalerFluentImpl toAutoscaler(HorizontalPodAutoscalerFluentImpl autoscalerBuilder,
                                                         KubernetesAutoscalerDescription description,
                                                         String resourceName,
-                                                        String resourceKind) {
+                                                        String resourceKind,
+                                                        String apiVersion) {
     autoscalerBuilder.withNewMetadata()
       .withName(resourceName)
       .withNamespace(description.namespace)
@@ -816,6 +817,7 @@ class KubernetesApiConverter {
       .withNewScaleTargetRef()
       .withKind(resourceKind)
       .withName(resourceName)
+      .withApiVersion(apiVersion)
       .endScaleTargetRef()
       .endSpec()
   }
