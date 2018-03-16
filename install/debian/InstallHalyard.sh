@@ -24,6 +24,31 @@ function process_args() {
     local key="$1"
     shift
     case $key in
+      --halyard-bucket-base-url)
+        echo "halyard-bucket-base-url"
+        HALYARD_BUCKET_BASE_URL="$1"
+        shift
+        ;;
+      --spinnaker-repository)
+        echo "spinnaker-repo"
+        SPINNAKER_REPOSITORY_URL="$1"
+        shift
+        ;;
+      --spinnaker-registry)
+        echo "spinnaker-registry"
+        SPINNAKER_DOCKER_REGISTRY="$1"
+        shift
+        ;;
+      --spinnaker-gce-project)
+        echo "spinnaker-gce-project"
+        SPINNAKER_GCE_PROJECT="$1"
+        shift
+        ;;
+      --config-bucket)
+        echo "config-bucket"
+        CONFIG_BUCKET="$1"
+        shift
+        ;;
       --user)
         echo "user"
         HAL_USER="$1"
@@ -50,7 +75,7 @@ function process_args() {
 }
 
 function get_user() {
-  local user 
+  local user
 
   user=$(who -m | awk '{print $1;}')
   if [ -z "$YES" ]; then
@@ -93,6 +118,18 @@ function configure_defaults() {
 
   echo "$(tput bold)Halyard version will be $HALYARD_VERSION $(tput sgr0)"
 
+  if [ -z "$HALYARD_BUCKET_BASE_URL" ]; then
+    HALYARD_BUCKET_BASE_URL="gs://spinnaker-artifacts/halyard"
+  fi
+
+  echo "$(tput bold)Halyard will be downloaded from $HALYARD_BUCKET_BASE_URL $(tput sgr0)"
+
+  if [ -z "$CONFIG_BUCKET" ]; then
+    CONFIG_BUCKET="halconfig"
+  fi
+
+  echo "$(tput bold)Halyard config will come from bucket gs://$CONFIG_BUCKET $(tput sgr0)"
+
   home=$(getent passwd $HAL_USER | cut -d: -f6)
   local halconfig_dir="$home/.hal"
 
@@ -114,6 +151,9 @@ spinnaker:
     debianRepository: $SPINNAKER_REPOSITORY_URL
     dockerRegistry: $SPINNAKER_DOCKER_REGISTRY
     googleImageProject: $SPINNAKER_GCE_PROJECT
+  config:
+    input:
+      bucket: $CONFIG_BUCKET
 EOL
 
   echo $HAL_USER > /opt/spinnaker/config/halyard-user
@@ -151,6 +191,24 @@ function print_usage() {
 usage: $0 [-y] [--version=<version>] [--user=<user>]
     -y                              Accept all default options during install
                                     (non-interactive mode).
+
+    --halyard-bucket <name>         The bucket the Halyard JAR to be installed
+                                    is stored in.
+
+    --config-bucket <name>          The bucket the your Bill of Materials and
+                                    base profiles are stored in.
+
+    --spinnaker-repository <url>    Obtain Spinnaker artifact debians from <url>
+                                    rather than the default repository, which is
+                                    $SPINNAKER_REPOSITORY_URL.
+
+    --spinnaker-registry <url>      Obtain Spinnaker docker images from <url>
+                                    rather than the default registry, which is
+                                    $SPINNAKER_DOCKER_REGISTRY.
+
+    --spinnaker-gce-project <name>  Obtain Spinnaker GCE images from <url>
+                                    rather than the default project, which is
+                                    $SPINNAKER_GCE_PROJECT.
 
     --version <version>             Specify the exact verison of Halyard to
                                     install.
@@ -209,8 +267,17 @@ function install_java() {
 function install_halyard() {
   TEMPDIR=$(mktemp -d installhalyard.XXXX)
   pushd $TEMPDIR
+  local gcs_bucket_path
 
-  curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/debian/halyard.tar.gz
+  if [[ "$HALYARD_BUCKET_BASE_URL" != gs://* ]]; then
+    >&2 echo "Currently installing halyard is only supported from a GCS bucket."
+    >&2 echo "The --halyard-install-url parameter must start with 'gs://'."
+    exit 1
+  else
+    gcs_bucket_path=${HALYARD_BUCKET_BASE_URL:5}
+  fi
+
+  curl -O https://storage.googleapis.com/$gcs_bucket_path/$HALYARD_VERSION/debian/halyard.tar.gz
   tar -xvf halyard.tar.gz -C /opt
 
   groupadd halyard || true
@@ -225,7 +292,7 @@ function install_halyard() {
   if [ -f /opt/update-halyard ]; then
     mv /opt/update-halyard /usr/local/bin
     chmod +x /usr/local/bin/update-halyard
-  else 
+  else
     echo "No update script supplied with installer..."
   fi
 
