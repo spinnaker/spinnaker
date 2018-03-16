@@ -435,18 +435,20 @@ public class KubectlJobExecutor {
       command.add("9");
     }
 
-    if (credentials.getOAuthServiceAccount() != null && !credentials.getOAuthServiceAccount().isEmpty()) {
-      command.add("--token=" + getOAuthToken(credentials));
-    }
+    if (!credentials.isServiceAccount()) {
+      if (credentials.getOAuthServiceAccount() != null && !credentials.getOAuthServiceAccount().isEmpty()) {
+        command.add("--token=" + getOAuthToken(credentials));
+      }
 
-    String kubeconfigFile = credentials.getKubeconfigFile();
-    if (StringUtils.isNotEmpty(kubeconfigFile)) {
-      command.add("--kubeconfig=" + kubeconfigFile);
-    }
+      String kubeconfigFile = credentials.getKubeconfigFile();
+      if (StringUtils.isNotEmpty(kubeconfigFile)) {
+        command.add("--kubeconfig=" + kubeconfigFile);
+      }
 
-    String context = credentials.getContext();
-    if (StringUtils.isNotEmpty(context)) {
-      command.add("--context=" + context);
+      String context = credentials.getContext();
+      if (StringUtils.isNotEmpty(context)) {
+        command.add("--context=" + context);
+      }
     }
 
     return command;

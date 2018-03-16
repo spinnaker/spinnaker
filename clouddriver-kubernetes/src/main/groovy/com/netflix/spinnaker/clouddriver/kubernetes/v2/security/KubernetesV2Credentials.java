@@ -65,6 +65,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final List<String> omitNamespaces;
   private final List<KubernetesKind> kinds;
   private final List<KubernetesKind> omitKinds;
+  @Getter private final boolean serviceAccount;
 
   // TODO(lwander) make configurable
   private final static int namespaceExpirySeconds = 30;
@@ -154,6 +155,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     List<String> kinds;
     List<String> omitKinds;
     boolean debug;
+    boolean serviceAccount;
 
     public Builder accountName(String accountName) {
       this.accountName = accountName;
@@ -210,6 +212,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return this;
     }
 
+    public Builder serviceAccount(boolean serviceAccount) {
+      this.serviceAccount = serviceAccount;
+      return this;
+    }
+
     public Builder oAuthServiceAccount(String oAuthServiceAccount) {
       this.oAuthServiceAccount = oAuthServiceAccount;
       return this;
@@ -263,6 +270,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           context,
           oAuthServiceAccount,
           oAuthScopes,
+          serviceAccount,
           customResources,
           KubernetesKind.fromStringList(kinds),
           KubernetesKind.fromStringList(omitKinds),
@@ -281,6 +289,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       String context,
       String oAuthServiceAccount,
       List<String> oAuthScopes,
+      boolean serviceAccount,
       @NotNull List<CustomKubernetesResource> customResources,
       @NotNull List<KubernetesKind> kinds,
       @NotNull List<KubernetesKind> omitKinds,
@@ -297,6 +306,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.context = context;
     this.oAuthServiceAccount = oAuthServiceAccount;
     this.oAuthScopes = oAuthScopes;
+    this.serviceAccount = serviceAccount;
     this.customResources = customResources;
     this.kinds = kinds;
     this.omitKinds = omitKinds;
