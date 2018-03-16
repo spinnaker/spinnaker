@@ -2,15 +2,15 @@ import { omit } from 'lodash';
 import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ICanaryState } from '../reducers/index';
+import { ICanaryState } from 'kayenta/reducers';
 import {
   ICanaryMetricConfig,
   IJudge,
   ICanaryConfigSummary,
   ICanaryConfig,
-  IKayentaAccount
-} from '../domain/index';
-import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
+  IKayentaAccount,
+  ICanaryConfigUpdateResponse,
+} from 'kayenta/domain';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
   return ReactInjector.API.one('v2/canaryConfig').one(id).get()
@@ -42,7 +42,7 @@ export function listJudges(): Promise<IJudge[]> {
 }
 
 export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
-  return ReactInjector.API.one('v2/canaries/credentials').get();
+  return ReactInjector.API.one('v2/canaries/credentials').useCache().get();
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config

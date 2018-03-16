@@ -5,11 +5,7 @@ import { without } from 'lodash';
 import { Application } from '@spinnaker/core';
 
 import * as Actions from '../actions';
-import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
-import { IJudge } from '../domain/IJudge';
-import { ICanaryConfig } from '../domain/ICanaryConfig';
-import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
-import { IMetricsServiceMetadata } from '../domain/IMetricsServiceMetadata';
+import { ICanaryConfigSummary, IJudge, ICanaryConfig, ICanaryExecutionStatusResult, IMetricsServiceMetadata, IKayentaAccount } from 'kayenta/domain';
 import { AsyncRequestState } from './asyncRequest';
 
 interface IMetricsServiceMetadataState {
@@ -22,6 +18,11 @@ interface IExecutionsState {
   data: ICanaryExecutionStatusResult[];
 }
 
+interface IKayentaAccountsState {
+  load: AsyncRequestState;
+  data: IKayentaAccount[];
+}
+
 export interface IDataState {
   application: Application;
   configSummaries: ICanaryConfigSummary[];
@@ -29,6 +30,7 @@ export interface IDataState {
   judges: IJudge[];
   metricsServiceMetadata: IMetricsServiceMetadataState;
   executions: IExecutionsState;
+  kayentaAccounts: IKayentaAccountsState;
 }
 
 export const application = handleActions({
@@ -97,6 +99,18 @@ const metricsServiceMetadata = combineReducers<IMetricsServiceMetadataState>({
   }, []),
 });
 
+const kayentaAccounts = combineReducers<IKayentaAccountsState>({
+  load: handleActions<AsyncRequestState>({
+    [Actions.LOAD_KAYENTA_ACCOUNTS_REQUEST]: () => AsyncRequestState.Requesting,
+    [Actions.LOAD_KAYENTA_ACCOUNTS_SUCCESS]: () => AsyncRequestState.Fulfilled,
+    [Actions.LOAD_KAYENTA_ACCOUNTS_FAILURE]: () => AsyncRequestState.Failed,
+  }, AsyncRequestState.Requesting),
+  data: handleActions<IKayentaAccount[]>({
+    [Actions.LOAD_KAYENTA_ACCOUNTS_SUCCESS]:
+      (_state, action: Action & any) => action.payload.accounts,
+  }, []),
+});
+
 export const data: Reducer<IDataState> = combineReducers<IDataState>({
   application,
   configSummaries,
@@ -104,4 +118,5 @@ export const data: Reducer<IDataState> = combineReducers<IDataState>({
   configs,
   executions,
   metricsServiceMetadata,
+  kayentaAccounts,
 });

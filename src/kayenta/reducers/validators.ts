@@ -1,4 +1,6 @@
+import { chain } from 'lodash';
 import { ICanaryState } from './index';
+import { KayentaAccountType } from 'kayenta/domain';
 
 export interface IConfigValidationError {
   message: string;
@@ -71,6 +73,43 @@ const isEveryGroupWeightValid: IConfigValidator = state => {
     : { message: 'A group weight must be greater than or equal to 0.' };
 };
 
+const isEveryQueriedMetricStoreAvailable: IConfigValidator = state => {
+  const available = chain(state.data.kayentaAccounts.data)
+    .filter(account => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
+    .map(account => account.metricsStoreType || account.type)
+    .uniq()
+    .valueOf();
+
+  const queried = chain(state.selectedConfig.metricList)
+    .map(metric => metric.query.type)
+    .uniq()
+    .valueOf();
+
+  const unavailableQueried = queried.filter(store => !available.includes(store));
+  let message: string;
+  if (unavailableQueried.length === 1) {
+    message = `This config contains metrics configured to query a metric
+               store (${unavailableQueried[0]})
+               that does not have any configured accounts.`;
+  } else if (unavailableQueried.length > 1) {
+    message = `This config contains metrics configured to query metric
+               stores (${unavailableQueried.join()})
+               that do not have any configured accounts.`;
+  }
+  return unavailableQueried.length ? { message } : null;
+};
+
+const areMultipleMetricStoresQueried: IConfigValidator = state => {
+  const queried = chain(state.selectedConfig.metricList)
+    .map(metric => metric.query.type)
+    .uniq()
+    .valueOf();
+
+  return queried.length > 1
+    ? { message: 'All metrics must be from the same metric store.' }
+    : null;
+};
+
 export const validationErrorsReducer = (state: ICanaryState): ICanaryState => {
   if (!state.selectedConfig) {
     return state;
@@ -85,5 +124,7 @@ export const validationErrorsReducer = (state: ICanaryState): ICanaryState => {
     isConfigNameValid,
     isGroupWeightsSumValid,
     isEveryGroupWeightValid,
+    isEveryQueriedMetricStoreAvailable,
+    areMultipleMetricStoresQueried,
   ].reduce((s, validator) => createValidationReducer(validator)(s), state);
 };

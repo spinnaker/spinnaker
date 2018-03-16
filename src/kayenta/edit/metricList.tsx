@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
-import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import { ICanaryState } from '../reducers';
-import * as Creators from '../actions/creators';
+import { ICanaryMetricConfig } from 'kayenta/domain';
+import { ICanaryState } from 'kayenta/reducers';
+import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ITableColumn, Table } from '../layout/table';
+import { ITableColumn, Table } from 'kayenta/layout/table';
 import ChangeMetricGroupModal from './changeMetricGroupModal';
 
 interface IMetricListStateProps {
@@ -14,6 +14,7 @@ interface IMetricListStateProps {
   showGroups: boolean;
   changingGroupMetric: ICanaryMetricConfig;
   groupList: string[];
+  metricStore: string;
 }
 
 interface IMetricListDispatchProps {
@@ -26,7 +27,7 @@ interface IMetricListDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal, metricStore }: IMetricListStateProps & IMetricListDispatchProps) {
 
   const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
@@ -79,7 +80,15 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
         </p>
       ) : null}
       {changingGroupMetric && <ChangeMetricGroupModal metric={changingGroupMetric}/>}
-      <button className="passive" data-group={selectedGroup} data-default={groupList[0]} onClick={addMetric}>Add Metric</button>
+      <button
+        className="passive"
+        data-group={selectedGroup}
+        data-default={groupList[0]}
+        data-metric-store={metricStore}
+        onClick={addMetric}
+      >
+        Add Metric
+      </button>
     </section>
   );
 }
@@ -101,6 +110,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
     showGroups: !selectedGroup || metricList.filter(filter).some(metric => metric.groups.length > 1),
     changingGroupMetric: state.selectedConfig.metricList.find(m =>
       m.id === state.selectedConfig.changeMetricGroup.metric),
+    metricStore: metricList.length ? metricList[0].query.type : CanarySettings.metricStore,
   };
 }
 
@@ -116,7 +126,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           analysisConfigurations: {},
           name: '',
           query: {
-            type: CanarySettings.metricStore
+            type: event.target.dataset.metricStore,
           },
           groups: group ? [group] : [],
           scopeName: 'default',

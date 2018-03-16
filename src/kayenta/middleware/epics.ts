@@ -7,19 +7,20 @@ import {
   deleteCanaryConfig,
   getCanaryConfigById,
   mapStateToConfig,
-  updateCanaryConfig
-} from '../service/canaryConfig.service';
-import * as Actions from '../actions/index';
-import * as Creators from '../actions/creators';
-import { ICanaryState } from '../reducers/index';
+  updateCanaryConfig,
+  listKayentaAccounts,
+} from 'kayenta/service/canaryConfig.service';
+import * as Actions from 'kayenta/actions';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryState } from 'kayenta/reducers';
 import { ReactInjector } from '@spinnaker/core';
 import {
   getCanaryRun,
   getMetricSetPair
 } from '../service/canaryRun.service';
-import { runSelector } from '../selectors/index';
-import { ICanaryConfigUpdateResponse } from '../domain/ICanaryConfigUpdateResponse';
-import { listMetricsServiceMetadata } from '../service/metricsServiceMetadata.service';
+import { runSelector } from 'kayenta/selectors';
+import { ICanaryConfigUpdateResponse } from 'kayenta/domain';
+import { listMetricsServiceMetadata } from 'kayenta/service/metricsServiceMetadata.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
 
@@ -122,6 +123,15 @@ const loadMetricsServiceMetadataEpic = (action$: Observable<Action & any>) =>
         .catch((error: Error) => Observable.of(Creators.loadMetricsServiceMetadataFailure({ error })));
     });
 
+const loadKayentaAccountsEpic = (action$: Observable<Action & any>) =>
+  action$
+    .filter(typeMatches(Actions.LOAD_KAYENTA_ACCOUNTS_REQUEST, Actions.INITIALIZE))
+    .concatMap(() =>
+      Observable.fromPromise(listKayentaAccounts())
+        .map(accounts => Creators.loadKayentaAccountsSuccess({ accounts }))
+        .catch((error: Error) => Observable.of(Creators.loadKayentaAccountsFailure({ error })))
+    );
+
 const rootEpic = combineEpics(
   loadConfigEpic,
   selectConfigEpic,
@@ -133,6 +143,7 @@ const rootEpic = combineEpics(
   updatePrometheusMetricDescriptionFilterEpic,
   updateStackdriverMetricDescriptionFilterEpic,
   loadMetricsServiceMetadataEpic,
+  loadKayentaAccountsEpic,
 );
 
 export const epicMiddleware: EpicMiddleware<Action & any, ICanaryState> = createEpicMiddleware(rootEpic);

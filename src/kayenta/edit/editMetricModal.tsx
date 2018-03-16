@@ -4,14 +4,14 @@ import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 import Select, { Option } from 'react-select';
 import { noop } from '@spinnaker/core';
-import * as Creators from '../actions/creators';
-import { ICanaryState } from '../reducers/index';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
-import Styleguide from '../layout/styleguide';
-import FormRow from '../layout/formRow';
-import KayentaInput from '../layout/kayentaInput';
+import Styleguide from 'kayenta/layout/styleguide';
+import FormRow from 'kayenta/layout/formRow';
+import KayentaInput from 'kayenta/layout/kayentaInput';
 import { configTemplatesSelector } from 'kayenta/selectors';
 
 import './editMetricModal.less';
@@ -36,7 +36,7 @@ interface IEditMetricModalStateProps {
 function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
   return (
     <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
-      <input name="direction" type="radio" value={value} onClick={action} checked={value === current}/> {label}
+      <input name="direction" type="radio" value={value} onChange={action} checked={value === current}/> {label}
     </label>
   );
 }
@@ -132,7 +132,15 @@ function EditMetricModal({ metric, rename, changeGroup, groups, confirm, cancel,
         <Modal.Footer>
           <ul className="list-inline pull-right">
             <li><button className="passive" onClick={cancel}>Cancel</button></li>
-            <li><button className="primary" disabled={!metric.name || !metric.scopeName} onClick={confirm}>OK</button></li>
+            <li>
+              <button
+                className="primary"
+                disabled={!metric.name || !metric.scopeName}
+                onClick={confirm}
+              >
+                OK
+              </button>
+            </li>
           </ul>
         </Modal.Footer>
       </Styleguide>

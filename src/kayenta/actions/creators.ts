@@ -2,15 +2,10 @@ import { createAction } from 'redux-actions';
 import { Action } from 'redux';
 
 import * as Actions from './index';
-import { ConfigJsonModalTabState } from '../edit/configJsonModal';
-import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
-import { IJudge } from '../domain/IJudge';
-import { IMetricSetPair } from '../domain/IMetricSetPair';
-import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
-import { IUpdateListPayload } from '../layout/list';
-import { IMetricsServiceMetadata } from '../domain/IMetricsServiceMetadata';
+import { ConfigJsonModalTabState } from 'kayenta/edit/configJsonModal';
+import { IUpdateListPayload } from 'kayenta/layout/list';
 import { GraphType } from 'kayenta/report/detail/graph/metricSetPairGraph.service';
+import { IKayentaAccount, IMetricsServiceMetadata, ICanaryExecutionStatusResult, IMetricSetPair, IJudge, ICanaryConfigSummary, ICanaryConfig, ICanaryMetricConfig } from 'kayenta/domain';
 
 export interface IKayentaAction<T> extends Action {
   payload: T;
@@ -71,9 +66,9 @@ export const editTemplateConfirm = createAction(Actions.EDIT_TEMPLATE_CONFIRM);
 export const editTemplateCancel = createAction(Actions.EDIT_TEMPLATE_CANCEL);
 export const editTemplateName = createAction<{name: string}>(Actions.EDIT_TEMPLATE_NAME);
 export const editTemplateValue = createAction<{value: string}>(Actions.EDIT_TEMPLATE_VALUE);
-export const updatePrometheusLabelBindings = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_LABEL_BINDINGS)
-export const updatePrometheusGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_GROUP_BY_FIELDS)
-export const updateStackdriverGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS)
+export const updatePrometheusLabelBindings = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_LABEL_BINDINGS);
+export const updatePrometheusGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_PROMETHEUS_GROUP_BY_FIELDS);
+export const updateStackdriverGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS);
 export const deleteTemplate = createAction<{name: string}>(Actions.DELETE_TEMPLATE);
 export const selectTemplate = createAction<{name: string}>(Actions.SELECT_TEMPLATE);
 export const updateMetricScopeName = createAction<{scopeName: string}>(Actions.UPDATE_METRIC_SCOPE_NAME);
@@ -91,3 +86,6 @@ export const loadExecutionsFailure = createAction<{error: Error}>(Actions.LOAD_E
 export const loadExecutionsSuccess = createAction<{executions: ICanaryExecutionStatusResult[]}>(Actions.LOAD_EXECUTIONS_SUCCESS);
 export const setActiveTab = createAction<{tab: string}>(Actions.SET_ACTIVE_TAB);
 export const selectGraphType = createAction<{type: GraphType}>(Actions.SELECT_GRAPH_TYPE);
+export const loadKayentaAccountsRequest = createAction(Actions.LOAD_KAYENTA_ACCOUNTS_REQUEST);
+export const loadKayentaAccountsSuccess = createAction<{accounts: IKayentaAccount[]}>(Actions.LOAD_KAYENTA_ACCOUNTS_SUCCESS);
+export const loadKayentaAccountsFailure = createAction<{error: Error}>(Actions.LOAD_KAYENTA_ACCOUNTS_FAILURE);

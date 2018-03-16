@@ -8,3 +8,5 @@ export * from './IMetricSetPair';
 export * from './ICanaryJudgeStage';
 export * from './ISetupCanaryStage';
 export * from './ICanaryExecutionStatusResult';
+export * from './IMetricsServiceMetadata';
+export * from './ICanaryConfigUpdateResponse';
