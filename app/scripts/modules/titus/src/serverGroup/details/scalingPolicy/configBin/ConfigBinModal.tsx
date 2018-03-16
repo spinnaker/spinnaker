@@ -13,7 +13,7 @@ import { metricOptions } from './metricOptions';
 import { IClusterConfig, IClusterConfigExpression } from './configBin.reader';
 import { CustomMetric } from './CustomMetric';
 
-interface IConfigBinModalProps {
+export interface IConfigBinModalProps {
   application: Application;
   config: IClusterConfig;
   showCallback: () => void;
@@ -23,7 +23,7 @@ interface IConfigBinModalProps {
   env: string;
 }
 
-interface IConfigBinModalState {
+export interface IConfigBinModalState {
   taskMonitor: TaskMonitor;
   nonEditableExpressions: IClusterConfigExpression[];
   cannedExpressions: IExpressionModel[]; // preconfigured expressions
@@ -32,7 +32,7 @@ interface IConfigBinModalState {
   saveError: string;
 }
 
-interface IExpressionModel extends IClusterConfigExpression {
+export interface IExpressionModel extends IClusterConfigExpression {
   region?: string;
   metric?: string;
   env?: string;
@@ -110,7 +110,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
   }
 
   private asConfigModel(expression: IClusterConfigExpression): IExpressionModel {
-    const model: IExpressionModel = Object.assign({isCustom: false}, expression);
+    const model: IExpressionModel = Object.assign({ isCustom: false }, expression);
     // pretty gross, but let's take our best guess at whether these are canned expressions by parsing the URL
     // e.g. http://atlas-main.us-east-1.prod.netflix.net/api/v1/graph?q=name,cgroup.cpu.processingTime,:eq,nf.cluster,cbmigrate-titus-autoscale2,:eq,:and,:sum,(,nf.asg,),:by
     let uri = expression.atlasUri;
@@ -248,7 +248,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
             {metricOptions.map(group => {
               return (
                 <div key={group.category}>
-                  <h4 style={{marginTop: '20px'}}>Available Metrics: {group.category}</h4>
+                  <h4 style={{ marginTop: '20px' }}>Available Metrics: {group.category}</h4>
                   {group.options.map(o => {
                     const enabled = cannedExpressions.some(e => e.metric === o.name);
                     return (
@@ -268,7 +268,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
                 </div>)
             })}
           </div>
-          <h4 style={{marginTop: '20px'}}>Custom Metrics</h4>
+          <h4 style={{ marginTop: '20px' }}>Custom Metrics</h4>
           <p>If you need to scale on some other metrics, you can add them here.</p>
           {customExpressions.map((e, i) => {
             return (

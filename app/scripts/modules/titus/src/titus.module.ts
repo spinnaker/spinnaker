@@ -1,8 +1,6 @@
-'use strict';
+import { module } from 'angular';
 
-const angular = require('angular');
-
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
 import { TITUS_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
@@ -13,12 +11,14 @@ import { TitusLoadBalancersTag } from './loadBalancers/TitusLoadBalancersTag';
 import './logo/titus.logo.less';
 
 // load all templates into the $templateCache
-var templates = require.context('./', true, /\.html$/);
+const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
 });
 
-module.exports = angular.module('spinnaker.titus', [
+export const TITUS_MODULE = 'spinnaker.titus';
+module(TITUS_MODULE, [
+  TITUS_REACT_MODULE,
   CLOUD_PROVIDER_REGISTRY,
   require('./securityGroup/securityGroup.read.service').name,
   require('./serverGroup/details/serverGroupDetails.titus.controller.js').name,
@@ -40,11 +40,9 @@ module.exports = angular.module('spinnaker.titus', [
   require('./pipeline/stages/disableCluster/titusDisableClusterStage.js').name,
   require('./pipeline/stages/shrinkCluster/titusShrinkClusterStage.js').name,
   require('./pipeline/stages/scaleDownCluster/titusScaleDownClusterStage.js').name,
-  TITUS_MIGRATION_CONFIG_COMPONENT,
-  TITUS_REACT_MODULE,
-])
-  .config(function(cloudProviderRegistryProvider) {
-    cloudProviderRegistryProvider.registerProvider('titus', {
+  TITUS_MIGRATION_CONFIG_COMPONENT
+]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
+  cloudProviderRegistryProvider.registerProvider('titus', {
       name: 'Titus',
       logo: {
         path: require('./logo/titus.logo.png')
@@ -70,8 +68,8 @@ module.exports = angular.module('spinnaker.titus', [
       instance: {
         detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
         detailsController: 'titusInstanceDetailsCtrl'
-      }
-    });
+      },
   });
+});
 
 DeploymentStrategyRegistry.registerProvider('titus', ['custom', 'redblack']);

@@ -4,7 +4,7 @@ import { BindAll } from 'lodash-decorators';
 import { ConfigBinModal } from './ConfigBinModal';
 import { Application, HelpField } from '@spinnaker/core';
 
-interface IConfigBinLinkProps {
+export interface IConfigBinLinkProps {
   application: Application;
   config: IClusterConfig;
   clusterName: string;
@@ -15,7 +15,7 @@ interface IConfigBinLinkProps {
   linkText?: string;
 }
 
-interface IConfigBinLinkState {
+export interface IConfigBinLinkState {
   modalOpen: boolean;
 }
 

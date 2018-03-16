@@ -1,6 +1,6 @@
-import {IController, IComponentOptions, module} from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
-import {chain, flatten, intersection, xor} from 'lodash';
+import { chain, flatten, intersection, xor } from 'lodash';
 
 import {
   AccountService,
@@ -11,9 +11,9 @@ import {
   InfrastructureCacheService, LoadBalancerReader,
 } from '@spinnaker/core';
 
-import {Subscription} from 'rxjs/Subscription';
-import {Subject} from 'rxjs/Subject';
-import {IAmazonApplicationLoadBalancer, IAmazonLoadBalancer} from '@spinnaker/amazon';
+import { Subscription } from 'rxjs/Subscription';
+import { Subject } from 'rxjs/Subject';
+import { IAmazonApplicationLoadBalancer, IAmazonLoadBalancer } from '@spinnaker/amazon';
 
 class LoadBalancerSelectorController implements IController {
   public command: any;
@@ -76,7 +76,7 @@ class LoadBalancerSelectorController implements IController {
     return chain(this.loadBalancers)
       .map('accounts')
       .flattenDeep()
-      .filter({ name: this.getAwsAccount()})
+      .filter({ name: this.getAwsAccount() })
       .map('regions')
       .flattenDeep()
       .filter({ name: this.getRegion() })

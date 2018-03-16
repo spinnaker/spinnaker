@@ -10,7 +10,7 @@ import {
   HealthCounts, ILoadBalancer, ILoadBalancersTagProps, ReactInjector, Tooltip, HoverablePopover
 } from '@spinnaker/core';
 
-import { AmazonLoadBalancerDataUtils } from '@spinnaker/amazon/lib/loadBalancer/amazonLoadBalancerDataUtils';
+import { AmazonLoadBalancerDataUtils } from '@spinnaker/amazon';
 import { IAmazonServerGroup, ITargetGroup } from '@spinnaker/amazon';
 
 interface ILoadBalancerListItemProps {

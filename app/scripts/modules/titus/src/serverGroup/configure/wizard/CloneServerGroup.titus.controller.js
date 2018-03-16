@@ -1,8 +1,8 @@
 'use strict';
 
 const angular = require('angular');
-import {TITUS_SECURITY_GROUP_PICKER} from 'titus/securityGroup/securityGroupPicker.component';
-import {TITUS_LOAD_BALANCER_SELECTOR} from 'titus/loadBalancers/loadBalancerSelector.component';
+import {TITUS_SECURITY_GROUP_PICKER} from '../../../securityGroup/securityGroupPicker.component';
+import {TITUS_LOAD_BALANCER_SELECTOR} from '../../../loadBalancers/loadBalancerSelector.component';
 
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [

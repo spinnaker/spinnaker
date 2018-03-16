@@ -5,7 +5,7 @@ import { Application, IServerGroup, ReactInjector } from '@spinnaker/core';
 
 import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
 import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
-import { TitusReactInjector } from 'titus/reactShims/titus.react.injector';
+import { TitusReactInjector } from '../../../reactShims';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;
@@ -31,12 +31,12 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
       awsAccount: null,
     };
     ReactInjector.accountService.getAccountDetails(props.serverGroup.account).then((details) => {
-      this.setState({awsAccount: details.awsAccount});
+      this.setState({ awsAccount: details.awsAccount });
     });
   }
 
   public handleClick(): void {
-    this.setState({showSelection: true});
+    this.setState({ showSelection: true });
   }
 
   public createStepPolicy(): void {
@@ -50,7 +50,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
       resolve: {
         policy: () => TitusReactInjector.titusServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
         serverGroup: () => serverGroup,
-        alarmServerGroup: () => ({ type: 'aws', account: this.state.awsAccount, region: serverGroup.region, name: serverGroup.name}),
+        alarmServerGroup: () => ({ type: 'aws', account: this.state.awsAccount, region: serverGroup.region, name: serverGroup.name }),
         application: () => application,
       }
     }).result.catch(() => {});
@@ -67,14 +67,14 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
       resolve: {
         policy: () => TitusReactInjector.titusServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(serverGroup),
         serverGroup: () => serverGroup,
-        alarmServerGroup: () => ({ type: 'aws', account: this.state.awsAccount, region: serverGroup.region, name: serverGroup.name}),
+        alarmServerGroup: () => ({ type: 'aws', account: this.state.awsAccount, region: serverGroup.region, name: serverGroup.name }),
         application: () => application,
       }
     }).result.catch(() => {});
   }
 
   public typeSelected(typeSelection: string): void {
-    this.setState({typeSelection, showSelection: false, showModal: true});
+    this.setState({ typeSelection, showSelection: false, showModal: true });
     if (typeSelection === 'step') {
       this.createStepPolicy();
     }
@@ -84,7 +84,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   }
 
   public showModalCallback(): void {
-    this.setState({showSelection: false, showModal: false, typeSelection: null});
+    this.setState({ showSelection: false, showModal: false, typeSelection: null });
   }
 
   public render() {

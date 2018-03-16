@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
-import { TitusProviderSettings } from 'titus/titus.settings';
+import { TitusProviderSettings } from '../../titus.settings';
 
 module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,

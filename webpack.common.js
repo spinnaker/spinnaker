@@ -47,6 +47,7 @@ function configure(IS_TEST) {
         '@spinnaker/docker': path.join(__dirname, 'app', 'scripts', 'modules', 'docker', 'src'),
         'amazon': path.join(__dirname, 'app', 'scripts', 'modules', 'amazon', 'src'),
         '@spinnaker/amazon': path.join(__dirname, 'app', 'scripts', 'modules', 'amazon', 'src'),
+        '@spinnaker/titus': path.join(__dirname, 'app', 'scripts', 'modules', 'titus', 'src'),
         'google': path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
         '@spinnaker/google': path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
         'kubernetes': path.join(__dirname, 'app', 'scripts', 'modules', 'kubernetes', 'src'),

@@ -11,7 +11,7 @@ export interface ITitusMigrationViewState extends IConfigSectionFooterViewState 
   accountsLoaded: boolean;
 }
 
-type MigrationStrategyType = 'rollingPush' | 'pipeline';
+export type MigrationStrategyType = 'rollingPush' | 'pipeline';
 
 /**
  * Marker interface for migration strategies
@@ -38,7 +38,7 @@ export class PipelineStrategy implements IMigrationStrategyType {
 /**
  * Actual stored parameter in PipelineStrategy
  */
-interface IPipelineParam {
+export interface IPipelineParam {
   name: string;
   value: any;
 }
@@ -54,7 +54,7 @@ export interface IMigrationStrategy {
 /**
  * Override configuration for a cluster
  */
-interface IOverride {
+export interface IOverride {
   account: string;
   region: string;
   stack: string;

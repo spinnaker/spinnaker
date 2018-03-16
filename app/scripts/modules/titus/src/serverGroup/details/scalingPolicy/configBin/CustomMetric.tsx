@@ -26,13 +26,13 @@ export class CustomMetric extends React.Component<ICustomMetricProps, ICustomMet
   }
 
   private metricNameUpdated(e: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({name: e.target.value});
-    this.props.metricUpdated(this.props.metric, Object.assign({}, this.props.metric, {metricName: e.target.value}));
+    this.setState({ name: e.target.value });
+    this.props.metricUpdated(this.props.metric, Object.assign({}, this.props.metric, { metricName: e.target.value }));
   }
 
   private metricUriUpdated(e: React.ChangeEvent<HTMLTextAreaElement>): void {
-    this.setState({uri: e.target.value});
-    this.props.metricUpdated(this.props.metric, Object.assign({}, this.props.metric, {atlasUri: e.target.value}));
+    this.setState({ uri: e.target.value });
+    this.props.metricUpdated(this.props.metric, Object.assign({}, this.props.metric, { atlasUri: e.target.value }));
   }
 
   private removeMetric(): void {
@@ -42,10 +42,10 @@ export class CustomMetric extends React.Component<ICustomMetricProps, ICustomMet
   public render() {
     const { metric } = this.props;
     return (
-      <div style={{paddingRight: '40px'}}>
+      <div style={{ paddingRight: '40px' }}>
         <dl className="dl-horizontal dl-narrow">
           <dt>Name</dt>
-          <dd style={{marginBottom: '10px'}}>
+          <dd style={{ marginBottom: '10px' }}>
             <input
               className="form-control input-sm"
               value={metric.metricName}

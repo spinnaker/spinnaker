@@ -83,9 +83,9 @@ class SecurityGroupPickerController implements ng.IComponentController {
   }
 
   private getRegionalSecurityGroups(): ISecurityGroup[] {
-    const newSecurityGroups: any = this.securityGroups[this.getAwsAccount()] || { aws: {}};
+    const newSecurityGroups: any = this.securityGroups[this.getAwsAccount()] || { aws: {} };
     return _.chain<ISecurityGroup>(newSecurityGroups.aws[this.getRegion()])
-      .filter({vpcId: this.getVpcId()})
+      .filter({ vpcId: this.getVpcId() })
       .sortBy('name')
       .value();
   }

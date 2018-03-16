@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from '@spinnaker/core';
+import { module } from 'angular';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: {[key: string]: string} = {
   'titus.deploy.runtimeLimitSecs': '<p>Maximum amount of time (in seconds) a batch job is allowed to run</p>',
