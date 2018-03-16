@@ -339,7 +339,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                             <label className="checkbox-inline" style={{ paddingTop: '2px' }}>
                               <input
                                 type="checkbox"
-                                value={targetGroup.attributes.stickinessEnabled ? 'true' : 'false'}
+                                checked={targetGroup.attributes.stickinessEnabled}
                                 onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.stickinessEnabled', event.target.checked)}
                               />
                                 {' '}<label>Sticky</label><HelpField id="aws.targetGroup.attributes.stickinessEnabled"/>
