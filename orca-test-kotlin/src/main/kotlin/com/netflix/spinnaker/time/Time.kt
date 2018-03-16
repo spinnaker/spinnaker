@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.time
+package com.netflix.spinnaker.time
 
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
+/**
+ * [Clock#fixed] but with the typical defaults.
+ */
 fun fixedClock(
   instant: Instant = Instant.now(),
-  zone: ZoneId = ZoneId.systemDefault()
-): Clock =
-  Clock.fixed(instant, zone)
+  zoneId: ZoneId = ZoneId.systemDefault()
+): Clock = Clock.fixed(instant, zoneId)

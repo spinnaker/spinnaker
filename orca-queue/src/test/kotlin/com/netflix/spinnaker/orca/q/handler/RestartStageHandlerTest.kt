@@ -27,15 +27,13 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Queue
+import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
-import java.time.Clock.fixed
-import java.time.Instant.now
-import java.time.ZoneId.systemDefault
 import java.time.temporal.ChronoUnit.HOURS
 import java.time.temporal.ChronoUnit.MINUTES
 
@@ -43,7 +41,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
-  val clock = fixed(now(), systemDefault())
+  val clock = fixedClock()
 
   subject(GROUP) {
     RestartStageHandler(

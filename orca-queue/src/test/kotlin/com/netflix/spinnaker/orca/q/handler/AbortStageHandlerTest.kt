@@ -27,9 +27,9 @@ import com.netflix.spinnaker.orca.q.AbortStage
 import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.CompleteStage
-import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.q.Queue
+import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe

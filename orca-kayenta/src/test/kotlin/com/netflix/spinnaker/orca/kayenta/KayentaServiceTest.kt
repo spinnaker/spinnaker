@@ -21,6 +21,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
+import com.netflix.spinnaker.time.fixedClock
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -58,7 +59,7 @@ object KayentaServiceTest : Spek({
 
   describe("the Kayenta service") {
 
-    val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+    val clock = fixedClock()
     val canaryConfigId = randomUUID().toString()
     val mapper = jacksonObjectMapper()
 

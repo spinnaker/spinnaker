@@ -18,5 +18,7 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
   compile project(":orca-core")
+  compile "org.funktionale:funktionale-partials:1.2"
+  compile "org.jetbrains.spek:spek-api:$spekVersion"
   compile "org.assertj:assertj-core:3.9.0"
 }

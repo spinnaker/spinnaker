@@ -22,9 +22,10 @@ dependencies {
   compile project(":orca-kotlin")
   compile "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
   compile "org.threeten:threeten-extra:1.0"
-  compile "org.funktionale:funktionale-partials:1.1"
+  compile "org.funktionale:funktionale-partials:1.2"
   compile spinnaker.dependency("logstashEncoder")
   compile "com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion"
 
+  testCompile project(":orca-test-kotlin")
   testCompile project(":orca-queue-tck")
 }
