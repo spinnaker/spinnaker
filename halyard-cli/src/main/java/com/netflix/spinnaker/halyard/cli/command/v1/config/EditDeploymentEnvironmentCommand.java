@@ -52,6 +52,7 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--update-versions",
+      arity = 1,
       description = "When set to \"false\", any *local* version of Spinnaker components will be used instead of attempting " +
           "to update. This does not work for distributed installations of Spinnaker, where no *local* version exists."
   )
