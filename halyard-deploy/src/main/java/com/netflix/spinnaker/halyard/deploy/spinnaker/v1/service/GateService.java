@@ -103,7 +103,7 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     String address = "localhost";
     String host = "0.0.0.0";
     String scheme = "http";
-    String healthEndpoint = null;
+    String healthEndpoint = "/health";
     Boolean enabled = true;
     Boolean safeToUpdate = true;
     Boolean monitored = true;

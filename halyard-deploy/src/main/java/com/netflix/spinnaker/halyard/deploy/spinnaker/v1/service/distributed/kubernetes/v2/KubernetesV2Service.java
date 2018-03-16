@@ -40,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,6 +58,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   ArtifactService getArtifactService();
   ServiceSettings defaultServiceSettings();
   ObjectMapper getObjectMapper();
+
+  default List<String> getReadinessExecCommand(ServiceSettings settings) {
+    return Arrays.asList("wget", "--spider", "-q", settings.getScheme() + "://localhost:" + settings.getPort() + settings.getHealthEndpoint());
+  }
 
   default String getHomeDirectory() {
     return "/root";
@@ -115,9 +120,8 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
 
     TemplatedResource probe;
     if (StringUtils.isNotEmpty(settings.getHealthEndpoint())) {
-      probe = new JinjaJarResource("/kubernetes/manifests/httpReadinessProbe.yml");
-      probe.addBinding("port", settings.getPort());
-      probe.addBinding("path", settings.getHealthEndpoint());
+      probe = new JinjaJarResource("/kubernetes/manifests/execReadinessProbe.yml");
+      probe.addBinding("command", getReadinessExecCommand(settings));
     } else {
       probe = new JinjaJarResource("/kubernetes/manifests/tcpSocketReadinessProbe.yml");
       probe.addBinding("port", settings.getPort());

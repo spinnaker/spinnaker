@@ -1,0 +1,9 @@
+{
+  "exec": {
+    "command": [
+      {% for token in command %}
+              "{{ token }}"{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    ]
+  }
+}
