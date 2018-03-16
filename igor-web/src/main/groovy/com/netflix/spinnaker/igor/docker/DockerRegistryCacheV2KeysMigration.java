@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.igor.docker;
 
-import com.google.common.collect.Iterables;
 import com.netflix.dyno.connectionpool.CursorBasedResult;
 import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.dyno.jedis.DynoJedisClient;
@@ -163,7 +162,13 @@ public class DockerRegistryCacheV2KeysMigration {
         CursorBasedResult<String> result = null;
         do {
             try {
-                result = dyno.dyno_scan(pattern);
+                // This is a really weird interface.
+                if (result == null) {
+                    result = dyno.dyno_scan(pattern);
+                } else {
+                    result = dyno.dyno_scan(result, 10, pattern);
+                }
+
                 numMigrated += oldKeysCallback.apply(result.getResult());
                 failures = 0;
             } catch (DynoException e) {
