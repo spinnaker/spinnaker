@@ -99,6 +99,50 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   private String removeOmitNamespace;
 
   @Parameter(
+      names = "--kinds",
+      variableArity = true,
+      description = KubernetesCommandProperties.KINDS_DESCRIPTION
+  )
+  private List<String> kinds = new ArrayList<>();
+
+  @Parameter(
+      names = "--all-kinds",
+      description = "Set the list of kinds to cache and deploy to every kind available to your supplied credentials."
+  )
+  private boolean allKinds;
+
+  @Parameter(
+      names = "--add-kind",
+      description = "Add this kind to the list of kinds to manage."
+  )
+  private String addKind;
+
+  @Parameter(
+      names = "--remove-kind",
+      description = "Remove this kind to the list of kinds to manage."
+  )
+  private String removeKind;
+
+  @Parameter(
+      names = "--omit-kinds",
+      variableArity = true,
+      description = KubernetesCommandProperties.OMIT_KINDS_DESCRIPTION
+  )
+  private List<String> omitKinds = new ArrayList<>();
+
+  @Parameter(
+      names = "--add-omit-kind",
+      description = "Add this kind to the list of kinds to omit."
+  )
+  private String addOmitKind;
+
+  @Parameter(
+      names = "--remove-omit-kind",
+      description = "Remove this kind to the list of kinds to omit."
+  )
+  private String removeOmitKind;
+
+  @Parameter(
       names = "--docker-registries",
       variableArity = true,
       description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
@@ -173,14 +217,26 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
       account.setNamespaces(
           updateStringList(account.getNamespaces(), namespaces, addNamespace, removeNamespace));
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --namespace or --[add/remove]-namespace");
+      throw new IllegalArgumentException("Set either --namespaces or --[add/remove]-namespace");
     }
 
     try {
       account.setOmitNamespaces(
           updateStringList(account.getOmitNamespaces(), omitNamespaces, addOmitNamespace, removeOmitNamespace));
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --omit-namespace or --[add/remove]-omit-namespace");
+      throw new IllegalArgumentException("Set either --omit-namespaces or --[add/remove]-omit-namespace");
+    }
+
+    try {
+      account.setKinds(updateStringList(account.getKinds(), kinds, addKind, removeKind));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set either --kinds or --[add/remove]-kind");
+    }
+
+    try {
+      account.setOmitKinds(updateStringList(account.getOmitKinds(), omitKinds, addOmitKind, removeOmitKind));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set either --omit-kinds or --[add/remove]-omit-kind");
     }
 
     try {

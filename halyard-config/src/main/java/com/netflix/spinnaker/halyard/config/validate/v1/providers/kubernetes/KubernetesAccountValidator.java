@@ -36,6 +36,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -67,6 +68,8 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     }
     deploymentConfiguration = (DeploymentConfiguration) parent;
 
+    validateKindConfig(psBuilder, account);
+
     // TODO(lwander) validate all config with clouddriver's v2 creds
     switch (account.getProviderVersion()) {
       case V1:
@@ -79,6 +82,46 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       default:
         throw new IllegalStateException("Unknown provider version " + account.getProviderVersion());
 
+    }
+  }
+
+  private void validateKindConfig(ConfigProblemSetBuilder psBuilder, KubernetesAccount account) {
+    List<String> kinds = account.getKinds();
+    List<String> omitKinds = account.getOmitKinds();
+    List<KubernetesAccount.CustomKubernetesResource> customResources = account.getCustomResources();
+
+    if (account.getProviderVersion() == Provider.ProviderVersion.V1) {
+      if (CollectionUtils.isNotEmpty(kinds) || CollectionUtils.isNotEmpty(omitKinds) || CollectionUtils.isNotEmpty(customResources)) {
+        psBuilder.addProblem(WARNING, "Kubernetes accounts at V1 do no support configuring caching behavior for kinds or custom resources.");
+      }
+
+      return;
+    }
+
+    if (CollectionUtils.isNotEmpty(kinds) && CollectionUtils.isNotEmpty(omitKinds)) {
+      psBuilder.addProblem(ERROR, "At most one of \"kinds\" and \"omitKinds\" may be specified.");
+    }
+
+    if (CollectionUtils.isNotEmpty(kinds) && CollectionUtils.isNotEmpty(customResources)) {
+      List<String> unmatchedKinds = customResources.stream()
+          .map(KubernetesAccount.CustomKubernetesResource::getKubernetesKind)
+          .filter(cr -> !kinds.contains(cr))
+          .collect(Collectors.toList());
+
+      if (CollectionUtils.isNotEmpty(unmatchedKinds)) {
+        psBuilder.addProblem(WARNING, "The following custom resources \"" + customResources + "\" will not be cached since they aren't listed in your existing resource kinds configuration: \"" + kinds + "\".");
+      }
+    }
+
+    if (CollectionUtils.isNotEmpty(omitKinds) && CollectionUtils.isNotEmpty(customResources)) {
+      List<String> matchedKinds = customResources.stream()
+          .map(KubernetesAccount.CustomKubernetesResource::getKubernetesKind)
+          .filter(omitKinds::contains)
+          .collect(Collectors.toList());
+
+      if (CollectionUtils.isNotEmpty(matchedKinds)) {
+        psBuilder.addProblem(WARNING, "The following custom resources \"" + customResources + "\" will not be cached since they are listed in you've omitted them in you omitKinds configuration: \"" + omitKinds + "\".");
+      }
     }
   }
 

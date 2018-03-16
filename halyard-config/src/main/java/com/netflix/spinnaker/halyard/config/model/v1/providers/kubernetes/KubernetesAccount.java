@@ -24,8 +24,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ValidForSpinnakerVersion;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.ContainerAccount;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import io.fabric8.kubernetes.api.model.Config;
 import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
@@ -51,6 +51,12 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   Boolean configureImagePullSecrets;
   List<String> namespaces = new ArrayList<>();
   List<String> omitNamespaces = new ArrayList<>();
+  @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Configuring kind caching behavior is not supported yet.")
+  List<String> kinds = new ArrayList<>();
+  @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Configuring kind caching behavior is not supported yet.")
+  List<String> omitKinds = new ArrayList<>();
+  @ValidForSpinnakerVersion(lowerBound = "1.6.0", message = "Custom kinds and resources are not supported yet.")
+  List<CustomKubernetesResource> customResources = new ArrayList<>();
 
   @LocalFile String kubeconfigFile;
   // Without the annotations, these are written as `oauthServiceAccount` and `oauthScopes`, respectively.
@@ -118,5 +124,12 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
     if (!omitNamespaces.isEmpty() && omitNamespaces.contains(location)) {
       omitNamespaces.remove(location);
     }
+  }
+
+  @Data
+  public static class CustomKubernetesResource {
+    String kubernetesKind;
+    String spinnakerKind;
+    boolean versioned = false;
   }
 }

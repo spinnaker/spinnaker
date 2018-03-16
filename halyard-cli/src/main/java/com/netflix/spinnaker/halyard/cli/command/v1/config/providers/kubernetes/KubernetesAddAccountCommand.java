@@ -60,6 +60,20 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   public List<String> omitNamespaces = new ArrayList<>();
 
   @Parameter(
+      names = "--kinds",
+      variableArity = true,
+      description = KubernetesCommandProperties.KINDS_DESCRIPTION
+  )
+  public List<String> kinds = new ArrayList<>();
+
+  @Parameter(
+      names = "--omit-kinds",
+      variableArity = true,
+      description = KubernetesCommandProperties.OMIT_KINDS_DESCRIPTION
+  )
+  public List<String> omitKinds = new ArrayList<>();
+
+  @Parameter(
       names = "--docker-registries",
       variableArity = true,
       description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
@@ -99,6 +113,8 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setKubeconfigFile(kubeconfigFile);
     account.setNamespaces(namespaces);
     account.setOmitNamespaces(omitNamespaces);
+    account.setKinds(namespaces);
+    account.setOmitKinds(omitKinds);
     account.setConfigureImagePullSecrets(configureImagePullSecrets);
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
     account.setOAuthServiceAccount(oAuthServiceAccount);
