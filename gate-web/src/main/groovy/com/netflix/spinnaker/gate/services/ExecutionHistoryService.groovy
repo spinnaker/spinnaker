@@ -41,10 +41,10 @@ class ExecutionHistoryService {
     return command.execute()
   }
 
-  List getPipelines(String app, Integer limit, String statuses) {
+  List getPipelines(String app, Integer limit, String statuses, Boolean expand) {
     Preconditions.checkNotNull(app)
     def command = HystrixFactory.newListCommand("pipelineExecutionHistory", "getPipelinesForApp-$app") {
-      orcaService.getPipelines(app, limit, statuses)
+      orcaService.getPipelines(app, limit, statuses, expand)
     }
     return command.execute()
   }

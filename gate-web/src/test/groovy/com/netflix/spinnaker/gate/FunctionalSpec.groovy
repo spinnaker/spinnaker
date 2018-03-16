@@ -227,10 +227,10 @@ class FunctionalSpec extends Specification {
       thrown(ServerErrorException)
 
     when:
-    executionHistoryService.getPipelines("app", 5, "TERMINAL")
+    executionHistoryService.getPipelines("app", 5, "TERMINAL", false)
 
     then:
-    1 * orcaService.getPipelines("app", 5, "TERMINAL") >> { throw new IllegalStateException() }
+    1 * orcaService.getPipelines("app", 5, "TERMINAL", false) >> { throw new IllegalStateException() }
     thrown(ServerErrorException)
   }
 
