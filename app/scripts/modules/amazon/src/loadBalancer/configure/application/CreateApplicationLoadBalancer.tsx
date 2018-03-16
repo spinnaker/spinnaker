@@ -84,6 +84,10 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
   private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): IPromise<void> {
     return ReactInjector.accountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
+        if (listener.protocol === 'HTTP') {
+          delete listener.sslPolicy;
+          listener.certificates = [];
+        }
         listener.certificates.forEach((certificate) => {
           certificate.certificateArn = this.certificateIdAsARN(account.accountId, certificate.name,
           command.region, certificate.type || this.certificateTypes[0]);
