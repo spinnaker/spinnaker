@@ -135,7 +135,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
 
             commitDelta(delta, ctx.fastForward);
             registry.gauge(itemsCachedId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
-            registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
+            registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(0);
         } catch (Exception e) {
             log.error("Failed to update monitor items for {}:{}", kv("monitor", monitorName), kv("partition", ctx.partitionName), e);
             registry.counter(pollCycleFailedId.withTags("monitor", monitorName, "partition", ctx.partitionName)).increment();
