@@ -17,6 +17,7 @@ package com.netflix.spinnaker.igor.docker;
 
 import com.google.common.collect.Iterables;
 import com.netflix.dyno.connectionpool.CursorBasedResult;
+import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.dyno.jedis.DynoJedisClient;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
@@ -30,6 +31,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.MultiKeyCommands;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.exceptions.JedisException;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
@@ -95,16 +97,8 @@ public class DockerRegistryCacheV2KeysMigration {
         log.debug("Starting migration");
 
         long startTime = System.currentTimeMillis();
-        List<DockerRegistryV1Key> oldKeys = redis.withMultiClient(this::getV1Keys);
-        log.info("Migrating {} v1 keys", oldKeys.size());
-
-        int batchSize = properties.getRedis().getDockerV1KeyMigration().getBatchSize();
-        for (List<DockerRegistryV1Key> oldKeyBatch : Iterables.partition(oldKeys, batchSize)) {
-            // For each key: Check if old exists, if so, copy to new key, set ttl on old key, remove ttl on new key
-            migrateBatch(oldKeyBatch);
-        }
-
-        log.info("Migrated {} v1 keys in {}ms", oldKeys, System.currentTimeMillis() - startTime);
+        int migratedKeys = redis.withMultiClient(this::getV1Keys);
+        log.info("Migrated {} v1 keys in {}ms", migratedKeys, System.currentTimeMillis() - startTime);
     }
 
     private void migrateBatch(List<DockerRegistryV1Key> oldKeys) {
@@ -131,48 +125,89 @@ public class DockerRegistryCacheV2KeysMigration {
      * different methods that are the same thing until this is fixed.
      * TODO rz - switch to common `scan` command
      */
-    private List<DockerRegistryV1Key> getV1Keys(MultiKeyCommands client) {
-        if (redis instanceof DynomiteClientDelegate) {
-            return v1Keys((DynoJedisClient) client);
+    private int getV1Keys(MultiKeyCommands client) {
+        try {
+            if (redis instanceof DynomiteClientDelegate) {
+                return v1Keys((DynoJedisClient) client);
+            }
+            return v1Keys((Jedis) client);
+        } catch (InterruptedException e) {
+            log.error("Migration could not complete because it was interrupted", e);
+            return -1;
         }
-        return v1Keys((Jedis) client);
     }
 
-    private Function<List<String>, List<DockerRegistryV1Key>> oldKeysCallback =
-        (keys) -> keys.stream().map(this::readV1Key).filter(Objects::nonNull).collect(Collectors.toList());
+    private Function<List<String>, Integer> oldKeysCallback =
+        (keys) -> {
+            List<DockerRegistryV1Key> v1Keys = keys.stream()
+                .map(this::readV1Key)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+            int size = keys.size();
+
+            log.info("Migrating {} v1 keys", size);
+            migrateBatch(v1Keys);
+
+            return size;
+        };
 
     /**
      * Dynomite-compat v1keys
      */
-    private List<DockerRegistryV1Key> v1Keys(DynoJedisClient dyno) {
-        List<DockerRegistryV1Key> keys = new ArrayList<>();
+    private int v1Keys(DynoJedisClient dyno) throws InterruptedException {
+        int numMigrated = 0;
+        int failures = 0;
 
         String pattern = oldIndexPattern();
-        CursorBasedResult<String> result;
+        CursorBasedResult<String> result = null;
         do {
-            result = dyno.dyno_scan(pattern);
-            keys.addAll(oldKeysCallback.apply(result.getResult()));
-        } while (!result.isComplete());
+            try {
+                result = dyno.dyno_scan(pattern);
+                numMigrated += oldKeysCallback.apply(result.getResult());
+                failures = 0;
+            } catch (DynoException e) {
+                failures++;
+                if (failures >= 5) {
+                    log.error("Failed migrating v1 key batch after 5 attempts, aborting", e);
+                    throw new AbortedAfterExcessiveFailures(e);
+                }
+                log.error("Failed migrating v1 key batch, retrying", e);
+                Thread.sleep(5000);
+            }
+        } while (result == null || !result.isComplete());
 
-        return keys;
+        return numMigrated;
     }
 
     /**
      * Redis-compat v1keys
      */
-    private List<DockerRegistryV1Key> v1Keys(Jedis jedis) {
-        List<DockerRegistryV1Key> keys = new ArrayList<>();
+    private int v1Keys(Jedis jedis) throws InterruptedException {
+        int numMigrated = 0;
+        int failures = 0;
 
         ScanParams params = new ScanParams().match(oldIndexPattern()).count(1000);
         String cursor = ScanParams.SCAN_POINTER_START;
 
-        ScanResult<String> result;
+        ScanResult<String> result = null;
         do {
-            result = jedis.scan(cursor, params);
-            keys.addAll(oldKeysCallback.apply(result.getResult()));
-        } while (!result.getStringCursor().equals("0"));
+            try {
+                result = jedis.scan(cursor, params);
+                numMigrated += oldKeysCallback.apply(result.getResult());
+                failures = 0;
+            } catch (JedisException e) {
+                failures++;
+                if (failures >= 5) {
+                    log.error("Failed migrating v1 key batch after 5 attempts, aborting", e);
+                    throw new AbortedAfterExcessiveFailures(e);
+                }
+                log.error("Failed migrating v1 key batch, retrying", e);
+                Thread.sleep(5000);
+            }
+        } while (result == null || !result.getStringCursor().equals("0"));
 
-        return keys;
+        return numMigrated;
     }
 
     private DockerRegistryV1Key readV1Key(String key) {
@@ -189,5 +224,11 @@ public class DockerRegistryCacheV2KeysMigration {
 
     private String prefix() {
         return properties.getSpinnaker().getJedis().getPrefix();
+    }
+
+    private static class AbortedAfterExcessiveFailures extends RuntimeException {
+        public AbortedAfterExcessiveFailures(Throwable cause) {
+            super(cause);
+        }
     }
 }
