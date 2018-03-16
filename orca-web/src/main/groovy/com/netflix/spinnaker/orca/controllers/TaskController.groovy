@@ -299,15 +299,17 @@ class TaskController {
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Execution> getApplicationPipelines(@PathVariable String application,
                                          @RequestParam(value = "limit", defaultValue = "5") int limit,
-                                         @RequestParam(value = "statuses", required = false) String statuses) {
-    return getPipelinesForApplication(application, limit, statuses)
+                                         @RequestParam(value = "statuses", required = false) String statuses,
+                                         @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
+    return getPipelinesForApplication(application, limit, statuses, expand)
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Execution> getPipelinesForApplication(@PathVariable String application,
                                             @RequestParam(value = "limit", defaultValue = "5") int limit,
-                                            @RequestParam(value = "statuses", required = false) String statuses) {
+                                            @RequestParam(value = "statuses", required = false) String statuses,
+                                            @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
     }
@@ -329,6 +331,17 @@ class TaskController {
     def allPipelines = rx.Observable.merge(allIds.collect {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+
+    if (!expand) {
+      allPipelines.each { pipeline ->
+        pipeline.getStages().each { stage ->
+          if (stage.type == "runJob") {
+            stage?.context?.jobStatus?.logs = ""
+            stage?.outputs?.jobStatus?.logs = ""
+          }
+        }
+      }
+    }
 
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
   }
