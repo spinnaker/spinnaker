@@ -19,6 +19,7 @@ package com.netflix.kayenta.google.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.storage.Storage;
+import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.security.AccountCredentials;
 import lombok.Builder;
 import lombok.Data;
@@ -51,6 +52,10 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
   @Override
   public String getType() {
     return "google";
+  }
+
+  public String getMetricsStoreType() {
+    return supportedTypes.contains(Type.METRICS_STORE) ? StackdriverCanaryMetricSetQueryConfig.SERVICE_TYPE : null;
   }
 
   @JsonIgnore

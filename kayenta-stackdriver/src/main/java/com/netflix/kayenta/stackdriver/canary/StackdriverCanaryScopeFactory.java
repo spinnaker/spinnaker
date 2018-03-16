@@ -18,6 +18,7 @@ package com.netflix.kayenta.stackdriver.canary;
 
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
+import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -27,7 +28,7 @@ public class StackdriverCanaryScopeFactory implements CanaryScopeFactory {
 
   @Override
   public boolean handles(String serviceType) {
-    return "stackdriver".equals(serviceType);
+    return StackdriverCanaryMetricSetQueryConfig.SERVICE_TYPE.equals(serviceType);
   }
 
   @Override

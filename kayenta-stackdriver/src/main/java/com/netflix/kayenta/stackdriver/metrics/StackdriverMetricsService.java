@@ -83,7 +83,7 @@ public class StackdriverMetricsService implements MetricsService {
 
   @Override
   public String getType() {
-    return "stackdriver";
+    return StackdriverCanaryMetricSetQueryConfig.SERVICE_TYPE;
   }
 
   @Override

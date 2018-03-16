@@ -29,6 +29,8 @@ import java.util.List;
 // TODO(duftler): Figure out how to move this into the kayenta-stackdriver module? Doing so as-is would introduce a circular dependency.
 public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
+  public static final String SERVICE_TYPE = "stackdriver";
+
   @NotNull
   @Getter
   private String metricType;
@@ -45,6 +47,6 @@ public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQue
 
   @Override
   public String getServiceType() {
-    return "stackdriver";
+    return SERVICE_TYPE;
   }
 }
