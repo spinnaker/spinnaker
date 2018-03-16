@@ -41,7 +41,12 @@ public class KubernetesDeployManifestValidator extends DescriptionValidator<Kube
   @Override
   public void validate(List priorDescriptions, KubernetesDeployManifestDescription description, Errors errors) {
     KubernetesValidationUtil util = new KubernetesValidationUtil("deployKubernetesManifest", errors);
-    for (KubernetesManifest manifest:description.getManifests()) {
+    for (KubernetesManifest manifest : description.getManifests()) {
+      // technically OK - sometimes manifest multi-docs are submitted with trailing `---` entries
+      if (manifest == null) {
+        continue;
+      }
+
       if (!util.validateV2Credentials(provider, description.getAccount(), manifest.getNamespace())) {
         return;
       }
