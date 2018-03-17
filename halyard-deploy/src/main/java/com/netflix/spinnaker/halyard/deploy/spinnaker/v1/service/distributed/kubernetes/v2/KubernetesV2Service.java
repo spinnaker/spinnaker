@@ -59,6 +59,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   ServiceSettings defaultServiceSettings();
   ObjectMapper getObjectMapper();
 
+  default boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
+    return true;
+  }
+
   default List<String> getReadinessExecCommand(ServiceSettings settings) {
     return Arrays.asList("wget", "--spider", "-q", settings.getScheme() + "://localhost:" + settings.getPort() + settings.getHealthEndpoint());
   }
@@ -236,7 +240,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation(location)
-        .setEnabled(true);
+        .setEnabled(isEnabled(deploymentConfiguration));
     return settings;
   }
 
