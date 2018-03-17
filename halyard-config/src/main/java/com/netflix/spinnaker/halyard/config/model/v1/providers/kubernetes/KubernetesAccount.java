@@ -65,7 +65,15 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   @JsonProperty("oAuthScopes") List<String> oAuthScopes;
   String namingStrategy;
 
+  public boolean usesServiceAccount() {
+    return serviceAccount != null && serviceAccount;
+  }
+
   public String getKubeconfigFile() {
+    if (usesServiceAccount()) {
+      return null;
+    }
+
     if (kubeconfigFile == null || kubeconfigFile.isEmpty()) {
       return System.getProperty("user.home") + "/.kube/config";
     } else {

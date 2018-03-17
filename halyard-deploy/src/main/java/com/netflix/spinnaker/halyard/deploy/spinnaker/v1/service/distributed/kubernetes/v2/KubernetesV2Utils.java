@@ -178,6 +178,10 @@ public class KubernetesV2Utils {
     List<String> command = new ArrayList<>();
     command.add("kubectl");
 
+    if (account.usesServiceAccount()) {
+      return command;
+    }
+
     String context = account.getContext();
     if (context != null && !context.isEmpty()) {
       command.add("--context");
