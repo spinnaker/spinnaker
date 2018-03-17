@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Suppliers;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
@@ -29,14 +28,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
 import io.kubernetes.client.models.V1DeleteOptions;
-import io.kubernetes.client.util.KubeConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -58,7 +54,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Registry registry;
   private final Clock clock;
   private final String accountName;
-  private final ObjectMapper mapper = new ObjectMapper();
   @Getter
   private final List<String> namespaces;
   @Getter
@@ -238,21 +233,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
 
     public KubernetesV2Credentials build() {
-      KubeConfig kubeconfig;
-      try {
-        if (StringUtils.isEmpty(kubeconfigFile)) {
-          kubeconfig = KubeConfig.loadDefaultKubeConfig();
-        } else {
-          kubeconfig = KubeConfig.loadKubeConfig(new FileReader(kubeconfigFile));
-        }
-      } catch (FileNotFoundException e) {
-        throw new RuntimeException("Unable to create credentials from kubeconfig file: " + e, e);
-      }
-
-      if (!StringUtils.isEmpty(context)) {
-        kubeconfig.setContext(context);
-      }
-
       namespaces = namespaces == null ? new ArrayList<>() : namespaces;
       omitNamespaces = omitNamespaces == null ? new ArrayList<>() : omitNamespaces;
       customResources = customResources == null ? new ArrayList<>() : customResources;
