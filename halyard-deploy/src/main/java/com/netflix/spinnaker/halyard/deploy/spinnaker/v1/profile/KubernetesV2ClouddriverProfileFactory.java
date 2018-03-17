@@ -56,6 +56,10 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
   }
 
   private void processKubernetesAccount(KubernetesAccount account) {
+    if (account.usesServiceAccount()) {
+      return;
+    }
+
     String kubeconfigFile = account.getKubeconfigFile();
     String context = account.getContext();
     FileInputStream is = null;
@@ -86,7 +90,7 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
         .orElse("");
 
     if (StringUtils.isEmpty(user)) {
-      throw new HalException(Problem.Severity.FATAL, "No user in kubernetes account context " + context + " in " + kubeconfigFile);
+      return;
     }
 
     Map<String, Object> userProperties = (Map<String, Object>) ((List<Map<String, Object>>) parsedKubeconfig.getOrDefault("users", new ArrayList<>()))
