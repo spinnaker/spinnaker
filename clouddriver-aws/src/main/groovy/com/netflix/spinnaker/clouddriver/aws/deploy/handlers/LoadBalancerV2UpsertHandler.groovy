@@ -229,9 +229,11 @@ class LoadBalancerV2UpsertHandler {
     try {
       loadBalancing.modifyListener(new ModifyListenerRequest()
         .withListenerArn(listenerArn)
+        .withProtocol(listener.protocol)
         .withCertificates(listener.certificates)
         .withSslPolicy(listener.sslPolicy)
         .withDefaultActions(defaultActions))
+      task.updateStatus BASE_PHASE, "Listener ${listenerArn} updated (${listener.port}:${listener.protocol})."
     } catch (AmazonServiceException e) {
       String exceptionMessage = "Failed to modify listener ${listenerArn} (${listener.port}:${listener.protocol}) - reason: ${e.errorMessage}."
       task.updateStatus BASE_PHASE, exceptionMessage
@@ -382,14 +384,14 @@ class LoadBalancerV2UpsertHandler {
     // Gather list of listeners that existed previously but were not supplied in upsert and should be deleted.
     // also add listeners that have changed since there is no good way to know if a listener should just be updated
     List<List<Listener>> listenersSplit = existingListeners.split { awsListener ->
-      listeners.find { it.port == awsListener.port && it.protocol.toString().equals(awsListener.protocol) } == null
+      listeners.find { it.port == awsListener.port } == null
     }
     listenersToRemove = listenersSplit[0]
     List<Listener> listenersToUpdate = listenersSplit[1]
 
     // Create all new listeners
     List<UpsertAmazonLoadBalancerV2Description.Listener> listenersToCreate = listeners.findAll { listener ->
-      existingListeners.find { it.port == listener.port && it.protocol.equals(listener.protocol.toString()) } == null
+      existingListeners.find { it.port == listener.port } == null
     }
     listenersToCreate.each { UpsertAmazonLoadBalancerV2Description.Listener listener ->
       createListener(listener, listenerToDefaultActions.get(listener), listenerToRules.get(listener), loadBalancing, loadBalancer, amazonErrors)
@@ -397,7 +399,7 @@ class LoadBalancerV2UpsertHandler {
 
     // Update listeners
     listenersToUpdate.each { listener ->
-      UpsertAmazonLoadBalancerV2Description.Listener updatedListener = listeners.find {it.port == listener.port && it.protocol.toString().equals(listener.protocol) }
+      UpsertAmazonLoadBalancerV2Description.Listener updatedListener = listeners.find {it.port == listener.port }
       updateListener(listener.listenerArn,
         updatedListener,
         listenerToDefaultActions.get(updatedListener),
