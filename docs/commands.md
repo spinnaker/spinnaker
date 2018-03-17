@@ -37,6 +37,15 @@
  * [**hal config artifact github account list**](#hal-config-artifact-github-account-list)
  * [**hal config artifact github disable**](#hal-config-artifact-github-disable)
  * [**hal config artifact github enable**](#hal-config-artifact-github-enable)
+ * [**hal config artifact http**](#hal-config-artifact-http)
+ * [**hal config artifact http account**](#hal-config-artifact-http-account)
+ * [**hal config artifact http account add**](#hal-config-artifact-http-account-add)
+ * [**hal config artifact http account delete**](#hal-config-artifact-http-account-delete)
+ * [**hal config artifact http account edit**](#hal-config-artifact-http-account-edit)
+ * [**hal config artifact http account get**](#hal-config-artifact-http-account-get)
+ * [**hal config artifact http account list**](#hal-config-artifact-http-account-list)
+ * [**hal config artifact http disable**](#hal-config-artifact-http-disable)
+ * [**hal config artifact http enable**](#hal-config-artifact-http-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
@@ -531,6 +540,7 @@ hal config artifact [subcommands]
 #### Subcommands
  * `gcs`: Manage and view Spinnaker configuration for the gcs provider
  * `github`: Manage and view Spinnaker configuration for the github provider
+ * `http`: Manage and view Spinnaker configuration for the http provider
 
 ---
 ## hal config artifact gcs
@@ -837,6 +847,162 @@ Set the github artifact provider as enabled
 #### Usage
 ```
 hal config artifact github enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact http
+
+Manage and view Spinnaker configuration for the http provider
+
+#### Usage
+```
+hal config artifact http [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the http artifact provider's account
+ * `disable`: Set the http artifact provider as disabled
+ * `enable`: Set the http artifact provider as enabled
+
+---
+## hal config artifact http account
+
+Manage and view Spinnaker configuration for the http artifact provider's account
+
+#### Usage
+```
+hal config artifact http account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the http artifact provider.
+ * `delete`: Delete a specific http artifact account by name.
+ * `edit`: Edit an artifact account in the http artifact provider.
+ * `get`: Get the specified account details for the http provider.
+ * `list`: List the artifact account names for the http artifact provider.
+
+---
+## hal config artifact http account add
+
+Add an artifact account to the http artifact provider.
+
+#### Usage
+```
+hal config artifact http account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) HTTP basic auth password
+ * `--username`: HTTP basic auth username
+ * `--username-password-file`: File containing "username:password" to use for HTTP basic auth
+
+
+---
+## hal config artifact http account delete
+
+Delete a specific http artifact account by name.
+
+#### Usage
+```
+hal config artifact http account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact http account edit
+
+Edit an artifact account in the http artifact provider.
+
+#### Usage
+```
+hal config artifact http account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Http password
+ * `--username`: Http username
+ * `--username-password-file`: File containing "username:password" to use for Http authentication
+
+
+---
+## hal config artifact http account get
+
+Get the specified account details for the http provider.
+
+#### Usage
+```
+hal config artifact http account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact http account list
+
+List the artifact account names for the http artifact provider.
+
+#### Usage
+```
+hal config artifact http account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact http disable
+
+Set the http artifact provider as disabled
+
+#### Usage
+```
+hal config artifact http disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact http enable
+
+Set the http artifact provider as enabled
+
+#### Usage
+```
+hal config artifact http enable [parameters]
 ```
 
 #### Parameters
