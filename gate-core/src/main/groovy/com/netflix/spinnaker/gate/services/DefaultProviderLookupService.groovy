@@ -18,60 +18,59 @@ package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * DefaultProviderLookupService.
  */
+@Slf4j
 @Component("providerLookupService")
 class DefaultProviderLookupService implements ProviderLookupService, AccountLookupService {
 
   private static final String FALLBACK = "unknown"
-  private static final String ACCOUNTS_KEY = "all"
   private static final TypeReference<List<Map>> JSON_LIST = new TypeReference<List<Map>>() {}
   private static final TypeReference<List<AccountDetails>> ACCOUNT_DETAILS_LIST = new TypeReference<List<AccountDetails>>() {}
 
   private final ClouddriverService clouddriverService
   private final ObjectMapper mapper = new ObjectMapper()
 
-  private final LoadingCache<String, List<AccountDetails>> accountsCache = CacheBuilder.newBuilder()
-    .initialCapacity(1)
-    .maximumSize(1)
-    .refreshAfterWrite(2, TimeUnit.SECONDS)
-    .build(new CacheLoader<String, List<AccountDetails>>() {
-        @Override
-        List<AccountDetails> load(String key) throws Exception {
-          return clouddriverService.getAccountDetails()
-        }
-      })
+  private final AtomicReference<List<AccountDetails>> accountsCache = new AtomicReference<>([])
 
   @Autowired
-  public DefaultProviderLookupService(ClouddriverService clouddriverService) {
+  DefaultProviderLookupService(ClouddriverService clouddriverService) {
     this.clouddriverService = clouddriverService
   }
 
-  @Override
-  public String providerForAccount(String account) {
+  @Scheduled(fixedDelay = 30000L)
+  void refreshCache() {
     try {
-      return accountsCache.get(ACCOUNTS_KEY)?.find { it.name == account }?.type ?: FALLBACK
+      accountsCache.set(clouddriverService.getAccountDetails())
+    } catch (Exception e) {
+      log.error("Unable to refresh account details cache, reason: ${e.message}")
+    }
+  }
+
+  @Override
+  String providerForAccount(String account) {
+    try {
+      return accountsCache.get()?.find { it.name == account }?.type ?: FALLBACK
     } catch (ExecutionException | UncheckedExecutionException ex) {
       return FALLBACK
     }
   }
 
   @Override
-  public List<AccountDetails> getAccounts() {
-    final List<AccountDetails> original = accountsCache.get(ACCOUNTS_KEY)
+  List<AccountDetails> getAccounts() {
+    final List<AccountDetails> original = accountsCache.get()
     final List<Map> accountsCopy = mapper.convertValue(original, JSON_LIST)
     return mapper.convertValue(accountsCopy, ACCOUNT_DETAILS_LIST)
   }
