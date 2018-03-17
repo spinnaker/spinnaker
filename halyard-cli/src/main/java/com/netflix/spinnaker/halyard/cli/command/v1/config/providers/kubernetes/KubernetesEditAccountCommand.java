@@ -193,6 +193,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   public String namingStrategy;
 
   @Parameter(
+      names = "--service-account",
+      arity = 1,
+      description = KubernetesCommandProperties.SERVICE_ACCOUNT_DESCRIPTION
+  )
+  public Boolean serviceAccount;
+
+  @Parameter(
       names = "--configure-image-pull-secrets",
       arity = 1,
       description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
@@ -212,6 +219,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
 
     account.setKubeconfigFile(isSet(kubeconfigFile) ? kubeconfigFile : account.getKubeconfigFile());
     account.setConfigureImagePullSecrets(isSet(configureImagePullSecrets) ? configureImagePullSecrets : account.getConfigureImagePullSecrets());
+    account.setServiceAccount(isSet(serviceAccount) ? serviceAccount : account.getServiceAccount());
 
     try {
       account.setNamespaces(

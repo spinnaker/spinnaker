@@ -100,6 +100,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   public String namingStrategy;
 
   @Parameter(
+      names = "--service-account",
+      arity = 1,
+      description = KubernetesCommandProperties.SERVICE_ACCOUNT_DESCRIPTION
+  )
+  public Boolean serviceAccount;
+
+  @Parameter(
       names = "--configure-image-pull-secrets",
       arity = 1,
       description = KubernetesCommandProperties.CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION
@@ -116,6 +123,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setKinds(namespaces);
     account.setOmitKinds(omitKinds);
     account.setConfigureImagePullSecrets(configureImagePullSecrets);
+    account.setServiceAccount(serviceAccount);
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
     account.setOAuthServiceAccount(oAuthServiceAccount);
     account.setOAuthScopes(oAuthScopes);

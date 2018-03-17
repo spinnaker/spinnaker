@@ -39,6 +39,9 @@ public class KubernetesCommandProperties {
   static final String KUBECONFIG_DESCRIPTION = "The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical "
       + ".kube/config location.";
 
+  static final String SERVICE_ACCOUNT_DESCRIPTION = "When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. "
+      + "This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/.";
+
   static final String CONFIGURE_IMAGE_PULL_SECRETS_DESCRIPTION = "(Only applicable to the v1 provider). When true, Spinnaker will create & manage your image pull "
       + "secrets for you; when false, you will have to create and attach them to your pod specs by hand.";
 }
