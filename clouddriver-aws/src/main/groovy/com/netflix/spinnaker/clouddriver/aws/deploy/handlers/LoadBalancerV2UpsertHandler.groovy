@@ -62,16 +62,16 @@ class LoadBalancerV2UpsertHandler {
   private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes) {
     def targetGroupAttributes = []
     if (attributes) {
-      if (attributes.deregistrationDelay) {
+      if (attributes.deregistrationDelay != null) {
         targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.timeout_seconds", value: attributes.deregistrationDelay.toString()))
       }
-      if (attributes.stickinessEnabled) {
+      if (attributes.stickinessEnabled != null) {
         targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.enabled", value: attributes.stickinessEnabled.toString()))
       }
-      if (attributes.stickinessType) {
+      if (attributes.stickinessType != null) {
         targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.type", value: attributes.stickinessType))
       }
-      if (attributes.stickinessDuration) {
+      if (attributes.stickinessDuration != null) {
         targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.lb_cookie.duration_seconds", value: attributes.stickinessDuration.toString()))
       }
     }
