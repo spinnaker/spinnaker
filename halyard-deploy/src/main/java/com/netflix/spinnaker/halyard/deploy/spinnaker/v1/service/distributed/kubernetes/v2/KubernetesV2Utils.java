@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -145,17 +146,17 @@ public class KubernetesV2Utils {
     }
   }
 
-  static public String createSecret(KubernetesAccount account, String namespace, String name, List<File> files) {
+  static public String createSecret(KubernetesAccount account, String namespace, String name, List<SecretMountPair> files) {
     Map<String, String> contentMap = new HashMap<>();
-    for (File file : files) {
+    for (SecretMountPair pair: files) {
       String contents;
       try {
-        contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(file))));
+        contents = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(pair.getContents()))));
       } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL, "Failed to read required config file: " + file.getAbsolutePath() + ": " + e.getMessage(), e);
+        throw new HalException(Problem.Severity.FATAL, "Failed to read required config file: " + pair.getContents().getAbsolutePath() + ": " + e.getMessage(), e);
       }
 
-      contentMap.put(file.getName(), contents);
+      contentMap.put(pair.getName(), contents);
     }
 
     name = name + "-" + Math.abs(contentMap.hashCode());
@@ -233,5 +234,20 @@ public class KubernetesV2Utils {
 
   static private Map<String, Object> parseManifest(String input) {
     return mapper.convertValue(yaml.load(input), new TypeReference<Map<String, Object>>() {});
+  }
+
+  @Data
+  static public class SecretMountPair {
+    File contents;
+    String name;
+
+    public SecretMountPair(File inputFile) {
+      this(inputFile, inputFile);
+    }
+
+    public SecretMountPair(File inputFile, File outputFile) {
+      this.contents = inputFile;
+      this.name = outputFile.getName();
+    }
   }
 }

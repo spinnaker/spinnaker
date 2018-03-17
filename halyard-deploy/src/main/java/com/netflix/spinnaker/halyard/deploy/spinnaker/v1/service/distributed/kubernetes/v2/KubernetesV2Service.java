@@ -34,6 +34,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils.SecretMountPair;
 import io.fabric8.utils.Strings;
 import org.apache.commons.lang3.StringUtils;
 
@@ -184,9 +185,12 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     for (Entry<String, Set<Profile>> entry: profilesByDirectory.entrySet()) {
       Set<Profile> profilesInDirectory = entry.getValue();
       String mountPath = entry.getKey();
-      List<File> files = profilesInDirectory.stream()
-          .map(p -> p.getStagedFile(stagingPath))
-          .map(File::new)
+      List<SecretMountPair> files = profilesInDirectory.stream()
+          .map(p -> {
+            File input = new File(p.getStagedFile(stagingPath));
+            File output = new File(p.getOutputFile());
+            return new SecretMountPair(input, output);
+          })
           .collect(Collectors.toList());
 
       Map<String, String> env = profilesInDirectory.stream()
@@ -207,14 +211,15 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     }
 
     if (!requiredFiles.isEmpty()) {
-      List<File> files = requiredFiles.stream()
+      List<SecretMountPair> files = requiredFiles.stream()
           .map(File::new)
+          .map(SecretMountPair::new)
           .collect(Collectors.toList());
 
       String name = KubernetesV2Utils.createSecret(account, namespace, secretNamePrefix, files);
       configSources.add(new ConfigSource()
           .setId(name)
-          .setMountPath(files.get(0).getParent())
+          .setMountPath(files.get(0).getContents().getParent())
       );
     }
 
