@@ -24,6 +24,8 @@ import com.netflix.spinnaker.assertj.assertSoftly
 import com.netflix.spinnaker.config.OrcaQueueConfiguration
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
@@ -848,5 +850,8 @@ class TestConfig {
       deadMessageHandler = deadMessageHandler,
       publisher = publisher
     )
+
+  @Bean fun redisClientSelector(redisClientDelegates: List<RedisClientDelegate>) =
+    RedisClientSelector(redisClientDelegates)
 }
 

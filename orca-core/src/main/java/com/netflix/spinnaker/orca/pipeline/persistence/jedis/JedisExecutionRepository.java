@@ -16,13 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis;
 
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -38,6 +33,11 @@ import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
+
+import javax.annotation.Nonnull;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Maps.filterValues;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
@@ -55,27 +55,21 @@ public class JedisExecutionRepository extends AbstractRedisExecutionRepository {
 
   @Autowired
   public JedisExecutionRepository(
-    Registry registry,
-    @Qualifier("redisClientDelegate") RedisClientDelegate redisClientDelegate,
-    @Qualifier("previousRedisClientDelegate") Optional<RedisClientDelegate> previousRedisClientDelegate,
+    RedisClientSelector redisClientSelector,
     @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
     @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
     @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize
   ) {
-    super(registry, redisClientDelegate, previousRedisClientDelegate, queryAllScheduler, queryByAppScheduler, threadPoolChunkSize);
+    super(redisClientSelector, queryAllScheduler, queryByAppScheduler, threadPoolChunkSize);
   }
 
   public JedisExecutionRepository(
-    Registry registry,
-    RedisClientDelegate redisClientDelegate,
-    Optional<RedisClientDelegate> previousRedisClientDelegate,
+    RedisClientSelector redisClientSelector,
     Integer threadPoolSize,
     Integer threadPoolChunkSize
   ) {
     super(
-      registry,
-      redisClientDelegate,
-      previousRedisClientDelegate,
+      redisClientSelector,
       Schedulers.from(Executors.newFixedThreadPool(10)),
       Schedulers.from(Executors.newFixedThreadPool(threadPoolSize)),
       threadPoolChunkSize

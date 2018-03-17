@@ -16,19 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.*;
@@ -46,15 +38,22 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.functions.Func2;
 
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.netflix.spinnaker.orca.config.RedisConfiguration.Clients.EXECUTION_REPOSITORY;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.NO_TRIGGER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.*;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 import static net.logstash.logback.argument.StructuredArguments.value;
 
 public abstract class AbstractRedisExecutionRepository implements ExecutionRepository {
@@ -71,23 +70,19 @@ public abstract class AbstractRedisExecutionRepository implements ExecutionRepos
   private final int chunkSize;
   private final Scheduler queryAllScheduler;
   private final Scheduler queryByAppScheduler;
-  private final Registry registry;
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   public AbstractRedisExecutionRepository(
-    Registry registry,
-    RedisClientDelegate redisClientDelegate,
-    Optional<RedisClientDelegate> previousRedisClientDelegate,
+    RedisClientSelector redisClientSelector,
     Scheduler queryAllScheduler,
     Scheduler queryByAppScheduler,
     Integer threadPoolChunkSize
   ) {
-    this.redisClientDelegate = redisClientDelegate;
-    this.previousRedisClientDelegate = previousRedisClientDelegate;
+    this.redisClientDelegate = redisClientSelector.primary(EXECUTION_REPOSITORY);
+    this.previousRedisClientDelegate = redisClientSelector.previous(EXECUTION_REPOSITORY);
     this.queryAllScheduler = queryAllScheduler;
     this.queryByAppScheduler = queryByAppScheduler;
     this.chunkSize = threadPoolChunkSize;
-    this.registry = registry;
   }
 
   abstract protected Execution retrieveInternal(RedisClientDelegate redisClientDelegate, ExecutionType type, String id);

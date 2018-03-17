@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.config;
 
-import java.lang.reflect.Field;
-import java.net.URI;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.dynomite.DynomiteClientConfiguration;
+import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -34,17 +34,29 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 import redis.clients.util.Pool;
+
+import java.lang.reflect.Field;
+import java.net.URI;
+
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static redis.clients.jedis.Protocol.DEFAULT_DATABASE;
 
 @Configuration
+@Import({JedisClientConfiguration.class, DynomiteClientConfiguration.class})
 public class RedisConfiguration {
 
+  public static class Clients {
+    public static final String EXECUTION_REPOSITORY = "executionRepository";
+    public static final String TASK_QUEUE = "taskQueue";
+  }
+
+  @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean
   @ConfigurationProperties("redis")
   public GenericObjectPoolConfig redisPoolConfig() {
@@ -55,6 +67,7 @@ public class RedisConfiguration {
     return config;
   }
 
+  @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean(name = "jedisPool")
   @Primary
   public Pool<Jedis> jedisPool(
@@ -66,6 +79,7 @@ public class RedisConfiguration {
     return createPool(redisPoolConfig, connection, timeout, registry, "jedisPool");
   }
 
+  @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean(name = "jedisPoolPrevious")
   @ConditionalOnProperty("redis.connectionPrevious")
   @ConditionalOnExpression("${redis.connection} != ${redis.connectionPrevious}")
@@ -77,22 +91,25 @@ public class RedisConfiguration {
     return createPool(null, previousConnection, timeout, registry, "jedisPoolPrevious");
   }
 
+  @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean(name = "redisClientDelegate")
   @Primary
   RedisClientDelegate redisClientDelegate(
     @Qualifier("jedisPool") Pool<Jedis> jedisPool
   ) {
-    return new JedisClientDelegate(jedisPool);
+    return new JedisClientDelegate("primaryDefault", jedisPool);
   }
 
+  @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean(name = "previousRedisClientDelegate")
   @ConditionalOnBean(name = "jedisPoolPrevious")
   RedisClientDelegate previousRedisClientDelegate(
     @Qualifier("jedisPoolPrevious") JedisPool jedisPoolPrevious
   ) {
-    return new JedisClientDelegate(jedisPoolPrevious);
+    return new JedisClientDelegate("previousDefault", jedisPoolPrevious);
   }
 
+  @Deprecated // rz - Kept for backwards compat with old connection configs
   @Bean
   HealthIndicator redisHealth(
     @Qualifier("jedisPool") Pool<Jedis> jedisPool
@@ -130,6 +147,7 @@ public class RedisConfiguration {
     }
   }
 
+  @Deprecated // rz - Kept for backwards compat with old connection configs
   public static JedisPool createPool(
     GenericObjectPoolConfig redisPoolConfig,
     String connection,

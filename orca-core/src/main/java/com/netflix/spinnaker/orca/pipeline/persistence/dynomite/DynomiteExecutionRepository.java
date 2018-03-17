@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.dynomite;
 
 import com.netflix.dyno.jedis.DynoJedisPipeline;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -63,27 +63,21 @@ public class DynomiteExecutionRepository extends AbstractRedisExecutionRepositor
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   public DynomiteExecutionRepository(
-    Registry registry,
-    @Qualifier("redisClientDelegate") RedisClientDelegate redisClientDelegate,
-    @Qualifier("previousRedisClientDelegate") Optional<RedisClientDelegate> previousRedisClientDelegate,
+    RedisClientSelector redisClientSelector,
     @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
     @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
     @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize
   ) {
-    super(registry, redisClientDelegate, previousRedisClientDelegate, queryAllScheduler, queryByAppScheduler, threadPoolChunkSize);
+    super(redisClientSelector, queryAllScheduler, queryByAppScheduler, threadPoolChunkSize);
   }
 
   public DynomiteExecutionRepository(
-    Registry registry,
-    RedisClientDelegate redisClientDelegate,
-    Optional<RedisClientDelegate> previousRedisClientDelegate,
+    RedisClientSelector redisClientSelector,
     Integer threadPoolSize,
     Integer threadPoolChunkSize
   ) {
     super(
-      registry,
-      redisClientDelegate,
-      previousRedisClientDelegate,
+      redisClientSelector,
       Schedulers.from(Executors.newFixedThreadPool(10)),
       Schedulers.from(Executors.newFixedThreadPool(threadPoolSize)),
       threadPoolChunkSize
@@ -267,5 +261,4 @@ public class DynomiteExecutionRepository extends AbstractRedisExecutionRepositor
   protected String orchestrationKey(String id) {
     return format("{%s:%s}", ORCHESTRATION, id);
   }
-
 }

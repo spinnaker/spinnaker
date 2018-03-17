@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.orca.pipeline.persistence
 
 import com.netflix.dyno.jedis.DynoJedisClient
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate
 import com.netflix.spinnaker.kork.dynomite.LocalRedisDynomiteClient
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -516,20 +516,21 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
   Pool<Jedis> jedisPool = embeddedRedis.pool
   Pool<Jedis> jedisPoolPrevious = embeddedRedisPrevious.pool
 
-  RedisClientDelegate redisClientDelegate = new JedisClientDelegate(jedisPool)
-  Optional<RedisClientDelegate> previousRedisClientDelegate = Optional.of(new JedisClientDelegate(jedisPoolPrevious))
+  RedisClientDelegate redisClientDelegate = new JedisClientDelegate("primaryDefault", jedisPool)
+  RedisClientDelegate previousRedisClientDelegate = new JedisClientDelegate("previousDefault", jedisPoolPrevious)
+  RedisClientSelector redisClientSelector = new RedisClientSelector([redisClientDelegate, previousRedisClientDelegate])
 
   @AutoCleanup
   def jedis = jedisPool.resource
 
   @Override
   JedisExecutionRepository createExecutionRepository() {
-    return new JedisExecutionRepository(new NoopRegistry(), redisClientDelegate, previousRedisClientDelegate, 1, 50)
+    return new JedisExecutionRepository(redisClientSelector, 1, 50)
   }
 
   @Override
   JedisExecutionRepository createExecutionRepositoryPrevious() {
-    return new JedisExecutionRepository(new NoopRegistry(), previousRedisClientDelegate.get(), Optional.empty(), 1, 50)
+    return new JedisExecutionRepository(new RedisClientSelector([new JedisClientDelegate("primaryDefault", jedisPoolPrevious)]), 1, 50)
   }
 
 
@@ -656,7 +657,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     repository.updateStageContext(stage)
 
     then:
-    previousRepository.retrieve(ORCHESTRATION, orchestration.id).stages.first().getContext() == [why: 'hello']
+    repository.retrieve(ORCHESTRATION, orchestration.id).stages.first().getContext() == [why: 'hello']
 
   }
 
@@ -1154,16 +1155,16 @@ class DynomiteExecutionRepositorySpec extends JedisExecutionRepositorySpec {
     DynoJedisClient embeddedDyno = new LocalRedisDynomiteClient(embeddedRedis.port).getClient()
     DynoJedisClient embeddedDynoPrevious = new LocalRedisDynomiteClient(embeddedRedisPrevious.port).getClient()
 
-    RedisClientDelegate dynoClientDelegate = new DynomiteClientDelegate(embeddedDyno)
-    Optional<RedisClientDelegate> previousDynoClientDelegate = Optional.of(new DynomiteClientDelegate(embeddedDynoPrevious))
+    RedisClientDelegate dynoClientDelegate = new DynomiteClientDelegate("primaryDefault", embeddedDyno)
+    RedisClientDelegate previousDynoClientDelegate = new DynomiteClientDelegate("previousDefault", embeddedDynoPrevious)
 
-    return new DynomiteExecutionRepository(new NoopRegistry(), dynoClientDelegate, previousDynoClientDelegate, 1, 50)
+    return new DynomiteExecutionRepository(new RedisClientSelector([dynoClientDelegate, previousDynoClientDelegate]), 1, 50)
   }
 
   DynomiteExecutionRepository createDynomiteExecutionRepositoryPrevious() {
     DynoJedisClient embeddedDynoPrevious = new LocalRedisDynomiteClient(embeddedRedisPrevious.port).getClient()
-    RedisClientDelegate dynoClientDelegate = new DynomiteClientDelegate(embeddedDynoPrevious)
-    return new DynomiteExecutionRepository(new NoopRegistry(), dynoClientDelegate, Optional.empty(), 1, 50)
+    RedisClientDelegate dynoClientDelegate = new DynomiteClientDelegate("primaryDefault", embeddedDynoPrevious)
+    return new DynomiteExecutionRepository(new RedisClientSelector([dynoClientDelegate]), 1, 50)
   }
 }
 

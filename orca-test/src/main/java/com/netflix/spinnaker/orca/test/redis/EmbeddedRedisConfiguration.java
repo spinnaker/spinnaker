@@ -23,6 +23,6 @@ public class EmbeddedRedisConfiguration {
   }
 
   @Bean public RedisClientDelegate redisClientDelegate(Pool<Jedis> jedisPool) {
-    return new JedisClientDelegate(jedisPool);
+    return new JedisClientDelegate("primaryDefault", jedisPool);
   }
 }

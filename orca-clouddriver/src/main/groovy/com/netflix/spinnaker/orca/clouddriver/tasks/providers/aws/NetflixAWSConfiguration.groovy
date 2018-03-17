@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import redis.clients.jedis.Jedis
+import redis.clients.util.Pool
 
 @Configuration
 class NetflixAWSConfiguration {
@@ -31,5 +35,10 @@ class NetflixAWSConfiguration {
   @Bean
   Class<? extends Task> waitForAllInstancesDownOnDisableTaskType() {
     return useWaitForAllNetflixAWSInstancesDownTask ? WaitForAllNetflixAWSInstancesDownTask : WaitForRequiredInstancesDownTask
+  }
+
+  @Bean
+  RedisClientDelegate redisClientDelegate(Pool<Jedis> jedisPool) {
+    return new JedisClientDelegate("primaryDefault", jedisPool)
   }
 }
