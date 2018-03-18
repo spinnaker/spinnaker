@@ -15,13 +15,16 @@
  */
 package com.netflix.spinnaker.kork.dynomite;
 
+import com.netflix.dyno.connectionpool.CursorBasedResult;
 import com.netflix.dyno.connectionpool.exception.DynoException;
 import com.netflix.dyno.jedis.DynoJedisClient;
 import com.netflix.dyno.jedis.DynoJedisPipeline;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.kork.jedis.RedisScanResult;
 import redis.clients.jedis.*;
 import redis.clients.jedis.exceptions.JedisException;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -145,6 +148,18 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
   @Override
   public <R> R withScriptingClient(Function<ScriptingCommands, R> f) {
     return f.apply(client);
+  }
+
+  @Override
+  public void withKeyScan(String pattern, int count, Consumer<RedisScanResult> f) {
+    CursorBasedResult<String> result = null;
+
+    do {
+      result = client.dyno_scan(result, count, pattern);
+      final List<String> results = result.getResult();
+      f.accept(() -> results);
+
+    } while (!result.isComplete());
   }
 
   public class ClientDelegateException extends RuntimeException {

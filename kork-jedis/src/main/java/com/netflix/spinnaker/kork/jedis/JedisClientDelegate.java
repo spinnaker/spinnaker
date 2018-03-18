@@ -15,9 +15,10 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
-import redis.clients.util.Pool;
 import redis.clients.jedis.*;
+import redis.clients.util.Pool;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -148,6 +149,23 @@ public class JedisClientDelegate implements RedisClientDelegate {
   public <R> R withScriptingClient(Function<ScriptingCommands, R> f) {
     try (Jedis jedis = jedisPool.getResource()) {
       return f.apply(jedis);
+    }
+  }
+
+  @Override
+  public void withKeyScan(String pattern, int count, Consumer<RedisScanResult> f) {
+    ScanParams params = new ScanParams().match(pattern).count(count);
+    String cursor = ScanParams.SCAN_POINTER_START;
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      do {
+        ScanResult<String> result = jedis.scan(cursor, params);
+
+        final List<String> results = result.getResult();
+        f.accept(() -> results);
+
+        cursor = result.getStringCursor();
+      } while (!"0".equals(cursor));
     }
   }
 }

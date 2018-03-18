@@ -22,6 +22,8 @@ import java.util.function.Function;
 
 /**
  * Offers a functional interface over either a vanilla Jedis or Dynomite client.
+ *
+ * TODO rz - remove withKeyScan once Dyno implements the Jedis interfaces
  */
 public interface RedisClientDelegate {
 
@@ -60,4 +62,6 @@ public interface RedisClientDelegate {
   void withScriptingClient(Consumer<ScriptingCommands> f);
 
   <R> R withScriptingClient(Function<ScriptingCommands, R> f);
+
+  void withKeyScan(String pattern, int count, Consumer<RedisScanResult> f);
 }
