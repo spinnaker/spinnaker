@@ -18,11 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService.Account
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
-import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -30,8 +26,6 @@ import org.springframework.stereotype.Service
 @Slf4j
 @Service
 class CredentialsService {
-  private static final String GROUP = "credentials"
-
   @Autowired
   AccountLookupService accountLookupService
 
@@ -50,30 +44,28 @@ class CredentialsService {
    * Returns all account names that a user with the specified list of userRoles has access to.
    */
   List<AccountDetails> getAccounts(Collection<String> userRoles) {
-    HystrixFactory.newListCommand(GROUP, "getAccounts") {
-      return accountLookupService.getAccounts().findAll { AccountDetails account ->
-        if (fiatConfig.enabled) {
-          return true // Returned list is filtered later.
+    return accountLookupService.getAccounts().findAll { AccountDetails account ->
+      if (fiatConfig.enabled) {
+        return true // Returned list is filtered later.
+      }
+
+      Set<String> permissions = []
+      //support migration from requiredGroupMemberships config to permissions config.
+      //prefer permissions.WRITE over requiredGroupMemberships if non-empty permissions present
+      if (account.permissions) {
+        if (account.requiredGroupMembership) {
+          log.warn("on Account $account.name: preferring permissions: $account.permissions over requiredGroupMemberships: $account.requiredGroupMembership for authz decision")
         }
+        permissions.addAll(account.permissions.get(Authorization.WRITE.toString()).collect { it.toLowerCase() })
+      } else if (account.requiredGroupMembership) {
+        permissions.addAll(account.requiredGroupMembership*.toLowerCase())
+      } else {
+        return true // anonymous account.
+      }
 
-        Set<String> permissions = []
-        //support migration from requiredGroupMemberships config to permissions config.
-        //prefer permissions.WRITE over requiredGroupMemberships if non-empty permissions present
-        if (account.permissions) {
-          if (account.requiredGroupMembership) {
-            log.warn("on Account $account.name: preferring permissions: $account.permissions over requiredGroupMemberships: $account.requiredGroupMembership for authz decision")
-          }
-          permissions.addAll(account.permissions.get(Authorization.WRITE.toString()).collect { it.toLowerCase() })
-        } else if (account.requiredGroupMembership) {
-          permissions.addAll(account.requiredGroupMembership*.toLowerCase())
-        } else {
-          return true // anonymous account.
-        }
+      def userRolesLower = userRoles*.toLowerCase() as Set<String>
 
-        def userRolesLower = userRoles*.toLowerCase() as Set<String>
-
-        return userRolesLower.intersect(permissions) as Boolean
-      } ?: []
-    } execute()
+      return userRolesLower.intersect(permissions) as Boolean
+    } ?: []
   }
 }
