@@ -46,6 +46,9 @@
  * [**hal config artifact http account list**](#hal-config-artifact-http-account-list)
  * [**hal config artifact http disable**](#hal-config-artifact-http-disable)
  * [**hal config artifact http enable**](#hal-config-artifact-http-enable)
+ * [**hal config canary**](#hal-config-canary)
+ * [**hal config canary disable**](#hal-config-canary-disable)
+ * [**hal config canary enable**](#hal-config-canary-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
@@ -514,6 +517,7 @@ hal config [parameters] [subcommands]
 
 #### Subcommands
  * `artifact`: Configure, validate, and view the specified artifact provider.
+ * `canary`: Configure your canary analysis settings for Spinnaker.
  * `ci`: Configure, validate, and view the specified Continuous Integration service.
  * `deploy`: Display the configured Spinnaker deployment.
  * `edit`: Configure top-level, global configuration parameters.
@@ -1003,6 +1007,54 @@ Set the http artifact provider as enabled
 #### Usage
 ```
 hal config artifact http enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary
+
+Configure your canary analysis settings for Spinnaker.
+
+#### Usage
+```
+hal config canary [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `disable`: Set Spinnaker's canary analysis to disabled
+ * `enable`: Set Spinnaker's canary analysis to enabled
+
+---
+## hal config canary disable
+
+Set Spinnaker's canary analysis to disabled
+
+#### Usage
+```
+hal config canary disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary enable
+
+Set Spinnaker's canary analysis to enabled
+
+#### Usage
+```
+hal config canary enable [parameters]
 ```
 
 #### Parameters
