@@ -46,7 +46,7 @@ services:
     enabled: false
   kayenta:
     enabled: false
-    canaryConfigStore: false
+    canaryConfigStore: true
     baseUrl: http://localhost:8090
 
 redis:
