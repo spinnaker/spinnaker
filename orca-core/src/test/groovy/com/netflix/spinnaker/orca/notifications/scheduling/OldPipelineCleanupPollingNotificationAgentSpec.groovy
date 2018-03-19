@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.orca.notifications.scheduling
 
+import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
@@ -99,10 +102,11 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
         }
       }
     }
+    def redisClientDelegate = (RedisClientDelegate) new JedisClientDelegate(jedisPool)
 
     def agent = new OldPipelineCleanupPollingNotificationAgent(
       executionRepository: executionRepository,
-      jedisPool: jedisPool,
+      redisClientDelegate: redisClientDelegate,
       clock: clock,
       thresholdDays: 5,
       minimumPipelineExecutions: 3

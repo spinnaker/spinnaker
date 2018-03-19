@@ -20,11 +20,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PreDestroy;
+
 import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
@@ -35,15 +36,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
-import redis.clients.util.Pool;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
@@ -93,7 +91,7 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
   private ExecutionRepository executionRepository;
 
   @Autowired
-  private Pool<Jedis> jedisPool;
+  private RedisClientDelegate redisClientDelegate;
 
   @Value("${pollers.oldPipelineCleanup.intervalMs:3600000}")
   private long pollingIntervalMs;
@@ -130,22 +128,12 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
   }
 
   private void tick() {
-    ScanParams sp = new ScanParams().match("pipeline:app:*").count(2000);
-    String cursor = "0";
+    List<String> applications = new ArrayList<>();
+
     try {
-      List<String> applications = new ArrayList<>();
-      while (true) {
-        String tmpCursor = cursor;
-        ScanResult<String> result = withJedis(jedis -> jedis.scan(tmpCursor, sp));
-        cursor = result.getStringCursor();
-
-        // pipeline:app:foo -> foo
-        applications.addAll(result.getResult().stream().map(k -> k.split(":")[2]).collect(Collectors.toList()));
-
-        if ("0".equals(cursor)) {
-          break;
-        }
-      }
+      redisClientDelegate.withKeyScan("pipeline:app:*", 200, r -> {
+        applications.addAll(r.getResults().stream().map(k -> k.split(":")[2]).collect(Collectors.toList()));
+      });
 
       applications.forEach(app -> {
         log.debug("Cleaning up " + app);
@@ -189,13 +177,9 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
 
   private boolean hasEntityTags(String pipelineId) {
     // TODO rz - This index exists only in Netflix-land. Should be added to OSS eventually
-    return withJedis(jedis -> jedis.sismember("existingServerGroups:pipeline", "pipeline:" + pipelineId));
-  }
-
-  private <T> T withJedis(Function<Jedis, T> f) {
-    try(Jedis jedis = jedisPool.getResource()) {
-      return f.apply(jedis);
-    }
+    return redisClientDelegate.withCommandsClient(c -> {
+      return c.sismember("existingServerGroups:pipeline", "pipeline:" + pipelineId);
+    });
   }
 
   private static class PipelineExecutionDetails {
