@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel
 
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.throws
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ApplicationIntentGuardProperties
 import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
 import com.netflix.spinnaker.keel.event.BeforeIntentUpsertEvent
@@ -33,7 +34,8 @@ object WhitelistingIntentGuardTest {
 
   @Test
   fun `should match event types`() {
-    ApplicationIntentGuard(ApplicationIntentGuardProperties()).run {
+
+    ApplicationIntentGuard(NoopRegistry(), ApplicationIntentGuardProperties()).run {
       assert(matchesEventTypes(BeforeIntentUpsertEvent(passingIntent)))
       assert(!matchesEventTypes(AfterIntentUpsertEvent(passingIntent)))
     }
@@ -42,6 +44,7 @@ object WhitelistingIntentGuardTest {
   @Test
   fun `should fail when given un-whitelisted value`() {
     val subject = ApplicationIntentGuard(
+      NoopRegistry(),
       ApplicationIntentGuardProperties().apply {
         whitelist = mutableListOf("spintest")
       }
@@ -56,6 +59,7 @@ object WhitelistingIntentGuardTest {
   @Test
   fun `should ignore un-supported events`() {
     val subject = ApplicationIntentGuard(
+      NoopRegistry(),
       ApplicationIntentGuardProperties().apply {
         whitelist = mutableListOf("spintest")
       }

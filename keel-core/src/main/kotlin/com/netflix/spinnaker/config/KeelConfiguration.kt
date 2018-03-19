@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.config
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
@@ -73,9 +74,9 @@ open class KeelConfiguration {
 
   @Bean open fun clock(): Clock = Clock.systemDefaultZone()
 
-  @Bean open fun applicationIntentGuard(properties: ApplicationIntentGuardProperties) =
-    ApplicationIntentGuard(properties)
+  @Bean open fun applicationIntentGuard(registry: Registry, properties: ApplicationIntentGuardProperties) =
+    ApplicationIntentGuard(registry, properties)
 
-  @Bean open fun kindIntentGuard(properties: KindIntentGuardProperties) =
-    KindIntentGuard(properties)
+  @Bean open fun kindIntentGuard(registry: Registry, properties: KindIntentGuardProperties) =
+    KindIntentGuard(registry, properties)
 }

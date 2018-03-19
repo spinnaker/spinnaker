@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel
 
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ApplicationIntentGuardProperties
 import com.netflix.spinnaker.config.KindIntentGuardProperties
 import com.netflix.spinnaker.keel.event.BeforeIntentConvergeEvent
@@ -33,12 +34,14 @@ open class WhitelistingIntentGuardProperties {
 
 // TODO rz - account guard
 abstract class WhitelistingIntentGuard(
+  private val registry: Registry,
   private val properties: WhitelistingIntentGuardProperties
 ) {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
   private val whitelist: List<String> = properties.whitelist.map { it.trim().toLowerCase() }
+  private val failedId = registry.createId("guard.whitelist.failed", "guard", javaClass.simpleName)
 
   init {
     if (properties.enabled) {
@@ -57,6 +60,10 @@ abstract class WhitelistingIntentGuard(
     if (properties.enabled && matchesEventTypes(event)) {
       val value = extractValue(event)?.trim()?.toLowerCase()
       if (value != null && !whitelist.contains(value)) {
+        registry.counter(failedId.withTags(mapOf(
+          "value" to value,
+          "event" to event.toString()
+        ))).increment()
         throw GuardConditionFailed(javaClass.simpleName, "Whitelist does not contain '$value' in $event")
       }
     }
@@ -68,8 +75,9 @@ abstract class WhitelistingIntentGuard(
 }
 
 class ApplicationIntentGuard(
+  registry: Registry,
   applicationGuardProperties: ApplicationIntentGuardProperties
-) : WhitelistingIntentGuard(applicationGuardProperties) {
+) : WhitelistingIntentGuard(registry, applicationGuardProperties) {
 
   override val supportedEvents = listOf(
     BeforeIntentUpsertEvent::class.java,
@@ -86,8 +94,9 @@ class ApplicationIntentGuard(
 }
 
 class KindIntentGuard(
+  registry: Registry,
   kindGuardProperties: KindIntentGuardProperties
-) : WhitelistingIntentGuard(kindGuardProperties) {
+) : WhitelistingIntentGuard(registry, kindGuardProperties) {
 
   override val supportedEvents = listOf(
     BeforeIntentUpsertEvent::class.java,
