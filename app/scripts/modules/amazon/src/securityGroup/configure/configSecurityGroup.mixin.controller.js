@@ -54,8 +54,8 @@ module.exports = angular
       },
     };
 
+    $scope.allVpcs = [];
     $scope.wizard = v2modalWizardService;
-
     $scope.hideClassic = false;
 
     ctrl.addMoreItems = function () {
