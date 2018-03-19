@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { get, set } from 'lodash';
+import { filter, flatten, get, groupBy, set, uniq } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
@@ -44,6 +44,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     const errors = {} as FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand>;
 
     let hasErrors = false;
+    const duplicateTargetGroups = uniq(flatten(filter(groupBy(values.targetGroups, 'name'), (count) => count.length > 1)).map((tg) => tg.name));
     const targetGroupsErrors = values.targetGroups.map((targetGroup: any) => {
       const tgErrors: { [key: string]: string } = {};
 
@@ -53,6 +54,10 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
 
       if (targetGroup.name && targetGroup.name.length > 32 - this.props.app.name.length) {
         tgErrors.name = 'Target group name is automatically prefixed with the application name and cannot exceed 32 characters in length.';
+      }
+
+      if (duplicateTargetGroups.includes(targetGroup.name)) {
+        tgErrors.name = 'Duplicate target group name in this load balancer.';
       }
 
       ['port', 'healthCheckInterval', 'healthCheckPort', 'healthyThreshold', 'unhealthyThreshold'].forEach((key) => {

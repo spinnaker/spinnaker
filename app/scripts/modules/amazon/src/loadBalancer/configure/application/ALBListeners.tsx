@@ -447,7 +447,7 @@ const Rule = SortableElement((props: IRuleProps) => (
         required={true}
       >
         <option value=""/>
-        {props.targetGroups.map((tg) => <option key={tg.name}>{tg.name}</option>)}
+        {uniq(props.targetGroups.map((tg) => tg.name)).map((name) => <option key={name}>{name}</option>)}
       </select>
     </td>
     <td>
@@ -489,7 +489,7 @@ const Rules = SortableContainer((props: IRulesProps) => (
           required={true}
         >
           <option value=""/>
-          {props.targetGroups.map((targetGroup) => <option key={targetGroup.name}>{targetGroup.name}</option>)}
+          {uniq(props.targetGroups.map((tg) => tg.name)).map((name) => <option key={name}>{name}</option>)}
         </select>
       </td>
       <td/>
