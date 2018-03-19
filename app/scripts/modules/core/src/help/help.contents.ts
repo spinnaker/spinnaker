@@ -73,7 +73,8 @@ module(HELP_CONTENTS, [])
         <p>Please include an email address or slack channel as appropriate.</p>`,
     'pipeline.config.optionalStage': `
         <p>When this option is enabled, stage will only execute when the supplied expression evaluates true.</p>
-        <p>The expression <em>does not</em> need to be wrapped in \${ and }.</p>`,
+        <p>The expression <em>does not</em> need to be wrapped in \${ and }.</p>
+        <p>If this expression evaluates to false, the stages following this stage will still execute.</p>`,
     'pipeline.config.checkPreconditions.failPipeline': `
         <p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>
         <p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>`,
