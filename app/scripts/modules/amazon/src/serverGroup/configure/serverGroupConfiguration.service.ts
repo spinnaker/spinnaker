@@ -64,6 +64,7 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   useAmiBlockDeviceMappings: boolean;
   targetGroups: string[];
   spelTargetGroups: string[];
+  spelLoadBalancers: string[];
 
   getBlockDeviceMappingsSource: () => IBlockDeviceMappingSource;
   selectBlockDeviceMappingsSource: (selection: string) => void;
