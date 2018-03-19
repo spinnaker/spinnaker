@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
+import java.util.concurrent.TimeUnit
 
 @Component(value = "orcaIntentLauncher")
 open class OrcaIntentLauncher
@@ -40,10 +41,8 @@ open class OrcaIntentLauncher
   private val invocationsId = registry.createId("intent.invocations", listOf(BasicTag("launcher", "orca")))
   private val invocationTimeId = registry.createId("intent.invocationTime", listOf(BasicTag("launcher", "orca")))
 
-  override fun launch(intent: Intent<IntentSpec>): OrcaLaunchedIntentResult {
-    registry.counter(invocationsId.withTags(intent.getMetricTags())).increment()
-
-    return registry.timer(invocationTimeId.withTags(intent.getMetricTags())).record<OrcaLaunchedIntentResult> {
+  override fun launch(intent: Intent<IntentSpec>) =
+    recordedTime(intent) {
       val result = intentProcessor(intentProcessors, intent).converge(intent)
 
       if (result.orchestrations.isNotEmpty()) {
@@ -64,9 +63,29 @@ open class OrcaIntentLauncher
         timestampMillis = clock.millis()
       ))
 
+      registry.counter(invocationsId
+        .withTags(intent.getMetricTags())
+        .withTag("change", result.changeSummary.type.toString())
+      ).increment()
+
       OrcaLaunchedIntentResult(orchestrationIds, result.changeSummary)
     }
+
+  private fun recordedTime(intent: Intent<IntentSpec>, callable: () -> OrcaLaunchedIntentResult): OrcaLaunchedIntentResult {
+    val start = registry.clock().monotonicTime()
+    return callable.invoke()
+      .also {
+        registry.timer(invocationTimeId.withTags(intent.getResultTags(it))).record(
+          registry.clock().monotonicTime() - start,
+          TimeUnit.NANOSECONDS
+        )
+      }
   }
+
+  private fun Intent<IntentSpec>.getResultTags(result: OrcaLaunchedIntentResult) =
+    getMetricTags().toMutableList().apply {
+      add(BasicTag("change", result.changeSummary.type.toString()))
+    }
 }
 
 data class OrcaLaunchedIntentResult(
