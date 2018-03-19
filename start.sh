@@ -1,22 +1,26 @@
 #!/bin/bash
 
-NODE_VERSION=$(node -v)
-# Process engines format like { "node": ">=7.0.0" }
-npm_package_engines_node=$(node -e "console.log('$npm_package_engines_node'.replace(/[^0-9.]/g, ''))")
+CURRENT_VERSION=$(node -v)
 
-if [[ $NODE_VERSION != $npm_package_engines_node ]]; then
+# Process engines format like { "node": ">=7.0.0" }
+DESIRED_VERSION=$(node -e "console.log(require('./package.json').engines.node.replace(/[^0-9.]/g, ''))");
+
+if [[ $CURRENT_VERSION != "v$DESIRED_VERSION" ]]; then
   if [[ -f $HOME/.nvm/nvm.sh ]]; then
-    echo "Updating your node version to $npm_package_engines_node..."
+    echo "Node is currently $CURRENT_VERSION. Activating $DESIRED_VERSION using nvm..."
     . $HOME/.nvm/nvm.sh
-    nvm use $npm_package_engines_node
+    echo "Using $DESIRED_VERSION...";
+    nvm use $DESIRED_VERSION
 
     if [[ $? != 0 ]]; then
-      echo "Installing node $npm_package_engines_node..."
-      nvm install $npm_package_engines_node
+      echo "Installing node $DESIRED_VERSION..."
+      nvm install $DESIRED_VERSION
     fi
   else
-    echo "WARNING: could not update to node $NODE_VERSION, nvm not found..."
+    echo "WARNING: could not update to node $DESIRED_VERSION, nvm not found..."
   fi
 fi
+
+echo "Launching deck using node $(node -v)..."
 
 npm run start-dev-server
