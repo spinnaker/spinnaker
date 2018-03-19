@@ -26,7 +26,7 @@
                  ng-model="$ctrl.command.targetGroups"
                  class="form-control input-sm">
         <ui-select-match>{{$item}}</ui-select-match>
-        <ui-select-choices repeat="targetGroup in $ctrl.command.backingData.filtered.targetGroups | filter: $select.search">
+        <ui-select-choices repeat="targetGroup in $ctrl.command.backingData.filtered.targetGroups.concat($ctrl.command.spelTargetGroups) | filter: $select.search">
           <span ng-bind-html="targetGroup | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>
@@ -57,7 +57,7 @@
                  ng-model="$ctrl.command.loadBalancers"
                  class="form-control input-sm">
         <ui-select-match>{{$item}}</ui-select-match>
-        <ui-select-choices repeat="loadBalancer in $ctrl.command.backingData.filtered.loadBalancers | filter: $select.search">
+        <ui-select-choices repeat="loadBalancer in $ctrl.command.backingData.filtered.loadBalancers.concat($ctrl.command.spelLoadBalancers) | filter: $select.search">
           <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
         </ui-select-choices>
       </ui-select>

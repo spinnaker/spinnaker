@@ -1,5 +1,5 @@
 import { module, IPromise, IQService } from 'angular';
-import { chain, clone, cloneDeep, extend, find, flatten, has, intersection, keys, map, some, xor } from 'lodash';
+import { chain, clone, cloneDeep, extend, find, flatten, has, intersection, keys, map, partition, some, xor } from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
@@ -63,6 +63,7 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
   targetHealthyDeployPercentage: number;
   useAmiBlockDeviceMappings: boolean;
   targetGroups: string[];
+  spelTargetGroups: string[];
 
   getBlockDeviceMappingsSource: () => IBlockDeviceMappingSource;
   selectBlockDeviceMappingsSource: (selection: string) => void;
@@ -462,6 +463,13 @@ export class AwsServerGroupConfigurationService {
     return instanceTargetGroups.map((tg) => tg.name).sort();
   }
 
+  private getValidMatches(all: string[], current: string[]): { valid: string[], invalid: string[], spel: string[] } {
+    const spel = current.filter((v) => v.includes('${'));
+    const matched = intersection(all, current);
+    const [ valid, invalid ] = partition(current, (c) => matched.includes(c) || spel.includes(c));
+    return { valid, invalid, spel };
+  }
+
   public configureLoadBalancerOptions(command: IAmazonServerGroupCommand): IServerGroupCommandResult {
     const result: IAmazonServerGroupCommandResult = { dirty: {} };
     const currentLoadBalancers = (command.loadBalancers || []).concat(command.vpcLoadBalancers || []);
@@ -471,27 +479,27 @@ export class AwsServerGroupConfigurationService {
     const allTargetGroups = this.getTargetGroupNames(command);
 
     if (currentLoadBalancers && command.loadBalancers) {
-      const valid = command.vpcId ? newLoadBalancers : newLoadBalancers.concat(vpcLoadBalancers);
-      const matched = intersection(valid, currentLoadBalancers);
-      const removedLoadBalancers = xor(matched, currentLoadBalancers);
-      command.loadBalancers = intersection(newLoadBalancers, matched);
+      const allValidLoadBalancers = command.vpcId ? newLoadBalancers : newLoadBalancers.concat(vpcLoadBalancers);
+      const { valid, invalid, spel } = this.getValidMatches(allValidLoadBalancers, currentLoadBalancers);
+      command.loadBalancers = intersection(newLoadBalancers, valid);
       if (!command.vpcId) {
-        command.vpcLoadBalancers = intersection(vpcLoadBalancers, matched);
+        command.vpcLoadBalancers = intersection(vpcLoadBalancers, valid);
       } else {
         delete command.vpcLoadBalancers;
       }
-      if (removedLoadBalancers.length) {
-        result.dirty.loadBalancers = removedLoadBalancers;
+      if (invalid.length) {
+        result.dirty.loadBalancers = invalid;
       }
+      command.spelLoadBalancers = spel || [];
     }
 
     if (currentTargetGroups && command.targetGroups) {
-      const matched = intersection(allTargetGroups, currentTargetGroups);
-      const removedTargetGroups = xor(matched, currentTargetGroups);
-      command.targetGroups = intersection(allTargetGroups, matched);
-      if (removedTargetGroups.length) {
-        result.dirty.targetGroups = removedTargetGroups;
+      const { valid, invalid, spel } = this.getValidMatches(allTargetGroups, currentTargetGroups);
+      command.targetGroups = valid;
+      if (invalid.length) {
+        result.dirty.targetGroups = invalid;
       }
+      command.spelTargetGroups = spel ||  [];
     }
 
     command.backingData.filtered.loadBalancers = newLoadBalancers;
