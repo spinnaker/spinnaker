@@ -31,10 +31,10 @@ class MemoryTraceRepository : TraceRepository {
   }
 
   override fun record(trace: Trace) {
-    if (!traces.containsKey(trace.intent.id())) {
-      traces[trace.intent.id()] = mutableListOf()
+    if (!traces.containsKey(trace.intent.id)) {
+      traces[trace.intent.id] = mutableListOf()
     }
-    traces[trace.intent.id()]?.add(trace)
+    traces[trace.intent.id]?.add(trace)
   }
 
   override fun getForIntent(intentId: String) = traces[intentId]?.toList() ?: listOf()

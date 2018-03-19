@@ -19,7 +19,7 @@ class LoadBalancerIntent(spec: LoadBalancerSpec) : Intent<LoadBalancerSpec>(
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  @JsonIgnore override val defaultId = "$KIND:${spec.cloudProvider()}:${spec.accountName}:${spec.name}"
+  @JsonIgnore override val id = "$KIND:${spec.cloudProvider()}:${spec.accountName}:${spec.name}"
 }
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = KIND_PROPERTY)

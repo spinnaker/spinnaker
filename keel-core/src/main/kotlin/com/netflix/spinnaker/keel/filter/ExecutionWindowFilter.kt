@@ -57,7 +57,7 @@ class ExecutionWindowFilter
     }
 
     val executionWindow = intent.getAttribute(ExecutionWindowAttribute::class)!!
-    log.info("Calculating scheduled time for {}; $executionWindow", value("intent", intent.id()))
+    log.info("Calculating scheduled time for {}; $executionWindow", value("intent", intent.id))
 
     val now = Date.from(clock.instant())
     val scheduledTime: Date
@@ -69,7 +69,7 @@ class ExecutionWindowFilter
       return config.allowExecutionOnFailure
     }
 
-    log.debug("Calculated schedule time for {}: $scheduledTime", value("intent", intent.id()))
+    log.debug("Calculated schedule time for {}: $scheduledTime", value("intent", intent.id))
 
     return now >= scheduledTime
   }

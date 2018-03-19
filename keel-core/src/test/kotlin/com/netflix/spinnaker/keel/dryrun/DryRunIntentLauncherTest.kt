@@ -82,7 +82,7 @@ object DryRunIntentLauncherTest {
     kind: String,
     spec: TestIntentSpec
   ) : Intent<TestIntentSpec>(schema, kind, spec, ACTIVE) {
-    override val defaultId = ""
+    override val id = ""
   }
 
   private data class TestIntentSpec(val id: String) : IntentSpec

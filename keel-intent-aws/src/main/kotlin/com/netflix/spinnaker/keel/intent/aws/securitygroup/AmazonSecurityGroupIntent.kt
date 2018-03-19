@@ -34,7 +34,7 @@ class AmazonSecurityGroupIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  @JsonIgnore override val defaultId = spec.intentId()
+  @JsonIgnore override val id = spec.intentId()
 
   @JsonIgnore fun parentId(): String? {
     if (spec is AmazonSecurityGroupRootSpec) {

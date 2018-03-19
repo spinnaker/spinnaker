@@ -37,7 +37,7 @@ class TestIntent
   attributes: List<Attribute<Any>> = listOf(),
   policies: List<Policy<PolicySpec>> = listOf()
 ) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, labels, attributes, policies) {
-  @JsonIgnore override val defaultId = "test:${spec.id}"
+  @JsonIgnore override val id = "test:${spec.id}"
 }
 
 // Using minimal class for ease in testing

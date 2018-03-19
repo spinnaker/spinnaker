@@ -35,7 +35,7 @@ class PipelineIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  @JsonIgnore override val defaultId = "$KIND:${spec.application}:${spec.name}"
+  @JsonIgnore override val id = "$KIND:${spec.application}:${spec.name}"
 }
 
 @JsonTypeName("pipeline")

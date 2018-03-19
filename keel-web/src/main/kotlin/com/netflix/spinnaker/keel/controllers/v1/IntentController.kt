@@ -16,11 +16,7 @@
 package com.netflix.spinnaker.keel.controllers.v1
 
 import com.netflix.spinnaker.config.KeelProperties
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentActivityRepository
-import com.netflix.spinnaker.keel.IntentRepository
-import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
@@ -29,13 +25,7 @@ import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.ws.rs.QueryParam
 
 @RestController
@@ -81,11 +71,11 @@ class IntentController
       intentRepository.upsertIntent(intent)
 
       if (keelProperties.immediatelyRunIntents) {
-        log.info("Immediately launching intent {}", StructuredArguments.value("intent", intent.id()))
+        log.info("Immediately launching intent {}", StructuredArguments.value("intent", intent.id))
         orcaIntentLauncher.launch(intent)
       }
 
-      intentList.add(UpsertIntentResponse(intent.id(), intent.status))
+      intentList.add(UpsertIntentResponse(intent.id, intent.status))
     }
 
     return intentList

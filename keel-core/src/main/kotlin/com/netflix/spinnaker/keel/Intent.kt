@@ -15,11 +15,7 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonGetter
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.*
 import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spinnaker.keel.attribute.Attribute
@@ -35,9 +31,6 @@ import kotlin.reflect.KClass
  * @param attributes User-land specific metadata and extension data.
  * @param policies User-defined behavioral policies specific to the intent.
  * @param cas An optional ID-granular pessimistic lock.
- * @param namespace Used to logically group intents together; guarantees user- defined ids are unique within buckets.
- * Required if ID override is set.
- * @param idOverride A user-defined ID override for an individual intent. Must not conflict with default id.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -50,15 +43,12 @@ abstract class Intent<out S : IntentSpec>
   val labels: MutableMap<String, String> = mutableMapOf(),
   val attributes: List<Attribute<*>> = listOf(),
   val policies: List<Policy<*>> = listOf(),
-  val cas: Long? = null,
-  val namespace: String? = null,
-  val idOverride: String? = null
+  val cas: Long? = null
 ) {
 
-  abstract val defaultId: String
+  abstract val id: String
 
-  @JsonGetter
-  fun id(): String = idOverride.takeUnless { it.isNullOrBlank() || namespace.isNullOrBlank() } ?: defaultId
+  @JsonGetter fun id() = id
 
   @JsonIgnore
   fun getMetricTags() = listOf(BasicTag("kind", kind), BasicTag("schema", schema))

@@ -16,11 +16,7 @@
 package com.netflix.spinnaker.keel.intent.processor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.ConvergeReason
-import com.netflix.spinnaker.keel.ConvergeResult
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentProcessor
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.front50.Front50Service
@@ -49,11 +45,11 @@ class PipelineIntentProcessor(
   override fun supports(intent: Intent<IntentSpec>) = intent is PipelineIntent
 
   override fun converge(intent: PipelineIntent): ConvergeResult {
-    val changeSummary = ChangeSummary(intent.id())
+    val changeSummary = ChangeSummary(intent.id)
 
     val currentState = getPipelineConfig(intent.spec.application, intent.spec.name)
 
-    if (currentStateUpToDate(intent.id(), currentState, intent.spec, changeSummary)) {
+    if (currentStateUpToDate(intent.id, currentState, intent.spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
@@ -77,7 +73,7 @@ class PipelineIntentProcessor(
         application = intent.spec.application,
         description = "Converging on desired pipeline state",
         job = pipelineConverter.convertToJob(intent.spec, changeSummary),
-        trigger = OrchestrationTrigger(intent.id())
+        trigger = OrchestrationTrigger(intent.id)
       )
     ), changeSummary)
   }

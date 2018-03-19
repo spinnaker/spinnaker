@@ -19,22 +19,20 @@ package com.netflix.spinnaker.keel.intent.aws.loadbalancer
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.collect.Maps
+import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import com.netflix.spinnaker.keel.intent.*
+import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
+import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.OrchestrationTrigger
+import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
-import com.netflix.spinnaker.keel.*
-import com.netflix.spinnaker.keel.front50.model.PipelineConfig
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.OrchestrationTrigger
-import com.netflix.spinnaker.keel.state.StateInspector
 
 @Component
 class ClassicLoadBalancerIntentProcessor
@@ -57,14 +55,14 @@ class ClassicLoadBalancerIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent.spec is ClassicLoadBalancerSpec
 
   override fun converge(intent: LoadBalancerIntent): ConvergeResult {
-    val changeSummary = ChangeSummary(intent.id())
+    val changeSummary = ChangeSummary(intent.id)
     val spec = intent.spec as ClassicLoadBalancerSpec
 
-    log.info("Converging state for {}", value("intent", intent.id()))
+    log.info("Converging state for {}", value("intent", intent.id))
 
     val currentLoadBalancer = getLoadBalancer(spec)
 
-    if (currentStateUpToDate(intent.id(), currentLoadBalancer, spec, changeSummary)) {
+    if (currentStateUpToDate(intent.id, currentLoadBalancer, spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
@@ -75,7 +73,7 @@ class ClassicLoadBalancerIntentProcessor
           application = intent.spec.application,
           description = "Converging Classic Load Balancer (${spec.accountName}:${spec.region}:${spec.name})",
           job = classicLoadBalancerConverter.convertToJob(spec, changeSummary),
-          trigger = OrchestrationTrigger(intent.id())
+          trigger = OrchestrationTrigger(intent.id)
         )
       ),
       changeSummary

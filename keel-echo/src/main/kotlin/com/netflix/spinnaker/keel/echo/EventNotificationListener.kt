@@ -43,7 +43,7 @@ class EventNotificationListener(
             log.info(
               "Sending {} notifications for intent (intent: {})",
               value("kind", sub.key),
-              value("intent", event.intent.id())
+              value("intent", event.intent.id)
             )
 
             sub.value.forEach { notification ->
@@ -59,7 +59,7 @@ class EventNotificationListener(
                   additionalContext = notification.getAdditionalContext().toMutableMap().let {
                     it.putAll(mapOf(
                       "eventKind" to event.kind.toValue(),
-                      "intentId" to event.intent.id()
+                      "intentId" to event.intent.id
                     ))
                     it
                   }
@@ -68,7 +68,7 @@ class EventNotificationListener(
               } catch (cause: Exception) {
                 log.error(
                   "Failed creating notification for intent (intent: {}, type: {})",
-                  value("intent", event.intent.id()),
+                  value("intent", event.intent.id),
                   value("kind", sub.key),
                   cause
                 )

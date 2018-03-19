@@ -38,7 +38,7 @@ class MemoryIntentRepository(
 
   override fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec> {
     applicationEventPublisher.publishEvent(BeforeIntentUpsertEvent(intent))
-    intents.put(intent.id(), intent)
+    intents.put(intent.id, intent)
     applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(intent))
     return intent
   }

@@ -36,7 +36,7 @@ class ParrotIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  @JsonIgnore override val defaultId = "$KIND:${spec.application}"
+  @JsonIgnore override val id = "$KIND:${spec.application}"
 }
 
 @JsonTypeName("parrot")

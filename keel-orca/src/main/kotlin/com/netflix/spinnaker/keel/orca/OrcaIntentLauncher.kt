@@ -17,13 +17,7 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentActivityRepository
-import com.netflix.spinnaker.keel.IntentConvergenceRecord
-import com.netflix.spinnaker.keel.IntentLauncher
-import com.netflix.spinnaker.keel.IntentProcessor
-import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.LaunchedIntentResult
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -61,7 +55,7 @@ open class OrcaIntentLauncher
       }
 
       intentActivityRepository.logConvergence(IntentConvergenceRecord(
-        intentId = intent.id(),
+        intentId = intent.id,
         changeType = result.changeSummary.type,
         orchestrations = orchestrationIds,
         messages = result.changeSummary.message,
