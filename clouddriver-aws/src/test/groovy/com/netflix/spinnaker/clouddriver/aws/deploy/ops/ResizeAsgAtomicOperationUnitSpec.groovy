@@ -30,6 +30,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ResizeAsgAtomicOperationUnitSpec extends Specification {
+  def mockAutoScaling = Mock(AmazonAutoScaling)
+  def mockAmazonClientProvider = Mock(AmazonClientProvider) {
+    _ * getAutoScaling(_, _, true) >> { return mockAutoScaling }
+  }
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -38,14 +42,11 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
   @Unroll
   void "should update ASG iff it exists and is not in the process of being deleted"() {
     setup:
-    def mockAutoScaling = Mock(AmazonAutoScaling)
-    def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, _, true) >> mockAutoScaling
     def description = new ResizeAsgDescription(
       asgs: [[
         serverGroupName: "myasg-stack-v000",
         region         : "us-west-1",
-        capacity       : new ResizeAsgDescription.Capacity(
+        capacity       : new ServerGroup.Capacity(
           min    : 1,
           max    : 2,
           desired: 5
@@ -110,8 +111,46 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     capacity(0, 2, 3)    | 1          | 2          | 3              || true
   }
 
+  @Unroll
+  void "should support resize requests with only some fields to update (min: #minSize, max: #maxSize, desired: #desired)"() {
+    setup:
+    def description = new ResizeAsgDescription(
+      asgs: [[
+               serverGroupName: "myasg-stack-v000",
+               region         : "us-west-1",
+               capacity       : new ServerGroup.Capacity(min: minSize, max: maxSize, desired: desired)
+             ]]
+    )
+    def operation = new ResizeAsgAtomicOperation(description)
+    operation.amazonClientProvider = mockAmazonClientProvider
 
-  private static ResizeAsgDescription.Capacity capacity(int min, int max, int desired) {
-    return new ResizeAsgDescription.Capacity(min: min, max: max, desired: desired)
+    when:
+    operation.operate([])
+
+    then:
+    expectedOps * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
+      new AutoScalingGroup().withAutoScalingGroupName("myasg-stack-v0001")
+    )
+
+    expectedOps * mockAutoScaling.updateAutoScalingGroup(_) >> {
+      request ->
+        assert request.size() == 1
+        assert request[0].minSize == minSize
+        assert request[0].maxSize == maxSize
+        assert request[0].desiredCapacity == desired
+    }
+
+    where:
+    minSize | maxSize | desired | expectedOps
+    42      | null    | null    | 1
+    null    | 42      | null    | 1
+    null    | null    | 42      | 1
+    0       | null    | null    | 1
+    0       | 0       | 0       | 1 // not the same as (null, null, null)
+    null    | null    | null    | 0
+  }
+
+  private static ServerGroup.Capacity capacity(int min, int max, int desired) {
+    return new ServerGroup.Capacity(min: min, max: max, desired: desired)
   }
 }

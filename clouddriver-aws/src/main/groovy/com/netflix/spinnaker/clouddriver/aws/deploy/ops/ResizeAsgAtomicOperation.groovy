@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescrip
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -57,9 +58,15 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
 
   private void resizeAsg(String asgName,
                          String region,
-                         ResizeAsgDescription.Capacity capacity,
+                         ServerGroup.Capacity capacity,
                          ResizeAsgDescription.Constraints constraints) {
     task.updateStatus PHASE, "Beginning resize of ${asgName} in ${region} to ${capacity}."
+
+    if (capacity.min == null && capacity.max == null && capacity.desired == null) {
+      task.updateStatus PHASE, "Skipping resize of ${asgName} in ${region}, at least one field in ${capacity} needs to be non-null"
+      return
+    }
+
     def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
     def describeAutoScalingGroups = autoScaling.describeAutoScalingGroups(
       new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
@@ -71,6 +78,7 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
 
     validateConstraints(constraints, describeAutoScalingGroups.getAutoScalingGroups().get(0))
 
+    // min, max and desired may be null
     def request = new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(asgName)
         .withMinSize(capacity.min)
         .withMaxSize(capacity.max)

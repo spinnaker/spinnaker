@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
-class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
 
+class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
   String serverGroupName
   String region
-
-  Capacity capacity = new Capacity()
-
+  ServerGroup.Capacity capacity
   List<AsgTargetDescription> asgs = []
 
   @Deprecated
@@ -31,23 +30,12 @@ class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
   @Deprecated
   List<String> regions = []
 
-  static class Capacity {
-    int min
-    int max
-    int desired
-
-    @Override
-    String toString() {
-      return "min: $min, max: $max, desired: $desired"
-    }
-  }
-
   static class Constraints {
-    Capacity capacity
+    ServerGroup.Capacity capacity
   }
 
   static class AsgTargetDescription extends AsgDescription {
-    Capacity capacity = new Capacity()
+    ServerGroup.Capacity capacity = new ServerGroup.Capacity()
     Constraints constraints = new Constraints()
 
     @Override
