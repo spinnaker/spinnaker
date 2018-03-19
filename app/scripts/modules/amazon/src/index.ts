@@ -1,6 +1,7 @@
 export { AMAZON_MODULE } from './aws.module';
 export * from './aws.settings';
 
+export * from './common';
 export * from './domain';
 export * from './keyPairs';
 export * from './loadBalancer';

@@ -1,16 +1,15 @@
 import * as React from 'react';
 import { Modal, ModalProps } from 'react-bootstrap';
 import * as ReactDOM from 'react-dom';
-
 import { pick, omit } from 'lodash';
 
 /** The Modal content Component will be passed these two props */
 export interface IModalComponentProps {
   // Close modal with a result value (i.e., OK button)
-  closeModal?(result: any): void;
+  closeModal?(result?: any): void;
 
   // Dismiss/reject modal (i.e., Cancel button)
-  dismissModal?(rejectReason: any): void;
+  dismissModal?(rejectReason?: any): void;
 }
 
 /** An imperative service for showing a react component as a modal */
