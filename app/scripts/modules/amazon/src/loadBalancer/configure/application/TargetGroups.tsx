@@ -178,6 +178,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                             value={targetGroup.name}
                             onChange={(event) => this.targetGroupFieldChanged(index, 'name', event.target.value)}
                             required={true}
+                            disabled={index < oldTargetGroupCount}
                           />
                           <a className="sm-label clickable" onClick={() => this.removeTargetGroup(index)}><span className="glyphicon glyphicon-trash"/></a>
                         </div>
