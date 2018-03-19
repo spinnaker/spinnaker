@@ -9,127 +9,16 @@ Spinnaker site and https://www.spinnaker.io/setup/[Installation] guide.
 
 If you want more information on how Spinnaker is designed, see the https://www.spinnaker.io/concepts/[Documentation Overview].
 
+If you're interested in a detailed walkthrough of the Spinnaker systems, check the https://www.spinnaker.io/reference/[Reference Material].
+
 = Setting Up Spinnaker For Development
 
-These instructions cover pulling Spinnaker from source and setting up to run locally against Amazon Web Services and/or Google Cloud Platform accounts. 
+These instructions cover pulling Spinnaker from source and setting up to run locally against any of the https://www.spinnaker.io/setup/install/providers/supported[Cloud Providers].
 
-To build from source and run on localhost follow the https://www.spinnaker.io/setup/install/#getting-started[Getting Started Documentation].
+To build from source and run on localhost follow the https://www.spinnaker.io/community/contributing/#how-to-run-spinnaker-locally-for-development[Development instructions]
 
-If you would prefer to try a container based solution, see https://github.com/spinnaker/spinnaker/tree/master/experimental/docker-compose[docker-compose installation].
-
-These scripts are tested on:
+These instructions are tested on:
 
 * Ubuntu 14.04 LTS
+* Ubuntu 16.04 LTS
 * Mac OS X 10.11
-
-== Get the bootstrap / configuration repo
-
-[source,bash]
-----
-#export SPINNAKER_HOME=/path/to/your/Spinnaker/workspace
-mkdir -p $SPINNAKER_HOME
-cd $SPINNAKER_HOME
-git clone git@github.com:spinnaker/spinnaker.git
-----
-
-== Configure your environment
-
-The Spinnaker platform has a few prerequisites, which are installed as a part of this configuration process. They are: 
-
-* https://www.oracle.com/java/index.html[JDK8]
-* http://redis.io/[Redis]
-* http://cassandra.apache.org/[Cassandra]
-* https://www.packer.io/[Packer]
-
-=== Mac OS X
-
-You need to have http://brew.sh/[homebrew] installed and ensure your version of git is above 2.0.  Cassandra must be 2.1.x where x >= 11 or you must enable thrift.
-
-[source,bash]
-----
-brew tap caskroom/cask
-brew install brew-cask
-brew install redis homebrew/versions/cassandra21 packer
-brew cask install java
-cd $SPINNAKER_HOME
-mkdir build
-cd build
-../spinnaker/dev/refresh_source.sh --pull_origin --use_ssh --github_user default
-----
-
-=== Ubuntu Linux
-
-[source,bash]
-----
-cd $SPINNAKER_HOME
-spinnaker/dev/install_development.sh
-spinnaker/dev/bootstrap_dev.sh
-----
-
-The `bootstrap_dev.sh` script will ask to install additional components. `gcloud`
-is only needed to write releases to Google Cloud Storage, but is convenient
-to have if you plan on using or accessing Google Cloud Platform resources
-from your development environment. These could be installed at a system level
-rather than user level, but the default install requires updating your path
-so is performed here.
-
-== Configure Spinnaker
-
-We will create a directory for Spinnaker configuration overrides and
-create an override to select the appropriate cloud provider(s).
-
-[source,bash]
-----
-cd $SPINNAKER_HOME
-mkdir -p $HOME/.spinnaker
-touch $HOME/.spinnaker/spinnaker-local.yml
-chmod 600 $HOME/.spinnaker/spinnaker-local.yml
-
-# Ideally you only need to add the properties you want to override.
-# However if you are not comfortable editing yml, you can copy the
-# entire file. The difference is that you may be overriding future
-# changes to default values that you otherwise would not care about.
-cp spinnaker/config/spinnaker.yml $HOME/.spinnaker/spinnaker-local.yml
-
-$EDITOR $HOME/.spinnaker/spinnaker-local.yml
-----
-
-If you are deployed onto a supported cloud provider (e.g., AWS or Google) and
-you only wish to deploy on that platform then you do not need to perform
-additional configuration. Otherwise, edit `$HOME/.spinnaker/spinnaker-local.yml`
-and set the enabled option for the cloud provider(s) of your choice and
-configure the attributes for that provider.
-
-== Start Spinnaker Services
-
-If you're running on Mac OS X, please make sure that your Redis and Cassandra
-servers are up and running. Make sure that `cqlsh` is accessible in your path
-and you can connect to Cassandra by calling `cqlsh` in your terminal.
-
-[source,bash]
-----
-cd $SPINNAKER_HOME/build
-../spinnaker/dev/run_dev.sh [service]
-----
-
-If a service is provided, then just that one service will be started.
-If no service is provided, then all the services will be started
-(including Redis and Cassandra unless they are specified with a remote host).
-If a service is already running (even if not yet available) then it will
-not be restarted.
-
-*Note* `run_dev.sh` might get stuck waiting on a service to start. Hitting
-CTRL-C just stops the waiting on service, it doesn't terminate the services. If
-it seems stuck, stop and restart `run_dev.sh`.
-
-== Stop Spinnaker Services
-
-[source,bash]
-----
-cd $SPINNAKER_HOME/build
-../spinnaker/dev/stop_dev.sh [service]
-----
-
-If a service is provided, then just that one service will be stopped.
-If no service is provided then all the spinnaker services will be stopped.
-Cassandra and Redis are not affected by `stop_dev.sh`.
