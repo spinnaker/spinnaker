@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
@@ -698,6 +699,27 @@ public class Daemon {
   public static Supplier<Void> setAuthnMethodEnabled(String deploymentName, String methodName, boolean validate, boolean enabled) {
     return () -> {
       ResponseUnwrapper.get(getService().setAuthnMethodEnabled(deploymentName, methodName, validate, enabled));
+      return null;
+    };
+  }
+
+  public static Supplier<Canary> getCanary(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawCanary = ResponseUnwrapper.get(getService().getCanary(deploymentName, validate));
+      return getObjectMapper().convertValue(rawCanary, Canary.class);
+    };
+  }
+
+  public static Supplier<Void> setCanary(String deploymentName, boolean validate, Canary canary) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setCanary(deploymentName, validate, canary));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setCanaryEnabled(String deploymentName, boolean validate, boolean enabled) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setCanaryEnabled(deploymentName, validate, enabled));
       return null;
     };
   }

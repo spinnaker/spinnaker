@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Authn;
@@ -264,6 +265,11 @@ public class NodeFilter implements Cloneable {
   public NodeFilter withAnyBaseImage() {
     matchers.add(Node.thisNodeAcceptor(BakeryDefaults.class));
     matchers.add(Node.thisNodeAcceptor(BaseImage.class));
+    return this;
+  }
+
+  public NodeFilter setCanary() {
+    matchers.add(Node.thisNodeAcceptor(Canary.class));
     return this;
   }
 

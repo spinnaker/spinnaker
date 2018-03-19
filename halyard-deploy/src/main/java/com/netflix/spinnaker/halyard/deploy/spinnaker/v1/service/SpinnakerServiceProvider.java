@@ -74,7 +74,10 @@ abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
   }
 
   public List<SpinnakerService> getServices() {
-    return getFieldsOfType(SpinnakerService.class);
+    return getFieldsOfType(SpinnakerService.class)
+        .stream()
+        .filter(s -> s != null)
+        .collect(Collectors.toList());
   }
 
   SpinnakerService getSpinnakerService(SpinnakerService.Type type) {

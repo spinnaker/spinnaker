@@ -63,6 +63,9 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
   @Autowired
   LocalGitIgorService igorService;
 
+  @Autowired(required = false)
+  LocalGitKayentaService kayentaService;
+
   @Autowired
   LocalGitOrcaService orcaService;
 
@@ -110,7 +113,7 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
   public List<LocalGitService> getLocalGitServices(List<SpinnakerService.Type> serviceTypes) {
     return getFieldsOfType(LocalGitService.class)
         .stream()
-        .filter(s -> serviceTypes.contains(s.getService().getType()))
+        .filter(s -> s != null && serviceTypes.contains(s.getService().getType()))
         .collect(Collectors.toList());
   }
 }

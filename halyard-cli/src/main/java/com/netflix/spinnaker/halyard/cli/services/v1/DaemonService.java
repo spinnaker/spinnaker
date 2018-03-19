@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactProvider;
@@ -420,6 +421,23 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> setMetricStoreEnabled(
       @Path("deploymentName") String deploymentName,
       @Path("metricStoreType") String metricStoreType,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
+  @GET("/v1/config/deployments/{deploymentName}/canary/")
+  DaemonTask<Halconfig, Canary> getCanary(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/canary/")
+  DaemonTask<Halconfig, Void> setCanary(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body Canary canary);
+
+  @PUT("/v1/config/deployments/{deploymentName}/canary/enabled/")
+  DaemonTask<Halconfig, Void> setCanaryEnabled(
+      @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body boolean enabled);
 

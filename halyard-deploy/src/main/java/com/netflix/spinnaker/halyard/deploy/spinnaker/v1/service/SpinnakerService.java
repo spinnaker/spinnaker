@@ -138,6 +138,7 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     FRONT50("spin-front50", "front50"),
     GATE("spin-gate", "gate"),
     IGOR("spin-igor", "igor"),
+    KAYENTA("spin-kayenta", "kayenta"),
     ORCA("spin-orca", "orca"),
     ORCA_BOOTSTRAP("spin-orca-bootstrap", "orca-bootstrap"),
     REDIS("spin-redis", "redis"),

@@ -67,6 +67,7 @@ public class BillOfMaterials {
     Artifact front50;
     Artifact gate;
     Artifact igor;
+    Artifact kayenta;
     Artifact orca;
     Artifact rosco;
     @JsonProperty("monitoring-third-party")

@@ -48,6 +48,7 @@ public class SpinnakerRuntimeSettings {
     ServiceSettings front50;
     ServiceSettings gate;
     ServiceSettings igor;
+    ServiceSettings kayenta;
     ServiceSettings orca;
     ServiceSettings orcaBootstrap;
     ServiceSettings rosco;

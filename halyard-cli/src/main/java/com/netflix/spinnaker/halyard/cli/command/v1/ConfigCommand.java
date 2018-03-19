@@ -20,6 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.*;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.artifacts.ArtifactProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.CanaryCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.CiCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.PubsubCommand;
@@ -51,6 +52,7 @@ public class ConfigCommand extends AbstractConfigCommand {
 
   ConfigCommand() {
     registerSubcommand(new ArtifactProviderCommand());
+    registerSubcommand(new CanaryCommand());
     registerSubcommand(new DeploymentEnvironmentCommand());
     registerSubcommand(new EditConfigCommand());
     registerSubcommand(new FeaturesCommand());

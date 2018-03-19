@@ -30,6 +30,7 @@ public enum SpinnakerArtifact {
   FRONT50("front50", true),
   GATE("gate", true),
   IGOR("igor", true),
+  KAYENTA("kayenta", true),
   ORCA("orca", true),
   ROSCO("rosco", true),
   SPINNAKER("spinnaker", true),

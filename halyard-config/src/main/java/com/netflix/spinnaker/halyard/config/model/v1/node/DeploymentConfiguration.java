@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
@@ -95,6 +96,8 @@ public class DeploymentConfiguration extends Node {
   Artifacts artifacts = new Artifacts();
 
   Pubsubs pubsub = new Pubsubs();
+
+  Canary canary = new Canary();
 
   @Override
   public String getNodeName() {
