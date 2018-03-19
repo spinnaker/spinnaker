@@ -31,6 +31,10 @@ igor:
   enabled: true
   baseUrl: ${services.igor.baseUrl:http://localhost:8088}
 
+kayenta:
+  enabled: ${services.kayenta.enabled:false}
+  baseUrl: ${services.kayenta.baseUrl:http://localhost:8090}
+
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
 
