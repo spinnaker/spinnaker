@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { MouseEvent } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import Select, { Option } from 'react-select';
 import { BindAll } from 'lodash-decorators';
@@ -13,10 +14,10 @@ import { SubmitButton } from 'core/modal/buttons/SubmitButton';
 import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config/settings';
 import { IPipelineTemplateConfig, IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
+import { Spinner } from 'core/widgets/spinners/Spinner'
 
 import { TemplateDescription } from './TemplateDescription';
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
-import { Spinner } from 'core/widgets/spinners/Spinner'
 
 import './createPipelineModal.less';
 
@@ -182,7 +183,8 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     });
   }
 
-  public close(): void {
+  public close(evt?: MouseEvent<any>): void {
+    evt && evt.stopPropagation();
     this.setState(this.getDefaultState());
     this.props.showCallback(false);
   }
