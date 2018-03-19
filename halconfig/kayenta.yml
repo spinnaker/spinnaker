@@ -1,1 +1,8 @@
 # halconfig
+
+server:
+  port: ${services.kayenta.port:8090}
+  address: ${services.kayenta.host:localhost}
+
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
