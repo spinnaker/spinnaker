@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { BindAll } from 'lodash-decorators';
 
 import { CollapsibleSection, ReactInjector, Tooltip } from '@spinnaker/core';
 
@@ -12,6 +13,7 @@ export interface IScheduledActionsDetailsSectionState {
   scheduledActionsDisabled: boolean;
 }
 
+@BindAll()
 export class ScheduledActionsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, IScheduledActionsDetailsSectionState> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
