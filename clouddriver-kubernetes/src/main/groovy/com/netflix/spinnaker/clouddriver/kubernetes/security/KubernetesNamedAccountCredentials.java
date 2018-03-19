@@ -419,6 +419,10 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
         configureImagePullSecrets = true;
       }
 
+      if (serviceAccount == null) {
+        serviceAccount = false;
+      }
+
       if (credentials == null) {
         credentials = buildCredentials();
       }
