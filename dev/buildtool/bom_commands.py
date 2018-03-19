@@ -350,7 +350,7 @@ class PublishBomCommand(RepositoryCommandProcessor):
     self.__publish_configs(bom_path)
 
     if options.bom_alias:
-      alias = os.path.splitext(options.bom_alias)[0]
+      alias = options.bom_alias
       logging.info('Publishing bom alias %s = %s',
                    alias, os.path.basename(bom_path))
       with open(bom_path, 'r') as stream:
