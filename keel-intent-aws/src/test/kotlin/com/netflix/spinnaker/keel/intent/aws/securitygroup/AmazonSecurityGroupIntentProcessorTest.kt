@@ -20,6 +20,7 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.hamkrest.shouldEqual
+import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
@@ -28,11 +29,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
-import com.netflix.spinnaker.keel.intent.securitygroup.ReferenceSecurityGroupRule
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupConverter
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupIntent
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupIntentProcessor
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
@@ -61,11 +58,12 @@ object AmazonSecurityGroupIntentProcessorTest {
       )
     )
   }
+  val intentRepository = mock<IntentRepository>()
   val objectMapper = ObjectMapper()
-  val converter = AmazonSecurityGroupConverter(clouddriverCache, objectMapper) as SecurityGroupConverter<SecurityGroupSpec>
+  val converter = AmazonSecurityGroupConverter(clouddriverCache, objectMapper)
   val loader = AmazonSecurityGroupLoader(clouddriverService, clouddriverCache)
 
-  val subject = SecurityGroupIntentProcessor(traceRepository, objectMapper, listOf(converter), listOf(loader))
+  val subject = AmazonSecurityGroupIntentProcessor(traceRepository, intentRepository, objectMapper, converter, loader)
 
   @AfterEach
   fun cleanup() {
@@ -75,7 +73,7 @@ object AmazonSecurityGroupIntentProcessorTest {
   @Test
   fun `should support SecurityGroupIntents`() {
     subject.supports(ApplicationIntent(mock())) shouldMatch equalTo(false)
-    subject.supports(SecurityGroupIntent(mock())) shouldMatch equalTo(true)
+    subject.supports(AmazonSecurityGroupIntent(mock())) shouldMatch equalTo(true)
   }
 
   @Test
@@ -91,14 +89,13 @@ object AmazonSecurityGroupIntentProcessorTest {
         region = "us-west-2"
       )
 
-    val intent = SecurityGroupIntent(AmazonSecurityGroupSpec(
+    val intent = AmazonSecurityGroupIntent(AmazonSecurityGroupRootSpec(
       application = "keel",
       name = "keel",
-      cloudProvider = "aws",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = emptySet(),
-      outboundRules = emptySet(),
+      inboundRules = mutableSetOf(),
+      outboundRules = mutableSetOf(),
       vpcName = "vpcName",
       description = "app sg"
     ))
@@ -134,14 +131,13 @@ object AmazonSecurityGroupIntentProcessorTest {
         region = "us-west-2"
       )
 
-    val intent = SecurityGroupIntent(AmazonSecurityGroupSpec(
+    val intent = AmazonSecurityGroupIntent(AmazonSecurityGroupRootSpec(
       application = "keel",
       name = "keel",
-      cloudProvider = "aws",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = emptySet(),
-      outboundRules = emptySet(),
+      inboundRules = mutableSetOf(),
+      outboundRules = mutableSetOf(),
       vpcName = "vpcName",
       description = "app sg"
     ))
@@ -176,14 +172,13 @@ object AmazonSecurityGroupIntentProcessorTest {
         region = "us-west-2"
       )
 
-    val intent = SecurityGroupIntent(AmazonSecurityGroupSpec(
+    val intent = AmazonSecurityGroupIntent(AmazonSecurityGroupRootSpec(
       application = "keel",
       name = "keel",
-      cloudProvider = "aws",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = setOf(ReferenceSecurityGroupRule(sortedSetOf(), "tcp", "gate")),
-      outboundRules = emptySet(),
+      inboundRules = mutableSetOf(ReferenceSecurityGroupRule(sortedSetOf(), "tcp", "gate")),
+      outboundRules = mutableSetOf(),
       vpcName = "vpcName",
       description = "app sg"
     ))

@@ -30,23 +30,21 @@ import com.netflix.spinnaker.keel.IntentStatus.ACTIVE
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 
 object DryRunIntentLauncherTest {
 
   private val processor = mock<IntentProcessor<TestIntent>>()
+  private val applicationEventPublisher = mock<ApplicationEventPublisher>()
 
   val registry = mock<Registry>().apply {
     whenever(createId(any<String>(), any<Iterable<Tag>>())) doAnswer { mock<Id>() }
     whenever(counter(any<Id>())) doAnswer { mock<Counter>() }
   }
 
-  val subject = DryRunIntentLauncher(listOf(processor), registry)
+  val subject = DryRunIntentLauncher(listOf(processor), registry, applicationEventPublisher)
 
   @Test
   fun `should output human friendly summary of operations`() {

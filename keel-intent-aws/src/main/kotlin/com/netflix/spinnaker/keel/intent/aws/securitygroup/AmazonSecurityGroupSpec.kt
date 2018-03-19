@@ -16,26 +16,11 @@
 package com.netflix.spinnaker.keel.intent.aws.securitygroup
 
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.netflix.spinnaker.keel.intent.securitygroup.NamedReferenceSupport
-import com.netflix.spinnaker.keel.intent.securitygroup.PortRangeSupport
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupPortRange
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupRule
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.NamedReferenceSupport
+import com.netflix.spinnaker.keel.intent.PortRangeSupport
+import com.netflix.spinnaker.keel.intent.SecurityGroupPortRange
+import com.netflix.spinnaker.keel.intent.SecurityGroupRule
 import java.util.*
-
-@JsonTypeName("aws")
-data class AmazonSecurityGroupSpec(
-  override val application: String,
-  override val name: String,
-  override val cloudProvider: String,
-  override val accountName: String,
-  override val region: String,
-  override val inboundRules: Set<SecurityGroupRule>,
-  val outboundRules: Set<SecurityGroupRule>,
-  // We don't care to support EC2 Classic, but for some reason clouddriver returns nulls (and isn't "default" vpcs)
-  val vpcName: String?,
-  val description: String
-) : SecurityGroupSpec()
 
 @JsonTypeName("crossAccountRef")
 data class CrossAccountReferenceSecurityGroupRule(

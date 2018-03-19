@@ -33,7 +33,7 @@ import com.netflix.spinnaker.keel.policy.PolicySpec
 class TestIntent
 @JsonCreator constructor(
   spec: TestIntentSpec,
-  labels: Map<String, String> = mapOf(),
+  labels: MutableMap<String, String> = mutableMapOf(),
   attributes: List<Attribute<Any>> = listOf(),
   policies: List<Policy<PolicySpec>> = listOf()
 ) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, labels, attributes, policies) {

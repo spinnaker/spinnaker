@@ -33,7 +33,7 @@ abstract class Attribute<out T>
 
 /**
  * Defines the namespace-specific priority of an intent.
-*/
+ */
 @JsonTypeName("Priority")
 class PriorityAttribute(value: IntentPriority) : Attribute<IntentPriority>("Priority", value)
 

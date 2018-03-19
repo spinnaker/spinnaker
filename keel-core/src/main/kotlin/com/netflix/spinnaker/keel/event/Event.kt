@@ -29,6 +29,7 @@ enum class EventKind(val kind: String) {
   AFTER_INTENT_UPSERT("afterIntentUpsert"),
   BEFORE_INTENT_DELETE("beforeIntentDelete"),
   AFTER_INTENT_DELETE("afterIntentDelete"),
+  BEFORE_INTENT_DRYRUN("beforeIntentDryRun"),
   BEFORE_INTENT_CONVERGE("beforeIntentConverge"),
   INTENT_CONVERGE_TIMEOUT("intentConvergeTimeout"),
   INTENT_CONVERGE_NOT_FOUND("intentConvergeNotFound"),
@@ -87,6 +88,12 @@ data class AfterIntentDeleteEvent(
   override val intent: Intent<IntentSpec>
 ) : IntentAwareEvent() {
   override val kind = EventKind.AFTER_INTENT_DELETE
+}
+
+data class BeforeIntentDryRunEvent(
+  override val intent: Intent<IntentSpec>
+) : IntentAwareEvent() {
+  override val kind = EventKind.BEFORE_INTENT_DRYRUN
 }
 
 data class BeforeIntentConvergeEvent(

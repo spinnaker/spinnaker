@@ -31,5 +31,8 @@ interface IntentRepository {
    */
   fun deleteIntent(id: String, preserveHistory: Boolean = true)
 
-//  fun findByLabels(labels: Labels): List<Intent<IntentSpec>>
+  fun findByLabels(labels: Map<String, String>): List<Intent<IntentSpec>> =
+    getIntents().filter { intent ->
+      labels.all { intent.labels[it.key] == it.value  }
+    }
 }

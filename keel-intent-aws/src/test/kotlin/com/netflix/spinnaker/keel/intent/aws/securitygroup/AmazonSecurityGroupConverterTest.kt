@@ -24,9 +24,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import com.netflix.spinnaker.keel.intent.securitygroup.ReferenceSecurityGroupRule
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupPortRange
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intent.SecurityGroupPortRange
+import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
@@ -50,14 +50,13 @@ object AmazonSecurityGroupConverterTest {
       region = "us-west-2"
     )
 
-    val spec = AmazonSecurityGroupSpec(
+    val spec = AmazonSecurityGroupRootSpec(
       application = "keel",
       name = "keel",
-      cloudProvider = "aws",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = emptySet(),
-      outboundRules = emptySet(),
+      inboundRules = mutableSetOf(),
+      outboundRules = mutableSetOf(),
       vpcName = "vpcName",
       description = "application sg"
     )
@@ -97,14 +96,13 @@ object AmazonSecurityGroupConverterTest {
 
     val result = subject.convertFromState(state)
 
-    result shouldMatch equalTo<SecurityGroupSpec>(AmazonSecurityGroupSpec(
+    result shouldMatch equalTo<SecurityGroupSpec>(AmazonSecurityGroupRootSpec(
       application = "keel",
       name = "keel",
-      cloudProvider = "aws",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = emptySet(),
-      outboundRules = emptySet(),
+      inboundRules = mutableSetOf(),
+      outboundRules = mutableSetOf(),
       vpcName = "vpcName",
       description = "application sg"
     ))
@@ -113,20 +111,19 @@ object AmazonSecurityGroupConverterTest {
   @Test
   fun `should convert spec to orchestration job`() {
     val changeSummary = ChangeSummary("foo")
-    val spec = AmazonSecurityGroupSpec(
+    val spec = AmazonSecurityGroupRootSpec(
       application = "keel",
       name = "keel",
-      cloudProvider = "aws",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = setOf(
+      inboundRules = mutableSetOf(
         ReferenceSecurityGroupRule(
           sortedSetOf(SecurityGroupPortRange(80, 80), SecurityGroupPortRange(8080, 8081)),
           "tcp",
           "other-group"
         )
       ),
-      outboundRules = emptySet(),
+      outboundRules = mutableSetOf(),
       vpcName = "vpcName",
       description = "app sg"
     )

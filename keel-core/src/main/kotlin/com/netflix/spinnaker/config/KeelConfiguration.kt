@@ -15,12 +15,7 @@
  */
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.keel.ApplicationIntentGuard
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentActivityRepository
-import com.netflix.spinnaker.keel.IntentRepository
-import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.KindIntentGuard
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
@@ -31,6 +26,7 @@ import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSub
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -64,7 +60,8 @@ open class KeelConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(IntentRepository::class)
-  open fun memoryIntentRepository(): IntentRepository = MemoryIntentRepository()
+  open fun memoryIntentRepository(applicationEventPublisher: ApplicationEventPublisher): IntentRepository =
+    MemoryIntentRepository(applicationEventPublisher)
 
   @Bean
   @ConditionalOnMissingBean(IntentActivityRepository::class)

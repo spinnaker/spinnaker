@@ -19,9 +19,14 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
+import com.netflix.spinnaker.keel.event.BeforeIntentUpsertEvent
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 
-class MemoryIntentRepository : IntentRepository {
+class MemoryIntentRepository(
+  private val applicationEventPublisher: ApplicationEventPublisher
+) : IntentRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -32,7 +37,9 @@ class MemoryIntentRepository : IntentRepository {
   }
 
   override fun upsertIntent(intent: Intent<IntentSpec>): Intent<IntentSpec> {
+    applicationEventPublisher.publishEvent(BeforeIntentUpsertEvent(intent))
     intents.put(intent.id(), intent)
+    applicationEventPublisher.publishEvent(AfterIntentUpsertEvent(intent))
     return intent
   }
 

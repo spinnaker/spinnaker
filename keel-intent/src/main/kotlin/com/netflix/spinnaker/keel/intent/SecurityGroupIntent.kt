@@ -13,31 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.securitygroup
+package com.netflix.spinnaker.keel.intent
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.intent.SCHEMA_PROPERTY
 import java.util.*
-
-private const val KIND = "SecurityGroup"
-private const val CURRENT_SCHEMA = "0"
-
-@JsonTypeName(KIND)
-@JsonVersionedModel(currentVersion = CURRENT_SCHEMA, propertyName = SCHEMA_PROPERTY)
-class SecurityGroupIntent
-@JsonCreator constructor(spec: SecurityGroupSpec) : Intent<SecurityGroupSpec>(
-  kind = KIND,
-  schema = CURRENT_SCHEMA,
-  spec = spec
-) {
-  @JsonIgnore override val defaultId = "$KIND:${spec.cloudProvider}:${spec.accountName}:${spec.region}:${spec.name}"
-}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 abstract class SecurityGroupSpec : ApplicationAwareIntentSpec {
@@ -45,7 +26,7 @@ abstract class SecurityGroupSpec : ApplicationAwareIntentSpec {
   abstract val cloudProvider: String
   abstract val accountName: String
   abstract val region: String
-  abstract val inboundRules: Set<SecurityGroupRule>
+  abstract val inboundRules: MutableSet<SecurityGroupRule>
 }
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")

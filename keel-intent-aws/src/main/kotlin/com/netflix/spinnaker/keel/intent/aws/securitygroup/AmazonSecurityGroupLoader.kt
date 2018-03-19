@@ -18,10 +18,7 @@ package com.netflix.spinnaker.keel.intent.aws.securitygroup
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 import com.netflix.spinnaker.keel.intent.notFound
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupLoader
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupSpec
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -29,16 +26,9 @@ import retrofit.RetrofitError
 class AmazonSecurityGroupLoader(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache
-) : SecurityGroupLoader {
+) {
 
-  override fun <S : SecurityGroupSpec> supports(spec: S) = spec is AmazonSecurityGroupSpec
-
-  override fun <S : SecurityGroupSpec> load(spec: S): SecurityGroup? {
-    if (spec !is AmazonSecurityGroupSpec) {
-      // TODO rz
-      throw DeclarativeException("this should never happen")
-    }
-
+  fun load(spec: AmazonSecurityGroupSpec): SecurityGroup? {
     try {
       return if (spec.vpcName == null) {
         cloudDriverService.getSecurityGroup(spec.accountName, "aws", spec.name, spec.region)
@@ -64,12 +54,7 @@ class AmazonSecurityGroupLoader(
     }
   }
 
-  override fun <S : SecurityGroupSpec> upstreamGroup(spec: S, name: String): SecurityGroup? {
-    if (spec !is AmazonSecurityGroupSpec) {
-      // TODO rz
-      throw DeclarativeException("this should never happen")
-    }
-
+  fun upstreamGroup(spec: AmazonSecurityGroupSpec, name: String): SecurityGroup? {
     try {
       return cloudDriverService.getSecurityGroup(
         spec.accountName,

@@ -17,12 +17,10 @@ package com.netflix.spinnaker.keel.dryrun
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentLauncher
-import com.netflix.spinnaker.keel.IntentProcessor
-import com.netflix.spinnaker.keel.IntentSpec
-import com.netflix.spinnaker.keel.LaunchedIntentResult
+import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.event.BeforeIntentDryRunEvent
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 /**
@@ -32,13 +30,15 @@ import org.springframework.stereotype.Component
 class DryRunIntentLauncher
 @Autowired constructor(
   private val intentProcessors: List<IntentProcessor<*>>,
-  private val registry: Registry
+  private val registry: Registry,
+  private val applicationEventPublisher: ApplicationEventPublisher
 ): IntentLauncher<DryRunLaunchedIntentResult> {
 
   private val invocationsId = registry.createId("intent.invocations", listOf(BasicTag("launcher", "dryRun")))
 
   override fun launch(intent: Intent<IntentSpec>): DryRunLaunchedIntentResult {
     registry.counter(invocationsId).increment()
+    applicationEventPublisher.publishEvent(BeforeIntentDryRunEvent(intent))
     return intentProcessor(intentProcessors, intent).converge(intent).let {
       DryRunLaunchedIntentResult(summary = it.changeSummary)
     }

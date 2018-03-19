@@ -23,11 +23,9 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.keel.intent.securitygroup.ReferenceSecurityGroupRule
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupIntent
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupPortRange
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupRule
-import com.netflix.spinnaker.keel.intent.securitygroup.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
+import com.netflix.spinnaker.keel.intent.SecurityGroupPortRange
+import com.netflix.spinnaker.keel.intent.SecurityGroupRule
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.junit.jupiter.api.Test
 
@@ -37,34 +35,33 @@ object AmazonSecurityGroupIntentTest {
     ObjectMapper(),
     KeelProperties(),
     listOf(
-      ClassSubtypeLocator(SecurityGroupSpec::class.java, listOf("com.netflix.spinnaker.keel.intent")),
+      ClassSubtypeLocator(AmazonSecurityGroupSpec::class.java, listOf("com.netflix.spinnaker.keel.intent")),
       ClassSubtypeLocator(SecurityGroupRule::class.java, listOf("com.netflix.spinnaker.keel.intent"))
     )
   )
 
   @Test
-  fun `can serialize to expected JSON format`() {
-    val serialized = mapper.convertValue<Map<String, Any>>(sg)
-    val deserialized = mapper.readValue<Map<String, Any>>(json)
+  fun `can serialize root intent to expected JSON format`() {
+    val serialized = mapper.convertValue<Map<String, Any>>(rootSg)
+    val deserialized = mapper.readValue<Map<String, Any>>(rootJson)
 
     serialized shouldMatch equalTo(deserialized)
   }
 
   @Test
-  fun `can deserialize from expected JSON format`() {
-    mapper.readValue<SecurityGroupIntent>(json).apply {
-      spec shouldEqual sg.spec
+  fun `can deserialize root intent from expected JSON format`() {
+    mapper.readValue<AmazonSecurityGroupIntent>(rootJson).apply {
+      spec shouldEqual rootSg.spec
     }
   }
 
-  val sg = SecurityGroupIntent(
-    AmazonSecurityGroupSpec(
+  val rootSg = AmazonSecurityGroupIntent(
+    AmazonSecurityGroupRootSpec(
       application = "keel",
       name = "keel",
-      cloudProvider = "aws",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = setOf(
+      inboundRules = mutableSetOf(
         ReferenceSecurityGroupRule(
           name = "keel",
           protocol = "tcp",
@@ -74,20 +71,19 @@ object AmazonSecurityGroupIntentTest {
           )
         )
       ),
-      outboundRules = setOf(),
+      outboundRules = mutableSetOf(),
       vpcName = "myVpc",
       description = "Application security group for keel"
     )
   )
 
-  val json = """
+  val rootJson = """
 {
   "kind": "SecurityGroup",
   "spec": {
     "kind": "aws",
     "application": "keel",
     "name": "keel",
-    "cloudProvider": "aws",
     "accountName": "test",
     "region": "us-west-2",
     "inboundRules": [
@@ -116,6 +112,84 @@ object AmazonSecurityGroupIntentTest {
   "attributes": [],
   "policies": [],
   "id": "SecurityGroup:aws:test:us-west-2:keel",
+  "schema": "0"
+}
+"""
+
+  @Test
+  fun `can serialize rule intent to expected JSON format`() {
+    val serialized = mapper.convertValue<Map<String, Any>>(ruleSg)
+    val deserialized = mapper.readValue<Map<String, Any>>(ruleJson)
+
+    serialized shouldMatch equalTo(deserialized)
+  }
+
+  @Test
+  fun `can deserialize rule intent from expected JSON format`() {
+    mapper.readValue<AmazonSecurityGroupIntent>(ruleJson).apply {
+      spec shouldEqual ruleSg.spec
+    }
+  }
+
+  val ruleSg = AmazonSecurityGroupIntent(
+    SelfReferencingAmazonSecurityGroupRuleSpec(
+      application = "keel",
+      name = "keel",
+      label = "covfefe",
+      accountName = "test",
+      region = "us-west-2",
+      inboundRules = mutableSetOf(
+        ReferenceSecurityGroupRule(
+          name = "keel",
+          protocol = "tcp",
+          portRanges = sortedSetOf(
+            SecurityGroupPortRange(6379, 6379),
+            SecurityGroupPortRange(7001, 7002)
+          )
+        )
+      ),
+      outboundRules = mutableSetOf(),
+      vpcName = "myVpc",
+      description = "One of them rules"
+    )
+  )
+
+  val ruleJson = """
+{
+  "kind": "SecurityGroup",
+  "spec": {
+    "kind": "aws.self",
+    "application": "keel",
+    "name": "keel",
+    "label": "covfefe",
+    "accountName": "test",
+    "region": "us-west-2",
+    "inboundRules": [
+      {
+        "kind": "ref",
+        "name": "keel",
+        "protocol": "tcp",
+        "portRanges": [
+          {
+            "startPort": 6379,
+            "endPort": 6379
+          },
+          {
+            "startPort": 7001,
+            "endPort": 7002
+          }
+        ]
+      }
+    ],
+    "outboundRules": [],
+    "vpcName": "myVpc",
+    "description": "One of them rules"
+  },
+  "status": "ACTIVE",
+  "labels": {},
+  "attributes": [],
+  "policies": [],
+  "id": "SecurityGroup:aws:test:us-west-2:keel:self:covfefe",
   "schema": "0"
 }
 """

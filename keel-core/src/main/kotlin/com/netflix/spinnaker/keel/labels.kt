@@ -13,14 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.securitygroup
+package com.netflix.spinnaker.keel
 
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-
-interface SecurityGroupLoader {
-  fun <S : SecurityGroupSpec> supports(spec: S): Boolean
-
-  fun <S : SecurityGroupSpec> load(spec: S): SecurityGroup?
-
-  fun <S : SecurityGroupSpec> upstreamGroup(spec: S, name: String): SecurityGroup?
-}
+const val PARENT_INTENT_LABEL = "keel.parentIntent"
