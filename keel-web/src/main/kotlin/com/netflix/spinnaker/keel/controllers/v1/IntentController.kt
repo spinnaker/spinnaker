@@ -19,7 +19,7 @@ import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
-import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
+import com.netflix.spinnaker.keel.scheduler.ScheduleService
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.LoggerFactory
@@ -33,7 +33,7 @@ import javax.ws.rs.QueryParam
 class IntentController
 @Autowired constructor(
   private val dryRunIntentLauncher: DryRunIntentLauncher,
-  private val orcaIntentLauncher: OrcaIntentLauncher,
+  private val scheduleService: ScheduleService,
   private val intentRepository: IntentRepository,
   private val intentActivityRepository: IntentActivityRepository,
   private val traceRepository: TraceRepository,
@@ -71,8 +71,8 @@ class IntentController
       intentRepository.upsertIntent(intent)
 
       if (keelProperties.immediatelyRunIntents) {
-        log.info("Immediately launching intent {}", StructuredArguments.value("intent", intent.id))
-        orcaIntentLauncher.launch(intent)
+        log.info("Immediately scheduling intent {}", StructuredArguments.value("intent", intent.id))
+        scheduleService.converge(intent)
       }
 
       intentList.add(UpsertIntentResponse(intent.id, intent.status))

@@ -29,7 +29,7 @@ import javax.annotation.PostConstruct
  */
 @Component
 @ConditionalOnExpression("\${scheduler.enabled:true}")
-class QueueBackedSchedulerAgent(
+class SchedulerAgent(
   private val queue: Queue,
   @Value("\${scheduler.retry.onStart.ms:30000}") private val ensureSchedulerFrequency: Long
 ) {

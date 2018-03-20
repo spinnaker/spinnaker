@@ -17,30 +17,25 @@ package com.netflix.spinnaker.keel.scheduler.handler
 
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.config.ScheduleConvergeHandlerProperties
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.filter.Filter
-import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
 import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
+import com.netflix.spinnaker.keel.scheduler.ScheduleService
 import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class ScheduleConvergeHandler
 @Autowired constructor(
   override val queue: Queue,
-  private val properties: ScheduleConvergeHandlerProperties,
+  private val scheduleService: ScheduleService,
   private val intentRepository: IntentRepository,
   private val filters: List<Filter>,
-  private val registry: Registry,
-  private val clock: Clock,
-  private val applicationEventPublisher: ApplicationEventPublisher
+  private val registry: Registry
 ) : MessageHandler<ScheduleConvergence> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -56,11 +51,7 @@ class ScheduleConvergeHandler
         .filter { intent -> filters.all { it.filter(intent) } }
         .also { log.info("Scheduling ${it.size} active intents after filters") }
         .forEach {
-          queue.push(ConvergeIntent(
-            it,
-            clock.instant().plusMillis(properties.stalenessTtl).toEpochMilli(),
-            clock.instant().plusMillis(properties.timeoutTtl).toEpochMilli()
-          ))
+          scheduleService.converge(it)
         }
       registry.counter(invocations.withTag("result", "success")).increment()
     } catch (e: Exception) {
