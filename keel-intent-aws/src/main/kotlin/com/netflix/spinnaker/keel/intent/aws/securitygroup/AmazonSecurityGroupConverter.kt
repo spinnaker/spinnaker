@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.intent.aws.securitygroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
@@ -102,32 +101,55 @@ class AmazonSecurityGroupConverter(
           "regions" to listOf(spec.region),
           "vpcId" to spec.vpcName,
           "description" to spec.description,
-          "securityGroupIngress" to spec.inboundRules.flatMap {
-            if (it is PortRangeSupport) {
-              changeSummary.addMessage("With ingress rules: $it")
-              return@flatMap it.portRanges.map { ports ->
-                mutableMapOf<String, Any?>(
-                  "type" to it.protocol,
-                  "startPort" to ports.startPort,
-                  "endPort" to ports.endPort,
-                  "name" to if (it is NamedReferenceSupport) it.name else spec.name
-                ).let { m ->
-                  if (it is CrossAccountReferenceSecurityGroupRule) {
-                    changeSummary.addMessage("Adding cross account reference support account ${it.account}")
-                    m["accountName"] = it.account
-                    m["crossAccountEnabled"] = true
-                    m["vpcId"] = clouddriverCache.networkBy(it.vpcName, spec.accountName, spec.region)
-                  }
-                  m
-                }
-              }
+          "securityGroupIngress" to spec.inboundRules.filter { it !is CidrSecurityGroupRule }.flatMap {
+            return@flatMap when (it) {
+              is PortRangeSupport -> convertPortRangeRuleToJob(changeSummary, spec, it)
+              else -> throw NotImplementedError("${it.javaClass.simpleName} security group rule has not been implemented yet")
             }
-            throw NotImplementedError("Only 'ref' and 'crossAccountRef' security group rules are implemented at the moment")
           },
-          "ipIngress" to listOf<String>(),
+          "ipIngress" to spec.inboundRules.filterIsInstance<CidrSecurityGroupRule>().flatMap {
+            convertCidrRuleToJob(changeSummary, it)
+          },
           "accountName" to spec.accountName
         )
       )
     )
   }
+
+  private fun convertPortRangeRuleToJob(changeSummary: ChangeSummary,
+                                        spec: AmazonSecurityGroupSpec,
+                                        rule: PortRangeSupport): JobRules {
+    changeSummary.addMessage("With ingress rules: $rule")
+    return rule.portRanges.map { ports ->
+      mutableMapOf<String, Any?>(
+        "type" to rule.protocol,
+        "startPort" to ports.startPort,
+        "endPort" to ports.endPort,
+        "name" to if (rule is NamedReferenceSupport) rule.name else spec.name
+      ).let { m ->
+        if (rule is CrossAccountReferenceSecurityGroupRule) {
+          changeSummary.addMessage("Adding cross account reference support account ${rule.account}")
+          m["accountName"] = rule.account
+          m["crossAccountEnabled"] = true
+          m["vpcId"] = clouddriverCache.networkBy(rule.vpcName, spec.accountName, spec.region)
+        }
+        m
+      }
+    }
+  }
+
+  private fun convertCidrRuleToJob(changeSummary: ChangeSummary,
+                                   rule: CidrSecurityGroupRule): JobRules {
+    changeSummary.addMessage("With CIDR rule: $rule")
+    return rule.portRanges.map { ports ->
+      mutableMapOf<String, Any?>(
+        "type" to rule.protocol,
+        "startPort" to ports.startPort,
+        "endPort" to ports.endPort,
+        "cidr" to rule.blockRange
+      )
+    }
+  }
 }
+
+typealias JobRules = List<MutableMap<String, Any?>>

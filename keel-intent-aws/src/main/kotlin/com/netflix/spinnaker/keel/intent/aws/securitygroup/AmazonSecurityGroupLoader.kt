@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.intent.aws.securitygroup
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 import com.netflix.spinnaker.keel.intent.notFound
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -55,6 +56,10 @@ class AmazonSecurityGroupLoader(
   }
 
   fun upstreamGroup(spec: AmazonSecurityGroupSpec, name: String): SecurityGroup? {
+    if (spec.vpcName == null) {
+      // TODO rz - This is the wrong place to do checks of this sort
+      throw DeclarativeException("Only vpc security groups are supported")
+    }
     try {
       return cloudDriverService.getSecurityGroup(
         spec.accountName,
@@ -62,7 +67,7 @@ class AmazonSecurityGroupLoader(
         name,
         spec.region,
         cloudDriverCache.networkBy(
-          spec.vpcName!!,
+          spec.vpcName,
           spec.accountName,
           spec.region
         ).id

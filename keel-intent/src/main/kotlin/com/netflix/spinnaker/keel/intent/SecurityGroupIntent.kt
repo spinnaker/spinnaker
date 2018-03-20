@@ -83,6 +83,7 @@ data class HttpSecurityGroupRule(
 
 @JsonTypeName("cidr")
 data class CidrSecurityGroupRule(
-  val protocol: String,
+  override val protocol: String,
+  override val portRanges: SortedSet<SecurityGroupPortRange>,
   val blockRange: String
-) : SecurityGroupRule()
+) : SecurityGroupRule(), PortRangeSupport
