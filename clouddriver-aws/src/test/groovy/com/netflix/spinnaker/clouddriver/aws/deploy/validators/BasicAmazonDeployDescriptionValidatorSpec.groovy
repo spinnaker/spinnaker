@@ -93,28 +93,35 @@ class BasicAmazonDeployDescriptionValidatorSpec extends Specification {
     1 * errors.rejectValue('credentials', _)
   }
 
-  void "invalid capacity fails validation"() {
+  @Unroll
+  void "min/max/desired = #min/#max/#desired should have #numExpectedErrors errors"() {
     setup:
     def description = new BasicAmazonDeployDescription(application: "foo", amiName: "foo", instanceType: "foo", credentials: amazonCredentials, availabilityZones: ["us-east-1": []])
-    description.capacity.min = 5
-    description.capacity.max = 3
-    description.capacity.desired = 4
+    description.capacity = [ min, max, desired ]
     def errors = Mock(Errors)
 
     when:
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue('capacity', _, ['5', '3', '4'], _)
+    numExpectedErrors * errors.rejectValue('capacity', _, _, _)
 
-    when:
-    description.capacity.min = 3
-    description.capacity.max = 5
-    description.capacity.desired = 7
-    validator.validate([], description, errors)
-
-    then:
-    1 * errors.rejectValue('capacity', _, ['3', '5', '7'], _)
+    where:
+    min  | max  | desired || numExpectedErrors
+    5    | 3    | 4       || 2  // min > max, desired < min
+    5    | 3    | null    || 1  // min > max, desired is irrelevant
+    3    | 5    | 7       || 1  // desired > max
+    null | 5    | 7       || 1  // desired > max, min is irrelevant
+    3    | 5    | 0       || 1  // desired < min
+    3    | null | 0       || 1  // desired < min, max is irrelevant
+    3    | 7    | 5       || 0
+    3    | 7    | 3       || 0
+    3    | 7    | 7       || 0
+    3    | 5    | null    || 0
+    3    | null | 7       || 0
+    null | 7    | 5       || 0
+    null | null | 7       || 0
+    null | null | null    || 0
   }
 
   void "unconfigured region fails validation"() {

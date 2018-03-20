@@ -110,14 +110,14 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
     Integer desired = description.capacity.desired
     if (min != null && max != null && min > max) {
       errors.rejectValue "capacity", "resizeAsgDescription.capacity.transposed",
-        [description.capacity.min, description.capacity.max] as String[],
-        "min size (${min}) is bigger than max size (${max})"
+        [min, max] as String[],
+        "min size (${min}) > max size (${max})"
     }
     if (desired != null) {
       if ((min != null && desired < min) || (max != null && desired > max)) {
         errors.rejectValue "capacity", "resizeAsgDescription.desired.capacity.not.in.range",
-          [description.capacity.min, description.capacity.max, description.capacity.desired] as String[],
-          "Desired capacity (${desired}) is not within min/max (${min}/${max}) range"
+          [min, max, desired] as String[],
+          "desired capacity (${desired}) is not within min/max (${min}/${max}) range"
       }
     }
   }
