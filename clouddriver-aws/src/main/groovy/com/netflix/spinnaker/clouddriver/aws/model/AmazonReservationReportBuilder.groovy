@@ -138,7 +138,17 @@ interface AmazonReservationReportBuilder {
    *
    * - normalizes all regional reservations to `fxlarge` instance types
    *   (fxlarge is equivalent to xlarge but kept separate to prevent confusion with normal xlarge instances)
-   * - attempts to cover all shortfalls with regional reservations (converting `xlarge` to the necessary instance types)
+   * - attempts to cover all shortfalls with a subset of regional reservations (converting `xlarge` to the necessary instance types)
+   *
+   * The subset of regional reservations used to cover is proportional to the shortfall.
+   *
+   * ie)
+   * us-west-2 r3 has a total shortfall of 2000 fxlarge
+   * us-west-2a r3.4xlarge has a shortfall of 200 fxlarge (50 r3.4xlarge)
+   * us-west-2a r3.4xlarge contributes 10% of the total shortfall (200 of 2000)
+   *
+   * us-west-2 r3 has a total of 1500 regional fxlarge reservations
+   * us-west-2a re.4xlarge would be covered with 150 regional reservations (10% of 1500)
    */
   @Slf4j
   class V3 implements AmazonReservationReportBuilder {
@@ -158,21 +168,40 @@ interface AmazonReservationReportBuilder {
       // add the aggregated regional reservations
       reservations.addAll(regionalReservations)
 
+      Map<String, List<OverallReservationDetail>> allShortfallsByInstanceFamily = reservations
+        .findAll { it.totalSurplus() < 0 }
+        .groupBy { "${it.region()}-${it.instanceFamily()}-${it.os.name}".toString() }
+
       // used to track the order in which regional reservations are used to cover shortfalls
       def allocationIndex = new AtomicInteger(0)
-
-      def shortfalls = reservations.findAll { it.totalSurplus() < 0 }
-      shortfalls.each { OverallReservationDetail shortfall ->
-        def regional = regionalReservations.find {
-          it.instanceFamily() == shortfall.instanceFamily() && shortfall.region == it.region && it.os == shortfall.os
+      allShortfallsByInstanceFamily.each { key, value ->
+        def regionalReservationForInstanceFamily = regionalReservations.find {
+          it.instanceFamily() == value[0].instanceFamily() && value[0].region == it.region && it.os == value[0].os
         }
 
-        if (!regional) {
-          // no regional reservation to cover shortfall from
+        if (!regionalReservationForInstanceFamily) {
+          // no regional reservations to cover shortfall from
           return
         }
 
-        coverShortfall(allocationIndex, regional, shortfall)
+        // total shortfall represented as fxlarge
+        def totalShortfallForInstanceFamily = Math.abs((int) value.sum { OverallReservationDetail detail ->
+          detail.totalSurplus() * support.getMultiplier(detail.instanceType)
+        })
+
+        // track original value as `regionalReservationForInstanceFamily.totalSurplus()` will change
+        // when shortfalls are covered
+        def totalRegionalReservationsForInstanceFamily = regionalReservationForInstanceFamily.totalSurplus()
+
+        value.each { OverallReservationDetail shortfall ->
+          coverShortfall(
+            allocationIndex,
+            regionalReservationForInstanceFamily,
+            totalRegionalReservationsForInstanceFamily,
+            shortfall,
+            totalShortfallForInstanceFamily
+          )
+        }
       }
 
       return new AmazonReservationReport(
@@ -186,7 +215,9 @@ interface AmazonReservationReportBuilder {
 
     private void coverShortfall(AtomicInteger allocationIndex,
                                 OverallReservationDetail regional,
-                                OverallReservationDetail shortfall) {
+                                int totalRegionalSurplusForFamily,
+                                OverallReservationDetail shortfall,
+                                int totalShortfallForFamily) {
       def multiplier = support.getMultiplier(shortfall.instanceType)
       if (!multiplier) {
         // instance type is unsupported (some unknown variant smaller than an xlarge)
@@ -197,7 +228,10 @@ interface AmazonReservationReportBuilder {
       // Math.ceil() protects against fractional instances when going from xlarge -> large (0.5 multiplier)
       int sourceInstancesNeeded = Math.ceil(Math.abs(shortfall.totalSurplus() * multiplier))
 
-      if (regional.totalSurplus() >= sourceInstancesNeeded) {
+      def percentageOfShortfall = Math.abs((double) sourceInstancesNeeded / (double) totalShortfallForFamily)
+      def portionOfAvailableSurplus = (int) Math.floor(totalRegionalSurplusForFamily * percentageOfShortfall)
+
+      if (portionOfAvailableSurplus >= sourceInstancesNeeded) {
         // we have more instances than necessary to cover the shortfall
         int targetInstanceQuantity = sourceInstancesNeeded / multiplier
 
@@ -211,7 +245,12 @@ interface AmazonReservationReportBuilder {
           target: shortfall.id(),
           targetInstanceQuantity: targetInstanceQuantity,
           targetInstanceType: shortfall.instanceType,
-          index: allocationIndex.incrementAndGet()
+          index: allocationIndex.incrementAndGet(),
+
+          totalRegionalSurplusForFamily : totalRegionalSurplusForFamily,
+          totalShortfallForFamily: totalShortfallForFamily,
+          percentageOfShortfall: percentageOfShortfall,
+          portionOfAvailableSurplus: portionOfAvailableSurplus
         )
 
         regional.regionalReservedAllocations << allocation
@@ -219,7 +258,7 @@ interface AmazonReservationReportBuilder {
       } else {
         // determine how much shortfall can be covered as surplus not large enough to cover everything
         // (may not be entirety of surplus depending on multiplier)
-        int targetInstanceQuantity = Math.floor(regional.totalSurplus() / multiplier)
+        int targetInstanceQuantity = Math.floor(portionOfAvailableSurplus / multiplier)
 
         if (targetInstanceQuantity > 0) {
           regional.totalRegionalReserved.addAndGet(-1 * (int) (targetInstanceQuantity * multiplier))
@@ -232,7 +271,12 @@ interface AmazonReservationReportBuilder {
             target: shortfall.id(),
             targetInstanceQuantity: targetInstanceQuantity,
             targetInstanceType: shortfall.instanceType,
-            index: allocationIndex.incrementAndGet()
+            index: allocationIndex.incrementAndGet(),
+
+            totalRegionalSurplusForFamily : totalRegionalSurplusForFamily,
+            totalShortfallForFamily: totalShortfallForFamily,
+            percentageOfShortfall: percentageOfShortfall,
+            portionOfAvailableSurplus: portionOfAvailableSurplus
           )
 
           regional.regionalReservedAllocations << allocation
