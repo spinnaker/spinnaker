@@ -16,7 +16,7 @@ module.exports = function (config) {
     autoWatch: true,
 
     // base path, that will be used to resolve files and exclude
-    basePath: '',
+    basePath: '.',
 
     // testing framework to use (jasmine/mocha/qunit/...)
     frameworks: ['jasmine'],
@@ -27,7 +27,7 @@ module.exports = function (config) {
     ],
 
     preprocessors: {
-      './karma-shim.js': ['webpack']
+      './karma-shim.js': ['webpack', 'sourcemap']
     },
 
     webpack: webpackConfig,
@@ -53,6 +53,7 @@ module.exports = function (config) {
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
+      require('karma-sourcemap-loader'),
     ],
 
     // list of files / patterns to exclude

@@ -8,21 +8,15 @@ Error.stackTraceLimit = Infinity;
 // jquery has to be first or many a test will break
 global.$ = global.jQuery = require('jquery');
 
+require('./settings.js');
+require('./app/scripts/app');
+
 // angular 1 test harnesss
 const angular = require('angular');
 require('angular-mocks');
-
-// polyfills
-require('core-js/client/shim');
-
-require('rxjs');
-
-require('./settings.js');
-
-require('ngimport');
 beforeEach(angular.mock.module('bcherny/ngimport'));
 
 require('./test/helpers/customMatchers');
 
 const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts|tsx)$/);
-testContext.keys().filter(k => !k.includes('/lib/')).forEach(testContext);
+testContext.keys().forEach(testContext);
