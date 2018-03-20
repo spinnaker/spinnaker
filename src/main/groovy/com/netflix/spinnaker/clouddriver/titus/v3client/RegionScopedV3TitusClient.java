@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
-import com.netflix.grpc.interceptor.spectator.SpectatorMetricsClientInterceptor;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.titus.client.*;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
@@ -29,10 +28,6 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Task;
 import com.netflix.titus.grpc.protogen.*;
 import groovy.util.logging.Log;
-import io.grpc.ManagedChannel;
-import io.grpc.netty.shaded.io.grpc.netty.NegotiationType;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import io.grpc.util.RoundRobinLoadBalancerFactory;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -40,8 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import com.netflix.eureka2.grpc.nameresolver.Eureka2NameResolverFactory;
 
 @Log
 public class RegionScopedV3TitusClient implements TitusClient {
@@ -72,8 +65,8 @@ public class RegionScopedV3TitusClient implements TitusClient {
   private final JobManagementServiceGrpc.JobManagementServiceBlockingStub grpcBlockingStub;
 
 
-  public RegionScopedV3TitusClient(TitusRegion titusRegion, Registry registry, List<TitusJobCustomizer> titusJobCustomizers, String environment, String eurekaName) {
-    this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry, titusJobCustomizers, environment, eurekaName);
+  public RegionScopedV3TitusClient(TitusRegion titusRegion, Registry registry, List<TitusJobCustomizer> titusJobCustomizers, String environment, String eurekaName, GrpcChannelFactory grpcChannelFactory) {
+    this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry, titusJobCustomizers, environment, eurekaName, grpcChannelFactory);
   }
 
   public RegionScopedV3TitusClient(TitusRegion titusRegion,
@@ -83,7 +76,9 @@ public class RegionScopedV3TitusClient implements TitusClient {
                                    Registry registry,
                                    List<TitusJobCustomizer> titusJobCustomizers,
                                    String environment,
-                                   String eurekaName) {
+                                   String eurekaName,
+                                   GrpcChannelFactory channelFactory
+  ) {
     this.titusRegion = titusRegion;
     this.registry = registry;
     this.titusJobCustomizers = titusJobCustomizers;
@@ -97,26 +92,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     } catch (Exception e) {
 
     }
-
-    ManagedChannel eurekaChannel = NettyChannelBuilder
-      .forTarget("eurekaproxy." + titusRegion.getName() + ".discovery" + environment + ".netflix.net:8980")
-      .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
-      .usePlaintext(true)
-      .userAgent("spinnaker")
-      .build();
-
-    ManagedChannel channel = NettyChannelBuilder
-      .forTarget("eureka:///" + eurekaName + "?eureka.status=up")
-      .sslContext(ClientAuthenticationUtils.newSslContext("titusapi"))
-      .negotiationType(NegotiationType.TLS)
-      .nameResolverFactory(new Eureka2NameResolverFactory(eurekaChannel)) // This enables the client to resolve the Eureka URI above into a set of addressable service endpoints.
-      .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
-      .intercept(new GrpcMetricsInterceptor(registry, titusRegion))
-      .intercept(new GrpcRetryInterceptor(DEFAULT_CONNECT_TIMEOUT, titusRegion))
-      .intercept(new SpectatorMetricsClientInterceptor(registry))
-      .build();
-
-    this.grpcBlockingStub = JobManagementServiceGrpc.newBlockingStub(channel);
+    this.grpcBlockingStub = JobManagementServiceGrpc.newBlockingStub(channelFactory.build(titusRegion, environment, eurekaName, DEFAULT_CONNECT_TIMEOUT, registry));
   }
 
   // APIs

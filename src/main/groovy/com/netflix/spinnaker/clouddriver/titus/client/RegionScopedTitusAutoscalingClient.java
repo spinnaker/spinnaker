@@ -17,17 +17,9 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 import com.google.protobuf.Empty;
-import com.netflix.eureka2.grpc.nameresolver.Eureka2NameResolverFactory;
-import com.netflix.grpc.interceptor.spectator.SpectatorMetricsClientInterceptor;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.titus.v3client.ClientAuthenticationUtils;
-import com.netflix.spinnaker.clouddriver.titus.v3client.GrpcMetricsInterceptor;
-import com.netflix.spinnaker.clouddriver.titus.v3client.GrpcRetryInterceptor;
+import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory;
 import com.netflix.titus.grpc.protogen.*;
-import io.grpc.ManagedChannel;
-import io.grpc.netty.shaded.io.grpc.netty.NegotiationType;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import io.grpc.util.RoundRobinLoadBalancerFactory;
 
 import java.util.List;
 
@@ -43,27 +35,9 @@ public class RegionScopedTitusAutoscalingClient implements TitusAutoscalingClien
   public RegionScopedTitusAutoscalingClient(TitusRegion titusRegion,
                                             Registry registry,
                                             String environment,
-                                            String eurekaName) {
-
-    ManagedChannel eurekaChannel = NettyChannelBuilder
-      .forTarget("eurekaproxy." + titusRegion.getName() + ".discovery" + environment + ".netflix.net:8980")
-      .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
-      .usePlaintext(true)
-      .userAgent("spinnaker")
-      .build();
-
-    ManagedChannel channel = NettyChannelBuilder
-      .forTarget("eureka:///" + eurekaName + "?eureka.status=up")
-      .sslContext(ClientAuthenticationUtils.newSslContext("titusapi"))
-      .negotiationType(NegotiationType.TLS)
-      .nameResolverFactory(new Eureka2NameResolverFactory(eurekaChannel)) // This enables the client to resolve the Eureka URI above into a set of addressable service endpoints.
-      .loadBalancerFactory(RoundRobinLoadBalancerFactory.getInstance())
-      .intercept(new GrpcMetricsInterceptor(registry, titusRegion))
-      .intercept(new GrpcRetryInterceptor(DEFAULT_CONNECT_TIMEOUT, titusRegion))
-      .intercept(new SpectatorMetricsClientInterceptor(registry))
-      .build();
-
-    this.autoScalingServiceBlockingStub = AutoScalingServiceGrpc.newBlockingStub(channel);
+                                            String eurekaName,
+                                            GrpcChannelFactory channelFactory) {
+    this.autoScalingServiceBlockingStub = AutoScalingServiceGrpc.newBlockingStub(channelFactory.build(titusRegion, environment, eurekaName, DEFAULT_CONNECT_TIMEOUT, registry));
   }
 
   @Override

@@ -21,11 +21,14 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
+import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.health.TitusHealthIndicator
+import com.netflix.spinnaker.clouddriver.titus.v3client.SimpleGrpcChannelFactory
 import groovy.util.logging.Slf4j
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -65,8 +68,8 @@ class TitusConfiguration {
   }
 
   @Bean
-  TitusClientProvider titusClientProvider(Registry registry, Optional<List<TitusJobCustomizer>> titusJobCustomizers) {
-    return new TitusClientProvider(registry, titusJobCustomizers.orElse(Collections.emptyList()))
+  TitusClientProvider titusClientProvider(Registry registry, Optional<List<TitusJobCustomizer>> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory) {
+    return new TitusClientProvider(registry, titusJobCustomizers.orElse(Collections.emptyList()), grpcChannelFactory)
   }
 
   @Bean
@@ -77,6 +80,13 @@ class TitusConfiguration {
   @Bean
   TitusHealthIndicator titusHealthIndicator(AccountCredentialsProvider accountCredentialsProvider, TitusClientProvider titusClientProvider) {
     new TitusHealthIndicator(accountCredentialsProvider, titusClientProvider)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(GrpcChannelFactory)
+  GrpcChannelFactory simpleGrpcChannelFactory()
+  {
+    new SimpleGrpcChannelFactory()
   }
 
   static class TitusCredentialsConfig {
