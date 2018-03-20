@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service
 import retrofit.RetrofitError
 
 import javax.annotation.PreDestroy
+import java.util.stream.Collectors
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 /**
@@ -119,85 +120,83 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
 
         JenkinsService jenkinsService = buildMasters.map[master] as JenkinsService
         List<Project> jobs = jenkinsService.getProjects()?.getList() ?:[]
-        for (Project job : jobs) {
-            if (!job.lastBuild) {
-                log.debug("[{}:{}] has no builds skipping...", kv("master", master), kv("job", job.name))
-                continue
-            }
-
-            try {
-                Long cursor = cache.getLastPollCycleTimestamp(master, job.name)
-                Long lastBuildStamp = job.lastBuild.timestamp as Long
-                Date upperBound = new Date(lastBuildStamp)
-                if (cursor == lastBuildStamp) {
-                    log.debug("[${master}:${job.name}] is up to date. skipping")
-                } else {
-                    if (!cursor && !igorProperties.spinnaker.build.handleFirstBuilds) {
-                        cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp)
-                        continue
-                    }
-
-                    List<Build> allBuilds = (jenkinsService.getBuilds(job.name).getList() ?: [])
-                    if (!cursor) {
-                        log.debug("[${master}:${job.name}] setting new cursor to ${lastBuildStamp}")
-                        cursor = lastBuildStamp
-                    } else {
-                        // filter between last poll and jenkins last build included
-                        allBuilds = (jenkinsService.getBuilds(job.name).getList() ?: []).findAll { build ->
-                            Long buildStamp = build.timestamp as Long
-                            return buildStamp <= lastBuildStamp && buildStamp > cursor
-                        }
-                    }
-
-                    List<Build> currentlyBuilding = allBuilds.findAll { it.building }
-                    List<Build> completedBuilds = allBuilds.findAll { !it.building }
-                    Date lowerBound = new Date(cursor)
-
-                    filterOldBuilds(master, job, completedBuilds)
-
-                    delta.add(new JobDelta(
-                        cursor: cursor,
-                        name: job.name,
-                        lastBuildStamp: lastBuildStamp,
-                        upperBound: upperBound,
-                        lowerBound: lowerBound,
-                        completedBuilds: completedBuilds,
-                        runningBuilds: currentlyBuilding
-                    ))
-                }
-            } catch (e) {
-                log.error("Error processing builds for [{}:{}]", kv("master", master), kv("job", job.name), e)
-                if (e.cause instanceof RetrofitError) {
-                    def re = (RetrofitError) e.cause
-                    log.error("Error communicating with jenkins for [{}:{}]: {}", kv("master", master), kv("job", job.name), kv("url", re.url), re);
-                }
-            }
-        }
-
+        jobs.forEach( { job -> processBuildsOfProject(jenkinsService, master, job, delta)})
         log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: {})", kv("master", master))
-
         return new JobPollingDelta(master: master, items: delta)
     }
 
-    private void filterOldBuilds(String master, Project job, List<Build> completedBuilds) {
-        if (!igorProperties.spinnaker.build.processBuildsOlderThanLookBackWindow) {
-            use(TimeCategory) {
-                def offsetSeconds = pollInterval.seconds
-                def lookBackWindowMins = igorProperties.spinnaker.build.lookBackWindowMins.minutes
-                Date lookBackDate = (offsetSeconds + lookBackWindowMins).ago
+    private void processBuildsOfProject(JenkinsService jenkinsService, String master, Project job, List<JobDelta> delta) {
+        if (!job.lastBuild) {
+            log.debug("[{}:{}] has no builds skipping...", kv("master", master), kv("job", job.name))
+            return
+        }
 
-                def tooOldBuilds = completedBuilds.findAll {
-                    Date buildEndDate = new Date((it.timestamp as Long) + it.duration)
-                    return buildEndDate.before(lookBackDate)
-                }
-                log.debug("Filtering out builds older than {} from {} {}: build numbers{}",
-                    lookBackDate,
-                    kv("master", master),
-                    kv("job", job.name),
-                    tooOldBuilds.collect { it.number }
-                )
-                completedBuilds.removeAll(tooOldBuilds)
+        try {
+            Long cursor = cache.getLastPollCycleTimestamp(master, job.name)
+            Long lastBuildStamp = job.lastBuild.timestamp as Long
+            Date upperBound = new Date(lastBuildStamp)
+            if (cursor == lastBuildStamp) {
+                log.debug("[${master}:${job.name}] is up to date. skipping")
+                return
             }
+
+            if (!cursor && !igorProperties.spinnaker.build.handleFirstBuilds) {
+                cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp)
+                return
+            }
+
+            List<Build> allBuilds = getBuilds(jenkinsService, master, job, cursor, lastBuildStamp)
+            List<Build> currentlyBuilding = allBuilds.findAll { it.building }
+            List<Build> completedBuilds = allBuilds.findAll { !it.building }
+            cursor = !cursor ? lastBuildStamp : cursor
+            Date lowerBound = new Date(cursor)
+
+            if (!igorProperties.spinnaker.build.processBuildsOlderThanLookBackWindow) {
+                completedBuilds = onlyInLookBackWindow(completedBuilds)
+            }
+
+            delta.add(new JobDelta(
+                cursor: cursor,
+                name: job.name,
+                lastBuildStamp: lastBuildStamp,
+                upperBound: upperBound,
+                lowerBound: lowerBound,
+                completedBuilds: completedBuilds,
+                runningBuilds: currentlyBuilding
+            ))
+
+        } catch (e) {
+            log.error("Error processing builds for [{}:{}]", kv("master", master), kv("job", job.name), e)
+            if (e.cause instanceof RetrofitError) {
+                def re = (RetrofitError) e.cause
+                log.error("Error communicating with jenkins for [{}:{}]: {}", kv("master", master), kv("job", job.name), kv("url", re.url), re);
+            }
+        }
+    }
+
+    private List<Build> getBuilds(JenkinsService jenkinsService, String master, Project job, Long cursor, Long lastBuildStamp) {
+        if (!cursor) {
+            log.debug("[${master}:${job.name}] setting new cursor to ${lastBuildStamp}")
+            return jenkinsService.getBuilds(job.name).getList() ?: []
+        }
+
+        // filter between last poll and jenkins last build included
+        return (jenkinsService.getBuilds(job.name).getList() ?: []).findAll { build ->
+            Long buildStamp = build.timestamp as Long
+            return buildStamp <= lastBuildStamp && buildStamp > cursor
+        }
+    }
+
+    private List<Build> onlyInLookBackWindow(List<Build> builds) {
+        use(TimeCategory) {
+            def offsetSeconds = pollInterval.seconds
+            def lookBackWindowMins = igorProperties.spinnaker.build.lookBackWindowMins.minutes
+            Date lookBackDate = (offsetSeconds + lookBackWindowMins).ago
+
+            return builds.stream().filter({
+                Date buildEndDate = new Date((it.timestamp as Long) + it.duration)
+                return buildEndDate.after(lookBackDate)
+            }).collect(Collectors.toList())
         }
     }
 
@@ -232,7 +231,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
         return jenkinsProperties.masters.find { partition == it.name }?.itemUpperThreshold
     }
 
-    void postEvent(Project project, String master) {
+    private void postEvent(Project project, String master) {
         if (!echoService.isPresent()) {
             log.warn("Cannot send build notification: Echo is not configured")
             registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
