@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kork.core.RetrySupport
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
 
@@ -163,9 +164,11 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     def now = new Date()
 
     when:
-    operation.mergeExistingTagsAndMetadata(now, current, tag, true)
+    def wasModified = operation.mergeExistingTagsAndMetadata(now, current, tag, true)
 
     then:
+    wasModified == true
+
     tag.tagsMetadata[0].created == 1L
     tag.tagsMetadata[0].createdBy == "chris"
     tag.tagsMetadata[0].lastModified == now.time
@@ -199,9 +202,11 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     def now = new Date()
 
     when:
-    operation.mergeExistingTagsAndMetadata(now, current, tag, true)
+    def wasModified = operation.mergeExistingTagsAndMetadata(now, current, tag, true)
 
     then:
+    wasModified == true
+
     tag.tags.size() == 2
     tag.tags.find { it.name == "tag1" }.value == "updated tag"
     tag.tags.find { it.name == "tag2" }.value == "unchanged tag"
@@ -256,6 +261,37 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
     1 * accountCredentialsProvider.getAll() >> { return [testCredentials] }
     thrown IllegalArgumentException
   }
+
+  @Unroll
+  void 'should detect whether entity tags have been modified'() {
+    given:
+    EntityTags currentTags = new EntityTags(
+      tags: buildTags(current)
+    )
+    EntityTags updatedTags = new EntityTags(
+      tags: buildTags(updated)
+    )
+
+    expect:
+    BulkUpsertEntityTagsAtomicOperation.mergeExistingTagsAndMetadata(
+      new Date(), currentTags, updatedTags, isPartial
+    ) == expectedToBeModified
+
+    where:
+    current                      | updated          | isPartial || expectedToBeModified
+    [foo: "bar"]                 | [foo: "bar"]     | false     || false
+    [foo: "bar"]                 | [foo: "bar"]     | true      || false
+    [foo: "bar"]                 | [foo: "not bar"] | false     || true
+    [foo: "bar"]                 | [foo: "not bar"] | true      || true
+    ["not foo": "bar"]           | [foo: "not bar"] | false     || true
+    ["not foo": "bar"]           | [foo: "not bar"] | true      || true
+    ["not foo": "bar"]           | [:]              | false     || true
+    ["not foo": "bar"]           | [:]              | true      || false      // a no-op, should be skipped (partial empty update)
+    [:]                          | [foo: "bar"]     | false     || true
+    [:]                          | [foo: "bar"]     | true      || true
+    ["foo": "bar", "bar": "baz"] | [bar: "baz"]     | false     || true
+    ["foo": "bar", "bar": "baz"] | [bar: "baz"]     | true      || false
+   }
 
   private void addTag(Integer index) {
     def tag = new UpsertEntityTagsDescription()

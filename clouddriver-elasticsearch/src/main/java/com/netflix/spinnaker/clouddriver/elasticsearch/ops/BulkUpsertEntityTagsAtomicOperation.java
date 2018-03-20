@@ -74,21 +74,33 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
       getTask().updateStatus(BASE_PHASE, "Retrieving current entity tags");
       Map<String, EntityTags> existingTags = retrieveExistingTags(tags);
 
+      List<EntityTags> modifiedEntityTags = new ArrayList<>();
       getTask().updateStatus(BASE_PHASE, "Merging existing tags and metadata");
-      tags.forEach(tag -> mergeExistingTagsAndMetadata(
-        now,
-        existingTags.get(tag.getId()),
-        tag,
-        bulkUpsertEntityTagsDescription.isPartial
-      ));
+      tags.forEach(tag -> {
+        boolean wasModified = mergeExistingTagsAndMetadata(
+          now,
+          existingTags.get(tag.getId()),
+          tag,
+          bulkUpsertEntityTagsDescription.isPartial
+        );
+
+        if (wasModified) {
+          modifiedEntityTags.add(tag);
+        }
+      });
+
+      if (modifiedEntityTags.isEmpty()) {
+        getTask().updateStatus(BASE_PHASE, "No tags have been modified");
+        return;
+      }
 
       getTask().updateStatus(BASE_PHASE, "Performing batch update to durable tagging service");
-      Map<String, EntityTags> durableTags = front50Service.batchUpdate(new ArrayList<>(tags))
+      Map<String, EntityTags> durableTags = front50Service.batchUpdate(new ArrayList<>(modifiedEntityTags))
         .stream().collect(Collectors.toMap(EntityTags::getId, Function.identity()));
 
       getTask().updateStatus(BASE_PHASE, "Pushing tags to Elastic Search");
-      updateMetadataFromDurableTagsAndIndex(tags, durableTags, result);
-      result.upserted.addAll(tags);
+      updateMetadataFromDurableTagsAndIndex(modifiedEntityTags, durableTags, result);
+      result.upserted.addAll(modifiedEntityTags);
     });
     return result;
   }
@@ -202,17 +214,22 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     );
   }
 
-  public static void mergeExistingTagsAndMetadata(Date now,
-                                                  EntityTags currentTags,
-                                                  EntityTags updatedTags,
-                                                  boolean isPartial) {
-
+  public static boolean mergeExistingTagsAndMetadata(Date now,
+                                                     EntityTags currentTags,
+                                                     EntityTags updatedTags,
+                                                     boolean isPartial) {
     if (currentTags == null) {
       addTagMetadata(now, updatedTags);
-      return;
+      return true;
     }
 
+    // a modification if at least one updated entity tag is not contained within `currentTags`
+    boolean wasModified = !containedWithin(currentTags, updatedTags);
+
     if (!isPartial) {
+      // a modification if at least one current entity tag is not contained within `updatedTags`
+      wasModified = wasModified || !containedWithin(updatedTags, currentTags);
+
       replaceTagContents(currentTags, updatedTags);
     }
 
@@ -223,6 +240,25 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     updatedTags.getTags().forEach(tag -> updatedTags.putEntityTagMetadata(tagMetadata(tag, now)));
 
     currentTags.getTags().forEach(updatedTags::putEntityTagIfAbsent);
+
+    return wasModified;
+  }
+
+  /**
+   * @return true if all {@code target} tags are contained in {@code source}, otherwise false
+   */
+  private static boolean containedWithin(EntityTags source, EntityTags target) {
+    return target
+      .getTags()
+      .stream()
+      .allMatch(
+        updatedTag -> source
+          .getTags()
+          .stream()
+          .anyMatch(currentTag ->
+            currentTag.getName().equals(updatedTag.getName()) && currentTag.getValue().equals(updatedTag.getValue())
+          )
+      );
   }
 
   private static void mergeTags(BulkUpsertEntityTagsDescription bulkUpsertEntityTagsDescription) {
