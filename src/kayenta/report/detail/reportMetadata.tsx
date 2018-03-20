@@ -28,7 +28,8 @@ const Label = ({ label, extraClass }: { label: string, extraClass?: string }) =>
 
 // TODO(dpeach): this only supports canary runs with a single scope.
 const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadataGroup[] => {
-  const scopes = Object.values(run.result.canaryExecutionRequest.scopes);
+  const request = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
+  const scopes = Object.values(request.scopes);
   if (scopes.length > 1) {
     return null;
   }
@@ -105,7 +106,7 @@ const ReportMetadata = ({ run }: IReportMetadata) => {
       marginal,
       pass
     },
-  } = run.result.canaryExecutionRequest;
+  } = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
 
   const metadataGroups = (buildScopeMetadataEntries(run) || []);
   metadataGroups.push({
