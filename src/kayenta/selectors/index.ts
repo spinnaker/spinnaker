@@ -13,7 +13,7 @@ export const judgeResultSelector = createSelector(
 
 export const configIdSelector = createSelector(
   runSelector,
-  run => run.result.config.id,
+  run => run.config ? run.config.id : run.result.config.id,
 );
 
 export const metricResultsSelector = createSelector(
@@ -23,7 +23,7 @@ export const metricResultsSelector = createSelector(
 
 export const serializedCanaryConfigSelector = createSelector(
   runSelector,
-  run => run.result.config,
+  run => run.config || run.result.config,
 );
 
 export const serializedGroupWeightsSelector = createSelector(

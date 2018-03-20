@@ -55,7 +55,9 @@ const mapStateToProps = (state: ICanaryState): IReportScoresStateProps => ({
     ]
   ),
   score: judgeResultSelector(state).score,
-  scoreThresholds: state.selectedRun.run.result.canaryExecutionRequest.thresholds,
+  scoreThresholds: state.selectedRun.run.canaryExecutionRequest ?
+    state.selectedRun.run.canaryExecutionRequest.thresholds :
+    state.selectedRun.run.result.canaryExecutionRequest.thresholds,
   selectedGroup: state.selectedRun.selectedGroup,
 });
 

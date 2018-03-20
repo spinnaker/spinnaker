@@ -91,12 +91,13 @@ const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultSt
       label: 'start',
       getValue: target => <FormattedDate dateIso={metricSetPair.scopes[target].startTimeIso}/>,
       hide: () => {
+        const request = run.canaryExecutionRequest || run.result.canaryExecutionRequest;
         const configuredControlStart =
-          run.result.canaryExecutionRequest.scopes[metricConfig.scopeName].controlScope.start;
+          request.scopes[metricConfig.scopeName].controlScope.start;
         const actualControlStart = metricSetPair.scopes.control.startTimeIso;
 
         const configuredExperimentStart =
-          run.result.canaryExecutionRequest.scopes[metricConfig.scopeName].experimentScope.start;
+          request.scopes[metricConfig.scopeName].experimentScope.start;
         const actualExperimentStart = metricSetPair.scopes.experiment.startTimeIso;
 
         return configuredControlStart === actualControlStart
