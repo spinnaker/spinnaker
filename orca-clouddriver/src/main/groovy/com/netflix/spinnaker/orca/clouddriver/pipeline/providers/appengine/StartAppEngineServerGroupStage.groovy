@@ -33,7 +33,7 @@ class StartAppEngineServerGroupStage extends TargetServerGroupLinearStageSupport
   public static final String PIPELINE_CONFIG_TYPE = "startServerGroup"
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("startServerGroup", StartAppEngineServerGroupTask)

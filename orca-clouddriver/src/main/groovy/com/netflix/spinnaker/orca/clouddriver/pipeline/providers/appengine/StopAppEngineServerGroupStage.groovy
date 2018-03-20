@@ -33,7 +33,7 @@ class StopAppEngineServerGroupStage extends TargetServerGroupLinearStageSupport 
   public static final String PIPELINE_CONFIG_TYPE = "stopServerGroup"
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("stopServerGroup", StopAppEngineServerGroupTask)

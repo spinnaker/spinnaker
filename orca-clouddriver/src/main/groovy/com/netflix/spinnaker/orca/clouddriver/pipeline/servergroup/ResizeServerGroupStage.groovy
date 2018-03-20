@@ -24,9 +24,9 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ResizeServerGrou
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
@@ -39,11 +39,8 @@ import org.springframework.stereotype.Component
 class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
   public static final String TYPE = getType(ResizeServerGroupStage)
 
-  @Autowired
-  ModifyAwsScalingProcessStage modifyAwsScalingProcessStage
-
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("resizeServerGroup", ResizeServerGroupTask)
@@ -53,70 +50,64 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
   }
 
   @Override
-  protected List<Injectable> preStatic(Map descriptor) {
-    if (descriptor.cloudProvider != 'aws') {
-      return []
+  protected void preStatic(Map<String, Object> descriptor, StageGraphBuilder graph) {
+    if (descriptor.cloudProvider == "aws") {
+      graph.add {
+        it.name = "resumeScalingProcesses"
+        it.type = ModifyAwsScalingProcessStage.TYPE
+        it.context = [
+          serverGroupName: descriptor.asgName,
+          cloudProvider  : descriptor.cloudProvider,
+          credentials    : descriptor.credentials,
+          region         : descriptor.region,
+          action         : "resume",
+          processes      : ["Launch", "Terminate"]
+        ]
+      }
     }
-    [new Injectable(
-      name: "resumeScalingProcesses",
-      stage: modifyAwsScalingProcessStage,
-      context: [
-        serverGroupName: descriptor.asgName,
-        cloudProvider  : descriptor.cloudProvider,
-        credentials    : descriptor.credentials,
-        region         : descriptor.region,
-        action         : "resume",
-        processes      : ["Launch", "Terminate"]
-      ]
-    )]
   }
 
   @Override
-  protected List<Injectable> postStatic(Map descriptor) {
-    if (descriptor.cloudProvider != 'aws') {
-      return []
+  protected void postStatic(Map<String, Object> descriptor, StageGraphBuilder graph) {
+    if (descriptor.cloudProvider == "aws") {
+      graph.add {
+        it.name = "suspendScalingProcesses"
+        it.type = ModifyAwsScalingProcessStage.TYPE
+        it.context = [
+          serverGroupName: descriptor.asgName,
+          cloudProvider  : descriptor.cloudProvider,
+          credentials    : descriptor.credentials,
+          region         : descriptor.region,
+          action         : "suspend"
+        ]
+      }
     }
-    [new Injectable(
-      name: "suspendScalingProcesses",
-      stage: modifyAwsScalingProcessStage,
-      context: [
-        serverGroupName: descriptor.asgName,
-        cloudProvider  : descriptor.cloudProvider,
-        credentials    : descriptor.credentials,
-        region         : descriptor.region,
-        action         : "suspend"
-      ]
-    )]
   }
 
   @Override
-  protected List<Injectable> preDynamic(Map context) {
-    if (context.cloudProvider != 'aws') {
-      return []
+  protected void preDynamic(Map<String, Object> context, StageGraphBuilder graph) {
+    if (context.cloudProvider == "aws") {
+      context.remove("asgName")
+      graph.add {
+        it.name = "resumeScalingProcesses"
+        it.type = ModifyAwsScalingProcessStage.TYPE
+        it.context.putAll(context)
+        it.context["action"] = "resume"
+        it.context["processes"] = ["Launch", "Terminate"]
+      }
     }
-    context.remove("asgName")
-    [new Injectable(
-      name: "resumeScalingProcesses",
-      stage: modifyAwsScalingProcessStage,
-      context: context + [
-        action   : "resume",
-        processes: ["Launch", "Terminate"]
-      ]
-    )]
   }
 
   @Override
-  protected List<Injectable> postDynamic(Map context) {
-    if (context.cloudProvider != 'aws') {
-      return []
+  protected void postDynamic(Map<String, Object> context, StageGraphBuilder graph) {
+    if (context.cloudProvider == "aws") {
+      context.remove("asgName")
+      graph.add {
+        it.name = "suspendScalingProcesses"
+        it.type = ModifyAwsScalingProcessStage.TYPE
+        it.context.putAll(context)
+        it.context["action"] = "suspend"
+      }
     }
-    context.remove("asgName")
-    [new Injectable(
-      name: "suspendScalingProcesses",
-      stage: modifyAwsScalingProcessStage,
-      context: context + [
-        action: "suspend",
-      ],
-    )]
   }
 }

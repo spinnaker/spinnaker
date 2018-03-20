@@ -95,7 +95,7 @@ public interface StageDefinitionBuilder {
   /**
    * Implement this method to define any stages that should run after any tasks in
    * this stage as part of a composed workflow.
-   *
+   * <p>
    * This default implementation is for backward compatibility with the legacy
    * {@link #aroundStages} and {@link #parallelStages} methods.
    */

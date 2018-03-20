@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import groovy.transform.InheritConstructors
-import groovy.transform.ToString
-import groovy.util.logging.Slf4j
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.InheritConstructors
+import groovy.transform.ToString
+import groovy.util.logging.Slf4j
 
 /**
  * A TargetServerGroup is a ServerGroup that is dynamically resolved using a target like "current" or "oldest".

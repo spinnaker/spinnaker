@@ -33,7 +33,7 @@ class DisableServerGroupStage extends TargetServerGroupLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "disableServerGroup"
 
   @Override
-  void taskGraph(Stage stage, TaskNode.Builder builder) {
+  protected void taskGraphInternal(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
       .withTask("disableServerGroup", DisableServerGroupTask)

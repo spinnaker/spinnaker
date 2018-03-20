@@ -68,6 +68,18 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     }
   }
 
+  val stageThatBlowsUpPlanningAfterStages = object : StageDefinitionBuilder {
+    override fun getType() = "stageThatBlowsUpPlanningAfterStages"
+
+    override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
+      builder.withTask("dummy", DummyTask::class.java)
+    }
+
+    override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+      throw RuntimeException("there is some problem actually")
+    }
+  }
+
   subject(GROUP) {
     CompleteStageHandler(
       queue,
@@ -83,6 +95,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         stageWithSyntheticAfter,
         stageWithParallelBranches,
         stageWithTaskAndAfterStages,
+        stageThatBlowsUpPlanningAfterStages,
         stageWithSyntheticOnFailure
       )
     )
@@ -342,7 +355,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
           beforeGroup {
             whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
-            assertThat(pipeline.stages.map { it.type }).isEqualTo(listOf("stageWithTaskAndAfterStages"))
+            assertThat(pipeline.stages.map { it.type }).isEqualTo(listOf(stageWithTaskAndAfterStages.type))
           }
 
           afterGroup(::resetMocks)
@@ -357,6 +370,48 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
           it("starts the new AFTER_STAGE") {
             verify(queue).push(StartStage(message, pipeline.stages[1].id))
+          }
+
+          it("does not signal completion of the execution") {
+            verify(queue, never()).push(isA<CompleteExecution>())
+          }
+        }
+
+        and("planning synthetic stages throws an exception") {
+          val pipeline = pipeline {
+            stage {
+              refId = "1"
+              name = "wait"
+              status = RUNNING
+              type = stageThatBlowsUpPlanningAfterStages.type
+              stageThatBlowsUpPlanningAfterStages.plan(this)
+              tasks.first().status = taskStatus
+            }
+          }
+
+          val message = CompleteStage(pipeline.stageByRef("1"))
+
+          beforeGroup {
+            whenever(repository.retrieve(PIPELINE, pipeline.id)) doReturn pipeline
+            assertThat(pipeline.stages.map { it.type }).isEqualTo(listOf(stageThatBlowsUpPlanningAfterStages.type))
+          }
+
+          afterGroup(::resetMocks)
+
+          on("receiving the message") {
+            subject.handle(message)
+          }
+
+          it("makes the stage TERMINAL") {
+            assertThat(pipeline.stageById(message.stageId).status).isEqualTo(TERMINAL)
+          }
+
+          it("runs cancellation") {
+            verify(queue).push(CancelStage(pipeline.stageById(message.stageId)))
+          }
+
+          it("signals completion of the execution") {
+            verify(queue).push(CompleteExecution(pipeline))
           }
         }
       }

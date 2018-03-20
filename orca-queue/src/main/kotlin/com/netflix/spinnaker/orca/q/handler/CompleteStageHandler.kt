@@ -51,38 +51,45 @@ class CompleteStageHandler(
     message.withStage { stage ->
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
         val status = stage.determineStatus()
-        if (status.isComplete && !status.isHalt) {
-          // check to see if this stage has any unplanned synthetic after stages
-          var afterStages = stage.firstAfterStages()
-          if (afterStages.isEmpty()) {
-            stage.planAfterStages()
+        try {
+          if (status.isComplete && !status.isHalt) {
+            // check to see if this stage has any unplanned synthetic after stages
+            var afterStages = stage.firstAfterStages()
+            if (afterStages.isEmpty()) {
+              stage.planAfterStages()
 
-            afterStages = stage.firstAfterStages()
-            if (afterStages.isNotEmpty()) {
-              afterStages.forEach {
-                queue.push(StartStage(message, it.id))
+              afterStages = stage.firstAfterStages()
+              if (afterStages.isNotEmpty()) {
+                afterStages.forEach {
+                  queue.push(StartStage(message, it.id))
+                }
+
+                return@withStage
               }
+            }
+          }
 
+          if (status.isFailure) {
+            if (stage.planOnFailureStages()) {
+              stage.firstAfterStages().forEach {
+                queue.push(StartStage(it))
+              }
               return@withStage
             }
           }
+
+          stage.status = status
+          stage.endTime = clock.millis()
+        } catch (e: Exception) {
+          stage.status = TERMINAL
+          stage.endTime = clock.millis()
+          repository.storeStage(stage)
         }
 
-        if (status.isFailure) {
-          if (stage.planOnFailureStages()) {
-            stage.firstAfterStages().forEach {
-              queue.push(StartStage(it))
-            }
-            return@withStage
-          }
-        }
-
-        stage.status = status
-        stage.endTime = clock.millis()
         stage.includeExpressionEvaluationSummary()
         repository.storeStage(stage)
 
-        if (status in listOf(SUCCEEDED, FAILED_CONTINUE)) {
+        if (stage.status in listOf(SUCCEEDED, FAILED_CONTINUE)) {
           stage.startNext()
         } else {
           queue.push(CancelStage(message))
@@ -100,6 +107,7 @@ class CompleteStageHandler(
     }
   }
 
+  // TODO: this should be done out of band by responding to the StageComplete event
   private fun trackResult(stage: Stage) {
     // We only want to record durations of parent-level stages; not synthetics.
     if (stage.parentStageId != null) {
@@ -126,8 +134,8 @@ class CompleteStageHandler(
       duration > TimeUnit.MINUTES.toMillis(60) -> "gt60m"
       duration > TimeUnit.MINUTES.toMillis(30) -> "gt30m"
       duration > TimeUnit.MINUTES.toMillis(15) -> "gt15m"
-      duration > TimeUnit.MINUTES.toMillis(5) -> "gt5m"
-      else -> "lt5m"
+      duration > TimeUnit.MINUTES.toMillis(5)  -> "gt5m"
+      else                                     -> "lt5m"
     }
 
   override val messageType = CompleteStage::class.java
