@@ -14,8 +14,8 @@ export class BakeStageChooseOSController implements IController {
 
   public showRadioButtons = false;
 
-  public $onInit(): void {
-    this.showRadioButtons = this.baseOsOptions.length <= 2;
+  public $onChanges(): void {
+    this.showRadioButtons = this.baseOsOptions && this.baseOsOptions.length <= 2;
   }
 
   public getBaseOsDescription(baseOsOption: IBaseOsOption): String {
