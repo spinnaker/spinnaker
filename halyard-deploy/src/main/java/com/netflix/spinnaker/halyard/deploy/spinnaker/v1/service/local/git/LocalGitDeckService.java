@@ -18,6 +18,9 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.git;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.resource.v1.StringReplaceJarResource;
+import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -29,8 +32,11 @@ import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -71,5 +77,29 @@ public class LocalGitDeckService extends DeckService implements LocalGitService<
     List<Profile> result = new ArrayList<>();
     result.add(deckProfileFactory.getProfile(deskSettingsPath, deckPath, deploymentConfiguration, endpoints));
     return result;
+  }
+
+  @Override
+  public void commitWrapperScripts() {
+    Map<String, Object> bindings = new HashMap<>();
+    bindings.put("git-root", getGitRoot());
+    bindings.put("scripts-dir", getScriptsDir());
+    bindings.put("artifact", getArtifact().getName());
+    bindings.put("start-command", getStartCommand());
+    TemplatedResource scriptResource = new StringReplaceJarResource("/git/deck-start.sh");
+    scriptResource.setBindings(bindings);
+    String script = scriptResource.toString();
+
+    new RemoteAction()
+        .setScript(script)
+        .commitScript(Paths.get(getScriptsDir(), getArtifact().getName() + "-start.sh"));
+
+    scriptResource = new StringReplaceJarResource("/git/stop.sh");
+    scriptResource.setBindings(bindings);
+    script = scriptResource.toString();
+
+    new RemoteAction()
+        .setScript(script)
+        .commitScript(Paths.get(getScriptsDir(), getArtifact().getName() + "-stop.sh"));
   }
 }
