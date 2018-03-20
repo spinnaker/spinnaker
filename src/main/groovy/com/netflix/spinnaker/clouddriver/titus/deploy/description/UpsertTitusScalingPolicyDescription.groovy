@@ -21,6 +21,10 @@ import com.amazonaws.services.applicationautoscaling.model.PredefinedMetricSpeci
 import com.amazonaws.services.applicationautoscaling.model.StepAdjustment as AwsStepAdjustment
 import com.amazonaws.services.applicationautoscaling.model.MetricDimension as AwsMetricDimension
 import com.amazonaws.services.autoscaling.model.StepAdjustment
+import com.google.protobuf.BoolValue
+import com.google.protobuf.DoubleValue
+import com.google.protobuf.Int32Value
+import com.google.protobuf.Int64Value
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
 import com.netflix.titus.grpc.protogen.AlarmConfiguration
 import com.netflix.titus.grpc.protogen.AlarmConfiguration.ComparisonOperator
@@ -73,10 +77,10 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
     if (targetTrackingConfiguration) {
       TargetTrackingPolicyDescriptor.Builder ttpBuilder = TargetTrackingPolicyDescriptor.newBuilder()
       ttpBuilder
-        .setDisableScaleIn(targetTrackingConfiguration.disableScaleIn)
-        .setTargetValue(targetTrackingConfiguration.targetValue)
-        .setScaleOutCooldownSec(targetTrackingConfiguration.scaleOutCooldown)
-        .setScaleInCooldownSec(targetTrackingConfiguration.scaleInCooldown)
+        .setDisableScaleIn(BoolValue.of(targetTrackingConfiguration.disableScaleIn))
+        .setTargetValue(DoubleValue.of(targetTrackingConfiguration.targetValue))
+        .setScaleOutCooldownSec(Int32Value.of(targetTrackingConfiguration.scaleOutCooldown))
+        .setScaleInCooldownSec(Int32Value.of(targetTrackingConfiguration.scaleInCooldown))
 
       if (targetTrackingConfiguration.predefinedMetricSpecification) {
         ttpBuilder.setPredefinedMetricSpecification(
@@ -113,32 +117,32 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
       StepScalingPolicy.Builder stepBuilder = StepScalingPolicy.newBuilder()
       stepBuilder.setAdjustmentType(AdjustmentType.valueOf(adjustmentType.name()))
         .setMetricAggregationType(MetricAggregationType.valueOf(step.metricAggregationType.name()))
-        .setCooldownSec(step.cooldown)
+        .setCooldownSec(Int32Value.of(step.cooldown))
 
       if (minAdjustmentMagnitude != null) {
-        stepBuilder.setMinAdjustmentMagnitude(minAdjustmentMagnitude)
+        stepBuilder.setMinAdjustmentMagnitude(Int64Value.of(minAdjustmentMagnitude))
       }
       step.stepAdjustments.each { adjustment ->
         StepAdjustments.Builder adjustmentBuilder = StepAdjustments.newBuilder()
         if (adjustment.metricIntervalLowerBound != null) {
-          adjustmentBuilder.setMetricIntervalLowerBound(adjustment.metricIntervalLowerBound)
+          adjustmentBuilder.setMetricIntervalLowerBound(DoubleValue.of(adjustment.metricIntervalLowerBound))
         }
         if (adjustment.metricIntervalUpperBound != null) {
-          adjustmentBuilder.setMetricIntervalUpperBound(adjustment.metricIntervalUpperBound)
+          adjustmentBuilder.setMetricIntervalUpperBound(DoubleValue.of(adjustment.metricIntervalUpperBound))
         }
-        adjustmentBuilder.setScalingAdjustment(adjustment.scalingAdjustment)
+        adjustmentBuilder.setScalingAdjustment(Int32Value.of(adjustment.scalingAdjustment))
         stepBuilder.addStepAdjustments(adjustmentBuilder)
       }
 
       AlarmConfiguration.Builder alarmBuilder = AlarmConfiguration.newBuilder()
-        .setActionsEnabled(true)
+        .setActionsEnabled(BoolValue.of(true))
         .setComparisonOperator(ComparisonOperator.valueOf(alarm.comparisonOperator.name()))
-        .setEvaluationPeriods(alarm.evaluationPeriods)
+        .setEvaluationPeriods(Int32Value.of(alarm.evaluationPeriods))
         .setMetricName(alarm.metricName)
         .setMetricNamespace(alarm.namespace)
-        .setPeriodSec(alarm.period)
+        .setPeriodSec(Int32Value.of(alarm.period))
         .setStatistic(Statistic.valueOf(alarm.statistic.name()))
-        .setThreshold(alarm.threshold)
+        .setThreshold(DoubleValue.of(alarm.threshold))
 
       StepScalingPolicyDescriptor.Builder sspBuilder = StepScalingPolicyDescriptor.newBuilder()
         .setScalingPolicy(stepBuilder)

@@ -54,16 +54,10 @@ protobuf {
     grpc {
       artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
     }
-    netflix_protoc_wrapper_type {
-      artifact = "netflix.grpc:netflix-protoc-wrapper-type:1.0.0"
-    }
   }
   generateProtoTasks {
     all()*.plugins {
       grpc {}
-      netflix_protoc_wrapper_type {
-        outputSubDir = "java"
-      }
     }
   }
 }
