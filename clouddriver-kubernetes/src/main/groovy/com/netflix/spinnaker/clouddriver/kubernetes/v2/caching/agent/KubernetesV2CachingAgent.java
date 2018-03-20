@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +66,15 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
 
   protected List<KubernetesManifest> loadPrimaryResourceList() {
     return namespaces.stream()
-        .map(n -> credentials.list(primaryKind(), n))
+        .map(n -> {
+          try {
+            return credentials.list(primaryKind(), n);
+          } catch (KubectlException e) {
+            log.warn("Failed to read kind {} from namespace {}: {}", primaryKind(), n, e.getMessage());
+            return null;
+          }
+        })
+        .filter(Objects::nonNull)
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
   }
