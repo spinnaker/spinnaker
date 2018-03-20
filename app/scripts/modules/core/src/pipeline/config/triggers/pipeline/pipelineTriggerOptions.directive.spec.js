@@ -103,7 +103,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
       }
       return $q.when(executions);
     });
-    spyOn(executionsTransformer, "addBuildInfo");
+    spyOn(executionsTransformer, 'addBuildInfo');
 
     this.initialize();
     $scope.$digest();
