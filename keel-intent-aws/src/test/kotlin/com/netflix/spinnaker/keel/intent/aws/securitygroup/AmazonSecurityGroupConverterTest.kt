@@ -19,14 +19,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
+import com.netflix.spinnaker.config.KeelProperties
+import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
-import com.netflix.spinnaker.keel.intent.SecurityGroupPortRange
-import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.*
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
@@ -36,7 +37,14 @@ import org.junit.jupiter.api.Test
 
 object AmazonSecurityGroupConverterTest {
 
-  val objectMapper = ObjectMapper()
+  private val objectMapper = configureObjectMapper(
+    ObjectMapper(),
+    KeelProperties(),
+    listOf(
+      ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(AmazonSecurityGroupSpec::class.java, listOf("com.netflix.spinnaker.keel.intent")),
+      ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(SecurityGroupRule::class.java, listOf("com.netflix.spinnaker.keel.intent"))
+    )
+  )
   val clouddriverCache = mock<CloudDriverCache>()
   val subject = AmazonSecurityGroupConverter(clouddriverCache, objectMapper)
 
@@ -90,7 +98,31 @@ object AmazonSecurityGroupConverterTest {
       accountName = "test",
       region = "us-west-2",
       vpcId = "vpc-1234",
-      inboundRules = emptySet(),
+      inboundRules = setOf(
+        SecurityGroup.SecurityGroupRule(
+          protocol = "tcp",
+          portRanges = listOf(
+            SecurityGroup.SecurityGroupRulePortRange(80, 80)
+          ),
+          securityGroup = SecurityGroup.SecurityGroupRuleReference(
+            name = "keel2",
+            accountName = "test2",
+            region = "us-west-2"
+          ),
+          range = null
+        ),
+        SecurityGroup.SecurityGroupRule(
+          protocol = "tcp",
+          portRanges = listOf(
+            SecurityGroup.SecurityGroupRulePortRange(80, 80)
+          ),
+          securityGroup = null,
+          range = SecurityGroup.SecurityGroupRuleCidr(
+            ip = "1.1.1.1",
+            cidr = "/24"
+          )
+        )
+      ),
       moniker = Moniker("keel", "keel")
     )
 
@@ -101,7 +133,24 @@ object AmazonSecurityGroupConverterTest {
       name = "keel",
       accountName = "test",
       region = "us-west-2",
-      inboundRules = mutableSetOf(),
+      inboundRules = mutableSetOf(
+        CrossAccountReferenceSecurityGroupRule(
+          protocol = "tcp",
+          name = "keel2",
+          account = "test2",
+          vpcName = "vpcName",
+          portRanges = sortedSetOf(
+            SecurityGroupPortRange(80, 80)
+          )
+        ),
+        CidrSecurityGroupRule(
+          protocol = "tcp",
+          portRanges = sortedSetOf(
+            SecurityGroupPortRange(80, 80)
+          ),
+          blockRange = "1.1.1.1/24"
+        )
+      ),
       outboundRules = mutableSetOf(),
       vpcName = "vpcName",
       description = "application sg"

@@ -19,9 +19,8 @@ import com.fasterxml.jackson.annotation.*
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.intent.SCHEMA_PROPERTY
-import com.netflix.spinnaker.keel.intent.SecurityGroupRule
-import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
+import com.netflix.spinnaker.keel.intent.*
+import java.util.*
 
 private const val KIND = "SecurityGroup"
 private const val CURRENT_SCHEMA = "0"
@@ -113,3 +112,12 @@ data class RemoteAmazonSecurityGroupRuleSpec(
   @JsonIgnore override val application = sourceApplication
   @JsonIgnore override fun intentId() = "$KIND:aws:$accountName:$region:$name:remote[$sourceApplication:$targetApplication]:$label"
 }
+
+@JsonTypeName("crossAccountRef")
+data class CrossAccountReferenceSecurityGroupRule(
+  override val portRanges: SortedSet<SecurityGroupPortRange>,
+  override val protocol: String,
+  override val name: String,
+  val account: String,
+  val vpcName: String
+) : SecurityGroupRule(), PortRangeSupport, NamedReferenceSupport

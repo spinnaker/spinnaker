@@ -19,6 +19,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
@@ -67,6 +68,12 @@ open class OrcaIntentLauncher
         .withTags(intent.getMetricTags())
         .withTag("change", result.changeSummary.type.toString())
       ).increment()
+
+      log.info(
+        "Launched orchestrations {} for intent {}",
+        value("orchestrations", orchestrationIds),
+        value("intentId", intent.id)
+      )
 
       OrcaLaunchedIntentResult(orchestrationIds, result.changeSummary)
     }

@@ -60,9 +60,9 @@ object RedisTraceRepositoryTest {
 
   @Test
   fun `listing traces for an intent returns ordered traces`() {
-    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("1", mapOf("placement" to 1)), mutableMapOf(), emptyList()), null))
-    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("1", mapOf("placement" to 2)), mutableMapOf(), emptyList()), null))
-    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("2", mapOf("placement" to 3)), mutableMapOf(), emptyList()), null))
+    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("1", mapOf("placement" to 1)), mutableMapOf(), mutableListOf()), null))
+    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("1", mapOf("placement" to 2)), mutableMapOf(), mutableListOf()), null))
+    traceRepository.record(Trace(emptyMap(), TestIntent(GenericTestIntentSpec("2", mapOf("placement" to 3)), mutableMapOf(), mutableListOf()), null))
 
     traceRepository.getForIntent("test:1").let { result ->
       result.size shouldMatch equalTo(2)

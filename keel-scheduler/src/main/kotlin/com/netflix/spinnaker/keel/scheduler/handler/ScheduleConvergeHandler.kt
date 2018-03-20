@@ -19,6 +19,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.IntentStatus
+import com.netflix.spinnaker.keel.event.BeforeIntentScheduleEvent
 import com.netflix.spinnaker.keel.filter.Filter
 import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
 import com.netflix.spinnaker.keel.scheduler.ScheduleService
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.q.MessageHandler
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
@@ -35,7 +37,8 @@ class ScheduleConvergeHandler
   private val scheduleService: ScheduleService,
   private val intentRepository: IntentRepository,
   private val filters: List<Filter>,
-  private val registry: Registry
+  private val registry: Registry,
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) : MessageHandler<ScheduleConvergence> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -48,7 +51,10 @@ class ScheduleConvergeHandler
     try {
       intentRepository.getIntents(status = listOf(IntentStatus.ACTIVE))
         .also { log.info("Attempting to schedule ${it.size} active intents") }
-        .filter { intent -> filters.all { it.filter(intent) } }
+        .filter { intent ->
+          applicationEventPublisher.publishEvent(BeforeIntentScheduleEvent(intent))
+          return@filter filters.all { it.filter(intent) }
+        }
         .also { log.info("Scheduling ${it.size} active intents after filters") }
         .forEach {
           scheduleService.converge(it)

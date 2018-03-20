@@ -20,7 +20,9 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.model.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 import com.netflix.spinnaker.keel.intent.*
+import com.netflix.spinnaker.keel.intent.exceptions.IllegalConverterStateException
 import com.netflix.spinnaker.keel.model.Job
 import org.springframework.stereotype.Component
 
@@ -47,7 +49,8 @@ class AmazonSecurityGroupConverter(
               name = it.name,
               accountName = spec.accountName,
               region = spec.region
-            )
+            ),
+            range = null
           )
           is CrossAccountReferenceSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
             protocol = it.protocol,
@@ -56,7 +59,8 @@ class AmazonSecurityGroupConverter(
               name = it.name,
               accountName = it.account,
               region = spec.region
-            )
+            ),
+            range = null
           )
           is SelfReferencingSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
             protocol = it.protocol,
@@ -65,6 +69,16 @@ class AmazonSecurityGroupConverter(
               name = spec.name,
               accountName = spec.accountName,
               region = spec.region
+            ),
+            range = null
+          )
+          is CidrSecurityGroupRule -> SecurityGroup.SecurityGroupRule(
+            protocol = it.protocol,
+            portRanges = it.portRanges.map { SecurityGroup.SecurityGroupRulePortRange(it.startPort, it.endPort) },
+            securityGroup = null,
+            range = SecurityGroup.SecurityGroupRuleCidr(
+              ip = it.blockRange.split("/")[0],
+              cidr = "/${it.blockRange.split("/")[1]}"
             )
           )
           else -> TODO(reason = "${it.javaClass.simpleName} has not been implemented yet")
@@ -83,10 +97,62 @@ class AmazonSecurityGroupConverter(
       region = state.region,
       vpcName = clouddriverCache.networkBy(state.vpcId!!).name,
       inboundRules = state.inboundRules.map {
-        objectMapper.convertValue(state, SecurityGroupRule::class.java)
+        when (true) {
+          it.securityGroup != null -> convertReferenceRuleFromState(state, it)
+          it.range != null -> convertCidrRuleFromState(it)
+          else -> throw DeclarativeException("Could not determine how to convert rule state: $it")
+        }
       }.toMutableSet(),
       outboundRules = mutableSetOf()
     )
+
+  private fun convertReferenceRuleFromState(state: SecurityGroup, rule: SecurityGroup.SecurityGroupRule): SecurityGroupRule {
+    val ref = rule.securityGroup ?: throw IllegalConverterStateException("Reference rule cannot be null")
+    val ports = rule.portRanges ?: throw IllegalConverterStateException("Reference rules must have port ranges")
+    val protocol = rule.protocol ?: throw IllegalConverterStateException("Reference rules must have a protocol")
+
+    val portRanges = ports.map {
+      objectMapper.convertValue(it, SecurityGroupPortRange::class.java)
+    }.sorted().toSortedSet()
+
+    if (ref.accountName == null || state.vpcId == null) {
+      if (state.name == ref.name) {
+        return SelfReferencingSecurityGroupRule(
+          portRanges = portRanges,
+          protocol = protocol
+        )
+      }
+      return ReferenceSecurityGroupRule(
+        name = ref.name,
+        portRanges = portRanges,
+        protocol = protocol
+      )
+    }
+    return CrossAccountReferenceSecurityGroupRule(
+      name = ref.name,
+      portRanges = portRanges,
+      protocol = protocol,
+      account = ref.accountName!!,
+      vpcName = clouddriverCache.networkBy(state.vpcId!!).name
+        ?: throw DeclarativeException("Could not find VPC by ID ${state.vpcId}")
+    )
+  }
+
+  private fun convertCidrRuleFromState(state: SecurityGroup.SecurityGroupRule): SecurityGroupRule {
+    val range = state.range ?: throw IllegalConverterStateException("CIDR rules must have a range defined")
+    val protocol = state.protocol ?: throw IllegalConverterStateException("CIDR rules must have a protocol")
+    val ports = state.portRanges ?: throw IllegalConverterStateException("CIDR rules must have port ranges")
+
+    val portRanges = ports.map {
+      objectMapper.convertValue(it, SecurityGroupPortRange::class.java)
+    }.sorted().toSortedSet()
+
+    return CidrSecurityGroupRule(
+      protocol = protocol,
+      portRanges = portRanges,
+      blockRange = "${range.ip}${range.cidr}"
+    )
+  }
 
   override fun convertToJob(spec: AmazonSecurityGroupSpec, changeSummary: ChangeSummary): List<Job> {
     changeSummary.addMessage("Converging security group ${spec.name}")

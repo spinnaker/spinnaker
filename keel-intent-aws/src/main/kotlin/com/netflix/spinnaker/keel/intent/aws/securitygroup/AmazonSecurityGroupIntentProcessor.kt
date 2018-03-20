@@ -102,7 +102,7 @@ class AmazonSecurityGroupIntentProcessor(
       OrchestrationRequest(
         name = "Upsert security group",
         application = intent.spec.application,
-        description = "Converging on desired security group state",
+        description = "Converging on desired state for ${intent.id}",
         job = converter.convertToJob(desiredRootIntent.spec, changeSummary),
         trigger = OrchestrationTrigger(intent.id)
       )

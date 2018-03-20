@@ -41,7 +41,7 @@ abstract class Intent<out S : IntentSpec>
   val spec: S,
   var status: IntentStatus = IntentStatus.ACTIVE,
   val labels: MutableMap<String, String> = mutableMapOf(),
-  val attributes: List<Attribute<*>> = listOf(),
+  val attributes: MutableList<Attribute<*>> = mutableListOf(),
   val policies: List<Policy<*>> = listOf(),
   val cas: Long? = null
 ) {

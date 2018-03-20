@@ -44,7 +44,7 @@ class ExecutionWindowFilterTest {
       ExecutionWindowFilter.Configuration(),
       Clock.fixed(scheduledTime, systemDefault())
     )
-    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), mutableMapOf(), listOf(
+    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), mutableMapOf(), mutableListOf(
       ExecutionWindowAttribute(ExecutionWindow(emptyList(), timeWindows))
     ))
 
@@ -63,7 +63,7 @@ class ExecutionWindowFilterTest {
       ExecutionWindowFilter.Configuration(),
       Clock.fixed(scheduledTime, systemDefault())
     )
-    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), mutableMapOf(), listOf(
+    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), mutableMapOf(), mutableListOf(
       ExecutionWindowAttribute(ExecutionWindow(days, timeWindows))
     ))
 
@@ -82,7 +82,7 @@ class ExecutionWindowFilterTest {
       ExecutionWindowFilter.Configuration(),
       Clock.fixed(scheduledTime, systemDefault())
     )
-    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), mutableMapOf(), listOf(
+    val intent = TestIntent(GenericTestIntentSpec("1", emptyMap()), mutableMapOf(), mutableListOf(
       ExecutionWindowAttribute(ExecutionWindow(days, timeWindows))
     ))
 

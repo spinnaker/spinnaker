@@ -30,6 +30,7 @@ enum class EventKind(val kind: String) {
   BEFORE_INTENT_DELETE("beforeIntentDelete"),
   AFTER_INTENT_DELETE("afterIntentDelete"),
   BEFORE_INTENT_DRYRUN("beforeIntentDryRun"),
+  BEFORE_INTENT_SCHEDULE("beforeIntentSchedule"),
   BEFORE_INTENT_CONVERGE("beforeIntentConverge"),
   INTENT_CONVERGE_TIMEOUT("intentConvergeTimeout"),
   INTENT_CONVERGE_NOT_FOUND("intentConvergeNotFound"),
@@ -52,6 +53,7 @@ enum class EventKind(val kind: String) {
 @JsonSubTypes(
   Type(AfterIntentUpsertEvent::class),
   Type(AfterIntentDeleteEvent::class),
+  Type(BeforeIntentScheduleEvent::class),
   Type(BeforeIntentConvergeEvent::class),
   Type(IntentConvergeTimeoutEvent::class),
   Type(IntentConvergeNotFoundEvent::class),
@@ -94,6 +96,12 @@ data class BeforeIntentDryRunEvent(
   override val intent: Intent<IntentSpec>
 ) : IntentAwareEvent() {
   override val kind = EventKind.BEFORE_INTENT_DRYRUN
+}
+
+data class BeforeIntentScheduleEvent(
+  override val intent: Intent<IntentSpec>
+) : IntentAwareEvent() {
+  override val kind = EventKind.BEFORE_INTENT_SCHEDULE
 }
 
 data class BeforeIntentConvergeEvent(

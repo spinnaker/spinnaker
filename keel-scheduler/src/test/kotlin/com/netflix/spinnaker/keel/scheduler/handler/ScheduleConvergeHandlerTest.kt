@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -38,8 +39,9 @@ object ScheduleConvergeHandlerTest {
   val registry = NoopRegistry()
   val clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
   val scheduleService = ScheduleService(queue, properties, clock)
+  val applicationEventPublisher = mock<ApplicationEventPublisher>()
 
-  val subject = ScheduleConvergeHandler(queue, scheduleService, intentRepository, emptyList(), registry)
+  val subject = ScheduleConvergeHandler(queue, scheduleService, intentRepository, emptyList(), registry, applicationEventPublisher)
 
   @Test
   fun `should push converge messages for each active intent`() {

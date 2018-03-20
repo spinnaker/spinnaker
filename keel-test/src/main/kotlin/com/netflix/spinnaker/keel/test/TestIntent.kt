@@ -34,7 +34,7 @@ class TestIntent
 @JsonCreator constructor(
   spec: TestIntentSpec,
   labels: MutableMap<String, String> = mutableMapOf(),
-  attributes: List<Attribute<Any>> = listOf(),
+  attributes: MutableList<Attribute<*>> = mutableListOf(),
   policies: List<Policy<PolicySpec>> = listOf()
 ) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, labels, attributes, policies) {
   @JsonIgnore override val id = "test:${spec.id}"

@@ -31,7 +31,8 @@ data class SecurityGroup(
   data class SecurityGroupRule(
     val protocol: String?,
     val portRanges: List<SecurityGroupRulePortRange>?,
-    val securityGroup: SecurityGroupRuleReference?
+    val securityGroup: SecurityGroupRuleReference?,
+    val range: SecurityGroupRuleCidr?
   )
 
   data class SecurityGroupRulePortRange(
@@ -43,5 +44,10 @@ data class SecurityGroup(
     val name: String,
     val accountName: String?,
     val region: String?
+  )
+
+  data class SecurityGroupRuleCidr(
+    val ip: String,
+    val cidr: String
   )
 }
