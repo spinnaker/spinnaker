@@ -52,7 +52,7 @@ class ArtifactCtrl implements IController {
 
     if (artifactKindConfig.length) {
       const config = artifactKindConfig[0];
-      const template: Element = config.template as any;
+      const template: string = config.template;
       this.description = config.description;
 
       const ctrl = config.controller;
