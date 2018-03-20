@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.redis
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionEvent
 import com.netflix.spinnaker.orca.events.ExecutionStarted
@@ -51,7 +52,7 @@ import java.util.concurrent.atomic.AtomicLong
 @Component
 class RedisActiveExecutionsMonitor(
   private val executionRepository: ExecutionRepository,
-  @Qualifier("jedisPool") private val pool: Pool<Jedis>,
+  @Qualifier("redisClientDelegate") private val redisClientDelegate: RedisClientDelegate,
   private val objectMapper: ObjectMapper,
   private val registry: Registry,
   @Value("\${queue.monitor.activeExecutions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
@@ -149,7 +150,7 @@ class RedisActiveExecutionsMonitor(
 
     log.info("Cleaning up ${orphans.size} orphaned active executions")
     if (orphans.isNotEmpty()) {
-      pool.resource.use { redis ->
+      redisClientDelegate.withCommandsClient { redis ->
         redis.hdel(REDIS_KEY, *orphans)
       }
     }
@@ -172,7 +173,7 @@ class RedisActiveExecutionsMonitor(
       return
     }
 
-    pool.resource.use { redis ->
+    redisClientDelegate.withCommandsClient{ redis ->
       redis.hset(REDIS_KEY, execution.id, objectMapper.writeValueAsString(ActiveExecution(
         id = execution.id,
         type = execution.type,
@@ -182,13 +183,13 @@ class RedisActiveExecutionsMonitor(
   }
 
   private fun completeExecution(executionId: String) {
-    pool.resource.use { redis ->
+    redisClientDelegate.withCommandsClient { redis ->
       redis.hdel(REDIS_KEY, executionId)
     }
   }
 
   private fun getActiveExecutions() =
-    pool.resource.use { redis ->
+    redisClientDelegate.withCommandsClient<List<ActiveExecution>> { redis ->
       redis.hgetAll(REDIS_KEY).map { objectMapper.readValue(it.value, ActiveExecution::class.java) }
     }
 
