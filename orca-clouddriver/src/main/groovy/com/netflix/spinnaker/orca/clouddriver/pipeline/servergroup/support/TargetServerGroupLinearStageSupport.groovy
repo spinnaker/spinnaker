@@ -91,7 +91,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
       // the top level stage should resolve targets and create synthetic stages to
       // deal with each one
       composeTargets(parent, graph)
-    } else {
+    } else if (isTopLevel(parent.parent)) {
       // a non top level stage operates on a single target and may have its own
       // synthetic stages
       if (isDynamicallyBound(parent)) {
@@ -109,7 +109,7 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
   ) {
     if (isTopLevel(parent)) {
       // the top level stage has no after stages
-    } else {
+    } else if (isTopLevel(parent.parent)) {
       // a non top level stage operates on a single target and may have its own
       // synthetic stages
       if (isDynamicallyBound(parent)) {

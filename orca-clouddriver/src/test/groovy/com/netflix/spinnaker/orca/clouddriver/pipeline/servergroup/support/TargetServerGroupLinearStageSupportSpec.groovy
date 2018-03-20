@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class TargetServerGroupLinearStageSupportSpec extends Specification {
@@ -31,14 +32,23 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
   }
 
   @Unroll
-  def "should inject determineTargetReferences stage when target is dynamic and parentStageId is #parentStageId"() {
+  def "should inject determineTargetReferences stage when target is dynamic and the stage is #description"() {
     given:
-    def stage = stage {
-      type = "test"
-      context["regions"] = ["us-east-1"]
-      context["target"] = "current_asg_dynamic"
+    def pipeline = pipeline {
+      stage {
+        type = "test"
+        refId = "1"
+        context["regions"] = ["us-east-1"]
+        context["target"] = "current_asg_dynamic"
+        stage {
+          type = "test"
+          refId = "1<1"
+          context["regions"] = ["us-east-1"]
+          context["target"] = "current_asg_dynamic"
+        }
+      }
     }
-    stage.parentStageId = parentStageId
+    def stage = pipeline.stageByRef(ref)
 
     when:
     def graph = StageGraphBuilder.beforeStages(stage)
@@ -48,9 +58,9 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     graph.build()*.name == stageNamesBefore
 
     where:
-    parentStageId                | stageNamesBefore
-    null                         | ["determineTargetServerGroup", "testSupport"]
-    UUID.randomUUID().toString() | ["preDynamic"]
+    ref   | description || stageNamesBefore
+    "1"   | "top level" || ["determineTargetServerGroup", "testSupport"]
+    "1<1" | "synthetic" || ["preDynamic"]
   }
 
   @Unroll
@@ -71,7 +81,9 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     then:
     syntheticStages*.name == ["determineTargetServerGroup"] + (["testSupport"] * 4)
     syntheticStages.tail()*.context[locationType].flatten() == ["us-east-1", "us-west-1", "us-west-2", "eu-west-2"]
-    syntheticStages.tail()*.context[oppositeLocationType].flatten().every { it == null }
+    syntheticStages.tail()*.context[oppositeLocationType].flatten().every {
+      it == null
+    }
 
     where:
     locationType | oppositeLocationType | cloudProvider
@@ -107,12 +119,19 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
   @Unroll
   def "#target should inject stages correctly before and after each location stage"() {
     given:
-    def stage = stage {
-      type = "test"
-      context["target"] = target
-      context["regions"] = ["us-east-1", "us-west-1"]
-      parentStageId = UUID.randomUUID().toString()
+    def pipeline = pipeline {
+      stage {
+        type = "test"
+        refId = "1"
+        stage {
+          type = "test"
+          refId = "1<1"
+          context["target"] = target
+          context["regions"] = ["us-east-1", "us-west-1"]
+        }
+      }
     }
+    def stage = pipeline.stageByRef("1<1")
 
     and:
     resolver.resolveByParams(_) >> [
