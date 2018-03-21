@@ -33,11 +33,14 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFOR
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
+import com.netflix.spinnaker.spek.but
 import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
@@ -80,6 +83,17 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
     }
   }
 
+  val stageWithNothingButAfterStages = object : StageDefinitionBuilder {
+    override fun getType() = "stageWithNothingButAfterStages"
+
+    override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+      graph.add {
+        it.type = singleTaskStage.type
+        it.name = "After Stage"
+      }
+    }
+  }
+
   subject(GROUP) {
     CompleteStageHandler(
       queue,
@@ -96,7 +110,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         stageWithParallelBranches,
         stageWithTaskAndAfterStages,
         stageThatBlowsUpPlanningAfterStages,
-        stageWithSyntheticOnFailure
+        stageWithSyntheticOnFailure,
+        stageWithNothingButAfterStages
       )
     )
   }
@@ -540,6 +555,53 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           assertThat(it.stageId).isEqualTo(message.stageId)
           assertThat(it.status).isEqualTo(TERMINAL)
         })
+      }
+    }
+
+    given("a stage had no tasks or before stages") {
+      but("does have after stages") {
+        val pipeline = pipeline {
+          stage {
+            refId = "1"
+            type = stageWithNothingButAfterStages.type
+            status = RUNNING
+          }
+        }
+        val message = CompleteStage(pipeline.stageByRef("1"))
+
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving $message") {
+          subject.handle(message)
+        }
+
+        it("plans and starts the after stages") {
+          argumentCaptor<Message>().apply {
+            verify(queue).push(capture())
+            firstValue.let { capturedMessage ->
+              when (capturedMessage) {
+                is StartStage -> pipeline.stageById(capturedMessage.stageId).apply {
+                  assertThat(parentStageId).isEqualTo(message.stageId)
+                  assertThat(name).isEqualTo("After Stage")
+                }
+                else          ->
+                  fail("Expected a StartStage message but got a ${capturedMessage.javaClass.simpleName}")
+              }
+            }
+          }
+        }
+
+        it ("does not complete the pipeline") {
+          verify(queue, never()).push(isA<CompleteExecution>())
+        }
+
+        it ("does not mark the stage as failed") {
+          assertThat(pipeline.stageById(message.stageId).status).isEqualTo(RUNNING)
+        }
       }
     }
 

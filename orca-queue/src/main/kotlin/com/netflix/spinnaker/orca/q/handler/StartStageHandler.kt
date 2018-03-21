@@ -142,6 +142,7 @@ class StartStageHandler(
     if (beforeStages.isEmpty()) {
       val task = firstTask()
       if (task == null) {
+        // TODO: after stages are no longer planned at this point. We could skip this
         val afterStages = firstAfterStages()
         if (afterStages.isEmpty()) {
           queue.push(CompleteStage(this))

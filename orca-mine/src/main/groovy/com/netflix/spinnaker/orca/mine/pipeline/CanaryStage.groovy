@@ -47,13 +47,13 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
   @Override
   void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
     Map canaryStageId = [
-      canaryStageId   : stage.id,
-      failPipeline    : stage.context.failPipeline,
-      continuePipeline: stage.context.continuePipeline
+      canaryStageId   : parent.id,
+      failPipeline    : parent.context.failPipeline,
+      continuePipeline: parent.context.continuePipeline
     ]
 
-    Map<String, Object> deployContext = canaryStageId + stage.context
-    Map<String, Object> monitorContext = canaryStageId + [scaleUp: stage.context.scaleUp ?: [:]]
+    Map<String, Object> deployContext = canaryStageId + parent.context
+    Map<String, Object> monitorContext = canaryStageId + [scaleUp: parent.context.scaleUp ?: [:]]
 
     def deployCanaryStage = graph.add {
       it.type = deployCanaryStage.type
