@@ -159,10 +159,37 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     ReactGA.event({ action: 'SPAN', category: 'Alerts hovered', label: analyticsLabel });
   }
 
+  private PopoverContent = ({ hidePopover }: IHoverablePopoverContentsProps) => {
+    const { type, categorized, grouped } = this.props;
+    const { notifications } = this.state;
+
+    const handleEditNotification = (notification: INotification) => {
+      hidePopover();
+      this.handleEditNotification(notification);
+    };
+
+    const handleDeleteNotification = (notification: INotification) => {
+      hidePopover();
+      this.handleDeleteNotification(notification);
+    };
+
+    return (
+      <NotificationsPopoverContents
+        type={type}
+        categorized={categorized}
+        grouped={grouped}
+        notifications={notifications}
+        hidePopover={hidePopover}
+        handleEditNotification={handleEditNotification}
+        handleDeleteNotification={handleDeleteNotification}
+      />
+    );
+  };
 
   public render() {
-    const { type, categorized, grouped, className, placement, hOffsetPercent } = this.props;
-    const { count, severity, notifications } = this.state;
+    const { type, className, placement, hOffsetPercent } = this.props;
+    const { count, severity } = this.state;
+    const { title, icon } = types[type];
     if (count < 1) {
       return null;
     }
@@ -170,39 +197,13 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     // e.g., alerts-severity-0 alerts-severity-2 notices-severity-0
     const severityClass = `${type}-severity-${Math.min(Math.max(severity, 0), 2)}`;
 
-    const { title, icon } = types[type];
-
-    const PopoverContent = ({ hidePopover }: IHoverablePopoverContentsProps) => {
-      const handleEditNotification = (notification: INotification) => {
-        hidePopover();
-        this.handleEditNotification(notification);
-      };
-
-      const handleDeleteNotification = (notification: INotification) => {
-        hidePopover();
-        this.handleDeleteNotification(notification);
-      };
-
-      return (
-        <NotificationsPopoverContents
-          type={type}
-          categorized={categorized}
-          grouped={grouped}
-          notifications={notifications}
-          hidePopover={hidePopover}
-          handleEditNotification={handleEditNotification}
-          handleDeleteNotification={handleDeleteNotification}
-        />
-      );
-    };
-
     return (
       <span className={`tag-marker small ${className || ''}`} onMouseEnter={this.fireGAEvent}>
         <HoverablePopover
           delayShow={100}
           placement={placement}
           hOffsetPercent={hOffsetPercent}
-          Component={PopoverContent}
+          Component={this.PopoverContent}
           title={title}
           className={`no-padding notifications-popover ${severityClass}`}
         >
