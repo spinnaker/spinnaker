@@ -369,7 +369,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             { execution.isActive && (
               <Tooltip value="Cancel execution">
                 <button className="link" onClick={this.handleCancelClick}>
-                  <i className="fa fa-times-circle-o"/>
+                  <i className="far fa-times-circle"/>
                 </button>
               </Tooltip>
             )}
