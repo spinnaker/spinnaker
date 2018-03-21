@@ -38,7 +38,11 @@ from buildtool.errors import (
 
     check_kwargs_empty,
     check_options_set,
-    check_path_exists)
+    check_path_exists,
+
+    # This is very specialized, but here to share
+    # between validate_bom__deploy and image_commands
+    scan_logs_for_install_errors)
 
 from buildtool.subprocess_support import (
     start_subprocess,

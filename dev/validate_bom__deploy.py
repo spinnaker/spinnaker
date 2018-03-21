@@ -22,6 +22,7 @@ from multiprocessing.pool import ThreadPool
 import json
 import logging
 import os
+import shutil
 import stat
 import tempfile
 import time
@@ -32,6 +33,7 @@ from buildtool import (
     check_subprocess,
     check_subprocess_sequence,
     check_subprocesses_to_logfile,
+    scan_logs_for_install_errors,
     run_subprocess,
     write_to_path,
     raise_and_log_error,
@@ -577,6 +579,41 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
         break
       time.sleep(1)
 
+  def attempt_install(self, script_path, retry):
+    """Attempt to the install script on the remote instance.
+
+    Bintray is flaky making this not uncommon to fail intermittently.
+    Therefore, it is intended that this function may be called multiple
+    times on the same instance.
+    """
+    attempt_decorator = '+%d' % retry if retry > 0 else ''
+    logging.info('Configuring deployment%s',
+                 ' retry=%d' % retry if retry else '')
+    logfile = os.path.join(
+        self.options.output_dir,
+        'install_spinnaker-%d%s.log' % (os.getpid(), attempt_decorator))
+    try:
+      command = (
+          'ssh'
+          ' -i {ssh_key}'
+          ' -o StrictHostKeyChecking=no'
+          ' -o UserKnownHostsFile=/dev/null'
+          ' {user}@{ip}'
+          ' ./{script_name}'
+          .format(user=self.hal_user,
+                  ip=self.instance_ip,
+                  ssh_key=self.__ssh_key_path,
+                  script_name=os.path.basename(script_path)))
+      check_subprocesses_to_logfile('install spinnaker', logfile, [command])
+    except ExecutionError as error:
+      scan_logs_for_install_errors(logfile)
+      return ExecutionError('Halyard deployment failed: %s' % error.message,
+                            program='install')
+    except Exception as ex:
+      return UnexpectedError(ex.message)
+
+    return None
+
   def do_deploy(self, script, files_to_upload):
     """Implements the BaseBomValidateDeployer interface."""
     options = self.options
@@ -602,30 +639,48 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
           ExecutionError('Caught %s provisioning vm' % ex.message,
                          program='provisionVm'))
     finally:
+      shutil.copyfile(script_path,
+                      os.path.join(options.output_dir, 'install-script.sh'))
       os.remove(script_path)
+      files_to_upload.remove(script_path)  # in case we need to retry
 
-    try:
-      logfile = os.path.join(
-          options.output_dir, 'install_spinnaker-%d.log' % os.getpid())
-      logging.info('Configuring deployment')
-      command = (
+    error = None
+    max_retries = 10
+    install_labels = {}
+    for retry in range(0, max_retries):
+      error = self.metrics.track_and_time_call(
+          'InstallSpinnaker',
+          install_labels,
+          self.metrics.determine_outcome_labels_from_error_result,
+          self.attempt_install, script_path, retry)
+      if not error:
+        break
+
+      logging.warning('Encountered an error during install: %s', error.message)
+      if retry < (max_retries - 1):
+        # Re-upload the files because script may have moved them around
+        # so re-running the script wont find them anymore.
+        self.__upload_files_helper(files_to_upload)
+        logging.debug('Re-uploading install files...')
+
+        # Clear halyard history
+        clear_halyard_command = (
           'ssh'
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
           ' {user}@{ip}'
-          ' ./{script_name}'
+          ' "hal deploy clean || true; echo "Y" | sudo ~/.hal/uninstall.sh || true;"'
           .format(user=self.hal_user,
                   ip=self.instance_ip,
-                  ssh_key=self.__ssh_key_path,
-                  script_name=os.path.basename(script_path)))
-      check_subprocesses_to_logfile('install spinnaker', logfile, [command])
-    except ExecutionError as error:
-      raise_and_log_error(
-          ExecutionError('Halyard deployment failed: %s' % error.message,
-                         program='install'))
-    except Exception as ex:
-      raise_and_log_error(UnexpectedError(ex.message))
+                  ssh_key=self.__ssh_key_path))
+        run_subprocess(clear_halyard_command)
+
+        logging.debug('Waiting a minute before retrying...')
+        time.sleep(60)
+
+    if error:
+      raise_and_log_error(error)
 
   def do_fetch_service_log_file(self, service, log_dir):
     """Implements the BaseBomValidateDeployer interface."""

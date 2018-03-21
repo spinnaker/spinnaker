@@ -217,12 +217,25 @@ class BaseMetricsRegistry(object):
   def default_determine_outcome_labels(result, base_labels):
     """Return the outcome labels for a set of tracking labels."""
     ex_type, _, _ = sys.exc_info()
-    result = dict(base_labels)
-    result.update({
+    labels = dict(base_labels)
+    labels.update({
         'success': ex_type is None,
         'exception_type': '' if ex_type is None else ex_type.__name__
     })
-    return result
+    return labels
+
+  @staticmethod
+  def determine_outcome_labels_from_error_result(result, base_labels):
+    if result is None:
+      # Call itself threw an exception before it could return the error
+      _, result, _ = sys.exc_info()
+
+    labels = dict(base_labels)
+    labels.update({
+        'success': result is None,
+        'exception_type': '' if result is None else result.__class__.__name__
+    })
+    return labels
 
   @property
   def options(self):
@@ -340,7 +353,10 @@ class BaseMetricsRegistry(object):
       except Exception as ex:
         logging.exception('label_func failed with %s', ex.message)
         raise ex
+<<<<<<< HEAD
       raise
+=======
+>>>>>>> 6389d92... fix(validate): Tolerate some bintray unreliability.
     finally:
       timer = self.get_metric(MetricFamily.TIMER, name, outcome_labels)
       timer.observe(time.time() - start_time)
