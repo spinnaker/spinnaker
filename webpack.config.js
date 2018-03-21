@@ -16,6 +16,8 @@ function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
   const IS_PRODUCTION = WEBPACK_MODE === 'production';
 
+  console.log("Webpack mode: " + WEBPACK_MODE);
+
   const config = {
     context: __dirname,
     mode: WEBPACK_MODE,
