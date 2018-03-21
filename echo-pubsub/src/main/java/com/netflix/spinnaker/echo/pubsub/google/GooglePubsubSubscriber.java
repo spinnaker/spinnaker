@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiService;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.Credentials;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.cloud.pubsub.v1.MessageReceiver;
@@ -99,21 +100,26 @@ public class GooglePubsubSubscriber implements PubsubSubscriber {
         pubsubMessageHandler,
         subscription.readTemplatePath());
 
+    Credentials credentials = null;
     if (jsonPath != null && !jsonPath.isEmpty()) {
-      Credentials credentials = null;
       try {
         credentials = ServiceAccountCredentials.fromStream(new FileInputStream(jsonPath));
       } catch (IOException e) {
         log.error("Could not import Google Pubsub json credentials: {}", e.getMessage());
       }
-      subscriber = Subscriber
-          .defaultBuilder(SubscriptionName.create(project, subscriptionName), messageReceiver)
-          .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-          .setMaxAckExtensionPeriod(Duration.ofSeconds(0))
-          .build();
     } else {
-      subscriber = Subscriber.defaultBuilder(SubscriptionName.create(project, subscriptionName), messageReceiver).build();
+      try {
+        credentials = GoogleCredentials.getApplicationDefault();
+      } catch (IOException e) {
+        log.error("Could not import default application credentials: {}", e.getMessage());
+      }
     }
+
+    subscriber = Subscriber
+        .defaultBuilder(SubscriptionName.create(project, subscriptionName), messageReceiver)
+        .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+        .setMaxAckExtensionPeriod(Duration.ofSeconds(0))
+        .build();
 
     subscriber.addListener(new GooglePubsubFailureHandler(formatSubscriptionName(project, subscriptionName)), MoreExecutors.directExecutor());
 
