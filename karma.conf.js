@@ -33,7 +33,7 @@ module.exports = function (config) {
     webpack: webpackConfig,
 
     webpackMiddleware: {
-      noInfo: true,
+      stats: 'minimal',
     },
 
     customLaunchers: {
@@ -52,7 +52,6 @@ module.exports = function (config) {
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
-      require('karma-mocha-reporter'),
       require('karma-sourcemap-loader'),
     ],
 
@@ -73,7 +72,7 @@ module.exports = function (config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress', 'mocha'],
+    reporters: ['dots'],
 
     // the default configuration
     junitReporter: {
