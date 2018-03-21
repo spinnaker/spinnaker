@@ -35,11 +35,6 @@ module(BASE64_ARTIFACT, [
              ng-model="ctrl.artifact.name" />
     </div>
   </div>
-  <div ng-if="ctrl.encodeDecodeError" class="form-group row">
-    <div class="col-md-12 error-message">
-      Error encoding/decoding artifact content: {{ ctrl.encodeDecodeError }}
-    </div>
-  </div>
 </div>
 `,
   });
