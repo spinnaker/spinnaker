@@ -22,7 +22,7 @@ class SecurityGroupsSearchResultType extends SearchResultType<ISecurityGroupSear
   public id = 'securityGroups';
   public order = 6;
   public displayName = 'Security Groups';
-  public iconClass = 'fa fa-exchange';
+  public iconClass = 'fa fa-exchange-alt';
 
   private cols: { [key: string]: ISearchColumn } = {
     NAME: { key: 'name' },

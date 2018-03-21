@@ -23,14 +23,6 @@ span[class^="icon-"], span[class*=" icon-"] {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-bubbles:before {
-  content: "\e96d";
-}
-
 .icon-spinner:before {
   content: "\e97e";
-}
-
-.icon-elb:before {
-  content: "\e600";
 }

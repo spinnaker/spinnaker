@@ -87,7 +87,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
   public render() {
     const { createApp, createProject, refreshCaches } = this.props;
     const refreshMarkup = this.state.refreshingCache ?
-      <span><span className="fa fa-refresh fa-spin"/> Refreshing...</span> :
+      <span><span className="fa fa-sync-alt fa-spin"/> Refreshing...</span> :
       <span>Refresh all caches</span>;
 
     return (

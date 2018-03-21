@@ -13,9 +13,9 @@
     <div ng-if="state.loading" class="horizontal center middle">
       <loading-spinner size="'small'"></loading-spinner>
     </div>
-    <div class="header-text" ng-if="!state.loading">
+    <div class="header-text horizontal middle" ng-if="!state.loading">
       <span class="glyphicon glyphicon-transfer"></span>
-      <h3 select-on-dbl-click>
+      <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{securityGroup.name || '(not found)'}}
         <render-if-feature feature="entityTags">
 

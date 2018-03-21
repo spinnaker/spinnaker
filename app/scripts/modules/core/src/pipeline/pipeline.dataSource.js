@@ -58,9 +58,10 @@ module.exports = angular
       applicationDataSourceRegistry.registerDataSource({
         optional: true,
         primary: true,
-        icon: 'tasks',
+        icon: 'list',
         key: 'executions',
         label: 'Pipelines',
+        category: 'delivery',
         sref: '.pipelines.executions',
         activeState: '**.pipelines.**',
         loader: loadExecutions,

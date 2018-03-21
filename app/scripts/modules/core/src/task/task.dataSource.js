@@ -37,12 +37,13 @@ module.exports = angular
       key: 'tasks',
       sref: '.tasks',
       badge: 'runningTasks',
+      category: 'tasks',
       loader: loadTasks,
       onLoad: addTasks,
       afterLoad: runningTasksLoaded,
       lazy: true,
       primary: true,
-      icon: 'list',
+      icon: 'check-square',
     });
 
     applicationDataSourceRegistry.registerDataSource({

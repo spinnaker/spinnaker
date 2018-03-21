@@ -52,7 +52,7 @@ class LoadBalancerButton extends React.Component<ILoadBalancerSingleItemProps> {
         <button className="btn btn-link no-padding" onClick={this.onClick}>
           <span className="badge badge-counter">
             <span className="icon">
-              <span className="icon-elb"/>
+              <i className="fa fa-sitemap"/>
             </span>
           </span>
         </button>
@@ -168,7 +168,7 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
           >
             <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding" >
               <span className="badge badge-counter">
-                <span className="icon"><span className="icon-elb"/></span> {totalCount}
+                <span className="icon"><i className="fa fa-sitemap"/></span> {totalCount}
               </span>
             </button>
           </HoverablePopover>

@@ -69,7 +69,7 @@ export class Refresher extends React.Component<IRefresherProps, IRefresherState>
     const RefresherTooltip = (
       <span>
         {this.props.refreshing && <p>Application is <strong>refreshing</strong>.</p>}
-        {!this.props.refreshing && <p>(click <span className="fa fa-refresh"/> to refresh)</p>}
+        {!this.props.refreshing && <p>(click <span className="fa fa-sync-alt"/> to refresh)</p>}
         <p>Last refresh: {timestamp(this.props.lastRefresh)} <br/> ({this.state.relativeTime})</p>
         <p className="small"><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>
       </span>
@@ -78,7 +78,7 @@ export class Refresher extends React.Component<IRefresherProps, IRefresherState>
     return (
       <Tooltip template={RefresherTooltip} placement={$window.innerWidth < 1100 ? 'right' : 'bottom'}>
         <a className="refresher clickable" onClick={this.props.refresh}>
-          <span className={`fa fa-refresh refresh-${this.state.color} ${this.props.refreshing ? 'fa-spin' : ''}`}/>
+          <span className={`fa fa-sync-alt refresh-${this.state.color} ${this.props.refreshing ? 'fa-spin' : ''}`}/>
         </a>
       </Tooltip>
     );

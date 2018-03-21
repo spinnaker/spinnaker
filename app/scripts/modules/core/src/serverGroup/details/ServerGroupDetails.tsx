@@ -93,9 +93,9 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
         {!loading && (
           <div className="header">
             {CloseButton}
-            <div className="header-text">
+            <div className="header-text horizontal middle">
               <CloudProviderLogo provider={serverGroup.type} height="36px" width="36px"/>
-              <h3>
+              <h3 className="horizontal middle space-between flex-1">
                 {serverGroup.name}
                 {showEntityTags && (
                   <EntityNotifications

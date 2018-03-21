@@ -203,7 +203,7 @@ class SecurityGroupsImpl extends React.Component<IWizardPageProps & FormikProps<
           <div className="form-group small" style={{ marginTop: '20px' }}>
             <div className="col-md-9 col-md-offset-3">
               <p>
-                {refreshing && <span><span className="fa fa-refresh fa-spin"/> </span>}
+                {refreshing && <span><span className="fa fa-sync-alt fa-spin"/> </span>}
                 Security groups
                 {!refreshing && <span> last refreshed {timestamp(refreshTime)}</span>}
                 {refreshing && <span> refreshing...</span>}

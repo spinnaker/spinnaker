@@ -26,6 +26,7 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free-webfonts": "^1.0.4",
     "@spinnaker/kayenta": "0.0.29",
     "@spinnaker/styleguide": "^1.0.0",
     "@uirouter/react-hybrid": "0.1.0",
@@ -51,7 +52,6 @@
     "d3-shape": "^1.0.4",
     "diff-match-patch": "^1.0.0",
     "dompurify": "^0.8.5",
-    "font-awesome": "^4.7.0",
     "formik": "^0.11.11",
     "jasmine": "^2.6.0",
     "jquery": "3.3.1",

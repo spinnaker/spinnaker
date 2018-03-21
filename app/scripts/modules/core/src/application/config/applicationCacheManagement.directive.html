@@ -14,7 +14,7 @@
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('instanceTypes')">
           <span ng-class="{'fa-spin':vm.clearingCache['instanceTypes']}"
-                class="fa fa-refresh"></span>
+                class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -24,7 +24,7 @@
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('loadBalancers')">
           <span ng-class="{'fa-spin':vm.clearingCache['loadBalancers']}"
-                class="fa fa-refresh"></span>
+                class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -34,7 +34,7 @@
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('securityGroups')">
           <span ng-class="{'fa-spin':vm.clearingCache['securityGroups']}"
-                class="fa fa-refresh"></span>
+                class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -44,7 +44,7 @@
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('subnets')">
           <span ng-class="{'fa-spin':vm.clearingCache['subnets']}"
-                class="fa fa-refresh"></span>
+                class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
@@ -54,17 +54,17 @@
   <div class="col-md-1 text-center">
     <a href ng-click="vm.refreshCache('networks')">
           <span ng-class="{'fa-spin':vm.clearingCache['networks']}"
-                class="fa fa-refresh"></span>
+                class="fa fa-sync-alt"></span>
     </a>
   </div>
 </div>
 <div class="row" style="margin-top:20px">
   <div class="col-md-10">
     <button class="btn btn-link" ng-if="!vm.clearingCaches" ng-click="vm.refreshCaches()"><span
-        class="fa fa-refresh"></span>
+        class="fa fa-sync-alt"></span>
       Refresh all caches
     </button>
-    <button disabled class="btn btn-link" ng-if="vm.clearingCaches"><span class="fa fa-refresh fa-spin"></span>
+    <button disabled class="btn btn-link" ng-if="vm.clearingCaches"><span class="fa fa-sync-alt fa-spin"></span>
       Refreshing caches...</button>
   </div>
 </div>

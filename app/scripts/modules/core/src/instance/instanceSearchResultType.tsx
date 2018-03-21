@@ -22,7 +22,7 @@ class InstancesSearchResultType extends SearchResultType<IInstanceSearchResult> 
   public id = 'instances';
   public order = 4;
   public displayName = 'Instances';
-  public iconClass = 'fa fa-hdd-o';
+  public iconClass = 'fa fa-hdd';
 
   private cols: { [key: string]: ISearchColumn } = {
     INSTANCE: { key: 'instanceId', label: 'Instance ID' },

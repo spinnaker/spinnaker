@@ -28,7 +28,7 @@ class ProjectsSearchResultType extends SearchResultType<IProjectSearchResult> {
   public id = 'projects';
   public order = 0;
   public displayName = 'Projects';
-  public iconClass = 'fa fa-folder-o';
+  public iconClass = 'far fa-folder';
 
   private cols: { [key: string]: ISearchColumn } = {
     NAME: { key: 'name' },
