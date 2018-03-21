@@ -1,8 +1,15 @@
 'use strict';
 
-const path = require('path');
-const webpackCommon = require('./webpack.common');
-const webpackConfig = webpackCommon(true);
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const prodWebpackConfig = require('./webpack.config')();
+const webpackConfig = {
+  mode: 'development',
+  module: prodWebpackConfig.module,
+  resolve: prodWebpackConfig.resolve,
+  plugins: [
+    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
+  ]
+};
 
 module.exports = function (config) {
   config.set({
