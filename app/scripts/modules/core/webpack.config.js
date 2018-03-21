@@ -5,13 +5,15 @@ const basePath = path.join(__dirname, '..', '..', '..', '..');
 const NODE_MODULE_PATH = path.join(basePath, 'node_modules');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
-const webpack = require('webpack');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
+const WEBPACK_THREADS = Math.max(require('physical-cpu-count') - 1, 1);
 
 module.exports = {
   context: basePath,
+  mode: 'production',
   stats: 'errors-only',
-  devtool: 'source-map',
+  watch:  process.env.WATCH === 'true',
   entry: {
     lib: path.join(__dirname, 'src', 'index.ts'),
   },
@@ -22,10 +24,16 @@ module.exports = {
     libraryTarget: 'umd',
     umdNamedDefine: true,
   },
-  externals: [
-    'root/version.json',
-    nodeExternals({ modulesDir: '../../../../node_modules' }),
-  ],
+  devtool: 'source-map',
+  optimization: {
+    minimizer: [
+      new UglifyJSPlugin({
+        cache: true,
+        sourceMap: true,
+        uglifyOptions: { mangle: false }
+      }),
+    ],
+  },
   resolve: {
     extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],
     modules: [
@@ -39,17 +47,16 @@ module.exports = {
       'coreImports': path.resolve(__dirname, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
     }
   },
-  watch:  process.env.WATCH === 'true',
   module: {
     rules: [
       {
         test: /\.js$/,
         use: [
           { loader: 'cache-loader' },
-          { loader: 'thread-loader', options: { workers: 3 } },
+          { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
           { loader: 'babel-loader' },
           { loader: 'envify-loader' },
-          { loader: 'eslint-loader' } ,
+          { loader: 'eslint-loader' },
         ],
         exclude: exclusionPattern
       },
@@ -57,7 +64,7 @@ module.exports = {
         test: /\.tsx?$/,
         use: [
           { loader: 'cache-loader' },
-          { loader: 'thread-loader', options: { workers: 3 } },
+          { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
           { loader: 'babel-loader' },
           { loader: 'ts-loader', options: { happyPackMode: true } },
           { loader: 'tslint-loader' },
@@ -90,12 +97,6 @@ module.exports = {
         ]
       },
       {
-        test: /\.json$/,
-        use: [
-          { loader: 'json-loader' },
-        ],
-      },
-      {
         test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
         use: [
           { loader: 'file-loader', options: { name: '[name].[hash:5].[ext]'} },
@@ -112,11 +113,9 @@ module.exports = {
   },
   plugins: [
     new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-    new webpack.optimize.UglifyJsPlugin({
-      mangle: false,
-      beautify: true,
-      comments: true,
-      sourceMap: true,
-    }),
+  ],
+  externals: [
+    'root/version.json',
+    nodeExternals({ modulesDir: '../../../../node_modules' }),
   ],
 };

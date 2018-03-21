@@ -17,10 +17,10 @@
   },
   "scripts": {
     "clean": "rimraf .awcache .cache-loader build node_modules transpiled",
-    "build": "webpack --bail",
+    "build": "webpack --bail --mode=production",
     "eslint": "eslint -c .eslintrc app/scripts/modules",
     "start": "sh ./start.sh",
-    "start-dev-server": "webpack-dev-server --progress --inline --hot",
+    "start-dev-server": "webpack-dev-server --progress --mode=development",
     "test": "karma start",
     "tslint": "tslint --project tsconfig.json",
     "int": "protractor protractor.conf.js"

@@ -1,4 +1,3 @@
-const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 const md5 = require('md5');
@@ -6,35 +5,45 @@ const md5 = require('md5');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-// invalidate webpack cache when webpack config is changed or cache-loader is updated,
-const CACHE_INVALIDATE = JSON.stringify({
-  THREAD_LOADER:       require('cache-loader/package.json').version,
-  WEBPACK_CONFIG:      md5(fs.readFileSync(__filename)),
-});
-
+const CACHE_INVALIDATE = getCacheInvalidateString();
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './settings.js';
+const THREADS = getThreadLoaderThreads();
 
-function configure(IS_TEST) {
+function configure(env, webpackOpts) {
+  const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
+  const IS_PRODUCTION = WEBPACK_MODE === 'production';
 
   const config = {
-    context: __dirname, // to automatically find tsconfig.json,
+    context: __dirname,
+    mode: WEBPACK_MODE,
     stats: 'errors-only',
-    devtool: 'source-map',
-    plugins: [],
-    output: IS_TEST ? undefined : {
+    watch: process.env.WATCH === 'true',
+    entry: {
+      settings: SETTINGS_PATH,
+      'settings-local': './settings-local.js',
+      app: './app/scripts/app.ts',
+    },
+    output: {
       path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
       filename: '[name].js',
     },
-    resolveLoader: IS_TEST ? {} : {
-      modules: [
-        NODE_MODULE_PATH
-      ],
-      moduleExtensions: ['-loader']
+    devtool: IS_PRODUCTION ? 'source-map' : 'eval',
+    optimization: {
+      splitChunks: { chunks: 'all', },
+      minimizer: IS_PRODUCTION ? [
+        new UglifyJSPlugin({
+          parallel: true,
+          cache: true,
+          test: /vendors/,
+          sourceMap: true,
+        }),
+      ] : [], // Disable minification unless production
     },
     resolve: {
-      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
+      extensions: [ '.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html' ],
       modules: [
         NODE_MODULE_PATH,
         path.join(__dirname, 'app', 'scripts', 'modules'),
@@ -69,9 +78,9 @@ function configure(IS_TEST) {
           test: /\.js$/,
           use: [
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
-            { loader: 'thread-loader', options: { workers: 3 } },
+            { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'babel-loader' },
-            { loader: 'eslint-loader' } ,
+            { loader: 'eslint-loader' },
           ],
           exclude: /(node_modules(?!\/clipboard)|settings\.js)/
         },
@@ -79,7 +88,7 @@ function configure(IS_TEST) {
           test: /\.tsx?$/,
           use: [
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
-            { loader: 'thread-loader', options: { workers: 3 } },
+            { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'babel-loader' },
             { loader: 'ts-loader', options: { happyPackMode: true } },
             { loader: 'tslint-loader' },
@@ -111,15 +120,9 @@ function configure(IS_TEST) {
           ]
         },
         {
-          test: /\.json$/,
-          use: [
-            { loader: 'json-loader' },
-          ],
-        },
-        {
           test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
           use: [
-            { loader: 'file-loader', options: { name: '[name].[hash:5].[ext]'} },
+            { loader: 'file-loader', options: { name: '[name].[hash:5].[ext]' } },
           ],
         },
         {
@@ -131,14 +134,27 @@ function configure(IS_TEST) {
         },
         {
           test: /ui-sortable/,
-          use: ['imports-loader?$UI=jquery-ui/ui/widgets/sortable']
+          use: [ 'imports-loader?$UI=jquery-ui/ui/widgets/sortable' ]
         }
       ],
     },
-    watch: IS_TEST,
-    devServer: IS_TEST ? {
-      stats: 'errors-only',
-    } : {
+    plugins: [
+      new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
+      new CopyWebpackPlugin([
+        {
+          from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
+          to: `./styleguide.html`,
+        }
+      ]),
+      new HtmlWebpackPlugin({
+        title: 'Spinnaker',
+        template: './app/index.deck',
+        favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
+        inject: true,
+      })
+
+    ],
+    devServer: {
       disableHostCheck: true,
       port: process.env.DECK_PORT || 9000,
       host: process.env.DECK_HOST || 'localhost',
@@ -160,64 +176,31 @@ function configure(IS_TEST) {
     }
   }
 
-  config.plugins = [
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
-    new CopyWebpackPlugin([
-      {
-        from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
-        to: `./styleguide.html`,
-      }
-    ]),
-  ];
-
-  if (!IS_TEST) {
-    config.entry = {
-      settings: SETTINGS_PATH,
-      'settings-local': './settings-local.js',
-      app: './app/scripts/app.ts',
-      vendor: [
-        'jquery', 'angular', 'angular-ui-bootstrap', 'source-sans-pro',
-        'angular-cache', 'angular-messages', 'angular-sanitize', 'bootstrap',
-        'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs', 'react', 'angular2react',
-        'react2angular', 'react-bootstrap', 'react-dom', 'react-ga', 'ui-select',
-        '@uirouter/angularjs', '@uirouter/visualizer',
-      ]
-    };
-
-    config.plugins.push(...[
-      new webpack.EnvironmentPlugin({
-        NODE_ENV: 'development',
-      }),
-      new webpack.optimize.CommonsChunkPlugin({name: 'vendor', filename: 'vendor.bundle.js'}),
-      new webpack.optimize.CommonsChunkPlugin('init'),
-      new HtmlWebpackPlugin({
-        title: 'Spinnaker',
-        template: './app/index.deck',
-        favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
-        inject: true,
-
-        // default order is based on webpack's compile process
-        // with the migration to webpack two, we need this or
-        // settings.js is put at the end of the <script> blocks
-        // which breaks the booting of the app.
-        chunksSortMode: (a, b) => {
-          const chunks = ['init', 'vendor', 'settings', 'settings-local', 'app'];
-          return chunks.indexOf(a.names[0]) - chunks.indexOf(b.names[0]);
-        }
-      })
-    ]);
-
-    if (process.env.NODE_ENV === 'production') {
-      config.plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
-      config.plugins.push(new webpack.optimize.UglifyJsPlugin({ include: /vendor/, sourceMap: true }));
-    }
-  }
-
-  // this is temporary and will be deprecated in WP3.  moving forward,
-  // loaders will individually need to accept this as an option.
-  config.plugins.push(new webpack.LoaderOptionsPlugin({debug: !IS_TEST}));
-
   return config;
 }
 
+// invalidate webpack cache when webpack config is changed or cache-loader is updated,
+function getCacheInvalidateString() {
+  return JSON.stringify({
+    CACHE_LOADER: require('cache-loader/package.json').version,
+    WEBPACK_CONFIG: md5(fs.readFileSync(__filename)),
+  });
+}
+
+
+// When running locally, use one less than the physical number of cpus
+// When running on travis, use max of 2 threads
+// https://docs.travis-ci.com/user/reference/overview/#Virtualization-environments
+function getThreadLoaderThreads() {
+  const bareMetalThreads = Math.max(require('physical-cpu-count') - 1, 1);
+  const travisThreads = Math.min(require('physical-cpu-count'), 2);
+  const autoThreads = !!process.env.TRAVIS ? travisThreads : bareMetalThreads;
+  const threads = process.env.THREADS || autoThreads;
+
+  console.log(`INFO: cpus: ${require('os').cpus().length} physical: ${require('physical-cpu-count')} thread-loader threads: ${threads}`);
+
+  return threads;
+}
+
 module.exports = configure;
+

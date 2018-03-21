@@ -41,6 +41,7 @@
     "src/index.ts"
   ],
   "exclude": [
-    "./lib"
+    "./lib",
+    "**/*.spec.*"
   ]
 }

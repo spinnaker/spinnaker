@@ -42,6 +42,7 @@
     "src/**/*.tsx"
   ],
   "exclude": [
-    "./lib"
+    "./lib",
+    "**/*.spec.*"
   ]
 }
