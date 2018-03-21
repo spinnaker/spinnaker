@@ -72,13 +72,13 @@ class InstanceHealthCheckTaskSpec extends Specification {
     result.status == executionStatus
 
     where:
-    instances | responseCode | executionStatus
-    ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"] ] | [404] | ExecutionStatus.RUNNING
-    ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"] ] | [200] | ExecutionStatus.SUCCEEDED
-    ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"], "i-2345" : ["hostName" : "foo2.com", "healthCheckUrl" : "http://foo2.com:7001/healthCheck"] ] | [404, 200] | ExecutionStatus.RUNNING
-    ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"], "i-2345" : ["hostName" : "foo2.com", "healthCheckUrl" : "http://foo2.com:7001/healthCheck"] ] | [200, 404] | ExecutionStatus.RUNNING
-    ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"], "i-2345" : ["hostName" : "foo2.com", "healthCheckUrl" : "http://foo2.com:7001/healthCheck"] ] | [404, 404] | ExecutionStatus.RUNNING
-    ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"], "i-2345" : ["hostName" : "foo2.com", "healthCheckUrl" : "http://foo2.com:7001/healthCheck"] ] | [200, 200] | ExecutionStatus.SUCCEEDED
+    instances                                                                                                                                                                          | responseCode | executionStatus
+    ["i-1234": ["hostName": "foo.com", "healthCheckUrl": "http://foo.com:7001/healthCheck"]]                                                                                           | [404]        | ExecutionStatus.RUNNING
+    ["i-1234": ["hostName": "foo.com", "healthCheckUrl": "http://foo.com:7001/healthCheck"]]                                                                                           | [200]        | ExecutionStatus.SUCCEEDED
+    ["i-1234": ["hostName": "foo.com", "healthCheckUrl": "http://foo.com:7001/healthCheck"], "i-2345": ["hostName": "foo2.com", "healthCheckUrl": "http://foo2.com:7001/healthCheck"]] | [404, 200]   | ExecutionStatus.RUNNING
+    ["i-1234": ["hostName": "foo.com", "healthCheckUrl": "http://foo.com:7001/healthCheck"], "i-2345": ["hostName": "foo2.com", "healthCheckUrl": "http://foo2.com:7001/healthCheck"]] | [200, 404]   | ExecutionStatus.RUNNING
+    ["i-1234": ["hostName": "foo.com", "healthCheckUrl": "http://foo.com:7001/healthCheck"], "i-2345": ["hostName": "foo2.com", "healthCheckUrl": "http://foo2.com:7001/healthCheck"]] | [404, 404]   | ExecutionStatus.RUNNING
+    ["i-1234": ["hostName": "foo.com", "healthCheckUrl": "http://foo.com:7001/healthCheck"], "i-2345": ["hostName": "foo2.com", "healthCheckUrl": "http://foo2.com:7001/healthCheck"]] | [200, 200]   | ExecutionStatus.SUCCEEDED
   }
 
   @Unroll
@@ -90,6 +90,10 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def stage = new Stage(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
 
+    and:
+    task.createInstanceService(_) >> instanceService
+    instanceService.healthCheck("healthCheck") >> new Response('http://foo.com', 200, 'OK', [], new TypedString("Good"))
+
     when:
     task.oortHelper = oortHelper
     1 * oortHelper.getInstancesForCluster(_, _, _, _) >> ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"]]
@@ -100,11 +104,10 @@ class InstanceHealthCheckTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
 
     where:
-    instances | _
-    ["i-1234" : ["hostName" : "foo.com" ] ] | _
-    ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"], "i-2345" : ["hostName" : "foo2.com" ] ] | _
-    ["i-1234" : ["hostName" : "foo.com" ], "i-2345" : ["hostName" : "foo2.com", "healthCheckUrl" : "http://foo2.com:7001/healthCheck"]] | _
-
+    instances                                                                                                                     | _
+    ["i-1234": ["hostName": "foo.com"]]                                                                                           | _
+    ["i-1234": ["hostName": "foo.com", "healthCheckUrl": "http://foo.com:7001/healthCheck"], "i-2345": ["hostName": "foo2.com"]]  | _
+    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com", "healthCheckUrl": "http://foo2.com:7001/healthCheck"]] | _
   }
 
   def "retry on missing instance healthCheckUrl"() {
@@ -115,6 +118,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     def stage = new Stage(pipe, 'instanceHealthCheck', [:])
     stage.context.instances = instances
     task.oortHelper = oortHelper
+
     when:
     1 * oortHelper.getInstancesForCluster(_, _, _, _) >> ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"]]
     1 * instanceService.healthCheck("healthCheck") >> new Response('http://foo.com', 200, 'OK', [], new TypedString("Good"))
@@ -128,7 +132,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
-    instances | _
-    ["i-1234" : ["hostName" : "foo.com" ] ] | _
+    instances                           | _
+    ["i-1234": ["hostName": "foo.com"]] | _
   }
 }
