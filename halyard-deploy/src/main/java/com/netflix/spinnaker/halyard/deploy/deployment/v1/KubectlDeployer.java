@@ -40,7 +40,7 @@ public class KubectlDeployer implements Deployer<KubectlServiceProvider,AccountD
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<SpinnakerService.Type> serviceTypes) {
-    List<KubernetesV2Service> services = serviceProvider.getServices(serviceTypes);
+    List<KubernetesV2Service> services = serviceProvider.getServicesByPriority(serviceTypes);
     services.stream().forEach((service) -> {
       ServiceSettings settings = resolvedConfiguration.getServiceSettings((SpinnakerService) service);
       if (settings.getEnabled() != null && !settings.getEnabled()) {

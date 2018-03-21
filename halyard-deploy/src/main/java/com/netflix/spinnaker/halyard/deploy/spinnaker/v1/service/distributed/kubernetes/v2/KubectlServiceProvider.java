@@ -67,10 +67,14 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
     throw new UnsupportedOperationException("todo(lwander)");
   }
 
-  public List<KubernetesV2Service> getServices(List<SpinnakerService.Type> serviceTypes) {
+  public List<KubernetesV2Service> getServicesByPriority(List<SpinnakerService.Type> serviceTypes) {
     List<KubernetesV2Service> result = getFieldsOfType(KubernetesV2Service.class).stream()
         .filter(d -> serviceTypes.contains(d.getService().getType()))
         .collect(Collectors.toList());
+
+    if (result.removeIf(s -> s.getService().getType() == SpinnakerService.Type.REDIS)) {
+      result.add(0, redisService);
+    }
 
     return result;
   }
