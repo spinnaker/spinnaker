@@ -1049,7 +1049,7 @@ class MonitoringConfigurator(Configurator):
 
     Add these to the start of the script so we can monitor installation.
     """
-    version = '0.14.0'
+    version = '0.15.2'
     node_version = 'node_exporter-{0}.linux-amd64'.format(version)
     install_node_exporter = [
         'curl -s -S -L -o /tmp/node_exporter.gz'
@@ -1065,13 +1065,10 @@ class MonitoringConfigurator(Configurator):
 
         'rm /tmp/node_exporter.gz',
 
-        'echo "start on filesystem or runlevel [2345]"'
-        ' | sudo tee /etc/init/node_exporter.conf',
-        'echo "exec /usr/bin/node_exporter 2>&1 /var/log/node_exporter.log"'
-        ' | sudo tee -a /etc/init/node_exporter.conf',
-        'sudo chmod 644 /etc/init/node_exporter.conf',
-
-        'sudo service node_exporter restart'
+        # Cant find a better way to start the node exporter without
+        # hanging the ssh session. We'll need to detach this shell
+        # when we exit.
+        '(sudo /usr/bin/node_exporter < /dev/null > /dev/null 2>&1 &)',
     ]
 
     # Prepend install_node_exporter to the beginning of the list.

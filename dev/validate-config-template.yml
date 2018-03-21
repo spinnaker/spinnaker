@@ -49,6 +49,8 @@
 # Google
 #############
 # deploy_hal_google_service_account:
+# deploy_google_image_family: ubuntu-1404-lts
+# deploy_google_image_project: ubuntu-os-cloud
 # deploy_google_project:
 # deploy_google_zone: us-central1-f
 # deploy_google_instance:
@@ -64,10 +66,10 @@
 # Halyard and Deployment 
 #########################
 # halyard_install_script: https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
-# halyard_version: None
-# halyard_repository: https://dl.bintray.com/spinnaker-releases/debians
-# halyard_config_bucket:
-# halyard_config_bucket_credentials:
+# halyard_version:          # only set to override
+# halyard_bucket_base_url:  # only set to override
+# halyard_config_bucket:    # only set to override
+# halyard_config_bucket_credentials:  # only set if needed by halyard_config_bucket
 # spinnaker_repository: https://dl.bintray.com/spinnaker-releases/debians
 # spinnaker_registry: gcr.io/spinnaker-marketplace
 # deploy_spinnaker_type: # localdebian or distributed

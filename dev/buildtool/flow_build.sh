@@ -91,6 +91,7 @@ function process_args() {
       shift
   fi
 
+  local have_refresh=false
   while [[ $# > 0 ]]
   do
       local key="$1"
@@ -124,10 +125,12 @@ function process_args() {
           shift
           ;;
         --base_bom_path)
+          have_refresh=true
           EXTRA_BUILD_BOM_ARGS="$EXTRA_BUILD_BOM_ARGS --refresh_from_bom_path $1"
           shift
           ;;
         --base_bom_version)
+          have_refresh=true
           EXTRA_BUILD_BOM_ARGS="$EXTRA_BUILD_BOM_ARGS --refresh_from_bom_version $1"
           shift
           ;;
@@ -175,7 +178,9 @@ function process_args() {
   fi
 
   local full_path="$(dirname $0)/$UNBUILT_BOM_PATH"
-  if [[ -f $UNBUILT_BOM_PATH ]]; then
+  if $have_refresh; then
+     true  # skip
+  elif [[ -f $UNBUILT_BOM_PATH ]]; then
      EXTRA_BUILD_BOM_ARGS="$EXTRA_BUILD_BOM_ARGS --refresh_from_bom_path=$UNBUILT_BOM_PATH"
      echo "WARNING: Reusing $full_path"
      echo "   This assumes a prior build failed. The bom will still refresh any changed repos,"
