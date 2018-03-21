@@ -27,14 +27,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/metricSetPairList")
@@ -53,7 +51,7 @@ public class MetricSetPairListController {
   @ApiOperation(value = "Retrieve a metric set pair list from object storage")
   @RequestMapping(value = "/{metricSetPairListId:.+}", method = RequestMethod.GET)
   public List<MetricSetPair> loadMetricSetPairList(@RequestParam(required = false) final String accountName,
-                                                   @PathVariable String metricSetPairListId) {
+                                                   @PathVariable final String metricSetPairListId) {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
@@ -65,10 +63,31 @@ public class MetricSetPairListController {
     return storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
   }
 
+  @ApiOperation(value = "Retrieve a single metric set pair from a metricSetPairList from object storage")
+  @RequestMapping(value = "/{metricSetPairListId:.+}/{metricSetPairId:.+}", method = RequestMethod.GET)
+  public ResponseEntity<MetricSetPair> loadMetricSetPair(@RequestParam(required = false) final String accountName,
+                                                         @PathVariable final String metricSetPairListId,
+                                                         @PathVariable final String metricSetPairId) {
+    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
+                                                                              AccountCredentials.Type.OBJECT_STORE,
+                                                                              accountCredentialsRepository);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read metric set pair list from bucket."));
+
+    List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    Optional<MetricSetPair> foundPair = metricSetPairList.stream()
+      .filter(metricSetPair -> metricSetPair.getId().equals(metricSetPairId))
+      .findFirst();
+    return foundPair.map(metricSetPair -> new ResponseEntity<>(metricSetPair, HttpStatus.OK))
+      .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+  }
+
   @ApiOperation(value = "Write a metric set pair list to object storage")
   @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public Map storeMetricSetPairList(@RequestParam(required = false) final String accountName,
-                                    @RequestBody List<MetricSetPair> metricSetPairList) throws IOException {
+                                    @RequestBody final List<MetricSetPair> metricSetPairList) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
@@ -86,7 +105,7 @@ public class MetricSetPairListController {
   @ApiOperation(value = "Delete a metric set pair list")
   @RequestMapping(value = "/{metricSetPairListId:.+}", method = RequestMethod.DELETE)
   public void deleteMetricSetPairList(@RequestParam(required = false) final String accountName,
-                                      @PathVariable String metricSetPairListId,
+                                      @PathVariable final String metricSetPairListId,
                                       HttpServletResponse response) {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
