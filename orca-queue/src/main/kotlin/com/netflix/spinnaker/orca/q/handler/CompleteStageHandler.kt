@@ -83,6 +83,7 @@ class CompleteStageHandler(
           stage.status = status
           stage.endTime = clock.millis()
         } catch (e: Exception) {
+          log.error("Failed to construct after stages", e)
           stage.status = TERMINAL
           stage.endTime = clock.millis()
           repository.storeStage(stage)
