@@ -143,7 +143,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     // Configure canary
     Canary canary = deploymentConfiguration.getCanary();
     bindings.put("canary.atlasWebComponentsUrl", canary.getAtlasWebComponentsUrl());
-    bindings.put("canary.featureDisabled", Boolean.toString(!canary.isEnabled()));
+    bindings.put("canary.featureEnabled", Boolean.toString(canary.isEnabled()));
     if (canary.isEnabled()) {
       bindings.put("canary.reduxLogger", canary.isReduxLoggerEnabled());
       bindings.put("canary.defaultMetricsAccount", canary.getDefaultMetricsAccount());
