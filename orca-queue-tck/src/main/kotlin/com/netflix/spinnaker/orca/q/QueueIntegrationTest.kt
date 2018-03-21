@@ -752,6 +752,7 @@ class QueueIntegrationTest {
     repository.retrieve(PIPELINE, pipeline.id).apply {
       assertSoftly {
         assertThat(status).isEqualTo(TERMINAL)
+        assertThat(stageByRef("1").status).isEqualTo(TERMINAL)
         assertThat(stageByRef("1>1").name).isEqualTo("onFailure1")
         assertThat(stageByRef("1>1").status).isEqualTo(SUCCEEDED)
         assertThat(stageByRef("1>2").name).isEqualTo("onFailure2")
