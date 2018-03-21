@@ -10,7 +10,17 @@ var fiatEnabled = '{%features.fiat%}' === 'true';
 var jobsEnabled = '{%features.jobs%}' === 'true';
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
 var artifactsEnabled = '{%features.artifacts%}' === 'true';
-var canaryEnabled = '{%features.mineCanary%}' === 'true';
+var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
+var reduxLoggerEnabled = '{%canary.reduxLogger%}' === 'true';
+var defaultMetricsAccountName = '{%canary.defaultMetricsAccount%}';
+var defaultStorageAccountName = '{%canary.defaultStorageAccount%}';
+var defaultCanaryJudge = '{%canary.defaultJudge%}';
+var defaultMetricsStore = '{%canary.defaultMetricsStore%}';
+var canaryStagesEnabled = '{%canary.stages%}' === 'true';
+var atlasWebComponentsUrl = '{%canary.atlasWebComponentsUrl%}';
+var templatesEnabled = '{%canary.templatesEnabled%}' === 'true';
+var showAllConfigsEnabled = '{%canary.showAllCanaryConfigs%}' === 'true';
+var canaryFeatureDisabled = '{%canary.featureDisabled%}' === 'true';
 var timezone = '{%timezone%}';
 var version = '{%version%}';
 var changelogGistId = '{%changelog.gist.id%}';
@@ -132,6 +142,18 @@ window.spinnakerSettings = {
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub', 'webhook'],
+  canary: {
+    reduxLogger: reduxLoggerEnabled,
+    metricsAccountName: defaultMetricsAccountName,
+    storageAccountName: defaultStorageAccountName,
+    defaultJudge: defaultCanaryJudge,
+    metricStore: defaultMetricsStore,
+    stagesEnabled: canaryStagesEnabled,
+    atlasWebComponentsUrl: atlasWebComponentsUrl,
+    templatesEnabled: templatesEnabled,
+    showAllConfigs: showAllConfigsEnabled,
+    featureDisabled: canaryFeatureDisabled,
+  },
   feature: {
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,
@@ -141,7 +163,7 @@ window.spinnakerSettings = {
     pipelineTemplates: pipelineTemplatesEnabled,
     notifications: notificationsEnabled,
     artifacts: artifactsEnabled,
-    canary: canaryEnabled,
+    canary: mineCanaryEnabled,
     pipelines: true,
     fastProperty: true,
     vpcMigrator: true,
