@@ -67,11 +67,12 @@ class CommitController extends AbstractCommitController {
         commitsResponse.values = commitsResponse.values.subList(0, fromIndex + 1)
       }
     } catch (RetrofitError e) {
-      if(e.getKind() == RetrofitError.Kind.NETWORK) {
+      if (e.getKind() == RetrofitError.Kind.NETWORK) {
         throw new RuntimeException("Could not find the server ${bitBucketMaster.baseUrl}")
-      } else if(e.response.status == 404) {
+      } else if (e.response.status == 404) {
         return getNotFoundCommitsResponse(projectKey, repositorySlug, requestParams.to, requestParams.from, bitBucketMaster.baseUrl)
       }
+      throw new RuntimeException("Unhandled bitbucket error for ${bitBucketMaster.baseUrl}", e)
     }
 
     commitsResponse.values.each {
