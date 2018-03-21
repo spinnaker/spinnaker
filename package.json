@@ -24,6 +24,7 @@
     "lib": "node ./build_scripts/checkLicenses.js && rimraf lib && node ./node_modules/webpack/bin/webpack.js --config ./build_scripts/webpack.build.js"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free-webfonts": "^1.0.4",
     "@types/plotly.js": "^1.28.12",
     "@uirouter/angularjs": "^1.0.15",
     "@uirouter/react-hybrid": "^0.1.0",
@@ -73,7 +74,7 @@
   },
   "devDependencies": {
     "@spinnaker/amazon": "0.0.81",
-    "@spinnaker/core": "0.0.166",
+    "@spinnaker/core": "0.0.172",
     "@spinnaker/google": "^0.0.1",
     "@spinnaker/kubernetes": "^0.0.4",
     "@spinnaker/styleguide": "^1.0.1",
@@ -133,7 +134,6 @@
     "exports-loader": "^0.6.3",
     "expose-loader": "^0.7.1",
     "file-loader": "^0.11.1",
-    "font-awesome": "^4.7.0",
     "fork-ts-checker-webpack-plugin": "^0.2.8",
     "formik": "^0.10.5",
     "happypack": "^3.0.3",

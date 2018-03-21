@@ -16,7 +16,7 @@ function OpenConfigJsonModalButton({ openConfigJsonModal }: IOpenConfigJsonModal
   return (
     <div>
       <button className="passive" onClick={openConfigJsonModal}>
-        <i className="fa fa-file-code-o"/>
+        <i className="far fa-file-code"/>
         <span>JSON</span>
       </button>
       <ConfigJsonModal/>

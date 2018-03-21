@@ -54,7 +54,7 @@ const canaryRunColumns: ICanaryRunColumn[] = [
           </div>
           <div className="flex-1">
             <HoverablePopover template={popoverTemplate}>
-              <i className="fa fa-clock-o"/>
+              <i className="far fa-clock"/>
             </HoverablePopover>
           </div>
         </section>
@@ -146,5 +146,5 @@ function ReportLink({ canaryRun }: { canaryRun: IStage }) {
       },
     );
 
-  return <i className="fa fa-bar-chart clickable" onClick={onClick}/>;
+  return <i className="fa fa-chart-bar clickable" onClick={onClick}/>;
 }
