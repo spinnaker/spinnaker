@@ -72,15 +72,11 @@ module.exports = function (config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['dots'],
+    reporters: ['junit', 'dots'],
 
     // the default configuration
     junitReporter: {
      outputFile: 'test-results.xml'
-    },
-
-    mochaReporter: {
-     ignoreSkipped: true,
     },
 
     client: {

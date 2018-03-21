@@ -59,7 +59,7 @@ task copyFavicon(type: Copy) {
 
 task karma(type: NodeTask) {
   script = file('node_modules/karma/bin/karma')
-  args = ["start", "--single-run", "--reporters", "progress,mocha"]
+  args = ["start", "--single-run", "--reporters", "dots"]
   if (project.hasProperty('skipTests')) {
     karma.enabled = false
   }
