@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSour
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
-import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -33,6 +32,8 @@ class ExplicitRollback implements Rollback {
   String rollbackServerGroupName
   String restoreServerGroupName
   Integer targetHealthyRollbackPercentage
+  Boolean disableOnly
+  Boolean enableAndDisableOnly
 
   @Autowired
   @JsonIgnore
@@ -63,24 +64,29 @@ class ExplicitRollback implements Rollback {
       parentStage.execution, disableServerGroupStage.type, "disable", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
-    def parentDeployStage = getParentDeployStage(parentStage)
-    def parentDeployStageStrategy = parentDeployStage?.context?.strategy as String
-    if (Strategy.fromStrategy(parentDeployStageStrategy) == Strategy.ROLLING_RED_BLACK) {
-      // no need to do anything but disable the newly deployed (and failing!) server group when dealing with a
-      // rolling red/black deployment
+    if (disableOnly) {
+      // no need to do anything but disable the newly deployed (and failing!) server group
       return [
         disableServerGroupStage
       ]
     }
 
-    def stages = []
     Map enableServerGroupContext = new HashMap(parentStage.context)
     enableServerGroupContext.targetHealthyDeployPercentage = targetHealthyRollbackPercentage
     enableServerGroupContext.serverGroupName = restoreServerGroupName
-    stages << newStage(
+    def enableServerGroupStage = newStage(
       parentStage.execution, enableServerGroupStage.type, "enable", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
+    if (enableAndDisableOnly) {
+      // ensure previous server group is 100% enabled before disabling the new server group
+      return [
+        enableServerGroupStage,
+        disableServerGroupStage
+      ]
+    }
+
+    def stages = [enableServerGroupStage]
     if (!parentStage.getContext().containsKey("sourceServerGroupCapacitySnapshot")) {
       // capacity has been previously captured (likely as part of a failed deploy), no need to do again!
       stages << buildCaptureSourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))
@@ -149,13 +155,5 @@ class ExplicitRollback implements Rollback {
       parentStage,
       SyntheticStageOwner.STAGE_AFTER
     )
-  }
-
-  static Stage getParentDeployStage(Stage parentStage) {
-    while (parentStage && !parentStage.context.containsKey("strategy")) {
-      parentStage = parentStage.parent
-    }
-
-    return parentStage
   }
 }

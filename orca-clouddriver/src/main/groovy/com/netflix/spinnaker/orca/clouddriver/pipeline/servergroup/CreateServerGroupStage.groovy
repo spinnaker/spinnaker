@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
+
 import javax.annotation.Nonnull
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.moniker.Moniker
@@ -87,17 +90,35 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
       return
     }
 
-    // TODO: should this append after any existing stages in the graph?
-    graph.add {
-      it.type = rollbackClusterStage.type
-      it.name = "Rollback ${stageData.cluster}"
-      it.context = [
-        "credentials"   : stageData.credentials,
-        "cloudProvider" : stageData.cloudProvider,
-        "regions"       : [stageData.region],
-        "serverGroup"   : stageData.serverGroup,
-        "stageTimeoutMs": MINUTES.toMillis(30) // timebox a rollback to 30 minutes
-      ]
+    def strategySupportsRollback = false
+    def additionalRollbackContext = [:]
+
+    def strategy = Strategy.fromStrategy(stageData.strategy)
+    if (strategy == Strategy.ROLLING_RED_BLACK) {
+      // rollback is always supported regardless of where the failure occurred
+      strategySupportsRollback = true
+      additionalRollbackContext.enableAndDisableOnly = true
+    } else if (strategy == Strategy.RED_BLACK) {
+      // rollback is only supported if the failure occurred launching the new server group
+      // no rollback should be attempted if the failure occurs while tearing down the old server group
+      strategySupportsRollback = stage.tasks.any { it.status == ExecutionStatus.TERMINAL }
+      additionalRollbackContext.disableOnly = true
+    }
+
+    if (strategySupportsRollback) {
+      // TODO: should this append after any existing stages in the graph?
+      graph.add {
+        it.type = rollbackClusterStage.type
+        it.name = "Rollback ${stageData.cluster}"
+        it.context = [
+          "credentials"              : stageData.credentials,
+          "cloudProvider"            : stageData.cloudProvider,
+          "regions"                  : [stageData.region],
+          "serverGroup"              : stageData.serverGroup,
+          "stageTimeoutMs"           : MINUTES.toMillis(30), // timebox a rollback to 30 minutes
+          "additionalRollbackContext": additionalRollbackContext
+        ]
+      }
     }
   }
 
@@ -108,6 +129,7 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
     String cloudProvider
     Moniker moniker
 
+    String strategy
     Rollback rollback
 
     @JsonProperty("deploy.server.groups")

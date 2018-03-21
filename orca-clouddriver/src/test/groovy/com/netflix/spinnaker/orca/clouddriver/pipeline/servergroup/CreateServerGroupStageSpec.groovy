@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Task
+
 import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
@@ -38,7 +41,11 @@ class CreateServerGroupStageSpec extends Specification {
         "deploy.server.groups": deployServerGroups,
         "application"         : "myapplication",
         "account"             : "test",
-        "cloudProvider"       : "aws"
+        "cloudProvider"       : "aws",
+        "strategy"            : strategy
+      ]
+      tasks = [
+        new Task(status: failedTask ? ExecutionStatus.TERMINAL : ExecutionStatus.SUCCEEDED)
       ]
     }
 
@@ -57,18 +64,25 @@ class CreateServerGroupStageSpec extends Specification {
     onFailureStageContexts == expectedOnFailureStageContexts
 
     where:
-    shouldRollbackOnFailure | deployServerGroups                          || expectedOnFailureStageContexts
-    false                   | null                                        || []
-    true                    | null                                        || []
-    false                   | ["us-west-1": ["myapplication-stack-v001"]] || []
-    true                    | ["us-west-1": ["myapplication-stack-v001"]] || [
-      [
-        regions       : ["us-west-1"],
-        serverGroup   : "myapplication-stack-v001",
-        credentials   : "test",
-        cloudProvider : "aws",
-        stageTimeoutMs: TimeUnit.MINUTES.toMillis(30)
-      ]
+    shouldRollbackOnFailure | strategy          | deployServerGroups                          | failedTask || expectedOnFailureStageContexts
+    false                   | "rollingredblack" | null                                        | false      || []
+    true                    | "rollingredblack" | null                                        | false      || []
+    false                   | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || []
+    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | false      || []      // only rollback if task has failed
+    true                    | "highlander"      | ["us-west-1": ["myapplication-stack-v001"]] | false      || []      // highlander is not supported
+    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [expectedContext([enableAndDisableOnly: true])]
+    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | true       || [expectedContext([disableOnly: true])]
+  }
+
+
+  Map expectedContext(Map<String, Object> additionalRollbackContext) {
+    return [
+      regions                  : ["us-west-1"],
+      serverGroup              : "myapplication-stack-v001",
+      credentials              : "test",
+      cloudProvider            : "aws",
+      stageTimeoutMs           : TimeUnit.MINUTES.toMillis(30),
+      additionalRollbackContext: additionalRollbackContext
     ]
   }
 }

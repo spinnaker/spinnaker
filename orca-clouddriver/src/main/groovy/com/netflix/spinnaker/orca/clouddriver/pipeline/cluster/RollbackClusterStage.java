@@ -58,7 +58,9 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
   public void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
     StageData stageData = parent.mapTo(StageData.class);
 
-    Map<String, String> rollbackTypes = (Map<String, String>) parent.getOutputs().get("rollbackTypes");
+    Map<String, Object> parentOutputs = parent.getOutputs();
+    Map<String, String> rollbackTypes = (Map<String, String>) parentOutputs.get("rollbackTypes");
+    Map<String, Map<String, Object>> rollbackContexts = (Map<String, Map<String, Object>>) parentOutputs.get("rollbackContexts");
 
     // filter out any regions that do _not_ have a rollback target
     List<String> regionsToRollback = stageData.regions
@@ -72,10 +74,13 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
         "rollbackType",
         ((Map) parent.getOutputs().get("rollbackTypes")).get(region)
       );
-      context.put(
-        "rollbackContext",
-        ((Map) parent.getOutputs().get("rollbackContexts")).get(region)
-      );
+
+      Map<String, Object> rollbackContext = rollbackContexts.get(region);
+      if (stageData.additionalRollbackContext != null) {
+        rollbackContext.putAll(stageData.additionalRollbackContext);
+      }
+
+      context.put("rollbackContext", rollbackContext);
       context.put("type", rollbackServerGroupStage.getType());
       context.put("region", region);
       context.put("credentials", stageData.credentials);
@@ -131,5 +136,7 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
 
     public List<String> regions;
     public Long waitTimeBetweenRegions;
+
+    public Map<String, Object> additionalRollbackContext;
   }
 }
