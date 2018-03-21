@@ -20,7 +20,7 @@ export class ConfigSectionFooter extends React.Component<IConfigSectionFooterPro
       return (
         <div className="row footer">
           <div className="col-md-12 text-right">
-            <span className="btn btn-link disabled"><span className="fa fa-check-circle-o"/> In sync with server</span>
+            <span className="btn btn-link disabled"><span className="far fa-check-circle"/> In sync with server</span>
           </div>
         </div>
       )
@@ -29,7 +29,7 @@ export class ConfigSectionFooter extends React.Component<IConfigSectionFooterPro
     const saveButton = (
       <button className={`btn btn-primary ${isValid ? '' : 'disabled'}`} onClick={onSaveClicked}>
         <span>
-          <span className="fa fa-check-circle-o"/> Save Changes
+          <span className="far fa-check-circle"/> Save Changes
         </span>
       </button>
     );

@@ -20,7 +20,7 @@ module.exports = angular
         </ul>
         <ul class="task task-progress task-progress-refresh" ng-if="$ctrl.monitor.task.isCompleted">
           <li>
-            <span class="fa fa-check-circle-o"></span> <strong>Operation succeeded!</strong>
+            <span class="far fa-check-circle"></span> <strong>Operation succeeded!</strong>
           </li>
         </ul>
         <p ng-if="$ctrl.monitor.task.id && !$ctrl.monitor.error && $ctrl.monitor.application">

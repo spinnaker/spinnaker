@@ -25,7 +25,7 @@ export class SubmitButton extends React.Component<ISubmitButtonProps> {
         type={isFormSubmit ? 'submit' : 'button'}
       >
         { !submitting && (
-          <i className="fa fa-check-circle-o"/>
+          <i className="far fa-check-circle"/>
         ) || (
           <ButtonBusyIndicator/>
         )}&nbsp;

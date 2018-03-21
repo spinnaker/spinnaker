@@ -7,6 +7,6 @@ export interface IExecutionMarkerIconProps {
 
 export class ExecutionMarkerIcon extends React.Component<IExecutionMarkerIconProps, any> {
   public render() {
-    return this.props.stage.inSuspendedExecutionWindow ? (<span className="fa fa-clock-o"/>) : null;
+    return this.props.stage.inSuspendedExecutionWindow ? (<span className="far fa-clock"/>) : null;
   }
 }
