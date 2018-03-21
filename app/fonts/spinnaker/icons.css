@@ -26,3 +26,9 @@ span[class^="icon-"], span[class*=" icon-"] {
 .icon-spinner:before {
   content: "\e97e";
 }
+
+/* You haven't seen an ugly icon until you've seen the fontawesome sitemap icon */
+.fa.fa-sitemap:before {
+  font-family: 'icomoon';
+  content: "\e600";
+}
