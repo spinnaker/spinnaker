@@ -18,12 +18,15 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.auth.AuthRequestInterceptor
+import com.netflix.spinnaker.igor.config.client.DefaultJenkinsOkHttpClientProvider
+import com.netflix.spinnaker.igor.config.client.JenkinsOkHttpClientProvider
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -35,7 +38,6 @@ import retrofit.converter.SimpleXMLConverter
 
 import javax.validation.Valid
 import java.util.concurrent.TimeUnit
-
 /**
  * Converts the list of Jenkins Configuration properties a collection of clients to access the Jenkins hosts
  */
@@ -47,11 +49,24 @@ import java.util.concurrent.TimeUnit
 class JenkinsConfig {
 
     @Bean
-    Map<String, JenkinsService> jenkinsMasters(BuildMasters buildMasters, IgorConfigurationProperties igorConfigurationProperties, @Valid JenkinsProperties jenkinsProperties) {
+    @ConditionalOnMissingBean
+    JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider() {
+        return new DefaultJenkinsOkHttpClientProvider()
+    }
+
+    @Bean
+    Map<String, JenkinsService> jenkinsMasters(BuildMasters buildMasters,
+                                               IgorConfigurationProperties igorConfigurationProperties,
+                                               @Valid JenkinsProperties jenkinsProperties,
+                                               JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider) {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = ( jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
-            [(host.name): jenkinsService(host.name, jenkinsClient(host, igorConfigurationProperties.client.timeout), host.csrf)]
+            [(host.name): jenkinsService(
+                host.name,
+                jenkinsClient(host, jenkinsOkHttpClientProvider.provide(host), igorConfigurationProperties.client.timeout),
+                host.csrf
+            )]
         })
 
         buildMasters.map.putAll jenkinsMasters
@@ -62,8 +77,7 @@ class JenkinsConfig {
         return new JenkinsService(jenkinsHostId, jenkinsClient, csrf)
     }
 
-    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, int timeout = 30000) {
-        OkHttpClient client = new OkHttpClient()
+    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, OkHttpClient client, int timeout = 30000) {
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
 
         new RestAdapter.Builder()
@@ -73,5 +87,10 @@ class JenkinsConfig {
             .setConverter(new SimpleXMLConverter())
             .build()
             .create(JenkinsClient)
+    }
+
+    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, int timeout = 30000) {
+        OkHttpClient client = new OkHttpClient()
+        jenkinsClient(host, client, timeout)
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.igor.polling;
 
-package com.netflix.spinnaker.igor.polling
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import org.springframework.context.ApplicationListener;
 
-import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import org.springframework.context.ApplicationListener
+public interface PollingMonitor extends ApplicationListener<RemoteStatusChangedEvent> {
+    void onApplicationEvent(RemoteStatusChangedEvent event);
 
-/*
- * An interface for monitors which rely on polling.
- */
-interface PollingMonitor extends ApplicationListener<RemoteStatusChangedEvent> {
-    void onApplicationEvent(RemoteStatusChangedEvent event)
+    String getName();
 
-    String getName()
+    boolean isInService();
 
-    boolean isInService()
+    Long getLastPoll();
 
-    Long getLastPoll()
-
-    int getPollInterval()
+    int getPollInterval();
 }
