@@ -49,7 +49,7 @@ public abstract class AbstractEnableDisableCanaryCommand extends AbstractConfigC
 
   @Override
   public String getShortDescription() {
-    return "Set Spinnaker's canary analysis to " + subjunctivePerfectAction();
+    return "Set Spinnaker's canary analysis to " + subjunctivePerfectAction() + ".";
   }
 
   @Override
@@ -62,8 +62,8 @@ public abstract class AbstractEnableDisableCanaryCommand extends AbstractConfigC
     String currentDeployment = getCurrentDeployment();
     boolean enable = isEnable();
     new OperationHandler<Void>()
-        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " canary analysis")
-        .setFailureMesssage("Failed to " + getCommandName() + " canary analysis")
+        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " canary analysis.")
+        .setFailureMesssage("Failed to " + getCommandName() + " canary analysis.")
         .setOperation(Daemon.setCanaryEnabled(currentDeployment, !noValidate, enable))
         .get();
   }

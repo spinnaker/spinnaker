@@ -48,6 +48,7 @@
  * [**hal config artifact http enable**](#hal-config-artifact-http-enable)
  * [**hal config canary**](#hal-config-canary)
  * [**hal config canary disable**](#hal-config-canary-disable)
+ * [**hal config canary edit**](#hal-config-canary-edit)
  * [**hal config canary enable**](#hal-config-canary-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
@@ -1029,13 +1030,14 @@ hal config canary [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
- * `disable`: Set Spinnaker's canary analysis to disabled
- * `enable`: Set Spinnaker's canary analysis to enabled
+ * `disable`: Set Spinnaker's canary analysis to disabled.
+ * `edit`: Edit Spinnaker's canary analysis settings.
+ * `enable`: Set Spinnaker's canary analysis to enabled.
 
 ---
 ## hal config canary disable
 
-Set Spinnaker's canary analysis to disabled
+Set Spinnaker's canary analysis to disabled.
 
 #### Usage
 ```
@@ -1048,9 +1050,33 @@ hal config canary disable [parameters]
 
 
 ---
+## hal config canary edit
+
+Edit Spinnaker's canary analysis settings.
+
+#### Usage
+```
+hal config canary edit [parameters]
+```
+
+#### Parameters
+ * `--atlasWebComponentsUrl`: Location of web components to use for Atlas metric configuration.
+ * `--default-judge`: Name of canary judge to use by default (e.g. NetflixACAJudge-v1.0).
+ * `--default-metrics-account`: Name of metrics account to use by default.
+ * `--default-metrics-store`: Name of metrics store to use by default (e.g. atlas, datadog, prometheus, stackdriver).
+ * `--default-storage-account`: Name of storage account to use by default.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--redux-logger-enabled`: Whether or not to enable redux logging in the canary module in deck (*Default*: `true`).
+ * `--show-all-configs-enabled`: Whether or not to show all canary configs in deck, or just those scoped to the current application (*Default*: `false`).
+ * `--stages-enabled`: Whether or not to enable canary stages in deck (*Default*: `true`).
+ * `--templates-enabled`: Whether or not to enable custom filter templates for canary configs in deck (*Default*: `true`).
+
+
+---
 ## hal config canary enable
 
-Set Spinnaker's canary analysis to enabled
+Set Spinnaker's canary analysis to enabled.
 
 #### Usage
 ```

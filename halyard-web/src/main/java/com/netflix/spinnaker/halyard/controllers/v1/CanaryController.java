@@ -36,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.file.Path;
+
 @RestController
 @RequestMapping("/v1/config/deployments/{deploymentName:.+}/canary")
 public class CanaryController {
@@ -68,8 +70,34 @@ public class CanaryController {
     return DaemonTaskHandler.submitTask(builder::build, "Get all canary settings");
   }
 
+  @RequestMapping(value = "/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setCanary(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawCanary) {
+    Canary canary = objectMapper.convertValue(rawCanary, Canary.class);
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    Path configPath = halconfigDirectoryStructure.getConfigPath(deploymentName);
+    builder.setStage(() -> canary.stageLocalFiles(configPath));
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> canaryService.setCanary(deploymentName, canary));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> canaryService.validateCanary(deploymentName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+    builder.setClean(() -> halconfigParser.cleanLocalFiles(configPath));
+
+    return DaemonTaskHandler.submitTask(builder::build, "Edit canary analysis settings");
+  }
+
   @RequestMapping(value = "/enabled/", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setMethodEnabled(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, Void> setEnabled(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody boolean enabled) {

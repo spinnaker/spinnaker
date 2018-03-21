@@ -27,7 +27,16 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Canary extends Node implements Cloneable {
-  boolean enabled = false;
+  boolean enabled;
+  boolean reduxLoggerEnabled = true;
+  String defaultMetricsAccount;
+  String defaultStorageAccount;
+  String defaultJudge;
+  String defaultMetricsStore;
+  boolean stagesEnabled = true;
+  String atlasWebComponentsUrl;
+  boolean templatesEnabled = true;
+  boolean showAllConfigsEnabled = false;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

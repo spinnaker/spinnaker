@@ -29,6 +29,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class CanaryCommand extends AbstractConfigCommand {
+
   String commandName = "canary";
 
   String shortDescription = "Configure your canary analysis settings for Spinnaker.";
@@ -38,6 +39,7 @@ public class CanaryCommand extends AbstractConfigCommand {
   public CanaryCommand() {
     registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(true).build());
     registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(false).build());
+    registerSubcommand(new EditCanaryCommand());
   }
 
   @Override

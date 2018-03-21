@@ -68,7 +68,7 @@ public class UiSecurityEditCommand extends AbstractConfigCommand {
     new OperationHandler<Void>()
         .setOperation(Daemon.setUiSecurity(currentDeployment, !noValidate, uiSecurity))
         .setFailureMesssage("Failed to edit UI security settings.")
-        .setFailureMesssage("Successfully updated UI security settings.")
+        .setSuccessMessage("Successfully updated UI security settings.")
         .get();
   }
 }

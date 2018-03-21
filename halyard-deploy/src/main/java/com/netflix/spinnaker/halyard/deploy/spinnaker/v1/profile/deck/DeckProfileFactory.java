@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck;
 
+import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
@@ -138,6 +139,21 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     SlackNotification slackNotification = notifications.getSlack();
     bindings.put("notifications.slack.enabled", slackNotification.isEnabled() + "");
     bindings.put("notifications.slack.botName", slackNotification.getBotName());
+
+    // Configure canary
+    Canary canary = deploymentConfiguration.getCanary();
+    bindings.put("canary.atlasWebComponentsUrl", canary.getAtlasWebComponentsUrl());
+    bindings.put("canary.featureDisabled", Boolean.toString(!canary.isEnabled()));
+    if (canary.isEnabled()) {
+      bindings.put("canary.reduxLogger", canary.isReduxLoggerEnabled());
+      bindings.put("canary.defaultMetricsAccount", canary.getDefaultMetricsAccount());
+      bindings.put("canary.defaultStorageAccount", canary.getDefaultStorageAccount());
+      bindings.put("canary.defaultJudge", canary.getDefaultJudge());
+      bindings.put("canary.defaultMetricsStore", canary.getDefaultMetricsStore());
+      bindings.put("canary.stages", canary.isStagesEnabled());
+      bindings.put("canary.templatesEnabled", canary.isTemplatesEnabled());
+      bindings.put("canary.showAllCanaryConfigs", canary.isShowAllConfigsEnabled());
+    }
 
     profile.appendContents(configTemplate.setBindings(bindings).toString())
         .setRequiredFiles(backupRequiredFiles(uiSecurity, deploymentConfiguration.getName()));

@@ -82,7 +82,7 @@ public class ApacheSslEditCommand extends AbstractConfigCommand {
     new OperationHandler<Void>()
         .setOperation(Daemon.setApacheSsl(currentDeployment, !noValidate, apacheSsl))
         .setFailureMesssage("Failed to edit SSL settings.")
-        .setFailureMesssage("Successfully updated SSL settings.")
+        .setSuccessMessage("Successfully updated SSL settings.")
         .get();
   }
 }
