@@ -24,18 +24,18 @@ import java.util.Optional;
 
 public class TitusClientObjectMapper {
 
-    public static ObjectMapper configure() {
-        return configure(Optional.empty());
-    }
+  public static ObjectMapper configure() {
+    return configure(Optional.empty());
+  }
 
-    public static ObjectMapper configure(ObjectMapper template) {
-        return configure(Optional.ofNullable(template));
-    }
+  public static ObjectMapper configure(ObjectMapper template) {
+    return configure(Optional.ofNullable(template));
+  }
 
-    public static ObjectMapper configure(Optional<ObjectMapper> objectMapper) {
-        return objectMapper
-                .map(ObjectMapper::copy).orElse(new ObjectMapper())
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-    }
+  public static ObjectMapper configure(Optional<ObjectMapper> objectMapper) {
+    return objectMapper
+      .map(ObjectMapper::copy).orElse(new ObjectMapper())
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+  }
 }

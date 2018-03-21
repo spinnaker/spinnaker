@@ -25,28 +25,28 @@ import java.util.Set;
 
 public class EndpointValidator {
 
-    private static final Set<String> ALLOWED_PROTOCOLS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("http", "https")));
+  private static final Set<String> ALLOWED_PROTOCOLS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("http", "https")));
 
-    public static String validateEndpoint(String endpoint) {
-        URL url;
-        try {
-            url = new URL(endpoint);
-        } catch (NullPointerException e) {
-            throw new IllegalArgumentException(String.format("Invalid endpoint provided (%s)", endpoint));
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException(String.format("Invalid endpoint provided (%s): %s", endpoint, e.getMessage()));
-        }
-
-        if (url.getHost() == null || "".equals(url.getHost())) {
-            throw new IllegalArgumentException(String.format("Invalid endpoint provided (%s): No host specified", endpoint));
-        }
-
-        String protocol = url.getProtocol();
-        if (!ALLOWED_PROTOCOLS.contains(protocol)) {
-            throw new IllegalArgumentException(
-                String.format("Invalid endpoint provided (%s): Invalid protocol specified (%s)", endpoint, protocol));
-        }
-        return endpoint;
+  public static String validateEndpoint(String endpoint) {
+    URL url;
+    try {
+      url = new URL(endpoint);
+    } catch (NullPointerException e) {
+      throw new IllegalArgumentException(String.format("Invalid endpoint provided (%s)", endpoint));
+    } catch (MalformedURLException e) {
+      throw new IllegalArgumentException(String.format("Invalid endpoint provided (%s): %s", endpoint, e.getMessage()));
     }
+
+    if (url.getHost() == null || "".equals(url.getHost())) {
+      throw new IllegalArgumentException(String.format("Invalid endpoint provided (%s): No host specified", endpoint));
+    }
+
+    String protocol = url.getProtocol();
+    if (!ALLOWED_PROTOCOLS.contains(protocol)) {
+      throw new IllegalArgumentException(
+        String.format("Invalid endpoint provided (%s): Invalid protocol specified (%s)", endpoint, protocol));
+    }
+    return endpoint;
+  }
 
 }

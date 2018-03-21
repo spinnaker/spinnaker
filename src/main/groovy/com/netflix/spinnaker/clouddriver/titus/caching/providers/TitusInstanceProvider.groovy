@@ -62,7 +62,7 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
     }
 
     String stack = awsLookupUtil.stack(account)
-    if(!stack){
+    if (!stack) {
       stack = 'mainvpc'
     }
 

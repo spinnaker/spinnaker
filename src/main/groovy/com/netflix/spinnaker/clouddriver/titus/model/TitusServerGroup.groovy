@@ -97,8 +97,8 @@ class TitusServerGroup implements ServerGroup, Serializable {
     buildInfo = [
       images: ["${image.dockerImageName}:${image.dockerImageVersion}".toString()],
       docker: [
-        "image":"${image.dockerImageName}".toString(),
-        "tag":"${image.dockerImageVersion}".toString()
+        "image": "${image.dockerImageName}".toString(),
+        "tag"  : "${image.dockerImageVersion}".toString()
       ]
     ]
   }

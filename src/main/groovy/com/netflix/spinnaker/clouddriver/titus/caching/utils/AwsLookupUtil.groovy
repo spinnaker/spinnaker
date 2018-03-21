@@ -209,13 +209,13 @@ class AwsLookupUtil {
       return null
     }
 
-    [name: awsSecurityGroupProvider.getById(awsDetails.awsAccount,
+    [name      : awsSecurityGroupProvider.getById(awsDetails.awsAccount,
       region,
       securityGroupId,
       awsDetails.vpcId
     )?.name,
      awsAccount: awsDetails.awsAccount,
-     vpcId: awsDetails.vpcId
+     vpcId     : awsDetails.vpcId
     ]
 
   }

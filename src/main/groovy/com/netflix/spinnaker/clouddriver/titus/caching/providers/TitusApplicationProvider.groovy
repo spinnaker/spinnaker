@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.caching.providers
+
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
@@ -63,7 +64,8 @@ class TitusApplicationProvider implements ApplicationProvider {
       return null
     }
     String name = Keys.parse(cacheData.id).application
-    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, new TypeReference<Map<String, String>>() {})
+    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, new TypeReference<Map<String, String>>() {
+    })
     Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
     for (String clusterId : cacheData.relationships[CLUSTERS.ns]) {
       Map<String, String> cluster = Keys.parse(clusterId)

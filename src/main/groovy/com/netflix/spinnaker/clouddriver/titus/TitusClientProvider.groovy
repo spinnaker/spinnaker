@@ -17,16 +17,9 @@
 package com.netflix.spinnaker.clouddriver.titus
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusAutoscalingClient
-
-import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusLoadBalancerClient
-import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
-import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
-import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient
-import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
+import com.netflix.spinnaker.clouddriver.titus.client.*
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.v3client.RegionScopedV3TitusClient
 import groovy.transform.Immutable
 

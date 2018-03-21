@@ -22,14 +22,9 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription
 import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.titus.grpc.protogen.DeletePolicyRequest
-import com.netflix.titus.grpc.protogen.PutPolicyRequest
+import com.netflix.titus.grpc.protogen.*
 import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
-import com.netflix.titus.grpc.protogen.ScalingPolicy
-import com.netflix.titus.grpc.protogen.ScalingPolicyID
-import com.netflix.titus.grpc.protogen.ScalingPolicyResult
 import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
-import com.netflix.titus.grpc.protogen.UpdatePolicyRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 

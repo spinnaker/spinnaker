@@ -80,7 +80,7 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
       OutputStream outputStream = new ByteArrayOutputStream()
       try {
         amazonS3DataProvider.getAdhocData("titus", "${s3.accountName}:${s3.region}:${s3.bucket}", "${s3.key}/${fileName}", outputStream)
-      } catch(Exception e){
+      } catch (Exception e) {
         throw new RuntimeException("Could not load ${fileName} for task ${job.tasks.last().id}")
       }
       fileContents = new ByteArrayInputStream(outputStream.toByteArray())

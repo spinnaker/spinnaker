@@ -64,7 +64,8 @@ public class JobDescription {
 
   //Soft/Hard constraints
 
-  JobDescription() {}
+  JobDescription() {
+  }
 
   JobDescription(SubmitJobRequest request) {
     type = request.getJobType();
@@ -187,9 +188,13 @@ public class JobDescription {
     return gpu;
   }
 
-  public void setRetries() { this.retries = retries; }
+  public void setRetries() {
+    this.retries = retries;
+  }
 
-  public int getRetries() { return retries; }
+  public int getRetries() {
+    return retries;
+  }
 
   public int getRuntimeLimitSecs() {
     return runtimeLimitSecs;
@@ -413,7 +418,7 @@ public class JobDescription {
       efsBuilder.setEfsId(efs.getEfsId());
       efsBuilder.setMountPoint(efs.getMountPoint());
       efsBuilder.setMountPerm(convertMountPerm(efs.getMountPerm()));
-      if(efs.getEfsRelativeMountPoint()!=null){
+      if (efs.getEfsRelativeMountPoint() != null) {
         efsBuilder.setEfsRelativeMountPoint(efs.getEfsRelativeMountPoint());
       }
       containerResources.addEfsMounts(efsBuilder);
@@ -435,7 +440,7 @@ public class JobDescription {
       securityProfile.setIamRole(iamProfile);
     }
 
-    if (!securityAttributes.isEmpty()){
+    if (!securityAttributes.isEmpty()) {
       securityProfile.putAllAttributes(securityAttributes);
     }
 
@@ -512,8 +517,8 @@ public class JobDescription {
     return jobDescriptorBuilder.build();
   }
 
-  private MountPerm convertMountPerm(String mountPerm){
-    switch(mountPerm){
+  private MountPerm convertMountPerm(String mountPerm) {
+    switch (mountPerm) {
       case "RO":
         return MountPerm.RO;
       case "WO":

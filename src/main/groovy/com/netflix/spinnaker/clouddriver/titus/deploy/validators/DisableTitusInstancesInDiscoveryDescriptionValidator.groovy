@@ -27,7 +27,7 @@ import org.springframework.validation.Errors
 @Component
 @TitusOperation(AtomicOperations.DISABLE_INSTANCES_IN_DISCOVERY)
 class DisableTitusInstancesInDiscoveryDescriptionValidator
-    extends AbstractTitusDescriptionValidatorSupport<EnableDisableInstanceDiscoveryDescription> {
+  extends AbstractTitusDescriptionValidatorSupport<EnableDisableInstanceDiscoveryDescription> {
 
   @Autowired
   DisableTitusInstancesInDiscoveryDescriptionValidator(AccountCredentialsProvider accountCredentialsProvider) {

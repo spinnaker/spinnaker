@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 public class SubmitJobResponse {
-    private String jobUri;
+  private String jobUri;
 
-    public String getJobUri() {
-        return jobUri;
-    }
+  public String getJobUri() {
+    return jobUri;
+  }
 
-    public void setJobUri(String jobUri) {
-        this.jobUri = jobUri;
-    }
+  public void setJobUri(String jobUri) {
+    this.jobUri = jobUri;
+  }
 }

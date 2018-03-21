@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
-public class ResizeJobRequest extends AbstractJobRequest{
+public class ResizeJobRequest extends AbstractJobRequest {
 
   private int instancesDesired;
   private int instancesMax;

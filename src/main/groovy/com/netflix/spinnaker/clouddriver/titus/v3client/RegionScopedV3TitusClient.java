@@ -21,7 +21,10 @@ import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.titus.client.*;
+import com.netflix.spinnaker.clouddriver.titus.client.TitusClient;
+import com.netflix.spinnaker.clouddriver.titus.client.TitusClientObjectMapper;
+import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer;
+import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion;
 import com.netflix.spinnaker.clouddriver.titus.client.model.*;
 import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
@@ -245,7 +248,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
       TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
       taskQueryBuilder.setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100));
       taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
-      if(includeDoneJobs) {
+      if (includeDoneJobs) {
         taskQueryBuilder.putFilteringCriteria("taskStates", "Accepted,Launched,StartInitiated,Started,KillInitiated,Finished");
       }
       taskResults = grpcBlockingStub.findTasks(

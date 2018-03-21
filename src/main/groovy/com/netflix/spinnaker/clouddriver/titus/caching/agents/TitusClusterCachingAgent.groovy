@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.caching.agents
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.protobuf.util.JsonFormat
 import com.netflix.frigga.Names
@@ -60,11 +59,7 @@ import javax.inject.Provider
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*
 
 class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, OnDemandAgent {
@@ -168,8 +163,8 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
           serverGroupKey,
           10 * 60, // ttl is 10 minutes,
           [
-            cacheTime     : new Date(),
-            cacheResults  : cacheResultAsJson
+            cacheTime   : new Date(),
+            cacheResults: cacheResultAsJson
           ],
           [:]
         )
@@ -461,7 +456,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       } as Set).asImmutable()
 
       targetGroupKeys = (targetGroupNames.collect {
-        com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(it, getAwsAccountId(account, region), region,getAwsVpcId(account, region))
+        com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(it, getAwsAccountId(account, region), region, getAwsVpcId(account, region))
       } as Set).asImmutable()
 
     }

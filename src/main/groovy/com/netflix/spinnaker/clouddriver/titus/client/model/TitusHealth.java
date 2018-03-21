@@ -17,17 +17,17 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 public class TitusHealth {
-    private HealthStatus healthStatus;
+  private HealthStatus healthStatus;
 
-    public TitusHealth(HealthStatus healthStatus) {
-        this.healthStatus = healthStatus;
-    }
+  public TitusHealth(HealthStatus healthStatus) {
+    this.healthStatus = healthStatus;
+  }
 
-    public HealthStatus getHealthStatus() {
-        return healthStatus;
-    }
+  public HealthStatus getHealthStatus() {
+    return healthStatus;
+  }
 
-    public void setHealthStatus(HealthStatus healthStatus) {
-        this.healthStatus = healthStatus;
-    }
+  public void setHealthStatus(HealthStatus healthStatus) {
+    this.healthStatus = healthStatus;
+  }
 }

@@ -77,8 +77,8 @@ class RegionScopedV3TitusClientSpec extends Specification {
 
     when:
 
-    titusClient.findJobsByApplication("helix_hello_world_server").each{ job ->
-        titusClient.terminateJob(new TerminateJobRequest().withJobId(job.getId()));
+    titusClient.findJobsByApplication("helix_hello_world_server").each { job ->
+      titusClient.terminateJob(new TerminateJobRequest().withJobId(job.getId()));
     }
 
     String jobId = titusClient.submitJob(submitJobRequest);

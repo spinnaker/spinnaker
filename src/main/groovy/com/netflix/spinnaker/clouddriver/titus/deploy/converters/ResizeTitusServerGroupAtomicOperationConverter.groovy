@@ -15,14 +15,13 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.converters
+
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusOperation
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.DestroyTitusServerGroupDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.ResizeTitusServerGroupDescription
-import com.netflix.spinnaker.clouddriver.titus.deploy.ops.DestroyTitusServerGroupAtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.ResizeTitusServerGroupAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

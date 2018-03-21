@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.deploy.converters
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
@@ -42,14 +43,14 @@ class TitusDeployAtomicOperationConverterSpec extends Specification {
     given:
     Map input = [
       application: 'api',
-      stack: 'test',
-      details: '',
-      source: [account: 'test', region: 'us-east-1'],
-      subnetType: 'vpc0',
-      imageId: 'api.server:master-201506020033-trusty-7366606',
-      capacity: [desired: 3, min: 2, max: 5],
-      resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
-      env: ['netflix.environment': 'test'],
+      stack      : 'test',
+      details    : '',
+      source     : [account: 'test', region: 'us-east-1'],
+      subnetType : 'vpc0',
+      imageId    : 'api.server:master-201506020033-trusty-7366606',
+      capacity   : [desired: 3, min: 2, max: 5],
+      resources  : [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
+      env        : ['netflix.environment': 'test'],
       credentials: 'test'
     ]
 
@@ -66,14 +67,14 @@ class TitusDeployAtomicOperationConverterSpec extends Specification {
     given:
     Map input = [
       application: 'api',
-      stack: 'test',
-      details: '',
-      source: [account: 'test', region: 'us-east-1'],
-      subnetType: 'vpc0',
-      imageId: 'api.server:master-201506020033-trusty-7366606',
-      capacity: [desired: 3, min: 2, max: 5],
-      resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
-      env: ['netflix.environment': 'test'],
+      stack      : 'test',
+      details    : '',
+      source     : [account: 'test', region: 'us-east-1'],
+      subnetType : 'vpc0',
+      imageId    : 'api.server:master-201506020033-trusty-7366606',
+      capacity   : [desired: 3, min: 2, max: 5],
+      resources  : [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
+      env        : ['netflix.environment': 'test'],
       credentials: 'test'
     ]
 

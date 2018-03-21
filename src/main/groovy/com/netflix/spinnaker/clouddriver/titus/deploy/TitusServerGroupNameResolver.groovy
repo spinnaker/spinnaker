@@ -47,8 +47,8 @@ class TitusServerGroupNameResolver extends AbstractServerGroupNameResolver {
     return jobs.collect { Job job ->
       return new AbstractServerGroupNameResolver.TakenSlot(
         serverGroupName: job.name,
-        sequence       : Names.parseName(job.name).sequence,
-        createdTime    : job.submittedAt
+        sequence: Names.parseName(job.name).sequence,
+        createdTime: job.submittedAt
       )
     }
   }

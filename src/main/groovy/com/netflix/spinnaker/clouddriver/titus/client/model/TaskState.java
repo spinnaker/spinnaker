@@ -17,65 +17,65 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 public enum TaskState {
-    ALL,
-    RUNNING, DISPATCHED, FAILED, STOPPED, CRASHED, FINISHED,
-    STARTING, QUEUED,
-    TERMINATING, DEAD, PENDING; // Deprecated
+  ALL,
+  RUNNING, DISPATCHED, FAILED, STOPPED, CRASHED, FINISHED,
+  STARTING, QUEUED,
+  TERMINATING, DEAD, PENDING; // Deprecated
 
-    public static TaskState from(String taskStateStr) {
-        for (TaskState taskState : TaskState.values()) {
-          if (taskState.name().equals(taskStateStr)) return taskState;
-        }
-        switch (taskStateStr) {
-          case "Accepted":
-            return TaskState.QUEUED;
-          case "Launched":
-            return TaskState.DISPATCHED;
-          case "StartInitiated":
-            return TaskState.STARTING;
-          case "Started":
-            return TaskState.RUNNING;
-          case "KillInitiated":
-          case "Disconnected":
-          case "Finished":
-            return TaskState.FINISHED;
-          default:
-            return null;
-        }
+  public static TaskState from(String taskStateStr) {
+    for (TaskState taskState : TaskState.values()) {
+      if (taskState.name().equals(taskStateStr)) return taskState;
     }
+    switch (taskStateStr) {
+      case "Accepted":
+        return TaskState.QUEUED;
+      case "Launched":
+        return TaskState.DISPATCHED;
+      case "StartInitiated":
+        return TaskState.STARTING;
+      case "Started":
+        return TaskState.RUNNING;
+      case "KillInitiated":
+      case "Disconnected":
+      case "Finished":
+        return TaskState.FINISHED;
+      default:
+        return null;
+    }
+  }
 
-    public static TaskState from(String taskStateStr, String reasonCode) {
+  public static TaskState from(String taskStateStr, String reasonCode) {
 
-      if(taskStateStr.equals("Finished")){
-        switch(reasonCode){
-          case "normal":
-            return TaskState.FINISHED;
-          case "killed":
-            return TaskState.STOPPED;
-          case "crashed":
-          case "lost":
-            return TaskState.CRASHED;
-          case "failed":
-            return TaskState.FAILED;
-          default:
-            return TaskState.FINISHED;
-        }
-      }
-
-      switch (taskStateStr) {
-        case "Accepted":
-          return TaskState.QUEUED;
-        case "Launched":
-          return TaskState.DISPATCHED;
-        case "StartInitiated":
-          return TaskState.STARTING;
-        case "Started":
-          return TaskState.RUNNING;
-        case "KillInitiated":
-        case "Disconnected":
+    if (taskStateStr.equals("Finished")) {
+      switch (reasonCode) {
+        case "normal":
           return TaskState.FINISHED;
+        case "killed":
+          return TaskState.STOPPED;
+        case "crashed":
+        case "lost":
+          return TaskState.CRASHED;
+        case "failed":
+          return TaskState.FAILED;
         default:
-          return null;
+          return TaskState.FINISHED;
       }
     }
+
+    switch (taskStateStr) {
+      case "Accepted":
+        return TaskState.QUEUED;
+      case "Launched":
+        return TaskState.DISPATCHED;
+      case "StartInitiated":
+        return TaskState.STARTING;
+      case "Started":
+        return TaskState.RUNNING;
+      case "KillInitiated":
+      case "Disconnected":
+        return TaskState.FINISHED;
+      default:
+        return null;
+    }
+  }
 }

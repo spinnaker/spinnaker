@@ -23,88 +23,79 @@ import java.util.Map;
 
 public interface TitusClient {
 
-    /**
-     * @param jobId
-     * @return
-     */
-    public Job getJob(String jobId);
+  /**
+   * @param jobId
+   * @return
+   */
+  public Job getJob(String jobId);
 
-    /**
-     *
-     * @param jobName
-     * @return
-     */
-    public Job findJobByName(String jobName);
+  /**
+   * @param jobName
+   * @return
+   */
+  public Job findJobByName(String jobName);
 
-    /**
-     * @param application
-     * @return
-     */
-    public List<Job> findJobsByApplication(String application);
+  /**
+   * @param application
+   * @return
+   */
+  public List<Job> findJobsByApplication(String application);
 
-    /**
-     *
-     * @param submitJobRequest
-     * @return
-     */
-    public String submitJob(SubmitJobRequest submitJobRequest);
+  /**
+   * @param submitJobRequest
+   * @return
+   */
+  public String submitJob(SubmitJobRequest submitJobRequest);
 
-    /**
-     *
-     * @param taskId
-     * @return
-     */
-    public Task getTask(String taskId);
+  /**
+   * @param taskId
+   * @return
+   */
+  public Task getTask(String taskId);
 
-    /**
-     *
-     * @param resizeJobRequest
-     */
-    public void resizeJob(ResizeJobRequest resizeJobRequest);
+  /**
+   * @param resizeJobRequest
+   */
+  public void resizeJob(ResizeJobRequest resizeJobRequest);
 
-    /**
-     *
-     * @param activateJobRequest
-     */
-    public void activateJob(ActivateJobRequest activateJobRequest);
+  /**
+   * @param activateJobRequest
+   */
+  public void activateJob(ActivateJobRequest activateJobRequest);
 
-    /**
-     *
-     * @param shouldEnable
-     */
-    public void setAutoscaleEnabled(String jobId, boolean shouldEnable);
+  /**
+   * @param shouldEnable
+   */
+  public void setAutoscaleEnabled(String jobId, boolean shouldEnable);
 
-    /**
-     *
-     * @param terminateJobRequest
-     */
-    public void terminateJob(TerminateJobRequest terminateJobRequest);
+  /**
+   * @param terminateJobRequest
+   */
+  public void terminateJob(TerminateJobRequest terminateJobRequest);
 
-    /**
-     *
-     * @param terminateTasksAndShrinkJob
-     */
-    public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob);
+  /**
+   * @param terminateTasksAndShrinkJob
+   */
+  public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob);
 
-    /**
-     * @param taskId
-     * @return
-     */
-    public Map logsDownload(String taskId);
+  /**
+   * @param taskId
+   * @return
+   */
+  public Map logsDownload(String taskId);
 
-    /**
-     *
-     * @return
-     */
-    public TitusHealth getHealth();
+  /**
+   * @return
+   */
+  public TitusHealth getHealth();
 
-    /**
-     * @return
-     */
-    public List<Job> getAllJobs();
+  /**
+   * @return
+   */
+  public List<Job> getAllJobs();
 
-    public Object getJobJson(String jobId);
+  public Object getJobJson(String jobId);
 
-    public Object getTaskJson(String taskId);
+  public Object getTaskJson(String taskId);
 
 }

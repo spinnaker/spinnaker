@@ -17,30 +17,21 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
 import com.amazonaws.services.applicationautoscaling.model.CustomizedMetricSpecification as AwsCustomizedMetricSpecification
+import com.amazonaws.services.applicationautoscaling.model.MetricDimension as AwsMetricDimension
 import com.amazonaws.services.applicationautoscaling.model.PredefinedMetricSpecification as AwsPredefinedMetricSpecification
 import com.amazonaws.services.applicationautoscaling.model.StepAdjustment as AwsStepAdjustment
-import com.amazonaws.services.applicationautoscaling.model.MetricDimension as AwsMetricDimension
 import com.amazonaws.services.autoscaling.model.StepAdjustment
 import com.google.protobuf.BoolValue
 import com.google.protobuf.DoubleValue
 import com.google.protobuf.Int32Value
 import com.google.protobuf.Int64Value
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAlarmDescription
-import com.netflix.titus.grpc.protogen.AlarmConfiguration
+import com.netflix.titus.grpc.protogen.*
 import com.netflix.titus.grpc.protogen.AlarmConfiguration.ComparisonOperator
 import com.netflix.titus.grpc.protogen.AlarmConfiguration.Statistic
-import com.netflix.titus.grpc.protogen.CustomizedMetricSpecification
-import com.netflix.titus.grpc.protogen.MetricDimension
-import com.netflix.titus.grpc.protogen.PredefinedMetricSpecification
-import com.netflix.titus.grpc.protogen.ScalingPolicy
 import com.netflix.titus.grpc.protogen.ScalingPolicy.Builder
-import com.netflix.titus.grpc.protogen.ScalingPolicyResult
-import com.netflix.titus.grpc.protogen.StepAdjustments
-import com.netflix.titus.grpc.protogen.StepScalingPolicy
 import com.netflix.titus.grpc.protogen.StepScalingPolicy.AdjustmentType
 import com.netflix.titus.grpc.protogen.StepScalingPolicy.MetricAggregationType
-import com.netflix.titus.grpc.protogen.StepScalingPolicyDescriptor
-import com.netflix.titus.grpc.protogen.TargetTrackingPolicyDescriptor
 
 class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescription {
   // required
@@ -209,9 +200,9 @@ class UpsertTitusScalingPolicyDescription extends AbstractTitusCredentialsDescri
         .withStatistic(sourceMetricSpecification.statistic.name())
         .withUnit(sourceMetricSpecification.unit)
         .withDimensions(sourceMetricSpecification.dimensionsList.collect { dimension ->
-          String value = dimension.name == "AutoScalingGroupName" ? serverGroupName : dimension.value
-          new AwsMetricDimension().withName(dimension.name).withValue(value)
-        })
+        String value = dimension.name == "AutoScalingGroupName" ? serverGroupName : dimension.value
+        new AwsMetricDimension().withName(dimension.name).withValue(value)
+      })
     }
 
     description

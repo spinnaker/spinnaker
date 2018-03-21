@@ -17,32 +17,32 @@
 package com.netflix.spinnaker.clouddriver.titus.client;
 
 public class TitusFaultDomain {
-    private final String name;
+  private final String name;
 
-    public TitusFaultDomain(String name) {
-        if (name == null) {
-            throw new NullPointerException("name");
-        }
-        this.name = name;
+  public TitusFaultDomain(String name) {
+    if (name == null) {
+      throw new NullPointerException("name");
     }
+    this.name = name;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-        TitusFaultDomain that = (TitusFaultDomain) o;
+    TitusFaultDomain that = (TitusFaultDomain) o;
 
-        return name.equals(that.name);
+    return name.equals(that.name);
 
-    }
+  }
 
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
 }

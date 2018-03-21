@@ -220,7 +220,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       }
       serverGroup.instances = serverGroup.instances ?: []
       serverGroup.targetGroups = serverGroupEntry.attributes.targetGroups
-      if(serverGroup.targetGroups){
+      if (serverGroup.targetGroups) {
         awsLookupUtil.lookupTargetGroupHealth(job, serverGroup.instances)
       }
       [(serverGroupEntry.id): serverGroup]

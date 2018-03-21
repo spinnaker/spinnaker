@@ -30,6 +30,7 @@ class DockerImage {
     this.imageName = imageNameParts[0]
     this.imageVersion = imageNameParts[1]
   }
+
   static class DockerImageResolver {
 
     private static final String IMAGE_NAME_SEPARATOR = ":"

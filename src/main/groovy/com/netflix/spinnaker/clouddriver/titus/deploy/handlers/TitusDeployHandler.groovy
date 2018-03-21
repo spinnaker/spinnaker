@@ -103,7 +103,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
         Job sourceJob = sourceClient.findJobByName(source.asgName)
         if (!sourceJob) {
-          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})" )
+          throw new RuntimeException("Unable to locate source (${source.account}:${source.region}:${source.asgName})")
         }
 
         task.updateStatus BASE_PHASE, "Copying deployment details from (${source.account}:${source.region}:${source.asgName})"
@@ -132,11 +132,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
         description.capacityGroup = description.capacityGroup ?: sourceJob.capacityGroup
 
-        if(!description.labels || description.labels.isEmpty()){
-          if(!description.labels){
+        if (!description.labels || description.labels.isEmpty()) {
+          if (!description.labels) {
             description.labels = [:]
           }
-          sourceJob.labels.each{ k, v -> description.labels.put(k, v)}
+          sourceJob.labels.each { k, v -> description.labels.put(k, v) }
         }
         if (description.inService == null) {
           description.inService = sourceJob.inService
@@ -220,7 +220,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       if (description.jobType != 'batch' && deployDefaults.addAppGroupToServerGroup && securityGroups.size() < deployDefaults.maxSecurityGroups && description.useApplicationDefaultSecurityGroup != false) {
         String applicationSecurityGroup = awsLookupUtil.convertSecurityGroupNameToId(account, region, description.application)
         if (!applicationSecurityGroup) {
-          applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5 )
+          applicationSecurityGroup = OperationPoller.retryWithBackoff({ o -> awsLookupUtil.createSecurityGroupForApplication(account, region, description.application) }, 1000, 5)
         }
         if (!securityGroups.contains(applicationSecurityGroup)) {
           securityGroups << applicationSecurityGroup

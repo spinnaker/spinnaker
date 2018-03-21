@@ -55,12 +55,12 @@ abstract class AbstractEnableDisableTitusInstanceDiscoveryAtomicOperation implem
       return null
     }
     def titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-    def job =  titusClient.findJobByName(description.asgName)
-    if(!job){
+    def job = titusClient.findJobByName(description.asgName)
+    if (!job) {
       return
     }
     def asgInstanceIds = new TitusServerGroup(job, description.credentials.name, description.region).instances.findAll {
-      ( it.state == TaskState.RUNNING || it.state == TaskState.STARTING ) && description.instanceIds.contains(it.id)
+      (it.state == TaskState.RUNNING || it.state == TaskState.STARTING) && description.instanceIds.contains(it.id)
     }
     if (!asgInstanceIds) {
       return

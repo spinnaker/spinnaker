@@ -116,7 +116,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     return requiredGroupMembership
   }
 
-  String getEurekaName(){
+  String getEurekaName() {
     return eurekaName
   }
 
@@ -124,7 +124,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     return autoscalingEnabled
   }
 
-  boolean isloadBalancingEnabled(){
+  boolean isloadBalancingEnabled() {
     return loadBalancingEnabled
   }
 

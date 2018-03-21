@@ -20,9 +20,9 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
+import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.TerminateTasksAndShrinkJobRequest
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TerminateTitusInstancesDescription
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 
 class TerminateTitusInstancesAtomicOperation implements AtomicOperation<Void> {
 

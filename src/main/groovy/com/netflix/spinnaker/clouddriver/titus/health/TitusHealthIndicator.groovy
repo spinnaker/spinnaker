@@ -18,9 +18,9 @@ package com.netflix.spinnaker.clouddriver.titus.health
 
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
-import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus
+import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
@@ -49,7 +49,9 @@ class TitusHealthIndicator implements HealthIndicator {
   void checkHealth() {
     Status status = Status.UP
     Map<String, Object> details = [:]
-    for (NetflixTitusCredentials account : accountCredentialsProvider.all.findAll { it instanceof NetflixTitusCredentials }) {
+    for (NetflixTitusCredentials account : accountCredentialsProvider.all.findAll {
+      it instanceof NetflixTitusCredentials
+    }) {
       for (TitusRegion region in account.regions) {
         Status regionStatus
         Map regionDetails = [:]
