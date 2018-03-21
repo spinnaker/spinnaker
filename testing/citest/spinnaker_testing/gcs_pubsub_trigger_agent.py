@@ -17,13 +17,15 @@ import json
 import logging
 import os
 
+import datetime
+
 from citest.service_testing import (base_agent, http_agent)
 
 from google.cloud import storage
 
 
 class GcsFileUploadAgent(base_agent.BaseAgent):
-  """Specialization of GcpStorageAgent to observe pipelines triggered via pub/sub.
+  """Specialization to upload files to GCS.
   """
   def __init__(self, credentials_path=None, logger=None):
     super(GcsFileUploadAgent, self).__init__(logger=logger)
@@ -56,7 +58,7 @@ class GcsFileUploadAgent(base_agent.BaseAgent):
 
 
 class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
-  """
+  """Specialization for base gcs pubsub trigger operations.
   """
   def __init__(self, title, gcs_pubsub_agent, max_wait_secs=None):
     self.__title = title
@@ -79,7 +81,7 @@ class BaseGcsPubsubTriggerOperation(base_agent.AgentOperation):
 
 
 class GcsPubsubUploadTriggerOperation(BaseGcsPubsubTriggerOperation):
-  """
+  """Specialization for main logic of gcs pubsub trigger operations.
   """
   def __init__(self, title, gcs_pubsub_agent, gate_agent, bucket_name, upload_path,
                local_filename, status_class, status_path):
@@ -99,17 +101,15 @@ class GcsPubsubUploadTriggerOperation(BaseGcsPubsubTriggerOperation):
 
 
 class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
-  """
+  """Status of pipeline executions triggered via gcs -> pub/sub events
   """
   @property
   def finished(self):
-    resp = self.__trigger_response
-    executions = json.JSONDecoder().decode(resp.output) # Executions list
-    return executions and len(executions) == 1
+    self.__trigger_response.ok() and self.__check_executions()
 
   @property
   def finished_ok(self):
-    return self.__trigger_response.ok()
+    self.__trigger_response.ok() and self.__check_executions()
 
   @property
   def id(self):
@@ -121,8 +121,22 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
 
   @property
   def timed_out(self):
+    ping = datetime.datetime.utcnow()
+    diff = ping - self.__start
+    return diff > self.timeout_delta
+
+  @property
+  def timeout_delta(self):
+    return self.__timeout_delta
+
+  @timeout_delta.setter
+  def timeout_delta(self, val):
+    self.__timeout_delta = val
+
+  def __check_executions(self):
     resp = self.__trigger_response
-    return resp and resp.http_code == 504
+    executions = json.JSONDecoder().decode(resp.output) # Executions list
+    return len(executions) == 1
 
   def refresh(self):
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
@@ -139,6 +153,8 @@ class GcsPubsubTriggerOperationStatus(base_agent.AgentOperationStatus):
     self.__status_path = status_path
     super(GcsPubsubTriggerOperationStatus, self).__init__(operation)
     self.__trigger_response = self.__gate_agent.get(self.__status_path)
+    self.__start = datetime.datetime.utcnow()
+    self.__timeout_delta = datetime.timedelta(minutes=1)
 
   def export_to_json_snapshot(self, snapshot, entity):
     snapshot.edge_builder.make_output(
