@@ -85,6 +85,7 @@
   <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider"
                                 label-columns="2"
                                 field-columns="7"
+                                on-strategy-change="command.onStrategyChange"
                                 command="command"></deployment-strategy-selector>
   <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
     <div class="col-md-12">
