@@ -98,7 +98,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
 
         List<ImageDelta> delta = []
         images.parallelStream().forEach({ TaggedImage image ->
-            String imageId = cache.makeKey(account, image.registry, image.repository, image.tag)
+            String imageId = new DockerRegistryV2Key(igorProperties.spinnaker.jedis.prefix, DockerRegistryCache.ID, account, image.registry, image.tag)
             if (shouldUpdateCache(cachedImages, imageId, image, trackDigests)) {
                 delta.add(new ImageDelta(imageId: imageId, image: image))
             }
