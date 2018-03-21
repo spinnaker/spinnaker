@@ -20,7 +20,7 @@ var canaryStagesEnabled = '{%canary.stages%}' === 'true';
 var atlasWebComponentsUrl = '{%canary.atlasWebComponentsUrl%}';
 var templatesEnabled = '{%canary.templatesEnabled%}' === 'true';
 var showAllConfigsEnabled = '{%canary.showAllCanaryConfigs%}' === 'true';
-var canaryFeatureDisabled = '{%canary.featureDisabled%}' === 'true';
+var canaryFeatureDisabled = '{%canary.featureEnabled%}' !== 'true';
 var timezone = '{%timezone%}';
 var version = '{%version%}';
 var changelogGistId = '{%changelog.gist.id%}';
