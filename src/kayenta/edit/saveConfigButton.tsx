@@ -24,7 +24,7 @@ function SaveConfigButton({ saveConfigState, inSyncWithServer, saveConfig, disab
   if (inSyncWithServer && saveConfigState !== AsyncRequestState.Requesting) {
     return (
       <span className="btn btn-link disabled">
-        <i className="fa fa-check-circle-o"/> In sync with server
+        <i className="far fa-check-circle"/> In sync with server
       </span>
     );
   } else {

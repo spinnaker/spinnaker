@@ -51,7 +51,7 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
             onClick={editMetric}
           />
           <i
-            className="fa fa-folder-o"
+            className="far fa-folder"
             data-id={metric.id}
             onClick={openChangeMetricGroupModal}
           />
