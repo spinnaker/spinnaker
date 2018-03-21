@@ -29,6 +29,7 @@ import rx.Subscription;
 import rx.schedulers.Schedulers;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
+// TODO @afeldman - refactor around RedisClientDelegate
 abstract public class AbstractPollingNotificationAgent implements ApplicationListener<RemoteStatusChangedEvent> {
 
   private final Logger log = LoggerFactory.getLogger(AbstractPollingNotificationAgent.class);

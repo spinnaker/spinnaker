@@ -15,13 +15,14 @@
  */
 package com.netflix.spinnaker.orca.front50.migrations
 
-import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -30,22 +31,26 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
 import redis.clients.util.Pool
 import rx.Observable
 import rx.schedulers.Schedulers
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
 @Slf4j
 @Component
 @ConditionalOnExpression(value = '${pollers.multiRedisOrchestrationMigration.enabled:false}')
-@ConditionalOnBean(name="jedisPoolPrevious")
+@ConditionalOnBean(name = "previousRedisClientDelegate")
 class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingNotificationAgent {
   final String notificationType = "multiRedisOrchestrationMigration"
 
-  Pool<Jedis> jedisPoolPrevious
-  JedisExecutionRepository executionRepositoryPrevious
+  RedisClientDelegate redisClientDelegate
+  RedisExecutionRepository executionRepository
+  RedisExecutionRepository executionRepositoryPrevious
+  RedisClientDelegate previousRedisClientDelegate
 
   @Autowired(required = false)
   Front50Service front50Service
@@ -54,15 +59,23 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
   long pollingIntervalMs
 
   @Autowired
-  MultiRedisOrchestrationMigrationNotificationAgent(Registry registry,
-                                                    @Qualifier("jedisPool") Pool<Jedis> jedisPool,
-                                                    @Qualifier("jedisPoolPrevious") Pool<Jedis> jedisPoolPrevious) {
+  MultiRedisOrchestrationMigrationNotificationAgent(@Qualifier("jedisPool") Pool<Jedis> jedisPool,
+                                                    @Qualifier("redisClientDelegate") RedisClientDelegate redisClientDelegate,
+                                                    @Qualifier("previousRedisClientDelegate") RedisClientDelegate previousRedisClientDelegate
+  ) {
     super(jedisPool)
-    this.jedisPoolPrevious = jedisPoolPrevious
+    this.redisClientDelegate = redisClientDelegate
+    this.previousRedisClientDelegate = previousRedisClientDelegate
 
     def queryAllScheduler = Schedulers.from(Executors.newFixedThreadPool(1))
     def queryByAppScheduler = Schedulers.from(Executors.newFixedThreadPool(1))
-    this.executionRepositoryPrevious = new JedisExecutionRepository(registry, jedisPoolPrevious, Optional.empty(), queryAllScheduler, queryByAppScheduler, 75)
+
+    this.executionRepository = new RedisExecutionRepository(
+      new RedisClientSelector([redisClientDelegate]), queryAllScheduler, queryByAppScheduler, 75
+    )
+    this.executionRepositoryPrevious = new RedisExecutionRepository(
+      new RedisClientSelector([previousRedisClientDelegate]), queryAllScheduler, queryByAppScheduler, 75
+    )
   }
 
   @Override
@@ -75,7 +88,7 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
     subscription = Observable
       .timer(pollingInterval, TimeUnit.SECONDS, scheduler)
       .repeat()
-      .filter({interval -> tryAcquireLock()})
+      .filter({ interval -> tryAcquireLock() })
       .subscribe({ interval ->
       try {
         migrate()
@@ -92,9 +105,12 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
     log.info("Starting Orchestration Migration...")
 
     def previouslyMigratedOrchestrationIds = new HashSet<String>()
-    withJedis(jedisPool) { jedis ->
-      previouslyMigratedOrchestrationIds.addAll(jedis.smembers("allJobs:orchestration"))
-    }
+    redisClientDelegate.withCommandsClient(new Consumer<JedisCommands>() {
+      @Override
+      void accept(JedisCommands jedisCommands) {
+        previouslyMigratedOrchestrationIds.addAll(jedisCommands.smembers("allJobs:orchestration"))
+      }
+    })
 
     def executionCriteria = new ExecutionRepository.ExecutionCriteria(limit: 1000)
     executionCriteria.statuses = ExecutionStatus.values().findAll { it.complete }.collect { it.name() }
@@ -124,26 +140,9 @@ class MultiRedisOrchestrationMigrationNotificationAgent extends AbstractPollingN
 
       log.info("${migratableOrchestrations.size()} orchestrations to migrate (${applicationName}) [${index}/${allApplications.size()}]")
 
-      List<byte[]> sourceDumps
-      withJedis(jedisPoolPrevious) { jedis ->
-        def sourcePipe = jedis.pipelined()
-
-        migratableOrchestrations.each {
-          sourcePipe.dump("orchestration:${it.id}")
-        }
-
-        sourceDumps = sourcePipe.syncAndReturnAll()
-      }
-
-      withJedis(jedisPool) { jedis ->
-        def destPipe = jedis.pipelined()
-        sourceDumps.eachWithIndex { byte[] entry, int i ->
-          def orchestration = migratableOrchestrations[i]
-          destPipe.restore("orchestration:${orchestration.id}", 0, entry)
-          destPipe.sadd("allJobs:orchestration", orchestration.id)
-          destPipe.sadd("orchestration:app:${orchestration.application.toLowerCase()}", orchestration.id)
-        }
-        destPipe.sync()
+      migratableOrchestrations.each {
+        def execution = executionRepositoryPrevious.retrieve(it.type, it.id)
+        executionRepository.store(execution)
       }
 
       log.info("${migratableOrchestrations.size()} orchestrations migrated (${applicationName}) [${index}/${allApplications.size()}]")

@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.front50.migrations
 
-import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -30,40 +31,51 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
 import redis.clients.util.Pool
 import rx.Observable
 import rx.Scheduler
 
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 
 @Slf4j
 @Component
 @ConditionalOnExpression(value = '${pollers.multiRedisPipelineMigration.enabled:false}')
-@ConditionalOnBean(name="jedisPoolPrevious")
+@ConditionalOnBean(name="previousRedisClientDelegate")
 class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotificationAgent {
   final String notificationType = "multiRedisOrchestrationMigration"
 
-  Pool<Jedis> jedisPoolPrevious
   Front50Service front50Service
-  JedisExecutionRepository executionRepositoryPrevious
+
+  RedisClientDelegate redisClientDelegate
+  RedisExecutionRepository executionRepository
+  RedisExecutionRepository executionRepositoryPrevious
+  RedisClientDelegate previousRedisClientDelegate
 
   @Value('${pollers.multiRedisPipelineMigration.intervalMs:3600000}')
   long pollingIntervalMs
 
   @Autowired
   MultiRedisPipelineMigrationNotificationAgent(
-    Registry registry,
     @Qualifier("jedisPool") Pool<Jedis> jedisPool,
-    @Qualifier("jedisPoolPrevious") Pool<Jedis> jedisPoolPrevious,
+    @Qualifier("redisClientDelegate") RedisClientDelegate redisClientDelegate,
+    @Qualifier("previousRedisClientDelegate") RedisClientDelegate previousRedisClientDelegate,
     @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
     @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
     Front50Service front50Service
   ) {
     super(jedisPool)
-    this.jedisPoolPrevious = jedisPoolPrevious
+    this.redisClientDelegate = redisClientDelegate
+    this.previousRedisClientDelegate = previousRedisClientDelegate
     this.front50Service = front50Service
 
-    this.executionRepositoryPrevious = new JedisExecutionRepository(registry, jedisPoolPrevious, Optional.empty(), queryAllScheduler, queryByAppScheduler, 75)
+    this.executionRepository = new RedisExecutionRepository(
+      new RedisClientSelector([redisClientDelegate]), queryAllScheduler, queryByAppScheduler, 75
+    )
+    this.executionRepositoryPrevious = new RedisExecutionRepository(
+      new RedisClientSelector([previousRedisClientDelegate]), queryAllScheduler, queryByAppScheduler, 75
+    )
   }
 
   @Override
@@ -90,9 +102,12 @@ class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotifi
     log.info("Starting Pipeline Migration...")
 
     def previouslyMigratedPipelineIds = new HashSet<String>()
-    withJedis(jedisPool) { jedis ->
-      previouslyMigratedPipelineIds.addAll(jedis.smembers("allJobs:pipeline"))
-    }
+    redisClientDelegate.withCommandsClient(new Consumer<JedisCommands>() {
+      @Override
+      void accept(JedisCommands jedisCommands) {
+        previouslyMigratedPipelineIds.addAll(jedisCommands.smembers("allJobs:pipeline"))
+      }
+    })
 
     def executionCriteria = new ExecutionRepository.ExecutionCriteria(limit: 50)
     executionCriteria.statuses = ExecutionStatus.values().findAll {
@@ -123,27 +138,9 @@ class MultiRedisPipelineMigrationNotificationAgent extends AbstractPollingNotifi
 
       log.info("${migratablePipelines.size()} pipelines to migrate (${pipelineConfigId}) [${index}/${allPipelineConfigIds.size()}]")
 
-      List<byte[]> sourceDumps
-      withJedis(jedisPoolPrevious) { jedis ->
-        def sourcePipe = jedis.pipelined()
-
-        migratablePipelines.each {
-          sourcePipe.dump("pipeline:${it.id}")
-        }
-
-        sourceDumps = sourcePipe.syncAndReturnAll()
-      }
-
-      withJedis(jedisPool) { jedis ->
-        def destPipe = jedis.pipelined()
-        sourceDumps.eachWithIndex { byte[] entry, int i ->
-          def pipeline = migratablePipelines[i]
-          destPipe.restore("pipeline:${pipeline.id}", 0, entry)
-          destPipe.sadd("allJobs:pipeline", pipeline.id)
-          destPipe.sadd("pipeline:app:${pipeline.application.toLowerCase()}", pipeline.id)
-          destPipe.zadd(JedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
-        }
-        destPipe.sync()
+      migratablePipelines.each {
+        def execution = executionRepositoryPrevious.retrieve(it.type, it.id)
+        executionRepository.store(execution)
       }
 
       log.info("${migratablePipelines.size()} pipelines migrated (${pipelineConfigId}) [${index}/${allPipelineConfigIds.size()}]")

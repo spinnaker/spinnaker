@@ -43,7 +43,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisConfiguration
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
@@ -769,7 +769,7 @@ class QueueIntegrationTest {
   OrcaConfiguration::class,
   QueueConfiguration::class,
   JedisConfiguration::class,
-  JedisExecutionRepository::class,
+  RedisExecutionRepository::class,
   StageNavigator::class,
   RestrictExecutionDuringTimeWindow::class,
   OrcaQueueConfiguration::class
