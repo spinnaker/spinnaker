@@ -17,6 +17,7 @@
 
 import logging
 import os
+import re
 import traceback
 
 from buildtool.metrics import MetricsManager
@@ -102,3 +103,37 @@ def check_kwargs_empty(kwargs):
   if kwargs:
     raise_and_log_error(
         UnexpectedError('Unexpected arguments: {}'.format(kwargs.keys())))
+
+
+def scan_logs_for_install_errors(path):
+  """Scan logfile at path and count specific errors of interest."""
+  content = open(path, 'r').read()
+  match = re.search(
+       "^E:.* Version '([^']+)' for '([^']+)' was not found",
+       content,
+       re.MULTILINE)
+
+  component = ''
+  cause = 'Unknown'
+
+  if match:
+    version = match.group(1)
+    component = match.group(2)
+    cause = 'ComponentNotFound'
+    logging.error('"%s" version "%s" does not exist.',
+                  component, version)
+  if not match:
+    match = re.search(
+       '.*: No such file or directory$', content, re.MULTILINE)
+    if match:
+      cause = 'FileNotFound'
+
+  labels = {
+    'component': component,
+    'cause': cause
+  }
+  MetricsManager.singleton().inc_counter('InstallSpinnakerError', labels)
+
+  
+  
+  
