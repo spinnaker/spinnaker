@@ -129,6 +129,11 @@ class BaseValidateBomDeployer(object):
     """The metrics regisry bound at construction."""
     return self.__metrics
 
+  @property
+  def hal_user(self):
+    """Returns the Halyard User within the deployment VM."""
+    return self.__hal_user
+
   def __init__(self, options, metrics, runtime_class=None):
     if runtime_class:
       self.__spinnaker_deployer = runtime_class(options, metrics)
@@ -136,6 +141,8 @@ class BaseValidateBomDeployer(object):
       self.__spinnaker_deployer = self
     self.__options = options
     self.__metrics = metrics
+    self.__hal_user = options.deploy_hal_user
+    logging.info('hal_user="%s"', self.__hal_user)
 
   def make_port_forward_command(self, service, local_port, remote_port):
     """Return the command used to forward ports to the given service.
@@ -280,8 +287,9 @@ class BaseValidateBomDeployer(object):
     default credentials.
     """
     script.append('first=$(head -1 /opt/halyard/bin/halyard)')
-    script.append('inject="export GOOGLE_APPLICATION_DEFAULT_CREDENTIALS={path}"'
-                  .format(path='$(pwd)/' + os.path.basename(local_path)))
+    script.append(
+        'inject="export GOOGLE_APPLICATION_DEFAULT_CREDENTIALS={path}"'
+        .format(path='$(pwd)/' + os.path.basename(local_path)))
     script.append('remaining=$(tail -n +2 /opt/halyard/bin/halyard)')
     script.append('cat <<EOF | sudo tee /opt/halyard/bin/halyard\n'
                   '$first\n$inject\n$remaining\n'
@@ -299,8 +307,9 @@ class BaseValidateBomDeployer(object):
     install_params = ['-y']
     if options.halyard_config_bucket:
       install_params.extend(['--config-bucket', options.halyard_config_bucket])
-    if options.halyard_repository:
-      install_params.extend(['--repository', options.halyard_repository])
+    if options.halyard_bucket_base_url:
+      install_params.extend(['--halyard-bucket-base-url',
+                             options.halyard_bucket_base_url])
     if options.halyard_version:
       install_params.extend(['--version', options.halyard_version])
     if self.hal_user:
@@ -499,19 +508,12 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
     """Sets the path to the ssh key to use."""
     self.__ssh_key_path = path
 
-  @property
-  def hal_user(self):
-    """Returns the Halyard User within the deployment VM."""
-    return self.__hal_user
-
   def __init__(self, options, metrics, **kwargs):
     super(GenericVmValidateBomDeployer, self).__init__(
         options, metrics, **kwargs)
     self.__instance_ip = None
-    self.__hal_user = options.deploy_hal_user
-    logging.info('hal_user="%s"', self.__hal_user)
     self.__ssh_key_path = os.path.join(os.environ['HOME'], '.ssh',
-                                       '{0}_empty_key'.format(self.__hal_user))
+                                       '{0}_empty_key'.format(self.hal_user))
 
   def do_make_port_forward_command(self, service, local_port, remote_port):
     """Implements interface."""
@@ -913,6 +915,10 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
     add_parser_argument(
         parser, 'deploy_azure_name', defaults, None,
         help='Azure VM name to deploy to if --deploy_hal_platform is "azure".')
+    add_parser_argument(
+        parser, 'deploy_azure_image',
+        defaults, 'Canonical:UbuntuServer:14.04.5-LTS:latest',
+        help='Azure image to deploy.')
 
   @classmethod
   def validate_options_helper(cls, options):
@@ -950,7 +956,7 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
         ' --name {name}'
         ' --resource-group {rg}'
         ' --location {location}'
-        ' --image Canonical:UbuntuServer:14.04.5-LTS:latest'
+        ' --image {image}'
         ' --use-unmanaged-disk'
         ' --storage-sku Standard_LRS'
         ' --size Standard_D12_v2_Promo'
@@ -958,6 +964,7 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
         .format(name=options.deploy_azure_name,
                 rg=options.deploy_azure_resource_group,
                 location=options.deploy_azure_location,
+                image=options.deploy_azure_image,
                 ssh_key_path=self.ssh_key_path))
     self.set_instance_ip(json.JSONDecoder().decode(
         response)['publicIpAddress'])
@@ -1049,7 +1056,12 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
     add_parser_argument(
         parser, 'deploy_google_instance', defaults, None,
         help='Google instance to deploy to if --deploy_hal_platform is "gce".')
-
+    add_parser_argument(
+        parser, 'deploy_google_image_family', defaults, 'ubuntu-1404-lts',
+        help='Google image family to deploy if --deploy_hal_platform is "gce".')
+    add_parser_argument(
+        parser, 'deploy_google_image_project', defaults, 'ubuntu-os-cloud',
+        help='Project containing image from --deploy_google_image_family.')
     add_parser_argument(
         parser, 'deploy_google_network', defaults, 'default',
         help='The GCP Network to deploy spinnaker into.')
@@ -1122,8 +1134,8 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         'gcloud compute instances create'
         ' --account {gcloud_account}'
         ' --machine-type n1-standard-4'
-        ' --image-family ubuntu-1404-lts'
-        ' --image-project ubuntu-os-cloud'
+        ' --image-family {image_family}'
+        ' --image-project {image_project}'
         ' --metadata block-project-ssh-keys=TRUE,ssh-keys="{ssh_key}"'
         ' --project {project} --zone {zone}'
         ' --network {network}'
@@ -1131,6 +1143,8 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         ' --scopes {scopes}'
         ' {instance}'
         .format(gcloud_account=options.deploy_hal_google_service_account,
+                image_family=options.deploy_google_image_family,
+                image_project=options.deploy_google_image_project,
                 project=options.deploy_google_project,
                 zone=options.deploy_google_zone,
                 scopes='compute-rw,storage-full,logging-write,monitoring',
@@ -1230,7 +1244,7 @@ def init_argument_parser(parser, defaults):
   # pylint: disable=line-too-long
   add_parser_argument(
       parser, 'halyard_install_script', defaults,
-      'https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh',
+      'https://raw.githubusercontent.com/spinnaker/halyard/master/install/debian/InstallHalyard.sh',
       help='The URL to the InstallHalyard.sh script.')
 
   add_parser_argument(
@@ -1238,9 +1252,9 @@ def init_argument_parser(parser, defaults):
       help='If provided, the specific version of halyard to use.')
 
   add_parser_argument(
-      parser, 'halyard_repository',
-      defaults, 'https://dl.bintray.com/spinnaker-releases/debians',
-      help='The location of the halyard repository.')
+      parser, 'halyard_bucket_base_url', defaults, None,
+      help='The base URL for the bucket containing the halyard jar files'
+           ' to override, if any.')
 
   add_parser_argument(
       parser, 'halyard_config_bucket', defaults, None,
