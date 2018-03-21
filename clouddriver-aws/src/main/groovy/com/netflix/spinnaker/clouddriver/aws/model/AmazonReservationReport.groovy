@@ -216,16 +216,16 @@ class AmazonReservationReport implements ReservationReport {
     @JsonView(Views.V3.class)
     int index
 
-    @JsonView(Views.V4.class)
+    @JsonView(Views.V3.class)
     int totalRegionalSurplusForFamily
 
-    @JsonView(Views.V4.class)
+    @JsonView(Views.V3.class)
     int totalShortfallForFamily
 
-    @JsonView(Views.V4.class)
+    @JsonView(Views.V3.class)
     double percentageOfShortfall
 
-    @JsonView(Views.V4.class)
+    @JsonView(Views.V3.class)
     int portionOfAvailableSurplus
   }
 
