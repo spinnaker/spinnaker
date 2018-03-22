@@ -36,6 +36,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   final String type = TitusCloudProvider.ID
   final String cloudProvider = TitusCloudProvider.ID
   String entryPoint
+  String awsAccount
   String iamProfile
   List<String> securityGroups
   List<String> hardConstraints

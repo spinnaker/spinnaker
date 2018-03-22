@@ -163,7 +163,7 @@ class AwsLookupUtil {
     return com.netflix.spinnaker.clouddriver.aws.data.Keys.getInstanceHealthKey(containerIp, awsAccount, region, healthKey)
   }
 
-  private Map lookupAccount(account, region) {
+  public Map lookupAccount(account, region) {
     Map awsDetails = awsAccountLookup.find {
       it.titusAccount == account && it.region == region
     }

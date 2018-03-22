@@ -88,6 +88,10 @@ class TitusInstance implements Instance {
     placement.getContainerIp()
   }
 
+  String getHostIp() {
+    placement.getHost()
+  }
+
   @Override
   HealthState getHealthState() {
     List<Map<String, Object>> healthList = getHealth()
