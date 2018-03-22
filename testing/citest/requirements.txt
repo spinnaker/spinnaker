@@ -18,3 +18,5 @@ pyopenssl
 python-openstackclient
 
 google-cloud-storage>=1.7
+google-cloud-pubsub>=0.26.0
+
