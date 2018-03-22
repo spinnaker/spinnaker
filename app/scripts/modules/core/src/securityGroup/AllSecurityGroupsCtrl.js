@@ -41,6 +41,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
       });
 
       app.securityGroups.onRefresh($scope, () => updateSecurityGroups());
+      app.securityGroups.ready().then(() => updateSecurityGroups());
 
     };
 
