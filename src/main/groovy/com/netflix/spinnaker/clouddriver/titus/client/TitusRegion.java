@@ -75,7 +75,7 @@ public class TitusRegion {
     return autoscalingEnabled;
   }
 
-  public Boolean isloadBalancingEnabled() {
+  public Boolean isLoadBalancingEnabled() {
     return loadBalancingEnabled;
   }
 

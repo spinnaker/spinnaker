@@ -124,7 +124,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     return autoscalingEnabled
   }
 
-  boolean isloadBalancingEnabled() {
+  boolean isLoadBalancingEnabled() {
     return loadBalancingEnabled
   }
 
