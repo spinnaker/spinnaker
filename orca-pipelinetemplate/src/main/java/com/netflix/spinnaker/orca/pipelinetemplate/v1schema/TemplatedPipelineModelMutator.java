@@ -127,7 +127,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     if (configuration.getTriggers() != null && !configuration.getTriggers().isEmpty()) {
       pipeline.put(
         "triggers",
-        TemplateMerge.mergeNamedContent(
+        TemplateMerge.mergeDistinct(
           pipelineTemplateObjectMapper.convertValue(pipeline.get("triggers"), new TypeReference<List<NamedHashMap>>() {}),
           configuration.getTriggers()
         )
