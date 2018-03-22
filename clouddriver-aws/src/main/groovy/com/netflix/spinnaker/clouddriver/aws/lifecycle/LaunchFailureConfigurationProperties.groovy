@@ -1,8 +1,5 @@
-package com.netflix.spinnaker.clouddriver.aws.lifecycle
-
-import org.springframework.boot.context.properties.ConfigurationProperties
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +13,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.netflix.spinnaker.clouddriver.aws.lifecycle
+
+import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("aws.lifecycleSubscribers.launchFailure")
 class LaunchFailureConfigurationProperties {
