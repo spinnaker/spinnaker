@@ -10,7 +10,6 @@ export interface ISkipWaitProps {
   execution: IExecution;
   stage: IExecutionStage;
   application: Application;
-  autoRefresh?: boolean;
 }
 
 export interface ISkipWaitState {
@@ -53,19 +52,15 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
   };
 
   public componentWillReceiveProps() {
-    this.runningTime && this.runningTime.checkStatus();
+    this.runningTime.checkStatus();
   }
 
   public componentDidMount() {
-    if (this.props.autoRefresh) {
-      this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setRemainingWait(time));
-    } else {
-      this.setRemainingWait(Date.now() - this.props.stage.startTime);
-    }
+    this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setRemainingWait(time));
   }
 
   public componentWillUnmount() {
-    this.runningTime && this.runningTime.reset();
+    this.runningTime.reset();
   }
 
   public render() {
@@ -97,3 +92,4 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
     )
   }
 }
+

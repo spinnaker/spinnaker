@@ -141,7 +141,9 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     const { Component, template, placement, container, hOffsetPercent, id, title, className } = this.props;
     const { popoverIsOpen, animation, placementOverride } = this.state;
 
-    const PopoverContentsComponent: React.ComponentType<IHoverablePopoverContentsProps> = Component ? Component : () => template;
+    const popoverContent: JSX.Element = Component ?
+      <Component {...this.props} hidePopover={() => this.hidePopoverEvents$.next()}/> :
+      template;
 
     return (
       <g onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent} ref={this.refCallback}>
@@ -157,7 +159,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
             title={title}
             className={className}
           >
-            <PopoverContentsComponent {...this.props} hidePopover={() => this.hidePopoverEvents$.next()}/>
+            {popoverContent}
           </PopoverOffset>
         </Overlay>
       </g>
