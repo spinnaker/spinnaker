@@ -77,10 +77,10 @@ class DcosServerGroup implements ServerGroup, Serializable {
     this.account = account
   }
 
-  DcosServerGroup(String account, String cluster, String clusterUrl, App app) {
+  DcosServerGroup(String cluster, String clusterUrl, App app) {
     this.app = app
     this.json = app.toString()
-    def id = DcosSpinnakerAppId.parse(app.id, account).get()
+    def id = DcosSpinnakerAppId.parse(app.id).get()
     this.name = id.serverGroupName.group
     this.dcosCluster = cluster
     this.clusterUrl = clusterUrl

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosClusterCredentials
 import mesosphere.dcos.client.Config
+import mesosphere.dcos.client.model.DCOSAuthCredentials
 import spock.lang.Specification
 
 class BaseSpecification extends Specification {
@@ -31,11 +32,17 @@ class BaseSpecification extends Specification {
   public static
   final DEFAULT_COMPOSITE_KEY = DcosClientCompositeKey.buildFromVerbose(DEFAULT_ACCOUNT, DEFAULT_REGION).get()
   public static final BAD_ACCOUNT = 'bad-acct'
+  public static final DEFAULT_DCOS_UID = "default_uid"
 
   def defaultCredentialsBuilder() {
+
+    def dcosAuthCreds = Mock(DCOSAuthCredentials) {
+      getUid() >> DEFAULT_DCOS_UID
+    }
+
     DcosAccountCredentials.builder().account(DEFAULT_ACCOUNT).environment('test').accountType('test').requiredGroupMembership([])
       .dockerRegistries([new DcosConfigurationProperties.LinkedDockerRegistryConfiguration(accountName: 'dockerReg')])
-      .clusters([DcosClusterCredentials.builder().key(DEFAULT_COMPOSITE_KEY).dcosUrl('https://test.url.com').secretStore('default').dcosConfig(Config.builder().build()).build()])
+      .clusters([DcosClusterCredentials.builder().key(DEFAULT_COMPOSITE_KEY).dcosUrl('https://test.url.com').secretStore('default').dcosConfig(Config.builder().withCredentials(dcosAuthCreds).build()).build()])
   }
 
   def emptyCredentialsBuilder() {

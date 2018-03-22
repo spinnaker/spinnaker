@@ -41,7 +41,7 @@ class DcosServerGroupSpec extends Specification {
     lbApp.getLabels() >> ["HAPROXY_GROUP": "${ACCOUNT}_${goodLb},wrongaccount_${badLb}"]
 
     when:
-    @Subject def serverGroup = new DcosServerGroup(ACCOUNT, REGION, DCOS_URL, lbApp)
+    @Subject def serverGroup = new DcosServerGroup(REGION, DCOS_URL, lbApp)
 
     then:
     serverGroup.loadBalancers.size() == 1

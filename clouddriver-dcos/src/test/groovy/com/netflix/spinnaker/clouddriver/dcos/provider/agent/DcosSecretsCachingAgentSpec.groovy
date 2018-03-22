@@ -48,7 +48,7 @@ class DcosSecretsCachingAgentSpec extends BaseSpecification {
       getDcosClient(credentials, DEFAULT_REGION) >> dcosClient
     }
 
-    subject = new DcosSecretsCachingAgent(DEFAULT_ACCOUNT, DEFAULT_REGION, credentials, clientProvider, objectMapper)
+    subject = new DcosSecretsCachingAgent(DEFAULT_REGION, credentials, clientProvider, objectMapper)
   }
 
   void "Should cache secrets when the account has permission to list secrets"() {

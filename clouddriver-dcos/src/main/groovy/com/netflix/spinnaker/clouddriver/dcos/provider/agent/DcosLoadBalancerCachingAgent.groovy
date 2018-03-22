@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.Iterables
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -41,10 +42,12 @@ import mesosphere.marathon.client.model.v2.GetAppNamespaceResponse
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 
 @Slf4j
-class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDemandAgent {
+class DcosLoadBalancerCachingAgent implements CachingAgent, OnDemandAgent, DcosClusterAware {
 
-  private final String accountName
+  private final Collection<DcosAccountCredentials> accounts
+  private final Collection<String> accountNames
   private final String clusterName
+  private final String serviceAccountUID
   private final DCOS dcosClient
   private final DcosCloudProvider dcosCloudProvider = new DcosCloudProvider()
   private final ObjectMapper objectMapper
@@ -55,16 +58,19 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
                                                                         //INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns)
                                                                       ] as Set)
 
-  DcosLoadBalancerCachingAgent(String accountName,
+  DcosLoadBalancerCachingAgent(Collection<DcosAccountCredentials> accounts,
                                String clusterName,
-                               DcosAccountCredentials credentials,
                                DcosClientProvider clientProvider,
                                ObjectMapper objectMapper,
                                Registry registry) {
-    this.accountName = accountName
+    this.accounts = accounts
+    this.accountNames = accounts.collect { account -> account.account }
+
+    def primaryAccount = Iterables.getFirst(accounts, null)
     this.clusterName = clusterName
+    this.serviceAccountUID = primaryAccount.getCredentialsByCluster(clusterName).dcosConfig.credentials.uid
     this.objectMapper = objectMapper
-    this.dcosClient = clientProvider.getDcosClient(credentials, clusterName)
+    this.dcosClient = clientProvider.getDcosClient(primaryAccount, clusterName)
     this.metricsSupport = new OnDemandMetricsSupport(registry,
                                                      this,
                                                      "$dcosCloudProvider.id:$OnDemandAgent.OnDemandType.LoadBalancer")
@@ -81,13 +87,23 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
   }
 
   @Override
-  String getAccountName() {
-    return accountName
+  Collection<DcosAccountCredentials> getAccounts() {
+    return accounts
+  }
+
+  @Override
+  String getClusterName() {
+    return clusterName
+  }
+
+  @Override
+  String getServiceAccountUID() {
+    return serviceAccountUID
   }
 
   @Override
   String getAgentType() {
-    "${accountName}/${clusterName}/${DcosLoadBalancerCachingAgent.simpleName}"
+    "${clusterName}/${serviceAccountUID}/${DcosLoadBalancerCachingAgent.simpleName}"
   }
 
   @Override
@@ -101,7 +117,7 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
       return null
     }
 
-    if (data.account != accountName) {
+    if (!accountNames.contains(data.account.toString())) {
       return null
     }
 
@@ -166,7 +182,7 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
     def keys = providerCache.getIdentifiers(Keys.Namespace.ON_DEMAND.ns)
     keys = keys.findResults {
       def parse = Keys.parse(it)
-      if (parse && parse.account == accountName) {
+      if (parse && accountNames.contains(parse.account)) {
         return it
       } else {
         return null
@@ -201,7 +217,7 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,
                          loadBalancers.collect {
-                           Keys.getLoadBalancerKey(DcosSpinnakerLbId.parse(it.id, accountName).get(), clusterName)
+                           Keys.getLoadBalancerKey(DcosSpinnakerLbId.parse(it.id).get(), clusterName)
                          }).each {
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
       // replication controllers. Furthermore, cache data that hasn't been processed needs to be updated in the ON_DEMAND
@@ -227,14 +243,14 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
 
   private List<App> loadLoadBalancers() {
     // Currently not supporting anything but account global load balancers - no associated region.
-    final Optional<GetAppNamespaceResponse> response = dcosClient.maybeApps(accountName)
+    final Optional<GetAppNamespaceResponse> response = dcosClient.maybeApps("")
     if (!response.isPresent()) {
-      log.info("The account namespace [${accountName}] does not exist in DC/OS. No load balancers will be cached.")
+      log.info("Unable to retrieve DC/OS applications from the root namespace. No load balancers will be cached.")
       return []
     }
 
     return response.get().apps.findAll {
-      it.labels?.containsKey("SPINNAKER_LOAD_BALANCER") && DcosSpinnakerLbId.parse(it.id, accountName).isPresent()
+      it.labels?.containsKey("SPINNAKER_LOAD_BALANCER") && DcosSpinnakerLbId.parse(it.id).isPresent()
     }
   }
 

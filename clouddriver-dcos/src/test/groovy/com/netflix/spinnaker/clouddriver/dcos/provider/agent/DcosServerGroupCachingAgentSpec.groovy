@@ -17,30 +17,32 @@
 package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
-import com.netflix.spinnaker.clouddriver.dcos.model.DcosInstance
-import com.netflix.spinnaker.clouddriver.dcos.model.DcosServerGroup
-import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
+import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerAppId
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerLbId
 import com.netflix.spinnaker.clouddriver.dcos.provider.MutableCacheData
+import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosClusterCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import mesosphere.dcos.client.Config
 import mesosphere.dcos.client.DCOS
+import mesosphere.dcos.client.model.DCOSAuthCredentials
 import mesosphere.marathon.client.model.v2.App
+import mesosphere.marathon.client.model.v2.Container
 import mesosphere.marathon.client.model.v2.GetAppNamespaceResponse
 import mesosphere.marathon.client.model.v2.GetAppResponse
-import mesosphere.marathon.client.model.v2.GetTasksResponse
 import mesosphere.marathon.client.model.v2.Task
 import mesosphere.marathon.client.model.v2.VersionedApp
 import spock.lang.Specification
 
-class DcosServerGroupCachingAgentSpec extends Specification {
+class DcosServerGroupCachingAgentSpec extends BaseSpecification {
   static final private String ACCOUNT = "testaccount"
   static final private String APP = "testapp"
   static final private String CLUSTER = "${APP}-cluster"
@@ -56,6 +58,8 @@ class DcosServerGroupCachingAgentSpec extends Specification {
   DcosAccountCredentials credentials
   DcosClusterCredentials clusterCredentials
   AccountCredentialsRepository accountCredentialsRepository
+
+  private Container container
 
   DcosServerGroupCachingAgent subject
   private DcosClientProvider clientProvider
@@ -75,8 +79,10 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     registryMock.get('id') >> 'id'
     registryMock.timer(_, _) >> Mock(com.netflix.spectator.api.Timer)
     accountCredentialsRepository = Mock(AccountCredentialsRepository)
-    credentials = Stub(DcosAccountCredentials)
-    clusterCredentials = Stub(DcosClusterCredentials)
+    credentials = GroovyMock(DcosAccountCredentials)
+    credentials.account >> ACCOUNT
+
+    container = Mock(Container)
     dcosClient = Mock(DCOS)
     providerCache = Mock(ProviderCache)
     objectMapper = new ObjectMapper()
@@ -85,8 +91,19 @@ class DcosServerGroupCachingAgentSpec extends Specification {
       getDcosClient(credentials, REGION) >> dcosClient
     }
 
-    credentials.getCredentialsByCluster(REGION) >> clusterCredentials
+    def dcosAuthCredentials = Mock(DCOSAuthCredentials) {
+      getUid() >> DEFAULT_DCOS_UID
+    }
+
+    def dcosConfig = Mock(Config) {
+      getCredentials() >> dcosAuthCredentials
+    }
+
+    clusterCredentials = GroovyMock(DcosClusterCredentials)
     clusterCredentials.dcosUrl >> DCOS_URL
+    clusterCredentials.dcosConfig >> dcosConfig
+
+    credentials.getCredentialsByCluster(REGION) >> clusterCredentials
 
     appKey = Keys.getApplicationKey(APP)
     serverGroupKey = Keys.getServerGroupKey(DcosSpinnakerAppId.parseVerbose(MARATHON_APP, ACCOUNT).get(), REGION)
@@ -94,7 +111,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     instanceKey = Keys.getInstanceKey(DcosSpinnakerAppId.parseVerbose(MARATHON_APP_WITH_REGION, ACCOUNT).get(), TASK)
     loadBalancerKey = Keys.getLoadBalancerKey(DcosSpinnakerLbId.parseVerbose(LOAD_BALANCER).get(), REGION)
 
-    subject = new DcosServerGroupCachingAgent(ACCOUNT, REGION, credentials, clientProvider, objectMapper, registryMock)
+    subject = new DcosServerGroupCachingAgent(ImmutableList.of(credentials), REGION, clientProvider, objectMapper, registryMock)
   }
 
   void "On-demand cache should cache a single server group"() {
@@ -159,7 +176,8 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     setup:
     GetAppNamespaceResponse appsInAccount = Mock(GetAppNamespaceResponse) {
       getApps() >> [
-        Mock(App) {
+        Mock(VersionedApp) {
+          getContainer() >> container
           getId() >> MARATHON_APP
           getTasks() >> [
             Mock(Task) {
@@ -180,7 +198,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
         "processedCount": 0]
     }
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, [serverGroupKey]) >> [cacheData]
-    dcosClient.maybeApps(ACCOUNT, ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
+    dcosClient.maybeApps("", ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
     when:
     final result = subject.loadData(providerCache)
     then:
@@ -194,7 +212,8 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     setup:
     GetAppNamespaceResponse appsInAccount = Mock(GetAppNamespaceResponse) {
       getApps() >> [
-        Mock(App) {
+        Mock(VersionedApp) {
+          getContainer() >> container
           getId() >> MARATHON_APP
           getTasks() >> [
             Mock(Task) {
@@ -215,7 +234,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
         "processedCount": 1]
     }
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, [serverGroupKey]) >> [cacheData]
-    dcosClient.maybeApps(ACCOUNT, ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
+    dcosClient.maybeApps("", ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
     when:
     final result = subject.loadData(providerCache)
     then:
@@ -228,7 +247,8 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     setup:
     GetAppNamespaceResponse appsInAccount = Mock(GetAppNamespaceResponse) {
       getApps() >> [
-        Mock(App) {
+        Mock(VersionedApp) {
+          getContainer() >> container
           getId() >> MARATHON_APP
           getTasks() >> [
             Mock(Task) {
@@ -241,7 +261,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
       ]
     }
 
-    dcosClient.maybeApps(ACCOUNT, ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
+    dcosClient.maybeApps("", ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
     def providerCacheMock = Mock(ProviderCache)
     providerCacheMock.getAll(_, _) >> []
     when:
@@ -275,7 +295,8 @@ class DcosServerGroupCachingAgentSpec extends Specification {
 
   void "Should cache instances for each of the tasks belonging to the application"() {
     setup:
-    def validApp = Mock(App) {
+    def validApp = Mock(VersionedApp) {
+      getContainer() >> container
       getId() >> MARATHON_APP
       getTasks() >> [
         Mock(Task) {
@@ -289,7 +310,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
       getApps() >> [validApp]
     }
 
-    dcosClient.maybeApps(ACCOUNT, ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
+    dcosClient.maybeApps("", ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
     dcosClient.getDeployments() >> []
     def providerCacheMock = Mock(ProviderCache)
 
@@ -299,7 +320,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     then:
     result.cacheResults.instances.size() == 1
 
-    def cacheData1 = result.cacheResults.instances.find { it.id == instanceKey}
+    def cacheData1 = result.cacheResults.instances.find { it.id == instanceKey }
     cacheData1 != null
     cacheData1.attributes.name == TASK
     cacheData1.attributes.instance.task.appId == MARATHON_APP
@@ -312,12 +333,14 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     def invalidAppId = "/invalidAccount/${SERVER_GROUP}"
 
     def validApp = Mock(App) {
+      getContainer() >> container
       getId() >> validAppId
       getTasks() >> []
       getLabels() >> ["HAPROXY_GROUP": "${ACCOUNT}_${APP}-frontend"]
     }
 
     def invalidApp = Mock(App) {
+      getContainer() >> container
       getId() >> invalidAppId
       getTasks() >> []
       getLabels() >> ["HAPROXY_GROUP": "${ACCOUNT}_${APP}-frontend"]
@@ -327,7 +350,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
       getApps() >> [validApp, invalidApp]
     }
 
-    dcosClient.maybeApps(ACCOUNT, ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
+    dcosClient.maybeApps("", ['app.tasks', 'app.deployments']) >> Optional.of(appsInAccount)
     dcosClient.getDeployments() >> []
     def providerCacheMock = Mock(ProviderCache)
 
@@ -338,7 +361,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     result.cacheResults.serverGroups.size() == 1
 
     def serverGroupKey = Keys.getServerGroupKey(DcosSpinnakerAppId.parse(validAppId).get(), REGION)
-    def cacheData1 = result.cacheResults.serverGroups.find { it.id == serverGroupKey}
+    def cacheData1 = result.cacheResults.serverGroups.find { it.id == serverGroupKey }
     cacheData1 != null
     cacheData1.attributes.name == validAppId
     cacheData1.attributes.serverGroup.app == validApp
@@ -352,8 +375,8 @@ class DcosServerGroupCachingAgentSpec extends Specification {
       relationships[Keys.Namespace.INSTANCES.ns].addAll(task)
     }
     def result = new DefaultCacheResult([
-                                          (Keys.Namespace.SERVER_GROUPS.ns): cacheData.values()
-                                        ], [:])
+      (Keys.Namespace.SERVER_GROUPS.ns): cacheData.values()
+    ], [:])
     new ObjectMapper().writeValueAsString(result.cacheResults)
   }
 

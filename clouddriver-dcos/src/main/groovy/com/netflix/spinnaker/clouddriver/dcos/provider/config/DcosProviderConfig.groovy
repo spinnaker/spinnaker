@@ -19,13 +19,17 @@ package com.netflix.spinnaker.clouddriver.dcos.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.Iterables
+import com.google.common.collect.Multimap
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
 import com.netflix.spinnaker.clouddriver.dcos.provider.DcosProvider
-
+import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosClusterAware
 import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosSecretsCachingAgent
 import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosServerGroupCachingAgent
@@ -34,6 +38,8 @@ import com.netflix.spinnaker.clouddriver.dcos.security.DcosClusterCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
+import groovy.util.logging.Slf4j
+import org.apache.commons.lang3.tuple.Pair
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -42,6 +48,7 @@ import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
 
+@Slf4j
 @Configuration
 class DcosProviderConfig {
   @Bean
@@ -80,30 +87,29 @@ class DcosProviderConfig {
                                                    ObjectMapper objectMapper,
                                                    Registry registry) {
 
-    def accounts = ProviderUtils.getScheduledAccounts(dcosProvider)
-    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, DcosAccountCredentials)
+    Set<Pair<String, String>> scheduledAgents = getScheduledClusterAgents(dcosProvider)
+
+    Set<DcosAccountCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, DcosAccountCredentials)
 
     objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
     def newlyAddedAgents = []
-    allAccounts.each { DcosAccountCredentials credentials ->
-      if (!accounts.contains(credentials.account)) {
 
-        def allClusterCredentials = credentials.getCredentials().credentials
+    Multimap<Pair<String, String>, DcosAccountCredentials> accountsByCluster = ArrayListMultimap.create()
 
-        allClusterCredentials.each { DcosClusterCredentials clusterCredentials ->
-          // TODO We should try and enhance this at some point if DC/OS doesn't ever finer grained access controls on
-          // secrets so that we aren't unnecessarily duplicating these agents since they are essentially storing the
-          // exact same secrets for a single cluster
-          newlyAddedAgents << new DcosSecretsCachingAgent(credentials.account, clusterCredentials.cluster,
-                                                          credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper)
+    allAccounts.each { DcosAccountCredentials account ->
+      account.getCredentials().credentials.each { DcosClusterCredentials clusterCredentials ->
+        accountsByCluster.put(Pair.of(clusterCredentials.cluster, clusterCredentials.dcosConfig.credentials.uid), account)
+      }
+    }
 
-          newlyAddedAgents << new DcosServerGroupCachingAgent(credentials.account, clusterCredentials.cluster,
-                                                              credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
-
-          newlyAddedAgents << new DcosLoadBalancerCachingAgent(credentials.account, clusterCredentials.cluster,
-                                                               credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
-        }
+    for (Map.Entry<Pair<String, String>, Collection<DcosAccountCredentials>> entry : accountsByCluster.asMap().entrySet()) {
+      if (!scheduledAgents.contains(entry.key)) {
+        newlyAddedAgents << new DcosSecretsCachingAgent(entry.key.left, Iterables.getFirst(entry.value, null), new DcosClientProvider(accountCredentialsProvider), objectMapper)
+        newlyAddedAgents << new DcosServerGroupCachingAgent(entry.value, entry.key.left, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
+        newlyAddedAgents << new DcosLoadBalancerCachingAgent(entry.value, entry.key.left, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
+      } else {
+        synchronizeAgent(dcosProvider, entry.key, entry.value)
       }
     }
 
@@ -112,5 +118,45 @@ class DcosProviderConfig {
     }
 
     new DcosProviderSynchronizer()
+  }
+
+  static def synchronizeAgent(DcosProvider dcosProvider, Pair<String, String> clusterKey, Collection<DcosAccountCredentials> allAccounts) {
+
+    DcosClusterAware clusterAwareAgent = dcosProvider.agents.find { agent ->
+      agent instanceof DcosClusterAware && ((DcosClusterAware) agent).clusterName == clusterKey.left && ((DcosClusterAware)agent).serviceAccountUID == clusterKey.right
+    } as DcosClusterAware
+
+    if (clusterAwareAgent) {
+      def agentAccounts = clusterAwareAgent.accounts
+      def oldAccountNames = agentAccounts.collect { it.name }
+      def newAccountNames = allAccounts.collect { it.name }
+      def accountNamesToDelete = oldAccountNames - newAccountNames
+      def accountNamesToAdd = newAccountNames - oldAccountNames
+
+      accountNamesToDelete.each { accountNameToDelete ->
+        def accountToDelete = agentAccounts.find { it.name == accountNameToDelete }
+
+        if (accountToDelete) {
+          agentAccounts.remove(accountToDelete)
+        }
+      }
+
+      accountNamesToAdd.each { accountNameToAdd ->
+        def accountToAdd = allAccounts.find { it.name == accountNameToAdd }
+
+        if (accountToAdd) {
+          agentAccounts.add(accountToAdd)
+        }
+      }
+    }
+  }
+
+  static Set<Pair<String, String>> getScheduledClusterAgents(Provider provider) {
+    provider.agents.findAll { agent ->
+      agent instanceof DcosClusterAware
+    }.collect { agent ->
+      def dcosAgent = agent as DcosClusterAware
+      Pair.of(dcosAgent.clusterName, dcosAgent.serviceAccountUID)
+    } as Set
   }
 }
