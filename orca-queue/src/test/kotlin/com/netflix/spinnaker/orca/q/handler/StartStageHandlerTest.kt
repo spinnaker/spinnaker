@@ -604,6 +604,34 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       }
     }
 
+    given("the stage has a start time after ttl") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "bar"
+          type = singleTaskStage.type
+          startTimeTtl = clock.instant().minusSeconds(30).toEpochMilli()
+        }
+      }
+      val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving a message") {
+        subject.handle(message)
+      }
+
+      it("cancels the stage") {
+        verify(queue).push(CancelStage(
+          pipeline.stageByRef("bar")
+        ))
+      }
+    }
+
     given("an exception is thrown planning the stage") {
       val pipeline = pipeline {
         application = "covfefe"

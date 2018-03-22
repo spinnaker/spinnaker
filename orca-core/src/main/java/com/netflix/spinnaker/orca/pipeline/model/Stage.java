@@ -188,6 +188,20 @@ public class Stage implements Serializable {
   }
 
   /**
+   * Gets the start ttl timestamp for this stage. If the stage has not started
+   * before this timestamp, the stage will fail.
+   */
+  private Long startTimeTtl;
+
+  public @Nullable Long getStartTimeTtl() {
+    return startTimeTtl;
+  }
+
+  public void setStartTimeTtl(@Nullable Long startTimeTtl) {
+    this.startTimeTtl = startTimeTtl;
+  }
+
+  /**
    * The execution status for this stage
    */
   private ExecutionStatus status = NOT_STARTED;

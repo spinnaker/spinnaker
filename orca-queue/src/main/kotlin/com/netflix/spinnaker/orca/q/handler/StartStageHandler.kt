@@ -71,6 +71,10 @@ class StartStageHandler(
           log.warn("Ignoring $message as stage is already ${stage.status}")
         } else if (stage.shouldSkip()) {
           queue.push(SkipStage(message))
+        } else if (stage.afterStartTimeTtl()) {
+          log.warn("Stage (${stage.id}) is being canceled because its start time is after TTL " +
+            "(executionId: ${message.executionId}")
+          queue.push(CancelStage(stage))
         } else {
           try {
             stage.withAuth {
@@ -179,4 +183,7 @@ class StartStageHandler(
 
     return OptionalStageSupport.isOptional(clonedStage.withMergedContext(), contextParameterProcessor)
   }
+
+  private fun Stage.afterStartTimeTtl(): Boolean =
+    startTimeTtl?.let { clock.millis() > it } ?: false
 }
