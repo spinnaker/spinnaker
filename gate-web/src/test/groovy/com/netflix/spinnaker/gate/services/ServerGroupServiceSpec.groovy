@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
@@ -26,10 +27,12 @@ class ServerGroupServiceSpec extends Specification {
   void "should include relevant insight actions for server group"() {
     given:
     def service = new ServerGroupService(
+      objectMapper: new ObjectMapper(),
         clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
           1 * select(_) >> {
             Mock(ClouddriverService) {
               1 * getServerGroupDetails(_, _, _, _) >> { return [cloudProvider: "aws"] }
+              1 * getAccount(_) >> { return [awsAccount: "prod"] }
             }
           }
         },
@@ -38,14 +41,14 @@ class ServerGroupServiceSpec extends Specification {
         },
         insightConfiguration: new InsightConfiguration(
             serverGroup: [new InsightConfiguration.Link(
-              url: '${application}-${account}-${region}-${serverGroup}-${cloudProvider}-{DNE}'
+              url: '${application}-${account}-${region}-${serverGroup}-${cloudProvider}-{DNE}-${awsAccount}'
             )]
         )
     )
 
     expect:
     service.getForApplicationAndAccountAndRegion("application", "account", "region", "serverGroup", null).insightActions*.url == [
-        "application-account-region-serverGroup-aws-{DNE}"
+        "application-account-region-serverGroup-aws-{DNE}-prod"
     ]
   }
 

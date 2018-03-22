@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
@@ -36,6 +37,9 @@ class ServerGroupService {
 
   @Autowired
   InsightConfiguration insightConfiguration
+
+  @Autowired
+  ObjectMapper objectMapper
 
   @Autowired
   ProviderLookupService providerLookupService
@@ -62,12 +66,14 @@ class ServerGroupService {
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       try {
-        def serverGroupDetails = clouddriverServiceSelector.select(selectorKey).getServerGroupDetails(applicationName, account, region, serverGroupName)
+        def service = clouddriverServiceSelector.select(selectorKey)
+        def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
+        def serverGroupDetails = service.getServerGroupDetails(applicationName, account, region, serverGroupName)
         def serverGroupContext = serverGroupDetails.collectEntries {
           return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
         } as Map<String, String>
 
-        def context = getContext(applicationName, account, region, serverGroupName) + serverGroupContext
+        def context = getContext(applicationName, account, region, serverGroupName) + serverGroupContext + accountDetails
         return serverGroupDetails + [
           "insightActions": insightConfiguration.serverGroup.findResults { it.applyContext(context) }
         ]
