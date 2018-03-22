@@ -143,7 +143,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
     return (
       <div className="infrastructure">
         <div className="infrastructure-section search-header">
-          <div className="container" style={{ overflowY: 'auto' }}>
+          <div className="container">
             <h2 className="header-section">
               <span className="search-label">Applications</span>
               <input
@@ -161,7 +161,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
           </div>
         </div>
 
-        <div className="container">
+        <div className="infrastructure-section container">
           {!applications && <LoadingSpinner/>}
 
           {applications && applications.length === 0 && (
