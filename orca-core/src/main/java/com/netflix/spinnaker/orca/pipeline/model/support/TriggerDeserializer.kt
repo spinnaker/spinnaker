@@ -109,7 +109,7 @@ internal class TriggerDeserializer
     hasNonNull("account") && hasNonNull("repository") && hasNonNull("tag")
 
   private fun JsonNode.looksLikeGit() =
-    hasNonNull("source") && hasNonNull("project") && hasNonNull("branch") && hasNonNull("slug")
+    hasNonNull("source") && hasNonNull("project") && hasNonNull("branch") && hasNonNull("slug") && hasNonNull("hash")
 
   private fun JsonNode.looksLikeJenkins() =
     hasNonNull("master") && hasNonNull("job") && hasNonNull("buildNumber")
