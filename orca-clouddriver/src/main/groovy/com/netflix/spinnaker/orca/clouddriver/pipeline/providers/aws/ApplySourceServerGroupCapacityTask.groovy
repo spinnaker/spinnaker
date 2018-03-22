@@ -158,11 +158,17 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
       ancestorStage.context.containsKey("sourceServerGroupCapacitySnapshot")
     }
 
-    return ancestors ? ancestors[0] : stage.execution.stages.find {
+    Stage ancestor = (ancestors != null && !ancestors.isEmpty()) ? ancestors[0] : stage.execution.stages.find {
       // find a synthetic sibling w/ 'sourceServerGroupCapacitySnapshot' in the event of there being no suitable
       // ancestors (ie. rollback stages)
       it.context.containsKey("sourceServerGroupCapacitySnapshot") && it.parentStageId == stage.parentStageId
     }
+
+    if (ancestor == null) {
+      throw new CannotFindAncestorStage("No stages with sourceServerGroupCapacitySnapshot context defined in execution ${stage.execution.id}")
+    }
+
+    return ancestor
   }
 
   private static class DeployStageData extends StageData {
@@ -197,5 +203,11 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
   private static class TargetServerGroupContext {
     Map<String, Object> context
     Map<String, Long> sourceServerGroupCapacitySnapshot
+  }
+
+  private static class CannotFindAncestorStage extends IllegalStateException {
+    CannotFindAncestorStage(String message) {
+      super(message)
+    }
   }
 }
