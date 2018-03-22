@@ -32,6 +32,8 @@ class TitusInstance implements Instance {
   String jobName
   String stdoutLive
   String logs
+  String cluster
+  String serverGroup
   Map image = [:]
   TaskState state
   Map env
@@ -80,6 +82,10 @@ class TitusInstance implements Instance {
   @Override
   String getName() {
     id
+  }
+
+  String getContainerIp() {
+    placement.getContainerIp()
   }
 
   @Override

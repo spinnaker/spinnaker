@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.caching.providers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
 
 @Component
 class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
@@ -76,6 +78,10 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
     instance.health = instance.health ?: []
     if (instanceEntry.attributes[HEALTH.ns]) {
       instance.health.addAll(instanceEntry.attributes[HEALTH.ns])
+    }
+    if (instanceEntry.relationships[SERVER_GROUPS.ns] && !instanceEntry.relationships[SERVER_GROUPS.ns].empty) {
+      instance.serverGroup = instanceEntry.relationships[SERVER_GROUPS.ns].iterator().next()
+      instance.cluster =  Names.parseName(instance.serverGroup)?.cluster
     }
     externalHealthProviders.each { externalHealthProvider ->
       def healthKeys = []
