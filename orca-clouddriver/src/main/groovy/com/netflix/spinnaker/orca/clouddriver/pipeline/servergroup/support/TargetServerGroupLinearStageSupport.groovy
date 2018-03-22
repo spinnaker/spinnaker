@@ -74,6 +74,19 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     return type
   }
 
+  protected String getServerGroupName(Map<String, Object> context) {
+    return context.serverGroupName ?: context.asgName
+  }
+
+  public Map<String, Object> removeServerGroupName(Map<String, Object> context) {
+    def copyOfContext = new HashMap(context)
+
+    copyOfContext.remove("serverGroupName")
+    copyOfContext.remove("asgName")
+
+    return copyOfContext
+  }
+
   @Override
   final void taskGraph(Stage stage, TaskNode.Builder builder) {
     if (!isTopLevel(stage)) {

@@ -56,7 +56,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
         it.name = "resumeScalingProcesses"
         it.type = ModifyAwsScalingProcessStage.TYPE
         it.context = [
-          serverGroupName: descriptor.asgName,
+          serverGroupName: getServerGroupName(descriptor),
           cloudProvider  : descriptor.cloudProvider,
           credentials    : descriptor.credentials,
           region         : descriptor.region,
@@ -74,7 +74,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
         it.name = "suspendScalingProcesses"
         it.type = ModifyAwsScalingProcessStage.TYPE
         it.context = [
-          serverGroupName: descriptor.asgName,
+          serverGroupName: getServerGroupName(descriptor),
           cloudProvider  : descriptor.cloudProvider,
           credentials    : descriptor.credentials,
           region         : descriptor.region,
@@ -87,7 +87,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
   @Override
   protected void preDynamic(Map<String, Object> context, StageGraphBuilder graph) {
     if (context.cloudProvider == "aws") {
-      context.remove("asgName")
+      context = removeServerGroupName(context)
       graph.add {
         it.name = "resumeScalingProcesses"
         it.type = ModifyAwsScalingProcessStage.TYPE
@@ -101,7 +101,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
   @Override
   protected void postDynamic(Map<String, Object> context, StageGraphBuilder graph) {
     if (context.cloudProvider == "aws") {
-      context.remove("asgName")
+      context = removeServerGroupName(context)
       graph.add {
         it.name = "suspendScalingProcesses"
         it.type = ModifyAwsScalingProcessStage.TYPE

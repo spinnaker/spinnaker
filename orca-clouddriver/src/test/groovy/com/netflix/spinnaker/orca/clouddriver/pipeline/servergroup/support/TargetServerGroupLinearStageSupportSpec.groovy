@@ -159,6 +159,23 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
     "current_asg_dynamic" | ["preDynamic"] | ["postDynamic"]
   }
 
+  def "should support 'asgName' and 'serverGroupName' when extracting server group name from context"() {
+    expect:
+    supportStage.getServerGroupName([:]) == null
+    supportStage.getServerGroupName([asgName: "asgName"]) == "asgName"
+    supportStage.getServerGroupName([serverGroupName: "serverGroupName"]) == "serverGroupName"
+
+    supportStage.getServerGroupName([asgName: "asgName", serverGroupName: "serverGroupName"]) == "serverGroupName"
+  }
+
+  def "should remove 'asgName' and 'serverGroupName' when removing server group name from context"() {
+    expect:
+    supportStage.removeServerGroupName([:]) == [:]
+    supportStage.removeServerGroupName([foo: "bar", asgName: "asgName"]) == [foo: "bar"]
+    supportStage.removeServerGroupName([foo: "bar", serverGroupName: "serverGroupName"]) == [foo: "bar"]
+    supportStage.removeServerGroupName([foo: "bar", asgName: "asgName", serverGroupName: "serverGroupName"]) == [foo: "bar"]
+  }
+
   class TestSupport extends TargetServerGroupLinearStageSupport {
     @Override
     void preStatic(Map<String, Object> descriptor, StageGraphBuilder graph) {
