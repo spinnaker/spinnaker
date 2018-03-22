@@ -145,7 +145,7 @@ export class TitusLoadBalancersTag extends React.Component<ILoadBalancersTagProp
           >
             <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding" >
               <span className="badge badge-counter">
-                <span className="icon"><span className="icon-elb"/></span> {totalCount}
+                <span className="icon"><i className="fa fa-sitemap"/></span> {totalCount}
               </span>
             </button>
           </HoverablePopover>
