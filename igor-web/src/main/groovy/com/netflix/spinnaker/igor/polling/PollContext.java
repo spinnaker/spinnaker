@@ -28,7 +28,7 @@ public class PollContext {
     }
 
     public PollContext(String partitionName, Map<String, Object> context) {
-        this(partitionName, context, true);
+        this(partitionName, context, false);
     }
 
     public PollContext(String partitionName, boolean fastForward) {
@@ -42,6 +42,6 @@ public class PollContext {
     }
 
     public PollContext fastForward() {
-        return new PollContext(partitionName, context, false);
+        return new PollContext(partitionName, context, true);
     }
 }

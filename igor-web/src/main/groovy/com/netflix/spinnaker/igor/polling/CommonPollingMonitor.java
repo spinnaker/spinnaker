@@ -114,6 +114,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
                 .ofNullable(getPartitionUpperThreshold(ctx.partitionName))
                 .orElse(igorProperties.getSpinnaker().getPollingSafeguard().getItemUpperThreshold());
 
+            boolean sendEvents = !ctx.fastForward;
             int deltaSize = delta.getItems().size();
             if (deltaSize > upperThreshold) {
                 if (ctx.fastForward) {
@@ -121,6 +122,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
                         "Fast forwarding items ({}) in {} {}",
                         deltaSize, kv("monitor", monitorName), kv("partition", ctx.partitionName)
                     );
+                    sendEvents = false;
                 } else {
                     log.warn(
                         "Number of items ({}) to cache exceeds upper threshold ({}) in {} {}",
@@ -133,7 +135,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
                 }
             }
 
-            commitDelta(delta, ctx.fastForward);
+            commitDelta(delta, sendEvents);
             registry.gauge(itemsCachedId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
             registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(0);
         } catch (Exception e) {
