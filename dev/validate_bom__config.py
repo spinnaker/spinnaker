@@ -46,7 +46,12 @@ interface, which is provided via free functions.
 import logging
 import os
 
-from buildtool import add_parser_argument, check_options_set, check_path_exists, raise_and_log_error, ConfigError
+from buildtool import (
+    add_parser_argument,
+    check_options_set,
+    check_path_exists,
+    raise_and_log_error,
+    ConfigError)
 
 from validate_bom__deploy import write_data_to_secure_path
 
@@ -83,7 +88,7 @@ class Configurator(object):
     pass
 
   def teardown_environment(self, options):
-    """Tears down external platform infrastructure created in setup_environment()."""
+    """Cleans up resources created in setup_environment()."""
     pass
 
   def add_files_to_upload(self, options, file_set):
@@ -236,15 +241,15 @@ class GcsArtifactStorageConfiguratorHelper(Configurator):
   def add_config(cls, options, script):
     """Implements interface."""
     if options.artifact_gcs_account_name is not None:
-        script.append('hal -q --log=info config artifact gcs enable')
-        hal = (
-            'hal -q --log=info config artifact gcs account add {name}'
-            .format(name=options.artifact_gcs_account_name))
-        if options.artifact_gcs_credentials:
-          hal += (' --json-path ./{filename}'
-                  .format(filename=os.path.basename(
-                      options.artifact_gcs_credentials)))
-        script.append(hal)
+      script.append('hal -q --log=info config artifact gcs enable')
+      hal = (
+          'hal -q --log=info config artifact gcs account add {name}'
+          .format(name=options.artifact_gcs_account_name))
+      if options.artifact_gcs_credentials:
+        hal += (' --json-path ./{filename}'
+                .format(filename=os.path.basename(
+                    options.artifact_gcs_credentials)))
+      script.append(hal)
 
 
 class GcsStorageConfiguratorHelper(Configurator):
@@ -923,7 +928,7 @@ class GooglePubsubConfigurator(Configurator):
         help='The name of the GCE project the subscription lives in.')
     add_parser_argument(
         parser, 'pubsub_google_credentials_path', defaults, None,
-        help='Path to service account credentials with access to the subscription.')
+        help='Path to service account credentials for the subscription.')
     add_parser_argument(
         parser, 'pubsub_google_subscription_name', defaults, None,
         help='The name of the pub/sub subscription to pull from.')
@@ -936,14 +941,23 @@ class GooglePubsubConfigurator(Configurator):
 
   def validate_options(self, options):
     """Implements interface."""
-    check_options_set(options, ['pubsub_google_project', 'pubsub_google_credentials_path', 'pubsub_google_subscription_name', 'pubsub_google_template_path'])
-    check_path_exists(options.pubsub_google_credentials_path, "pubsub_credentials_path")
-    check_path_exists(options.pubsub_google_template_path, "pubsub_template_path")
-    options.pubsub_google_enabled = options.pubsub_google_subscription_name is not None
+    options.pubsub_google_enabled = options.pubsub_google_project is not None
+
+    if not options.pubsub_google_enabled:
+      return
+
+    check_options_set(
+        options,
+        ['pubsub_google_project', 'pubsub_google_credentials_path',
+         'pubsub_google_subscription_name', 'pubsub_google_template_path'])
+    check_path_exists(options.pubsub_google_credentials_path,
+                      "pubsub_credentials_path")
+    check_path_exists(options.pubsub_google_template_path,
+                      "pubsub_template_path")
 
   def add_config(self, options, script):
     """Implements interface."""
-    if options.pubsub_google_name is None:
+    if not options.pubsub_google_enabled:
       return
 
     script.append('hal -q --log=info config pubsub google enable')
@@ -951,22 +965,29 @@ class GooglePubsubConfigurator(Configurator):
     if options.pubsub_google_name:
       subscription_cmd.append('add {}'.format(options.pubsub_google_name))
     if options.pubsub_google_project:
-      subscription_cmd.append('--project {}'.format(options.pubsub_google_project))
+      subscription_cmd.append('--project ' + options.pubsub_google_project)
     if options.pubsub_google_credentials_path:
-      subscription_cmd.append('--json-path {}'.format(os.path.basename(options.pubsub_google_credentials_path)))
+      subscription_cmd.append(
+          '--json-path '
+          + os.path.basename(options.pubsub_google_credentials_path))
     if options.pubsub_google_subscription_name:
-      subscription_cmd.append('--subscription-name {}'.format(options.pubsub_google_subscription_name))
+      subscription_cmd.append(
+          '--subscription-name ' + options.pubsub_google_subscription_name)
     if options.pubsub_google_template_path:
-      subscription_cmd.append('--template-path {}'.format(os.path.basename(options.pubsub_google_template_path)))
+      subscription_cmd.append(
+          '--template-path '
+          + os.path.basename(options.pubsub_google_template_path))
     script.append(' '.join(subscription_cmd))
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
+    if not options.pubsub_google_enabled:
+      return
+
     if options.pubsub_google_credentials_path:
       file_set.add(options.pubsub_google_credentials_path)
     if options.pubsub_google_template_path:
       file_set.add(options.pubsub_google_template_path)
-
 
 class GcsPubsubNotficationConfigurator(Configurator):
   """Controls external (to Spinnaker) GCS -> Google Pubsub config."""
@@ -981,7 +1002,7 @@ class GcsPubsubNotficationConfigurator(Configurator):
         help='The path to the credentials used to manipulate GCS and pub/sub.')
     add_parser_argument(
         parser, 'gcs_pubsub_project', defaults, None,
-        help='The name of the project that houses the bucket, topic, and subscription.')
+        help='The name of the project for bucket, topic, and subscription.')
     add_parser_argument(
         parser, 'gcs_pubsub_topic', defaults, None,
         help='The name of the topic to create.')
@@ -991,13 +1012,22 @@ class GcsPubsubNotficationConfigurator(Configurator):
 
   def validate_options(self, options):
     """Implements interface."""
-    check_options_set(options, ['gcs_pubsub_bucket', 'gcs_pubsub_topic', 'gcs_pubsub_project', 'gcs_pubsub_credentials_path', 'gcs_pubsub_subscription'])
-    if options.gcs_pubsub_subscription != options.pubsub_google_subscription_name:
-      raise_and_log_error(ConfigError('Inconsistent pub/sub subscription reference in configuration: '
-                                      ' --gcs_pubsub_subscription="{}"'
-                                      ' --pubsub_google_subscription_name="{}"'
-                                      .format(options.gcs_pubsub_subscription,
-                                              options.pubsub_google_subscription_name)))
+    options.gcs_pubsub_enabled = options.gcs_pubsub_bucket is not None
+    if not options.gcs_pubsub_enabled:
+      return
+
+    check_options_set(
+        options,
+        ['gcs_pubsub_bucket', 'gcs_pubsub_topic', 'gcs_pubsub_project',
+         'gcs_pubsub_credentials_path', 'gcs_pubsub_subscription'])
+    if (options.gcs_pubsub_subscription
+        != options.pubsub_google_subscription_name):
+      raise_and_log_error(
+          ConfigError('Inconsistent pub/sub subscription in configuration: '
+                      ' --gcs_pubsub_subscription="{}"'
+                      ' --pubsub_google_subscription_name="{}"'
+                      .format(options.gcs_pubsub_subscription,
+                              options.pubsub_google_subscription_name)))
 
   def __instantiate_clients(self, options):
     """Instantiates and returns publisher, subscriber, and storage clients.
@@ -1005,44 +1035,53 @@ class GcsPubsubNotficationConfigurator(Configurator):
     Returns:
       Tuple of (publisher_client, subscriber_client, storage_client)
     """
-    SCOPES = [
-      'https://www.googleapis.com/auth/devstorage.full_control',
-      'https://www.googleapis.com/auth/cloud-platform',
-      'https://www.googleapis.com/auth/pubsub',
+    scopes = [
+        'https://www.googleapis.com/auth/devstorage.full_control',
+        'https://www.googleapis.com/auth/cloud-platform',
+        'https://www.googleapis.com/auth/pubsub',
     ]
     credentials = service_account.Credentials.from_service_account_file(
-      options.gcs_pubsub_credentials_path,
-      scopes=SCOPES)
+        options.gcs_pubsub_credentials_path,
+        scopes=scopes)
     publisher_client = pubsub.PublisherClient(credentials=credentials)
     subscriber_client = pubsub.SubscriberClient(credentials=credentials)
-    storage_client = storage.Client(credentials=credentials, project=options.gcs_pubsub_project)
+    storage_client = storage.Client(credentials=credentials,
+                                    project=options.gcs_pubsub_project)
     return (publisher_client, subscriber_client, storage_client)
 
   def setup_environment(self, options):
     """Implements interface."""
+    if not options.gcs_pubsub_enabled:
+      return
+
     publisher_client, subscriber_client, storage_client = self.__instantiate_clients(options)
 
-    logging.info('Creating topic %s in project %s', options.gcs_pubsub_topic, options.gcs_pubsub_project)
-    topic_ref = publisher_client.topic_path(options.gcs_pubsub_project, options.gcs_pubsub_topic)
+    logging.info('Creating topic %s in project %s',
+                 options.gcs_pubsub_topic, options.gcs_pubsub_project)
+    topic_ref = publisher_client.topic_path(
+        options.gcs_pubsub_project, options.gcs_pubsub_topic)
     publisher_client.create_topic(topic_ref)
 
-    logging.info('Creating subscription %s in project %s', options.gcs_pubsub_subscription, options.gcs_pubsub_project)
-    subscription_ref = subscriber_client.subscription_path(options.gcs_pubsub_project,
-                                                           options.gcs_pubsub_subscription)
+    logging.info('Creating subscription %s in project %s',
+                 options.gcs_pubsub_subscription, options.gcs_pubsub_project)
+    subscription_ref = subscriber_client.subscription_path(
+        options.gcs_pubsub_project, options.gcs_pubsub_subscription)
     subscriber_client.create_subscription(subscription_ref, topic_ref)
     storage_client.create_bucket(options.gcs_pubsub_bucket)
 
     bucket = storage_client.get_bucket(options.gcs_pubsub_bucket)
-    notification = bucket.notification(options.gcs_pubsub_topic, topic_project=options.gcs_pubsub_project,
-                                       payload_format=storage.notification.JSON_API_V1_PAYLOAD_FORMAT)
+    notification = bucket.notification(
+        options.gcs_pubsub_topic, topic_project=options.gcs_pubsub_project,
+        payload_format=storage.notification.JSON_API_V1_PAYLOAD_FORMAT)
     notification.create()
     logging.debug('Created bucket notification %s', notification)
 
   def teardown_environment(self, options):
     """Implements interface."""
-    publisher_client, subscriber_client, storage_client = self.__instantiate_clients(options)
+    if not options.gcs_pubsub_enabled:
+      return
 
-    deploy_platform = options.hal_deploy_platform
+    publisher_client, subscriber_client, storage_client = self.__instantiate_clients(options)
 
     subscriber_client.delete_subscription(options.gcs_pubsub_subscription)
     publisher_client.delete_topic(options.gcs_pubsub_topic)

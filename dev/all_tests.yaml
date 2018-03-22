@@ -222,6 +222,8 @@ tests:
     requires:
       configuration:
         appengine_account_enabled: true
+        gcs_pubsub_enabled: true
+        pubsub_google_enabled: true
       services: [clouddriver, front50, gate, orca, echo]
     quota:
       appengine_deployment: 1
