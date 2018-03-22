@@ -106,7 +106,6 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
     }
 
     if (strategySupportsRollback) {
-      // TODO: should this append after any existing stages in the graph?
       graph.add {
         it.type = rollbackClusterStage.type
         it.name = "Rollback ${stageData.cluster}"

@@ -148,11 +148,18 @@ public class StageGraphBuilder {
   }
 
   private String generateRefId() {
+    long offset = parent
+      .getExecution()
+      .getStages()
+      .stream()
+      .filter(i -> parent.getId().equals(i.getParentStageId()) && type == i.getSyntheticStageOwner())
+      .count();
+
     return format(
       "%s%s%d",
       parent.getRefId(),
       type == STAGE_BEFORE ? "<" : ">",
-      graph.nodes().size()
+      offset + graph.nodes().size()
     );
   }
 
