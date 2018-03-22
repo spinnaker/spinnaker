@@ -338,7 +338,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     def listenerAssociations = this.buildListenerAssociations(loadBalancing, allLoadBalancers, useEdda)
 
     if (!start) {
-      if (useEdda) {
+      if (useEdda && allTargetGroups) {
         log.warn("${agentType} did not receive lastModified value in response metadata")
       }
       start = System.currentTimeMillis()

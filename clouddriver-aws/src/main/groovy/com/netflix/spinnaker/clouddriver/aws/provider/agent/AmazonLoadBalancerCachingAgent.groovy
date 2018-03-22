@@ -139,7 +139,7 @@ class AmazonLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAg
     }
 
     if (!start) {
-      if (account.eddaEnabled) {
+      if (account.eddaEnabled && allLoadBalancers) {
         log.warn("${agentType} did not receive lastModified value in response metadata")
       }
       start = System.currentTimeMillis()

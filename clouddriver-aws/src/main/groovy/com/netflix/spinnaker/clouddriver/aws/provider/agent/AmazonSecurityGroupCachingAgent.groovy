@@ -145,7 +145,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent, Ac
             return new DefaultCacheResult([(SECURITY_GROUPS.ns): providerCache.getAll(SECURITY_GROUPS.ns, sgIds)])
           }
         }
-      } else {
+      } else if (securityGroups) {
         log.warn("${agentType} did not receive lastModified value in response metadata")
       }
       evictions[ON_DEMAND.ns] = [lastModifiedKey]

@@ -291,7 +291,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
 
     if (!start) {
-      if (account.eddaEnabled) {
+      if (account.eddaEnabled && asgs) {
         log.warn("${agentType} did not receive lastModified value in response metadata")
       }
       start = System.currentTimeMillis()
