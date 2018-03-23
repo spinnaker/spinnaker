@@ -52,9 +52,28 @@ class CompleteStageHandler(
   override fun handle(message: CompleteStage) {
     message.withStage { stage ->
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
-        val status = stage.determineStatus()
+        var status = stage.determineStatus()
         try {
-          if (status.isComplete && !status.isHalt) {
+          if (status == NOT_STARTED) {
+            // Stage had no before stages or tasks so we'll see if it had any
+            // un-planned after stages
+            var afterStages = stage.firstAfterStages()
+            if (afterStages.isEmpty()) {
+              stage.planAfterStages()
+              afterStages = stage.firstAfterStages()
+            }
+            if (afterStages.isNotEmpty()) {
+              afterStages.forEach {
+                queue.push(StartStage(message, it.id))
+              }
+
+              return@withStage
+            } else {
+              // stage had no synthetic stages or tasks, which is odd but whatever
+              log.warn("Stage ${stage.id} (${stage.type}) of ${stage.execution.id} had no tasks or synthetic stages!")
+              status = SKIPPED
+            }
+          } else if (status.isComplete && !status.isHalt) {
             // check to see if this stage has any unplanned synthetic after stages
             var afterStages = stage.firstAfterStages()
             if (afterStages.isEmpty()) {
@@ -69,9 +88,7 @@ class CompleteStageHandler(
                 return@withStage
               }
             }
-          }
-
-          if (status.isFailure) {
+          } else if (status.isFailure) {
             if (stage.planOnFailureStages()) {
               stage.firstAfterStages().forEach {
                 queue.push(StartStage(it))
@@ -212,6 +229,7 @@ private fun Stage.determineStatus(): ExecutionStatus {
   val taskStatuses = tasks.map(Task::getStatus)
   val allStatuses = syntheticStatuses + taskStatuses
   return when {
+    allStatuses.isEmpty() -> NOT_STARTED
     allStatuses.contains(TERMINAL)        -> TERMINAL
     allStatuses.contains(STOPPED)         -> STOPPED
     allStatuses.contains(CANCELED)        -> CANCELED
