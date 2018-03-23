@@ -23,6 +23,8 @@ export class RollingPushStrategy implements IMigrationStrategyType {
   static get type(): MigrationStrategyType { return 'rollingPush'; }
 
   public concurrentRelaunches = 1;
+  public concurrentRelaunchesAsPercentage = false;
+
   public waitTime = 0;
 }
 

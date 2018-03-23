@@ -10,11 +10,24 @@
     <div class="config-field">
       <label>
         Batch size
-        <help-field key="strategy.rollingPush.concurrentRelaunches"></help-field>
+        <help-field key="strategy.rollingPush.concurrentRelaunches.migration"></help-field>
       </label>
-      <input class="form-control input-sm" type="number" min="1"
+      <input class="form-control input-sm"
+             type="number"
+             min="1"
+             max="{{ $ctrl.config.config.concurrentRelaunchesAsPercentage ? 100 : '' }}"
              ng-model="$ctrl.config.config.concurrentRelaunches"
              ng-change="$ctrl.configChanged()" />
+      <ui-select ng-model="$ctrl.config.config.concurrentRelaunchesAsPercentage"
+                 class="form-control input-sm concurrent-relaunches-type-config"
+                 ng-change="$ctrl.configChanged()">
+        <ui-select-match>
+          <span>{{$select.selected ? 'percent' : ($ctrl.config.config.concurrentRelaunches == 1 ? 'instance' : 'instances')}}</span>
+        </ui-select-match>
+        <ui-select-choices repeat="choice as choice in [true, false]">
+          <span>{{choice ? 'percent' : ($ctrl.config.config.concurrentRelaunches == 1 ? 'instance' : 'instances')}}</span>
+        </ui-select-choices>
+      </ui-select>
     </div>
     <div class="config-field">
         <label>
@@ -23,7 +36,7 @@
         </label>
         <input class="form-control input-sm" type="number" min="0"
                ng-model="$ctrl.config.config.waitTime"
-               ng-change="$ctrl.configChanged()"/> seconds between updates
+               ng-change="$ctrl.configChanged()"/> <span style="font-size: 12px">seconds between updates</span>
     </div>
   </div>
 
