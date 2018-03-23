@@ -134,6 +134,7 @@ object KayentaServiceTest : Spek({
 {
   "application": "myapp",
   "parentPipelineExecutionId": "9cf4ec2e-29fb-4968-ae60-9182b575b30a",
+  "metricSetPairListId": "581dd9b7-5a0d-42c2-aecc-c6e6600d2591",
   "pipelineId": "$canaryId",
   "stageStatus": {
     "fetchControl2": "succeeded",
@@ -150,8 +151,117 @@ object KayentaServiceTest : Spek({
   },
   "complete": true,
   "status": "succeeded",
+  "config": {
+    "createdTimestamp": 1513798922188,
+    "updatedTimestamp": 1517067740081,
+    "createdTimestampIso": "2017-12-20T19:42:02.188Z",
+    "updatedTimestampIso": "2018-01-27T15:42:20.081Z",
+    "name": "MySampleStackdriverCanaryConfig",
+    "description": "Example Automated Canary Analysis (ACA) Configuration using Stackdriver",
+    "configVersion": "1.0",
+    "applications": [
+      "myapp"
+    ],
+    "judge": {
+      "name": "dredd-v1.0",
+      "judgeConfigurations": {}
+    },
+    "metrics": [
+      {
+        "name": "cpu1",
+        "query": {
+          "type": "stackdriver",
+          "metricType": "compute.googleapis.com/instance/cpu/utilization",
+          "serviceType": "stackdriver"
+        },
+        "groups": [
+          "system"
+        ],
+        "analysisConfigurations": {},
+        "scopeName": "default"
+      },
+      {
+        "name": "cpu2",
+        "query": {
+          "type": "stackdriver",
+          "metricType": "compute.googleapis.com/instance/cpu/utilization",
+          "serviceType": "stackdriver"
+        },
+        "groups": [
+          "system"
+        ],
+        "analysisConfigurations": {},
+        "scopeName": "default"
+      },
+      {
+        "name": "cpu3",
+        "query": {
+          "type": "stackdriver",
+          "metricType": "compute.googleapis.com/instance/cpu/utilization",
+          "serviceType": "stackdriver"
+        },
+        "groups": [
+          "application"
+        ],
+        "analysisConfigurations": {},
+        "scopeName": "default"
+      },
+      {
+        "name": "cpu4",
+        "query": {
+          "type": "stackdriver",
+          "metricType": "compute.googleapis.com/instance/cpu/utilization",
+          "serviceType": "stackdriver"
+        },
+        "groups": [
+          "application"
+        ],
+        "analysisConfigurations": {},
+        "scopeName": "default"
+      }
+    ],
+    "classifier": {
+      "groupWeights": {
+        "system": 66,
+        "application": 34
+      },
+      "scoreThresholds": {
+        "pass": 95,
+        "marginal": 75
+      }
+    }
+  },
+  "canaryExecutionRequest": {
+    "scopes": {
+      "default": {
+        "controlScope": {
+          "scope": "myapp-v059",
+          "region": "us-central1",
+          "start": "2018-02-15T20:05:00Z",
+          "end": "2018-02-15T21:05:00Z",
+          "step": 60,
+          "extendedScopeParams": {
+            "resourceType": "gce_instance"
+          }
+        },
+        "experimentScope": {
+          "scope": "myapp-v059",
+          "region": "us-central1",
+          "start": "2018-02-15T20:05:00Z",
+          "end": "2018-02-15T21:05:00Z",
+          "step": 60,
+          "extendedScopeParams": {
+            "resourceType": "gce_instance"
+          }
+        }
+      }
+    },
+    "thresholds": {
+      "pass": 60,
+      "marginal": 40
+    }
+  },
   "result": {
-    "application": "myapp",
     "parentPipelineExecutionId": "9cf4ec2e-29fb-4968-ae60-9182b575b30a",
     "judgeResult": {
       "judgeName": "dredd-v1.0",
@@ -281,119 +391,7 @@ object KayentaServiceTest : Spek({
         "classificationReason": ""
       }
     },
-    "config": {
-      "createdTimestamp": 1513798922188,
-      "updatedTimestamp": 1517067740081,
-      "createdTimestampIso": "2017-12-20T19:42:02.188Z",
-      "updatedTimestampIso": "2018-01-27T15:42:20.081Z",
-      "name": "MySampleStackdriverCanaryConfig",
-      "description": "Example Automated Canary Analysis (ACA) Configuration using Stackdriver",
-      "configVersion": "1.0",
-      "applications": [
-        "myapp"
-      ],
-      "judge": {
-        "name": "dredd-v1.0",
-        "judgeConfigurations": {}
-      },
-      "metrics": [
-        {
-          "name": "cpu1",
-          "query": {
-            "type": "stackdriver",
-            "metricType": "compute.googleapis.com/instance/cpu/utilization",
-            "serviceType": "stackdriver"
-          },
-          "groups": [
-            "system"
-          ],
-          "analysisConfigurations": {},
-          "scopeName": "default"
-        },
-        {
-          "name": "cpu2",
-          "query": {
-            "type": "stackdriver",
-            "metricType": "compute.googleapis.com/instance/cpu/utilization",
-            "serviceType": "stackdriver"
-          },
-          "groups": [
-            "system"
-          ],
-          "analysisConfigurations": {},
-          "scopeName": "default"
-        },
-        {
-          "name": "cpu3",
-          "query": {
-            "type": "stackdriver",
-            "metricType": "compute.googleapis.com/instance/cpu/utilization",
-            "serviceType": "stackdriver"
-          },
-          "groups": [
-            "application"
-          ],
-          "analysisConfigurations": {},
-          "scopeName": "default"
-        },
-        {
-          "name": "cpu4",
-          "query": {
-            "type": "stackdriver",
-            "metricType": "compute.googleapis.com/instance/cpu/utilization",
-            "serviceType": "stackdriver"
-          },
-          "groups": [
-            "application"
-          ],
-          "analysisConfigurations": {},
-          "scopeName": "default"
-        }
-      ],
-      "classifier": {
-        "groupWeights": {
-          "system": 66,
-          "application": 34
-        },
-        "scoreThresholds": {
-          "pass": 95,
-          "marginal": 75
-        }
-      }
-    },
-    "canaryExecutionRequest": {
-      "scopes": {
-        "default": {
-          "controlScope": {
-            "scope": "myapp-v059",
-            "region": "us-central1",
-            "start": "2018-02-15T20:05:00Z",
-            "end": "2018-02-15T21:05:00Z",
-            "step": 60,
-            "extendedScopeParams": {
-              "resourceType": "gce_instance"
-            }
-          },
-          "experimentScope": {
-            "scope": "myapp-v059",
-            "region": "us-central1",
-            "start": "2018-02-15T20:05:00Z",
-            "end": "2018-02-15T21:05:00Z",
-            "step": 60,
-            "extendedScopeParams": {
-              "resourceType": "gce_instance"
-            }
-          }
-        }
-      },
-      "thresholds": {
-        "pass": 60,
-        "marginal": 40
-      }
-    },
-    "metricSetPairListId": "581dd9b7-5a0d-42c2-aecc-c6e6600d2591",
-    "canaryDuration": "PT1H",
-    "pipelineId": "666fa25b-b0c6-421b-b84f-f93826932994"
+    "canaryDuration": "PT1H"
   },
   "buildTimeMillis": 1521059331684,
   "buildTimeIso": "2018-03-14T20:28:51.684Z",
@@ -424,7 +422,7 @@ object KayentaServiceTest : Spek({
               assertThat(response.buildTimeIso).isEqualTo(Instant.ofEpochMilli(1521059331684))
               assertThat(response.endTimeIso).isEqualTo(Instant.ofEpochMilli(1521059341101))
               assertThat(response.startTimeIso).isEqualTo(Instant.ofEpochMilli(1521059331909))
-              assertThat(response.result!!.application).isEqualTo("myapp")
+              assertThat(response.application).isEqualTo("myapp")
               assertThat(response.result!!.canaryDuration).isEqualTo(Duration.ofHours(1))
               assertThat(response.result!!.judgeResult.score.score).isEqualTo(33)
               assertThat(response.exception).isNull()

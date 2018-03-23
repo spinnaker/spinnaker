@@ -80,6 +80,8 @@ data class CanaryResults(
   val startTimeIso: Instant?,
   val endTimeIso: Instant?,
   val storageAccountName: String?,
+  val application: String,
+  val canaryExecutionRequest: CanaryExecutionRequest?,
   val exception: Map<String, Any>?
 ) {
   @JsonIgnore
@@ -87,9 +89,7 @@ data class CanaryResults(
 }
 
 data class CanaryResult(
-  val application: String,
   val judgeResult: JudgeResult,
-  val canaryExecutionRequest: CanaryExecutionRequest,
   val canaryDuration: Duration
 )
 
