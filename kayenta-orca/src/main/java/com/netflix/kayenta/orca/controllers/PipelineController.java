@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.log.ExecutionLogEntry;
-import com.netflix.spinnaker.orca.log.ExecutionLogRepository;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
@@ -55,17 +53,15 @@ public class PipelineController {
 
   private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
-  private final ExecutionLogRepository executionLogRepository;
   private final ObjectMapper kayentaObjectMapper;
   private final ConfigurableApplicationContext context;
   private final HealthEndpoint healthEndpoint;
   private final ScheduledAnnotationBeanPostProcessor postProcessor;
 
   @Autowired
-  public PipelineController(ExecutionLauncher executionLauncher, ExecutionRepository executionRepository, ExecutionLogRepository executionLogRepository, ObjectMapper kayentaObjectMapper, ConfigurableApplicationContext context, HealthEndpoint healthEndpoint, ScheduledAnnotationBeanPostProcessor postProcessor) {
+  public PipelineController(ExecutionLauncher executionLauncher, ExecutionRepository executionRepository, ObjectMapper kayentaObjectMapper, ConfigurableApplicationContext context, HealthEndpoint healthEndpoint, ScheduledAnnotationBeanPostProcessor postProcessor) {
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
-    this.executionLogRepository = executionLogRepository;
     this.kayentaObjectMapper = kayentaObjectMapper;
     this.context = context;
     this.healthEndpoint = healthEndpoint;
@@ -97,15 +93,6 @@ public class PipelineController {
   @RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
   Execution getPipeline(@PathVariable String executionId) {
     return executionRepository.retrieve(Execution.ExecutionType.PIPELINE, executionId);
-  }
-
-  @ApiOperation(value = "Retrieve pipeline execution logs")
-  @RequestMapping(value = "/{executionId}/logs", method = RequestMethod.GET)
-  List<ExecutionLogEntry> logs(@PathVariable String executionId) {
-    if (executionLogRepository == null) {
-      throw new FeatureNotEnabledException("Execution log not enabled");
-    }
-    return executionLogRepository.getAllByExecutionId(executionId);
   }
 
   @ApiOperation(value = "Cancel a pipeline execution")

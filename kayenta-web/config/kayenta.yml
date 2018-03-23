@@ -73,14 +73,11 @@ kayenta:
 
 management.security.enabled: false
 
-queue:
-  redis:
-    enabled: false
-    queueName: kayenta.orca.task.queue
-    deadLetterQueueName: kayenta.orca.task.deadLetterQueue
-    ackTimeoutSeconds: 600
-
-executionLog.redis.enabled: false
+keiko:
+  queue:
+    redis:
+      queueName: kayenta.keiko.queue
+      deadLetterQueueName: kayenta.keiko.queue.deadLetters
 
 spectator:
   applicationName: ${spring.application.name}

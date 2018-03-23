@@ -305,7 +305,6 @@ public class CanaryController {
 
     Execution pipeline = pipelineBuilder
       .withLimitConcurrent(false)
-      .withExecutionEngine(Execution.ExecutionEngine.v3)
       .build();
 
     executionRepository.store(pipeline);
