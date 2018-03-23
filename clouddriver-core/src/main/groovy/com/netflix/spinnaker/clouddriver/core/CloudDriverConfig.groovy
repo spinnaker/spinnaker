@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.core
 
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
+import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
@@ -258,9 +259,11 @@ class CloudDriverConfig {
   }
 
   @Bean
-  CoreProvider coreProvider(RedisClientDelegate redisClientDelegate, ApplicationContext applicationContext) {
+  CoreProvider coreProvider(RedisCacheOptions redisCacheOptions,
+                            RedisClientDelegate redisClientDelegate,
+                            ApplicationContext applicationContext) {
     return new CoreProvider([
-      new CleanupPendingOnDemandCachesAgent(redisClientDelegate, applicationContext)
+      new CleanupPendingOnDemandCachesAgent(redisCacheOptions, redisClientDelegate, applicationContext)
     ])
   }
 

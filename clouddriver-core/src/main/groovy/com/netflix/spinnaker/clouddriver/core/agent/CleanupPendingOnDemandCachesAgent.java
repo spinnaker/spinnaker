@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.core.agent;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.cats.provider.Provider;
+import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
@@ -41,20 +42,24 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
   private static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(30);
   private static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5);
 
+  private final RedisCacheOptions redisCacheOptions;
   private final RedisClientDelegate redisClientDelegate;
   private final ApplicationContext applicationContext;
   private final long pollIntervalMillis;
   private final long timeoutMillis;
 
-  public CleanupPendingOnDemandCachesAgent(RedisClientDelegate redisClientDelegate,
+  public CleanupPendingOnDemandCachesAgent(RedisCacheOptions redisCacheOptions,
+                                           RedisClientDelegate redisClientDelegate,
                                            ApplicationContext applicationContext) {
-    this(redisClientDelegate, applicationContext, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS);
+    this(redisCacheOptions, redisClientDelegate, applicationContext, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS);
   }
 
-  private CleanupPendingOnDemandCachesAgent(RedisClientDelegate redisClientDelegate,
+  private CleanupPendingOnDemandCachesAgent(RedisCacheOptions redisCacheOptions,
+                                            RedisClientDelegate redisClientDelegate,
                                             ApplicationContext applicationContext,
                                             long pollIntervalMillis,
                                             long timeoutMillis) {
+    this.redisCacheOptions = redisCacheOptions;
     this.redisClientDelegate = redisClientDelegate;
     this.applicationContext = applicationContext;
     this.pollIntervalMillis = pollIntervalMillis;
@@ -126,7 +131,7 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
   private Set<String> scanMembers(String setKey) {
     return redisClientDelegate.withCommandsClient(client -> {
       final Set<String> matches = new HashSet<>();
-      final ScanParams scanParams = new ScanParams().count(25000);
+      final ScanParams scanParams = new ScanParams().count(redisCacheOptions.getScanSize());
       String cursor = "0";
       while (true) {
         final ScanResult<String> scanResult = client.sscan(setKey, cursor, scanParams);
