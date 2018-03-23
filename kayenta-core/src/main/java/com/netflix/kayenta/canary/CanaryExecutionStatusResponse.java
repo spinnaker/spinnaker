@@ -25,11 +25,11 @@ import java.util.Map;
 @Data
 @Builder
 public class CanaryExecutionStatusResponse {
-
-  // These are here (in addition to CanaryResult) so we can still correlate runs while the canary execution is in-flight,
-  // or in the case where it never reaches the judging stage.
   protected String application;
+
   protected String parentPipelineExecutionId;
+
+  @NotNull
   protected String pipelineId;
 
   @NotNull
@@ -44,6 +44,14 @@ public class CanaryExecutionStatusResponse {
   protected Object exception;
 
   protected CanaryResult result;
+
+  protected CanaryConfig config;
+
+  protected String configId;
+
+  protected CanaryExecutionRequest canaryExecutionRequest;
+
+  protected String metricSetPairListId;
 
   //
   // buildTime is when the pipeline was first created.
@@ -61,6 +69,7 @@ public class CanaryExecutionStatusResponse {
   protected Long endTimeMillis;
   protected String endTimeIso;
 
-  // If set, this is the storage account name used for the metric data
+  // If set, these are the account names used for this run.
   protected String storageAccountName;
+  protected String configurationAccountName;
 }
