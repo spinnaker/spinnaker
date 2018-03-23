@@ -25,7 +25,7 @@ class AdminControllerSpec extends Specification {
     def "should fully reindex a poller"() {
         given:
         def monitor = Mock(CommonPollingMonitor)
-        def subject = new AdminController([monitor])
+        def subject = new AdminController(Optional.of([monitor]))
 
         when:
         subject.fastForward("foo", null)
@@ -39,7 +39,7 @@ class AdminControllerSpec extends Specification {
     def "should reindex a partition in a poller"() {
         given:
         def monitor = Mock(CommonPollingMonitor)
-        def subject = new AdminController([monitor])
+        def subject = new AdminController(Optional.of([monitor]))
 
         and:
         def silencedContext = new PollContext("covfefe").fastForward()
@@ -61,7 +61,7 @@ class AdminControllerSpec extends Specification {
     def "should throw not found if poller isn't found"() {
         given:
         def monitor = Mock(CommonPollingMonitor)
-        def subject = new AdminController([monitor])
+        def subject = new AdminController(Optional.of([monitor]))
 
         when:
         subject.fastForward("baz", null)
@@ -69,6 +69,18 @@ class AdminControllerSpec extends Specification {
         then:
         thrown(NotFoundException)
         2 * monitor.getName() >> "foo"
+        0 * _
+    }
+
+    def "should handle no active pollers"() {
+        given:
+        def subject = new AdminController(Optional.empty())
+
+        when:
+        subject.fastForward("baz", null)
+
+        then:
+        thrown(NotFoundException)
         0 * _
     }
 }

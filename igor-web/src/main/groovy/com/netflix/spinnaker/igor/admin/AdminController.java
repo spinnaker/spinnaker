@@ -18,6 +18,8 @@ package com.netflix.spinnaker.igor.admin;
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor;
 import com.netflix.spinnaker.igor.polling.PollingMonitor;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.ArrayList;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +40,8 @@ public class AdminController {
     private final List<CommonPollingMonitor> pollingMonitors;
 
     @Autowired
-    public AdminController(List<CommonPollingMonitor> pollingMonitors) {
-        this.pollingMonitors = pollingMonitors;
+    public AdminController(Optional<List<CommonPollingMonitor>> pollingMonitors) {
+        this.pollingMonitors = pollingMonitors.orElseGet(ArrayList::new);
     }
 
     /**
