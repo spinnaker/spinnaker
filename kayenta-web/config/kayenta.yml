@@ -47,6 +47,15 @@ kayenta:
 #          - METRICS_STORE
 #        endpoint.baseUrl: https://app.datadoghq.com
 
+  prometheus:
+    enabled: false
+#    accounts:
+#      - name: my-prometheus-account
+#        endpoint:
+#          baseUrl: http://localhost:9090
+#        supportedTypes:
+#          - METRICS_STORE
+
   gcs:
     enabled: false
 
