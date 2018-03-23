@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationContext;
@@ -27,6 +23,12 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.CompositeStringExpression;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -100,7 +102,7 @@ public class ExpressionTransform {
           Object fields = !keys.isEmpty() ? keys : literalExpression;
           String errorDescription = format("Failed to evaluate %s ", fields);
           Throwable originalException = unwrapOriginalException(exception);
-          if (originalException == null || originalException.getMessage().contains(exception.getMessage())) {
+          if (originalException == null || originalException.getMessage() == null || originalException.getMessage().contains(exception.getMessage())) {
             errorDescription += exception.getMessage();
           } else {
             errorDescription += originalException.getMessage() + " - " + exception.getMessage();
