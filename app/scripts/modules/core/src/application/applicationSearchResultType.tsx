@@ -27,7 +27,7 @@ class ApplicationSearchResultType extends SearchResultType<IApplicationSearchRes
   public id = 'applications';
   public order = 1;
   public displayName = 'Applications';
-  public iconClass = 'fa fa-window-maximize';
+  public iconClass = 'far fa-window-maximize';
 
   private cols: { [key: string]: ISearchColumn } = {
     APPLICATION: { key: 'application', label: 'Name' },
