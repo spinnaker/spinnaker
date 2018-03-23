@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.dyno.jedis.DynoJedisPipeline;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
@@ -74,13 +76,17 @@ public class RedisExecutionRepository implements ExecutionRepository {
   private final Scheduler queryByAppScheduler;
   private final Logger log = LoggerFactory.getLogger(getClass());
 
+  private final Registry registry;
+
   @Autowired
   public RedisExecutionRepository(
+    Registry registry,
     RedisClientSelector redisClientSelector,
     @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
     @Qualifier("queryByAppScheduler") Scheduler queryByAppScheduler,
     @Value("${chunkSize.executionRepository:75}") Integer threadPoolChunkSize
   ) {
+    this.registry = registry;
     this.redisClientDelegate = redisClientSelector.primary(EXECUTION_REPOSITORY);
     this.previousRedisClientDelegate = redisClientSelector.previous(EXECUTION_REPOSITORY);
     this.queryAllScheduler = queryAllScheduler;
@@ -89,10 +95,12 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   public RedisExecutionRepository(
+    Registry registry,
     RedisClientSelector redisClientSelector,
     Integer threadPoolSize,
     Integer threadPoolChunkSize
   ) {
+    this.registry = registry;
     this.redisClientDelegate = redisClientSelector.primary(EXECUTION_REPOSITORY);
     this.previousRedisClientDelegate = redisClientSelector.previous(EXECUTION_REPOSITORY);
 
@@ -509,6 +517,11 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   protected Execution buildExecution(@Nonnull Execution execution, @Nonnull Map<String, String> map, List<String> stageIds) {
+    Id serializationErrorId = registry
+      .createId("executions.deserialization.error")
+      .withTag("executionType", execution.getType().toString())
+      .withTag("application", execution.getApplication());
+
     try {
       execution.setCanceled(Boolean.parseBoolean(map.get("canceled")));
       execution.setCanceledBy(map.get("canceledBy"));
@@ -528,6 +541,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       execution.setOrigin(map.get("origin"));
       execution.setTrigger(map.get("trigger") != null ? mapper.readValue(map.get("trigger"), Trigger.class) : NO_TRIGGER);
     } catch (Exception e) {
+      registry.counter(serializationErrorId).increment();
       throw new ExecutionSerializationException(String.format("Failed serializing execution json, id: %s", execution.getId()), e);
     }
 
@@ -576,6 +590,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
         stage.setExecution(execution);
         stages.add(stage);
       } catch (IOException e) {
+        registry.counter(serializationErrorId).increment();
         throw new StageSerializationException("Failed serializing stage json", e);
       }
     });
@@ -617,6 +632,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
           execution.getInitialConfig().putAll(mapper.readValue(map.get("initialConfig"), Map.class));
         }
       } catch (IOException e) {
+        registry.counter(serializationErrorId).increment();
         throw new ExecutionSerializationException("Failed serializing execution json", e);
       }
     } else if (execution.getType() == ORCHESTRATION) {

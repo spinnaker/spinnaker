@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.persistence
 
 import com.netflix.dyno.jedis.DynoJedisClient
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate
 import com.netflix.spinnaker.kork.dynomite.LocalRedisDynomiteClient
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -40,6 +41,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import com.netflix.spectator.api.Registry
 import java.util.concurrent.CountDownLatch
 
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
@@ -519,17 +521,19 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
   RedisClientDelegate previousRedisClientDelegate = new JedisClientDelegate("previousDefault", jedisPoolPrevious)
   RedisClientSelector redisClientSelector = new RedisClientSelector([redisClientDelegate, previousRedisClientDelegate])
 
+  Registry registry = new NoopRegistry()
+
   @AutoCleanup
   def jedis = jedisPool.resource
 
   @Override
   RedisExecutionRepository createExecutionRepository() {
-    return new RedisExecutionRepository(redisClientSelector, 1, 50)
+    return new RedisExecutionRepository(registry, redisClientSelector, 1, 50)
   }
 
   @Override
   RedisExecutionRepository createExecutionRepositoryPrevious() {
-    return new RedisExecutionRepository(new RedisClientSelector([new JedisClientDelegate("primaryDefault", jedisPoolPrevious)]), 1, 50)
+    return new RedisExecutionRepository(registry, new RedisClientSelector([new JedisClientDelegate("primaryDefault", jedisPoolPrevious)]), 1, 50)
   }
 
 
@@ -1155,13 +1159,13 @@ class DynomiteExecutionRepositorySpec extends JedisExecutionRepositorySpec {
     RedisClientDelegate dynoClientDelegate = new DynomiteClientDelegate("primaryDefault", embeddedDyno)
     RedisClientDelegate previousDynoClientDelegate = new DynomiteClientDelegate("previousDefault", embeddedDynoPrevious)
 
-    return new RedisExecutionRepository(new RedisClientSelector([dynoClientDelegate, previousDynoClientDelegate]), 1, 50)
+    return new RedisExecutionRepository(registry, new RedisClientSelector([dynoClientDelegate, previousDynoClientDelegate]), 1, 50)
   }
 
   RedisExecutionRepository createDynomiteExecutionRepositoryPrevious() {
     DynoJedisClient embeddedDynoPrevious = new LocalRedisDynomiteClient(embeddedRedisPrevious.port).getClient()
     RedisClientDelegate dynoClientDelegate = new DynomiteClientDelegate("primaryDefault", embeddedDynoPrevious)
-    return new RedisExecutionRepository(new RedisClientSelector([dynoClientDelegate]), 1, 50)
+    return new RedisExecutionRepository(registry, new RedisClientSelector([dynoClientDelegate]), 1, 50)
   }
 }
 
