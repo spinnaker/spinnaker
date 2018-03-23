@@ -1,10 +1,11 @@
-import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
-import {EXECUTION_SERVICE} from './service/execution.service';
-import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
-import {SETTINGS} from 'core/config/settings';
-import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
-
 const angular = require('angular');
+
+import { APPLICATION_DATA_SOURCE_REGISTRY } from 'core/application/service/applicationDataSource.registry';
+import { DELIVERY_KEY } from 'core/application/nav/defaultCategories';
+import { EXECUTION_SERVICE } from './service/execution.service';
+import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import { SETTINGS } from 'core/config/settings';
+import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.dataSource', [
@@ -58,10 +59,10 @@ module.exports = angular
       applicationDataSourceRegistry.registerDataSource({
         optional: true,
         primary: true,
-        icon: 'list',
+        icon: 'fa fa-xs fa-fixed fa-list',
         key: 'executions',
         label: 'Pipelines',
-        category: 'delivery',
+        category: DELIVERY_KEY,
         sref: '.pipelines.executions',
         activeState: '**.pipelines.**',
         loader: loadExecutions,

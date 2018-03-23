@@ -43,7 +43,7 @@ module.exports = angular
       afterLoad: runningTasksLoaded,
       lazy: true,
       primary: true,
-      icon: 'check-square',
+      icon: 'fa fa-xs fa-fixed fa-check-square',
     });
 
     applicationDataSourceRegistry.registerDataSource({

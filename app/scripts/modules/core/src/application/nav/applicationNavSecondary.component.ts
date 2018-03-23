@@ -32,7 +32,6 @@ export class ApplicationNavSecondaryComponent implements IComponentOptions {
          analytics-category="Application Nav"
          analytics-event="{{dataSource.title}}"
          ng-class="{active: $ctrl.isActive(dataSource)}">
-         <i ng-if="dataSource.icon" class="ds-icon fa fa-{{dataSource.icon}}"></i>
         {{dataSource.label}}
 
          <x-data-source-notifications

@@ -1,6 +1,7 @@
 import { module, IQService } from 'angular';
 
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from 'core/application/service/applicationDataSource.registry';
+import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
 import { ILoadBalancer } from 'core/domain';
@@ -26,7 +27,9 @@ module(LOAD_BALANCER_DATA_SOURCE, [
 
   applicationDataSourceRegistry.registerDataSource({
     key: 'loadBalancers',
+    category: INFRASTRUCTURE_KEY,
     optional: true,
+    icon: 'fa fa-xs fa-fixed fa-sitemap',
     loader: loadLoadBalancers,
     onLoad: addLoadBalancers,
     afterLoad: addTags,

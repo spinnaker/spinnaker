@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from 'core/application/service/applicationDataSource.registry';
+import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
@@ -30,7 +31,9 @@ module(SECURITY_GROUP_DATA_SOURCE, [
 
     applicationDataSourceRegistry.registerDataSource({
       key: 'securityGroups',
+      category: INFRASTRUCTURE_KEY,
       optional: true,
+      icon: 'fa fa-xs fa-fixed fa-lock',
       loader: loadSecurityGroups,
       onLoad: addSecurityGroups,
       afterLoad: addTags,

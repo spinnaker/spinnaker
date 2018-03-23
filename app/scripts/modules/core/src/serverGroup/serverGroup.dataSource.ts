@@ -1,5 +1,6 @@
 import { module, IQService } from 'angular';
 import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from '../application/service/applicationDataSource.registry';
+import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from '../entityTag/entityTags.read.service';
 import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
 import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
@@ -41,10 +42,11 @@ module(SERVER_GROUP_DATA_SOURCE, [
     applicationDataSourceRegistry.registerDataSource({
       key: 'serverGroups',
       label: 'Clusters',
+      category: INFRASTRUCTURE_KEY,
       sref: '.insight.clusters',
       optional: true,
       primary: true,
-      icon: 'th-large',
+      icon: 'fas fa-xs fa-fixed fa-th-large',
       loader: loadServerGroups,
       onLoad: addServerGroups,
       afterLoad: addTags,

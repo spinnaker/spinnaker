@@ -158,36 +158,11 @@ export interface IDataSourceConfig {
    * Default: true
    */
   visible?: boolean;
-}
 
-/**
- * @deprecated just use the IDataSourceConfig interface
- */
-export class DataSourceConfig implements IDataSourceConfig {
-  public activeState: string;
-  public afterLoad: (application: Application) => void;
-  public autoActivate = false;
-  public badge: string;
-  public credentialsField: string;
-  public description: string;
-  public icon: string;
-  public key: string;
-  public label: string;
-  public lazy = false;
-  public loader: (application: Application) => IPromise<any>;
-  public onLoad: (application: Application, result: any) => IPromise<any>;
-  public optIn = false;
-  public optional = false;
-  public primary = false;
-  public providerField: string;
-  public regionField: string;
-  public requireConfiguredApp = false;
-  public sref: string;
-  public visible = true;
-
-  constructor(config: IDataSourceConfig) {
-    Object.assign(this, config);
-  }
+  /**
+   * (Optional) Determines which second-level navigation menu this data source will belong to
+   */
+  category?: string;
 }
 
 @BindAll()
@@ -204,6 +179,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public icon: string;
   public key: string;
   public label: string;
+  public category: string;
   public lazy = false;
   public loader: (application: Application) => IPromise<any>;
   public onLoad: (application: Application, result: any) => IPromise<any>;
@@ -266,9 +242,9 @@ export class ApplicationDataSource implements IDataSourceConfig {
    */
   public lastRefresh: number;
 
-  private refreshStream: Subject<void> = new Subject();
+  public refresh$: Subject<void> = new Subject();
 
-  private refreshFailureStream: Subject<any> = new Subject();
+  public refreshFailure$: Subject<any> = new Subject();
 
   /**
    * Simple counter used to track the most recent refresh call to avoid data stomping
@@ -289,7 +265,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
    */
   public dataUpdated(): void {
     if (this.loaded) {
-      this.refreshStream.next(null);
+      this.refresh$.next(null);
     }
   }
 
@@ -329,10 +305,10 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * @return a method to call to unsubscribe
    */
   public onNextRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
-    const success: Subscription = this.refreshStream.take(1).subscribe(method);
+    const success: Subscription = this.refresh$.take(1).subscribe(method);
     let failure: Subscription = null;
     if (failureMethod) {
-      failure = this.refreshFailureStream.take(1).subscribe(failureMethod);
+      failure = this.refreshFailure$.take(1).subscribe(failureMethod);
     }
     const unsubscribe = () => {
       success.unsubscribe();
@@ -357,10 +333,10 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * @return a method to call to unsubscribe
    */
   public onRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
-    const success: Subscription = this.refreshStream.subscribe(method);
+    const success: Subscription = this.refresh$.subscribe(method);
     let failure: Subscription = null;
     if (failureMethod) {
-      failure = this.refreshFailureStream.subscribe(failureMethod);
+      failure = this.refreshFailure$.subscribe(failureMethod);
     }
     const unsubscribe = () => {
       success.unsubscribe();
@@ -393,8 +369,8 @@ export class ApplicationDataSource implements IDataSourceConfig {
     } else if (this.loadFailure) {
       deferred.reject();
     } else {
-      this.refreshStream.take(1).subscribe(deferred.resolve);
-      this.refreshFailureStream.take(1).subscribe(deferred.reject);
+      this.refresh$.take(1).subscribe(deferred.resolve);
+      this.refreshFailure$.take(1).subscribe(deferred.reject);
     }
     deferred.promise.catch(() => {});
     return deferred.promise;
@@ -475,7 +451,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
           this.$log.warn(`Error retrieving ${this.key}`, rejection);
           this.loading = false;
           this.loadFailure = true;
-          this.refreshFailureStream.next(rejection);
+          this.refreshFailure$.next(rejection);
           // resolve, don't reject - the refreshFailureStream and loadFailure flags signal the rejection
           this.refreshQueue.forEach(d => d.resolve(rejection));
           this.refreshQueue.length = 0;

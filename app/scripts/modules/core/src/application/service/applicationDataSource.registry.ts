@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import * as _ from 'lodash';
+import { cloneDeep } from 'lodash';
 
 import { IDataSourceConfig } from './applicationDataSource';
 
@@ -34,7 +34,7 @@ export class ApplicationDataSourceRegistry {
   }
 
   public getDataSources(): IDataSourceConfig[] {
-    return _.cloneDeep(this.dataSources);
+    return cloneDeep(this.dataSources);
   }
 }
 
