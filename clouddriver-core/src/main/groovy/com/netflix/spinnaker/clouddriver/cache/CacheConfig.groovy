@@ -70,42 +70,6 @@ class CacheConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(SearchableProvider)
-  SearchableProvider noopProvider() {
-    new SearchableProvider() {
-      @Override
-      String getProviderName() {
-        "noop"
-      }
-
-      @Override
-      Collection<CachingAgent> getAgents() {
-        Collections.emptySet()
-      }
-
-      @Override
-      Set<String> getDefaultCaches() {
-        Collections.emptySet()
-      }
-
-      @Override
-      Map<String, String> getUrlMappingTemplates() {
-        Collections.emptyMap()
-      }
-
-      @Override
-      Map<String, SearchableProvider.SearchResultHydrator> getSearchResultHydrators() {
-        Collections.emptyMap()
-      }
-
-      @Override
-      Map<String, String> parseKey(String key) {
-        null
-      }
-    }
-  }
-
-  @Bean
   @ConditionalOnMissingBean(CatsModule)
   CatsModule catsModule(List<Provider> providers, List<ExecutionInstrumentation> executionInstrumentation, NamedCacheFactory cacheFactory, AgentScheduler agentScheduler) {
     new CatsModule.Builder().cacheFactory(cacheFactory).scheduler(agentScheduler).instrumentation(executionInstrumentation).build(providers)
