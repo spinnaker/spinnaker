@@ -54,39 +54,22 @@ class CompleteStageHandler(
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
         var status = stage.determineStatus()
         try {
-          if (status == NOT_STARTED) {
-            // Stage had no before stages or tasks so we'll see if it had any
-            // un-planned after stages
-            var afterStages = stage.firstAfterStages()
-            if (afterStages.isEmpty()) {
-              stage.planAfterStages()
-              afterStages = stage.firstAfterStages()
-            }
-            if (afterStages.isNotEmpty()) {
-              afterStages.forEach {
-                queue.push(StartStage(message, it.id))
-              }
-
-              return@withStage
-            } else {
-              // stage had no synthetic stages or tasks, which is odd but whatever
-              log.warn("Stage ${stage.id} (${stage.type}) of ${stage.execution.id} had no tasks or synthetic stages!")
-              status = SKIPPED
-            }
-          } else if (status.isComplete && !status.isHalt) {
+          if (status == NOT_STARTED || (status.isComplete && !status.isHalt)) {
             // check to see if this stage has any unplanned synthetic after stages
             var afterStages = stage.firstAfterStages()
             if (afterStages.isEmpty()) {
               stage.planAfterStages()
-
               afterStages = stage.firstAfterStages()
-              if (afterStages.isNotEmpty()) {
-                afterStages.forEach {
-                  queue.push(StartStage(message, it.id))
-                }
-
-                return@withStage
-              }
+            }
+            if (afterStages.isNotEmpty() && afterStages.any { it.status == NOT_STARTED }) {
+              afterStages
+                .filter { it.status == NOT_STARTED }
+                .forEach { queue.push(StartStage(message, it.id)) }
+              return@withStage
+            } else if (status == NOT_STARTED) {
+              // stage had no synthetic stages or tasks, which is odd but whatever
+              log.warn("Stage ${stage.id} (${stage.type}) of ${stage.execution.id} had no tasks or synthetic stages!")
+              status = SKIPPED
             }
           } else if (status.isFailure) {
             if (stage.planOnFailureStages()) {
@@ -103,7 +86,6 @@ class CompleteStageHandler(
           log.error("Failed to construct after stages", e)
           stage.status = TERMINAL
           stage.endTime = clock.millis()
-          repository.storeStage(stage)
         }
 
         stage.includeExpressionEvaluationSummary()
@@ -229,7 +211,7 @@ private fun Stage.determineStatus(): ExecutionStatus {
   val taskStatuses = tasks.map(Task::getStatus)
   val allStatuses = syntheticStatuses + taskStatuses
   return when {
-    allStatuses.isEmpty() -> NOT_STARTED
+    allStatuses.isEmpty()                 -> NOT_STARTED
     allStatuses.contains(TERMINAL)        -> TERMINAL
     allStatuses.contains(STOPPED)         -> STOPPED
     allStatuses.contains(CANCELED)        -> CANCELED

@@ -633,11 +633,11 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           }
         }
 
-        it ("does not complete the pipeline") {
+        it("does not complete the pipeline") {
           verify(queue, never()).push(isA<CompleteExecution>())
         }
 
-        it ("does not mark the stage as failed") {
+        it("does not mark the stage as failed") {
           assertThat(pipeline.stageById(message.stageId).status).isEqualTo(RUNNING)
         }
       }
@@ -721,6 +721,42 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
             assertThat(it.endTime).isEqualTo(clock.millis())
           })
         }
+
+        it("does not do anything silly like running the after stage again") {
+          verify(queue, never()).push(isA<StartStage>())
+        }
+      }
+    }
+
+    describe("when all after stages have completed successfully") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          status = RUNNING
+          type = stageWithSyntheticAfter.type
+          stageWithSyntheticAfter.plan(this)
+          stageWithSyntheticAfter.buildAfterStages(this)
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        pipeline
+          .stages
+          .filter { it.syntheticStageOwner == STAGE_AFTER }
+          .forEach { it.status = SUCCEEDED }
+        pipeline.stageById(message.stageId).tasks.forEach { it.status = SUCCEEDED }
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving the message") {
+        subject.handle(message)
+      }
+
+      it("does not do anything silly like running the after stage again") {
+        verify(queue, never()).push(isA<StartStage>())
       }
     }
   }

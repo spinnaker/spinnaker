@@ -102,10 +102,18 @@ val stageWithSyntheticAfter = object : StageDefinitionBuilder {
     builder.withTask<DummyTask>("dummy")
   }
 
-  override fun aroundStages(stage: Stage) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "post1", stage.context, stage, STAGE_AFTER),
-    newStage(stage.execution, singleTaskStage.type, "post2", stage.context, stage, STAGE_AFTER)
-  )
+  override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    val first = graph.add {
+      it.type = singleTaskStage.type
+      it.name = "post1"
+      it.context = parent.context
+    }
+    graph.connect(first) {
+      it.type = singleTaskStage.type
+      it.name = "post2"
+      it.context = parent.context
+    }
+  }
 }
 
 val stageWithSyntheticAfterAndNoTasks = object : StageDefinitionBuilder {
