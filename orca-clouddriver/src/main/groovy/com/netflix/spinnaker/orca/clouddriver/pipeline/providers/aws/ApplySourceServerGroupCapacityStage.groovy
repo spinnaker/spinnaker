@@ -109,6 +109,6 @@ class ApplySourceServerGroupCapacityStage implements StageDefinitionBuilder {
   }
 
   private static String getRegion(Stage stage) {
-    return ((Map<String, Object>) stage.context."deploy.server.groups").keySet()?.getAt(0)
+    return ((Map<String, Object>) stage.context."deploy.server.groups")?.keySet()?.getAt(0)
   }
 }
