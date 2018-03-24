@@ -353,6 +353,7 @@ class BaseMetricsRegistry(object):
       except Exception as ex:
         logging.exception('label_func failed with %s', ex.message)
         raise ex
+      raise
     finally:
       timer = self.get_metric(MetricFamily.TIMER, name, outcome_labels)
       timer.observe(time.time() - start_time)

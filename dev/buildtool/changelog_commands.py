@@ -20,25 +20,31 @@ import datetime
 import logging
 import os
 import re
+import shutil
 import textwrap
+import urllib2
 
 
 from buildtool import (
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
 
+    CommandFactory,
+    CommandProcessor,
     RepositoryCommandFactory,
     RepositoryCommandProcessor,
 
     BomSourceCodeManager,
     BranchSourceCodeManager,
 
+    ConfigError,
+    UnexpectedError,
     CommitMessage,
     GitRunner,
 
-    UnexpectedError,
     check_kwargs_empty,
     check_options_set,
     check_path_exists,
+    ensure_dir_exists,
     raise_and_log_error,
     write_to_path)
 
@@ -153,6 +159,7 @@ class ChangelogBuilder(object):
     self.__entries = []
     self.__with_partition = kwargs.pop('with_partition', True)
     self.__with_detail = kwargs.pop('with_detail', False)
+    self.__write_category_heading = self.__with_partition and self.__with_detail
     check_kwargs_empty(kwargs)
     self.__sort_partitions = True
 
@@ -219,7 +226,8 @@ class ChangelogBuilder(object):
 
     report = []
     partitioned_commits = entry.partition_commits(sort=self.__sort_partitions)
-    report.append('### Changes by Type')
+    if self.__write_category_heading:
+      report.append('### Changes by Type')
     if not partitioned_commits:
       report.append('  No Significant Changes.')
       return report
@@ -258,7 +266,8 @@ class ChangelogBuilder(object):
     level_name = [None, 'MAJOR', 'MINOR', 'PATCH']
 
     report = []
-    report.append('### Changes by Sequence')
+    if self.__write_category_heading:
+      report.append('### Changes by Sequence')
     base_url = entry.repository.origin
     for msg in entry.normalized_messages:
       clean_text = self.clean_message(msg.message)
@@ -331,9 +340,13 @@ class PublishChangelogFactory(RepositoryCommandFactory):
         parser, defaults)
     GitRunner.add_parser_args(parser, defaults)
     GitRunner.add_publishing_parser_args(parser, defaults)
+
     self.add_argument(
         parser, 'spinnaker_version', defaults, None,
         help='The version of spinnaker this documentation is for.')
+    self.add_argument(
+        parser, 'changelog_gist_url', defaults, None,
+        help='The gist to the existing changelog content being published.')
 
 
 class PublishChangelogCommand(RepositoryCommandProcessor):
@@ -344,12 +357,17 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
         factory, make_options_with_fallback(options),
         source_repository_names=[SPINNAKER_GITHUB_IO_REPOSITORY_NAME],
         **kwargs)
-    check_options_set(options, ['spinnaker_version'])
-    self.__markdown_path = os.path.join(
-        self.get_output_dir(command=BUILD_CHANGELOG_COMMAND),
-        'changelog.md')
-    check_path_exists(self.__markdown_path,
-                      why='output from "%s"' % BUILD_CHANGELOG_COMMAND)
+    check_options_set(options, ['spinnaker_version', 'changelog_gist_url'])
+    try:
+      logging.debug('Verifying changelog gist exists at "%s"',
+                    options.changelog_gist_url)
+      urllib2.urlopen(options.changelog_gist_url)
+    except urllib2.HTTPError as error:
+      raise_and_log_error(
+          ConfigError(
+              'Changelog gist "{url}": {error}'.format(
+                  url=options.changelog_gitst_url,
+                  error=error.message)))
 
   def _do_repository(self, repository):
     if repository.name != SPINNAKER_GITHUB_IO_REPOSITORY_NAME:
@@ -362,7 +380,7 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
       branch_flag = ''
       head_branch = 'master'
     else:
-      branch_flag = '-b'
+      branch_flag = '-B'
       head_branch = version + '-changelog'
 
     files_added = self.prepare_local_repository_files(repository)
@@ -374,6 +392,7 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
         # because the branch is on the version, not build. A rejected
         # build for some reason that is re-tried will have the same version
         # so the branch may already exist from the earlier attempt.
+        'fetch origin ' + base_branch,
         'checkout ' + base_branch,
         'checkout {flag} {branch}'.format(
             flag=branch_flag, branch=head_branch),
@@ -393,14 +412,7 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
     if repository.name != SPINNAKER_GITHUB_IO_REPOSITORY_NAME:
       raise_and_log_error(UnexpectedError('Got "%s"' % repository.name))
 
-    with open(self.__markdown_path) as f:
-      detail = f.read()
-
-    # Use the original capture time
-    utc = datetime.datetime.fromtimestamp(
-        os.path.getmtime(self.__markdown_path))
-    timestamp = '{:%Y-%m-%d %H:%M:%S %Z}'.format(utc)
-
+    timestamp = '{:%Y-%m-%d %H:%M:%S %Z}'.format(datetime.datetime.now())
     version = self.options.spinnaker_version
     changelog_filename = '{version}-changelog.md'.format(version=version)
     target_path = os.path.join(repository.git_dir,
@@ -422,12 +434,88 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
               timestamp=timestamp,
               major=major, minor=minor))
       f.write(header)
-      f.write(detail)
+      f.write('<script src="%s.js"/>' % self.options.changelog_gist_url)
 
     return [target_path]
+
+
+class PushChangelogFactory(CommandFactory):
+  def __init__(self, **kwargs):
+    super(PushChangelogFactory, self).__init__(
+        'push_changelog_to_gist', PushChangelogCommand,
+        'Push raw changelog to an existing gist, possibly overwriting what'
+        ' was already there. This is intended for builds only, not publishing.'
+        ' The expectation is that these will be curated then published'
+        ' with the "publish_changelog" command.'
+        '\nThis will add (or overwrite) the changelog with the name'
+        ' "<branch>-raw-changelog.md".', **kwargs)
+
+  def init_argparser(self, parser, defaults):
+    super(PushChangelogFactory, self).init_argparser(
+        parser, defaults)
+    GitRunner.add_parser_args(parser, defaults)
+
+    self.add_argument(
+        parser, 'changelog_path', defaults, None,
+        help='The path to the changelog to push.')
+    self.add_argument(
+        parser, 'git_branch', defaults, None,
+        help='The branch name that this changelog is for. Note that this does'
+             ' not actually *use* any branches, rather the branch name is used'
+             ' to decorates the changelog filename.')
+    self.add_argument(
+        parser, 'build_changelog_gist_url', defaults, None,
+        help='The gist to push the changelog into.')
+
+
+class PushChangelogCommand(CommandProcessor):
+  """Implements push_changelog_to_gist."""
+
+  def __init__(self, factory, options, **kwargs):
+    super(PushChangelogCommand, self).__init__(factory, options, **kwargs)
+    check_options_set(
+        options, ['build_changelog_gist_url', 'git_branch'])
+
+    if not options.changelog_path:
+      options.changelog_path = os.path.join(
+          self.get_output_dir(command=BUILD_CHANGELOG_COMMAND), 'changelog.md')
+    check_path_exists(options.changelog_path, why='changelog_path')
+
+    self.__git = GitRunner(options)
+
+  def _do_command(self):
+    options = self.options
+    gist_url = options.build_changelog_gist_url
+    index = gist_url.rfind('/')
+    if index < 0:
+      index = gist_url.rfind(':')  # ssh gist
+    gist_id = gist_url[index + 1:]
+
+    git_dir = os.path.join(self.get_input_dir(), gist_id)
+    if not os.path.exists(git_dir):
+      logging.debug('Cloning gist from %s', gist_url)
+      ensure_dir_exists(os.path.dirname(git_dir))
+      self.__git.check_run(os.path.dirname(git_dir), 'clone ' + gist_url)
+    else:
+      logging.debug('Updating gist in "%s"', git_dir)
+      self.__git.check_run(git_dir, 'fetch origin master')
+      self.__git.check_run(git_dir, 'checkout master')
+
+    dest_path = os.path.join(
+        git_dir, '%s-raw-changelog.md' % options.git_branch)
+    logging.debug('Copying "%s" to "%s"', options.changelog_path, dest_path)
+    shutil.copyfile(options.changelog_path, dest_path)
+
+    self.__git.check_run(git_dir, 'add ' + os.path.basename(dest_path))
+    self.__git.check_run(
+        git_dir, 'commit -a -m "Updated %s"' % os.path.basename(dest_path))
+
+    logging.debug('Pushing back gist')
+    self.__git.check_run(git_dir, 'push -f origin master')
 
 
 def register_commands(registry, subparsers, defaults):
   """Registers all the commands for this module."""
   BuildChangelogFactory().register(registry, subparsers, defaults)
+  PushChangelogFactory().register(registry, subparsers, defaults)
   PublishChangelogFactory().register(registry, subparsers, defaults)
