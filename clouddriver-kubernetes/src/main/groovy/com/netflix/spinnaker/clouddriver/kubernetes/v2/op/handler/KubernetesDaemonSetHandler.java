@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesDaemonSetCachingAgent;
@@ -40,6 +41,14 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
     CanResumeRollout,
     CanUndoRollout,
     ServerGroupHandler {
+
+  public KubernetesDaemonSetHandler() {
+    registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
+    registerReplacer(ArtifactReplacerFactory.configMapVolumeReplacer());
+    registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
+    registerReplacer(ArtifactReplacerFactory.configMapEnvFromReplacer());
+    registerReplacer(ArtifactReplacerFactory.secretEnvFromReplacer());
+  }
 
   @Override
   public KubernetesKind kind() {
