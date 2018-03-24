@@ -224,6 +224,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
       if (serverGroup.targetGroups) {
         awsLookupUtil.lookupTargetGroupHealth(job, serverGroup.instances)
       }
+      serverGroup.awsAccount = awsLookupUtil.lookupAccount(serverGroupEntry.attributes.account, serverGroupEntry.attributes.region)?.awsAccount
       [(serverGroupEntry.id): serverGroup]
     }
     serverGroups
