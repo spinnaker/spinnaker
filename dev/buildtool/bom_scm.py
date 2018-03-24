@@ -160,6 +160,16 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     build_number = service['version'][service['version'].find('-') + 1:]
     return build_number
 
+  def determine_repository_version(self, repository):
+    service_name = self.repository_name_to_service_name(repository.name)
+    if not service_name in self.__bom['services'].keys():
+      raise_and_log_error(
+          UnexpectedError('"%s" is not a BOM repo' % service_name))
+
+    service = check_bom_service(self.__bom, service_name)
+    version = service['version'][:service['version'].find('-')]
+    return version
+
   def check_repository_is_current(self, repository):
     git_dir = repository.git_dir
     service_name = self.repository_name_to_service_name(repository.name)
