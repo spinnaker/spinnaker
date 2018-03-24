@@ -9,11 +9,15 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const exclusionPattern = /(node_modules|\.\.\/deck)/;
 const WEBPACK_THREADS = Math.max(require('physical-cpu-count') - 1, 1);
 
+const WATCH = process.env.WATCH === 'true';
+const WEBPACK_MODE = WATCH ? 'development' : 'production';
+const IS_PRODUCTION = WEBPACK_MODE === 'production';
+
 module.exports = {
   context: basePath,
-  mode: 'production',
-  stats: 'errors-only',
-  watch:  process.env.WATCH === 'true',
+  mode: WEBPACK_MODE,
+  stats: 'minimal',
+  watch: WATCH,
   entry: {
     lib: path.join(__dirname, 'src', 'index.ts'),
   },
@@ -26,13 +30,14 @@ module.exports = {
   },
   devtool: 'source-map',
   optimization: {
-    minimizer: [
+    minimizer: IS_PRODUCTION ? [
       new UglifyJSPlugin({
         cache: true,
+        parallel: true,
         sourceMap: true,
         uglifyOptions: { mangle: false }
-      }),
-    ],
+      })
+    ] : [], // disable minification in development mode
   },
   resolve: {
     extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],
