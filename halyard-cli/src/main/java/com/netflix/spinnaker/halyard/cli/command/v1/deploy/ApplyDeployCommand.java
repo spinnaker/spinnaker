@@ -64,6 +64,13 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
   boolean flushInfrastructureCaches;
 
   @Parameter(
+      names = "--prep-only",
+      description = "This does just the prep work, and not the actual deployment. Only useful at the moment if you want to just clone the "
+          + "repositories for a localgit setup."
+  )
+  boolean prepOnly;
+
+  @Parameter(
       names = "--service-names",
       description = "When supplied, only install or update the specified Spinnaker services.",
       variableArity = true
@@ -81,16 +88,21 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
       deployOptions.add(DeployOption.FLUSH_INFRASTRUCTURE_CACHES);
     }
 
-    runRemoteAction(
+    OperationHandler<RemoteAction> prepHandler =
         new OperationHandler<RemoteAction>()
             .setFailureMesssage("Failed to prep Spinnaker deployment")
             .setSuccessMessage("Preparation complete... deploying Spinnaker")
-            .setOperation(Daemon.prepDeployment(getCurrentDeployment(), !noValidate, serviceNames))
-    );
+            .setOperation(Daemon.prepDeployment(getCurrentDeployment(), !noValidate, serviceNames));
 
-    return new OperationHandler<RemoteAction>()
-        .setFailureMesssage("Failed to deploy Spinnaker.")
-        .setSuccessMessage("Run `hal deploy connect` to connect to Spinnaker.")
-        .setOperation(Daemon.deployDeployment(getCurrentDeployment(), false, deployOptions, serviceNames));
+    if (prepOnly) {
+      return prepHandler;
+    } else {
+      runRemoteAction(prepHandler);
+
+      return new OperationHandler<RemoteAction>()
+          .setFailureMesssage("Failed to deploy Spinnaker.")
+          .setSuccessMessage("Run `hal deploy connect` to connect to Spinnaker.")
+          .setOperation(Daemon.deployDeployment(getCurrentDeployment(), false, deployOptions, serviceNames));
+    }
   }
 }
