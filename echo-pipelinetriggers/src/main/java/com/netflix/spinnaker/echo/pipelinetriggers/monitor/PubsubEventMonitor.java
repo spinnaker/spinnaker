@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
@@ -45,7 +46,6 @@ import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatc
 /**
  * Triggers pipelines in _Orca_ when a trigger-enabled pubsub message arrives.
  */
-@Component
 @Slf4j
 public class PubsubEventMonitor extends TriggerMonitor {
 
@@ -55,7 +55,6 @@ public class PubsubEventMonitor extends TriggerMonitor {
 
   private final PipelineCache pipelineCache;
 
-  @Autowired
   public PubsubEventMonitor(@NonNull PipelineCache pipelineCache,
                             @NonNull Action1<Pipeline> subscriber,
                             @NonNull Registry registry) {

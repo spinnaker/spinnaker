@@ -1,12 +1,17 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.echo.model.Pipeline;
+import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
+import com.netflix.spinnaker.echo.pipelinetriggers.monitor.PubsubEventMonitor;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +20,7 @@ import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 import rx.Scheduler;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 @Configuration
@@ -46,6 +52,12 @@ public class PipelineTriggerConfiguration {
   @Bean
   public Client retrofitClient() {
     return new OkClient();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(PubsubEventMonitor.class)
+  PubsubEventMonitor pubsubEventMonitor(PipelineCache pipelineCache, Action1<Pipeline> subscriber, Registry registry) {
+    return new PubsubEventMonitor(pipelineCache, subscriber, registry);
   }
 
   private <T> T bindRetrofitService(final Class<T> type, final String endpoint) {
