@@ -72,9 +72,9 @@ module.exports = function (config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['junit', 'dots'],
+    reporters: ['dots'],
 
-    // the default configuration
+    // put test results in a well known file if 'jenkins' reporter is being used
     junitReporter: {
      outputFile: 'test-results.xml'
     },
