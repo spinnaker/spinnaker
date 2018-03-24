@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,12 +105,20 @@ public class ArtifactReplacer {
               try {
                 return ((List<String>) mapper.convertValue(r.findAll(document), new TypeReference<List<String>>() { }))
                     .stream()
-                    .map(s -> Artifact.builder()
-                        .type(r.getType().toString())
-                        .reference(s)
-                        .name(r.getNameFromReference(s))
-                        .build()
-                    );
+                    .map(s -> {
+                          String nameFromReference = r.getNameFromReference(s);
+                          String name = nameFromReference == null ? s : nameFromReference;
+                          if (r.namePattern == null || nameFromReference != null) {
+                            return Artifact.builder()
+                              .type(r.getType().toString())
+                              .reference(s)
+                              .name(name)
+                              .build();
+                          } else {
+                            return null;
+                          }
+                        }
+                    ).filter(Objects::nonNull);
               } catch (Exception e) {
                 // This happens when a manifest isn't fully defined (e.g. not all properties are there)
                 log.debug("Failure converting artifacts for {} using {} (skipping)", input.getFullResourceName(), r, e);
