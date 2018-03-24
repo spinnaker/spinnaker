@@ -17,6 +17,7 @@
 import copy
 import logging
 import os
+import urllib2
 import yaml
 
 from buildtool import (
@@ -35,6 +36,8 @@ from buildtool import (
     write_to_path,
     raise_and_log_error,
     ConfigError)
+
+from buildtool.changelog_commands import PublishChangelogFactory
 
 
 class InitiateReleaseBranchFactory(RepositoryCommandFactory):
@@ -113,10 +116,8 @@ class PublishSpinnakerFactory(CommandFactory):
     HalRunner.add_parser_args(parser, defaults)
     GitRunner.add_parser_args(parser, defaults)
     GitRunner.add_publishing_parser_args(parser, defaults)
+    PublishChangelogFactory().init_argparser(parser, defaults)
 
-    self.add_argument(
-        parser, 'spinnaker_version', defaults, None,
-        help='The spinnaker version to publish.')
     self.add_argument(
         parser, 'spinnaker_release_alias', defaults, None, required=True,
         help='The spinnaker version alias to publish as.')
@@ -140,6 +141,7 @@ class PublishSpinnakerCommand(CommandProcessor):
     check_options_set(options, [
         'spinnaker_version',
         'bom_version',
+        'changelog_gist_url',
         'github_owner',
         'min_halyard_version'
     ])
@@ -150,6 +152,7 @@ class PublishSpinnakerCommand(CommandProcessor):
     self.__git = GitRunner(options)
     self.__hal.check_property(
         'spinnaker.config.input.bucket', options.halyard_bom_bucket)
+    self.__only_repositories = options.only_repositories.split(',')
 
   def push_branches_and_tags(self, bom):
     """Update the release branches and tags in each of the BOM repositires."""
@@ -166,11 +169,15 @@ class PublishSpinnakerCommand(CommandProcessor):
         if name in ['monitoring-third-party', 'defaultArtifact']:
           # Ignore this, it is redundant to monitoring-daemon
           continue
+        if name == 'monitoring-daemon':
+          name = 'spinnaker-monitoring'
+        if self.__only_repositories and name not in self.__only_repositories:
+          logging.debug('Skipping %s because of --only_repositories', name)
+          continue
         if spec is None:
           logging.warning('HAVE bom.services.%s = None', name)
           continue
-        if name == 'monitoring-daemon':
-          name = 'spinnaker-monitoring'
+
         repository = self.__scm.make_repository_spec(name)
         self.__scm.ensure_local_repository(repository)
         if which == 'tag':
@@ -180,8 +187,8 @@ class PublishSpinnakerCommand(CommandProcessor):
 
   def __branch_and_tag_repository(self, repository, branch):
     """Create a branch and/or verison tag in the repository, if needed."""
-    source_info = self.__scm.lookup_source_info(repository)
-    tag = 'version-' + source_info.summary.version
+    version = self.__scm.determine_repository_version(repository)
+    tag = 'version-' + version
     self.__git.check_run(repository.git_dir, 'tag ' + tag)
 
   def __push_branch_and_tag_repository(self, repository, branch):
@@ -195,20 +202,34 @@ class PublishSpinnakerCommand(CommandProcessor):
     """Implements CommandProcessor interface."""
     options = self.options
     spinnaker_version = options.spinnaker_version
+    publish_changelog_command = PublishChangelogFactory().make_command(options)
+    changelog_gist_url = options.changelog_gist_url
+
+    # Make sure changelog exists already.
+    # If it does not then fail.
+    try:
+      logging.debug('Verifying changelog ready at %s', changelog_gist_url)
+      urllib2.urlopen(changelog_gist_url)
+    except urllib2.HTTPError as error:
+      logging.error(error.message)
+      raise_and_log_error(
+          ConfigError(
+              'Changelog gist "{url}" must exist before publising a release.'
+              .format(url=changelog_gist_url),
+              cause='ChangelogMissing'))
+
     bom = self.__hal.retrieve_bom_version(self.options.bom_version)
     bom['version'] = spinnaker_version
-
-    self.push_branches_and_tags(bom)
     bom_path = os.path.join(self.get_output_dir(), spinnaker_version + '.yml')
-    changelog_base_url = 'https://www.spinnaker.io/%s' % options.github_owner
-    changelog_filename = '%s-changelog' % spinnaker_version.replace('.', '-')
-    changelog_uri = '%s/community/releases/versions/%s' % (
-        changelog_base_url, changelog_filename)
-
     write_to_path(yaml.dump(bom, default_flow_style=False), bom_path)
+    self.push_branches_and_tags(bom)
+
     self.__hal.publish_spinnaker_release(
-        spinnaker_version, options.spinnaker_release_alias, changelog_uri,
+        spinnaker_version, options.spinnaker_release_alias, changelog_gist_url,
         options.min_halyard_version)
+
+    logging.info('Publishing changelog')
+    publish_changelog_command()
 
 
 def register_commands(registry, subparsers, defaults):
