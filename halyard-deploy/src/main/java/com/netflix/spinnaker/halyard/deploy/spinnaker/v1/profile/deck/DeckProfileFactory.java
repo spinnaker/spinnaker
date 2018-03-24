@@ -82,11 +82,14 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
 
     Optional<Versions.Version> validatedVersion = versionsService.getVersions().getVersion(version);
 
-    validatedVersion.ifPresent(v -> {
-      String changelog = v.getChangelog();
+    if (validatedVersion.isPresent()) {
+      String changelog = validatedVersion.get().getChangelog();
       bindings.put("changelog.gist.id", changelog.substring(changelog.lastIndexOf("/") + 1));
       bindings.put("changelog.gist.name", "changelog.md");
-    });
+    } else {
+      bindings.put("changelog.gist.id", "");
+      bindings.put("changelog.gist.name", "");
+    }
 
     // Configure feature-flags
     bindings.put("features.auth", Boolean.toString(features.isAuth(deploymentConfiguration)));
