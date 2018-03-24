@@ -428,7 +428,6 @@ class PublishBomCommandFactory(RepositoryCommandFactory):
     super(PublishBomCommandFactory, self).__init__(
         'publish_bom', PublishBomCommand, 'Publish a BOM file to Halyard.',
         BomSourceCodeManager,
-        source_repository_names=SPINNAKER_BOM_REPOSITORY_NAMES,
         **kwargs)
 
   def init_argparser(self, parser, defaults):

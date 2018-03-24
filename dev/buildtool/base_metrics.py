@@ -311,7 +311,16 @@ class BaseMetricsRegistry(object):
 
     try:
       start_time = time.time()
-      return func(*pos_args, **kwargs)
+      result = time_func(*pos_args, **kwargs)
+      outcome_labels = label_func(result, labels)
+      return result
+    except:
+      try:
+        outcome_labels = label_func(None, labels)
+      except Exception as ex:
+        logging.exception('label_func failed with %s', ex.message)
+        raise ex
+      raise
     finally:
       timer.observe(time.time() - start_time)
 

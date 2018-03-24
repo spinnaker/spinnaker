@@ -151,6 +151,7 @@
 ################################
 ### "build" only
 # include_changelog_details: false
+# build_changelog_gist_url: 
 
 
 ################################
@@ -193,4 +194,3 @@
 ################################
 # spinnaker_release_alias:
 # min_halyard_version:
-

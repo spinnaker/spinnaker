@@ -50,6 +50,9 @@ function run_build_flow() {
   start_command_unless NO_HALYARD "build_halyard" \
       $EXTRA_BUILD_HALYARD_ARGS
 
+  start_command_unless NO_CHANGELOG "build_changelog" \
+      $EXTRA_BOM_COMMAND_ARGS \
+
   # Synchronize here so we have all the artifacts build before we continue.
   wait_for_commands_or_die "Build"
 
@@ -111,6 +114,9 @@ function process_args() {
         --no_halyard)
           NO_HALYARD=true
           ;;
+        --no_changelog)
+          NO_CHANGELOG=true
+          ;;
         --no_bom_publish)
           NO_BOM_PUBLISH=true
           ;;
@@ -129,12 +135,6 @@ function process_args() {
           ;;
         --base_bom_version)
           EXTRA_BUILD_BOM_ARGS="$EXTRA_BUILD_BOM_ARGS --refresh_from_bom_version $1"
-          shift
-          ;;
-        --bom_branch)
-          >&2 echo "WARNING: --bom_branch is DEPRECATED."
-          >&2 echo "         Invoke $0 with the branch as the 2nd arg."
-          BOM_BRANCH=$1
           shift
           ;;
         --hal_branch)
