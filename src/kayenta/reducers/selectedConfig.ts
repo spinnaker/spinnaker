@@ -66,6 +66,7 @@ export interface ISelectedConfigState {
   changeMetricGroup: IChangeMetricGroupState;
   validationErrors: IConfigValidationError[];
   editingTemplate: IEditingTemplateState;
+  selectedStore: string;
 }
 
 const config = handleActions({
@@ -388,6 +389,7 @@ const combined = combineReducers<ISelectedConfigState>({
   isInSyncWithServer,
   validationErrors: () => null,
   editingTemplate,
+  selectedStore: handleActions<string>({}, null),
 });
 
 // First combine all simple reducers, then apply more complex ones as needed.

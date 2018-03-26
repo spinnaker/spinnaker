@@ -1,8 +1,8 @@
 import { combineReducers, Action } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { isEqual } from 'lodash';
+import { isEqual, chain } from 'lodash';
 
-import * as Actions from 'kayenta/actions/index';
+import * as Actions from 'kayenta/actions';
 import * as Creators from 'kayenta/actions/creators';
 import { IDataState, data } from './data';
 import { app, IAppState } from './app';
@@ -10,15 +10,14 @@ import {
   ISelectedConfigState,
   selectedConfig
 } from './selectedConfig';
-import { JudgeSelectRenderState } from '../edit/judgeSelect';
-import { IJudge } from '../domain/IJudge';
-import { ICanaryJudgeConfig } from '../domain/ICanaryConfig';
-import { mapStateToConfig } from '../service/canaryConfig.service';
+import { JudgeSelectRenderState } from 'kayenta/edit/judgeSelect';
+import { IJudge, ICanaryJudgeConfig, ICanaryAnalysisResult, KayentaAccountType, ICanaryMetricConfig } from 'kayenta/domain';
+import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import { ISelectedRunState, selectedRun } from './selectedRun';
-import { metricResultsSelector } from '../selectors/index';
+import { metricResultsSelector } from 'kayenta/selectors';
 import { validationErrorsReducer } from './validators';
 import { AsyncRequestState } from './asyncRequest';
-import { ICanaryAnalysisResult } from '../domain/ICanaryJudgeResult';
+import { CanarySettings } from 'kayenta/canary.settings';
 
 export interface ICanaryState {
   app: IAppState;
@@ -163,12 +162,69 @@ const selectedMetricReducer = (state: ICanaryState, action: Action & any) => {
   };
 };
 
+// TODO(dpeach): this assumes that a config can only use one metric store.
+// If that changes, then metric store handling will have to be done per metric.
+const selectedMetricStoreReducer = (state: ICanaryState, action: Action & any) => {
+  switch (action.type) {
+    case Actions.SELECT_CONFIG:
+    case Actions.LOAD_KAYENTA_ACCOUNTS_SUCCESS: {
+      const stores = chain(state.data.kayentaAccounts.data)
+        .filter(account => account.supportedTypes.includes(KayentaAccountType.MetricsStore))
+        .map(account => account.metricsStoreType || account.type)
+        .uniq()
+        .valueOf();
+
+      let selectedStore =
+        (state.selectedConfig.metricList || [])
+          .map(metric => metric.query.type)
+          .find(store => !!store);
+
+      selectedStore = selectedStore || (
+        stores.length
+          ? (stores.includes(CanarySettings.metricStore)
+               ? CanarySettings.metricStore
+               : stores[0])
+          : null);
+
+      return {
+        ...state,
+        selectedConfig: {
+          ...state.selectedConfig,
+          selectedStore,
+        },
+      };
+    }
+
+    case Actions.SELECT_METRIC_STORE: {
+      const selectedStore: string = action.payload.store;
+      // Flips all metrics to use the selected metric store.
+      const metricUpdater = (metric: ICanaryMetricConfig): ICanaryMetricConfig => ({
+        ...metric,
+        query: { ...metric.query, type: selectedStore, serviceType: selectedStore, },
+      });
+
+      return {
+        ...state,
+        selectedConfig: {
+          ...state.selectedConfig,
+          metricList: state.selectedConfig.metricList.map(metricUpdater),
+          selectedStore,
+        },
+      };
+    }
+
+    default:
+      return state;
+  }
+};
+
 export const rootReducer = (state: ICanaryState, action: Action & any): ICanaryState => {
   return [
     combined,
     judgeRenderStateReducer,
-    isInSyncWithServerReducer,
+    selectedMetricStoreReducer,
     selectedMetricReducer,
     validationErrorsReducer,
+    isInSyncWithServerReducer,
   ].reduce((s, reducer) => reducer(s, action), state);
 };

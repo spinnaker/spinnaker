@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import { CanarySettings } from 'kayenta/canary.settings';
 import { ITableColumn, Table } from 'kayenta/layout/table';
 import ChangeMetricGroupModal from './changeMetricGroupModal';
 
@@ -110,7 +109,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
     showGroups: !selectedGroup || metricList.filter(filter).some(metric => metric.groups.length > 1),
     changingGroupMetric: state.selectedConfig.metricList.find(m =>
       m.id === state.selectedConfig.changeMetricGroup.metric),
-    metricStore: metricList.length ? metricList[0].query.type : CanarySettings.metricStore,
+    metricStore: state.selectedConfig.selectedStore,
   };
 }
 
@@ -127,6 +126,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           name: '',
           query: {
             type: event.target.dataset.metricStore,
+            serviceType: event.target.dataset.metricStore,
           },
           groups: group ? [group] : [],
           scopeName: 'default',

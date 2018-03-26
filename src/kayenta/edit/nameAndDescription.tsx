@@ -2,11 +2,12 @@ import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 
-import FormRow from '../layout/formRow';
-import { ICanaryState } from '../reducers/index';
-import * as Creators from '../actions/creators';
-import FormList from '../layout/formList';
-import KayentaInput from '../layout/kayentaInput';
+import FormRow from 'kayenta/layout/formRow';
+import { ICanaryState } from 'kayenta/reducers';
+import * as Creators from 'kayenta/actions/creators';
+import FormList from 'kayenta/layout/formList';
+import KayentaInput from 'kayenta/layout/kayentaInput';
+import MetricStoreSelector from './metricStoreSelector';
 
 interface INameAndDescriptionDispatchProps {
   changeName: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -31,6 +32,7 @@ function NameAndDescription({ name, description, changeName, changeDescription }
           onChange={changeName}
         />
       </FormRow>
+      <MetricStoreSelector />
       <FormRow label="Description">
         <textarea
           className="form-control input-sm"

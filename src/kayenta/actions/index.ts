@@ -78,3 +78,4 @@ export const SELECT_GRAPH_TYPE = 'select_graph_type';
 export const LOAD_KAYENTA_ACCOUNTS_REQUEST = 'load_kayenta_accounts_request';
 export const LOAD_KAYENTA_ACCOUNTS_SUCCESS = 'load_kayenta_accounts_success';
 export const LOAD_KAYENTA_ACCOUNTS_FAILURE = 'load_kayenta_accounts_failure';
+export const SELECT_METRIC_STORE = 'select_metric_store';

@@ -19,7 +19,7 @@ import {
   getMetricSetPair
 } from '../service/canaryRun.service';
 import { runSelector } from 'kayenta/selectors';
-import { ICanaryConfigUpdateResponse } from 'kayenta/domain';
+import { ICanaryConfigUpdateResponse, KayentaAccountType } from 'kayenta/domain';
 import { listMetricsServiceMetadata } from 'kayenta/service/metricsServiceMetadata.service';
 
 const typeMatches = (...actions: string[]) => (action: Action & any) => actions.includes(action.type);
@@ -100,25 +100,47 @@ const loadMetricSetPairEpic = (action$: Observable<Action & any>, store: Middlew
         .catch((error: Error) => Observable.of(Creators.loadMetricSetPairFailure({ error })))
     });
 
-const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action & any>) =>
+const updatePrometheusMetricDescriptionFilterEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(typeMatches(Actions.UPDATE_PROMETHEUS_METRIC_DESCRIPTOR_FILTER))
     .filter(action => action.payload.filter && action.payload.filter.length > 2)
     .debounceTime(200 /* milliseconds */)
-    .map(action => Creators.loadMetricsServiceMetadataRequest({ filter: action.payload.filter }));
+    .map(action => {
+      const [metricsAccountName] = store.getState().data.kayentaAccounts.data
+        .filter(account =>
+          account.supportedTypes.includes(KayentaAccountType.MetricsStore) &&
+          account.type === 'prometheus')
+        .map(account => account.name);
 
-const updateStackdriverMetricDescriptionFilterEpic = (action$: Observable<Action & any>) =>
+      return Creators.loadMetricsServiceMetadataRequest({
+        filter: action.payload.filter,
+        metricsAccountName,
+      });
+    });
+
+const updateStackdriverMetricDescriptionFilterEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(typeMatches(Actions.UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER))
     .filter(action => action.payload.filter && action.payload.filter.length > 2)
     .debounceTime(200 /* milliseconds */)
-    .map(action => Creators.loadMetricsServiceMetadataRequest({ filter: action.payload.filter }));
+    .map(action => {
+      const [metricsAccountName] = store.getState().data.kayentaAccounts.data
+        .filter(account =>
+          account.supportedTypes.includes(KayentaAccountType.MetricsStore) &&
+          account.metricsStoreType === 'stackdriver')
+        .map(account => account.name);
+
+      return Creators.loadMetricsServiceMetadataRequest({
+        filter: action.payload.filter,
+        metricsAccountName,
+      });
+    });
 
 const loadMetricsServiceMetadataEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(typeMatches(Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST))
     .concatMap(action => {
-      return Observable.fromPromise(listMetricsServiceMetadata(action.payload.filter))
+      return Observable.fromPromise(listMetricsServiceMetadata(action.payload.filter, action.payload.metricsAccountName))
         .map(data => Creators.loadMetricsServiceMetadataSuccess({ data }))
         .catch((error: Error) => Observable.of(Creators.loadMetricsServiceMetadataFailure({ error })));
     });
