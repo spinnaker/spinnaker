@@ -42,6 +42,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     applicationDataSourceRegistry.registerDataSource({
       optIn: !CanarySettings.optInAll,
       optional: true,
+      category: 'delivery',
       loader: loadCanaryConfigs,
       onLoad: configsLoaded,
       afterLoad: afterConfigsLoad,
