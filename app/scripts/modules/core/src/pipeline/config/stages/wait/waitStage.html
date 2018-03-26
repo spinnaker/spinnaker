@@ -2,4 +2,21 @@
   <stage-config-field label="Wait Time (seconds)" field-columns="6">
     <number-input model="stage.waitTime"></number-input>
   </stage-config-field>
+  <div class="form-group">
+    <div class="col-md-8 col-md-offset-3">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="ctrl.enableCustomSkipWaitText"/>
+          <span> Show custom warning when users skip wait</span>
+        </label>
+      </div>
+    </div>
+    <div class="col-md-8 col-md-offset-3 checkbox-padding" ng-if="ctrl.enableCustomSkipWaitText">
+        <textarea class="form-control"
+                  rows="4"
+                  placeholder="Default text: '{{ctrl.defaultSkipWaitText}}' (HTML is okay)"
+                  style="margin-top: 5px"
+                  ng-model="stage.skipWaitText"/>
+    </div>
+  </div>
 </div>
