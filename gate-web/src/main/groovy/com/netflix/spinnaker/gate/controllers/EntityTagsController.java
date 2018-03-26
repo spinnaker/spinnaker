@@ -63,6 +63,10 @@ public class EntityTagsController {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
     String id = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 
+    if (id != null) {
+      id = id.toLowerCase();
+    }
+
     return entityTagsService.get(id, request.getHeader("X-RateLimit-App"));
   }
 
