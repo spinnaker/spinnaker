@@ -48,7 +48,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
       arity = 1
   )
   private Boolean jobs = null;
-  
+
   @Parameter(
       names = "--pipeline-templates",
       description = "Enable pipeline template support. Read more at https://github.com/spinnaker/dcd-spec.",
@@ -65,11 +65,18 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--mine-canary",
-      description = "Enable canary support. For this to work, you'll need a canary judge configured. " 
+      description = "Enable canary support. For this to work, you'll need a canary judge configured. "
            + "Currently, Halyard does not configure canary judge for you.",
       arity = 1
   )
   private Boolean mineCanary = null;
+
+  @Parameter(
+      names = "--infrastructure-stages",
+      description = "Enable infrastructure stages. Allows for creating Load Balancers as part of pipelines.",
+      arity = 1
+  )
+  private Boolean infrastructureStages = null;
 
   @Override
   protected void executeThis() {
@@ -87,6 +94,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     features.setPipelineTemplates(pipelineTemplates != null ? pipelineTemplates : features.getPipelineTemplates());
     features.setArtifacts(artifacts != null ? artifacts : features.getArtifacts());
     features.setMineCanary(mineCanary != null ? mineCanary : features.getMineCanary());
+    features.setInfrastructureStages(infrastructureStages != null ? infrastructureStages : features.getInfrastructureStages());
 
     if (originalHash == features.hashCode()) {
       AnsiUi.failure("No changes supplied.");

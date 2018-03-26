@@ -1515,6 +1515,7 @@ hal config features edit [parameters]
  * `--mine-canary`: Enable canary support. For this to work, you'll need a canary judge configured. Currently, Halyard does not configure canary judge for you.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pipeline-templates`: Enable pipeline template support. Read more at https://github.com/spinnaker/dcd-spec.
+ * `--infrastructure-stages`: Enable infrastructure stages support.  Allows for creating Load Balancers in a pipeline.
 
 
 ---
@@ -2110,7 +2111,7 @@ Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--discovery`: The endpoint your Eureka discovery system is reachable at. See https://github.com/Netflix/eureka for more information.
 
-Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2 
+Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2
 
 Using {{region}} will make Spinnaker use AWS regions in the hostname to access discovery so that you can have discovery for multiple regions.
  * `--edda`: The endpoint Edda is reachable at. Edda is not a hard dependency of Spinnaker, but is helpful for reducing the request volume against AWS. See https://github.com/Netflix/edda for more information.
@@ -2158,7 +2159,7 @@ Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--discovery`: The endpoint your Eureka discovery system is reachable at. See https://github.com/Netflix/eureka for more information.
 
-Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2 
+Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2
 
 Using {{region}} will make Spinnaker use AWS regions in the hostname to access discovery so that you can have discovery for multiple regions.
  * `--edda`: The endpoint Edda is reachable at. Edda is not a hard dependency of Spinnaker, but is helpful for reducing the request volume against AWS. See https://github.com/Netflix/edda for more information.
@@ -3398,7 +3399,7 @@ hal config provider google enable [parameters]
 ---
 ## hal config provider kubernetes
 
-The Kubernetes provider is used to deploy Kubernetes resources to any number of Kubernetes clusters. Spinnaker assumes you have a Kubernetes cluster already running. If you don't, you must configure one: https://kubernetes.io/docs/getting-started-guides/. 
+The Kubernetes provider is used to deploy Kubernetes resources to any number of Kubernetes clusters. Spinnaker assumes you have a Kubernetes cluster already running. If you don't, you must configure one: https://kubernetes.io/docs/getting-started-guides/.
 
 Before proceeding, please visit https://kubernetes.io/docs/concepts/cluster-administration/authenticate-across-clusters-kubeconfig/ to make sure you're familiar with the authentication terminology. For more information on how to configure individual accounts, or how to deploy to multiple clusters, please read the documentation under `hal config provider kubernetes account -h`.
 
