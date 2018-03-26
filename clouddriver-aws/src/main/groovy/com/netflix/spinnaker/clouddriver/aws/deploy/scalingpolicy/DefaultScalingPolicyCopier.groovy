@@ -34,8 +34,10 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
 
   public static final DIMENSION_NAME_FOR_ASG = 'AutoScalingGroupName'
@@ -57,6 +59,9 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
     AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion, true)
     AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion, true)
     List<ScalingPolicy> sourceAsgScalingPolicies = new ScalingPolicyRetriever(sourceAutoScaling).retrieve(new DescribePoliciesRequest(autoScalingGroupName: sourceAsgName))
+
+    log.info("Copying scaling policies for $sourceAsgName to $targetAsgName: $sourceAsgScalingPolicies")
+
     Map<String, String> sourcePolicyArnToTargetPolicyArn = [:]
     sourceAsgScalingPolicies.each { sourceAsgScalingPolicy ->
       String newPolicyName = [targetAsgName, 'policy', idGenerator.nextId()].join('-')
@@ -136,6 +141,9 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
     AmazonCloudWatch sourceCloudWatch = amazonClientProvider.getCloudWatch(sourceCredentials, sourceRegion, true)
     AmazonCloudWatch targetCloudWatch = amazonClientProvider.getCloudWatch(targetCredentials, targetRegion, true)
     List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(new DescribeAlarmsRequest(alarmNames: sourceAlarmNames))
+
+    log.info("Copying scaling policy alarms for $newAutoScalingGroupName: $sourceAlarms")
+    
     sourceAlarms.findAll{ shouldCopySourceAlarm(it) }.each { alarm ->
       List<Dimension> newDimensions = Lists.newArrayList(alarm.dimensions)
       Dimension asgDimension = newDimensions.find { it.name == DIMENSION_NAME_FOR_ASG }
