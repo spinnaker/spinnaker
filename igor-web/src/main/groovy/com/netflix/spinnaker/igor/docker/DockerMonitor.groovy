@@ -97,12 +97,14 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: {})", kv("account", account))
 
         List<ImageDelta> delta = []
-        images.parallelStream().forEach({ TaggedImage image ->
+        images.parallelStream().forEach { TaggedImage image ->
             String imageId = new DockerRegistryV2Key(igorProperties.spinnaker.jedis.prefix, DockerRegistryCache.ID, account, image.registry, image.tag)
             if (shouldUpdateCache(cachedImages, imageId, image, trackDigests)) {
                 delta.add(new ImageDelta(imageId: imageId, image: image))
             }
-        })
+        }
+
+        log.info("Found {} new images for {}", delta.size(), account)
 
         return new DockerPollingDelta(items: delta, cachedImages: cachedImages)
     }
@@ -131,12 +133,13 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
      */
     @Override
     void commitDelta(DockerPollingDelta delta, boolean sendEvents) {
-        delta.items.parallelStream().forEach({ ImageDelta item ->
+        delta.items.parallelStream().forEach { ImageDelta item ->
             cache.setLastDigest(item.image.account, item.image.registry, item.image.repository, item.image.tag, item.image.digest)
             if (sendEvents) {
+                log.debug("${item.image.account}/${item.image.registry}/${item.image.tag}:${item.image.digest}: ${item.imageId} event posted")
                 postEvent(delta.cachedImages, item.image, item.imageId)
             }
-        })
+        }
     }
 
     @Override
@@ -152,11 +155,6 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         }
         if (!cachedImagesForAccount) {
             // avoid publishing an event if this account has no indexed images (protects against a flushed redis)
-            return
-        }
-
-        if (!echoService) {
-            // avoid publishing an event if echo is disabled
             return
         }
 
