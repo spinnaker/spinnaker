@@ -34,7 +34,7 @@ func (c *PipelineSaveCommand) flagSet() *flag.FlagSet {
 
 	// TODO auto-generate flag help rather than putting it in "Help"
 	f.Usage = func() {
-		fmt.Printf(c.Help())
+		c.Ui.Error(c.Help())
 	}
 
 	return f
@@ -57,12 +57,12 @@ func (c *PipelineSaveCommand) parsePipelineFile() (map[string]interface{}, error
 func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{}) bool {
 	var exists bool
 	if _, exists = pipelineJson["name"]; !exists {
-		fmt.Println("Required pipeline key 'name' missing...")
+		c.Ui.Error("Required pipeline key 'name' missing...\n")
 		return false
 	}
 
 	if _, exists = pipelineJson["application"]; !exists {
-		fmt.Println("Required pipeline key 'application' missing...")
+		c.Ui.Error("Required pipeline key 'application' missing...\n")
 		return false
 	}
 	return true
@@ -120,37 +120,39 @@ func (c *PipelineSaveCommand) savePipeline(pipelineJson map[string]interface{}) 
 }
 
 func (c *PipelineSaveCommand) Run(args []string) int {
+	var err error
+	args, err = c.ApiMeta.process(args)
+
 	f := c.flagSet()
 
-	var err error
 	if err = f.Parse(args); err != nil {
-		fmt.Printf("%s\n", err)
+		c.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
 	pipelineJson, err := c.parsePipelineFile()
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		c.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
 	if c.application != "" {
-		fmt.Println("Overriding pipeline application with user-supplied application")
+		c.Ui.Output("Overriding pipeline application with user-supplied application")
 		pipelineJson["application"] = c.application
 	}
 	if c.pipelineName != "" {
-		fmt.Println("Overriding pipeline name with user-supplied name")
+		c.Ui.Output("Overriding pipeline name with user-supplied name")
 		pipelineJson["name"] = c.pipelineName
 	}
 
-	fmt.Printf("Parsed submitted pipeline: %s\n", pipelineJson)
+	c.Ui.Output(fmt.Sprintf("Parsed submitted pipeline: %s\n", pipelineJson))
 	if valid := c.pipelineIsValid(pipelineJson); !valid {
 		return 1
 	}
 
 	id, err := c.queryPipeline(pipelineJson)
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		c.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
@@ -164,16 +166,16 @@ func (c *PipelineSaveCommand) Run(args []string) int {
 	}
 
 	if err != nil {
-		fmt.Printf("%s\n", err)
+		c.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("Encountered an error saving pipeline, status code: %d\n", resp.StatusCode)
+		c.Ui.Error(fmt.Sprintf("Encountered an error saving pipeline, status code: %d\n", resp.StatusCode))
 		return 1
 	}
 
-	fmt.Printf("Pipeline save succeeded\n")
+	c.Ui.Output(c.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline save succeeded")))
 	return 0
 }
 
