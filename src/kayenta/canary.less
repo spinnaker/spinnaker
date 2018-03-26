@@ -80,10 +80,17 @@
     }
 
     i {
-      &.fa {
+      &.fa, &.far {
         padding: 0 .5rem;
         cursor: pointer;
         &.fa-edit, &.fa-folder {
+          font-weight: 100;
+        }
+        &.fa-folder {
+          margin-top: .2rem;
+        }
+        &.fa-trash {
+          font-size: small;
           margin-top: .1rem;
         }
       }
