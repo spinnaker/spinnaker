@@ -93,39 +93,40 @@ export class PipelineConfigProvider implements IServiceProvider {
   }
 
   private getCloudProvidersForStage(type: IStageTypeConfig, allStageTypes: IStageTypeConfig[], accounts: IAccountDetails[]): string[] {
-    let providers = Array.from(new Set(accounts.map(acc => acc.cloudProvider)));
-    let cloudProviders: string[] = [];
+    const providersFromAccounts = uniq(accounts.map(acc => acc.cloudProvider));
+    let providersFromStage: string[] = [];
     if (type.providesFor) {
-      cloudProviders = type.providesFor;
+      providersFromStage = type.providesFor;
     } else if (type.cloudProvider) {
-      cloudProviders = [type.cloudProvider];
+      providersFromStage = [type.cloudProvider];
     } else if (type.useBaseProvider) {
       const stageProviders: IStageTypeConfig[] = allStageTypes.filter(s => s.provides === type.key);
       stageProviders.forEach(sp => {
         if (sp.providesFor) {
-          cloudProviders = cloudProviders.concat(sp.providesFor);
+          providersFromStage = providersFromStage.concat(sp.providesFor);
         } else {
-          cloudProviders.push(sp.cloudProvider);
+          providersFromStage.push(sp.cloudProvider);
         }
       });
     } else {
-      cloudProviders = uniq(accounts.reduce((memo, acc) => {
-        const p = this.cloudProviderRegistryProvider.getProvider(acc.cloudProvider, acc.providerVersion);
-        if (!isExcludedStageType(type, p)) {
-          memo.push(acc.cloudProvider);
-        }
-        return memo;
-      }, []));
+      providersFromStage = providersFromAccounts.slice(0);
     }
+
+    // Remove a provider if none of the given accounts support the stage type.
+    providersFromStage = providersFromStage.filter((providerKey: string) => {
+      const providerAccounts = accounts.filter(acc => acc.cloudProvider === providerKey);
+      return !!providerAccounts.find(acc => {
+        const provider = this.cloudProviderRegistryProvider.getProvider(acc.cloudProvider, acc.providerVersion);
+        return !isExcludedStageType(type, provider);
+      });
+    });
+
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
-    const dockerBakeEnabled = SETTINGS.feature.dockerBake && type.key === 'bake';
-
-    if (dockerBakeEnabled) {
-      providers = cloneDeep(providers);
-      providers.push('docker');
+    if (SETTINGS.feature.dockerBake && type.key === 'bake') {
+      providersFromAccounts.push('docker');
     }
 
-    return intersection(providers, cloudProviders);
+    return intersection(providersFromAccounts, providersFromStage);
   }
 
   public getConfigurableStageTypes(accounts?: IAccountDetails[]): IStageTypeConfig[] {
