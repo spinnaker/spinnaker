@@ -88,7 +88,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
     return (
       <UISrefActive class="active" key={category.key}>
         <UISref to={dataSource.sref}>
-          <a className="nav-item top-level">
+          <a className="nav-item top-level horizontal middle">
             <NavIcon icon={dataSource.icon}/>
             {' ' + dataSource.label}
             <DataSourceNotifications tags={dataSource.alerts} application={application} tabName={category.label}/>

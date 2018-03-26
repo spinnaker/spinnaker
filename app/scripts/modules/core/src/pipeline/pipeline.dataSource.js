@@ -59,7 +59,7 @@ module.exports = angular
       applicationDataSourceRegistry.registerDataSource({
         optional: true,
         primary: true,
-        icon: 'fa fa-xs fa-fixed fa-list',
+        icon: 'fa fa-xs fa-fw fa-list',
         key: 'executions',
         label: 'Pipelines',
         category: DELIVERY_KEY,

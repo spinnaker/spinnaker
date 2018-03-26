@@ -33,7 +33,7 @@ module(SECURITY_GROUP_DATA_SOURCE, [
       key: 'securityGroups',
       category: INFRASTRUCTURE_KEY,
       optional: true,
-      icon: 'fa fa-xs fa-fixed fa-lock',
+      icon: 'fa fa-xs fa-fw fa-lock',
       loader: loadSecurityGroups,
       onLoad: addSecurityGroups,
       afterLoad: addTags,

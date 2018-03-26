@@ -1,6 +1,7 @@
 export * from './ApplicationIcon';
 export * from './application.model';
 export * from './applicationModel.builder';
+export * from './nav/defaultCategories';
 export * from './modal/validation/applicationName.validator';
 export * from './listExtractor/listExtractor.service';
 export * from './service/application.read.service';

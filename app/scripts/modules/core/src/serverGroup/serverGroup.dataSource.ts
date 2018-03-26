@@ -46,7 +46,7 @@ module(SERVER_GROUP_DATA_SOURCE, [
       sref: '.insight.clusters',
       optional: true,
       primary: true,
-      icon: 'fas fa-xs fa-fixed fa-th-large',
+      icon: 'fas fa-xs fa-fw fa-th-large',
       loader: loadServerGroups,
       onLoad: addServerGroups,
       afterLoad: addTags,

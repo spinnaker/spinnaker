@@ -29,7 +29,7 @@ module(LOAD_BALANCER_DATA_SOURCE, [
     key: 'loadBalancers',
     category: INFRASTRUCTURE_KEY,
     optional: true,
-    icon: 'fa fa-xs fa-fixed fa-sitemap',
+    icon: 'fa fa-xs fa-fw fa-sitemap',
     loader: loadLoadBalancers,
     onLoad: addLoadBalancers,
     afterLoad: addTags,

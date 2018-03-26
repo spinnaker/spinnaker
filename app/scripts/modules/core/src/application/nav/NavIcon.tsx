@@ -5,5 +5,5 @@ export interface INavIconProps {
 }
 
 export const NavIcon = ({ icon }: INavIconProps) => {
-  return icon ? <i className={`nav-item-icon fa fa-xs fa-fixed fa-${icon}`}/> : null;
+  return icon ? <i className={`nav-item-icon ${icon}`}/> : null;
 };
