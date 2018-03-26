@@ -16,10 +16,7 @@
 package com.netflix.spinnaker.keel.scheduler.handler
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.Intent
-import com.netflix.spinnaker.keel.IntentActivityRepository
-import com.netflix.spinnaker.keel.IntentRepository
-import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.event.*
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
@@ -79,6 +76,11 @@ class ConvergeIntentHandler
         ?.also { result ->
           intentActivityRepository.addOrchestrations(intent.id, result.orchestrationIds)
           applicationEventPublisher.publishEvent(IntentConvergeSuccessEvent(intent, result.orchestrationIds))
+
+          if (intent.status == IntentStatus.ISOLATED_ACTIVE) {
+            intent.status = IntentStatus.ISOLATED_APPLIED
+            intentRepository.upsertIntent(intent)
+          }
 
           // TODO rz - MonitorOrchestrations is deprecated. Reconsider if we want to totally remove it.
 //          queue.push(MonitorOrchestrations(intent.id(), intent.kind), Duration.ofMillis(10000))

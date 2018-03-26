@@ -17,9 +17,13 @@ package com.netflix.spinnaker.keel
 
 /**
  * ACTIVE: An Intent is currently being enforced and will be regularly checked for any state to converge on.
+ * ISOLATED_ACTIVE: An Intent that is meant to be applied once, but has not been yet.
+ * ISOLATED_APPLIED: An Intent that is meant to be applied once, and has been.
  * DELETED: An Intent that has been soft-deleted.
  */
 enum class IntentStatus {
   ACTIVE,
+  ISOLATED_ACTIVE,
+  ISOLATED_APPLIED,
   DELETED
 }
