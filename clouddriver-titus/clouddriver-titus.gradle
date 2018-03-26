@@ -1,8 +1,12 @@
 apply plugin: 'com.google.protobuf'
 
 buildscript {
+  repositories {
+    jcenter()
+  }
+
   dependencies {
-    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.+'
+    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.5'
   }
 }
 
@@ -11,16 +15,20 @@ ext {
   grpcVersion = '1.9.+'
 }
 
+repositories {
+  maven { url 'https://dl.bintray.com/netflixoss' }
+}
+
 dependencies {
-  protobuf group: 'netflix', name: 'nftitus-api-definitions', version: "1.0"
+  protobuf 'com.netflix:titus-api-definitions:0.0.1-rc22'
 
   compile "com.google.protobuf:protobuf-java:$protobufVersion"
   compile "io.grpc:grpc-protobuf:$grpcVersion"
   compile "io.grpc:grpc-stub:$grpcVersion"
   compile "io.grpc:grpc-netty-shaded:$grpcVersion"
-  compile "com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}"
-  compile "com.netflix.spinnaker.clouddriver:clouddriver-eureka:${clouddriverVersion}"
-  compile "com.netflix.spinnaker.clouddriver:clouddriver-aws:${clouddriverVersion}"
+  compile project(":clouddriver-aws")
+  compile project(":clouddriver-core")
+  compile project(":clouddriver-eureka")
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile 'com.squareup.okhttp3:okhttp:3.1.2'

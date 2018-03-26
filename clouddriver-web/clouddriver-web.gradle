@@ -23,6 +23,7 @@ configurations.all {
 
 repositories {
   maven { url "http://adxsnapshots.azurewebsites.net" }
+  maven { url 'https://dl.bintray.com/netflixoss' }
 }
 
 dependencies {
@@ -40,6 +41,7 @@ dependencies {
   compile project(':clouddriver-elasticsearch-aws')
   compile project(':clouddriver-oracle-bmcs')
   compile project(':clouddriver-dcos')
+  compile project(':clouddriver-titus')
 
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')

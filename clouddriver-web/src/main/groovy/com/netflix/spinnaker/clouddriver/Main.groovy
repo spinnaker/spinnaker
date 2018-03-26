@@ -34,6 +34,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackConfiguration
 import com.netflix.spinnaker.clouddriver.oraclebmcs.OracleBMCSConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
+import com.netflix.spinnaker.clouddriver.titus.config.TitusConfiguration
+
 import com.netflix.spinnaker.config.ErrorConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
@@ -69,7 +71,8 @@ import java.security.Security
   SecurityConfig,
   EurekaProviderConfiguration,
   DcosConfiguration,
-  LocalJobConfig
+  LocalJobConfig,
+  TitusConfiguration
 ])
 @ComponentScan([
   'com.netflix.spinnaker.config',
