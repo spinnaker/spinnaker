@@ -78,7 +78,7 @@ export class Refresher extends React.Component<IRefresherProps, IRefresherState>
     return (
       <Tooltip template={RefresherTooltip} placement={$window.innerWidth < 1100 ? 'right' : 'bottom'}>
         <a className="refresher clickable" onClick={this.props.refresh}>
-          <span className={`fa fa-sync-alt refresh-${this.state.color} ${this.props.refreshing ? 'fa-spin' : ''}`}/>
+          <span className={`fa fa-xs fa-sync-alt refresh-${this.state.color} ${this.props.refreshing ? 'fa-spin' : ''}`}/>
         </a>
       </Tooltip>
     );

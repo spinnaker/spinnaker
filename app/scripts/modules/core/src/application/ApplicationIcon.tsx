@@ -11,6 +11,6 @@ export interface IApplicationIconProps extends IOverridableProps {
 @Overridable('applicationIcon')
 export class ApplicationIcon extends React.Component<IApplicationIconProps> {
   public render() {
-    return <i className="far fa-window-maximize"/>;
+    return <i className="application-header-icon far fa-window-maximize"/>;
   }
 }

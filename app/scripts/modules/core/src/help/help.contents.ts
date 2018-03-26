@@ -217,7 +217,6 @@ module(HELP_CONTENTS, [])
     '<p><strong>Example: every Monday at 10 am</strong></p><samp>0 0 10 ? * 2</samp>' +
     '<p><strong>Note:</strong> values for "DayOfWeek" are 1-7, where Sunday is 1, Monday is 2, etc. You can also use MON,TUE,WED, etc.',
 
-    'cluster.description': '<p>A cluster is a collection of server groups with the same name (stack + detail) in the same account.</p>',
     'cluster.rollback.explicit': `
         <p>A server group running the previous build will be enabled and appropriately resized.</p>
         <p>The current server group will be disabled after the resize completes.</p>

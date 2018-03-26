@@ -143,9 +143,6 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
       <div className="main-content load-balancers">
         <div className="header row header-clusters">
           <div className="col-lg-8 col-md-10">
-            <h3>
-              Load Balancers
-            </h3>
             <div className="form-inline clearfix filters">
               <div className="form-group">
                 <label className="checkbox"> Show </label>

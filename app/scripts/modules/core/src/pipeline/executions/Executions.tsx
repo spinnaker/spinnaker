@@ -307,7 +307,6 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
             <div className={`full-content ${filtersExpanded ? 'filters-expanded' : ''} ${sortFilter.showStageDuration ? 'show-durations' : ''}`} data-scroll-id="nav-content">
               {!loading && (
                 <div className="execution-groups-header">
-                <h3>Pipelines</h3>
                 <div className="form-group pull-right">
                   <a
                     className="btn btn-sm btn-primary clickable"

@@ -4,8 +4,6 @@ import IInjectorService = angular.auto.IInjectorService;
 
 import { AccountSelectFieldWrapperComponent } from '../account/accountSelectFieldWrapper.component';
 import { AddEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
-import { ApplicationNavComponent } from 'core/application/nav/applicationNav.component';
-import { ApplicationNavSecondaryComponent } from 'core/application/nav/applicationNavSecondary.component';
 import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
 import { DiffViewProps } from '../pipeline/config/actions/history/DiffView';
@@ -13,8 +11,6 @@ import { EntitySourceComponent } from 'core/entityTag/entitySource.component';
 import { HelpFieldWrapperComponent } from '../help/helpField.component';
 import { IAccountSelectFieldProps } from 'core/account/AccountSelectField';
 import { IAddEntityTagLinksProps } from 'core/entityTag/AddEntityTagLinks';
-import { IApplicationNavProps } from 'core/application/nav/ApplicationNav';
-import { IApplicationNavSecondaryProps } from 'core/application/nav/ApplicationNavSecondary';
 import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
 import { ICopyToClipboardProps } from '../utils/clipboard/CopyToClipboard';
 import { IEntitySourceProps } from 'core/entityTag/EntitySource';
@@ -44,8 +40,6 @@ export class NgReactInjector extends ReactInject {
   // Reactified components
   public AccountSelectField: React.ComponentClass<IAccountSelectFieldProps>                   = angular2react('accountSelectFieldWrapper', new AccountSelectFieldWrapperComponent(), this.$injectorProxy) as any;
   public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                     = angular2react('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent(), this.$injectorProxy) as any;
-  public ApplicationNav: React.ComponentClass<IApplicationNavProps>                           = angular2react('applicationNav', new ApplicationNavComponent(), this.$injectorProxy) as any;
-  public ApplicationNavSecondary: React.ComponentClass<IApplicationNavSecondaryProps>         = angular2react('applicationNavSecondary', new ApplicationNavSecondaryComponent(), this.$injectorProxy) as any;
   public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>                 = angular2react('buttonBusyIndicator', new ButtonBusyIndicatorComponent(), this.$injectorProxy) as any;
   public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                         = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;
   public DiffView: React.ComponentClass<DiffViewProps>                                        = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;

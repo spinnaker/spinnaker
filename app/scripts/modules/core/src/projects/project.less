@@ -1,71 +1,52 @@
-.spinnaker-container .spinnaker-content {
-  .project-header.page-header {
-    height: 50px;
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-bottom: 0;
-    flex: 0 0 auto;
+.project-header {
+  background-color: var(--color-accent-g2);
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  flex: 0 0 auto;
 
-    h2 {
-      display: inline-block;
-    }
-
-    .nav-popover-menu {
-      z-index: 25;
-    }
-
-    .project-name {
-      font-weight: 300;
-    }
-    .project-view {
-      position: relative;
-      display: inline-block;
-    }
-
-    .configure-project-link {
-      margin: 10px 0 5px;
-      color: var(--color-dovegray);
-      font-size: 120%;
-    }
+  h2 {
+    display: inline-block;
+    margin-top: 10px;
   }
-  .project-details {
-    overflow-y: hidden;
-    .application-header {
-      padding-top: 0;
-      h2 {
-        margin-top: 0;
-        min-width: 20px;
-        margin-right: 0;
-        .application-name, .fa-window-maximize {
-          display: none;
-        }
-        .refresher {
-          margin-top: 0;
-          padding-top: 5px;
-        }
-        a {
-          margin-right: 0;
-        }
-      }
-      a {
-        padding: 5px 15px 10px;
-        &.active, &:focus, &:hover {
-          &:after {
-            bottom: -5px;
-          }
-        }
-      }
-      application-nav-secondary {
-        a {
-          padding: 10px;
-        }
-      }
-      .page-button {
-        margin-top: 0;
-      }
+
+  .nav-popover-menu {
+    z-index: 25;
+  }
+
+  .project-name {
+    font-weight: 300;
+  }
+  .project-view {
+    position: relative;
+    display: inline-block;
+  }
+
+  .configure-project-link {
+    margin: 10px 0 5px;
+    color: var(--color-dovegray);
+    font-size: 120%;
+  }
+}
+.project-details {
+  overflow-y: hidden;
+  .second-level-navigation-header {
+    padding-top: 0;
+    h2, .page-button {
+      margin-bottom: 15px;
     }
-    .page-header {
-      height: 40px; //application header override
+    h2 {
+      min-width: 20px;
+      margin-right: 0;
+    }
+    .application-name, .application-header-icon {
+      display: none;
+    }
+    .nav-item {
+      padding: 0 25px 15px;
+    }
+    .dropdown-menu {
+      margin-top: -10px;
     }
   }
 }
