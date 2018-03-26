@@ -102,13 +102,18 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
   private createMenuTitle(isActive: boolean): JSX.Element {
     const { runningCount, tags } = this.state;
     const { category, application } = this.props;
+    const defaultDataSource = category.dataSources[0];
     return (
-      <span className={`horizontal middle ${isActive ? 'active' : ''}`}>
-        <NavIcon icon={category.icon}/>
-        {' ' + category.label}
-        {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
-        <DataSourceNotifications tags={tags} application={application} tabName={category.label}/>
-      </span>
+      <UISref to={defaultDataSource.sref}>
+        <a>
+          <span className={`horizontal middle ${isActive ? 'active' : ''}`} onClick={this.close}>
+            <NavIcon icon={category.icon}/>
+            {' ' + category.label}
+            {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
+            <DataSourceNotifications tags={tags} application={application} tabName={category.label}/>
+          </span>
+        </a>
+      </UISref>
     );
   }
 
@@ -132,13 +137,14 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
 
   public render() {
     const { open } = this.state;
-    const { category } = this.props;
+    const { category, activeCategory } = this.props;
     if (category.dataSources.length === 1) {
       return this.createNonMenuEntry();
     }
     const isActive = category.dataSources.some(ds => ReactInjector.$state.includes(ds.activeState));
     return (
       <Dropdown
+        disabled={activeCategory === category}
         onMouseEnter={this.open}
         onMouseLeave={this.close}
         key={category.key}

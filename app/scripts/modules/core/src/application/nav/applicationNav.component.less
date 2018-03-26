@@ -109,6 +109,18 @@
     font-weight: 600;
   }
   .nav-item {
+    &[disabled] {
+      cursor: none;
+      opacity: 1;
+      a {
+        cursor: default;
+      }
+    }
+    a {
+      &:hover, &:focus, &:active {
+        text-decoration: none;
+      }
+    }
     cursor: pointer;
     padding: 25px 25px;
     transition: color 200ms ease-in;
@@ -119,7 +131,6 @@
       padding: 15px;
     }
     &:focus {
-      text-decoration: underline;
       outline: none;
     }
     &:hover {
