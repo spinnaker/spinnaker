@@ -57,7 +57,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           type = singleTaskStage.type
         }
       }
-      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+      val message = StartExecution(pipeline)
 
       beforeGroup {
         whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
@@ -74,12 +74,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
 
       it("starts the first stage") {
-        verify(queue).push(StartStage(
-          message.executionType,
-          message.executionId,
-          "foo",
-          pipeline.stages.first().id
-        ))
+        verify(queue).push(StartStage(pipeline.stages.first()))
       }
 
       it("publishes an event") {
@@ -98,7 +93,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         status = ExecutionStatus.CANCELED
       }
 
-      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+      val message = StartExecution(pipeline)
 
       beforeGroup {
         whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
@@ -131,7 +126,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         isCanceled = true
       }
 
-      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+      val message = StartExecution(pipeline)
 
       beforeGroup {
         whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
@@ -165,7 +160,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           type = singleTaskStage.type
         }
       }
-      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+      val message = StartExecution(pipeline)
 
       beforeGroup {
         whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
@@ -196,7 +191,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           requisiteStageRefIds = listOf("1")
         }
       }
-      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+      val message = StartExecution(pipeline)
 
       beforeGroup {
         whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
@@ -226,9 +221,9 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         stage {
           type = singleTaskStage.type
         }
-        startTimeTtl = clock.instant().minusSeconds(30).toEpochMilli()
+        startTimeTtl = clock.instant().minusSeconds(30)
       }
-      val message = StartExecution(pipeline.type, pipeline.id, "foo")
+      val message = StartExecution(pipeline)
 
       beforeGroup {
         whenever(repository.retrieve(message.executionType, message.executionId)) doReturn pipeline
@@ -241,10 +236,8 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
       }
 
       it("cancels the execution") {
-        verify(queue, times(1)).push(CancelExecution(
-          message.executionType,
-          message.executionId,
-          message.application,
+        verify(queue).push(CancelExecution(
+          pipeline,
           "spinnaker",
           "Could not begin execution before start time TTL"
         ))

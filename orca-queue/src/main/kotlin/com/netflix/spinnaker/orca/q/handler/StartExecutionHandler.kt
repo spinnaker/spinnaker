@@ -50,7 +50,7 @@ class StartExecutionHandler(
   override fun handle(message: StartExecution) {
     message.withExecution { execution ->
       if (execution.status == NOT_STARTED && !execution.isCanceled) {
-        if (execution.afterStartTimeTtl()) {
+        if (execution.isAfterStartTimeCutoff()) {
           log.warn("Execution (type ${message.executionType}, id {}, application: {}) start was canceled because" +
             "start time would be after defined start time TTL (now: ${clock.millis()}, ttl: ${execution.startTimeTtl})",
             value("executionId", message.executionId),
@@ -62,23 +62,22 @@ class StartExecutionHandler(
             "spinnaker",
             "Could not begin execution before start time TTL"
           ))
-          return@withExecution
-        }
-
-        val initialStages = execution.initialStages()
-        if (initialStages.isEmpty()) {
-          log.warn("No initial stages found (executionId: ${message.executionId})")
-          repository.updateStatus(message.executionId, TERMINAL)
-          publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, TERMINAL))
-          return@withExecution
-        }
-
-        repository.updateStatus(message.executionId, RUNNING)
-        initialStages
-          .forEach {
-            queue.push(StartStage(message, it.id))
+        } else {
+          val initialStages = execution.initialStages()
+          if (initialStages.isEmpty()) {
+            log.warn("No initial stages found (executionId: ${message.executionId})")
+            repository.updateStatus(message.executionId, TERMINAL)
+            publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, TERMINAL))
+            return@withExecution
           }
-        publisher.publishEvent(ExecutionStarted(this, message.executionType, message.executionId))
+
+          repository.updateStatus(message.executionId, RUNNING)
+          initialStages
+            .forEach {
+              queue.push(StartStage(message, it.id))
+            }
+          publisher.publishEvent(ExecutionStarted(this, message.executionType, message.executionId))
+        }
       } else {
         if (execution.status == CANCELED || execution.isCanceled) {
           publisher.publishEvent(ExecutionComplete(this, message.executionType, message.executionId, execution.status))
@@ -92,6 +91,6 @@ class StartExecutionHandler(
     }
   }
 
-  private fun Execution.afterStartTimeTtl() =
-    startTimeTtl?.let { clock.millis() > it } ?: false
+  private fun Execution.isAfterStartTimeCutoff() =
+    startTimeTtl?.isBefore(clock.instant()) ?: false
 }

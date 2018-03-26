@@ -610,7 +610,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
         stage {
           refId = "bar"
           type = singleTaskStage.type
-          startTimeTtl = clock.instant().minusSeconds(30).toEpochMilli()
+          startTimeTtl = clock.instant().minusSeconds(30)
         }
       }
       val message = StartStage(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id)
@@ -618,7 +618,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       beforeGroup {
         whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
       }
-
+  
       afterGroup(::resetMocks)
 
       on("receiving a message") {

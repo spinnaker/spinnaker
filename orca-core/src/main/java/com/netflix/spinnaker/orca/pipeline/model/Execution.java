@@ -28,6 +28,7 @@ import com.netflix.spinnaker.security.User;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.*;
 
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
@@ -196,13 +197,14 @@ public class Execution implements Serializable {
    * Gets the start ttl timestamp for this execution. If the execution has not
    * started before this timestamp, the execution will immediately terminate.
    */
-  private Long startTimeTtl;
+  private Instant startTimeTtl;
 
-  public @Nullable Long getStartTimeTtl() {
+  public @Nullable
+  Instant getStartTimeTtl() {
     return startTimeTtl;
   }
 
-  public void setStartTimeTtl(@Nullable Long startTimeTtl) {
+  public void setStartTimeTtl(@Nullable Instant startTimeTtl) {
     this.startTimeTtl = startTimeTtl;
   }
 
