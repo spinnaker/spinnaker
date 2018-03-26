@@ -117,6 +117,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
             boolean sendEvents = !ctx.fastForward;
             int deltaSize = delta.getItems().size();
             if (deltaSize > upperThreshold) {
+                registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
                 if (ctx.fastForward) {
                     log.warn(
                         "Fast forwarding items ({}) in {} {}",
@@ -128,16 +129,14 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
                         "Number of items ({}) to cache exceeds upper threshold ({}) in {} {}",
                         deltaSize, upperThreshold, kv("monitor", monitorName), kv("partition", ctx.partitionName)
                     );
-                    registry
-                        .gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName))
-                        .set(deltaSize);
                     return;
                 }
+            } else {
+                registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(0);
             }
 
             commitDelta(delta, sendEvents);
             registry.gauge(itemsCachedId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(deltaSize);
-            registry.gauge(itemsOverThresholdId.withTags("monitor", monitorName, "partition", ctx.partitionName)).set(0);
         } catch (Exception e) {
             log.error("Failed to update monitor items for {}:{}", kv("monitor", monitorName), kv("partition", ctx.partitionName), e);
             registry.counter(pollCycleFailedId.withTags("monitor", monitorName, "partition", ctx.partitionName)).increment();

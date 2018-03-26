@@ -97,7 +97,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: {})", kv("account", account))
 
         List<ImageDelta> delta = []
-        images.parallelStream().forEach { TaggedImage image ->
+        images.findAll { it != null }.parallelStream().forEach { TaggedImage image ->
             String imageId = new DockerRegistryV2Key(igorProperties.spinnaker.jedis.prefix, DockerRegistryCache.ID, account, image.registry, image.tag)
             if (shouldUpdateCache(cachedImages, imageId, image, trackDigests)) {
                 delta.add(new ImageDelta(imageId: imageId, image: image))
@@ -133,11 +133,13 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
      */
     @Override
     void commitDelta(DockerPollingDelta delta, boolean sendEvents) {
-        delta.items.parallelStream().forEach { ImageDelta item ->
-            cache.setLastDigest(item.image.account, item.image.registry, item.image.repository, item.image.tag, item.image.digest)
-            if (sendEvents) {
-                log.debug("${item.image.account}/${item.image.registry}/${item.image.tag}:${item.image.digest}: ${item.imageId} event posted")
-                postEvent(delta.cachedImages, item.image, item.imageId)
+        delta.items.findAll { it != null }.parallelStream().forEach { ImageDelta item ->
+            if (item != null) {
+                cache.setLastDigest(item.image.account, item.image.registry, item.image.repository, item.image.tag, item.image.digest)
+                log.info("New tagged image: {}: {}. Digest is now [$item.image.digest].", kv("account", item.image.account), kv("image", item.imageId))
+                if (sendEvents) {
+                    postEvent(delta.cachedImages, item.image, item.imageId)
+                }
             }
         }
     }
