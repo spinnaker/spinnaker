@@ -39,7 +39,7 @@ export class ThirdLevelNavigation extends React.Component<IThirdLevelNavigationP
                   <DataSourceNotifications tags={dataSource.alerts} application={application} tabName={category.label}/>
 
                   {dataSource.badge && application.getDataSource(dataSource.badge).data.length > 0 &&
-                    <span className="badge">{application.getDataSource(dataSource.badge).data.length}</span>}
+                    <span className="badge badge-running-count">{application.getDataSource(dataSource.badge).data.length}</span>}
 
                 </a>
               </UISref>
