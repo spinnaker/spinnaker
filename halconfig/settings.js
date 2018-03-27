@@ -8,6 +8,7 @@ var authEnabled = '{%features.auth%}' === 'true';
 var chaosEnabled = '{%features.chaos%}' === 'true';
 var fiatEnabled = '{%features.fiat%}' === 'true';
 var jobsEnabled = '{%features.jobs%}' === 'true';
+var infrastructureStagesEnabled = "{%features.infrastructureStages%}" === "true";
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
 var artifactsEnabled = '{%features.artifacts%}' === 'true';
 var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
@@ -164,6 +165,7 @@ window.spinnakerSettings = {
     notifications: notificationsEnabled,
     artifacts: artifactsEnabled,
     canary: mineCanaryEnabled,
+    infrastructureStages: infrastructureStagesEnabled,
     pipelines: true,
     fastProperty: true,
     vpcMigrator: true,
