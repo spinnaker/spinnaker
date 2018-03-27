@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -65,6 +65,7 @@ public class AnsiFormatUtils {
   private static ObjectMapper getObjectMapper() {
     if (objectMapper == null) {
       objectMapper = new ObjectMapper();
+      objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     return objectMapper;
