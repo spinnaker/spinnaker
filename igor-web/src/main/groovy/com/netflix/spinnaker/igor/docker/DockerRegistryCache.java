@@ -50,8 +50,8 @@ public class DockerRegistryCache {
         });
     }
 
-    public String getLastDigest(String account, String registry, String repository, String tag) {
-        String key = new DockerRegistryV2Key(prefix(), ID, account, registry, tag).toString();
+    public String getLastDigest(String account, String repository, String tag) {
+        String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
         return redisClientDelegate.withCommandsClient(c -> {
             Map<String, String> res = c.hgetAll(key);
             if (res.get("digest").equals(EMPTY_DIGEST)) {
@@ -61,8 +61,8 @@ public class DockerRegistryCache {
         });
     }
 
-    public void setLastDigest(String account, String registry, String repository, String tag, String digest) {
-        String key = new DockerRegistryV2Key(prefix(), ID, account, registry, tag).toString();
+    public void setLastDigest(String account, String repository, String tag, String digest) {
+        String key = new DockerRegistryV2Key(prefix(), ID, account, repository, tag).toString();
         String d = digest == null ? EMPTY_DIGEST : digest;
         redisClientDelegate.withCommandsClient(c -> {
             c.hset(key, "digest", d);
