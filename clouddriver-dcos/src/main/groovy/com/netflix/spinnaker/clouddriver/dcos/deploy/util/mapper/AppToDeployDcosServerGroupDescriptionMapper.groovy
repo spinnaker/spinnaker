@@ -127,7 +127,7 @@ class AppToDeployDcosServerGroupDescriptionMapper {
     }
 
     // This code path should only be hit if we are using marathon 1.5
-    if (app.container.portMappings && !app.container.portMappings.empty) {
+    if (app.container?.portMappings && !app.container.portMappings.empty) {
       serviceEndpoints.addAll(app.container.portMappings.collect { pm ->
         new DeployDcosServerGroupDescription.ServiceEndpoint().with {
           networkType = marathon15ToMarathon14NetworkMapper(app.networks[0].mode)

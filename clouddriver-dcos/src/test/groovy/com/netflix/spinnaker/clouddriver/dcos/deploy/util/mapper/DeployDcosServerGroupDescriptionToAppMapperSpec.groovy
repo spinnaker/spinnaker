@@ -112,13 +112,15 @@ class DeployDcosServerGroupDescriptionToAppMapperSpec extends Specification {
             assert appReadinessCheck.portName == descriptionReadinessCheck.portName
             assert appReadinessCheck.intervalSeconds == descriptionReadinessCheck.intervalSeconds
             assert appReadinessCheck.timeoutSeconds == descriptionReadinessCheck.timeoutSeconds
-            assert appReadinessCheck.httpStatusCodesForReady == descriptionReadinessCheck.httpStatusCodesForReady
+            [appReadinessCheck.httpStatusCodesForReady.asList(), descriptionReadinessCheck.httpStatusCodesForReady.asList()].transpose().forEach({ appHttpStatusCodes, descriptionHttpStatusCodes ->
+                assert appHttpStatusCodes == descriptionHttpStatusCodes
+            })
             assert appReadinessCheck.preserveLastResponse == descriptionReadinessCheck.preserveLastResponse
         })
 
         app.dependencies == description.dependencies
         app.labels == description.labels
-        app.version == null
+        app.versionInfo == null
 
         if (app.residency && description.residency) {
             assert app.residency.taskLostBehavior == description.residency.taskLostBehavior
@@ -217,7 +219,7 @@ class DeployDcosServerGroupDescriptionToAppMapperSpec extends Specification {
         app.readinessChecks == null && description.readinessChecks.empty
         app.dependencies == null && description.dependencies.empty
         app.labels == null && description.labels.isEmpty()
-        app.version == null
+        app.versionInfo == null
         app.residency == null && description.residency == null
         app.taskKillGracePeriodSeconds == description.taskKillGracePeriodSeconds
         app.secrets == description.secrets

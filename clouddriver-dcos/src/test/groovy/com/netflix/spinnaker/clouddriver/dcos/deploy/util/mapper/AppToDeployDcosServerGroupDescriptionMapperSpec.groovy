@@ -476,7 +476,7 @@ class AppToDeployDcosServerGroupDescriptionMapperSpec extends Specification {
       portName: 'port1',
       intervalSeconds: 10,
       timeoutSeconds: 180,
-      httpStatusCodesForReady: [200],
+      httpStatusCodesForReady: [200] as Set,
       preserveLastResponse: true)]
   }
 

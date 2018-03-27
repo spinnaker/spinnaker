@@ -34,6 +34,7 @@ import mesosphere.marathon.client.model.v2.App
 import mesosphere.marathon.client.model.v2.GetAppNamespaceResponse
 import mesosphere.marathon.client.model.v2.GetAppResponse
 import mesosphere.marathon.client.model.v2.Task
+import mesosphere.marathon.client.model.v2.VersionedApp
 import spock.lang.Specification
 
 class DcosServerGroupCachingAgentSpec extends Specification {
@@ -96,7 +97,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     given:
     def appResponse = Mock(GetAppResponse) {
       getApp() >>
-        Mock(App) {
+        Mock(VersionedApp) {
           getId() >> MARATHON_APP
           getTasks() >> [
             Mock(Task) {

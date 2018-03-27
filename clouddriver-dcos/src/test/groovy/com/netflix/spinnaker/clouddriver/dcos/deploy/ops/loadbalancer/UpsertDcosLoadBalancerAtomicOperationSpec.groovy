@@ -32,6 +32,7 @@ import mesosphere.dcos.client.DCOS
 import mesosphere.marathon.client.model.v2.App
 import mesosphere.marathon.client.model.v2.Deployment
 import mesosphere.marathon.client.model.v2.Result
+import mesosphere.marathon.client.model.v2.VersionedApp
 import spock.lang.Subject
 
 import static com.netflix.spinnaker.clouddriver.dcos.DcosConfigurationProperties.LoadBalancerConfig
@@ -71,7 +72,7 @@ class UpsertDcosLoadBalancerAtomicOperationSpec extends BaseSpecification {
       getDcosClient(credentials, DEFAULT_REGION) >> dcosClientMock
     }
 
-    resultAppMock = Mock(App)
+    resultAppMock = Mock(VersionedApp)
     deployment = Mock(Deployment)
 
     deployment.id >> DEPLOYMENT_ID
