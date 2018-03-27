@@ -46,7 +46,7 @@ public class KubernetesClusterRoleBindingCachingAgent extends KubernetesV2OnDema
   @Getter
   final private Collection<AgentDataType> providedDataTypes = Collections.unmodifiableSet(
       new HashSet<>(Arrays.asList(
-          AUTHORITATIVE.forType(KubernetesKind.CLUSTER_ROLE_BINDING.toString())
+          AUTHORITATIVE.forType(KubernetesKind.ROLE_BINDING.toString())
       ))
   );
 
@@ -57,6 +57,6 @@ public class KubernetesClusterRoleBindingCachingAgent extends KubernetesV2OnDema
 
   @Override
   protected KubernetesKind primaryKind() {
-    return KubernetesKind.CLUSTER_ROLE_BINDING;
+    return KubernetesKind.ROLE_BINDING;
   }
 }

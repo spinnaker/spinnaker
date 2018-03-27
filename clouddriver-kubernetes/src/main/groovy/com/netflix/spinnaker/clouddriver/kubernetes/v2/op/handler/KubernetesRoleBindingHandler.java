@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 public class KubernetesRoleBindingHandler extends KubernetesHandler implements CanDelete {
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.CLUSTER_ROLE_BINDING;
+    return KubernetesKind.ROLE_BINDING;
   }
 
   @Override
