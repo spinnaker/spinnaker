@@ -31,6 +31,6 @@ module(WAIT_STAGE, [
     });
   }).controller('WaitStageCtrl', function (stage: IStage) {
     stage.waitTime = stage.waitTime || 30;
-    stage.enableCustomSkipWaitText = !!stage.skipWaitText;
+    this.enableCustomSkipWaitText = !!stage.skipWaitText;
     this.defaultSkipWaitText = DEFAULT_SKIP_WAIT_TEXT;
   });
