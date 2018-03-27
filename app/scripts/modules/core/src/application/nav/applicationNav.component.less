@@ -92,6 +92,7 @@
       margin-top: -10px;
     }
     .nav-menu-item {
+      display: flex;
       color: var(--color-primary);
       font-size: 14px;
       padding: 5px 15px;
@@ -109,13 +110,6 @@
     font-weight: 600;
   }
   .nav-item {
-    &[disabled] {
-      cursor: none;
-      opacity: 1;
-      a {
-        cursor: default;
-      }
-    }
     a {
       &:hover, &:focus, &:active {
         text-decoration: none;
@@ -130,11 +124,9 @@
       font-size: 16px;
       padding: 15px;
     }
-    &:focus {
-      outline: none;
-    }
-    &:hover {
-      text-decoration: none;
+    &:focus, &:hover {
+      outline: none !important;
+      text-decoration: none !important;
     }
   }
   .nav-item-icon {
@@ -184,6 +176,9 @@
       color: var(--color-primary);
       border-bottom-color: var(--color-primary);
       transition: border-bottom-color 200ms ease-in, color 200ms ease-in;
+      .badge {
+        background-color: var(--color-primary);
+      }
     }
   }
 }

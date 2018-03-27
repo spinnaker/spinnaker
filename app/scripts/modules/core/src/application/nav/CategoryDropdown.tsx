@@ -8,11 +8,13 @@ import { merge } from 'rxjs/observable/merge';
 
 import { Application, ApplicationDataSource } from 'core/application';
 import { IEntityTags } from 'core/domain';
+import { noop } from 'core/utils';
 import { DataSourceNotifications } from 'core/entityTag/notifications/DataSourceNotifications';
 import { ReactInjector } from 'core/reactShims';
 
 import { NavIcon } from './NavIcon';
 import { IDataSourceCategory } from './ApplicationHeader';
+import { DataSourceEntry } from './DataSourceEntry';
 
 export interface ICategoryDropdownProps {
   category: IDataSourceCategory;
@@ -43,6 +45,10 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
   }
 
   public componentWillReceiveProps(nextProps: ICategoryDropdownProps) {
+    if (nextProps.activeCategory === this.props.category) {
+      this.close();
+    }
+    this.clearSubscriptions();
     this.configureSubscriptions(nextProps);
   }
 
@@ -55,7 +61,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
       });
     this.entityTagsSubscription = merge(...category.dataSources.map(ds => ds.refresh$))
       .subscribe(() => {
-        const tags = category.dataSources.reduce((acc: IEntityTags[], ds: ApplicationDataSource) => acc.concat(ds.alerts), []);
+        const tags = category.dataSources.reduce((acc: IEntityTags[], ds: ApplicationDataSource) => acc.concat(ds.alerts || []), []);
         this.setState({ tags });
       })
   }
@@ -91,8 +97,8 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
           <a className="nav-item top-level horizontal middle">
             <NavIcon icon={dataSource.icon}/>
             {' ' + dataSource.label}
-            <DataSourceNotifications tags={dataSource.alerts} application={application} tabName={category.label}/>
             {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
+            <DataSourceNotifications tags={dataSource.alerts || []} application={application} tabName={category.label}/>
           </a>
         </UISref>
       </UISrefActive>
@@ -124,10 +130,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
         <UISrefActive class="active" key={category.key}>
           <UISref to={dataSource.sref}>
             <a className="nav-menu-item horizontal middle">
-              {' ' + dataSource.label}
-              <DataSourceNotifications tags={dataSource.alerts} application={application} tabName={category.label}/>
-              {dataSource.badge && application.getDataSource(dataSource.badge).data.length > 0 &&
-              <span className="badge badge-running-count">{application.getDataSource(dataSource.badge).data.length}</span>}
+              <DataSourceEntry application={application} dataSource={dataSource} hideIcon={true}/>
             </a>
           </UISref>
         </UISrefActive>
@@ -137,18 +140,19 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
 
   public render() {
     const { open } = this.state;
-    const { category, activeCategory } = this.props;
+    const { category } = this.props;
     if (category.dataSources.length === 1) {
       return this.createNonMenuEntry();
     }
     const isActive = category.dataSources.some(ds => ReactInjector.$state.includes(ds.activeState));
     return (
       <Dropdown
-        disabled={activeCategory === category}
         onMouseEnter={this.open}
         onMouseLeave={this.close}
         key={category.key}
         id={`menu-${category.key}`}
+        open={open}
+        onToggle={noop} // the UiSref on .Toggle handles navigation, but the component complains if this prop is missing
         className={open ? 'open' : ''}
       >
         <Dropdown.Toggle
@@ -158,10 +162,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
         >
           {this.createMenuTitle(isActive)}
         </Dropdown.Toggle>
-        <Dropdown.Menu
-          open={open}
-          className={open ? 'open' : ''}
-        >
+        <Dropdown.Menu>
           {category.dataSources.map(dataSource => this.createMenuItem(dataSource))}
         </Dropdown.Menu>
       </Dropdown>
