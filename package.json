@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free-webfonts": "^1.0.4",
-    "@spinnaker/kayenta": "0.0.33",
+    "@spinnaker/kayenta": "0.0.35",
     "@spinnaker/styleguide": "^1.0.0",
     "@uirouter/react-hybrid": "0.1.0",
     "@uirouter/rx": "0.4.5",
