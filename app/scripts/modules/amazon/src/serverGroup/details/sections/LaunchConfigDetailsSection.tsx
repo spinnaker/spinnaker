@@ -36,52 +36,50 @@ export class LaunchConfigDetailsSection extends React.Component<IAmazonServerGro
   }
 
   public render(): JSX.Element {
-    const { serverGroup } = this.props;
+    const { name, launchConfig } = this.props.serverGroup;
     const { image } = this.state;
 
-    if (serverGroup.instanceCounts.total > 0) {
+    if (launchConfig) {
       return (
         <CollapsibleSection heading="Launch Configuration">
-          {serverGroup.launchConfig && (
-            <dl className="horizontal-when-filters-collapsed">
-              <dt>Name</dt>
-              <dd>{serverGroup.launchConfig.launchConfigurationName}</dd>
+          <dl className="horizontal-when-filters-collapsed">
+            <dt>Name</dt>
+            <dd>{launchConfig.launchConfigurationName}</dd>
 
-              <dt>Image ID</dt>
-              <dd>{serverGroup.launchConfig.imageId}</dd>
+            <dt>Image ID</dt>
+            <dd>{launchConfig.imageId}</dd>
 
-              {image && image.imageLocation && <dt>Image Name</dt>}
-              {image && image.imageLocation && <dd>{image.imageLocation}</dd>}
+            {image && image.imageLocation && <dt>Image Name</dt>}
+            {image && image.imageLocation && <dd>{image.imageLocation}</dd>}
 
-              {image && image.baseImage && <dt>Base Image Name</dt>}
-              {image && image.baseImage && <dd>{image.baseImage}</dd>}
+            {image && image.baseImage && <dt>Base Image Name</dt>}
+            {image && image.baseImage && <dd>{image.baseImage}</dd>}
 
-              <dt>Instance Type</dt>
-              <dd>{serverGroup.launchConfig.instanceType}</dd>
+            <dt>Instance Type</dt>
+            <dd>{launchConfig.instanceType}</dd>
 
-              <dt>IAM Profile</dt>
-              <dd>{serverGroup.launchConfig.iamInstanceProfile}</dd>
+            <dt>IAM Profile</dt>
+            <dd>{launchConfig.iamInstanceProfile}</dd>
 
-              <dt>Instance Monitoring</dt>
-              <dd>{serverGroup.launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}</dd>
+            <dt>Instance Monitoring</dt>
+            <dd>{launchConfig.instanceMonitoring.enabled ? 'enabled' : 'disabled'}</dd>
 
-              {serverGroup.launchConfig.spotPrice && <dt>Spot Price</dt>}
-              {serverGroup.launchConfig.spotPrice && <dd>{serverGroup.launchConfig.spotPrice}</dd>}
+            {launchConfig.spotPrice && <dt>Spot Price</dt>}
+            {launchConfig.spotPrice && <dd>{launchConfig.spotPrice}</dd>}
 
-              {serverGroup.launchConfig.keyName && <dt>Key Name</dt>}
-              {serverGroup.launchConfig.keyName && <dd>{serverGroup.launchConfig.keyName}</dd>}
+            {launchConfig.keyName && <dt>Key Name</dt>}
+            {launchConfig.keyName && <dd>{launchConfig.keyName}</dd>}
 
-              {serverGroup.launchConfig.kernelId && <dt>Kernel ID</dt>}
-              {serverGroup.launchConfig.kernelId && <dd>{serverGroup.launchConfig.kernelId}</dd>}
+            {launchConfig.kernelId && <dt>Kernel ID</dt>}
+            {launchConfig.kernelId && <dd>{launchConfig.kernelId}</dd>}
 
-              {serverGroup.launchConfig.ramdiskId && <dt>Ramdisk ID</dt>}
-              {serverGroup.launchConfig.ramdiskId && <dd>{serverGroup.launchConfig.ramdiskId}</dd>}
+            {launchConfig.ramdiskId && <dt>Ramdisk ID</dt>}
+            {launchConfig.ramdiskId && <dd>{launchConfig.ramdiskId}</dd>}
 
-              <dt>User Data</dt>
-              {serverGroup.launchConfig.userData && <dd><ShowUserData serverGroupName={serverGroup.name} userData={serverGroup.launchConfig.userData} /></dd>}
-              {!serverGroup.launchConfig.userData && <dd>[none]</dd>}
-            </dl>
-          )}
+            <dt>User Data</dt>
+            {launchConfig.userData && <dd><ShowUserData serverGroupName={name} userData={launchConfig.userData} /></dd>}
+            {!launchConfig.userData && <dd>[none]</dd>}
+          </dl>
         </CollapsibleSection>
       );
     }
