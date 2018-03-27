@@ -181,7 +181,7 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
     String entityRefAccount = entityRef.getAccount();
     String entityRefAccountId = entityRef.getAccountId();
 
-    if (entityRefAccount != null && entityRefAccountId == null) {
+    if (entityRefAccount != null && !entityRefAccount.equals("*") && entityRefAccountId == null) {
       // add `accountId` if not explicitly provided
       AccountCredentials accountCredentials = lookupAccountCredentialsByAccountIdOrName(
         accountCredentialsProvider,
