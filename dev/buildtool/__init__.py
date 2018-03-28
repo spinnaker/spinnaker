@@ -5,7 +5,7 @@
 # These would be required if running from source code
 SPINNAKER_RUNNABLE_REPOSITORY_NAMES = [
     'clouddriver',
-    'deck', 'kayenta',
+    'deck',
     'echo', 'fiat', 'front50',
     'gate', 'igor', 'kayenta', 'orca', 'rosco']
 
