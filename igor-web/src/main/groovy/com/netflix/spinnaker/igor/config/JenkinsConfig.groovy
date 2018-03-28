@@ -17,9 +17,10 @@
 package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
-import com.netflix.spinnaker.igor.config.auth.AuthRequestInterceptor
 import com.netflix.spinnaker.igor.config.client.DefaultJenkinsOkHttpClientProvider
+import com.netflix.spinnaker.igor.config.client.DefaultJenkinsRetrofitRequestInterceptorProvider
 import com.netflix.spinnaker.igor.config.client.JenkinsOkHttpClientProvider
+import com.netflix.spinnaker.igor.config.client.JenkinsRetrofitRequestInterceptorProvider
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
@@ -32,6 +33,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.SimpleXMLConverter
@@ -55,16 +57,23 @@ class JenkinsConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider() {
+        return new DefaultJenkinsRetrofitRequestInterceptorProvider()
+    }
+
+    @Bean
     Map<String, JenkinsService> jenkinsMasters(BuildMasters buildMasters,
                                                IgorConfigurationProperties igorConfigurationProperties,
                                                @Valid JenkinsProperties jenkinsProperties,
-                                               JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider) {
+                                               JenkinsOkHttpClientProvider jenkinsOkHttpClientProvider,
+                                               JenkinsRetrofitRequestInterceptorProvider jenkinsRetrofitRequestInterceptorProvider) {
         log.info "creating jenkinsMasters"
         Map<String, JenkinsService> jenkinsMasters = ( jenkinsProperties?.masters?.collectEntries { JenkinsProperties.JenkinsHost host ->
             log.info "bootstrapping ${host.address} as ${host.name}"
             [(host.name): jenkinsService(
                 host.name,
-                jenkinsClient(host, jenkinsOkHttpClientProvider.provide(host), igorConfigurationProperties.client.timeout),
+                jenkinsClient(host, jenkinsOkHttpClientProvider.provide(host), jenkinsRetrofitRequestInterceptorProvider.provide(host), igorConfigurationProperties.client.timeout),
                 host.csrf
             )]
         })
@@ -77,12 +86,12 @@ class JenkinsConfig {
         return new JenkinsService(jenkinsHostId, jenkinsClient, csrf)
     }
 
-    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, OkHttpClient client, int timeout = 30000) {
+    static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, OkHttpClient client, RequestInterceptor requestInterceptor, int timeout = 30000) {
         client.setReadTimeout(timeout, TimeUnit.MILLISECONDS)
 
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(host.address))
-            .setRequestInterceptor(new AuthRequestInterceptor(host))
+            .setRequestInterceptor(requestInterceptor)
             .setClient(new OkClient(client))
             .setConverter(new SimpleXMLConverter())
             .build()
@@ -91,6 +100,6 @@ class JenkinsConfig {
 
     static JenkinsClient jenkinsClient(JenkinsProperties.JenkinsHost host, int timeout = 30000) {
         OkHttpClient client = new OkHttpClient()
-        jenkinsClient(host, client, timeout)
+        jenkinsClient(host, client, RequestInterceptor.NONE, timeout)
     }
 }

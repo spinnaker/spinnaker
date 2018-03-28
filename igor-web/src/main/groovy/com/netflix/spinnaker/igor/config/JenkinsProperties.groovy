@@ -37,10 +37,8 @@ class JenkinsProperties {
         @NotEmpty
         String address
 
-        @NotEmpty
         String username
 
-        @NotEmpty
         String password
 
         Boolean csrf = false
