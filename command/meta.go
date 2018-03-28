@@ -25,7 +25,7 @@ type ApiMeta struct {
 	gateEndpoint string
 }
 
-// This adds all global options to the flagset, and returns the flagset object
+// GlobalFlagSet adds all global options to the flagset, and returns the flagset object
 // for further modification by the subcommand.
 func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 	f := flag.NewFlagSet(cmd, flag.ContinueOnError)
@@ -45,7 +45,7 @@ func (m *ApiMeta) process(args []string) ([]string, error) {
 	m.Color = true
 	m.color = m.Color
 	for i, v := range args {
-		if v == "--no-color" {
+		if v == "-no-color" {
 			m.color = false
 			m.Color = false
 			args = append(args[:i], args[i+1:]...)
@@ -61,9 +61,10 @@ func (m *ApiMeta) process(args []string) ([]string, error) {
 		InfoColor:  "[blue]",
 		Ui:         &cli.BasicUi{Writer: os.Stdout},
 	}
-	return args, nil // TODO: Process meta-parameters
+	return args, nil
 }
 
+// Colorize initializes the ui colorization.
 func (m *ApiMeta) Colorize() *colorstring.Colorize {
 	return &colorstring.Colorize{
 		Colors:  colorstring.DefaultColors,

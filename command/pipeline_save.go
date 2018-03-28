@@ -18,19 +18,15 @@ type PipelineSaveCommand struct {
 	ApiMeta
 
 	pipelineFile string
-
-	application string // Optional pipeline application, can be defined in the pipelineFile instead.
-
-	pipelineName string // Optional pipeline name, can be defined in the pipelineFile instead.
 }
 
+// flagSet adds all options for this command to the flagset and returns the
+// flagset object for further modification by subcommands.
 func (c *PipelineSaveCommand) flagSet() *flag.FlagSet {
 	cmd := "pipeline save"
 
 	f := c.ApiMeta.GlobalFlagSet(cmd)
-	f.StringVar(&c.pipelineFile, "f", "", "Path to the pipeline file")
-	f.StringVar(&c.application, "a", "", "Pipeline application")
-	f.StringVar(&c.pipelineName, "n", "", "Pipeline name")
+	f.StringVar(&c.pipelineFile, "file", "", "Path to the pipeline file")
 
 	// TODO auto-generate flag help rather than putting it in "Help"
 	f.Usage = func() {
@@ -40,6 +36,7 @@ func (c *PipelineSaveCommand) flagSet() *flag.FlagSet {
 	return f
 }
 
+// parsePipelineFile reads and deserializes the input pipeline file.
 func (c *PipelineSaveCommand) parsePipelineFile() (map[string]interface{}, error) {
 	dat, err := ioutil.ReadFile(c.pipelineFile)
 	if err != nil {
@@ -54,7 +51,10 @@ func (c *PipelineSaveCommand) parsePipelineFile() (map[string]interface{}, error
 	return pipelineJson, nil
 }
 
+// pipelineIsValid validates that the passed pipelineJson is formatted properly.
+// Flag overrides should be processed before this is called.
 func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{}) bool {
+	// TODO: Dry-run pipeline save and report errors?
 	var exists bool
 	if _, exists = pipelineJson["name"]; !exists {
 		c.Ui.Error("Required pipeline key 'name' missing...\n")
@@ -65,42 +65,15 @@ func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{
 		c.Ui.Error("Required pipeline key 'application' missing...\n")
 		return false
 	}
+
+	if _, exists = pipelineJson["id"]; !exists {
+		c.Ui.Error("Required pipeline key 'id' missing...\n")
+		return false
+	}
 	return true
 }
 
-func (c *PipelineSaveCommand) queryPipeline(pipelineJson map[string]interface{}) (string, error) {
-	// TODO: Format URLs with https://golang.org/pkg/net/url/.
-	pipelineConfigEndpoint := fmt.Sprintf("%s/applications/%s/pipelineConfigs", c.ApiMeta.gateEndpoint, pipelineJson["application"])
-	resp, err := http.Get(pipelineConfigEndpoint)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-	var configs []map[string]interface{}
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&configs)
-	if err != nil {
-		return "", err
-	}
-
-	// TODO: Submit an Id on each pipeline save so that we don't have to query the pipeline Id.
-	// This requires backend changes to Orca and Front50 to honor the Id on a new pipeline.
-	var found map[string]interface{}
-	for _, config := range configs {
-		if config["name"] == pipelineJson["name"] {
-			found = config
-			break
-		}
-	}
-
-	if found != nil {
-		return found["id"].(string), nil
-	} else {
-		return "", nil
-	}
-}
-
+// savePipeline calls the Gate endpoint to save the pipeline.
 func (c *PipelineSaveCommand) savePipeline(pipelineJson map[string]interface{}) (*http.Response, error) {
 	payload, err := json.Marshal(pipelineJson)
 	if err != nil {
@@ -136,34 +109,12 @@ func (c *PipelineSaveCommand) Run(args []string) int {
 		return 1
 	}
 
-	if c.application != "" {
-		c.Ui.Output("Overriding pipeline application with user-supplied application")
-		pipelineJson["application"] = c.application
-	}
-	if c.pipelineName != "" {
-		c.Ui.Output("Overriding pipeline name with user-supplied name")
-		pipelineJson["name"] = c.pipelineName
-	}
-
 	c.Ui.Output(fmt.Sprintf("Parsed submitted pipeline: %s\n", pipelineJson))
 	if valid := c.pipelineIsValid(pipelineJson); !valid {
 		return 1
 	}
 
-	id, err := c.queryPipeline(pipelineJson)
-	if err != nil {
-		c.Ui.Error(fmt.Sprintf("%s\n", err))
-		return 1
-	}
-
-	var resp *http.Response
-	if id == "" {
-		resp, err = c.savePipeline(pipelineJson)
-	} else {
-		// Including the id in a pipeline save causes the backend to update in place.
-		pipelineJson["id"] = id
-		resp, err = c.savePipeline(pipelineJson)
-	}
+	resp, err := c.savePipeline(pipelineJson)
 
 	if err != nil {
 		c.Ui.Error(fmt.Sprintf("%s\n", err))
@@ -185,7 +136,7 @@ usage: spin pipeline save [options]
 
 	Save the provided pipeline
 
-    -f: Path to the pipeline file
+    -file: Path to the pipeline file
 
 %s`, c.ApiMeta.Help())
 	return strings.TrimSpace(help)
