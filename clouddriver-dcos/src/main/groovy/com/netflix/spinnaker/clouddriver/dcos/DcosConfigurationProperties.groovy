@@ -37,6 +37,8 @@ class DcosConfigurationProperties {
     String dcosUrl
     String caCertData
     String caCertFile
+    String marathonPath
+    String metronomePath
     LoadBalancerConfig loadBalancer
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     boolean insecureSkipTlsVerify
@@ -77,7 +79,10 @@ class DcosConfigurationProperties {
     Config.builder().withCredentials(buildDCOSAuthCredentials(account, clusterConfig))
       .withInsecureSkipTlsVerify(cluster.insecureSkipTlsVerify)
       .withCaCertData(cluster.caCertData)
-      .withCaCertFile(cluster.caCertFile).build()
+      .withCaCertFile(cluster.caCertFile)
+      .withMarathonPath(cluster.marathonPath)
+      .withMetronomePath(cluster.metronomePath)
+      .build()
   }
 
   private static String getServiceKeyData(Account account, ClusterCredential clusterConfig) {
