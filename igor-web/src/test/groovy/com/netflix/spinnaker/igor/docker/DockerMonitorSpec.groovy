@@ -34,16 +34,18 @@ class DockerMonitorSpec extends Specification {
     def dockerRegistryCache = Mock(DockerRegistryCache)
     def dockerRegistryAccounts = Mock(DockerRegistryAccounts)
     def echoService = Mock(EchoService)
-    def taggedImage = new TaggedImage(
-        tag: "tag",
-        account: "account",
-        registry: "registry",
-        repository: "repository",
-        digest: "digest"
-    )
 
     @Unroll
     void 'should only publish events if account has been indexed previously'() {
+        given:
+        def taggedImage = new TaggedImage(
+            tag: "tag",
+            account: "account",
+            registry: "registry",
+            repository: "repository",
+            digest: "digest"
+        )
+
         when:
         new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty())
             .postEvent(cachedImages, taggedImage, "imageId")
@@ -74,6 +76,15 @@ class DockerMonitorSpec extends Specification {
     }
 
     void 'should include decorated artifact in the payload'() {
+        given:
+        def taggedImage = new TaggedImage(
+            tag: "tag",
+            account: "account",
+            registry: "registry",
+            repository: "repository",
+            digest: "digest"
+        )
+
         when:
         new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty())
             .postEvent(["job1"], taggedImage, "imageId")
@@ -88,5 +99,37 @@ class DockerMonitorSpec extends Specification {
             return true
         })
 
+    }
+
+    @Unroll
+    void "should update cache if image is not already cached"() {
+        given:
+        def subject = createSubject()
+        List<String> cachedImages = [
+            'prefix:dockerRegistry:v2:account:registry:tag',
+            'prefix:dockerRegistry:v2:account:anotherregistry:tag',
+        ]
+
+        when:
+        def result = subject.shouldUpdateCache(cachedImages, keyFromTaggedImage(taggedImage), taggedImage, trackDigest)
+
+        then:
+        dockerRegistryCache.getLastDigest(_, _, _) >> { "digest" }
+        assert result == updateCache
+
+        where:
+        taggedImage                                                                                                        | trackDigest || updateCache
+        new TaggedImage(tag: "tag", account: "account", registry: "registry", repository: "repository", digest: "digest")  | false       || false
+        new TaggedImage(tag: "new", account: "account", registry: "registry", repository: "repository", digest: "digest")  | false       || true
+        new TaggedImage(tag: "tag", account: "account", registry: "registry", repository: "repository", digest: "digest2") | true        || true
+
+    }
+
+    private DockerMonitor createSubject(Optional<EchoService> echoService) {
+        return new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, echoService, Optional.empty())
+    }
+
+    private String keyFromTaggedImage(TaggedImage taggedImage) {
+        return new DockerRegistryV2Key("prefix", DockerRegistryCache.ID, taggedImage.account, taggedImage.registry, taggedImage.tag).toString()
     }
 }

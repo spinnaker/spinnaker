@@ -71,7 +71,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         }
         dockerRegistryAccounts.updateAccounts()
         dockerRegistryAccounts.accounts.forEach({ account ->
-            pollSingle(new PollContext((String) account.name, account, sendEvents))
+            pollSingle(new PollContext((String) account.name, account, !sendEvents))
         })
     }
 
@@ -136,9 +136,11 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         delta.items.findAll { it != null }.parallelStream().forEach { ImageDelta item ->
             if (item != null) {
                 cache.setLastDigest(item.image.account, item.image.repository, item.image.tag, item.image.digest)
-                log.info("New tagged image: {}: {}. Digest is now [$item.image.digest].", kv("account", item.image.account), kv("image", item.imageId))
+                log.info("New tagged image: {}, {}. Digest is now [$item.image.digest].", kv("account", item.image.account), kv("image", item.imageId))
                 if (sendEvents) {
                     postEvent(delta.cachedImages, item.image, item.imageId)
+                } else {
+                    registry.counter(missedNotificationId.withTags("monitor", getClass().simpleName, "reason", "fastForward")).increment()
                 }
             }
         }
@@ -152,7 +154,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
     void postEvent(List<String> cachedImagesForAccount, TaggedImage image, String imageId) {
         if (!echoService.isPresent()) {
             log.warn("Cannot send tagged image notification: Echo is not enabled")
-            registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
+            registry.counter(missedNotificationId.withTags("monitor", getClass().simpleName, "reason", "echoDisabled")).increment()
             return
         }
         if (!cachedImagesForAccount) {
