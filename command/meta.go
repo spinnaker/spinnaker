@@ -45,7 +45,7 @@ func (m *ApiMeta) process(args []string) ([]string, error) {
 	m.Color = true
 	m.color = m.Color
 	for i, v := range args {
-		if v == "-no-color" {
+		if v == "--no-color" {
 			m.color = false
 			m.Color = false
 			args = append(args[:i], args[i+1:]...)

@@ -136,7 +136,7 @@ usage: spin pipeline save [options]
 
 	Save the provided pipeline
 
-    -file: Path to the pipeline file
+    --file: Path to the pipeline file
 
 %s`, c.ApiMeta.Help())
 	return strings.TrimSpace(help)
