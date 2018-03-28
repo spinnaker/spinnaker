@@ -13,6 +13,7 @@ import Styleguide from 'kayenta/layout/styleguide';
 import FormRow from 'kayenta/layout/formRow';
 import KayentaInput from 'kayenta/layout/kayentaInput';
 import { configTemplatesSelector } from 'kayenta/selectors';
+import { CanarySettings } from 'kayenta/canary.settings';
 
 import './editMetricModal.less';
 
@@ -51,6 +52,10 @@ interface IFilterTemplateSelectorProps {
 function FilterTemplateSelector({ metricStore, template, templates, select }: IFilterTemplateSelectorProps) {
   const config = metricStoreConfigService.getDelegate(metricStore);
   if (!config || !config.useTemplates) {
+    return null;
+  }
+
+  if (!CanarySettings.templatesEnabled) {
     return null;
   }
 

@@ -14,17 +14,6 @@
     </select>
   </stage-config-field>
 
-  <stage-config-field label="Lifetime"
-                      help-key="pipeline.config.canary.analysisType"
-                      field-columns="3"
-                      ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
-    <input type="text"
-           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lifetimeHours"
-           class="form-control input-sm"
-           style="display: inline-block; width: 33%"/>
-    <span class="form-control-static">hours</span>
-  </stage-config-field>
-
   <!--
   TODO: Revisit this when this canary stage ui is used for canaries employing Atlas.
   <stage-config-field label="Result Strategy"
@@ -80,12 +69,12 @@
       <span class="form-control-static"> minutes</span>
     </stage-config-field>
 
-    <stage-config-field label="Analysis Type"
+    <stage-config-field label="Lookback Type"
                         help-key="pipeline.config.canary.lookback"
                         field-columns="3">
       <select class="form-control input-sm"
               ng-model="kayentaCanaryStageCtrl.state.useLookback"
-              ng-options="(useLookback ? 'Sliding Lookback' : 'Growing') for useLookback in [false, true]"
+              ng-options="(useLookback ? 'Sliding' : 'Growing') for useLookback in [false, true]"
               ng-change="kayentaCanaryStageCtrl.onUseLookbackChange()">
       </select>
     </stage-config-field>
@@ -187,6 +176,17 @@
         class="form-control input-sm"
         ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.scopes[0].endTimeIso"
         type="text"/>
+    </stage-config-field>
+
+    <stage-config-field label="Lifetime"
+                        help-key="pipeline.config.canary.analysisType"
+                        field-columns="3"
+                        ng-if="kayentaCanaryStageCtrl.stage.analysisType === 'realTime'">
+      <input type="text"
+             ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lifetimeHours"
+             class="form-control input-sm"
+             style="display: inline-block; width: 33%"/>
+      <span class="form-control-static">hours</span>
     </stage-config-field>
 
     <stage-config-field label="Resource Type" ng-if="kayentaCanaryStageCtrl.metricStore === 'prometheus'">

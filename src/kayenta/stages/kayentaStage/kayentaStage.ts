@@ -302,7 +302,7 @@ module(KAYENTA_CANARY_STAGE, [
   ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
-      label: 'Canary',
+      label: 'Canary Analysis',
       description: 'Runs a canary task',
       key: 'kayentaCanary',
       templateUrl: require('./kayentaStage.html'),

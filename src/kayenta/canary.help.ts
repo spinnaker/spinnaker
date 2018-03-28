@@ -33,7 +33,7 @@ const helpContents: {[key: string]: string} = {
   'pipeline.config.canary.extendedScopeParams': `
         <p>Metric source specific parameters which may be used to further alter the canary scope.</p>
         <p>Also used to provide variable bindings for use in the expansion of custom filter templates within the canary config.</p>`,
-  'pipeline.config.canary.lookback': '<p>With an analysis type of <strong>Growing</strong>, the entire duration of the canary will be considered during the analysis.</p><p>When choosing <strong>Sliding Lookback</strong>, the canary will use the most recent number of specified minutes for its analysis report (<b>useful for long running canaries that span multiple days</b>).</p>',
+  'pipeline.config.canary.lookback': '<p>With an analysis type of <strong>Growing</strong>, the entire duration of the canary will be considered during the analysis.</p><p>When choosing <strong>Sliding</strong>, the canary will use the most recent number of specified minutes for its analysis report (<b>useful for long running canaries that span multiple days</b>).</p>',
   'pipeline.config.canary.continueOnUnhealthy': '<p>Continue the pipeline if the canary analysis comes back as <b>UNHEALTHY</b></p>',
   'pipeline.config.canary.owner': '<p>The recipient email to which the canary report(s) will be sent.</p>',
   'pipeline.config.canary.watchers': '<p>Comma separated list of additional emails to receive canary reports. Owners are automatically subscribed to notification emails.</p>',
