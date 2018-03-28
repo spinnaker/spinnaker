@@ -43,8 +43,7 @@ class BuildDebianCommand(GradleCommandProcessor):
 
   def _do_can_skip_repository(self, repository):
     build_version = self.scm.get_repository_service_build_version(repository)
-    return self.gradle.consider_debian_on_bintray(
-        repository, build_version=build_version)
+    return self.gradle.consider_debian_on_bintray(repository, build_version)
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""

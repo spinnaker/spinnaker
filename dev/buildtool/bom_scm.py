@@ -91,11 +91,13 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
       check_path_exists(bom_path, why='options.bom_path')
       return BomSourceCodeManager.bom_from_path(bom_path)
 
-    if bom_version:
-      logging.debug('Retrieving bom version %s', bom_version)
-      return HalRunner(options).retrieve_bom_version(bom_version)
+    if not bom_version:
+      raise_and_log_error(
+          UnexpectedError('Not reachable', cause='NotReachable'))
 
-    raise_and_log_error(UnexpectedError('Not reachable', cause='NotReachable'))
+    logging.debug('Retrieving bom version %s', bom_version)
+    return HalRunner(options).retrieve_bom_version(bom_version)
+
 
   @property
   def bom(self):
@@ -175,11 +177,11 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     service_name = self.repository_name_to_service_name(repository.name)
     have_commit = self.git.query_local_repository_commit_id(git_dir)
     bom_commit = check_bom_service(self.__bom, service_name)['commit']
-    if have_commit == bom_commit:
-      return True
-    raise_and_log_error(
-        UnexpectedError(
-            '"%s" is at the wrong commit "%s"' % (git_dir, bom_commit)))
+    if have_commit != bom_commit:
+      raise_and_log_error(
+          UnexpectedError(
+              '"%s" is at the wrong commit "%s"' % (git_dir, bom_commit)))
+    return True
 
   def determine_upstream_url(self, name):
     # Disable upstream on BOM urls since we wont be pushing back.

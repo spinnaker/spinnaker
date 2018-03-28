@@ -255,7 +255,7 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
         SNAPSHOT_CATEGORY[MetricFamily.GAUGE]: {},
         SNAPSHOT_CATEGORY[MetricFamily.TIMER]: {},
         'argv': sys.argv,
-        'job': 'buildtool',
+        'job': options.program if hasattr(options, 'program') else 'buildtool',
         'options': vars(self.options),
         'pid': os.getpid(),
         'start_time': datetime.datetime.utcnow().isoformat()
@@ -274,13 +274,14 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
                 or os.path.join(options.output_dir, 'metrics'))
     self.__metrics_path = os.path.join(
         dir_path,
-        'buildtool-metrics__{command}__{pid}.json'.format(
+        'metrics__{command}__{pid}.json'.format(
             command=options.command, pid=pid))
+    logging.debug('Metrics snapshots will write to %s', self.__metrics_path)
 
   def _do_make_family(
-      self, family_type, name, description, label_names):
+      self, family_type, name, label_names):
     """Implements interface."""
-    return self.__new_family(name, description, label_names, family_type)
+    return self.__new_family(name, label_names, family_type)
 
   def make_snapshot(self):
     """Writes metrics to file."""
@@ -307,7 +308,6 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
     tmp_path = metrics_path + '.tmp'
     write_to_path(text, tmp_path)
     os.rename(tmp_path, metrics_path)
-    logging.debug('Wrote metric snapshot to %s', metrics_path)
 
   def _do_flush_final_metrics(self):
     """Writes metrics to file."""
@@ -321,7 +321,7 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
     snapshot, _, _ = self.make_snapshot()
     self.__flush_snapshot(snapshot)
 
-  def __new_family(self, name, description, label_names, family_type):
+  def __new_family(self, name, label_names, family_type):
     """Defines a new family container instance."""
     # pylint: disable=unused-argument
     # We dont use label_names, but take it because it is part of the interface
@@ -329,7 +329,6 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
     self.__metrics_snapshot_prototype[SNAPSHOT_CATEGORY[family_type]][name] = {
         'name': name,
         'type': family_type,
-        'description': description,
         'collectors': []
     }
     type_to_factory = {
@@ -338,4 +337,4 @@ class InMemoryMetricsRegistry(BaseMetricsRegistry):
         MetricFamily.TIMER: InMemoryTimer
     }
     factory = type_to_factory[family_type]
-    return MetricFamily(self, name, description, factory, family_type)
+    return MetricFamily(self, name, factory, family_type)

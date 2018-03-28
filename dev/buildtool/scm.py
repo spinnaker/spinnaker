@@ -27,7 +27,6 @@ import yaml
 
 # pylint: disable=relative-import
 from buildtool import (
-    SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
     GitRepositorySpec,
     GitRunner,
     RepositorySummary,
@@ -179,24 +178,13 @@ class SpinnakerSourceCodeManager(object):
 
   def ensure_local_repository(self, repository):
     """Make sure local repository directory exists, and make it so if not."""
-    summary_filename = repository.name + '-meta.yml'
-    summary_dir_path = os.path.join(self.__root_source_dir)
-    summary_cache_path = os.path.join(summary_dir_path, summary_filename)
     git_dir = repository.git_dir
     have_git_dir = os.path.exists(git_dir)
-    if (have_git_dir
-        and os.path.exists(summary_cache_path)
-        and self.check_repository_is_current(repository)):
-      return
 
-    # Refresh either because it is new or because it changed.
-    self.ensure_git_path(repository)
-    build_number = self.determine_build_number(repository)
-
-    if repository.name in [SPINNAKER_GITHUB_IO_REPOSITORY_NAME]:
-      logging.debug('Summary info for %s is disabled', repository.name)
+    if have_git_dir:
+      self.check_repository_is_current(repository)
     else:
-      self.refresh_source_info(repository, build_number)
+      self.ensure_git_path(repository)
 
   def refresh_source_info(self, repository, build_number):
     """Extract the source info from repository and cache with build number.

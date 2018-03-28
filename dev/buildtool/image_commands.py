@@ -127,8 +127,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
     labels = {'repository': repository.name, 'artifact': 'gce-image'}
     if self.options.skip_existing:
       logging.info('Already have %s -- skipping build', image_name)
-      self.metrics.inc_counter('ReuseArtifact', labels,
-                               'Kept existing GCE image.')
+      self.metrics.inc_counter('ReuseArtifact', labels)
       return True
     if not self.options.delete_existing:
       raise_and_log_error(
@@ -143,6 +142,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
         'DeleteArtifact', labels,
         'Attempts to delete existing GCE images.',
         check_subprocess, ' '.join(delete_command))
+    return False
 
   def ensure_local_repository(self, repository):
     """Local repositories are used to get version information."""
@@ -156,9 +156,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
       logging.debug('%s does not build a GCE component image -- skip',
                     repository.name)
       return True
-
-    if self.have_image(repository):
-      return
+    return self.have_image(repository)
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
@@ -173,6 +171,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
         build_component_image_sh,
         '--artifact ', name,
         '--account', options.build_gce_service_account,
+        '--hal_daemon_endpoint', 'http://' + options.halyard_daemon,
         '--build_project', options.build_gce_project,
         '--install_script', options.install_image_script,
         '--publish_project', options.publish_gce_image_project,

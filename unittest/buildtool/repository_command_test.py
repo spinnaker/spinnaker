@@ -29,6 +29,7 @@ import custom_test_command
 
 from test_util import (
     ALL_STANDARD_TEST_BOM_REPO_NAMES,
+    OUTLIER_REPO,
     BaseGitRepoTestFixture,
     init_runtime)
 
@@ -86,8 +87,39 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
     options.git_branch = 'test_branch'
     options.github_owner = 'test_github_owner'
     options.github_pull_ssh = False
+    options.one_at_a_time = False
     options.only_repositories = None
+    options.exclude_repositories = None
     return options
+
+  def test_filter(self):
+    factory = RepositoryCommandFactory(
+        'test_filter', TestRepositoryCommand, 'A test command.',
+        BranchSourceCodeManager, 123,
+        source_repository_names=ALL_STANDARD_TEST_BOM_REPO_NAMES)
+    options = self.options
+
+    expected_repo_names = list(ALL_STANDARD_TEST_BOM_REPO_NAMES)
+    command = factory.make_command(options)
+    self.assertEquals(
+      expected_repo_names,
+      [repository.name for repository in command.source_repositories])
+
+    expected_repo_names = [name for name in ALL_STANDARD_TEST_BOM_REPO_NAMES
+                           if name != OUTLIER_REPO]
+    options.exclude_repositories=OUTLIER_REPO
+    command = factory.make_command(options)
+    self.assertEquals(
+      expected_repo_names,
+      [repository.name for repository in command.source_repositories])
+
+    expected_repo_names = [OUTLIER_REPO]
+    options.only_repositories=OUTLIER_REPO
+    options.exclude_repositories=None
+    command = factory.make_command(options)
+    self.assertEquals(
+      expected_repo_names,
+      [repository.name for repository in command.source_repositories])
 
   def do_test_command(self, options, command_name):
     init_dict = {'a': 'A', 'b': 'B'}
@@ -132,7 +164,6 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
   def test_concurrent_command(self):
     test_command_name = 'concurrent_command'
     options = self.options
-    options.one_at_a_time = False
     options.command = test_command_name
     command = self.do_test_command(options, test_command_name)
     self.assertNotEquals(command.test_repo_threadid[0],
@@ -178,7 +209,6 @@ class RepositoryCommandProcessorTest(BaseGitRepoTestFixture):
   def test_failed_command(self):
     test_command_name = FAILURE_COMMAND_NAME
     options = self.options
-    options.one_at_a_time = False
     options.command = test_command_name
     command = self.do_test_command(options, test_command_name)
     self.assertNotEquals(command.test_repo_threadid[0],

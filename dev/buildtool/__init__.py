@@ -7,7 +7,7 @@ SPINNAKER_RUNNABLE_REPOSITORY_NAMES = [
     'clouddriver',
     'deck',
     'echo', 'fiat', 'front50',
-    'gate', 'igor', 'orca', 'rosco']
+    'gate', 'igor', 'kayenta', 'orca', 'rosco']
 
 SPINNAKER_HALYARD_REPOSITORY_NAME = 'halyard'
 SPINNAKER_GITHUB_IO_REPOSITORY_NAME = 'spinnaker.github.io'
@@ -38,7 +38,11 @@ from buildtool.errors import (
 
     check_kwargs_empty,
     check_options_set,
-    check_path_exists)
+    check_path_exists,
+
+    # This is very specialized, but here to share
+    # between validate_bom__deploy and image_commands
+    scan_logs_for_install_errors)
 
 from buildtool.subprocess_support import (
     start_subprocess,
@@ -47,7 +51,8 @@ from buildtool.subprocess_support import (
     check_subprocess,
     check_subprocess_sequence,
     run_subprocess_sequence,
-    check_subprocesses_to_logfile)
+    check_subprocesses_to_logfile,
+    determine_subprocess_outcome_labels)
 
 from buildtool.git_support import (
     GitRepositorySpec,

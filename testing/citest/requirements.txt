@@ -10,7 +10,8 @@ citest
 # use gsutil.
 google_compute_engine
 
-# This is needed by the google_http_lb_tests
+# These are needed by the google_http_lb_tests
+cffi
 pyopenssl
 
 # OpenStack client needed for openstack_smoke_test

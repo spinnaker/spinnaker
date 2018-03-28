@@ -84,14 +84,21 @@ import os
 import re
 import subprocess
 import socket
-import sys
 import threading
 import time
 import traceback
 import urllib2
 import yaml
 
-from spinnaker.run import run_and_monitor
+from buildtool import (
+    add_parser_argument,
+    determine_subprocess_outcome_labels,
+    check_subprocesses_to_logfile,
+    raise_and_log_error,
+    ConfigError,
+    ResponseError,
+    TimeoutError,
+    UnexpectedError)
 
 
 ForwardedPort = collections.namedtuple('ForwardedPort', ['child', 'port'])
@@ -115,7 +122,11 @@ class QuotaTracker(object):
   regulating the test's use of the quota.
   """
 
-  def __init__(self, max_counts):
+  MAX_QUOTA_METRIC_NAME = 'ResourceQuotaMax'
+  FREE_QUOTA_METRIC_NAME = 'ResourceQuotaAvailable'
+  INSUFFICIENT_QUOTA_METRIC_NAME = 'ResourceQuotaShortage'
+
+  def __init__(self, max_counts, metrics):
     """Constructor.
 
     Args:
@@ -124,6 +135,12 @@ class QuotaTracker(object):
     self.__counts = dict(max_counts)
     self.__max_counts = dict(max_counts)
     self.__condition_variable = threading.Condition()
+    self.__metrics = metrics
+
+    for name, value in max_counts.items():
+      labels = {'resource': name}
+      self.__metrics.set(self.MAX_QUOTA_METRIC_NAME, labels, value)
+      self.__metrics.set(self.FREE_QUOTA_METRIC_NAME, labels, value)
 
   def acquire_all_safe(self, who, quota):
     """Acquire the desired quota, if any.
@@ -174,13 +191,19 @@ class QuotaTracker(object):
       return {}
     logging.info('"%s" attempting to acquire quota %s', who, quota)
     acquired = {}
+    have_all = True
     for key, value in quota.items():
       got = self.__acquire_resource_or_none(key, value)
       if not got:
-        self.release_all_unsafe(who, acquired)
-        return None
-      acquired[key] = got
-    return acquired
+        have_all = False  # Be lazy so we can record all the missing quota
+      else:
+        acquired[key] = got
+
+    if have_all:
+      return acquired
+
+    self.release_all_unsafe(who, acquired)
+    return None
 
   def release_all_safe(self, who, quota):
     """Release all the resource quota.
@@ -204,7 +227,7 @@ class QuotaTracker(object):
     """
     if not quota:
       return
-    logging.info('"%s" releasing quota %s', who, quota)
+    logging.debug('"%s" releasing quota %s', who, quota)
     for key, value in quota.items():
       self.__release_resource(key, value)
 
@@ -226,6 +249,8 @@ class QuotaTracker(object):
       return count
     if have >= count:
       self.__counts[name] = have - count
+      self.__metrics.set(
+          self.FREE_QUOTA_METRIC_NAME, {'resource': name}, self.__counts[name])
       return count
     max_count = self.__max_counts[name]
     if have == max_count:
@@ -233,10 +258,15 @@ class QuotaTracker(object):
                       ' Acquiring all the quota as a best effort.',
                       name, max_count, count)
       self.__counts[name] = 0
+      self.__metrics.set(
+          self.FREE_QUOTA_METRIC_NAME, {'resource': name}, 0)
       return have
     logging.warning('Quota %s has %d remaining, but %d are needed.'
                     ' Rejecting the request for now.',
                     name, have, count)
+    self.__metrics.inc_counter(
+        self.INSUFFICIENT_QUOTA_METRIC_NAME, {'resource': name},
+        amount=count - have)
     return 0
 
   def __release_resource(self, name, count):
@@ -244,73 +274,8 @@ class QuotaTracker(object):
     have = self.__counts.get(name, None)
     if have is not None:
       self.__counts[name] = have + count
-
-
-class CommandOutputMediator(object):
-  """Mediate output from forked commands to our own log files."""
-
-  def __init__(self, label):
-    self.__label = label
-    self.__buffered_stdout = []
-    self.__buffered_stderr = []
-
-  def capture_stdout(self, fragments):
-    """Callback for adding text fragments from stdout."""
-    self.__buffered_stdout = self.capture_helper(
-        fragments, self.__buffered_stdout, logging.info)
-
-  def capture_stderr(self, fragments):
-    """Callback for adding text from stderr."""
-    # Display this as info because python unittest.main is printing
-    # normal status to stderr but we want it to show up here as info, not error
-    self.__buffered_stderr = self.capture_helper(
-        fragments, self.__buffered_stderr, logging.info)
-
-  def capture_helper(self, fragments, remaining, method):
-    """Helper function managing the buffers and logging."""
-    text = ''.join(fragments)
-    eoln = text.rfind('\n')
-    if eoln < 0:
-      remaining.append(text)
-      return remaining
-
-    remaining.append(text[:eoln])
-    extra = [text[eoln + 1:]]
-    self.write(remaining, extra, method)
-    return extra
-
-  def write(self, fragments, still_buffered, method):
-    """Write fragments to the logging method."""
-    buffered_text = ('' if not still_buffered
-                     else ''.join(still_buffered).strip())
-    joined_text = ''.join(fragments)
-    if not buffered_text and not joined_text.strip():
-      return
-
-    if buffered_text:
-      more_text = '<still buffering line>: %s\n' % buffered_text
-    else:
-      more_text = ''
-
-    lines = joined_text.split('\n')
-    indented_text = '  %s' % '\n  '.join(lines)
-    method('<begin from %s>:\n'
-           '%s\n'
-           '%s'
-           '<end from %s>\n',
-           self.__label,
-           indented_text,
-           more_text,
-           self.__label)
-
-  def flush(self):
-    """Flush any buffered output."""
-    if self.__buffered_stdout:
-      self.write(self.__buffered_stdout, None, logging.info)
-      self.__buffered_stdout = []
-    if self.__buffered_stderr:
-      self.write(self.__buffered_stderr, None, logging.error)
-      self.__buffered_stderr = []
+      self.__metrics.set(
+          self.FREE_QUOTA_METRIC_NAME, {'resource': name}, self.__counts[name])
 
 
 class ValidateBomTestController(object):
@@ -355,14 +320,16 @@ class ValidateBomTestController(object):
 
   def __init__(self, deployer):
     options = deployer.options
-    quota_spec = {parts[0]: int(parts[1])
-                  for parts in [entry.split('=')
-                                for entry in options.test_default_quota.split(',')]}
+    quota_spec = {
+        parts[0]: int(parts[1])
+        for parts in [entry.split('=')
+                      for entry in options.test_default_quota.split(',')]}
     if options.test_quota:
-      quota_spec.update({parts[0]: int(parts[1])
-                         for parts in [entry.split('=')
-                                       for entry in options.test_quota.split(',')]})
-    self.__quota_tracker = QuotaTracker(quota_spec)
+      quota_spec.update(
+          {parts[0]: int(parts[1])
+           for parts in [entry.split('=')
+                         for entry in options.test_quota.split(',')]})
+    self.__quota_tracker = QuotaTracker(quota_spec, deployer.metrics)
     self.__deployer = deployer
     self.__lock = threading.Lock()
     self.__passed = []  # Resulted in success
@@ -453,9 +420,15 @@ class ValidateBomTestController(object):
       hack.setDaemon(True)
       hack.start()
 
+    logfile = os.path.join(
+        self.options.output_dir,
+        'port_forward_%s-%d.log' % (service_name, os.getpid()))
+    stream = open(logfile, 'w')
+    stream.write(str(command) + '\n\n')
+    logging.debug('Logging "%s" port forwarding to %s', service_name, logfile)
     child = subprocess.Popen(
         command,
-        stderr=sys.stderr.fileno(),
+        stderr=stream,
         stdout=None)
     return ForwardedPort(child, local_port)
 
@@ -470,7 +443,7 @@ class ValidateBomTestController(object):
         summary.append('  * {0}'.format(entry[0]))
 
     options = self.options
-    if options.test_disable:
+    if not options.testing_enabled:
       return 'No test output: testing was disabled.', 0
 
     summary = ['\nSummary:']
@@ -508,7 +481,7 @@ class ValidateBomTestController(object):
         if forwarding is None:
           forwarding = self.__forward_port_to_service(service_name)
         self.__forwarded_ports[service_name] = forwarding
-    except Exception as ex:
+    except Exception:
       logging.exception('Exception while attempting to forward ports to "%s"',
                         service_name)
       raise
@@ -524,13 +497,12 @@ class ValidateBomTestController(object):
     time.sleep(1)
 
     threadid = hex(threading.current_thread().ident)
-    count = 0
+    logging.info('WaitOn polling %s from thread %s', service_name, threadid)
     while forwarding.child.poll() is None:
       try:
         # localhost is hardcoded here because we are port forwarding.
         # timeout=20 is to appease kubectl port forwarding, which will close
         #            if left idle for 30s
-        logging.info('WaitOn polling %s | %s', service_name, threadid)
         urllib2.urlopen('http://localhost:{port}/health'
                         .format(port=forwarding.port),
                         timeout=20)
@@ -543,19 +515,18 @@ class ValidateBomTestController(object):
         return forwarding
 
       except (urllib2.URLError, Exception) as error:
-        if count % 5 == 0:
-          # poll every two seconds but only report every 10
-          logging.info('WaitOn got %s | %s', error, threadid)
-        count += 1
         if time.time() >= end_time:
-          logging.error('Timing out waiting for %s | %s', service_name, threadid)
-          raise error
+          logging.error(
+              'Timing out waiting for %s | %s', service_name, threadid)
+          raise_and_log_error(TimeoutError(service_name, cause=service_name))
         time.sleep(2.0)
 
     logging.error('It appears %s is no longer available.'
                   ' Perhaps the tunnel closed.',
                   service_name)
-    raise RuntimeError('It appears that {0} failed'.format(service_name))
+    raise_and_log_error(
+        ResponseError('It appears that {0} failed'.format(service_name),
+                      server='tunnel'))
 
   def run_tests(self):
     """The actual controller that coordinates and runs the tests.
@@ -605,11 +576,14 @@ class ValidateBomTestController(object):
 
     If an exception is thrown along the way, the test will automatically
     be recorded as a FAILURE.
+
+    Returns:
+        (#passed, #failed, #skipped)
     """
     options = self.options
-    if options.test_disable:
-      logging.info('--test_disable skips test phase entirely.')
-      return
+    if not options.testing_enabled:
+      logging.info('--testing_enabled=false skips test phase entirely.')
+      return 0, 0, 0
 
     all_test_profiles = self.test_suite['tests']
 
@@ -623,6 +597,7 @@ class ValidateBomTestController(object):
     thread_pool.terminate()
 
     logging.info('Finished running tests.')
+    return len(self.__passed), len(self.__failed), len(self.__skipped)
 
   def __run_or_skip_test_profile_entry_wrapper(self, args):
     """Outer wrapper for running tests
@@ -632,15 +607,26 @@ class ValidateBomTestController(object):
     """
     test_name = args[0]
     spec = args[1]
+    metric_labels = {'test_name': test_name, 'skipped': ''}
     try:
-      self.__run_or_skip_test_profile_entry(test_name, spec)
+      self.__run_or_skip_test_profile_entry(test_name, spec, metric_labels)
     except Exception as ex:
       logging.error('%s threw an exception:\n%s',
                     test_name, traceback.format_exc())
       with self.__lock:
         self.__failed.append((test_name, 'Caught exception {0}'.format(ex)))
 
-  def __run_or_skip_test_profile_entry(self, test_name, spec):
+  def __record_skip_test(self, test_name, reason, skip_code, metric_labels):
+    logging.warning(reason)
+    self.__skipped.append((test_name, reason))
+
+    copy_labels = dict(metric_labels)
+    copy_labels['skipped'] = skip_code
+    copy_labels['success'] = 'Skipped'
+    self.__deployer.metrics.observe_timer(
+        'RunTestScript' + '_Outcome', copy_labels, 0.0)
+
+  def __run_or_skip_test_profile_entry(self, test_name, spec, metric_labels):
     """Runs a test from within the thread-pool map() function.
 
     Args:
@@ -652,21 +638,21 @@ class ValidateBomTestController(object):
       reason = ('Skipped test "{name}" because it does not match explicit'
                 ' --test_include criteria "{criteria}".'
                 .format(name=test_name, criteria=options.test_include))
-      logging.warning(reason)
-      self.__skipped.append((test_name, reason))
+      self.__record_skip_test(test_name, reason,
+                              'NotExplicitInclude', metric_labels)
       return
     if options.test_exclude and re.search(options.test_exclude, test_name):
       reason = ('Skipped test "{name}" because it matches explicit'
                 ' --test_exclude criteria "{criteria}".'
                 .format(name=test_name, criteria=options.test_exclude))
-      logging.warning(reason)
-      self.__skipped.append((test_name, reason))
+      self.__record_skip_test(test_name, reason,
+                              'ExplicitExclude', metric_labels)
       return
 
     # This can raise an exception
-    self.run_test_profile_helper(test_name, spec)
+    self.run_test_profile_helper(test_name, spec, metric_labels)
 
-  def validate_test_requirements(self, test_name, spec):
+  def validate_test_requirements(self, test_name, spec, metric_labels):
     """Determine whether or not the test requirements are satisfied.
 
     If not, record the reason a skip or failure.
@@ -681,8 +667,9 @@ class ValidateBomTestController(object):
       True if requirements are satisifed, False if not.
     """
     if not 'api' in spec:
-      raise ValueError('Test "{name}" is missing an "api" spec.'.format(
-          name=test_name))
+      raise_and_log_error(
+          UnexpectedError('Test "{name}" is missing an "api" spec.'.format(
+              name=test_name)))
     requires = spec.pop('requires', {})
     configuration = requires.pop('configuration', {})
     our_config = vars(self.options)
@@ -690,29 +677,38 @@ class ValidateBomTestController(object):
       if key not in our_config:
         message = ('Unknown configuration key "{0}" for test "{1}"'
                    .format(key, test_name))
-        raise KeyError(message)
+        raise_and_log_error(ConfigError(message))
       if value != our_config[key]:
         reason = ('Skipped test {name} because {key}={want} != {have}'
                   .format(name=test_name, key=key,
                           want=value, have=our_config[key]))
-        logging.warning(reason)
         with self.__lock:
-          self.__skipped.append((test_name, reason))
+          self.__record_skip_test(test_name, reason,
+                                  'IncompatableConfig', metric_labels)
         return False
 
     services = set(requires.pop('services', []))
     services.add(spec.pop('api'))
 
     if requires:
-      raise ValueError('Unexpected fields in {name}.requires: {remaining}'
-                       .format(name=test_name, remaining=requires))
+      raise_and_log_error(
+          ConfigError('Unexpected fields in {name}.requires: {remaining}'
+                      .format(name=test_name, remaining=requires)))
     if spec:
-      raise ValueError('Unexpected fields in {name} specification: {remaining}'
-                       .format(name=test_name, remaining=spec))
+      raise_and_log_error(
+          ConfigError('Unexpected fields in {name} specification: {remaining}'
+                      .format(name=test_name, remaining=spec)))
 
-    thread_pool = ThreadPool(len(services))
-    thread_pool.map(self.wait_on_service, services)
-    thread_pool.terminate()
+    def wait_on_services(services):
+      thread_pool = ThreadPool(len(services))
+      thread_pool.map(self.wait_on_service, services)
+      thread_pool.terminate()
+
+    self.__deployer.metrics.track_and_time_call(
+        'WaitingOnServiceAvailability',
+        metric_labels, self.__deployer.metrics.default_determine_outcome_labels,
+        wait_on_services, services)
+
     return True
 
   def add_extra_arguments(self, test_name, args, commandline):
@@ -734,9 +730,9 @@ class ValidateBomTestController(object):
       if key == 'alias':
         for alias_name in value:
           if not alias_name in aliases_dict:
-            raise KeyError(
+            raise_and_log_error(ConfigError(
                 'Unknown alias "{name}" referenced in args for "{test}"'
-                .format(name=alias_name, test=test_name))
+                .format(name=alias_name, test=test_name)))
           self.add_extra_arguments(
               test_name, aliases_dict[alias_name], commandline)
         continue
@@ -751,15 +747,15 @@ class ValidateBomTestController(object):
         elif option_name in os.environ:
           value = os.environ[option_name]
         else:
-          raise KeyError(
+          raise_and_log_error(ConfigError(
               'Unknown option "{name}" referenced in args for "{test}"'
-              .format(name=option_name, test=test_name))
+              .format(name=option_name, test=test_name)))
       if value is None:
         commandline.append('--' + key)
       else:
         commandline.extend(['--' + key, value])
 
-  def make_test_command_or_none(self, test_name, spec):
+  def make_test_command_or_none(self, test_name, spec, metric_labels):
     """Returns the command to run the test, or None to skip.
 
     Args:
@@ -778,7 +774,7 @@ class ValidateBomTestController(object):
         'citest', 'tests', '{0}.py'.format(test_name))
     args = spec.pop('args', {})
 
-    if not self.validate_test_requirements(test_name, spec):
+    if not self.validate_test_requirements(test_name, spec, metric_labels):
       return None
 
     testing_root_dir = os.path.abspath(
@@ -807,7 +803,29 @@ class ValidateBomTestController(object):
     self.add_extra_arguments(test_name, args, command)
     return command
 
-  def run_test_profile_helper(self, test_name, spec):
+  def __execute_test_command(self, test_name, command, metric_labels):
+    metrics = self.__deployer.metrics
+    logging.debug('Running %s', ' '.join(command))
+    def run_and_log_test_script(command):
+      logfile = os.path.join(self.options.output_dir, 'citest_logs',
+                             '%s-%s.console.log' % (test_name, os.getpid()))
+      logging.info('Logging test "%s" to %s...', test_name, logfile)
+      try:
+        check_subprocesses_to_logfile('running test', logfile, [command])
+        retcode = 0
+        logging.info('Test %s PASSED -- see %s', test_name, logfile)
+      except:
+        retcode = -1
+        logging.info('Test %s FAILED -- see %s', test_name, logfile)
+
+      return retcode, logfile
+
+    return metrics.track_and_time_call(
+        'RunTestScript',
+        metric_labels, determine_subprocess_outcome_labels,
+        run_and_log_test_script, ' '.join(command))
+
+  def run_test_profile_helper(self, test_name, spec, metric_labels):
     """Helper function for running an individual test.
 
     The caller wraps this to trap and handle exceptions.
@@ -818,14 +836,17 @@ class ValidateBomTestController(object):
             This argument will be pruned as values are consumed from it.
     """
     quota = spec.pop('quota', {})
-    command = self.make_test_command_or_none(test_name, spec)
+    command = self.make_test_command_or_none(test_name, spec, metric_labels)
     if command is None:
       return
-    capture = CommandOutputMediator(test_name)
 
     logging.info('Acquiring quota for test "%s"...', test_name)
     quota_tracker = self.__quota_tracker
-    acquired_quota = quota_tracker.acquire_all_safe(test_name, quota)
+    metrics = self.__deployer.metrics
+    acquired_quota = metrics.track_and_time_call(
+        'ResourceQuotaWait',
+        metric_labels, metrics.default_determine_outcome_labels,
+        quota_tracker.acquire_all_safe, test_name, quota)
     if acquired_quota:
       logging.info('"%s" acquired quota %s', test_name, acquired_quota)
 
@@ -845,69 +866,72 @@ class ValidateBomTestController(object):
         logging.info('"%s" had a semaphore contention for %d secs.',
                      test_name, wait_time)
       logging.info('Executing "%s"...', test_name)
-      logging.debug('Running %s', ' '.join(command))
-      result = run_and_monitor(' '.join(command),
-                               echo=False,
-                               observe_stdout=capture.capture_stdout,
-                               observe_stderr=capture.capture_stderr)
+      retcode, logfile_path = self.__execute_test_command(
+          test_name, command, metric_labels)
     finally:
       logging.info('Finished executing "%s"...', test_name)
       self.__semaphore.release()
       if acquired_quota:
         quota_tracker.release_all_safe(test_name, acquired_quota)
 
-    capture.flush()
     end_time = time.time()
     delta_time = int(end_time - execute_time + 0.5)
 
     with self.__lock:
-      if result.returncode == 0:
+      if not retcode:
         logging.info('%s PASSED after %d secs', test_name, delta_time)
-        self.__passed.append((test_name, result.stdout))
+        self.__passed.append((test_name, logfile_path))
       else:
         logging.info('FAILED %s after %d secs', test_name, delta_time)
-        self.__failed.append((test_name, result.stderr))
+        self.__failed.append((test_name, logfile_path))
 
 
-def init_argument_parser(parser):
+def init_argument_parser(parser, defaults):
   """Add testing related command-line parameters."""
-  parser.add_argument(
-      '--test_profiles',
-      default=os.path.join(os.path.dirname(__file__), 'all_tests.yaml'),
+  add_parser_argument(
+      parser, 'test_profiles',
+      defaults, os.path.join(os.path.dirname(__file__), 'all_tests.yaml'),
       help='The path to the set of test profiles.')
 
-  parser.add_argument(
-      '--test_extra_profile_bindings', default=None,
+  add_parser_argument(
+      parser, 'test_extra_profile_bindings', defaults, None,
       help='Path to a file with additional bindings that the --test_profiles'
            ' file may reference.')
 
-  parser.add_argument(
-      '--test_concurrency', default=None, type=int,
+  add_parser_argument(
+      parser, 'test_concurrency', defaults, None, type=int,
       help='Limits how many tests to run at a time. Default is unbounded')
 
-  parser.add_argument(
-      '--test_default_quota',
-      default='google_backend_services=3,google_forwarding_rules=3,google_ssl_certificates=2,google_cpu=20,appengine_deployment=1',
+  add_parser_argument(
+      parser, 'test_default_quota',
+      defaults, 'google_backend_services=5,google_forwarding_rules=10'
+                ',google_ssl_certificates=5,google_cpu=20'
+                ',appengine_deployment=1',
       help='Comma-delimited name=value list of quota limits. This is used'
            ' to rate-limit tests based on their profiled quota specifications.')
-  parser.add_argument(
-      '--test_quota', default='',
+  add_parser_argument(
+      parser, 'test_quota', defaults, '',
       help='Comma-delimited name=value list of --test_default_quota overrides.')
 
-  parser.add_argument(
-      '--test_disable', default=False, action='store_true',
-      help='If true then dont run the testing phase.')
+  add_parser_argument(
+      parser, 'testing_enabled', defaults, True, type=bool,
+      help='If false then dont run the testing phase.')
 
-  parser.add_argument(
-      '--test_include', default='.*',
+  add_parser_argument(
+      parser, 'test_disable', defaults, False, action='store_true',
+      dest='testing_enabled',
+      help='DEPRECATED: Use --testing_enabled=false.')
+
+  add_parser_argument(
+      parser, 'test_include', defaults, '.*',
       help='Regular expression of tests to run or None for all.')
 
-  parser.add_argument(
-      '--test_exclude', default=None,
+  add_parser_argument(
+      parser, 'test_exclude', defaults, None,
       help='Regular expression of otherwise runnable tests to skip.')
 
-  parser.add_argument(
-      '--test_stack', default=None,
+  add_parser_argument(
+      parser, 'test_stack', defaults, None,
       help='The --test_stack to pass through to tests indicating which'
            ' Spinnaker application "stack" to use. This is typically'
            ' to help trace the source of resources created within the'
@@ -917,5 +941,6 @@ def init_argument_parser(parser):
 def validate_options(options):
   """Validate testing related command-line parameters."""
   if not os.path.exists(options.test_profiles):
-    raise ValueError('--test_profiles "{0}" does not exist.'.format(
-        options.test_profiles))
+    raise_and_log_error(
+        ConfigError('--test_profiles "{0}" does not exist.'.format(
+            options.test_profiles)))

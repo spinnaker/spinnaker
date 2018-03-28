@@ -17,6 +17,7 @@
 
 import logging
 import os
+import re
 import traceback
 
 from buildtool.metrics import MetricsManager
@@ -33,8 +34,7 @@ class BuildtoolError(Exception):
         'cause': cause,
         'classification': classification
     }
-    MetricsManager.singleton().inc_counter(
-        'BuildtoolError', labels, 'Errors raised during execution.')
+    MetricsManager.singleton().inc_counter('BuildtoolError', labels)
 
 
 class ConfigError(BuildtoolError):
@@ -43,8 +43,8 @@ class ConfigError(BuildtoolError):
         message, self.INTERNAL, cause=cause or 'config')
 
 class TimeoutError(BuildtoolError):
-  def __init__(self, message):
-    super(TimeoutError, self).__init__(message, self.RUNTIME)
+  def __init__(self, message, cause=None):
+    super(TimeoutError, self).__init__(message, self.RUNTIME, cause=cause)
 
 class ExecutionError(BuildtoolError):
   def __init__(self, message, program=None):
@@ -103,3 +103,37 @@ def check_kwargs_empty(kwargs):
   if kwargs:
     raise_and_log_error(
         UnexpectedError('Unexpected arguments: {}'.format(kwargs.keys())))
+
+
+def scan_logs_for_install_errors(path):
+  """Scan logfile at path and count specific errors of interest."""
+  content = open(path, 'r').read()
+  match = re.search(
+       "^E:.* Version '([^']+)' for '([^']+)' was not found",
+       content,
+       re.MULTILINE)
+
+  component = ''
+  cause = 'Unknown'
+
+  if match:
+    version = match.group(1)
+    component = match.group(2)
+    cause = 'ComponentNotFound'
+    logging.error('"%s" version "%s" does not exist.',
+                  component, version)
+  if not match:
+    match = re.search(
+       '.*: No such file or directory$', content, re.MULTILINE)
+    if match:
+      cause = 'FileNotFound'
+
+  labels = {
+    'component': component,
+    'cause': cause
+  }
+  MetricsManager.singleton().inc_counter('InstallSpinnakerError', labels)
+
+  
+  
+  

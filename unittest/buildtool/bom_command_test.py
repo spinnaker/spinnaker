@@ -144,10 +144,10 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
 
     # When the base command asks for the repository metadata, we'll return
     # this hardcoded info, then look for it later in the generated om.
-    mock_lookup = make_fake(BranchSourceCodeManager, 'lookup_source_info')
+    mock_refresh = make_fake(BranchSourceCodeManager, 'refresh_source_info')
     summary = RepositorySummary('CommitA', 'TagA', '9.8.7', '44.55.66', [])
     source_info = SourceInfo('MyBuildNumber', summary)
-    mock_lookup.return_value = source_info
+    mock_refresh.return_value = source_info
 
     # When asked to write the bom out, do nothing.
     # We'll verify the bom later when looking at the mock call sequencing.
@@ -172,13 +172,13 @@ class TestBuildBomCommand(BaseGitRepoTestFixture):
             origin='https://%s/TestOwner/%s' % (options.github_hostname, name),
             upstream='https://github.com/spinnaker/' + name)
         for name in sorted(['clouddriver', 'deck', 'echo', 'fiat', 'front50',
-                            'gate', 'igor', 'orca', 'rosco', 'spinnaker',
+                            'gate', 'igor', 'kayenta', 'orca', 'rosco', 'spinnaker',
                             'spinnaker-monitoring'])
     ]
     mock_remote.assert_called_once_with(test_repository.origin,
                                         options.git_branch)
     mock_filter.assert_called_once_with(bom_repo_list)
-    mock_lookup.assert_called_once_with(test_repository)
+    mock_refresh.assert_called_once_with(test_repository, 'OptionBuildNumber')
     bom_text, bom_path = mock_write.call_args_list[0][0]
 
     self.assertEquals(bom_path, 'MY PATH')

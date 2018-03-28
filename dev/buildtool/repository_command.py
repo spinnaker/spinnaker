@@ -29,19 +29,13 @@ def _do_call_do_repository(repository, command):
   This will track the invocation and its outcome.
   """
   # pylint: disable=protected-access
-  def determine_outcome_labels():
-    """Add a repository label in addition to whatever the command wanted."""
-    result = command.determine_outcome_metric_labels()
-    result['repository'] = repository.name
-    return result
-
   logging.info('%s processing %s', command.name, repository.name)
   try:
-    tracking_labels = command.determine_tracking_metric_labels()
-    tracking_labels['repository'] = repository.name
-    result = command.metrics.instrument_track_and_outcome(
-        'RunRepositoryCommand', 'Command invocations scoped to one repository',
-        tracking_labels, determine_outcome_labels,
+    metric_labels = command.determine_metric_labels()
+    metric_labels['repository'] = repository.name
+    result = command.metrics.track_and_time_call(
+        'RunRepositoryCommand',
+        metric_labels, command.metrics.default_determine_outcome_labels,
         command._do_repository_wrapper, repository)
     logging.info('%s finished %s', command.name, repository.name)
     return result
@@ -98,6 +92,10 @@ class RepositoryCommandProcessor(CommandProcessor):
     self.__source_repositories = None
     if source_repo_names:
       # filter needs the options, so this is after our super init call.
+      if self.options.exclude_repositories:
+        exclude_names = self.options.exclude_repositories.split(',')
+      else:
+        exclude_names = []
       if self.options.only_repositories:
         only_names = self.options.only_repositories.split(',')
       else:
@@ -105,7 +103,7 @@ class RepositoryCommandProcessor(CommandProcessor):
       self.__source_repositories = self.filter_repositories(
           [self.__scm.make_repository_spec(name)
            for name in source_repo_names
-           if name in only_names])
+           if name in only_names and name not in exclude_names])
 
   def ensure_local_repository(self, repository):
     """Prepare the repository.git_dir."""
@@ -114,12 +112,25 @@ class RepositoryCommandProcessor(CommandProcessor):
   def filter_repositories(self, source_repositories):
     """Filter a list of source_repositories using option constraints."""
     # pylint: disable=unused-argument
-    if not self.options.only_repositories:
+    if not (self.options.only_repositories
+            or self.options.exclude_repositories):
       return source_repositories
 
-    repo_filter = self.options.only_repositories.split(',')
+    if self.options.only_repositories:
+      restrict_filter = self.options.only_repositories.split(',')
+    else:
+      restrict_filter = []
+
+    if self.options.exclude_repositories:
+      exclude_filter = self.options.exclude_repositories.split(',')
+    else:
+      exclude_filter = []
+
+    if not restrict_filter and exclude_filter:
+      restrict_filter = [repo.name for repo in source_repositories]
     return [repository for repository in source_repositories
-            if repository.name in repo_filter]
+            if ((not restrict_filter or repository.name in restrict_filter)
+                and not repository.name in exclude_filter)]
 
   def _do_command(self):
     """Implements CommandProcessor interface.
@@ -158,8 +169,7 @@ class RepositoryCommandProcessor(CommandProcessor):
     if self._do_can_skip_repository(repository):
       self.metrics.inc_counter(
           'SkipRepositoryCommand',
-          {'command': self.name, 'repository': repository.name},
-          'Full command not needed for an individual repository.')
+          {'command': self.name, 'repository': repository.name})
       logging.debug('Skipping repository %s', repository.name)
       return None
 
@@ -198,3 +208,8 @@ class RepositoryCommandFactory(CommandFactory):
     self.add_argument(parser, 'only_repositories', defaults, None,
                       help='Limit the command to the specified repositories.'
                       ' This is a list of comma-separated repository names.')
+    self.add_argument(
+        parser, 'exclude_repositories', defaults, None,
+        help='Do not apply the command to the specified repositories.'
+        ' This is a list of comma-separated repository names.'
+        ' This flag is intended for temporary use to bypass broken repos.')

@@ -113,7 +113,7 @@ def __load_defaults_from_path(path, visited=None):
   return defaults
 
 
-def preprocess_args(args):
+def preprocess_args(args, default_home_path_filename='buildtool.yml'):
   """Preprocess the args to determine the defaults to use.
 
   This recognizes the --default_args_file override and, if present loads them.
@@ -129,7 +129,8 @@ def preprocess_args(args):
 
   options, args = parser.parse_known_args(args)
 
-  home_path = os.path.join(os.environ['HOME'], '.spinnaker', 'buildtool.yml')
+  home_path = os.path.join(os.environ['HOME'], '.spinnaker',
+                           default_home_path_filename)
   if CHECK_HOME_FOR_CONFIG and os.path.exists(home_path):
     defaults = __load_defaults_from_path(home_path)
     defaults['default_args_file'] = home_path
@@ -164,6 +165,25 @@ def make_registry(command_modules, parser, defaults):
   return registry
 
 
+def add_monitoring_context_labels(options):
+  option_dict = vars(options)
+  version_name = option_dict.get('git_branch', None)
+  if not version_name:
+    bom_name = option_dict.get('bom_version') or option_dict.get('bom_path')
+    if bom_name:
+      if bom_name.find('-unbuilt') > 0:
+        version_name = bom_name[:bom_name.find('-unbuilt')]
+      elif bom_name.find('-latest') > 0:
+        version_name = bom_name[:bom_name.find('-latest')]
+      else:
+        version_name = bom_name[:bom_name.rfind('-')]
+  if version_name:
+    context_labels = 'version=' + version_name
+    if options.monitoring_context_labels:
+      context_labels += ',' + options.monitoring_context_labels
+    options.monitoring_context_labels = context_labels
+
+
 def init_options_and_registry(args, command_modules):
   """Register command modules and determine options from commandline.
 
@@ -190,6 +210,12 @@ def init_options_and_registry(args, command_modules):
 
   registry = make_registry(command_modules, parser, defaults)
   options = parser.parse_args(args)
+  options.program = 'buildtool'
+
+  # Determine the version for monitoring purposes.
+  # Depending on the options defined, this is either the branch or bom prefix.
+  add_monitoring_context_labels(options)
+
   return options, registry
 
 
@@ -244,7 +270,7 @@ def main():
   finally:
     labels['success'] = success
     MetricsManager.singleton().observe_timer(
-        'BuildTool_Outcome', labels, 'Program Execution',
+        'BuildTool_Outcome', labels,
         time.time() - start_time)
     MetricsManager.shutdown_metrics()
 

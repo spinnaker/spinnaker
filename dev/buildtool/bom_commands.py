@@ -254,12 +254,12 @@ class BuildBomCommand(RepositoryCommandProcessor):
 
     labels = {'repository': name, 'branch': branch,
               'reason': reason, 'updated': result}
-    self.metrics.inc_counter('UpdateBomEntry', labels,
-                             'Attempts to update bom entries.')
+    self.metrics.inc_counter('UpdateBomEntry', labels)
     return result
 
   def _do_repository(self, repository):
-    source_info = self.scm.lookup_source_info(repository)
+    source_info = self.scm.refresh_source_info(
+        repository, self.options.build_number)
     self.__builder.add_repository(repository, source_info)
 
   def _do_postprocess(self, _):
@@ -350,7 +350,7 @@ class PublishBomCommand(RepositoryCommandProcessor):
     self.__publish_configs(bom_path)
 
     if options.bom_alias:
-      alias = os.path.splitext(options.bom_alias)[0]
+      alias = options.bom_alias
       logging.info('Publishing bom alias %s = %s',
                    alias, os.path.basename(bom_path))
       with open(bom_path, 'r') as stream:
@@ -401,6 +401,9 @@ class PublishBomCommand(RepositoryCommandProcessor):
 
     config_path = os.path.join(config_root, 'halconfig')
     logging.info('Copying configs from %s...', config_path)
+    if not os.path.exists(config_path) and repository.name == 'kayenta':
+      logging.warning('Kayenta does not yet have a halconfig.')
+      return
     for profile in os.listdir(config_path):
       profile_path = os.path.join(config_path, profile)
       if os.path.isfile(profile_path):
