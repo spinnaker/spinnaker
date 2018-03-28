@@ -29,12 +29,12 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
   private props$ = new Subject<IInstanceDetailsProps>();
 
   public componentDidMount() {
-    const { versionedCloudProviderService } = ReactInjector;
+    const { skinService } = ReactInjector;
 
     this.props$
       .do(() => this.setState({ loading: true, accountId: null }))
       .switchMap(({ app, $stateParams }) => {
-        const acct = versionedCloudProviderService.getAccountForInstance($stateParams.provider, $stateParams.instanceId, app);
+        const acct = skinService.getAccountForInstance($stateParams.provider, $stateParams.instanceId, app);
         return Observable.fromPromise(acct);
       })
       .takeUntil(this.destroy$)

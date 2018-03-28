@@ -5,20 +5,20 @@ import { IController, module } from 'angular';
 import { ACCOUNT_SERVICE } from 'core/account/account.service';
 import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
 
-export class VersionSelectorCtrl implements IController {
-  public command: any =  { version: '' };
+export class SkinSelectorCtrl implements IController {
+  public command =  { skin: '' };
 
-  constructor(public versionOptions: string[],
+  constructor(public skinOptions: string[],
               private $uibModalInstance: IModalInstanceService) {
     'ngInject';
 
-    if (versionOptions.length > 0) {
-      this.command.version = versionOptions[0];
+    if (skinOptions.length > 0) {
+      this.command.skin = skinOptions[0];
     }
   }
 
   public selectVersion(): void {
-    this.$uibModalInstance.close(this.command.version);
+    this.$uibModalInstance.close(this.command.skin);
   }
 
   public cancel(): void {
@@ -26,9 +26,9 @@ export class VersionSelectorCtrl implements IController {
   }
 }
 
-export const VERSION_SELECTOR_CTRL = 'spinnaker.core.cloudProvider.versionSelector.controller';
+export const SKIN_SELECTOR_CTRL = 'spinnaker.core.cloudProvider.skinSelector.controller';
 
-module(VERSION_SELECTOR_CTRL, [
+module(SKIN_SELECTOR_CTRL, [
   ACCOUNT_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-]).controller('versionSelectorCtrl', VersionSelectorCtrl);
+]).controller('skinSelectorCtrl', SkinSelectorCtrl);

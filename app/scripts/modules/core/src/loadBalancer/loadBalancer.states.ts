@@ -5,13 +5,13 @@ import { INestedState, StateConfigProvider } from 'core/navigation';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
 import { filterModelConfig } from 'core/loadBalancer/filter/loadBalancerFilter.model';
 import { LoadBalancers } from 'core/loadBalancer/LoadBalancers';
-import { VERSIONED_CLOUD_PROVIDER_SERVICE } from 'core/cloudProvider';
+import { SKIN_SERVICE } from 'core/cloudProvider';
 
 import { LoadBalancerDetails } from './LoadBalancerDetails';
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [
   APPLICATION_STATE_PROVIDER,
-  VERSIONED_CLOUD_PROVIDER_SERVICE,
+  SKIN_SERVICE,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
   const loadBalancerDetails: INestedState = {
     name: 'loadBalancerDetails',

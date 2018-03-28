@@ -16,20 +16,20 @@ module.exports = angular.module('spinnaker.core.serverGroup.transformer', [
         return accountService.getAccountDetails(account)
           .then((accountDetails) => {
             // If there is a versioned cloud provider, and the user does not have permission to view the account itself, it will
-            // fail to get the accountDetails and thus fail to get the appropriate providerVersion.
-            return normalizeServerGroupForProviderVersion(serverGroup, application, accountDetails && accountDetails.providerVersion);
+            // fail to get the accountDetails and thus fail to get the appropriate skin.
+            return normalizeServerGroupForSkin(serverGroup, application, accountDetails && accountDetails.skin);
           });
       } else {
-        return $q.resolve(normalizeServerGroupForProviderVersion(serverGroup, application));
+        return $q.resolve(normalizeServerGroupForSkin(serverGroup, application));
       }
     }
 
-    function normalizeServerGroupForProviderVersion(serverGroup, application, providerVersion) {
-      if (!providerServiceDelegate.hasDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer', providerVersion)) {
+    function normalizeServerGroupForSkin(serverGroup, application, skin) {
+      if (!providerServiceDelegate.hasDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer', skin)) {
         return null;
       }
       return providerServiceDelegate
-        .getDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer', providerVersion)
+        .getDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer', skin)
         .normalizeServerGroup(serverGroup, application);
     }
 

@@ -10,7 +10,7 @@ import { INSIGHT_NGMODULE } from 'core/insight/insight.module';
 import { CLUSTER_FILTER_MODEL } from '../cluster/filter/clusterFilter.model';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
-import { VERSION_SELECTION_SERVICE } from 'core/cloudProvider/versionSelection/versionSelection.service';
+import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
 
 import './rollups.less';
 
@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   CLUSTER_FILTER,
   require('../account/account.module').name,
   PROVIDER_SELECTION_SERVICE,
-  VERSION_SELECTION_SERVICE,
+  SKIN_SELECTION_SERVICE,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   FILTER_TAGS_COMPONENT,
   require('../utils/waypoints/waypointContainer.directive').name,
@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
 ])
   .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService,
                                           clusterFilterModel, MultiselectModel, insightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry,
-                                          versionSelectionService) {
+                                          skinSelectionService) {
 
     this.$onInit = () => {
       insightFilterStateModel.filtersHidden = true; // hidden to prevent filter flashing for on-demand apps
@@ -94,7 +94,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
 
     this.createServerGroup = function createServerGroup() {
       providerSelectionService.selectProvider(app, 'serverGroup').then(function(selectedProvider) {
-        versionSelectionService.selectVersion(selectedProvider).then(function(selectedVersion) {
+        skinSelectionService.selectSkin(selectedProvider).then(function(selectedVersion) {
           let provider = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup', selectedVersion);
           $uibModal.open({
             templateUrl: provider.cloneServerGroupTemplateUrl,

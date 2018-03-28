@@ -7,7 +7,7 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ILoadBalancer, IServerGroup } from 'core/domain';
 import { Application } from 'core/application';
 
-export class VersionedCloudProviderService {
+export class SkinService {
 
   constructor(private $log: ILogService,
               private $q: IQService,
@@ -19,48 +19,48 @@ export class VersionedCloudProviderService {
   public getValue(cloudProvider: string, accountName: string, key: string): IPromise<any> {
     return this.getAccounts().then(accounts => {
       const account = accounts.find(a => a.name === accountName && a.cloudProvider === cloudProvider);
-      return (account && account.providerVersion)
-        ? this.cloudProviderRegistry.getValue(cloudProvider, key, account.providerVersion)
+      return (account && account.skin)
+        ? this.cloudProviderRegistry.getValue(cloudProvider, key, account.skin)
         : this.cloudProviderRegistry.getValue(cloudProvider, key);
     });
   }
 
-  public getInstanceProviderVersion(cloudProvider: string, instanceId: string, app: Application): IPromise<string> {
+  public getInstanceSkin(cloudProvider: string, instanceId: string, app: Application): IPromise<string> {
     return this.getAccounts().then(accounts => {
-      const providerVersions = accounts.reduce(
+      const skins = accounts.reduce(
         (versions, account) => {
-          if (account.cloudProvider === cloudProvider && !!account.providerVersion) {
-            versions.add(account.providerVersion);
+          if (account.cloudProvider === cloudProvider && !!account.skin) {
+            versions.add(account.skin);
           }
           return versions;
         },
         new Set<string>(),
       );
 
-      if (providerVersions.size === 0) {
-        // Rely on the cloudProviderRegistry to return the default provider implementation.
+      if (skins.size === 0) {
+        // Rely on the cloudProviderRegistry to return the default skin implementation.
         return null;
-      } else if (providerVersions.size === 1) {
-        return Array.from(providerVersions)[0];
+      } else if (skins.size === 1) {
+        return Array.from(skins)[0];
       }
 
       return app.ready().then(() => {
         for (const serverGroup of (app.getDataSource('serverGroups').data as IServerGroup[])) {
           if (serverGroup.cloudProvider === cloudProvider && (serverGroup.instances || []).some(instance => instance.id === instanceId)) {
-            return this.mapAccountToProviderVersion(serverGroup.account);
+            return this.mapAccountToSkin(serverGroup.account);
           }
         }
         for (const loadBalancer of (app.getDataSource('loadBalancers').data as ILoadBalancer[])) {
           if (loadBalancer.cloudProvider === cloudProvider) {
             if ((loadBalancer.instances || []).some(instance => instance.id === instanceId)) {
-              return this.mapAccountToProviderVersion(loadBalancer.account);
+              return this.mapAccountToSkin(loadBalancer.account);
             }
             // Hit a crazy Babel bug - can't return from a nested for...of loop.
             for (let i = 0; i < (loadBalancer.serverGroups || []).length; i++) {
               const serverGroup = loadBalancer.serverGroups[i];
               if (serverGroup.isDisabled
                   && (serverGroup.instances || []).some(instance => instance.id === instanceId)) {
-                return this.mapAccountToProviderVersion(loadBalancer.account);
+                return this.mapAccountToSkin(loadBalancer.account);
               }
             }
           }
@@ -99,14 +99,14 @@ export class VersionedCloudProviderService {
       });
   }
 
-  private mapAccountToProviderVersion(accountName: string): IPromise<string> {
+  private mapAccountToSkin(accountName: string): IPromise<string> {
     return this.getAccounts().then(accounts => {
       const account = accounts.find(a => a.name === accountName);
-      return account ? account.providerVersion : null;
+      return account ? account.skin : null;
     });
   }
 }
 
-export const VERSIONED_CLOUD_PROVIDER_SERVICE = 'spinnaker.core.versionedCloudProvider.service';
-module(VERSIONED_CLOUD_PROVIDER_SERVICE, [])
-  .service('versionedCloudProviderService', VersionedCloudProviderService);
+export const SKIN_SERVICE = 'spinnaker.core.skin.service';
+module(SKIN_SERVICE, [])
+  .service('skinService', SkinService);

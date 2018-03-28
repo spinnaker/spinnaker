@@ -30,7 +30,7 @@ export class ProviderSelectionService {
 
       if (filterFn) {
         reducedAccounts = reducedAccounts.filter((acc: IAccountDetails) => {
-          return filterFn(application, acc, this.cloudProviderRegistry.getProvider(acc.cloudProvider, acc.providerVersion));
+          return filterFn(application, acc, this.cloudProviderRegistry.getProvider(acc.cloudProvider, acc.skin));
         });
       }
 

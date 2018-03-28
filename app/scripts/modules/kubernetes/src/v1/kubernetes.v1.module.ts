@@ -58,8 +58,8 @@ module(KUBERNETES_V1_MODULE, [
   .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('kubernetes', {
       name: 'Kubernetes',
-      providerVersion: 'v1',
-      defaultVersion: true,
+      skin: 'v1',
+      defaultSkin: true,
       cache: {
         configurer: 'kubernetesCacheConfigurer',
       },

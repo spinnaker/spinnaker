@@ -3,7 +3,7 @@
 import _ from 'lodash';
 
 import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
-import { VERSION_SELECTION_SERVICE } from 'core/cloudProvider/versionSelection/versionSelection.service';
+import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
 import { SECURITY_GROUP_FILTER_MODEL } from './filter/securityGroupFilter.model';
@@ -15,11 +15,11 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   SECURITY_GROUP_FILTER_SERVICE,
   SECURITY_GROUP_FILTER_MODEL,
   PROVIDER_SELECTION_SERVICE,
-  VERSION_SELECTION_SERVICE,
+  SKIN_SELECTION_SERVICE,
   require('angular-ui-bootstrap'),
   CLOUD_PROVIDER_REGISTRY,
 ])
-  .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, $timeout, versionSelectionService,
+  .controller('AllSecurityGroupsCtrl', function($scope, app, $uibModal, $timeout, skinSelectionService,
                                                 providerSelectionService, cloudProviderRegistry,
                                                 securityGroupFilterModel, securityGroupFilterService) {
 
@@ -69,7 +69,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
 
     this.createSecurityGroup = function createSecurityGroup() {
       providerSelectionService.selectProvider(app, 'securityGroup').then((selectedProvider) => {
-        versionSelectionService.selectVersion(selectedProvider).then((selectedVersion) => {
+        skinSelectionService.selectSkin(selectedProvider).then((selectedVersion) => {
           let provider = cloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
           var defaultCredentials = app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account,
             defaultRegion = app.defaultRegions[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.region;

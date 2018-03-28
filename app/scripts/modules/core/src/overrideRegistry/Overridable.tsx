@@ -96,20 +96,20 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
     }
 
     private getComponentFromCloudProvider(accountDetails: IAccountDetails): T {
-      const { cloudProvider, providerVersion } = accountDetails;
+      const { cloudProvider, skin } = accountDetails;
       const { cloudProviderRegistry } = ReactInjector;
       if (!cloudProvider) {
         return null;
       }
 
-      const CloudProviderComponentOverride = cloudProviderRegistry.getValue(cloudProvider, key, providerVersion);
+      const CloudProviderComponentOverride = cloudProviderRegistry.getValue(cloudProvider, key, skin);
       if (CloudProviderComponentOverride) {
         return CloudProviderComponentOverride as T;
       }
 
-      const cloudProviderTemplateOverride = cloudProviderRegistry.getValue(cloudProvider, key + 'TemplateUrl', providerVersion);
+      const cloudProviderTemplateOverride = cloudProviderRegistry.getValue(cloudProvider, key + 'TemplateUrl', skin);
       if (cloudProviderTemplateOverride) {
-        const cloudProviderController = cloudProviderRegistry.getValue(cloudProvider, key + 'Controller', providerVersion);
+        const cloudProviderController = cloudProviderRegistry.getValue(cloudProvider, key + 'Controller', skin);
         const controllerAs = cloudProviderController && cloudProviderController.includes(' as ') ? undefined : 'ctrl';
         const Component = (props: any) => (
           <AngularJSAdapter

@@ -23,6 +23,7 @@ export interface IAccount {
   requiredGroupMembership: string[];
   type: string;
   providerVersion?: string;
+  skin?: string;
 }
 
 export interface IAccountDetails extends IAccount {

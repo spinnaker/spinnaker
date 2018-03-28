@@ -76,13 +76,13 @@ export class ServerGroupDetailsWrapper extends React.Component<IServerGroupDetai
 
   private getServerGroupDetailsTemplate(): void {
     const { provider, accountId } = ReactInjector.$stateParams;
-    const { versionedCloudProviderService } = ReactInjector;
+    const { skinService } = ReactInjector;
     $q.all([
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsActions'),
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsSections'),
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
-      versionedCloudProviderService.getValue(provider, accountId, 'serverGroup.detailsController'),
+      skinService.getValue(provider, accountId, 'serverGroup.detailsActions'),
+      skinService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
+      skinService.getValue(provider, accountId, 'serverGroup.detailsSections'),
+      skinService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
+      skinService.getValue(provider, accountId, 'serverGroup.detailsController'),
     ]).then((values: [
       React.ComponentClass<IServerGroupActionsProps>,
       DetailsGetter,

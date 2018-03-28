@@ -5,7 +5,7 @@ import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/n
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider, Application, APPLICATION_MODEL_BUILDER, ApplicationModelBuilder
 } from 'core/application';
-import { VERSIONED_CLOUD_PROVIDER_SERVICE, VersionedCloudProviderService } from 'core/cloudProvider';
+import { SKIN_SERVICE, SkinService } from 'core/cloudProvider';
 
 import { SecurityGroupReader } from './securityGroupReader.service';
 import { filterModelConfig } from './filter/securityGroupFilter.model';
@@ -16,7 +16,7 @@ module(SECURITY_GROUP_STATES, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
   APPLICATION_MODEL_BUILDER,
-  VERSIONED_CLOUD_PROVIDER_SERVICE,
+  SKIN_SERVICE,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const securityGroupDetails: INestedState = {
@@ -92,10 +92,10 @@ module(SECURITY_GROUP_STATES, [
     views: {
       'main@': {
         templateUrl: require('../presentation/standalone.view.html'),
-        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
+        controllerProvider: ['$stateParams', 'skinService',
           ($stateParams: StateParams,
-           versionedCloudProviderService: VersionedCloudProviderService) => {
-            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.accountId, 'securityGroup.detailsController');
+           skinService: SkinService) => {
+            return skinService.getValue($stateParams.provider, $stateParams.accountId, 'securityGroup.detailsController');
         }],
         controllerAs: 'ctrl'
       }

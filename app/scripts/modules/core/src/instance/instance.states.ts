@@ -4,7 +4,7 @@ import { StateParams } from '@uirouter/angularjs';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, } from 'core/application';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
 import { Application } from 'core/application';
-import { VersionedCloudProviderService } from 'core/cloudProvider';
+import { SkinService } from 'core/cloudProvider';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InstanceDetails } from './details/InstanceDetails';
@@ -65,10 +65,10 @@ module(INSTANCE_STATES, [
     views: {
       'main@': {
         templateUrl: require('../presentation/standalone.view.html'),
-        controllerProvider: ['$stateParams', 'versionedCloudProviderService',
+        controllerProvider: ['$stateParams', 'skinService',
           ($stateParams: StateParams,
-           versionedCloudProviderService: VersionedCloudProviderService) => {
-            return versionedCloudProviderService.getValue($stateParams.provider, $stateParams.account, 'instance.detailsController');
+           skinService: SkinService) => {
+            return skinService.getValue($stateParams.provider, $stateParams.account, 'instance.detailsController');
         }],
         controllerAs: 'ctrl'
       }

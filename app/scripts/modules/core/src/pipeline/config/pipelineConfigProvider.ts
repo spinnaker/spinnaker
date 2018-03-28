@@ -116,7 +116,7 @@ export class PipelineConfigProvider implements IServiceProvider {
     providersFromStage = providersFromStage.filter((providerKey: string) => {
       const providerAccounts = accounts.filter(acc => acc.cloudProvider === providerKey);
       return !!providerAccounts.find(acc => {
-        const provider = this.cloudProviderRegistryProvider.getProvider(acc.cloudProvider, acc.providerVersion);
+        const provider = this.cloudProviderRegistryProvider.getProvider(acc.cloudProvider, acc.skin);
         return !isExcludedStageType(type, provider);
       });
     });
@@ -139,7 +139,7 @@ export class PipelineConfigProvider implements IServiceProvider {
     configurableStageTypes.forEach(type => type.cloudProviders = this.getCloudProvidersForStage(type, allStageTypes, accounts));
     configurableStageTypes = configurableStageTypes.filter(type => {
       return !accounts.every(a => {
-        const p = this.cloudProviderRegistryProvider.getProvider(a.cloudProvider, a.providerVersion);
+        const p = this.cloudProviderRegistryProvider.getProvider(a.cloudProvider, a.skin);
         return isExcludedStageType(type, p);
       });
     });

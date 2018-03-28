@@ -7,17 +7,17 @@
       <div class="col-md-3 sm-label-right">Version</div>
       <div class="col-md-5">
         <select class="form-control input-sm"
-                ng-model="ctrl.command.version"
+                ng-model="ctrl.command.skin"
                 required>
-          <option ng-repeat="version in ctrl.versionOptions"
-                  value="{{version}}"
-                  ng-selected="ctrl.command.version === version">{{version}}</option>
+          <option ng-repeat="skin in ctrl.skinOptions"
+                  value="{{skin}}"
+                  ng-selected="ctrl.command.skin === skin">{{skin}}</option>
         </select>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button class="btn btn-primary" ng-click="ctrl.selectVersion()" ng-disabled="!ctrl.command.version">
+      <button class="btn btn-primary" ng-click="ctrl.selectSkin()" ng-disabled="!ctrl.command.skin">
         <span class="glyphicon glyphicon-chevron-right"></span>
         Next
       </button>

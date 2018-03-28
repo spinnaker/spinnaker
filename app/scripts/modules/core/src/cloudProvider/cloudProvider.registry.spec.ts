@@ -103,24 +103,24 @@ describe('cloudProviderRegistry: API', function() {
     });
   });
 
-  describe('versioned provider configs', () => {
-    it('returns a value from a versioned provider config when providerVersion is specified', () => {
-      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v1' });
-      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v2' });
+  describe('skinned provider configs', () => {
+    it('returns a value from a skinned provider config when skin is specified', () => {
+      configurer.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v1' });
+      configurer.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v2' });
 
-      expect(configurer.$get().getValue('kubernetes', 'providerVersion', 'v1')).toBe('v1');
-      expect(configurer.$get().getValue('kubernetes', 'providerVersion', 'v2')).toBe('v2');
+      expect(configurer.$get().getValue('kubernetes', 'skin', 'v1')).toBe('v1');
+      expect(configurer.$get().getValue('kubernetes', 'skin', 'v2')).toBe('v2');
     });
 
-    it('returns a value from the default version if providerVersion is not specified', () => {
-      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v1' });
-      configurer.registerProvider('kubernetes', { name: 'kubernetes', providerVersion: 'v2', defaultVersion: true });
+    it('returns a value from the default skin if skin is not specified', () => {
+      configurer.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v1' });
+      configurer.registerProvider('kubernetes', { name: 'kubernetes', skin: 'v2', defaultSkin: true });
 
-      expect(configurer.$get().getValue('kubernetes', 'providerVersion')).toBe('v2');
+      expect(configurer.$get().getValue('kubernetes', 'skin')).toBe('v2');
     });
 
     // This behavior is implicitly tested in other tests, but demonstrates that the provider
-    // configs do not need to add a `defaultVersion` flag if there is only one config for that provider.
+    // configs do not need to add a `defaultSkin` flag if there is only one config for that provider.
     it('behaves reasonably if a provider does not define a default config version', () => {
       configurer.registerProvider('gce', { name: 'gce', key: 'value' });
 
