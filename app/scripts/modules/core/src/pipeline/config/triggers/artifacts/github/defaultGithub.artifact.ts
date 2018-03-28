@@ -18,6 +18,14 @@ module(DEFAULT_GITHUB_ARTIFACT, [
       'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'github/file';
+      const pathRegex = new RegExp('/repos/[^/]*/[^/]*/contents/(.*)$');
+
+      this.onReferenceChange = () => {
+        const results = pathRegex.exec(this.artifact.reference);
+        if (results !== null) {
+          this.artifact.name = results[1];
+        }
+      };
     },
     controllerAs: 'ctrl',
     template: `
@@ -31,6 +39,7 @@ module(DEFAULT_GITHUB_ARTIFACT, [
       <input type="text"
              placeholder="https://api.github.com/repos/$ORG/$REPO/contents/$FILEPATH"
              class="form-control input-sm"
+             ng-change="ctrl.onReferenceChange()"
              ng-model="ctrl.artifact.reference"/>
     </div>
   </div>
