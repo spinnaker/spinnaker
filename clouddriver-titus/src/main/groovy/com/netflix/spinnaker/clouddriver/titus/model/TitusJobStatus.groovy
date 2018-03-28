@@ -70,10 +70,10 @@ class TitusJobStatus implements com.netflix.spinnaker.clouddriver.model.JobStatu
 
   JobState convertTaskStateToJobState(TaskSummary task) {
     switch (task.state) {
-      case [TaskState.DEAD, TaskState.CRASHED, TaskState.FAILED]:
+      case [TaskState.DEAD, TaskState.CRASHED, TaskState.FAILED, TaskState.STOPPED]:
         JobState.Failed
         break
-      case [TaskState.FINISHED, TaskState.STOPPED]:
+      case [TaskState.FINISHED]:
         JobState.Succeeded
         break
       case [TaskState.STARTING, TaskState.QUEUED, TaskState.DISPATCHED]:
