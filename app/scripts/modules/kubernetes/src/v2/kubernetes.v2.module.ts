@@ -36,6 +36,8 @@ import { KUBERNETES_MANIFEST_ANNOTATIONS } from './manifest/manifestAnnotations.
 import { KUBERNETES_MULTI_MANIFEST_SELECTOR } from './manifest/selector/multiSelector.component';
 import { KUBERNETES_SHOW_MANIFEST_YAML } from './manifest/showManifestYaml.component';
 import { KUBERNETES_SHOW_MANIFEST_DETAILS } from './manifest/showManifestDetails.component';
+import { KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
+import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -70,6 +72,8 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_CONDITION,
   KUBERNETES_MANIFEST_SERVICE,
   KUBERNETES_MANIFEST_ARTIFACT,
+  KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER,
+  KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER,
   require('../securityGroup/reader.js').name,
   KUBERNETES_DEPLOY_MANIFEST_STAGE,
   KUBERNETES_DELETE_MANIFEST_STAGE,
@@ -106,6 +110,7 @@ module(KUBERNETES_V2_MODULE, [
         createLoadBalancerTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
         detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
         detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+        transformer: 'kubernetesV2LoadBalancerTransformer',
       },
       securityGroup: {
         reader: 'kubernetesSecurityGroupReader',
@@ -113,6 +118,7 @@ module(KUBERNETES_V2_MODULE, [
         createSecurityGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
         detailsController: 'kubernetesV2SecurityGroupDetailsCtrl',
         detailsTemplateUrl: require('./securityGroup/details/details.html'),
+        transformer: 'kubernetesV2SecurityGroupTransformer',
       },
       instance: {
         detailsController: 'kubernetesV2InstanceDetailsCtrl',
