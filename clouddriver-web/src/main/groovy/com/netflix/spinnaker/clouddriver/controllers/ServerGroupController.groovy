@@ -232,6 +232,9 @@ class ServerGroupController {
     Moniker moniker
     Map buildInfo
     Long createdTime
+
+    ServerGroup.Capacity capacity
+
     List<InstanceViewModel> instances
     Set<String> loadBalancers
     Set<String> targetGroups
@@ -276,6 +279,8 @@ class ServerGroupController {
       if (serverGroup.hasProperty("targetGroups")) {
         targetGroups = serverGroup.targetGroups
       }
+
+      capacity = serverGroup.getCapacity()
     }
   }
 
