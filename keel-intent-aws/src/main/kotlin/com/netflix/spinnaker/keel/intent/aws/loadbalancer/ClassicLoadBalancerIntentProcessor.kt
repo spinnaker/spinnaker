@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -55,17 +56,19 @@ class ClassicLoadBalancerIntentProcessor
   override fun supports(intent: Intent<IntentSpec>) = intent.spec is ClassicLoadBalancerSpec
 
   override fun converge(intent: LoadBalancerIntent): ConvergeResult {
-    val changeSummary = ChangeSummary(intent.id)
+    val changeSummary = ChangeSummary(intent.id())
     val spec = intent.spec as ClassicLoadBalancerSpec
 
-    log.info("Converging state for {}", value("intent", intent.id))
+    log.info("Converging state for {}", value("intent", intent.id()))
 
     val currentLoadBalancer = getLoadBalancer(spec)
 
-    if (currentStateUpToDate(intent.id, currentLoadBalancer, spec, changeSummary)) {
+    if (currentStateUpToDate(intent.id(), currentLoadBalancer, spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
+
+    changeSummary.type = if (currentLoadBalancer == null) ChangeType.CREATE else ChangeType.UPDATE
 
     return ConvergeResult(listOf(
         OrchestrationRequest(
@@ -73,7 +76,7 @@ class ClassicLoadBalancerIntentProcessor
           application = intent.spec.application,
           description = "Converging Classic Load Balancer (${spec.accountName}:${spec.region}:${spec.name})",
           job = classicLoadBalancerConverter.convertToJob(spec, changeSummary),
-          trigger = OrchestrationTrigger(intent.id)
+          trigger = OrchestrationTrigger(intent.id())
         )
       ),
       changeSummary

@@ -5,7 +5,10 @@ import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.hamkrest.shouldThrow
-import com.netflix.spinnaker.keel.clouddriver.model.*
+import com.netflix.spinnaker.keel.clouddriver.model.Credential
+import com.netflix.spinnaker.keel.clouddriver.model.Network
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
@@ -29,18 +32,18 @@ object MemoryCloudDriverCacheTest {
   )
 
   val subnets = setOf(
-    Subnet("1", "vpc-1", "prod", "us-west-2", "us-west-2a"),
-    Subnet("2", "vpc-1", "prod", "us-west-2", "us-west-2b"),
-    Subnet("3", "vpc-1", "prod", "us-west-2", "us-west-2c"),
-    Subnet("4", "vpc-1", "prod", "us-west-1", "us-west-1a"),
-    Subnet("5", "vpc-1", "prod", "us-west-1", "us-west-1b"),
-    Subnet("6", "vpc-1", "prod", "us-west-1", "us-west-1c"),
-    Subnet("7", "vpc-2", "test", "us-west-2", "us-west-2a"),
-    Subnet("8", "vpc-2", "test", "us-west-2", "us-west-2b"),
-    Subnet("9", "vpc-2", "test", "us-west-2", "us-west-2c"),
-    Subnet("a", "vpc-3", "prod", "us-west-2", "us-west-2a"),
-    Subnet("b", "vpc-3", "prod", "us-west-2", "us-west-2b"),
-    Subnet("c", "vpc-3", "prod", "us-west-2", "us-west-2c")
+    Subnet("1", "vpc-1", "prod", "us-west-2", "us-west-2a", null),
+    Subnet("2", "vpc-1", "prod", "us-west-2", "us-west-2b", null),
+    Subnet("3", "vpc-1", "prod", "us-west-2", "us-west-2c", null),
+    Subnet("4", "vpc-1", "prod", "us-west-1", "us-west-1a", null),
+    Subnet("5", "vpc-1", "prod", "us-west-1", "us-west-1b", null),
+    Subnet("6", "vpc-1", "prod", "us-west-1", "us-west-1c", null),
+    Subnet("7", "vpc-2", "test", "us-west-2", "us-west-2a", null),
+    Subnet("8", "vpc-2", "test", "us-west-2", "us-west-2b", null),
+    Subnet("9", "vpc-2", "test", "us-west-2", "us-west-2c", null),
+    Subnet("a", "vpc-3", "prod", "us-west-2", "us-west-2a", null),
+    Subnet("b", "vpc-3", "prod", "us-west-2", "us-west-2b", null),
+    Subnet("c", "vpc-3", "prod", "us-west-2", "us-west-2c", null)
   )
 
   @Test

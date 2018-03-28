@@ -65,7 +65,7 @@ class AmazonSecurityGroupIntentListener(
       // This is bad, but we don't need to throw an exception or anything here.
       // Just process the intent. It's unnecessary overhead, but not the end
       // of the world.
-      log.error("AmazonSecurityGroupIntent is a rule, but no parentId defined", kv("intentId", intent.id))
+      log.error("AmazonSecurityGroupIntent is a rule, but no parentId defined", kv("intentId", intent.id()))
       return
     }
 

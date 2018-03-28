@@ -55,7 +55,7 @@ open class OrcaIntentLauncher
       }
 
       intentActivityRepository.logConvergence(IntentConvergenceRecord(
-        intentId = intent.id,
+        intentId = intent.id(),
         changeType = result.changeSummary.type,
         orchestrations = orchestrationIds,
         messages = result.changeSummary.message,
@@ -72,7 +72,7 @@ open class OrcaIntentLauncher
       log.info(
         "Launched orchestrations {} for intent {}",
         value("orchestrations", orchestrationIds),
-        value("intentId", intent.id)
+        value("intentId", intent.id())
       )
 
       OrcaLaunchedIntentResult(orchestrationIds, result.changeSummary)

@@ -45,11 +45,11 @@ class PipelineIntentProcessor(
   override fun supports(intent: Intent<IntentSpec>) = intent is PipelineIntent
 
   override fun converge(intent: PipelineIntent): ConvergeResult {
-    val changeSummary = ChangeSummary(intent.id)
+    val changeSummary = ChangeSummary(intent.id())
 
     val currentState = getPipelineConfig(intent.spec.application, intent.spec.name)
 
-    if (currentStateUpToDate(intent.id, currentState, intent.spec, changeSummary)) {
+    if (currentStateUpToDate(intent.id(), currentState, intent.spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
@@ -73,7 +73,7 @@ class PipelineIntentProcessor(
         application = intent.spec.application,
         description = "Converging on desired pipeline state",
         job = pipelineConverter.convertToJob(intent.spec, changeSummary),
-        trigger = OrchestrationTrigger(intent.id)
+        trigger = OrchestrationTrigger(intent.id())
       )
     ), changeSummary)
   }

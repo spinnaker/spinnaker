@@ -53,7 +53,7 @@ class RedisTraceRepository
           "startingState" to objectMapper.writeValueAsString(trace.startingState)
         ))
         c.zadd(traceIndexKey(), createTs.toDouble(), traceKey)
-        c.zadd(intentTracesKey(trace.intent.id), createTs.toDouble(), traceKey)
+        c.zadd(intentTracesKey(trace.intent.id()), createTs.toDouble(), traceKey)
       }
     }
   }

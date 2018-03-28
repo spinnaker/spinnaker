@@ -71,11 +71,11 @@ class IntentController
       intentRepository.upsertIntent(intent)
 
       if (keelProperties.immediatelyRunIntents) {
-        log.info("Immediately scheduling intent {}", StructuredArguments.value("intent", intent.id))
+        log.info("Immediately scheduling intent {}", StructuredArguments.value("intent", intent.id()))
         scheduleService.converge(intent)
       }
 
-      intentList.add(UpsertIntentResponse(intent.id, intent.status))
+      intentList.add(UpsertIntentResponse(intent.id(), intent.status))
     }
 
     return intentList

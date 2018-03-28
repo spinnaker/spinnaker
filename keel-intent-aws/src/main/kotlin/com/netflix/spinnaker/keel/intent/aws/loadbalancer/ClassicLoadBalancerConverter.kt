@@ -21,26 +21,31 @@ import com.amazonaws.services.elasticloadbalancing.model.Listener
 import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.Network
+import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
-import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
-import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
+import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 import com.netflix.spinnaker.keel.intent.SpecConverter
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
 import com.netflix.spinnaker.keel.model.Job
 import org.springframework.stereotype.Component
 
 @Component
 class ClassicLoadBalancerConverter(
-  private val cloudDriver: CloudDriverCache
+  private val cloudDriver: CloudDriverService,
+  private val cloudDriverCache: CloudDriverCache
 ) : SpecConverter<ClassicLoadBalancerSpec, LoadBalancerDescription> {
 
   override fun convertToState(spec: ClassicLoadBalancerSpec): LoadBalancerDescription {
-    val vpcId = cloudDriver.networkBy(spec.vpcName!!, spec.accountName, spec.region).id
-    val zones = cloudDriver.availabilityZonesBy(spec.accountName, vpcId, spec.region)
+    val vpc = cloudDriverCache.networkBy(spec.vpcName!!, spec.accountName, spec.region)
+    val zones = cloudDriverCache.availabilityZonesBy(spec.accountName, vpc.id, spec.region)
+    val subnets = getSubnetsForAvailabilityZones(vpc, spec.subnets, spec.availabilityZones, zones)
 
     return LoadBalancerDescription()
       .withLoadBalancerName(spec.name)
       .withScheme(spec.scheme?.toString())
-      .withVPCId(vpcId)
+      .withVPCId(vpc.id)
       .withAvailabilityZones(
         spec.availabilityZones.let { zoneConfig ->
           when (zoneConfig) {
@@ -49,6 +54,7 @@ class ClassicLoadBalancerConverter(
           }
         }
       )
+      .withSubnets(subnets.map { it.id })
       .withSecurityGroups(spec.securityGroupNames)
       .withHealthCheck(
         spec.healthCheck.run {
@@ -77,20 +83,27 @@ class ClassicLoadBalancerConverter(
 
   override fun convertFromState(state: LoadBalancerDescription): ClassicLoadBalancerSpec =
     state.run {
-      val vpc = cloudDriver.networkBy(vpcId!!)
-      val zones = cloudDriver.availabilityZonesBy(vpc.account, vpc.id, vpc.region)
+      if (vpcId == null) {
+        throw DeclarativeException("EC2-Classic load balancers are not supported: ${state.loadBalancerName}")
+      }
+
+      val vpc = cloudDriverCache.networkBy(vpcId!!)
+      val zones = cloudDriverCache.availabilityZonesBy(vpc.account, vpc.id, vpc.region)
+      val subnets = cloudDriver.listSubnets("aws").first { state.subnets.contains(it.id) }.purpose
+
       ClassicLoadBalancerSpec(
         accountName = vpc.account,
         region = vpc.region,
         vpcName = vpc.name,
+        subnets = subnets,
         application = loadBalancerName.substringBefore("-"),
         name = loadBalancerName,
         healthCheck = healthCheck.convertFromState(),
-        availabilityZones = if (availabilityZones == zones) Automatic else Manual(availabilityZones.toSet()),
+        availabilityZones = if (availabilityZones == zones) Manual(zones.toSet()) else Manual(availabilityZones.toSet()),
         scheme = Scheme.valueOf(scheme),
         listeners = listenerDescriptions.map { it.listener.toClassicListener() }.toSet(),
         securityGroupNames = securityGroups.map {
-          cloudDriver.securityGroupSummaryBy(vpc.account, vpc.region, it).name
+          cloudDriverCache.securityGroupSummaryBy(vpc.account, vpc.region, it).name
         }.toSortedSet()
       )
     }
@@ -99,8 +112,8 @@ class ClassicLoadBalancerConverter(
     changeSummary.addMessage("Converging load balancer ${spec.name}")
 
     // TODO-AJ this is unnecessary overhead! consider adding expanded availabilityZones to spec
-    val vpc = cloudDriver.networkBy(spec.vpcName, spec.accountName, spec.region)
-    val zones = cloudDriver.availabilityZonesBy(vpc.account, vpc.id, vpc.region)
+    val vpc = cloudDriverCache.networkBy(spec.vpcName, spec.accountName, spec.region)
+    val zones = cloudDriverCache.availabilityZonesBy(vpc.account, vpc.id, vpc.region)
 
     return listOf(
       Job(
@@ -115,6 +128,8 @@ class ClassicLoadBalancerConverter(
           "loadBalancerType" to "classic",
           "securityGroups" to spec.securityGroupNames,
           "vpcId" to vpc.id,
+          "subnetType" to spec.subnets,
+          "isInternal" to if (spec.scheme == null) true else spec.scheme == Scheme.internal,
 
           "listeners" to spec.listeners.map {
             mutableMapOf(
@@ -125,7 +140,7 @@ class ClassicLoadBalancerConverter(
             )
           },
 
-          "healthCheck" to spec.healthCheck.target.toString(),
+          "healthCheck" to spec.healthCheck.target.render(),
           "healthTimeout" to spec.healthCheck.timeout,
           "healthInterval" to spec.healthCheck.interval,
           "healthyThreshold" to spec.healthCheck.healthyThreshold,
@@ -155,6 +170,19 @@ class ClassicLoadBalancerConverter(
       healthyThreshold = healthyThreshold,
       unhealthyThreshold = unhealthyThreshold
     )
+
+  private fun getSubnetsForAvailabilityZones(vpc: Network,
+                                             subnetPurpose: String?,
+                                             specAzConfig: AvailabilityZoneConfig,
+                                             availabilityZones: Collection<String>): List<Subnet> {
+    val zones = when (specAzConfig) {
+      is Manual -> specAzConfig.availabilityZones
+      else -> availabilityZones
+    }
+    return cloudDriver.listSubnets("aws")
+      .filter { it.vpcId == vpc.id && it.purpose == subnetPurpose && zones.contains(it.availabilityZone) }
+  }
+
 }
 
 fun Listener.toClassicListener(): ClassicListener =

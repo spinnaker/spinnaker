@@ -21,16 +21,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.netflix.spinnaker.keel.IntentIdProvider
 import com.netflix.spinnaker.keel.intent.LoadBalancerSpec
 import com.netflix.spinnaker.keel.intent.aws.jackson.AvailabilityZoneConfigDeserializer
 import com.netflix.spinnaker.keel.intent.aws.jackson.AvailabilityZoneConfigSerializer
-
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
-import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Http
-import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Https
-import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Ssl
-import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Tcp
-import java.util.TreeSet
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.*
 
 @JsonTypeName("aws.ClassicLoadBalancer")
 data class ClassicLoadBalancerSpec(
@@ -40,13 +36,16 @@ data class ClassicLoadBalancerSpec(
   val region: String,
   val securityGroupNames: java.util.SortedSet<String>,
   val vpcName: String?,
+  val subnets: String?,
   val availabilityZones: AvailabilityZoneConfig = Automatic,
   val scheme: Scheme?,
   val listeners: Set<ClassicListener>,
   val healthCheck: HealthCheckSpec
-) : LoadBalancerSpec() {
+) : LoadBalancerSpec(), IntentIdProvider {
 
   override fun cloudProvider() = "aws"
+
+  override fun intentId() = "LoadBalancer:aws:$accountName:$region:$name"
 }
 
 data class HealthCheckSpec(
@@ -69,7 +68,7 @@ sealed class HealthEndpoint(
 ) {
   abstract val port: Int
 
-  override fun toString() = "$protocol:$port"
+  open fun render(): String = "$protocol:$port"
 
   @JsonTypeName("TCP")
   data class Tcp(override val port: Int) : HealthEndpoint(Protocol.TCP)
@@ -79,12 +78,12 @@ sealed class HealthEndpoint(
 
   @JsonTypeName("HTTP")
   data class Http(override val port: Int, val path: String) : HealthEndpoint(Protocol.HTTP) {
-    override fun toString() = "$protocol:$port$path"
+    override fun render() = "$protocol:$port$path"
   }
 
   @JsonTypeName("HTTPS")
   data class Https(override val port: Int, val path: String) : HealthEndpoint(Protocol.HTTPS) {
-    override fun toString() = "$protocol:$port$path"
+    override fun render() = "$protocol:$port$path"
   }
 }
 

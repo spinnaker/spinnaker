@@ -52,7 +52,7 @@ class ConvergeIntentHandler
 
   override fun handle(message: ConvergeIntent) {
     if (clock.millis() > message.timeoutTtl) {
-      log.warn("Intent timed out, canceling converge for {}", value("intent", message.intent.id))
+      log.warn("Intent timed out, canceling converge for {}", value("intent", message.intent.id()))
       applicationEventPublisher.publishEvent(IntentConvergeTimeoutEvent(message.intent))
 
       registry.counter(canceledId.withTags("kind", message.intent.kind, "reason", CANCELLATION_REASON_TIMEOUT))
@@ -61,8 +61,8 @@ class ConvergeIntentHandler
 
     val intent = getIntent(message)
     if (intent == null) {
-      log.warn("Intent no longer exists, canceling converge for {}", value("intent", message.intent.id))
-      applicationEventPublisher.publishEvent(IntentConvergeNotFoundEvent(message.intent.id))
+      log.warn("Intent no longer exists, canceling converge for {}", value("intent", message.intent.id()))
+      applicationEventPublisher.publishEvent(IntentConvergeNotFoundEvent(message.intent.id()))
 
       registry.counter(canceledId.withTags("kind", message.intent.kind, "reason", CANCELLATION_REASON_NOT_FOUND))
       return
@@ -74,7 +74,7 @@ class ConvergeIntentHandler
       orcaIntentLauncher.launch(intent)
         .takeIf { it.orchestrationIds.isNotEmpty() }
         ?.also { result ->
-          intentActivityRepository.addOrchestrations(intent.id, result.orchestrationIds)
+          intentActivityRepository.addOrchestrations(intent.id(), result.orchestrationIds)
           applicationEventPublisher.publishEvent(IntentConvergeSuccessEvent(intent, result.orchestrationIds))
 
           if (intent.status == IntentStatus.ISOLATED_ACTIVE) {
@@ -87,7 +87,7 @@ class ConvergeIntentHandler
         }
       registry.counter(invocationsId.withTags(message.intent.getMetricTags("result", "success")))
     } catch (t: Throwable) {
-      log.error("Failed launching intent: ${intent.id}", t)
+      log.error("Failed launching intent: ${intent.id()}", t)
       applicationEventPublisher.publishEvent(
         IntentConvergeFailureEvent(intent, t.message ?: "Could not determine reason", t)
       )
@@ -100,10 +100,10 @@ class ConvergeIntentHandler
       return message.intent
     }
 
-    log.debug("Refreshing intent state for {}", value("intent", message.intent.id))
+    log.debug("Refreshing intent state for {}", value("intent", message.intent.id()))
     registry.counter(refreshesId.withTags(message.intent.getMetricTags())).increment()
 
-    return intentRepository.getIntent(message.intent.id)
+    return intentRepository.getIntent(message.intent.id())
   }
 
   override val messageType = ConvergeIntent::class.java

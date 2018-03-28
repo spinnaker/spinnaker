@@ -5,5 +5,6 @@ data class Subnet(
   val vpcId: String,
   val account: String,
   val region: String,
-  val availabilityZone: String
+  val availabilityZone: String,
+  val purpose: String?
 )

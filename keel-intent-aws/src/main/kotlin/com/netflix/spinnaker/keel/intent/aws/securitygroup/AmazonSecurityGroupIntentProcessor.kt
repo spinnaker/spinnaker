@@ -56,7 +56,7 @@ class AmazonSecurityGroupIntentProcessor(
   override fun supports(intent: Intent<IntentSpec>) = intent is AmazonSecurityGroupIntent
 
   override fun converge(intent: AmazonSecurityGroupIntent): ConvergeResult {
-    val changeSummary = ChangeSummary(intent.id)
+    val changeSummary = ChangeSummary(intent.id())
     val currentState = loader.load(intent.spec)
 
     traceRepository.record(Trace(
@@ -77,14 +77,14 @@ class AmazonSecurityGroupIntentProcessor(
       }
 
       val transientSpec = converter.convertFromState(currentState)
-        ?: throw DeclarativeException("Spec converted from current state was null for intent: ${intent.id}")
+        ?: throw DeclarativeException("Spec converted from current state was null for intent: ${intent.id()}")
 
       rootIntent = AmazonSecurityGroupIntent(transientSpec)
     }
 
     val desiredRootIntent = mergeRootIntent(rootIntent, intent)
 
-    if (currentStateUpToDate(intent.id, currentState, desiredRootIntent.spec, changeSummary)) {
+    if (currentStateUpToDate(intent.id(), currentState, desiredRootIntent.spec, changeSummary)) {
       changeSummary.addMessage(ConvergeReason.UNCHANGED.reason)
       return ConvergeResult(listOf(), changeSummary)
     }
@@ -102,9 +102,9 @@ class AmazonSecurityGroupIntentProcessor(
       OrchestrationRequest(
         name = "Upsert security group",
         application = intent.spec.application,
-        description = "Converging on desired state for ${intent.id}",
+        description = "Converging on desired state for ${intent.id()}",
         job = converter.convertToJob(desiredRootIntent.spec, changeSummary),
-        trigger = OrchestrationTrigger(intent.id)
+        trigger = OrchestrationTrigger(intent.id())
       )
     ), changeSummary)
   }
@@ -114,7 +114,7 @@ class AmazonSecurityGroupIntentProcessor(
    * the root intent for the duration of the convergence.
    */
   private fun mergeRootIntent(rootIntent: AmazonSecurityGroupIntent, thisIntent: AmazonSecurityGroupIntent): AmazonSecurityGroupIntent {
-    val childRules = getChildRules(rootIntent.id)
+    val childRules = getChildRules(rootIntent.id())
 
     rootIntent.spec.inboundRules.addAll(childRules.map { it.spec.inboundRules }.flatten())
     if (thisIntent.spec is AmazonSecurityGroupRuleSpec) {

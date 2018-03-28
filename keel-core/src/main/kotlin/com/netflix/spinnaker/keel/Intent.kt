@@ -46,9 +46,9 @@ abstract class Intent<out S : IntentSpec>
   val cas: Long? = null
 ) {
 
-  abstract val id: String
+  protected abstract val id: String
 
-  @JsonGetter fun id() = id
+  @JsonGetter fun id() = if (spec is IntentIdProvider) spec.intentId() else id
 
   @JsonIgnore
   fun getMetricTags() = listOf(BasicTag("kind", kind), BasicTag("schema", schema))
@@ -69,4 +69,11 @@ abstract class Intent<out S : IntentSpec>
 
   @Suppress("UNCHECKED_CAST")
   fun <T : Policy<Any>> getPolicy(klass: KClass<T>) = policies.firstOrNull { klass.isInstance(it) } as T?
+}
+
+/**
+ * Allows an IntentSpec to provide the Intent ID.
+ */
+interface IntentIdProvider {
+  fun intentId(): String
 }

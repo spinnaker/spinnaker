@@ -6,22 +6,22 @@ import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.clouddriver.model.Moniker
-import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.*
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Automatic
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Http
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.HealthEndpoint.Https
-import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Protocol.*
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Protocol.SSL
+import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Protocol.TCP
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.Scheme.internal
 import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.Test
 
 object ClassicLoadBalancerConverterTest {
 
-  val cloudDriver = mock<CloudDriverCache>()
-  val converter = ClassicLoadBalancerConverter(cloudDriver)
+  val cloudDriverService = mock<CloudDriverService>()
+  val cloudDriverCache = mock<CloudDriverCache>()
+  val converter = ClassicLoadBalancerConverter(cloudDriverService, cloudDriverCache)
 
   val spec = ClassicLoadBalancerSpec(
     vpcName = "vpcName",
@@ -31,6 +31,7 @@ object ClassicLoadBalancerConverterTest {
     region = "us-west-2",
     securityGroupNames = sortedSetOf("covfefe", "nf-infrastructure", "nf-datacenter"),
     availabilityZones = Automatic,
+    subnets = "internal",
     scheme = internal,
     listeners = setOf(ClassicListener(TCP, 80, TCP, 7001), ClassicListener(SSL, 443, SSL, 7002)),
     healthCheck = HealthCheckSpec(Http(7001, "/healthcheck"))
@@ -41,6 +42,7 @@ object ClassicLoadBalancerConverterTest {
     .withLoadBalancerName("covfefe-elb")
     .withSecurityGroups("1", "2", "3")
     .withAvailabilityZones("us-west-2a", "us-west-2b", "us-west-2c")
+    .withSubnets(listOf("subnet-1", "subnet-2", "subnet-3"))
     .withScheme("internal")
     .withHealthCheck(
       HealthCheck()
@@ -67,11 +69,20 @@ object ClassicLoadBalancerConverterTest {
     SecurityGroup(type = "aws", id = "2", name = "nf-datacenter", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe")),
     SecurityGroup(type = "aws", id = "3", name = "covfefe", description = null, accountName = "prod", region = "us-west-2", vpcId = "vpc-1", moniker = Moniker("covfefe"))
   )
+  val subnets = setOf(
+    Subnet(id = "subnet-1", vpcId = "vpc-1", account = "prod", region = "us-west-2", availabilityZone = "us-west-2a", purpose = "internal"),
+    Subnet(id = "subnet-2", vpcId = "vpc-1", account = "prod", region = "us-west-2", availabilityZone = "us-west-2b", purpose = "internal"),
+    Subnet(id = "subnet-3", vpcId = "vpc-1", account = "prod", region = "us-west-2", availabilityZone = "us-west-2c", purpose = "internal"),
+    Subnet(id = "subnet-4", vpcId = "vpc-1", account = "prod", region = "us-west-2", availabilityZone = "us-west-2a", purpose = "external"),
+    Subnet(id = "subnet-5", vpcId = "vpc-1", account = "prod", region = "us-west-2", availabilityZone = "us-west-2b", purpose = "external"),
+    Subnet(id = "subnet-6", vpcId = "vpc-1", account = "prod", region = "us-west-2", availabilityZone = "us-west-2c", purpose = "external")
+  )
 
   @Test
   fun `converts spec to system state`() {
-    whenever(cloudDriver.networkBy(spec.vpcName!!, spec.accountName, spec.region)) doReturn vpc
-    whenever(cloudDriver.availabilityZonesBy(spec.accountName, vpc.id, spec.region)) doReturn zones
+    whenever(cloudDriverCache.networkBy(spec.vpcName!!, spec.accountName, spec.region)) doReturn vpc
+    whenever(cloudDriverCache.availabilityZonesBy(spec.accountName, vpc.id, spec.region)) doReturn zones
+    whenever(cloudDriverService.listSubnets("aws")) doReturn subnets
 
     converter.convertToState(spec)
       .apply {
@@ -88,11 +99,12 @@ object ClassicLoadBalancerConverterTest {
 
   @Test
   fun `converts system state to spec`() {
-    whenever(cloudDriver.networkBy(elb.vpcId!!)) doReturn vpc
-    whenever(cloudDriver.securityGroupSummaryBy(eq(vpc.account), eq(vpc.region), any())) doAnswer { invocation ->
+    whenever(cloudDriverCache.networkBy(elb.vpcId!!)) doReturn vpc
+    whenever(cloudDriverCache.securityGroupSummaryBy(eq(vpc.account), eq(vpc.region), any())) doAnswer { invocation ->
       securityGroups.firstOrNull { it.id == invocation.arguments[2] }?.toSummary()
     }
-    whenever(cloudDriver.availabilityZonesBy(vpc.account, vpc.id, vpc.region)) doReturn zones
+    whenever(cloudDriverCache.availabilityZonesBy(vpc.account, vpc.id, vpc.region)) doReturn zones
+    whenever(cloudDriverService.listSubnets("aws")) doReturn subnets
 
     converter.convertFromState(elb)
       .let { spec ->
@@ -102,7 +114,7 @@ object ClassicLoadBalancerConverterTest {
         spec.region shouldEqual vpc.region
         spec.securityGroupNames shouldEqual securityGroups.map { it.name }.toSet()
         spec.vpcName shouldEqual vpc.name
-        spec.availabilityZones shouldEqual Automatic
+        spec.availabilityZones shouldEqual AvailabilityZoneConfig.Manual(setOf("us-west-2a", "us-west-2b", "us-west-2c"))
         spec.healthCheck shouldEqual HealthCheckSpec(Https(7002, "/healthcheck"), 30, 20, 5, 3)
         spec.listeners shouldEqual elb.listenerDescriptions.map { it.listener.toClassicListener() }.toSet()
         spec.scheme shouldEqual internal

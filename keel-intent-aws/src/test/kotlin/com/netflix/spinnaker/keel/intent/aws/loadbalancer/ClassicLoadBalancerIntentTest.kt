@@ -77,7 +77,8 @@ object ClassicLoadBalancerIntentTest {
       scheme = internal,
       listeners = setOf(ClassicListener(TCP, 80, TCP, 7001), ClassicListener(SSL, 443, SSL, 7002, "my-ssl-certificate")),
       healthCheck = HealthCheckSpec(Http(7001, "/healthcheck")),
-      vpcName = "vpcName"
+      vpcName = "vpcName",
+      subnets = "internal"
     )
   )
 
@@ -89,13 +90,14 @@ object ClassicLoadBalancerIntentTest {
     "application": "covfefe",
     "name": "covfefe-elb",
     "accountName": "mgmt",
-    "vpcName": "vpcName",
     "region": "us-west-2",
     "securityGroupNames": [
       "covfefe",
       "nf-datacenter",
       "nf-infrastructure"
     ],
+    "vpcName": "vpcName",
+    "subnets": "internal",
     "availabilityZones": "automatic",
     "scheme": "internal",
     "listeners": [
@@ -129,7 +131,7 @@ object ClassicLoadBalancerIntentTest {
   "labels": {},
   "attributes": [],
   "policies": [],
-  "id": "LoadBalancer:aws:mgmt:covfefe-elb",
+  "id": "LoadBalancer:aws:mgmt:us-west-2:covfefe-elb",
   "schema": "0"
 }
 """
