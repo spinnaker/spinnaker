@@ -353,10 +353,7 @@ class BaseMetricsRegistry(object):
       except Exception as ex:
         logging.exception('label_func failed with %s', ex.message)
         raise ex
-<<<<<<< HEAD
       raise
-=======
->>>>>>> 6389d92... fix(validate): Tolerate some bintray unreliability.
     finally:
       timer = self.get_metric(MetricFamily.TIMER, name, outcome_labels)
       timer.observe(time.time() - start_time)
