@@ -116,6 +116,12 @@ subprojects { project ->
     }
   }
 
+  tasks.withType(JavaExec) {
+    if (System.getProperty('DEBUG', 'false') == 'true') {
+      jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7102'
+    }
+  }
+
   dependencies {
     compile spinnaker.dependency('groovy')
     spinnaker.group('test')
