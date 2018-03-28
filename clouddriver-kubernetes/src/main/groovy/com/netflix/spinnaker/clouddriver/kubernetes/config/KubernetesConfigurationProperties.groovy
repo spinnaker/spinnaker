@@ -39,6 +39,7 @@ class KubernetesConfigurationProperties {
     Boolean configureImagePullSecrets
     List<String> namespaces
     List<String> omitNamespaces
+    String skin
     Integer cacheThreads
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     List<String> requiredGroupMembership

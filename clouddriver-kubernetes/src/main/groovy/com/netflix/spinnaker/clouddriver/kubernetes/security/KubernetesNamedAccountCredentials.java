@@ -54,6 +54,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   final private Boolean serviceAccount;
   private List<String> namespaces;
   private List<String> omitNamespaces;
+  private String skin;
   final private int cacheThreads;
   private C credentials;
   private final List<String> requiredGroupMembership;
@@ -76,6 +77,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
                                     Boolean serviceAccount,
                                     List<String> namespaces,
                                     List<String> omitNamespaces,
+                                    String skin,
                                     int cacheThreads,
                                     List<LinkedDockerRegistryConfiguration> dockerRegistries,
                                     List<String> requiredGroupMembership,
@@ -95,6 +97,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     this.serviceAccount = serviceAccount;
     this.namespaces = namespaces;
     this.omitNamespaces = omitNamespaces;
+    this.skin = skin;
     this.cacheThreads = cacheThreads;
     this.requiredGroupMembership = requiredGroupMembership;
     this.permissions = permissions;
@@ -116,6 +119,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
   @Override
   public ProviderVersion getProviderVersion() {
     return providerVersion;
+  }
+
+  @Override
+  public String getSkin() {
+    return skin != null ? skin : getProviderVersion().toString();
   }
 
   @Override
@@ -176,6 +184,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
     Boolean configureImagePullSecrets;
     List<String> namespaces;
     List<String> omitNamespaces;
+    String skin;
     int cacheThreads;
     C credentials;
     List<String> requiredGroupMembership;
@@ -285,6 +294,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
 
     Builder omitNamespaces(List<String> omitNamespaces) {
       this.omitNamespaces = omitNamespaces;
+      return this;
+    }
+
+    Builder skin(String skin) {
+      this.skin = skin;
       return this;
     }
 
@@ -442,6 +456,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials> 
           serviceAccount,
           namespaces,
           omitNamespaces,
+          skin,
           cacheThreads,
           dockerRegistries,
           requiredGroupMembership,

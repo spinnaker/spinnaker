@@ -92,6 +92,7 @@ class KubernetesNamedAccountCredentialsInitializer implements CredentialsInitial
           .configureImagePullSecrets(managedAccount.configureImagePullSecrets)
           .namespaces(managedAccount.namespaces)
           .omitNamespaces(managedAccount.omitNamespaces)
+          .skin(managedAccount.skin)
           .cacheThreads(managedAccount.cacheThreads ?: DEFAULT_CACHE_THREADS)
           .dockerRegistries(managedAccount.dockerRegistries)
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
