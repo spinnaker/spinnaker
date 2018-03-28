@@ -193,6 +193,9 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     git_prefix = bom['artifactSources']['gitPrefix']
     repositories = []
     for service_name, spec in bom['services'].items():
+      if spec is None:
+        logging.warning('Skipping %s because it was null', service_name)
+        continue
       if service_name in ['monitoring-third-party', 'defaultArtifact']:
         continue
       repo_name = self.service_name_to_repository_name(service_name)
