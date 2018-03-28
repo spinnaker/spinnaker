@@ -109,7 +109,13 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       }
 
       KubernetesResourceProperties properties = findResourceProperties(manifest);
+      if (properties == null) {
+        throw new IllegalArgumentException("Unsupported Kubernetes object kind '" + manifest.getKind().toString() + "', unable to continue.");
+      }
       KubernetesHandler deployer = properties.getHandler();
+      if (deployer == null) {
+        throw new IllegalArgumentException("No deployer available for Kubernetes object kind '" + manifest.getKind().toString() + "', unable to continue.");
+      }
 
       getTask().updateStatus(OP_NAME, "Swapping out artifacts in " + manifest.getFullResourceName() + " from context...");
       ReplaceResult replaceResult = deployer.replaceArtifacts(manifest, artifacts);
