@@ -141,7 +141,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     try {
       t1.join()
     } catch (InterruptedException e) {
-      e.printStackTrace()
+      log.warn("Thread interrupted", e)
     }
 
     log.info('executing dependent pipeline {}', pipeline.id)
