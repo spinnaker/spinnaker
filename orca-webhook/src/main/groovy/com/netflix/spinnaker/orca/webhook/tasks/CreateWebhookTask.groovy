@@ -106,6 +106,15 @@ class CreateWebhookTask implements RetryableTask {
         outputs.webhook << [statusEndpoint: statusUrl]
         return new TaskResult(ExecutionStatus.SUCCEEDED, outputsDeprecated + outputs)
       }
+      if (stage.context.containsKey("expectedArtifacts")) {
+        try {
+          def artifacts = new JsonContext().parse(response.body).read("artifacts")
+          outputs << [artifacts: artifacts]
+        } catch(Exception e) {
+          outputs.webhook << [error: "Expected artifacts in webhook response none were found"]
+          return new TaskResult(ExecutionStatus.TERMINAL, outputs)
+        }
+      }
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputsDeprecated + outputs)
     } else {
       outputs.webhook << [error: "The request did not return a 2xx/3xx status"]

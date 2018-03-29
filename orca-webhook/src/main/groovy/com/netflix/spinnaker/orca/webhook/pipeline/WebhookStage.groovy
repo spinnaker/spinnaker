@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.orca.webhook.tasks.MonitorWebhookTask
+import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -39,6 +40,10 @@ class WebhookStage implements StageDefinitionBuilder, RestartableStage, Cancella
     if (waitForCompletion?.toBoolean()) {
       builder
         .withTask("monitorWebhook", MonitorWebhookTask)
+    }
+    if (stage.context.containsKey("expectedArtifacts")) {
+      builder
+        .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
     }
   }
 
