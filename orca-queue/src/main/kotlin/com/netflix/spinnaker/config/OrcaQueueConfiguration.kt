@@ -33,7 +33,8 @@ import java.time.Clock
 @Configuration
 @ComponentScan(basePackages = [
   "com.netflix.spinnaker.orca.q",
-  "com.netflix.spinnaker.orca.q.handler"
+  "com.netflix.spinnaker.orca.q.handler",
+  "com.netflix.spinnaker.orca.q.trafficshaping"
 ])
 @EnableScheduling
 class OrcaQueueConfiguration {
