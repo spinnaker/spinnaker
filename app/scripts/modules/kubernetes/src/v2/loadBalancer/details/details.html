@@ -73,6 +73,10 @@
       <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
     </collapsible-section>
 
+    <collapsible-section heading="Events" expanded="true">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </collapsible-section>
+
     <collapsible-section heading="Labels" expanded="true">
       <kubernetes-manifest-labels manifest="ctrl.loadBalancer.manifest"></kubernetes-manifest-labels>
     </collapsible-section>
