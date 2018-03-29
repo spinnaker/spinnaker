@@ -59,7 +59,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
   @Bean fun orcaToKeikoSerializationMigrator(objectMapper: ObjectMapper) = OrcaToKeikoSerializationMigrator(objectMapper)
 
-  @Bean(name = arrayOf("queueImpl")) override fun queue(
+  @Bean override fun queue(
     @Qualifier("queueRedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
