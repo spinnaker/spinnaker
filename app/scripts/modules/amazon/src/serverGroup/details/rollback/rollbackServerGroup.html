@@ -10,7 +10,7 @@
         <div class="col-sm-3 sm-label-right">
           Restore to
         </div>
-        <div class="col-sm-8">
+        <div class="col-md-7">
           <ui-select ng-model="command.rollbackContext.restoreServerGroupName"
                      class="form-control input-sm"
                      ng-if="command.rollbackType === 'EXPLICIT'">
@@ -42,9 +42,7 @@
         </div>
       </div>
 
-      <div class="row">
-        <task-reason command="command"></task-reason>
-      </div>
+      <task-reason command="command"></task-reason>
 
       <div class="row">
         <div class="col-sm-11 col-sm-offset-1">

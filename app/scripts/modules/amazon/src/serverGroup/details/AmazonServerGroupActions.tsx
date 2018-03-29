@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { Dropdown, Tooltip } from 'react-bootstrap';
-import { get, find, filter } from 'lodash';
+import { get, find, filter, orderBy } from 'lodash';
 
 import { IOwnerOption, IServerGroupActionsProps, IServerGroupJob, NgReact, ReactInjector, SETTINGS } from '@spinnaker/core';
 
@@ -25,6 +25,24 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     }
     return false;
   }
+
+  private isRollbackEnabled(): boolean {
+    const { app, serverGroup } = this.props;
+
+    if (!serverGroup.isDisabled) {
+      // enabled server groups are always a candidate for rollback
+      return true;
+    }
+
+    // if the server group selected for rollback is disabled, ensure that at least one enabled server group exists
+    return app.getDataSource('serverGroups').data.some((g: IAmazonServerGroup) =>
+      g.cluster === serverGroup.cluster &&
+      g.region === serverGroup.region &&
+      g.account === serverGroup.account &&
+      !g.isDisabled
+    );
+  }
+
 
   private hasDisabledInstances(): boolean {
     // server group may have disabled instances (out of service) but NOT itself be disabled
@@ -140,23 +158,45 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
   };
 
   private rollbackServerGroup(): void {
-    const { app, serverGroup } = this.props;
+    const { app } = this.props;
+
+    let serverGroup: IAmazonServerGroup = this.props.serverGroup;
+    let previousServerGroup: IAmazonServerGroup;
+    let allServerGroups = app.getDataSource('serverGroups').data.filter((g: IAmazonServerGroup) =>
+      g.cluster === serverGroup.cluster &&
+      g.region === serverGroup.region &&
+      g.account === serverGroup.account
+    );
+
+    if (serverGroup.isDisabled) {
+      // if the selected server group is disabled, it represents the server group that should be _rolled back to_
+      previousServerGroup = serverGroup;
+
+      /*
+       * Find an existing server group to rollback, prefer the largest enabled server group.
+       *
+       * isRollbackEnabled() ensures that at least one enabled server group exists.
+       */
+      serverGroup = orderBy(
+        allServerGroups.filter((g: IAmazonServerGroup) => g.name !== previousServerGroup.name && !g.isDisabled),
+        ['instanceCounts.total'], ['desc']
+      )[0] as IAmazonServerGroup;
+    }
+
+    // the set of all server groups should not include the server group selected for rollback
+    allServerGroups = allServerGroups.filter((g: IAmazonServerGroup) => g.name !== serverGroup.name);
 
     ReactInjector.modalService.open({
       templateUrl: ReactInjector.overrideRegistry.getTemplate('aws.rollback.modal', require('./rollback/rollbackServerGroup.html')),
       controller: 'awsRollbackServerGroupCtrl as ctrl',
       resolve: {
         serverGroup: () => serverGroup,
+        previousServerGroup: () => previousServerGroup,
         disabledServerGroups: () => {
           const cluster = find(app.clusters, { name: serverGroup.cluster, account: serverGroup.account, serverGroups: [] });
           return filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
         },
-        allServerGroups: () => app.getDataSource('serverGroups').data.filter((g: IAmazonServerGroup) =>
-          g.cluster === serverGroup.cluster &&
-          g.region === serverGroup.region &&
-          g.account === serverGroup.account &&
-          g.name !== serverGroup.name
-        ),
+        allServerGroups: () => allServerGroups,
         application: () => app
       }
     });
@@ -200,8 +240,8 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
           Server Group Actions
         </Dropdown.Toggle>
         <Dropdown.Menu className="dropdown-menu">
-          {!serverGroup.isDisabled && <li><a className="clickable" onClick={this.rollbackServerGroup}>Rollback</a></li>}
-          {!serverGroup.isDisabled && <li role="presentation" className="divider"/>}
+          {this.isRollbackEnabled() && <li><a className="clickable" onClick={this.rollbackServerGroup}>Rollback</a></li>}
+          {this.isRollbackEnabled() && <li role="presentation" className="divider"/>}
           <li><a className="clickable" onClick={this.resizeServerGroup}>Resize</a></li>
           {!serverGroup.isDisabled && <li><a className="clickable" onClick={this.disableServerGroup}>Disable</a></li>}
           {this.hasDisabledInstances() && !this.isEnableLocked() && <li><a className="clickable" onClick={this.enableServerGroup}>Enable</a></li>}
