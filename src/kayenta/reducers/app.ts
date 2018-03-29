@@ -8,7 +8,6 @@ export interface IAppState {
   deleteConfigModalOpen: boolean;
   configJsonModalOpen: boolean;
   configJsonModalTabState: ConfigJsonModalTabState;
-  activeTab: string;
 }
 
 const deleteConfigModalOpen = handleActions({
@@ -26,14 +25,8 @@ const configJsonModalTabState = handleActions({
   [Actions.CONFIG_JSON_MODAL_OPEN]: () => ConfigJsonModalTabState.Edit,
 }, ConfigJsonModalTabState.Edit);
 
-const activeTab = handleActions<string>({
-  [Actions.SET_ACTIVE_TAB]: (_state: string, action: Action & any) => action.payload.tab,
-}, null);
-
-
 export const app: Reducer<IAppState> = combineReducers<IAppState>({
   deleteConfigModalOpen,
   configJsonModalOpen,
   configJsonModalTabState,
-  activeTab,
 });

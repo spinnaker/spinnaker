@@ -3,9 +3,8 @@ import { createStore, applyMiddleware } from 'redux';
 import { logger } from 'redux-logger';
 import { UIView } from '@uirouter/react';
 import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
 
-import { Application, ReactInjector } from '@spinnaker/core';
+import { Application } from '@spinnaker/core';
 
 import { Provider, Store } from 'react-redux';
 import { ICanaryState, rootReducer } from './reducers';
@@ -14,9 +13,6 @@ import { ICanaryConfigSummary, IJudge } from './domain';
 import { INITIALIZE } from './actions';
 import Styleguide from './layout/styleguide';
 import { CanarySettings } from './canary.settings';
-import CanaryHeader from './navigation/canaryHeader';
-import { canaryTabs } from './navigation/canaryTabs';
-import * as Creators from 'kayenta/actions/creators';
 
 export interface ICanaryProps {
   app: Application;
@@ -34,28 +30,18 @@ export const canaryStore: Store<ICanaryState> = createStore<ICanaryState>(
 
 export default class Canary extends React.Component<ICanaryProps> {
 
-  private store: Store<ICanaryState>;
-  private subscription: Subscription;
+  private readonly store: Store<ICanaryState>;
 
   constructor(props: ICanaryProps) {
     super(props);
     this.store = canaryStore;
     this.initializeAppState(props.app);
-    this.subscription = this.props.success$.subscribe(() => {
-      const tab = canaryTabs.find(t =>
-        t.activeStates.some(s => ReactInjector.$state.includes(s)));
-      this.store.dispatch(Creators.setActiveTab({ tab: tab.title }));
-    });
   }
 
   public componentWillReceiveProps(nextProps: ICanaryProps) {
     if (this.props.app.name !== nextProps.app.name) {
       this.initializeAppState(nextProps.app)
     }
-  }
-
-  public componentWillUnmount(): void {
-    this.subscription.unsubscribe();
   }
 
   private initializeAppState(app: Application): void {
@@ -77,7 +63,6 @@ export default class Canary extends React.Component<ICanaryProps> {
       <Styleguide className="kayenta-root vertical">
         <Provider store={this.store}>
           <div className="vertical flex-1">
-            <CanaryHeader tabs={canaryTabs} title="Canary"/>
             <UIView {...noWrap} name="canary"/>
           </div>
         </Provider>

@@ -73,7 +73,6 @@ export const UPDATE_STACKDRIVER_METRIC_DESCRIPTOR_FILTER = 'update_stackdriver_m
 export const LOAD_EXECUTIONS_REQUEST = 'load_executions_request';
 export const LOAD_EXECUTIONS_SUCCESS = 'load_executions_success';
 export const LOAD_EXECUTIONS_FAILURE = 'load_executions_failure';
-export const SET_ACTIVE_TAB = 'set_active_tab';
 export const SELECT_GRAPH_TYPE = 'select_graph_type';
 export const LOAD_KAYENTA_ACCOUNTS_REQUEST = 'load_kayenta_accounts_request';
 export const LOAD_KAYENTA_ACCOUNTS_SUCCESS = 'load_kayenta_accounts_success';

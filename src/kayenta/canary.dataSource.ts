@@ -42,14 +42,11 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
     applicationDataSourceRegistry.registerDataSource({
       optIn: !CanarySettings.optInAll,
       optional: true,
-      category: 'delivery',
       loader: loadCanaryConfigs,
       onLoad: configsLoaded,
       afterLoad: afterConfigsLoad,
       description: 'Canary analysis configuration and reporting',
       key: 'canaryConfigs',
-      sref: '.canary.canaryConfig.configDefault',
-      activeState: '**.canary.**',
       label: 'Canary'
     });
 
@@ -70,11 +67,14 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
 
     applicationDataSourceRegistry.registerDataSource({
       key: 'canaryJudges',
+      label: 'Canary Configs',
+      sref: '.canary.canaryConfig',
+      activeState: '**.canaryConfig.**',
+      category: 'delivery',
       loader: loadCanaryJudges,
       onLoad: judgesLoaded,
       afterLoad: afterJudgesLoad,
       lazy: false,
-      visible: false,
     });
 
     const loadCanaryExecutions = (application: Application) => {
@@ -103,10 +103,13 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
 
     applicationDataSourceRegistry.registerDataSource({
       key: 'canaryExecutions',
+      label: 'Canary Reports',
+      sref: '.canary.report',
+      activeState: '**.report.**',
+      category: 'delivery',
       loader: loadCanaryExecutions,
       onLoad: canaryExecutionsLoaded,
       afterLoad: afterCanaryExecutionsLoaded,
       lazy: false,
-      visible: false,
     });
   });

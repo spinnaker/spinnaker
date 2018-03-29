@@ -47,7 +47,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
   const configDefault: INestedState = {
     name: 'configDefault',
-    url: '/config',
+    url: '',
     views: {
       detail: {
         component: SelectConfig, $type: 'react'
@@ -57,6 +57,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
   const config: INestedState = {
     name: 'canaryConfig',
+    url: '/config',
     abstract: true,
     views: {
       canary: {
@@ -68,7 +69,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
   const reportDetail: INestedState = {
     name: 'reportDetail',
-    url: '/report/:configId/:runId',
+    url: '/:configId/:runId',
     views: {
       detail: {
         component: ResultDetailLoader, $type: 'react',
@@ -85,7 +86,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
   const reportDefault: INestedState = {
     name: 'reportDefault',
-    url: '/report',
+    url: '',
     views: {
       detail: {
         component: ExecutionListLoadStates, $type: 'react',
@@ -95,6 +96,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
 
   const report: INestedState = {
     name: 'report',
+    url: '/report',
     abstract: true,
     views: {
       canary: {
@@ -129,6 +131,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   };
 
   applicationStateProvider.addChildState(canaryRoot);
+
 }).run(($uiRouter: UIRouter, $window: IWindowService, $rootScope: IDeckRootScope) => {
   // When leaving a config detail state, clear that config.
   $uiRouter.transitionService.onBefore(

@@ -84,7 +84,6 @@ export const updateDatadogMetricName = createAction<{metricName: string}>(Action
 export const loadExecutionsRequest = createAction(Actions.LOAD_EXECUTIONS_REQUEST);
 export const loadExecutionsFailure = createAction<{error: Error}>(Actions.LOAD_EXECUTIONS_FAILURE);
 export const loadExecutionsSuccess = createAction<{executions: ICanaryExecutionStatusResult[]}>(Actions.LOAD_EXECUTIONS_SUCCESS);
-export const setActiveTab = createAction<{tab: string}>(Actions.SET_ACTIVE_TAB);
 export const selectGraphType = createAction<{type: GraphType}>(Actions.SELECT_GRAPH_TYPE);
 export const loadKayentaAccountsRequest = createAction(Actions.LOAD_KAYENTA_ACCOUNTS_REQUEST);
 export const loadKayentaAccountsSuccess = createAction<{accounts: IKayentaAccount[]}>(Actions.LOAD_KAYENTA_ACCOUNTS_SUCCESS);
