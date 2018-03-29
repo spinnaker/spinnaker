@@ -287,7 +287,11 @@ class AwsConfiguration {
     allAccounts.each { account ->
       if (!scheduledAccounts.contains(account)) {
         account.regions.each { region ->
-          newlyAddedAgents << new ReconcileClassicLinkSecurityGroupsAgent(amazonClientProvider, account, region.name, deployDefaults)
+          if (deployDefaults.isReconcileClassicLinkAccount(account)) {
+            newlyAddedAgents << new ReconcileClassicLinkSecurityGroupsAgent(
+              amazonClientProvider, account, region.name, deployDefaults
+            )
+          }
         }
       }
     }

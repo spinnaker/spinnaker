@@ -132,7 +132,6 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Orchestration timed out."]])
           task.fail()
         } else {
-          e.printStackTrace()
           def stringWriter = new StringWriter()
           def printWriter = new PrintWriter(stringWriter)
           e.printStackTrace(printWriter)

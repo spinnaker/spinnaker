@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PreAuthorize
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/securityGroups")
 @RestController
+@Slf4j
 class SecurityGroupController {
 
   @Autowired
@@ -61,7 +63,7 @@ class SecurityGroupController {
       objs[obj.accountName][obj.cloudProvider][obj.region] << obj.summary
       objs
     }) doOnError {
-      it.printStackTrace()
+      log.error("Unable to list security groups", it)
     } toBlocking() first()
   }
 
