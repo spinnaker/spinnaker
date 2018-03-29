@@ -5,7 +5,7 @@ dependencies {
   compile project(':kayenta-r-mannwhitney')
 
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.18"
+  compile "org.projectlombok:lombok:$lombokVersion"
 
   compile "org.apache.commons:commons-math3:3.6.1"
 

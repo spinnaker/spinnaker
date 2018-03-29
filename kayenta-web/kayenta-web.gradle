@@ -34,7 +34,7 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
 
   //compile spinnaker.dependency('bootWeb')
-  compile "org.springframework.boot:spring-boot-starter-web:1.5.4.RELEASE"
+  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
 
   //compile spinnaker.dependency("korkSwagger")
   compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"

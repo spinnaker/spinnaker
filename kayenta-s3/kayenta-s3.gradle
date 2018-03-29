@@ -6,8 +6,8 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
 
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.18"
+  compile "org.projectlombok:lombok:$lombokVersion"
 
-  compile "com.amazonaws:aws-java-sdk-s3:1.11.179"
-  compile "com.netflix.awsobjectmapper:awsobjectmapper:1.11.173"
+  compile "com.amazonaws:aws-java-sdk-s3:$awsVersion"
+  compile "com.netflix.awsobjectmapper:awsobjectmapper:$awsVersion"
 }

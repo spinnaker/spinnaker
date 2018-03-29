@@ -15,7 +15,7 @@ dependencies {
   compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
 
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.18"
+  compile "org.projectlombok:lombok:$lombokVersion"
 
   // compile spinnaker.dependency('spectatorApi')
   compile "com.netflix.spectator:spectator-api:$spectatorVersion"
@@ -32,11 +32,11 @@ dependencies {
 
   compile "org.springframework.boot:spring-boot-starter-freemarker:$springBootVersion"
 
-  compile "com.fasterxml.jackson.core:jackson-core:2.9.2"
-  compile "com.fasterxml.jackson.core:jackson-databind:2.9.2"
-  compile "com.fasterxml.jackson.module:jackson-module-parameter-names:2.9.2"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.2"
-  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.2"
+  compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+  compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+  compile "com.fasterxml.jackson.module:jackson-module-parameter-names:$jacksonVersion"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
 
   // spinnaker.group('retrofitDefault')
   compile "com.squareup.retrofit:retrofit:1.9.0"

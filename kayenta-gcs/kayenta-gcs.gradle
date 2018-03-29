@@ -6,7 +6,7 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
 
   // compile spinnaker.dependency('lombok')
-  compile "org.projectlombok:lombok:1.16.18"
+  compile "org.projectlombok:lombok:$lombokVersion"
 
   // spinnaker.group('google')
   compile "com.google.http-client:google-http-client-jackson2:1.20.0"

@@ -57,6 +57,7 @@ public class PipelineController {
   private final ConfigurableApplicationContext context;
   private final HealthEndpoint healthEndpoint;
   private final ScheduledAnnotationBeanPostProcessor postProcessor;
+  private Boolean upAtLeastOnce = false;
 
   @Autowired
   public PipelineController(ExecutionLauncher executionLauncher, ExecutionRepository executionRepository, ObjectMapper kayentaObjectMapper, ConfigurableApplicationContext context, HealthEndpoint healthEndpoint, ScheduledAnnotationBeanPostProcessor postProcessor) {
@@ -73,13 +74,17 @@ public class PipelineController {
   void startOrcaQueueProcessing() {
     Health health = healthEndpoint.invoke();
 
-    if (health.getStatus() == Status.UP) {
-      context.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)));
+    if (!upAtLeastOnce) {
+      if (health.getStatus() == Status.UP) {
+        upAtLeastOnce = true;
+        context.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(STARTING, UP)));
 
-      // Cancel the scheduled task.
-      postProcessor.postProcessBeforeDestruction(this, null);
-    } else {
-      log.info("Health indicators are still reporting DOWN; not starting orca queue processing yet: {}", health);
+        // Cancel the scheduled task.
+        postProcessor.postProcessBeforeDestruction(this, null);
+        log.info("Health indicators are all reporting UP; starting orca queue processing");
+      } else {
+        log.info("Health indicators are still reporting DOWN; not starting orca queue processing yet: {}", health);
+      }
     }
   }
 
