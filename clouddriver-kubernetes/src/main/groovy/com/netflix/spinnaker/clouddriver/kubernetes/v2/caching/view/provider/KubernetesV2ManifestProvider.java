@@ -32,7 +32,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class KubernetesV2ManifestProvider implements ManifestProvider<KubernetesV2Manifest> {
@@ -73,6 +78,14 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
       return null;
     }
 
+    Function<KubernetesManifest, String> lastEventTimestamp = (m) -> (String) m.getOrDefault("lastTimestamp", m.getOrDefault("firstTimestamp", "n/a"));
+
+    List<KubernetesManifest> events = cacheUtils.getTransitiveRelationship(kind.toString(), Collections.singletonList(key), KubernetesKind.EVENT.toString())
+        .stream()
+        .map(KubernetesCacheDataConverter::getManifest)
+        .sorted(Comparator.comparing(lastEventTimestamp))
+        .collect(Collectors.toList());
+
     KubernetesHandler handler = properties.getHandler();
 
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(data);
@@ -85,6 +98,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
         .moniker(moniker)
         .status(handler.status(manifest))
         .artifacts(handler.listArtifacts(manifest))
+        .events(events)
         .build();
   }
 }

@@ -26,7 +26,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -40,4 +42,5 @@ public class KubernetesV2Manifest implements Manifest {
   private KubernetesManifest manifest;
   private Status status;
   private Set<Artifact> artifacts = new HashSet<>();
+  private List<KubernetesManifest> events = new ArrayList<>();
 }
