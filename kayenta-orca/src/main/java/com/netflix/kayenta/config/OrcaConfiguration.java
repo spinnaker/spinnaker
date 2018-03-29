@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.config.RedisConfiguration;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
-import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 
 @Configuration
 @Import({
-  JedisExecutionRepository.class,
+  RedisExecutionRepository.class,
   com.netflix.spinnaker.orca.config.OrcaConfiguration.class,
   OrcaPersistenceConfiguration.class,
   PropertyPlaceholderAutoConfiguration.class,
