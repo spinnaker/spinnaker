@@ -139,6 +139,9 @@ window.spinnakerSettings = {
     },
     slack: slack
   },
+  pagerDuty: {
+    required: false
+  },
   authEnabled: authEnabled,
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
@@ -169,6 +172,7 @@ window.spinnakerSettings = {
     pipelines: true,
     fastProperty: true,
     vpcMigrator: true,
+    pagerDuty: false,
     clusterDiff: false,
     roscoMode: true,
     infrastructureStages: false,

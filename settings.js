@@ -125,6 +125,9 @@ window.spinnakerSettings = {
       botName: 'spinnakerbot'
     }
   },
+  pagerDuty: {
+    required: false
+  },
   authEnabled: authEnabled,
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
@@ -145,6 +148,7 @@ window.spinnakerSettings = {
     jobs: false,
     netflixMode: netflixMode,
     notifications: false,
+    pagerDuty: false,
     pipelineTemplates: false,
     pipelines: true,
     roscoMode: false,

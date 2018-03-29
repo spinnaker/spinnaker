@@ -36,6 +36,7 @@ export interface IFeatures {
   jobs?: boolean;
   snapshots?: boolean;
   dockerBake?: boolean;
+  pagerDuty?: boolean;
   pipelineTemplates?: boolean;
   versionedProviders?: boolean;
   travis?: boolean;
@@ -79,6 +80,10 @@ export interface ISpinnakerSettings {
   gateUrl: string;
   gitSources: string[];
   notifications: INotificationSettings;
+  pagerDuty?: {
+    accountName?: string;
+    required?: boolean;
+  };
   pollSchedule: number;
   providers?: {
     [key: string]: IProviderSettings; // allows custom providers not typed in here (good for testing too)

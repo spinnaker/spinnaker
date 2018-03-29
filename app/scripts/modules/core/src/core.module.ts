@@ -49,6 +49,7 @@ import { MANIFEST_MODULE } from 'core/manifest/manifestWriter.module';
 import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
 
 import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
+import { PAGER_DUTY_MODULE } from 'core/pagerDuty/pagerDuty.module';
 import { PIPELINE_MODULE } from './pipeline/pipeline.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { REACT_MODULE } from './reactShims';
@@ -117,6 +118,7 @@ module(CORE_MODULE, [
   require('./notification/notifications.module').name,
 
   PAGE_TITLE_MODULE,
+  PAGER_DUTY_MODULE,
   PIPELINE_TEMPLATE_MODULE,
   PIPELINE_MODULE,
   require('./presentation/presentation.module').name,

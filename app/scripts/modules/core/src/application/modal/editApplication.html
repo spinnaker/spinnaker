@@ -37,7 +37,6 @@
       <div class="form-group row slide-in" ng-if="editApp.emailErrorMsg">
         <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.emailErrorMsg">
           {{errorMsg}} <small><span class="glyphicon glyphicon-remove" ng-click="editApp.clearEmailMsg()" style="cursor: pointer; padding-left: 10px"></span></small>
-
         </div>
       </div>
 
@@ -87,6 +86,10 @@
           Enter your source repository name (not the URL).
         </div>
       </div>
+
+      <render-if-feature feature="pagerDuty">
+        <pager-duty-select-field component="editApp.applicationAttributes"></pager-duty-select-field>
+      </render-if-feature>
 
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Description</div>

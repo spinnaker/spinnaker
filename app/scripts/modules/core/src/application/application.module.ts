@@ -1,7 +1,5 @@
 import { module } from 'angular';
 
-import { PAGER_DUTY_MODULE } from 'core/pagerDuty/pagerDuty.module';
-
 import './applicationSearchResultType';
 import './nav/defaultCategories';
 import { APPLICATION_STATE_PROVIDER } from './application.state.provider';
@@ -17,7 +15,6 @@ module(APPLICATION_MODULE, [
   require('./modal/createApplication.modal.controller.js').name,
   require('./modal/platformHealthOverride.directive').name,
   require('./config/appConfig.dataSource').name,
-  PAGER_DUTY_MODULE,
   PERMISSIONS_CONFIGURER_COMPONENT,
   UPSERT_APPLICATION_HELP,
 ]);
