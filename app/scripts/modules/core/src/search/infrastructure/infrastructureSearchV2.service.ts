@@ -25,7 +25,10 @@ export class InfrastructureSearchServiceV2 {
       return Observable.from(this.EMPTY_RESULTS);
     }
 
-    const params = { ...apiParams, cloudProvider: SETTINGS.defaultProviders[0] };
+    const params = { ...apiParams };
+    if (SETTINGS.defaultProviders && SETTINGS.defaultProviders.length > 0) {
+      params.cloudProvider = SETTINGS.defaultProviders[0];
+    }
     const types = searchResultTypeRegistry.getAll();
     const otherResults$ = new Subject<ISearchResultSet>();
 
