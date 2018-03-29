@@ -223,6 +223,9 @@ class BuildContainerCommand(GradleCommandProcessor):
 
     config = {
         'images': [versioned_image],
+        'options': {
+          'machineType': 'N1_HIGHCPU_8'
+        },
         'timeout': '3600s',
         'steps': steps
     }
