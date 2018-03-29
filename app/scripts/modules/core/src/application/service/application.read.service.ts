@@ -93,7 +93,7 @@ export class ApplicationReader {
     this.setDisabledDataSources(application);
   }
 
-  private setDisabledDataSources(application: Application) {
+  public setDisabledDataSources(application: Application) {
     const allDataSources: ApplicationDataSource[] = application.dataSources,
       appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
     if (!appDataSources) {
@@ -113,6 +113,12 @@ export class ApplicationReader {
         }
       });
     }
+    allDataSources.filter(ds => ds.requiresDataSource).forEach(ds => {
+      const parent = allDataSources.find(p => p.key === ds.requiresDataSource);
+      if (parent && parent.disabled) {
+        this.disableDataSource(ds, application);
+      }
+    });
   }
 
   private disableDataSource(dataSource: ApplicationDataSource, application: Application) {

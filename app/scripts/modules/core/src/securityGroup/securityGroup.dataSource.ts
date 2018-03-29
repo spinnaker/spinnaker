@@ -32,6 +32,7 @@ module(SECURITY_GROUP_DATA_SOURCE, [
     applicationDataSourceRegistry.registerDataSource({
       key: 'securityGroups',
       category: INFRASTRUCTURE_KEY,
+      sref: '.insight.securityGroups',
       optional: true,
       icon: 'fa fa-xs fa-fw fa-lock',
       loader: loadSecurityGroups,

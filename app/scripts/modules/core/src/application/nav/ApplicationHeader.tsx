@@ -89,7 +89,7 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
   }
 
   private getNavigationCategories(dataSources: ApplicationDataSource[], primary: boolean): IDataSourceCategory[] {
-    const appSources = dataSources.filter(ds => ds.visible !== false && !ds.disabled);
+    const appSources = dataSources.filter(ds => ds.visible !== false && !ds.disabled && ds.sref);
     const categories: IDataSourceCategory[] = [];
     const allCategories = navigationCategoryRegistry.getAll();
     allCategories.forEach(c => {

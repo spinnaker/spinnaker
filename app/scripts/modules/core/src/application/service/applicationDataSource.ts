@@ -148,7 +148,7 @@ export interface IDataSourceConfig {
    * the link in the application's header.
    *
    * If the "visible" field is set to false, this value is ignored; if "visible" is true and this field is omitted, the
-   * tab will use ".insight.{key}" as the sref value in the application header tab
+   * data source will not generate any navigation elements
    */
   sref?: string;
 
@@ -158,6 +158,11 @@ export interface IDataSourceConfig {
    * Default: true
    */
   visible?: boolean;
+
+  /**
+   * (Optional) a data source that will only be available and visible if this data source (by key) is enabled
+   */
+  requiresDataSource?: string;
 
   /**
    * (Optional) Determines which second-level navigation menu this data source will belong to
@@ -192,6 +197,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public sref: string;
   public visible = true;
   public hidden = false;
+  public requiresDataSource: string;
 
   /**
    * State flag that indicates whether the data source has been loaded. If the data source does not have a declared
@@ -276,10 +282,6 @@ export class ApplicationDataSource implements IDataSourceConfig {
               private $filter: any,
               $uiRouter: UIRouter) {
     Object.assign(this, config);
-
-    if (!config.sref && config.visible !== false) {
-      this.sref = '.insight.' + config.key;
-    }
 
     if (!config.label && this.$filter) {
       this.label = this.$filter('robotToHuman')(config.key);
