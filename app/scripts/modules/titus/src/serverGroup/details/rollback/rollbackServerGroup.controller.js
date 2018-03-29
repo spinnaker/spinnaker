@@ -11,7 +11,9 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
 ])
   .controller('titusRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                         taskMonitorBuilder,
-                                                        application, serverGroup, disabledServerGroups, allServerGroups) {
+                                                        application,
+                                                        serverGroup, previousServerGroup,
+                                                        disabledServerGroups, allServerGroups) {
     $scope.serverGroup = serverGroup;
     $scope.disabledServerGroups = disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name));
     $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
@@ -49,6 +51,7 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
       rollbackType: rollbackType,
       rollbackContext: {
         rollbackServerGroupName: serverGroup.name,
+        restoreServerGroupName: previousServerGroup ? previousServerGroup.name : undefined,
         targetHealthyRollbackPercentage: healthyPercent
       }
     };

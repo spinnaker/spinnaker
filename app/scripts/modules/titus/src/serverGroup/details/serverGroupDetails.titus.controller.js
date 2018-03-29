@@ -311,23 +311,71 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       });
     };
 
+    this.isRollbackEnabled = function rollbackServerGroup() {
+      let serverGroup = $scope.serverGroup;
+      if (!serverGroup.isDisabled) {
+        // enabled server groups are always a candidate for rollback
+        return true;
+      }
+
+      // if the server group selected for rollback is disabled, ensure that at least one enabled server group exists
+      return application.getDataSource('serverGroups').data.some(g =>
+        g.cluster === serverGroup.cluster &&
+        g.region === serverGroup.region &&
+        g.account === serverGroup.account &&
+        g.isDisabled === false
+      );
+    };
+
     this.rollbackServerGroup = function rollbackServerGroup() {
-      var serverGroup = $scope.serverGroup;
+      let serverGroup = $scope.serverGroup;
+
+      let previousServerGroup;
+      let allServerGroups = app.getDataSource('serverGroups').data.filter(g =>
+        g.cluster === serverGroup.cluster &&
+        g.region === serverGroup.region &&
+        g.account === serverGroup.account
+      );
+
+      if (serverGroup.isDisabled) {
+        // if the selected server group is disabled, it represents the server group that should be _rolled back to_
+        previousServerGroup = serverGroup;
+
+        /*
+         * Find an existing server group to rollback, prefer the largest enabled server group.
+         *
+         * isRollbackEnabled() ensures that at least one enabled server group exists.
+         */
+        serverGroup = _.orderBy(
+          allServerGroups.filter(g =>
+            g.name !== previousServerGroup.name && !g.isDisabled
+          ),
+          ['instanceCounts.total', 'createdTime'],
+          ['desc', 'desc']
+        )[0];
+      }
+
+      // the set of all server groups should not include the server group selected for rollback
+      allServerGroups = allServerGroups.filter(g =>
+        g.name !== serverGroup.name
+      );
+
+      if (allServerGroups.length === 1 && !previousServerGroup) {
+        // if there is only one other server group, default to it being the rollback target
+        previousServerGroup = allServerGroups[0];
+      }
+
       $uibModal.open({
         templateUrl: require('./rollback/rollbackServerGroup.html'),
         controller: 'titusRollbackServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: () => serverGroup,
+          previousServerGroup: () => previousServerGroup,
           disabledServerGroups: () => {
           var cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
             return _.filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
           },
-          allServerGroups: () => application.getDataSource('serverGroups').data.filter(g =>
-            g.cluster === serverGroup.cluster &&
-            g.region === serverGroup.region &&
-            g.account === serverGroup.account &&
-            g.name !== serverGroup.name
-          ),
+          allServerGroups: () => allServerGroups,
           application: () => application
         }
       });

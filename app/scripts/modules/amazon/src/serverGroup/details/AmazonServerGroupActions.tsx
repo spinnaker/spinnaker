@@ -179,12 +179,17 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
        */
       serverGroup = orderBy(
         allServerGroups.filter((g: IAmazonServerGroup) => g.name !== previousServerGroup.name && !g.isDisabled),
-        ['instanceCounts.total'], ['desc']
+        ['instanceCounts.total', 'createdTime'], ['desc', 'desc']
       )[0] as IAmazonServerGroup;
     }
 
     // the set of all server groups should not include the server group selected for rollback
     allServerGroups = allServerGroups.filter((g: IAmazonServerGroup) => g.name !== serverGroup.name);
+
+    if (allServerGroups.length === 1 && !previousServerGroup) {
+      // if there is only one other server group, default to it being the rollback target
+      previousServerGroup = allServerGroups[0];
+    }
 
     ReactInjector.modalService.open({
       templateUrl: ReactInjector.overrideRegistry.getTemplate('aws.rollback.modal', require('./rollback/rollbackServerGroup.html')),
