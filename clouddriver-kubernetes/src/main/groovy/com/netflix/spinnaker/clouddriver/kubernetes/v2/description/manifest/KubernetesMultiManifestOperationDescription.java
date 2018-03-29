@@ -26,6 +26,7 @@ import lombok.EqualsAndHashCode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 public class KubernetesMultiManifestOperationDescription extends KubernetesAtomicOperationDescription {
   private String manifestName;
   private String location;
-  private List<String> kinds;
+  private List<String> kinds = new ArrayList<>();
   private KubernetesSelectorList labelSelectors = new KubernetesSelectorList();
 
   @JsonIgnore
