@@ -152,7 +152,10 @@ class PublishSpinnakerCommand(CommandProcessor):
     self.__git = GitRunner(options)
     self.__hal.check_property(
         'spinnaker.config.input.bucket', options.halyard_bom_bucket)
-    self.__only_repositories = options.only_repositories.split(',')
+    if options.only_repositories:
+      self.__only_repositories = options.only_repositories.split(',')
+    else:
+      self.__only_repositories = []
 
   def push_branches_and_tags(self, bom):
     """Update the release branches and tags in each of the BOM repositires."""
