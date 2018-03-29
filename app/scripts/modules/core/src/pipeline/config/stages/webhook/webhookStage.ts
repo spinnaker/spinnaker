@@ -142,6 +142,7 @@ module(WEBHOOK_STAGE, [
     key: 'webhook',
     restartable: true,
     controller: 'WebhookStageCtrl',
+    producesArtifacts: true,
     controllerAs: '$ctrl',
     templateUrl: require('./webhookStage.html'),
     executionDetailsUrl: require('./webhookExecutionDetails.html'),
