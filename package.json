@@ -74,7 +74,7 @@
   },
   "devDependencies": {
     "@spinnaker/amazon": "0.0.81",
-    "@spinnaker/core": "0.0.175",
+    "@spinnaker/core": "0.0.183",
     "@spinnaker/google": "^0.0.1",
     "@spinnaker/kubernetes": "^0.0.4",
     "@spinnaker/styleguide": "^1.0.1",
