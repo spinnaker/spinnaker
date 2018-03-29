@@ -25,7 +25,7 @@ class LoadBalancersSearchResultType extends SearchResultType<ILoadBalancerSearch
   public id = 'loadBalancers';
   public order = 5;
   public displayName = 'Load Balancers';
-  public iconClass = 'fa fa-sitemap';
+  public iconClass = 'fa icon-sitemap';
 
   private cols: { [key: string]: ISearchColumn } = {
     LOADBALANCER: { key: 'loadBalancer', label: 'Name' },

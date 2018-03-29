@@ -1,16 +1,16 @@
 @font-face {
   font-family: 'icomoon';
-  src:url('./fonts/icomoon.eot?jeuj5q');
-  src:url('./fonts/icomoon.eot?#iefixjeuj5q') format('embedded-opentype'),
-    url('./fonts/icomoon.woff?jeuj5q') format('woff'),
-    url('./fonts/icomoon.ttf?jeuj5q') format('truetype'),
-    url('./fonts/icomoon.svg?jeuj5q#icomoon') format('svg');
+  src:
+    url('fonts/icomoon.ttf?633kgs') format('truetype'),
+    url('fonts/icomoon.woff?633kgs') format('woff'),
+    url('fonts/icomoon.svg?633kgs#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
 
-span[class^="icon-"], span[class*=" icon-"] {
-  font-family: 'icomoon';
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
   speak: none;
   font-style: normal;
   font-weight: normal;
@@ -23,12 +23,9 @@ span[class^="icon-"], span[class*=" icon-"] {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-spinner:before {
-  content: "\e97e";
+.icon-sitemap:before {
+  content: "\e900";
 }
-
-/* You haven't seen an ugly icon until you've seen the fontawesome sitemap icon */
-.fa.fa-sitemap:before {
-  font-family: 'icomoon';
-  content: "\e600";
+.icon-spinner:before {
+  content: "\e901";
 }
