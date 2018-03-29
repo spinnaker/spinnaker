@@ -116,6 +116,26 @@ val stageWithSyntheticAfter = object : StageDefinitionBuilder {
   }
 }
 
+val stageWithParallelAfter = object : StageDefinitionBuilder {
+  override fun getType() = "stageWithParallelAfter"
+  override fun taskGraph(stage: Stage, builder: Builder) {
+    builder.withTask<DummyTask>("dummy")
+  }
+
+  override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    graph.add {
+      it.type = singleTaskStage.type
+      it.name = "post1"
+      it.context = parent.context
+    }
+    graph.add {
+      it.type = singleTaskStage.type
+      it.name = "post2"
+      it.context = parent.context
+    }
+  }
+}
+
 val stageWithSyntheticAfterAndNoTasks = object : StageDefinitionBuilder {
   override fun getType() = "stageWithSyntheticAfterAndNoTasks"
 

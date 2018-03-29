@@ -91,8 +91,14 @@ fun Stage.afterStages(): List<Stage> =
 fun Stage.allBeforeStagesComplete(): Boolean =
   beforeStages().all { it.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED) }
 
+fun Stage.allAfterStagesComplete(): Boolean =
+  afterStages().all { it.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED) }
+
 fun Stage.anyBeforeStagesFailed(): Boolean =
   beforeStages().any { it.status in listOf(TERMINAL, STOPPED, CANCELED) }
+
+fun Stage.anyAfterStagesFailed(): Boolean =
+  afterStages().any { it.status in listOf(TERMINAL, STOPPED, CANCELED) }
 
 fun Stage.hasTasks(): Boolean =
   tasks.isNotEmpty()

@@ -33,6 +33,8 @@ import java.util.Objects;
 @Component
 public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
 
+  public static final String STAGE_TYPE = "shrinkCluster";
+
   private final DisableClusterStage disableClusterStage;
 
   @Autowired
@@ -41,12 +43,12 @@ public class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationS
   }
 
   @Override
-  public Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask() {
+  protected Class<? extends AbstractClusterWideClouddriverTask> getClusterOperationTask() {
     return ShrinkClusterTask.class;
   }
 
   @Override
-  public Class<? extends AbstractWaitForClusterWideClouddriverTask> getWaitForTask() {
+  protected Class<? extends AbstractWaitForClusterWideClouddriverTask> getWaitForTask() {
     return WaitForClusterShrinkTask.class;
   }
 

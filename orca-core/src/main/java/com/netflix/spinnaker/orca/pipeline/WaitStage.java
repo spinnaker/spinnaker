@@ -31,7 +31,7 @@ import java.time.Instant;
 @Component
 public class WaitStage implements StageDefinitionBuilder {
 
-  public static String TYPE = "wait";
+  public static String STAGE_TYPE = "wait";
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {

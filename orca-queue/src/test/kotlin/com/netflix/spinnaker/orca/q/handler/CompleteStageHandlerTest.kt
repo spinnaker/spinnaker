@@ -888,7 +888,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
             it("signals the parent stage to run") {
               verify(queue).push(ContinueParentStage(
-                pipeline.stageByRef("1")
+                pipeline.stageByRef("1"),
+                STAGE_BEFORE
               ))
             }
           }
@@ -953,13 +954,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               subject.handle(message)
             }
 
-            it("signals the completion of the parent stage") {
-              verify(queue).push(CompleteStage(
-                message.executionType,
-                message.executionId,
-                message.application,
-                pipeline.stages.first().id
-              ))
+            it("tells the parent stage to continue") {
+              verify(queue)
+                .push(ContinueParentStage(
+                  pipeline.stageById(message.stageId).parent!!,
+                  STAGE_AFTER
+                ))
             }
           }
         }
@@ -1036,11 +1036,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("signals the parent stage to try to run") {
-          verify(queue).push(ContinueParentStage(pipeline.stageByRef("1")))
+          verify(queue)
+            .push(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE))
         }
       }
 
-      context("when all branches are complete") {
+      given("all branches are complete") {
         val pipeline = pipeline {
           stage {
             refId = "1"
@@ -1072,7 +1073,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("signals the parent stage to try to run") {
-          verify(queue).push(ContinueParentStage(pipeline.stageByRef("1")))
+          verify(queue)
+            .push(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE))
         }
       }
     }

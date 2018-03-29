@@ -334,8 +334,58 @@ object KayentaCanaryStageTest : Spek({
           .allMatch { it == attributes }
       }
     }
+
+    given("canary deployments are requested") {
+      val kayentaCanaryStage = stage {
+        type = "kayentaCanary"
+        name = "Run Kayenta Canary"
+        context["canaryConfig"] = mapOf(
+          "metricsAccountName" to "atlas-acct-1",
+          "canaryConfigId" to "MySampleAtlasCanaryConfig",
+          "scopes" to listOf(mapOf(
+            "controlScope" to "some.host.node",
+            "experimentScope" to "some.other.host.node",
+            "step" to 60
+          )),
+          "scoreThresholds" to mapOf("marginal" to 75, "pass" to 90),
+          "canaryAnalysisIntervalMins" to 6.hoursInMinutes,
+          "lifetimeHours" to "12"
+        )
+        context["deployments"] = mapOf(
+          "clusters" to listOf(
+            mapOf("control" to mapOf<String, Any>()),
+            mapOf("experiment" to mapOf<String, Any>())
+          )
+        )
+      }
+
+      val aroundStages = StageGraphBuilder.beforeStages(kayentaCanaryStage)
+        .let { graph ->
+          builder.beforeStages(kayentaCanaryStage, graph)
+          graph.build()
+        }
+
+      it("injects a deploy canary stage") {
+        aroundStages.first().apply {
+          assertThat(type).isEqualTo(DeployCanaryClustersStage.STAGE_TYPE)
+        }
+      }
+
+      it("the canary analysis will only start once the deployment is complete") {
+        aroundStages.toList()[0..1].let { (first, second) ->
+          assertThat(second.requisiteStageRefIds).isEqualTo(setOf(first.refId))
+        }
+      }
+    }
   }
 })
+
+private operator fun <E> List<E>.get(range: IntRange): List<E> {
+  return subList(range.start, range.endExclusive)
+}
+
+private val IntRange.endExclusive: Int
+  get() = endInclusive + 1
 
 data class CanaryRanges(
   val startAtMin: List<Int>,

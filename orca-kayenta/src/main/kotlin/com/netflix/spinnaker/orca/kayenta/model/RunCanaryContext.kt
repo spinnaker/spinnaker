@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.kayenta.CanaryScopes
 import com.netflix.spinnaker.orca.kayenta.Thresholds
 import java.util.Collections.emptyMap
 
-data class RunCanaryContext(
+internal data class RunCanaryContext(
   val metricsAccountName: String?,
   val storageAccountName: String?,
   val canaryConfigId: String,
