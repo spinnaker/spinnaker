@@ -91,7 +91,7 @@ class CompleteStageHandler(
         stage.includeExpressionEvaluationSummary()
         repository.storeStage(stage)
 
-        if (stage.status in listOf(SUCCEEDED, FAILED_CONTINUE)) {
+        if (stage.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED)) {
           stage.startNext()
         } else {
           queue.push(CancelStage(message))

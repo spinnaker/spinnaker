@@ -448,6 +448,12 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           status = RUNNING
           type = emptyStage.type
         }
+        stage {
+          refId = "2"
+          type = singleTaskStage.type
+          name = "downstream"
+          requisiteStageRefIds = setOf("1")
+        }
       }
 
       val message = CompleteStage(pipeline.stageByRef("1"))
@@ -467,6 +473,10 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           assertThat(it.id).isEqualTo(message.stageId)
           assertThat(it.status).isEqualTo(SKIPPED)
         })
+      }
+
+      it("starts anything downstream") {
+        verify(queue).push(StartStage(pipeline.stageByRef("2")))
       }
     }
 
