@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Subscription } from 'rxjs';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
@@ -32,14 +31,19 @@ export interface IApplicationHeaderState {
 @BindAll()
 export class ApplicationHeader extends React.Component<IApplicationHeaderProps, IApplicationHeaderState> {
 
-  private activeStateChangeSubscription: Subscription;
+  private stopListeningToStateChange: Function;
   private stopListeningToAppRefresh: Function;
   private dataSourceAttribute: any;
 
   constructor(props: IApplicationHeaderProps) {
     super(props);
     this.configureApplicationEventListeners(props.app);
-    this.state = this.parseCategories(props);
+    this.stopListeningToStateChange = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => this.resetActiveCategory());
+    const categories = this.parseCategories(props);
+    this.state = Object.assign(
+      categories,
+      { activeCategory: this.getActiveCategory(categories.primaryCategories.concat(categories.secondaryCategories)) }
+    );
   }
 
   public componentWillReceiveProps(nextProps: IApplicationHeaderProps) {
@@ -49,7 +53,6 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
 
   private configureApplicationEventListeners(app: Application): void {
     this.clearApplicationListeners();
-    this.activeStateChangeSubscription = app.activeStateChangeStream.subscribe(() => this.resetActiveCategory());
     this.stopListeningToAppRefresh = app.onRefresh(null, () => {
       // if the user changes the data sources from the config page, regenerate categories
       if (app.attributes.dataSources !== this.dataSourceAttribute) {
@@ -60,9 +63,6 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
   }
 
   private clearApplicationListeners(): void {
-    if (this.activeStateChangeSubscription) {
-      this.activeStateChangeSubscription.unsubscribe();
-    }
     if (this.stopListeningToAppRefresh) {
       this.stopListeningToAppRefresh();
     }
@@ -77,10 +77,15 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
   }
 
   private resetActiveCategory() {
-    const categories = this.state.primaryCategories.concat(this.state.secondaryCategories);
+    const activeCategory = this.getActiveCategory(this.state.primaryCategories.concat(this.state.secondaryCategories));
+    if (activeCategory !== this.state.activeCategory) {
+      this.setState({ activeCategory });
+    }
+  }
+
+  private getActiveCategory(categories: IDataSourceCategory[]) {
     const active = this.props.app.dataSources.find(ds => ds.activeState && ReactInjector.$state.includes(ds.activeState));
-    const activeCategory = categories.find(c => c.dataSources.includes(active));
-    this.setState({ activeCategory });
+    return categories.find(c => c.dataSources.includes(active));
   }
 
   private getNavigationCategories(dataSources: ApplicationDataSource[], primary: boolean): IDataSourceCategory[] {
@@ -112,6 +117,7 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
   }
 
   public componentWillUnmount(): void {
+    this.stopListeningToStateChange();
     this.clearApplicationListeners();
   }
 

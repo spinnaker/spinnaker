@@ -111,7 +111,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
     const defaultDataSource = category.dataSources[0];
     return (
       <UISref to={defaultDataSource.sref}>
-        <a>
+        <a className="nav-item">
           <span className={`horizontal middle ${isActive ? 'active' : ''}`} onClick={this.close}>
             <NavIcon icon={category.icon}/>
             {' ' + category.label}
@@ -157,7 +157,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
       >
         <Dropdown.Toggle
           bsStyle="link"
-          className={`nav-item horizontal middle ${isActive ? 'active' : ''}`}
+          className={`horizontal middle ${isActive ? 'active' : ''}`}
           noCaret={true}
         >
           {this.createMenuTitle(isActive)}

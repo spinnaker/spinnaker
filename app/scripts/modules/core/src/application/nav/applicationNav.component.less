@@ -83,8 +83,9 @@
 
 .nav-section {
   .dropdown-menu {
-    margin-top: -20px;
-    left: 15px;
+    margin-top: -15px;
+    padding: 0;
+    left: 25px;
     border-radius: 1px;
     border: none;
     box-shadow: 0 0 12px var(--color-dovegray);
@@ -95,7 +96,7 @@
       display: flex;
       color: var(--color-primary);
       font-size: 14px;
-      padding: 5px 15px;
+      padding: 8px 15px;
     }
     > li a:hover {
       background-color: var(--color-accent-g2);
@@ -103,6 +104,13 @@
   }
   .btn-link {
     border: 0;
+    padding: 0;
+    &:hover {
+      text-decoration: none;
+    }
+    &:focus {
+      outline: none !important;
+    }
   }
   .nav-item, .nav-menu-item {
     color: var(--color-accent);
@@ -110,11 +118,6 @@
     font-weight: 600;
   }
   .nav-item {
-    a {
-      &:hover, &:focus, &:active {
-        text-decoration: none;
-      }
-    }
     cursor: pointer;
     padding: 25px 25px;
     transition: color 200ms ease-in;
