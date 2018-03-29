@@ -128,4 +128,7 @@ class DcosJobProvider implements JobProvider<DcosJobStatus> {
       }
     }
   }
+
+  @Override
+  void cancelJob(String account, String location, String id) { }
 }

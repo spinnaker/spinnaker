@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component
 @Component
 class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
   String platform = "kubernetes"
+
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
@@ -69,4 +70,23 @@ class KubernetesJobProvider implements JobProvider<KubernetesJobStatus> {
     return [:]
   }
 
+  @Override
+  void cancelJob(String account, String location, String id) {
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    if (!(credentials?.credentials instanceof KubernetesV1Credentials)) {
+      return
+    }
+
+    def trueCredentials = (KubernetesV1Credentials) (credentials as KubernetesNamedAccountCredentials).credentials
+
+    try {
+      if (!trueCredentials.apiAdaptor.getPod(location, id)) {
+        return
+      }
+
+      trueCredentials.apiAdaptor.deletePod(location, id)
+    } catch (Exception e) {
+      log.warn("Unable to delete $id in $location: $e.message", e);
+    }
+  }
 }

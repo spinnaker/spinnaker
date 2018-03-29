@@ -106,4 +106,6 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
     null
   }
 
+  @Override
+  void cancelJob(String account, String location, String id) { }
 }

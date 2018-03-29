@@ -23,4 +23,5 @@ public interface JobProvider<T extends JobStatus> {
 
   Map<String, Object> getFileContents(String account, String location, String id, String fileName)
 
+  void cancelJob(String account, String location, String id)
 }

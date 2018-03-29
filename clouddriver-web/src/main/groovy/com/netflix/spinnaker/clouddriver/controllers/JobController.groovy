@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spinnaker.clouddriver.model.JobStatus
 import com.netflix.spinnaker.clouddriver.model.JobProvider
+import com.netflix.spinnaker.clouddriver.model.JobStatus
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/applications/{application}/jobs")
@@ -53,6 +54,16 @@ class JobController {
     jobMatches.first()
   }
 
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a JobStatus", notes = "Collects the output of the job, may modify the job.")
+  @RequestMapping(value = "/{account}/{location}/{id:.+}", method = RequestMethod.DELETE)
+  void cancelJob(@ApiParam(value = "Application name", required = true) @PathVariable String application,
+                 @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
+                 @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
+                 @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id) {
+    jobProviders.forEach {
+      it.cancelJob(account, location, id)
+    }
+  }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE') and hasPermission(#account, 'ACCOUNT', 'WRITE')")  @ApiOperation(value = "Collect a file from a job", notes = "Collects the file result of a job.")
   @RequestMapping(value = "/{account}/{location}/{id}/{fileName:.+}", method = RequestMethod.GET)
