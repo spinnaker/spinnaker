@@ -1182,38 +1182,6 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     }
   }
 
-  describe("deduct the time spent throttled from the elapsed time") {
-
-    val timeout = Duration.ofMinutes(5)
-    val pipeline = pipeline {
-      stage {
-        type = "somethingFun"
-        task {
-          id = "1"
-          startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
-          status = RUNNING
-        }
-      }
-    }
-    val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
-    message.setAttribute(TotalThrottleTimeAttribute(5000L))
-    val taskResult = TaskResult(RUNNING)
-
-    beforeGroup {
-      whenever(task.execute(any())) doReturn taskResult
-      whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-      whenever(task.timeout) doReturn timeout.toMillis()
-    }
-
-    action("the handler receives a message") {
-      subject.handle(message)
-    }
-
-    it("should not timeout and push the message back on the queue") {
-      verify(queue).push(message, Duration.ofMillis(0))
-    }
-  }
-
   describe("should bucket task durations") {
     mapOf(
       0 to "lt5m",

@@ -23,15 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.q.Attribute
 import com.netflix.spinnaker.q.Message
-
-@JsonTypeName("totalThrottleTime")
-data class TotalThrottleTimeAttribute(var totalThrottleTimeMs: Long = 0) : Attribute {
-  fun add(throttleTimeMs: Long) {
-    this.totalThrottleTimeMs += throttleTimeMs
-  }
-}
 
 /**
  * Messages used internally by the queueing system.
