@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.ui.v1;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
@@ -103,6 +104,20 @@ public class AnsiFormatUtils {
   }
 
   public static String format(Account account) {
+    AnsiStoryBuilder resultBuilder = new AnsiStoryBuilder();
+    AnsiParagraphBuilder paragraph = resultBuilder.addParagraph();
+
+    paragraph.addSnippet(account.getNodeName().toUpperCase()).addStyle(AnsiStyle.BOLD);
+
+    resultBuilder.addNewline();
+
+    paragraph = resultBuilder.addParagraph();
+    paragraph.addSnippet(account.toString());
+
+    return resultBuilder.toString();
+  }
+
+  public static String format(AbstractCanaryAccount account) {
     AnsiStoryBuilder resultBuilder = new AnsiStoryBuilder();
     AnsiParagraphBuilder paragraph = resultBuilder.addParagraph();
 

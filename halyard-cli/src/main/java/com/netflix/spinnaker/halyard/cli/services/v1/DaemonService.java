@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
@@ -308,6 +309,35 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> deleteAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
+      @Path("accountName") String accountName,
+      @Query("validate") boolean validate);
+
+  @POST("/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/")
+  DaemonTask<Halconfig, Void> addCanaryAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceIntegrationName") String serviceIntegrationName,
+      @Query("validate") boolean validate,
+      @Body AbstractCanaryAccount account);
+
+  @GET("/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
+  DaemonTask<Halconfig, Object> getCanaryAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceIntegrationName") String serviceIntegrationName,
+      @Path("accountName") String accountName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
+  DaemonTask<Halconfig, Void> setCanaryAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceIntegrationName") String serviceIntegrationName,
+      @Path("accountName") String accountName,
+      @Query("validate") boolean validate,
+      @Body AbstractCanaryAccount account);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/canary/{serviceIntegrationName}/accounts/account/{accountName}/")
+  DaemonTask<Halconfig, Void> deleteCanaryAccount(
+      @Path("deploymentName") String deploymentName,
+      @Path("serviceIntegrationName") String serviceIntegrationName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 

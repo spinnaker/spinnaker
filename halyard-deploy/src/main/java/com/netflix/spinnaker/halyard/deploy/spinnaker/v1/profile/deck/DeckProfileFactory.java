@@ -148,6 +148,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("canary.atlasWebComponentsUrl", canary.getAtlasWebComponentsUrl());
     bindings.put("canary.featureEnabled", Boolean.toString(canary.isEnabled()));
     if (canary.isEnabled()) {
+      // TODO(duftler): Automatically choose the first metrics/storage/judge here if unspecified?
       bindings.put("canary.reduxLogger", canary.isReduxLoggerEnabled());
       bindings.put("canary.defaultMetricsAccount", canary.getDefaultMetricsAccount());
       bindings.put("canary.defaultStorageAccount", canary.getDefaultStorageAccount());

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.ArtifactAccount;
@@ -264,6 +265,34 @@ public class Daemon {
   public static Supplier<Void> deleteAccount(String deploymentName, String providerName, String accountName, boolean validate) {
     return () -> {
       ResponseUnwrapper.get(getService().deleteAccount(deploymentName, providerName, accountName, validate));
+      return null;
+    };
+  }
+
+  public static Supplier<AbstractCanaryAccount> getCanaryAccount(String deploymentName, String serviceIntegrationName, String accountName, boolean validate) {
+    return () -> {
+      Object rawAccount = ResponseUnwrapper.get(getService().getCanaryAccount(deploymentName, serviceIntegrationName, accountName, validate));
+      return getObjectMapper().convertValue(rawAccount, Canary.translateCanaryAccountType(serviceIntegrationName));
+    };
+  }
+
+  public static Supplier<Void> addCanaryAccount(String deploymentName, String serviceIntegrationName, boolean validate, AbstractCanaryAccount account) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addCanaryAccount(deploymentName, serviceIntegrationName, validate, account));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setCanaryAccount(String deploymentName, String serviceIntegrationName, String accountName, boolean validate, AbstractCanaryAccount account) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setCanaryAccount(deploymentName, serviceIntegrationName, accountName, validate, account));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deleteCanaryAccount(String deploymentName, String serviceIntegrationName, String accountName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deleteCanaryAccount(deploymentName, serviceIntegrationName, accountName, validate));
       return null;
     };
   }

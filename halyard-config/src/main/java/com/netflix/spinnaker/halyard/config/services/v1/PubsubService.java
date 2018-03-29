@@ -89,7 +89,7 @@ public class PubsubService {
         pubsubs.setGoogle((GooglePubsub) pubsub);
         break;
       default:
-        throw new IllegalArgumentException("Unknonwn pubsub type " + pubsub.pubsubType());
+        throw new IllegalArgumentException("Unknown pubsub type " + pubsub.pubsubType());
     }
   }
 

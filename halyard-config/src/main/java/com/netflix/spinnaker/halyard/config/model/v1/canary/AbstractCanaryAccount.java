@@ -24,25 +24,10 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Canary extends Node implements Cloneable {
-  boolean enabled;
-  List<? extends AbstractCanaryServiceIntegration> serviceIntegrations = Collections.singletonList(new GoogleCanaryServiceIntegration());
-  boolean reduxLoggerEnabled = true;
-  String defaultMetricsAccount;
-  String defaultStorageAccount;
-  String defaultJudge;
-  String defaultMetricsStore;
-  boolean stagesEnabled = true;
-  String atlasWebComponentsUrl;
-  boolean templatesEnabled = true;
-  boolean showAllConfigsEnabled = false;
+public abstract class AbstractCanaryAccount extends Node implements Cloneable {
+  String name;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
@@ -51,20 +36,12 @@ public class Canary extends Node implements Cloneable {
 
   @Override
   public String getNodeName() {
-    return "canary";
+    return getName();
   }
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(serviceIntegrations.stream().map(m -> (Node)m).collect(Collectors.toList()));
-  }
-
-  public static Class<? extends AbstractCanaryAccount> translateCanaryAccountType(String serviceIntegrationName) {
-    switch (serviceIntegrationName) {
-      case "google" :
-        return GoogleCanaryAccount.class;
-      default:
-        throw new IllegalArgumentException("No account type for canary service integration " + serviceIntegrationName + ".");
-    }
+    return NodeIteratorFactory.makeEmptyIterator();
   }
 }
+

@@ -97,7 +97,7 @@ public class ArtifactProviderService {
         artifacts.setHttp((HttpArtifactProvider) provider);
         break;
       default:
-        throw new IllegalArgumentException("Unknonwn provider type " + provider.providerType());
+        throw new IllegalArgumentException("Unknown provider type " + provider.providerType());
     }
   }
 

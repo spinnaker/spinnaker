@@ -129,7 +129,7 @@ public class ProviderService {
         providers.setOraclebmcs((OracleBMCSProvider) provider);
         break;
       default:
-        throw new IllegalArgumentException("Unknonwn provider type " + provider.providerType());
+        throw new IllegalArgumentException("Unknown provider type " + provider.providerType());
     }
   }
 

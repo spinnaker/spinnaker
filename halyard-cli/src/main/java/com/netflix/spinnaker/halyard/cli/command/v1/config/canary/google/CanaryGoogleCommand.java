@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.canary;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CanaryGoogleCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.EnableDisableCanaryServiceIntegrationCommandBuilder;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.account.GoogleCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
@@ -29,19 +30,19 @@ import lombok.EqualsAndHashCode;
 @Parameters(separators = "=")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CanaryCommand extends AbstractConfigCommand {
+public class CanaryGoogleCommand extends AbstractConfigCommand {
 
-  String commandName = "canary";
+  String commandName = "google";
 
-  String shortDescription = "Configure your canary analysis settings for Spinnaker.";
+  String shortDescription = "Configure your canary analysis Google service integration settings for Spinnaker.";
 
   String longDescription = shortDescription;
 
-  public CanaryCommand() {
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(true).build());
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(false).build());
-    registerSubcommand(new EditCanaryCommand());
-    registerSubcommand(new CanaryGoogleCommand());
+  public CanaryGoogleCommand() {
+    registerSubcommand(new EditCanaryGoogleCommand());
+    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Google").setEnable(true).build());
+    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Google").setEnable(false).build());
+    registerSubcommand(new GoogleCanaryAccountCommand());
   }
 
   @Override

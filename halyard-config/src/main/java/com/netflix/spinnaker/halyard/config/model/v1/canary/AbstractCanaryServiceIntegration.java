@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.canary;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
@@ -25,24 +27,18 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "name")
+@JsonSubTypes({@JsonSubTypes.Type(value = GoogleCanaryServiceIntegration.class, name = "google")})
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Canary extends Node implements Cloneable {
+public abstract class AbstractCanaryServiceIntegration<A extends AbstractCanaryAccount> extends Node implements Cloneable {
   boolean enabled;
-  List<? extends AbstractCanaryServiceIntegration> serviceIntegrations = Collections.singletonList(new GoogleCanaryServiceIntegration());
-  boolean reduxLoggerEnabled = true;
-  String defaultMetricsAccount;
-  String defaultStorageAccount;
-  String defaultJudge;
-  String defaultMetricsStore;
-  boolean stagesEnabled = true;
-  String atlasWebComponentsUrl;
-  boolean templatesEnabled = true;
-  boolean showAllConfigsEnabled = false;
+  List<A> accounts = new ArrayList<>();
+
+  public abstract String getName();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
@@ -51,20 +47,17 @@ public class Canary extends Node implements Cloneable {
 
   @Override
   public String getNodeName() {
-    return "canary";
+    return getName();
   }
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(serviceIntegrations.stream().map(m -> (Node)m).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeListIterator(accounts.stream().map(a -> (Node)a).collect(Collectors.toList()));
   }
 
-  public static Class<? extends AbstractCanaryAccount> translateCanaryAccountType(String serviceIntegrationName) {
-    switch (serviceIntegrationName) {
-      case "google" :
-        return GoogleCanaryAccount.class;
-      default:
-        throw new IllegalArgumentException("No account type for canary service integration " + serviceIntegrationName + ".");
-    }
+  public static enum SupportedTypes {
+    METRICS_STORE,
+    CONFIGURATION_STORE,
+    OBJECT_STORE
   }
 }

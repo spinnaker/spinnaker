@@ -50,6 +50,16 @@
  * [**hal config canary disable**](#hal-config-canary-disable)
  * [**hal config canary edit**](#hal-config-canary-edit)
  * [**hal config canary enable**](#hal-config-canary-enable)
+ * [**hal config canary google**](#hal-config-canary-google)
+ * [**hal config canary google account**](#hal-config-canary-google-account)
+ * [**hal config canary google account add**](#hal-config-canary-google-account-add)
+ * [**hal config canary google account delete**](#hal-config-canary-google-account-delete)
+ * [**hal config canary google account edit**](#hal-config-canary-google-account-edit)
+ * [**hal config canary google account get**](#hal-config-canary-google-account-get)
+ * [**hal config canary google account list**](#hal-config-canary-google-account-list)
+ * [**hal config canary google disable**](#hal-config-canary-google-disable)
+ * [**hal config canary google edit**](#hal-config-canary-google-edit)
+ * [**hal config canary google enable**](#hal-config-canary-google-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
@@ -1033,6 +1043,7 @@ hal config canary [parameters] [subcommands]
  * `disable`: Set Spinnaker's canary analysis to disabled.
  * `edit`: Edit Spinnaker's canary analysis settings.
  * `enable`: Set Spinnaker's canary analysis to enabled.
+ * `google`: Configure your canary analysis Google service integration settings for Spinnaker.
 
 ---
 ## hal config canary disable
@@ -1081,6 +1092,185 @@ Set Spinnaker's canary analysis to enabled.
 #### Usage
 ```
 hal config canary enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary google
+
+Configure your canary analysis Google service integration settings for Spinnaker.
+
+#### Usage
+```
+hal config canary google [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the Google service integration's canary accounts.
+ * `disable`: Set Spinnaker's canary analysis Google service integration to disabled.
+ * `edit`: Edit Spinnaker's canary analysis Google service integration settings.
+ * `enable`: Set Spinnaker's canary analysis Google service integration to enabled.
+
+---
+## hal config canary google account
+
+Manage and view Spinnaker configuration for the Google service integration's canary accounts.
+
+#### Usage
+```
+hal config canary google account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a canary account to the Google service integration.
+ * `delete`: Delete a specific Google canary account by name.
+ * `edit`: Edit a canary account in the Google service integration.
+ * `get`: Get the specified canary account details for the Google service integration.
+ * `list`: List the canary account names for the Google service integration.
+
+---
+## hal config canary google account add
+
+Add a canary account to the Google service integration.
+
+#### Usage
+```
+hal config canary google account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
+ * `--bucket-location`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: (*Required*) The Google Cloud Platform project the canary service will use to consume GCS and Stackdriver.
+ * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
+
+
+---
+## hal config canary google account delete
+
+Delete a specific Google canary account by name.
+
+#### Usage
+```
+hal config canary google account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary google account edit
+
+Edit a canary account in the Google service integration.
+
+#### Usage
+```
+hal config canary google account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
+ * `--bucket-location`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--project`: The Google Cloud Platform project the canary service will use to consume GCS and Stackdriver.
+ * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
+
+
+---
+## hal config canary google account get
+
+Get the specified canary account details for the Google service integration.
+
+#### Usage
+```
+hal config canary google account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary google account list
+
+List the canary account names for the Google service integration.
+
+#### Usage
+```
+hal config canary google account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary google disable
+
+Set Spinnaker's canary analysis Google service integration to disabled.
+
+#### Usage
+```
+hal config canary google disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary google edit
+
+Edit Spinnaker's canary analysis Google service integration settings.
+
+#### Usage
+```
+hal config canary google edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--gcs-enabled`: Whether or not to enable GCS as a persistent store (*Default*: `false`).
+ * `--metadata-caching-interval-ms`: Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`).
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--stackdriver-enabled`: Whether or not to enable Stackdriver as a metrics service (*Default*: `false`).
+
+
+---
+## hal config canary google enable
+
+Set Spinnaker's canary analysis Google service integration to enabled.
+
+#### Usage
+```
+hal config canary google enable [parameters]
 ```
 
 #### Parameters
@@ -1511,11 +1701,11 @@ hal config features edit [parameters]
  * `--artifacts`: Enable artifact support. Read more at spinnaker.io/reference/artifacts
  * `--chaos`: Enable Chaos Monkey support. For this to work, you'll need a running Chaos Monkey deployment. Currently, Halyard doesn't configure Chaos Monkey for you; read more instructions here https://github.com/Netflix/chaosmonkey/wiki.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--infrastructure-stages`: Enable infrastructure stages. Allows for creating Load Balancers as part of pipelines.
  * `--jobs`: Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.
  * `--mine-canary`: Enable canary support. For this to work, you'll need a canary judge configured. Currently, Halyard does not configure canary judge for you.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pipeline-templates`: Enable pipeline template support. Read more at https://github.com/spinnaker/dcd-spec.
- * `--infrastructure-stages`: Enable infrastructure stages support.  Allows for creating Load Balancers in a pipeline.
 
 
 ---
@@ -2111,7 +2301,7 @@ Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--discovery`: The endpoint your Eureka discovery system is reachable at. See https://github.com/Netflix/eureka for more information.
 
-Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2
+Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2 
 
 Using {{region}} will make Spinnaker use AWS regions in the hostname to access discovery so that you can have discovery for multiple regions.
  * `--edda`: The endpoint Edda is reachable at. Edda is not a hard dependency of Spinnaker, but is helpful for reducing the request volume against AWS. See https://github.com/Netflix/edda for more information.
@@ -2159,7 +2349,7 @@ Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--discovery`: The endpoint your Eureka discovery system is reachable at. See https://github.com/Netflix/eureka for more information.
 
-Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2
+Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2 
 
 Using {{region}} will make Spinnaker use AWS regions in the hostname to access discovery so that you can have discovery for multiple regions.
  * `--edda`: The endpoint Edda is reachable at. Edda is not a hard dependency of Spinnaker, but is helpful for reducing the request volume against AWS. See https://github.com/Netflix/edda for more information.
@@ -3399,7 +3589,7 @@ hal config provider google enable [parameters]
 ---
 ## hal config provider kubernetes
 
-The Kubernetes provider is used to deploy Kubernetes resources to any number of Kubernetes clusters. Spinnaker assumes you have a Kubernetes cluster already running. If you don't, you must configure one: https://kubernetes.io/docs/getting-started-guides/.
+The Kubernetes provider is used to deploy Kubernetes resources to any number of Kubernetes clusters. Spinnaker assumes you have a Kubernetes cluster already running. If you don't, you must configure one: https://kubernetes.io/docs/getting-started-guides/. 
 
 Before proceeding, please visit https://kubernetes.io/docs/concepts/cluster-administration/authenticate-across-clusters-kubeconfig/ to make sure you're familiar with the authentication terminology. For more information on how to configure individual accounts, or how to deploy to multiple clusters, please read the documentation under `hal config provider kubernetes account -h`.
 
@@ -5260,6 +5450,7 @@ This flushes infrastructure caches (clouddriver) after the deploy succeeds.
  * `--omit-config`: (*Default*: `false`) WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.
 
 This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
+ * `--prep-only`: (*Default*: `false`) This does just the prep work, and not the actual deployment. Only useful at the moment if you want to just clone the repositories for a localgit setup.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
 
 
