@@ -66,9 +66,9 @@ class PipelineIntentProcessor(
 
     return ConvergeResult(listOf(
       OrchestrationRequest(
-        name = (if (currentState == null) "Create" else "Update") + " pipeline '${intent.spec.name}'",
+        name = "Upsert pipeline",
         application = intent.spec.application,
-        description = "Converging on desired pipeline state",
+        description = (if (currentState == null) "Create" else "Update") + " pipeline '${intent.spec.name}'",
         job = pipelineConverter.convertToJob(ConvertPipelineToJob(intent.spec, currentState?.id), changeSummary),
         trigger = OrchestrationTrigger(intent.id())
       )

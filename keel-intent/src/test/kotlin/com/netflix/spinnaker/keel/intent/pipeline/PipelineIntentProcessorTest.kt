@@ -92,7 +92,7 @@ object PipelineIntentProcessorTest {
     val result = subject.converge(intent)
 
     result.orchestrations.size shouldMatch equalTo(1)
-    result.orchestrations[0].name shouldMatch equalTo("Create pipeline 'bar'")
+    result.orchestrations[0].description shouldMatch equalTo("Create pipeline 'bar'")
     result.orchestrations[0].application shouldMatch equalTo("foo")
     result.orchestrations[0].job[0]["type"] shouldMatch equalTo<Any>("savePipeline")
 
