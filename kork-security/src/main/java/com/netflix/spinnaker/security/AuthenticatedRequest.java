@@ -49,6 +49,7 @@ public class AuthenticatedRequest {
    */
   public static <V> Callable<V> propagate(Callable<V> closure, boolean restoreOriginalContext, Object principal) {
     String spinnakerUser = getSpinnakerUser(principal).orElse(null);
+    String executionId = getSpinnakerExecutionId().orElse(null);
     if (spinnakerUser == null) {
       return () -> {
         MDC.remove(SPINNAKER_USER);
@@ -71,6 +72,9 @@ public class AuthenticatedRequest {
         MDC.put(SPINNAKER_USER, spinnakerUser);
         if (spinnakerAccounts != null) {
           MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts);
+        }
+        if (executionId != null) {
+          MDC.put(SPINNAKER_EXECUTION_ID, executionId);
         }
         return closure.call();
       } finally {
