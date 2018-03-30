@@ -74,9 +74,9 @@ public class StackdriverFetchController {
                           @ApiParam(value = "Used to identify the type of the resource being queried, " +
                                             "e.g. aws_ec2_instance, gce_instance.")
                             @RequestParam(required = false) String resourceType,
-                          @ApiParam(value = "The region to use when scoping the query. Valid choices depend on what cloud " +
-                                            "platform the query relates to.")
-                            @RequestParam(required = false) String region,
+                          @ApiParam(value = "The location to use when scoping the query. Valid choices depend on what cloud " +
+                                            "platform the query relates to (could be a region, a namespace, or something else).")
+                            @RequestParam(required = false) String location,
                           @ApiParam(value = "The name of the resource to use when scoping the query. " +
                                             "The most common use-case is to provide a server group name.")
                             @RequestParam(required = false) String scope,
@@ -90,7 +90,7 @@ public class StackdriverFetchController {
     // Apply defaults.
     project = determineDefaultProperty(project, "project", stackdriverConfigurationTestControllerDefaultProperties);
     resourceType = determineDefaultProperty(resourceType, "resourceType", stackdriverConfigurationTestControllerDefaultProperties);
-    region = determineDefaultProperty(region, "region", stackdriverConfigurationTestControllerDefaultProperties);
+    location = determineDefaultProperty(location, "location", stackdriverConfigurationTestControllerDefaultProperties);
     scope = determineDefaultProperty(scope, "scope", stackdriverConfigurationTestControllerDefaultProperties);
     startTimeIso = determineDefaultProperty(startTimeIso, "start", stackdriverConfigurationTestControllerDefaultProperties);
     endTimeIso = determineDefaultProperty(endTimeIso, "end", stackdriverConfigurationTestControllerDefaultProperties);
@@ -132,7 +132,7 @@ public class StackdriverFetchController {
 
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
     stackdriverCanaryScope.setScope(scope);
-    stackdriverCanaryScope.setRegion(region);
+    stackdriverCanaryScope.setLocation(location);
     stackdriverCanaryScope.setResourceType(resourceType);
     stackdriverCanaryScope.setStart(Instant.parse(startTimeIso));
     stackdriverCanaryScope.setEnd(Instant.parse(endTimeIso));

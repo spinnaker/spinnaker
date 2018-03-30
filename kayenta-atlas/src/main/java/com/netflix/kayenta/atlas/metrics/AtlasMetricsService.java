@@ -104,11 +104,11 @@ public class AtlasMetricsService implements MetricsService {
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     Optional<Backend> backend = credentials.getBackendUpdater().getBackendDatabase().getOne(atlasCanaryScope.getDeployment(),
                                                                                             atlasCanaryScope.getDataset(),
-                                                                                            atlasCanaryScope.getRegion(),
+                                                                                            atlasCanaryScope.getLocation(),
                                                                                             atlasCanaryScope.getEnvironment());
     if (!backend.isPresent()) {
       throw new IllegalArgumentException("Unable to find an appropriate Atlas cluster for" +
-                                          " region=" + atlasCanaryScope.getRegion() +
+                                          " region=" + atlasCanaryScope.getLocation() +
                                           " dataset=" + atlasCanaryScope.getDataset() +
                                           " deployment=" + atlasCanaryScope.getDeployment() +
                                           " environment=" + atlasCanaryScope.getEnvironment());
@@ -117,7 +117,7 @@ public class AtlasMetricsService implements MetricsService {
     String uri = backend.get().getUri("http",
                                       atlasCanaryScope.getDeployment(),
                                       atlasCanaryScope.getDataset(),
-                                      atlasCanaryScope.getRegion(),
+                                      atlasCanaryScope.getLocation(),
                                       atlasCanaryScope.getEnvironment());
     RemoteService remoteService = new RemoteService();
     log.info("Using Atlas backend {}", uri);

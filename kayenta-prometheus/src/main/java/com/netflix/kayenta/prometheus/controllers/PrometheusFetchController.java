@@ -70,9 +70,9 @@ public class PrometheusFetchController {
                           @ApiParam(value = "Used to identify the type of the resource being queried, " +
                                             "e.g. aws_ec2_instance, gce_instance.")
                             @RequestParam(required = false) String resourceType,
-                          @ApiParam(value = "The region to use when scoping the query. Valid choices depend on what cloud " +
-                                            "platform the query relates to.")
-                            @RequestParam(required = false) String region,
+                          @ApiParam(value = "The location to use when scoping the query. Valid choices depend on what cloud " +
+                                            "platform the query relates to (could be a region, a namespace, or something else).")
+                            @RequestParam(required = false) String location,
                           @ApiParam(value = "The name of the resource to use when scoping the query. " +
                                             "The most common use-case is to provide a server group name.")
                             @RequestParam(required = false) String scope,
@@ -87,7 +87,7 @@ public class PrometheusFetchController {
     // Apply defaults.
     project = determineDefaultProperty(project, "project", prometheusConfigurationTestControllerDefaultProperties);
     resourceType = determineDefaultProperty(resourceType, "resourceType", prometheusConfigurationTestControllerDefaultProperties);
-    region = determineDefaultProperty(region, "region", prometheusConfigurationTestControllerDefaultProperties);
+    location = determineDefaultProperty(location, "location", prometheusConfigurationTestControllerDefaultProperties);
     scope = determineDefaultProperty(scope, "scope", prometheusConfigurationTestControllerDefaultProperties);
     start = determineDefaultProperty(start, "start", prometheusConfigurationTestControllerDefaultProperties);
     end = determineDefaultProperty(end, "end", prometheusConfigurationTestControllerDefaultProperties);
@@ -127,7 +127,7 @@ public class PrometheusFetchController {
 
     PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
     prometheusCanaryScope.setScope(scope);
-    prometheusCanaryScope.setRegion(region);
+    prometheusCanaryScope.setLocation(location);
     prometheusCanaryScope.setResourceType(resourceType);
     prometheusCanaryScope.setStart(Instant.parse(start));
     prometheusCanaryScope.setEnd(Instant.parse(end));

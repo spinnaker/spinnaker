@@ -109,7 +109,7 @@ public class StackdriverMetricsService implements MetricsService {
     Monitoring monitoring = stackdriverCredentials.getMonitoring();
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     String projectId = stackdriverCanaryScope.getProject();
-    String region = stackdriverCanaryScope.getRegion();
+    String location = stackdriverCanaryScope.getLocation();
     String scope = stackdriverCanaryScope.getScope();
     String resourceType = stackdriverCanaryScope.getResourceType();
 
@@ -129,7 +129,7 @@ public class StackdriverMetricsService implements MetricsService {
       canaryConfig,
       stackdriverMetricSetQuery,
       stackdriverCanaryScope,
-      new String[]{"project", "resourceType", "scope", "region"});
+      new String[]{"project", "resourceType", "scope", "location"});
     String filter = "metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\"" +
                     " AND resource.type=" + resourceType;
 
@@ -141,8 +141,8 @@ public class StackdriverMetricsService implements MetricsService {
       }
 
       if ("gce_instance".equals(resourceType)) {
-        if (StringUtils.isEmpty(region)) {
-          throw new IllegalArgumentException("Region is required when resourceType is 'gce_instance'.");
+        if (StringUtils.isEmpty(location)) {
+          throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'gce_instance'.");
         }
 
         if (StringUtils.isEmpty(scope)) {
@@ -150,18 +150,18 @@ public class StackdriverMetricsService implements MetricsService {
         }
 
         filter += " AND resource.labels.project_id=" + projectId +
-                  " AND metadata.user_labels.\"spinnaker-region\"=" + region +
+                  " AND metadata.user_labels.\"spinnaker-region\"=" + location +
                   " AND metadata.user_labels.\"spinnaker-server-group\"=" + scope;
       } else if ("aws_ec2_instance".equals(resourceType)) {
-        if (StringUtils.isEmpty(region)) {
-          throw new IllegalArgumentException("Region is required when resourceType is 'aws_ec2_instance'.");
+        if (StringUtils.isEmpty(location)) {
+          throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'aws_ec2_instance'.");
         }
 
         if (StringUtils.isEmpty(scope)) {
           throw new IllegalArgumentException("Scope is required when resourceType is 'aws_ec2_instance'.");
         }
 
-        filter += " AND resource.labels.region=\"aws:" + region + "\"" +
+        filter += " AND resource.labels.region=\"aws:" + location + "\"" +
                   " AND metadata.user_labels.\"aws:autoscaling:groupname\"=" + scope;
       } else if ("gae_app".equals(resourceType)) {
         if (StringUtils.isEmpty(scope)) {
@@ -237,8 +237,8 @@ public class StackdriverMetricsService implements MetricsService {
       long endTime = registry.clock().monotonicTime();
       Id stackdriverFetchTimerId = registry.createId("stackdriver.fetchTime").withTag("project", projectId);
 
-      if (!StringUtils.isEmpty(region)) {
-        stackdriverFetchTimerId = stackdriverFetchTimerId.withTag("region", region);
+      if (!StringUtils.isEmpty(location)) {
+        stackdriverFetchTimerId = stackdriverFetchTimerId.withTag("location", location);
       }
 
       registry.timer(stackdriverFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);

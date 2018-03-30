@@ -104,7 +104,7 @@ public class DatadogFetchController {
         .query(datadogCanaryMetricSetQueryConfig)
         .build();
 
-    CanaryScope canaryScope = new CanaryScope(scope, null /* region */, Instant.parse(start), Instant.parse(end), step, Collections.emptyMap());
+    CanaryScope canaryScope = new CanaryScope(scope, null /* location */, Instant.parse(start), Instant.parse(end), step, Collections.emptyMap());
 
     String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                                     resolvedStorageAccountName,

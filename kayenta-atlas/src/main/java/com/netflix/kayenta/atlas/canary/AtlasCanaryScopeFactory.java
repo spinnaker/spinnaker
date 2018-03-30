@@ -35,7 +35,7 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
   public CanaryScope buildCanaryScope(CanaryScope canaryScope){
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
     atlasCanaryScope.setScope(canaryScope.getScope());
-    atlasCanaryScope.setRegion(canaryScope.getRegion());
+    atlasCanaryScope.setLocation(canaryScope.getLocation());
     atlasCanaryScope.setStart(canaryScope.getStart());
     atlasCanaryScope.setEnd(canaryScope.getEnd());
     atlasCanaryScope.setStep(canaryScope.getStep());

@@ -93,7 +93,7 @@ public class PrometheusMetricsService implements MetricsService {
                                        String customFilter) {
     String scope = prometheusCanaryScope.getScope();
     String projectId = prometheusCanaryScope.getProject();
-    String region = prometheusCanaryScope.getRegion();
+    String location = prometheusCanaryScope.getLocation();
     List<String> filters = queryConfig.getLabelBindings();
     if (filters == null) {
       filters = new ArrayList<>();
@@ -101,9 +101,9 @@ public class PrometheusMetricsService implements MetricsService {
 
     if (StringUtils.isEmpty(customFilter)) {
       if ("gce_instance".equals(resourceType)) {
-        addGCEFilters(scopeLabel, scope, projectId, region, filters);
+        addGCEFilters(scopeLabel, scope, projectId, location, filters);
       } else if ("aws_ec2_instance".equals(resourceType)) {
-        addEC2Filters("asg_groupName", scope, region, filters);
+        addEC2Filters("asg_groupName", scope, location, filters);
       } else if (!StringUtils.isEmpty(resourceType)) {
         throw new IllegalArgumentException("There is no explicit support for resourceType '" + resourceType + "'. " +
                                            "You may build whatever query makes sense for your environment via label " +
@@ -132,9 +132,9 @@ public class PrometheusMetricsService implements MetricsService {
     return queryBuilder;
   }
 
-  private static void addGCEFilters(String scopeLabel, String scope, String projectId, String region, List<String> filters) {
-    if (StringUtils.isEmpty(region)) {
-      throw new IllegalArgumentException("Region is required when resourceType is 'gce_instance'.");
+  private static void addGCEFilters(String scopeLabel, String scope, String projectId, String location, List<String> filters) {
+    if (StringUtils.isEmpty(location)) {
+      throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'gce_instance'.");
     }
 
     if (!StringUtils.isEmpty(scope)) {
@@ -149,20 +149,20 @@ public class PrometheusMetricsService implements MetricsService {
       zoneRegex += "projects/" + projectId + "/";
     }
 
-    zoneRegex += "zones/" + region + "-.{1}";
+    zoneRegex += "zones/" + location + "-.{1}";
     filters.add("zone=~\"" + zoneRegex + "\"");
   }
 
-  private static void addEC2Filters(String scopeLabel, String scope, String region, List<String> filters) {
-    if (StringUtils.isEmpty(region)) {
-      throw new IllegalArgumentException("Region is required when resourceType is 'aws_ec2_instance'.");
+  private static void addEC2Filters(String scopeLabel, String scope, String location, List<String> filters) {
+    if (StringUtils.isEmpty(location)) {
+      throw new IllegalArgumentException("Location (i.e. region) is required when resourceType is 'aws_ec2_instance'.");
     }
 
     if (!StringUtils.isEmpty(scope)) {
       filters.add(scopeLabel + "=\"" + scope + "\"");
     }
 
-    filters.add("zone=~\"" + region + ".{1}\"");
+    filters.add("zone=~\"" + location + ".{1}\"");
   }
 
   private static StringBuilder addAvgQuery(StringBuilder queryBuilder) {
@@ -216,7 +216,7 @@ public class PrometheusMetricsService implements MetricsService {
       canaryConfig,
       queryConfig,
       prometheusCanaryScope,
-      new String[]{"project", "resourceType", "scope", "region"});
+      new String[]{"project", "resourceType", "scope", "location"});
 
     StringBuilder queryBuilder = new StringBuilder(queryConfig.getMetricName());
     queryBuilder = addScopeFilter(queryBuilder, prometheusCanaryScope, resourceType, queryConfig, customFilter);

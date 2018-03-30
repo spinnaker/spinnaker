@@ -35,7 +35,7 @@ public class StackdriverCanaryScopeFactory implements CanaryScopeFactory {
   public CanaryScope buildCanaryScope(CanaryScope canaryScope){
     StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
     stackdriverCanaryScope.setScope(canaryScope.getScope());
-    stackdriverCanaryScope.setRegion(canaryScope.getRegion());
+    stackdriverCanaryScope.setLocation(canaryScope.getLocation());
     stackdriverCanaryScope.setStart(canaryScope.getStart());
     stackdriverCanaryScope.setEnd(canaryScope.getEnd());
     stackdriverCanaryScope.setStep(canaryScope.getStep());

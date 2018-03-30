@@ -34,7 +34,7 @@ public class PrometheusCanaryScopeFactory implements CanaryScopeFactory {
   public CanaryScope buildCanaryScope(CanaryScope canaryScope){
     PrometheusCanaryScope prometheusCanaryScope = new PrometheusCanaryScope();
     prometheusCanaryScope.setScope(canaryScope.getScope());
-    prometheusCanaryScope.setRegion(canaryScope.getRegion());
+    prometheusCanaryScope.setLocation(canaryScope.getLocation());
     prometheusCanaryScope.setStart(canaryScope.getStart());
     prometheusCanaryScope.setEnd(canaryScope.getEnd());
     prometheusCanaryScope.setStep(canaryScope.getStep());

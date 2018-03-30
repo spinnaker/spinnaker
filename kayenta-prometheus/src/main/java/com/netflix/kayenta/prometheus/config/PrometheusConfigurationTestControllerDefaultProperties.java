@@ -34,7 +34,7 @@ public class PrometheusConfigurationTestControllerDefaultProperties {
 
   @Getter
   @Setter
-  private String region;
+  private String location;
 
   @Getter
   @Setter
