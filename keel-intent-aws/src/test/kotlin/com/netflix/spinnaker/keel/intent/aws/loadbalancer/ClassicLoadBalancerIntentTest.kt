@@ -45,6 +45,7 @@ object ClassicLoadBalancerIntentTest {
   }
 
   @Test
+  @Suppress("UNCHECKED_CAST")
   fun `availability zones defaults to automatic`() {
     mapper.readValue<Map<String, Any>>(json)
       .apply { (get("spec") as MutableMap<String, Any>).remove("availabilityZones") }
@@ -56,6 +57,7 @@ object ClassicLoadBalancerIntentTest {
   }
 
   @Test
+  @Suppress("UNCHECKED_CAST")
   fun `availability zones can be configured manually`() {
     mapper.readValue<Map<String, Any>>(json)
       .apply { (get("spec") as MutableMap<String, Any>)["availabilityZones"] = listOf("us-west-2a", "us-west-2c") }

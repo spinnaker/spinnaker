@@ -23,21 +23,9 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
-import com.netflix.spinnaker.keel.intent.ApplicationIntent
-import com.netflix.spinnaker.keel.intent.ApplicationSpec
-import com.netflix.spinnaker.keel.intent.ChaosMonkeySpec
-import com.netflix.spinnaker.keel.intent.DataSourcesSpec
-import com.netflix.spinnaker.keel.intent.NotificationSpec
-import com.netflix.spinnaker.keel.intent.ParrotIntent
-import com.netflix.spinnaker.keel.intent.ParrotSpec
+import com.netflix.spinnaker.keel.intent.*
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.doThrow
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import retrofit.RetrofitError.httpError
@@ -77,6 +65,7 @@ object ApplicationIntentProcessorTest {
   }
 
   @Test
+  @Suppress("UNCHECKED_CAST")
   fun `should update application when app is present`() {
     whenever(front50Service.getApplication("keel")) doReturn
       Application("KEEL", "my original description", "example@example.com", "1", "1", false, false, "example@example.com")

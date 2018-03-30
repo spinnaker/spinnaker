@@ -63,6 +63,7 @@ open class DynomiteConfiguration {
       .withDynomiteClusterName(dynomiteConfigurationProperties.clusterName)
 
     return discoveryClient.map({ dc ->
+      @Suppress("DEPRECATION")
       builder.withDiscoveryClient(dc)
         .withCPConfig(connectionPoolConfiguration)
     }).orElseGet({
