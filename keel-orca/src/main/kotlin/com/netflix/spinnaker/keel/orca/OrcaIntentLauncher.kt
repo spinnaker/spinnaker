@@ -46,13 +46,17 @@ open class OrcaIntentLauncher
     recordedTime(intent) {
       val result = intentProcessor(intentProcessors, intent).converge(intent)
 
-      if (result.orchestrations.isNotEmpty()) {
-        applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
-      } else {
+
+      if (result.orchestrations.isEmpty()) {
         log.info("State matches desired intent for {}", value("intentId", intent.id()))
+        registry.counter(invocationsId
+          .withTags(intent.getMetricTags())
+          .withTag("change", result.changeSummary.type.toString())
+        ).increment()
         return@recordedTime OrcaLaunchedIntentResult(emptyList(), result.changeSummary)
       }
 
+      applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
       val orchestrationIds = result.orchestrations.map {
         orcaService.orchestrate(it).ref
       }
@@ -67,16 +71,16 @@ open class OrcaIntentLauncher
         timestampMillis = clock.millis()
       ))
 
-      registry.counter(invocationsId
-        .withTags(intent.getMetricTags())
-        .withTag("change", result.changeSummary.type.toString())
-      ).increment()
-
       log.info(
         "Launched orchestrations {} for intent {}",
         value("orchestrations", orchestrationIds),
         value("intentId", intent.id())
       )
+
+      registry.counter(invocationsId
+        .withTags(intent.getMetricTags())
+        .withTag("change", result.changeSummary.type.toString())
+      ).increment()
 
       OrcaLaunchedIntentResult(orchestrationIds, result.changeSummary)
     }

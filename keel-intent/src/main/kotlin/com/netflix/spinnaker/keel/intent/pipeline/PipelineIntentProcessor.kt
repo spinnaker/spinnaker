@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor
+package com.netflix.spinnaker.keel.intent.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.*
@@ -22,10 +22,7 @@ import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.PipelineConfig
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
-import com.netflix.spinnaker.keel.intent.PipelineIntent
-import com.netflix.spinnaker.keel.intent.PipelineSpec
 import com.netflix.spinnaker.keel.intent.notFound
-import com.netflix.spinnaker.keel.intent.processor.converter.PipelineConverter
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.state.StateInspector
@@ -72,7 +69,7 @@ class PipelineIntentProcessor(
         name = (if (currentState == null) "Create" else "Update") + " pipeline '${intent.spec.name}'",
         application = intent.spec.application,
         description = "Converging on desired pipeline state",
-        job = pipelineConverter.convertToJob(intent.spec, changeSummary),
+        job = pipelineConverter.convertToJob(ConvertPipelineToJob(intent.spec, currentState?.id), changeSummary),
         trigger = OrchestrationTrigger(intent.id())
       )
     ), changeSummary)

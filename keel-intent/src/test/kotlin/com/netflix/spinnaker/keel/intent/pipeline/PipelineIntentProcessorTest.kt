@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor
+package com.netflix.spinnaker.keel.intent.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.equalTo
@@ -25,11 +25,6 @@ import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.PipelineConfig
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
-import com.netflix.spinnaker.keel.intent.PipelineFlags
-import com.netflix.spinnaker.keel.intent.PipelineIntent
-import com.netflix.spinnaker.keel.intent.PipelineProperties
-import com.netflix.spinnaker.keel.intent.PipelineSpec
-import com.netflix.spinnaker.keel.intent.processor.converter.PipelineConverter
 import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.exceptions.DeclarativeException
+import com.netflix.spinnaker.keel.intent.ConvertToJobCommand
 import com.netflix.spinnaker.keel.intent.SpecConverter
 import com.netflix.spinnaker.keel.intent.aws.loadbalancer.AvailabilityZoneConfig.Manual
 import com.netflix.spinnaker.keel.model.Job
@@ -108,46 +109,48 @@ class ClassicLoadBalancerConverter(
       )
     }
 
-  override fun convertToJob(spec: ClassicLoadBalancerSpec, changeSummary: ChangeSummary): List<Job> {
-    changeSummary.addMessage("Converging load balancer ${spec.name}")
+  override fun <C : ConvertToJobCommand<ClassicLoadBalancerSpec>> convertToJob(command: C, changeSummary: ChangeSummary): List<Job> {
+    return command.spec.let { spec ->
+      changeSummary.addMessage("Converging load balancer ${spec.name}")
 
-    // TODO-AJ this is unnecessary overhead! consider adding expanded availabilityZones to spec
-    val vpc = cloudDriverCache.networkBy(spec.vpcName, spec.accountName, spec.region)
-    val zones = cloudDriverCache.availabilityZonesBy(vpc.account, vpc.id, vpc.region)
+      // TODO-AJ this is unnecessary overhead! consider adding expanded availabilityZones to spec
+      val vpc = cloudDriverCache.networkBy(spec.vpcName, spec.accountName, spec.region)
+      val zones = cloudDriverCache.availabilityZonesBy(vpc.account, vpc.id, vpc.region)
 
-    return listOf(
-      Job(
-        "upsertLoadBalancer",
-        mutableMapOf(
-          "name" to spec.name,
-          "region" to spec.region,
-          "credentials" to spec.accountName,
-          "cloudProvider" to spec.cloudProvider(),
+      listOf(
+        Job(
+          "upsertLoadBalancer",
+          mutableMapOf(
+            "name" to spec.name,
+            "region" to spec.region,
+            "credentials" to spec.accountName,
+            "cloudProvider" to spec.cloudProvider(),
 
-          "availabilityZones" to mapOf(spec.region to zones),
-          "loadBalancerType" to "classic",
-          "securityGroups" to spec.securityGroupNames,
-          "vpcId" to vpc.id,
-          "subnetType" to spec.subnets,
-          "isInternal" to if (spec.scheme == null) true else spec.scheme == Scheme.internal,
+            "availabilityZones" to mapOf(spec.region to zones),
+            "loadBalancerType" to "classic",
+            "securityGroups" to spec.securityGroupNames,
+            "vpcId" to vpc.id,
+            "subnetType" to spec.subnets,
+            "isInternal" to if (spec.scheme == null) true else spec.scheme == Scheme.internal,
 
-          "listeners" to spec.listeners.map {
-            mutableMapOf(
-              "externalProtocol" to it.protocol.toString(),
-              "externalPort" to it.loadBalancerPort,
-              "internalProtocol" to it.instanceProtocol.toString(),
-              "internalPort" to it.instancePort
-            )
-          },
+            "listeners" to spec.listeners.map {
+              mutableMapOf(
+                "externalProtocol" to it.protocol.toString(),
+                "externalPort" to it.loadBalancerPort,
+                "internalProtocol" to it.instanceProtocol.toString(),
+                "internalPort" to it.instancePort
+              )
+            },
 
-          "healthCheck" to spec.healthCheck.target.render(),
-          "healthTimeout" to spec.healthCheck.timeout,
-          "healthInterval" to spec.healthCheck.interval,
-          "healthyThreshold" to spec.healthCheck.healthyThreshold,
-          "unhealthyThreshold" to spec.healthCheck.unhealthyThreshold
+            "healthCheck" to spec.healthCheck.target.render(),
+            "healthTimeout" to spec.healthCheck.timeout,
+            "healthInterval" to spec.healthCheck.interval,
+            "healthyThreshold" to spec.healthCheck.healthyThreshold,
+            "unhealthyThreshold" to spec.healthCheck.unhealthyThreshold
+          )
         )
       )
-    )
+    }
   }
 
   private fun HealthCheck.convertFromState(): HealthCheckSpec =

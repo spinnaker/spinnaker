@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
+import com.netflix.spinnaker.keel.intent.DefaultConvertToJobCommand
 import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
@@ -75,7 +76,7 @@ class ClassicLoadBalancerIntentProcessor
           name = "Upsert Classic Load Balancer",
           application = intent.spec.application,
           description = "Converging Classic Load Balancer (${spec.accountName}:${spec.region}:${spec.name})",
-          job = classicLoadBalancerConverter.convertToJob(spec, changeSummary),
+          job = classicLoadBalancerConverter.convertToJob(DefaultConvertToJobCommand(spec), changeSummary),
           trigger = OrchestrationTrigger(intent.id())
         )
       ),

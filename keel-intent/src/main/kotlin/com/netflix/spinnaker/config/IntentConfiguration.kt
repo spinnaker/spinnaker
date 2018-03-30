@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.keel.intent.Trigger
+import com.netflix.spinnaker.keel.intent.pipeline.Trigger
 import com.netflix.spinnaker.keel.intent.SecurityGroupRule
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.springframework.context.annotation.Bean

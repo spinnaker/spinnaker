@@ -154,32 +154,34 @@ class AmazonSecurityGroupConverter(
     )
   }
 
-  override fun convertToJob(spec: AmazonSecurityGroupSpec, changeSummary: ChangeSummary): List<Job> {
-    changeSummary.addMessage("Converging security group ${spec.name}")
-    return listOf(
-      Job(
-        "upsertSecurityGroup",
-        mutableMapOf(
-          "application" to spec.application,
-          "credentials" to spec.accountName,
-          "cloudProvider" to "aws",
-          "name" to spec.name,
-          "regions" to listOf(spec.region),
-          "vpcId" to spec.vpcName,
-          "description" to spec.description,
-          "securityGroupIngress" to spec.inboundRules.filter { it !is CidrSecurityGroupRule }.flatMap {
-            return@flatMap when (it) {
-              is PortRangeSupport -> convertPortRangeRuleToJob(changeSummary, spec, it)
-              else -> throw NotImplementedError("${it.javaClass.simpleName} security group rule has not been implemented yet")
-            }
-          },
-          "ipIngress" to spec.inboundRules.filterIsInstance<CidrSecurityGroupRule>().flatMap {
-            convertCidrRuleToJob(changeSummary, it)
-          },
-          "accountName" to spec.accountName
+  override fun <C : ConvertToJobCommand<AmazonSecurityGroupSpec>> convertToJob(command: C, changeSummary: ChangeSummary): List<Job> {
+    return command.spec.let { spec ->
+      changeSummary.addMessage("Converging security group ${spec.name}")
+      listOf(
+        Job(
+          "upsertSecurityGroup",
+          mutableMapOf(
+            "application" to spec.application,
+            "credentials" to spec.accountName,
+            "cloudProvider" to "aws",
+            "name" to spec.name,
+            "regions" to listOf(spec.region),
+            "vpcId" to spec.vpcName,
+            "description" to spec.description,
+            "securityGroupIngress" to spec.inboundRules.filter { it !is CidrSecurityGroupRule }.flatMap {
+              return@flatMap when (it) {
+                is PortRangeSupport -> convertPortRangeRuleToJob(changeSummary, spec, it)
+                else -> throw NotImplementedError("${it.javaClass.simpleName} security group rule has not been implemented yet")
+              }
+            },
+            "ipIngress" to spec.inboundRules.filterIsInstance<CidrSecurityGroupRule>().flatMap {
+              convertCidrRuleToJob(changeSummary, it)
+            },
+            "accountName" to spec.accountName
+          )
         )
       )
-    )
+    }
   }
 
   private fun convertPortRangeRuleToJob(changeSummary: ChangeSummary,

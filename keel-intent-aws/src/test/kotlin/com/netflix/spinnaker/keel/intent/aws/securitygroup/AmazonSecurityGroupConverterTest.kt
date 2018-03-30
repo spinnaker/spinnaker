@@ -177,7 +177,7 @@ object AmazonSecurityGroupConverterTest {
       description = "app sg"
     )
 
-    val result = subject.convertToJob(spec,changeSummary)
+    val result = subject.convertToJob(DefaultConvertToJobCommand(spec), changeSummary)
 
     result.size shouldMatch equalTo(1)
     result[0]["application"] shouldMatch equalTo<Any>("keel")

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.BaseApplicationSpec
+import com.netflix.spinnaker.keel.intent.ConvertToJobCommand
 import com.netflix.spinnaker.keel.intent.SpecConverter
 import com.netflix.spinnaker.keel.model.Job
 import org.slf4j.LoggerFactory
@@ -57,8 +58,8 @@ class ApplicationConverter(
     TODO("not implemented ")
   }
 
-  override fun convertToJob(spec: BaseApplicationSpec, changeSummary: ChangeSummary): List<Job> {
-    TODO("not implemented")
+  override fun <C : ConvertToJobCommand<BaseApplicationSpec>> convertToJob(command: C, changeSummary: ChangeSummary): List<Job> {
+    throw UnsupportedOperationException("not implemented")
   }
 
   /*

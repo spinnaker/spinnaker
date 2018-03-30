@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor.converter
+package com.netflix.spinnaker.keel.intent.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.KeelProperties
@@ -21,12 +21,6 @@ import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.front50.model.PipelineConfig
-import com.netflix.spinnaker.keel.intent.JenkinsTrigger
-import com.netflix.spinnaker.keel.intent.PipelineFlags
-import com.netflix.spinnaker.keel.intent.PipelineProperties
-import com.netflix.spinnaker.keel.intent.PipelineSpec
-import com.netflix.spinnaker.keel.intent.PipelineStage
-import com.netflix.spinnaker.keel.intent.Trigger
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.junit.jupiter.api.Test
 
@@ -88,7 +82,7 @@ object PipelineConverterTest {
 
   @Test
   fun `should convert spec to orchestration job`() {
-    subject.convertToJob(spec, ChangeSummary("test")).also {
+    subject.convertToJob(ConvertPipelineToJob(spec, null), ChangeSummary("test")).also {
       it.size shouldEqual 1
       it[0]["type"] shouldEqual "savePipeline"
     }

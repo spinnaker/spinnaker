@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent
+package com.netflix.spinnaker.keel.intent.pipeline
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -23,6 +23,7 @@ import com.github.jonpeterson.jackson.module.versioning.JsonVersionedModel
 import com.netflix.spinnaker.keel.ApplicationAwareIntentSpec
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.annotation.ForcesNew
+import com.netflix.spinnaker.keel.intent.SCHEMA_PROPERTY
 
 private const val KIND = "Pipeline"
 private const val CURRENT_SCHEMA = "0"
@@ -35,7 +36,7 @@ class PipelineIntent
   schema = CURRENT_SCHEMA,
   spec = spec
 ) {
-  @JsonIgnore override val id = "$KIND:${spec.application}:${spec.name}"
+  @JsonIgnore override val id = "${KIND}:${spec.application}:${spec.name}"
 }
 
 @JsonTypeName("pipeline")

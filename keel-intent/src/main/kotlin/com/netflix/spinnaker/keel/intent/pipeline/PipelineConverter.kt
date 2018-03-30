@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.intent.processor.converter
+package com.netflix.spinnaker.keel.intent.pipeline
 
 import com.amazonaws.util.Base64
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 import com.netflix.spinnaker.keel.front50.model.PipelineConfig
-import com.netflix.spinnaker.keel.intent.PipelineFlags
-import com.netflix.spinnaker.keel.intent.PipelineProperties
-import com.netflix.spinnaker.keel.intent.PipelineSpec
-import com.netflix.spinnaker.keel.intent.PipelineStage
+import com.netflix.spinnaker.keel.intent.ConvertToJobCommand
 import com.netflix.spinnaker.keel.intent.SpecConverter
-import com.netflix.spinnaker.keel.intent.Trigger
 import com.netflix.spinnaker.keel.model.Job
 import org.springframework.stereotype.Component
 
@@ -105,13 +102,26 @@ class PipelineConverter(
       }
     )
 
-  override fun convertToJob(spec: PipelineSpec, changeSummary: ChangeSummary) =
-    listOf(
+  override fun <C : ConvertToJobCommand<PipelineSpec>> convertToJob(command: C, changeSummary: ChangeSummary): List<Job> {
+    if (command !is ConvertPipelineToJob) {
+      throw DeclarativeException("requires ConvertPipelineToJob, ${command.javaClass.simpleName} given")
+    }
+
+    val state = objectMapper.convertValue<MutableMap<String, Any>>(convertToState(command.spec))
+    command.pipelineId?.let { state["id"] = it }
+
+    return listOf(
       Job(
         type = "savePipeline",
         m = mutableMapOf(
-          "pipeline" to Base64.encodeAsString(*objectMapper.writeValueAsBytes(convertToState(spec)))
+          "pipeline" to Base64.encodeAsString(*objectMapper.writeValueAsBytes(state))
         )
       )
     )
+  }
 }
+
+data class ConvertPipelineToJob(
+  override val spec: PipelineSpec,
+  val pipelineId: String?
+) : ConvertToJobCommand<PipelineSpec>

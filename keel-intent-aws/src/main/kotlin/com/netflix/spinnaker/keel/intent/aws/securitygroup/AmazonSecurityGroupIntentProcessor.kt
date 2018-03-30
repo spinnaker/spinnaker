@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.exceptions.DeclarativeException
 import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
+import com.netflix.spinnaker.keel.intent.DefaultConvertToJobCommand
 import com.netflix.spinnaker.keel.intent.NamedReferenceSupport
 import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -103,7 +104,7 @@ class AmazonSecurityGroupIntentProcessor(
         name = "Upsert security group",
         application = intent.spec.application,
         description = "Converging on desired state for ${intent.id()}",
-        job = converter.convertToJob(desiredRootIntent.spec, changeSummary),
+        job = converter.convertToJob(DefaultConvertToJobCommand(desiredRootIntent.spec), changeSummary),
         trigger = OrchestrationTrigger(intent.id())
       )
     ), changeSummary)

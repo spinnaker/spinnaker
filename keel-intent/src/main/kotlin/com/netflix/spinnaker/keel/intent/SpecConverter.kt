@@ -23,5 +23,13 @@ interface SpecConverter<I : IntentSpec, S : Any> {
 
   fun convertToState(spec: I): S
   fun convertFromState(state: S): I?
-  fun convertToJob(spec: I, changeSummary: ChangeSummary): List<Job>
+  fun <C : ConvertToJobCommand<I>> convertToJob(command: C, changeSummary: ChangeSummary): List<Job>
 }
+
+interface ConvertToJobCommand<out S : IntentSpec> {
+  val spec: S
+}
+
+data class DefaultConvertToJobCommand<out S : IntentSpec>(
+  override val spec: S
+) : ConvertToJobCommand<S>
