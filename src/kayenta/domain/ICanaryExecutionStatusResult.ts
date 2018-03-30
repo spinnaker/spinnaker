@@ -36,7 +36,7 @@ export interface ICanaryExecutionRequest {
 
 export interface ICanaryScope {
   scope: string;
-  region: string;
+  location: string;
   start: string;
   end: string;
   step: number;

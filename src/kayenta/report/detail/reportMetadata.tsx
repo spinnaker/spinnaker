@@ -41,11 +41,11 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
       start,
       end,
       step,
-      region: controlRegion,
+      location: controlLocation,
       scope: controlScope,
     },
     experimentScope: {
-      region: experimentRegion,
+      location: experimentLocation,
       scope: experimentScope,
     },
   } = scopes[0];
@@ -59,8 +59,8 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
           getContent: () => <p>{controlScope}</p>,
         },
         {
-          label: 'region',
-          getContent: () => <p>{controlRegion}</p>
+          label: 'location',
+          getContent: () => <p>{controlLocation}</p>
         },
       ]
     },
@@ -72,8 +72,8 @@ const buildScopeMetadataEntries = (run: ICanaryExecutionStatusResult): IMetadata
           getContent: () => <p>{experimentScope}</p>
         },
         {
-          label: 'region',
-          getContent: () => <p>{experimentRegion}</p>
+          label: 'location',
+          getContent: () => <p>{experimentLocation}</p>
         },
       ]
     },
