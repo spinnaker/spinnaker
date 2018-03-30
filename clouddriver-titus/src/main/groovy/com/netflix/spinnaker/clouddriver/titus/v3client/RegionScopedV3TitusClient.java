@@ -248,9 +248,11 @@ public class RegionScopedV3TitusClient implements TitusClient {
       TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
       taskQueryBuilder.setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100));
       taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+      String filterByStates = "Accepted,Launched,StartInitiated,Started";
       if (includeDoneJobs) {
-        taskQueryBuilder.putFilteringCriteria("taskStates", "Accepted,Launched,StartInitiated,Started,KillInitiated,Finished");
+        filterByStates = filterByStates + ",KillInitiated,Finished";
       }
+      taskQueryBuilder.putFilteringCriteria("taskStates", filterByStates);
       taskResults = grpcBlockingStub.findTasks(
         taskQueryBuilder.build()
       );
