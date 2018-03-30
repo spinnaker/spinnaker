@@ -150,7 +150,7 @@ class KayentaCanaryStage(
 
       val controlScope = CanaryScope(
         scope.controlScope,
-        scope.controlRegion,
+        scope.controlLocation,
         start,
         end,
         config.step.seconds,
@@ -158,7 +158,7 @@ class KayentaCanaryStage(
       )
       val experimentScope = controlScope.copy(
         scope = scope.experimentScope,
-        region = scope.experimentRegion
+        location = scope.experimentLocation
       )
 
       requestScopes[scope.scopeName] = CanaryScopes(

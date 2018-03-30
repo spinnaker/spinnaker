@@ -91,13 +91,13 @@ object KayentaServiceTest : Spek({
             scopes = mapOf("canary" to CanaryScopes(
               CanaryScope(
                 scope = "covfefe-control",
-                region = "us-west-2",
+                location = "us-west-2",
                 start = startTime,
                 end = endTime
               ),
               CanaryScope(
                 scope = "covfefe-experiment",
-                region = "us-west-2",
+                location = "us-west-2",
                 start = startTime,
                 end = endTime
               )
@@ -236,7 +236,7 @@ object KayentaServiceTest : Spek({
       "default": {
         "controlScope": {
           "scope": "myapp-v059",
-          "region": "us-central1",
+          "location": "us-central1",
           "start": "2018-02-15T20:05:00Z",
           "end": "2018-02-15T21:05:00Z",
           "step": 60,
@@ -246,7 +246,7 @@ object KayentaServiceTest : Spek({
         },
         "experimentScope": {
           "scope": "myapp-v059",
-          "region": "us-central1",
+          "location": "us-central1",
           "start": "2018-02-15T20:05:00Z",
           "end": "2018-02-15T21:05:00Z",
           "step": 60,

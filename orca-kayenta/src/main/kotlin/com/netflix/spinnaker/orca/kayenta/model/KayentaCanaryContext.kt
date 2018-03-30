@@ -48,9 +48,9 @@ data class KayentaCanaryContext(
 data class CanaryConfigScope(
   val scopeName: String = "default",
   val controlScope: String,
-  val controlRegion: String?,
+  val controlLocation: String?,
   val experimentScope: String,
-  val experimentRegion: String?,
+  val experimentLocation: String?,
   val startTimeIso: String?,
   val endTimeIso: String?,
   val step: Long = 60, // TODO: clarify this is in seconds

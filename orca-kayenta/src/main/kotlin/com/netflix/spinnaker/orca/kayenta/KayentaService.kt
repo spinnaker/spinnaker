@@ -60,7 +60,7 @@ data class CanaryScopes(
 
 data class CanaryScope(
   val scope: String,
-  val region: String?,
+  val location: String?,
   val start: Instant,
   val end: Instant,
   val step: Long = 60, // TODO: would be nice to use a Duration
