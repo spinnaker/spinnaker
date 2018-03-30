@@ -29,7 +29,7 @@ class TargetGroupLookupHelper {
     Set<String> unknownTargetGroups = []
   }
 
-  public TargetGroupLookupHelper() {
+  TargetGroupLookupHelper() {
   }
 
   TargetGroupLookupResult getTargetGroupsFromAsg(AutoScalingGroup asg) {
@@ -47,17 +47,14 @@ class TargetGroupLookupHelper {
     def lbv2 = rsp.getAmazonElasticLoadBalancingV2(false)
     Set<String> targetGroups = []
     for (String targetGroupName : allTargetGroups) {
-      // at the moment, '--' is not allowed in lbv2 load balancer names, and asking for it throws a ValidationError not a LoadBalancerNotFoundException
-      if (!targetGroupName.contains("--")) {
-        try {
-          def targetGroup = lbv2.describeTargetGroups(new DescribeTargetGroupsRequest().withNames(targetGroupName)).targetGroups.first()
-          targetGroups.add(targetGroupName)
-          result.targetGroupARNs.add(targetGroup.targetGroupArn)
-        } catch (LoadBalancerNotFoundException loadBalancerNotFoundException) {
-          // ignore
-        } catch (TargetGroupNotFoundException targetGroupNotFoundException) {
-          // ignore
-        }
+      try {
+        def targetGroup = lbv2.describeTargetGroups(new DescribeTargetGroupsRequest().withNames(targetGroupName)).targetGroups.first()
+        targetGroups.add(targetGroupName)
+        result.targetGroupARNs.add(targetGroup.targetGroupArn)
+      } catch (LoadBalancerNotFoundException ignore) {
+        // ignore
+      } catch (TargetGroupNotFoundException ignore) {
+        // ignore
       }
     }
     allTargetGroups.removeAll(targetGroups)
