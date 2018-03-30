@@ -48,6 +48,9 @@ open class OrcaIntentLauncher
 
       if (result.orchestrations.isNotEmpty()) {
         applicationEventPublisher.publishEvent(ConvergenceRequiredEvent(intent))
+      } else {
+        log.info("State matches desired intent for {}", value("intentId", intent.id()))
+        return@recordedTime OrcaLaunchedIntentResult(emptyList(), result.changeSummary)
       }
 
       val orchestrationIds = result.orchestrations.map {
