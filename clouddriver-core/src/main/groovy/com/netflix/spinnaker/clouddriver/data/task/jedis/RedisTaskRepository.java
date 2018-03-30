@@ -30,6 +30,8 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.function.CheckedConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.IOException;
@@ -46,6 +48,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 
 public class RedisTaskRepository implements TaskRepository {
+  private static final Logger log = LoggerFactory.getLogger(RedisTaskRepository.class);
 
   private static final String RUNNING_TASK_KEY = "kato:tasks";
   private static final String TASK_KEY_MAP = "kato:taskmap";
@@ -237,6 +240,7 @@ public class RedisTaskRepository implements TaskRepository {
       .collect(Collectors.toList())
       .toArray(new String[objects.size()]);
 
+    log.debug("Adding results to task {} (results: {})", task.getId(), values);
     retry(() -> redisClientDelegate.withCommandsClient(client -> {
       client.rpush(resultId, values);
       client.expire(resultId, TASK_TTL);
