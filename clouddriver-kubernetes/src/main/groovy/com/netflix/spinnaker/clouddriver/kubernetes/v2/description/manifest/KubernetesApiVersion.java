@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +56,10 @@ public class KubernetesApiVersion {
 
   @JsonCreator
   public static KubernetesApiVersion fromString(String name) {
+    if (StringUtils.isEmpty(name)) {
+      return null;
+    }
+
     Optional<KubernetesApiVersion> versionOptional = values.stream()
         .filter(v -> v.name.equalsIgnoreCase(name))
         .findAny();

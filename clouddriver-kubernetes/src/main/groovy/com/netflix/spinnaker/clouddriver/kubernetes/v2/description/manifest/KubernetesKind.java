@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,6 +92,10 @@ public class KubernetesKind {
 
   @JsonCreator
   public static KubernetesKind fromString(String name) {
+    if (StringUtils.isEmpty(name)) {
+      return null;
+    }
+    
     Optional<KubernetesKind> kindOptional = values.stream()
         .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
         .findAny();
