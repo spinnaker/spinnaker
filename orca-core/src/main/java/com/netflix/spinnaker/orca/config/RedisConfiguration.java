@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.config;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.kork.dynomite.DynomiteClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
@@ -48,7 +47,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static redis.clients.jedis.Protocol.DEFAULT_DATABASE;
 
 @Configuration
-@Import({JedisClientConfiguration.class, DynomiteClientConfiguration.class})
+@Import(JedisClientConfiguration.class)
 public class RedisConfiguration {
 
   public static class Clients {

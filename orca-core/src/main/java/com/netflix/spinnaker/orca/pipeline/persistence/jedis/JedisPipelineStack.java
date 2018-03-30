@@ -84,12 +84,7 @@ public class JedisPipelineStack implements PipelineStack {
   }
 
   private String key(String id) {
-    if (redisClientDelegate.supportsTransactions()) {
-      return String.format("%s:%s", prefix, id);
-    } else {
-      // Dynomite
-      return String.format("{%s}:%s", prefix, id);
-    }
+    return String.format("%s:%s", prefix, id);
   }
 
 }

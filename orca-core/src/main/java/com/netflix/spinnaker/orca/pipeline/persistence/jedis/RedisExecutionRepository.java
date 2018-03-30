@@ -3,11 +3,9 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.dyno.jedis.DynoJedisPipeline;
+import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.kork.dynomite.DynomiteClientDelegate;
-import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -18,7 +16,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails;
 import com.netflix.spinnaker.orca.pipeline.persistence.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +49,7 @@ import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAG
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE;
@@ -132,7 +127,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   @Override
   public void updateStageContext(@Nonnull Stage stage) {
     RedisClientDelegate delegate = getRedisDelegate(stage);
-    String key = executionKey(delegate, stage);
+    String key = executionKey(stage);
     String contextKey = format("stage.%s.context", stage.getId());
     delegate.withCommandsClient(c -> {
       try {
@@ -146,7 +141,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   @Override
   public void removeStage(@Nonnull Execution execution, @Nonnull String stageId) {
     RedisClientDelegate delegate = getRedisDelegate(execution);
-    String key = executionKey(delegate, execution);
+    String key = executionKey(execution);
     String indexKey = format("%s:stageIndex", key);
 
     List<String> stageKeys = delegate.withCommandsClient(c -> {
@@ -155,21 +150,11 @@ public class RedisExecutionRepository implements ExecutionRepository {
         .collect(Collectors.toList());
     });
 
-    if (delegate instanceof JedisClientDelegate) {
-      delegate.withTransaction(tx -> {
-        tx.lrem(indexKey, 0, stageId);
-        tx.hdel(key, stageKeys.toArray(new String[0]));
-        tx.exec();
-      });
-    } else {
-      // Dynomite
-      delegate.withPipeline(pipeline -> {
-        DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
-        p.srem(indexKey, stageId);
-        p.hdel(key, stageKeys.toArray(new String[0]));
-        p.sync();
-      });
-    }
+    delegate.withTransaction(tx -> {
+      tx.lrem(indexKey, 0, stageId);
+      tx.hdel(key, stageKeys.toArray(new String[0]));
+      tx.exec();
+    });
   }
 
   @Override
@@ -350,7 +335,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
         Set<String> allowedExecutionStatuses = new HashSet<>(criteria.getStatuses());
         List<String> statuses = fetchMultiExecutionStatus(d,
           pipelineKeys.stream()
-            .map(key -> pipelineKey(d, key))
+            .map(key -> pipelineKey(key))
             .collect(Collectors.toList())
         );
 
@@ -430,7 +415,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
         Set<String> allowedExecutionStatuses = new HashSet<>(criteria.getStatuses());
         List<String> statuses = fetchMultiExecutionStatus(d,
           orchestrationKeys.stream()
-            .map(key -> orchestrationKey(d, key))
+            .map(key -> orchestrationKey(key))
             .collect(Collectors.toList())
         );
 
@@ -721,7 +706,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   private void deleteInternal(RedisClientDelegate delegate, ExecutionType type, String id) {
     delegate.withCommandsClient(c -> {
-      String key = executionKey(delegate, type, id);
+      String key = executionKey(type, id);
       try {
         String application = c.hget(key, "application");
         String appKey = appKey(type, application);
@@ -796,10 +781,10 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   protected ImmutablePair<String, RedisClientDelegate> fetchKey(String id) {
     ImmutablePair<String, RedisClientDelegate> pair = redisClientDelegate.withCommandsClient(c -> {
-      if (c.exists(pipelineKey(redisClientDelegate, id))) {
-        return ImmutablePair.of(pipelineKey(redisClientDelegate, id), redisClientDelegate);
-      } else if (c.exists(orchestrationKey(redisClientDelegate, id))) {
-        return ImmutablePair.of(orchestrationKey(redisClientDelegate, id), redisClientDelegate);
+      if (c.exists(pipelineKey(id))) {
+        return ImmutablePair.of(pipelineKey(id), redisClientDelegate);
+      } else if (c.exists(orchestrationKey(id))) {
+        return ImmutablePair.of(orchestrationKey(id), redisClientDelegate);
       }
       return ImmutablePair.nullPair();
     });
@@ -807,10 +792,10 @@ public class RedisExecutionRepository implements ExecutionRepository {
     if (pair.getLeft() == null && previousRedisClientDelegate.isPresent()) {
       RedisClientDelegate delegate = previousRedisClientDelegate.get();
       pair = delegate.withCommandsClient(c -> {
-        if (c.exists(pipelineKey(delegate, id))) {
-          return ImmutablePair.of(pipelineKey(delegate, id), delegate);
-        } else if (c.exists(orchestrationKey(delegate, id))) {
-          return ImmutablePair.of(orchestrationKey(delegate, id), delegate);
+        if (c.exists(pipelineKey(id))) {
+          return ImmutablePair.of(pipelineKey(id), delegate);
+        } else if (c.exists(orchestrationKey(id))) {
+          return ImmutablePair.of(orchestrationKey(id), delegate);
         }
         return null;
       });
@@ -836,7 +821,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   private void storeExecutionInternal(RedisClientDelegate delegate, Execution execution) {
-    String key = executionKey(delegate, execution);
+    String key = executionKey(execution);
     String indexKey = format("%s:stageIndex", key);
     Map<String, String> map = serializeExecution(execution);
 
@@ -844,34 +829,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
       c.sadd(alljobsKey(execution.getType()), execution.getId());
       c.sadd(appKey(execution.getType(), execution.getApplication()), execution.getId());
 
-      if (delegate instanceof DynomiteClientDelegate) {
-        delegate.withPipeline(pipeline -> {
-          DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
-          p.hdel(key, "config");
-          p.hmset(key, filterValues(map, Objects::nonNull));
-          if (!execution.getStages().isEmpty()) {
-            p.sadd(indexKey, execution.getStages().stream()
-              .map(Stage::getId)
-              .toArray(String[]::new)
-            );
-          }
-          p.sync();
-        });
-      } else {
-        // Jedis
-        delegate.withTransaction(tx -> {
-          tx.hdel(key, "config");
-          tx.hmset(key, filterValues(map, Objects::nonNull));
-          if (!execution.getStages().isEmpty()) {
-            tx.del(indexKey);
-            tx.rpush(indexKey, execution.getStages().stream()
-              .map(Stage::getId)
-              .toArray(String[]::new)
-            );
-          }
-          tx.exec();
-        });
-      }
+      delegate.withTransaction(tx -> {
+        tx.hdel(key, "config");
+        tx.hmset(key, filterValues(map, Objects::nonNull));
+        if (!execution.getStages().isEmpty()) {
+          tx.del(indexKey);
+          tx.rpush(indexKey, execution.getStages().stream()
+            .map(Stage::getId)
+            .toArray(String[]::new)
+          );
+        }
+        tx.exec();
+      });
 
       if (execution.getTrigger().getCorrelationId() != null) {
         c.set(
@@ -883,7 +852,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   private void storeStageInternal(RedisClientDelegate delegate, Stage stage, Boolean updateIndex) {
-    String key = executionKey(delegate, stage);
+    String key = executionKey(stage);
     String indexKey = format("%s:stageIndex", key);
 
     Map<String, String> serializedStage = serializeStage(stage);
@@ -894,40 +863,22 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
     serializedStage.values().removeIf(Objects::isNull);
 
-    if (delegate instanceof DynomiteClientDelegate) {
-      delegate.withPipeline(pipeline -> {
-        DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
-        p.hmset(key, serializedStage);
+    delegate.withTransaction(tx -> {
+      tx.hmset(key, serializedStage);
 
-        if (!keysToRemove.isEmpty()) {
-          p.hdel(key, keysToRemove.toArray(new String[0]));
-        }
-
-        if (updateIndex) {
-          p.sadd(indexKey, stage.getId());
-        }
-
-        p.sync();
-      });
-    } else {
-      // Jedis
-      delegate.withTransaction(tx -> {
-        tx.hmset(key, serializedStage);
-
-        if (!keysToRemove.isEmpty()) {
-          tx.hdel(key, keysToRemove.toArray(new String[0]));
-        }
-        if (updateIndex) {
-          BinaryClient.LIST_POSITION pos = stage.getSyntheticStageOwner() == STAGE_BEFORE ? BEFORE : AFTER;
-          tx.linsert(indexKey, pos, stage.getParentStageId(), stage.getId());
-        }
-        tx.exec();
-      });
-    }
+      if (!keysToRemove.isEmpty()) {
+        tx.hdel(key, keysToRemove.toArray(new String[0]));
+      }
+      if (updateIndex) {
+        BinaryClient.LIST_POSITION pos = stage.getSyntheticStageOwner() == STAGE_BEFORE ? BEFORE : AFTER;
+        tx.linsert(indexKey, pos, stage.getParentStageId(), stage.getId());
+      }
+      tx.exec();
+    });
   }
 
   protected Execution retrieveInternal(RedisClientDelegate delegate, ExecutionType type, String id) throws ExecutionNotFoundException {
-    String key = executionKey(delegate, type, id);
+    String key = executionKey(type, id);
     String indexKey = format("%s:stageIndex", key);
 
     boolean exists = delegate.withCommandsClient(c -> {
@@ -940,8 +891,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
     final Map<String, String> map = new HashMap<>();
     final List<String> stageIds = new ArrayList<>();
 
-    if (delegate instanceof JedisClientDelegate) {
-      delegate.withTransaction(tx -> {
+    delegate.withTransaction(tx -> {
         Response<Map<String, String>> execResponse = tx.hgetAll(key);
         Response<List<String>> indexResponse = tx.lrange(indexKey, 0, -1);
         tx.exec();
@@ -953,39 +903,20 @@ public class RedisExecutionRepository implements ExecutionRepository {
         } else {
           stageIds.addAll(extractStages(map));
         }
-      });
-    } else {
-      // Dynomite
-      delegate.withPipeline(pipeline -> {
-        DynoJedisPipeline p = (DynoJedisPipeline) pipeline;
-        Response<Map<String, String>> execResponse = p.hgetAll(key);
-        Response<Set<String>> indexResponse = p.smembers(indexKey);
-        try {
-          p.sync();
-        } catch (Exception e) {
-          log.error(e.getMessage(), e);
-        }
-
-        map.putAll(execResponse.get());
-
-        if (!indexResponse.get().isEmpty()) {
-          stageIds.addAll(indexResponse.get());
-        } else {
-          stageIds.addAll(extractStages(map));
-        }
-      });
-    }
+    });
 
     Execution execution = new Execution(type, id, map.get("application"));
     return buildExecution(execution, map, stageIds);
   }
 
   protected List<String> fetchMultiExecutionStatus(RedisClientDelegate redisClientDelegate, List<String> keys) {
-    List<String> statuses = new ArrayList<>();
-    redisClientDelegate.withCommandsClient(c -> {
-      keys.forEach(k -> statuses.add(c.hget(k, "status")));
+    return redisClientDelegate.withMultiKeyPipeline(p -> {
+      List<Response<String>> responses = keys.stream()
+        .map(k -> p.hget(k, "status"))
+        .collect(Collectors.toList());
+      p.sync();
+      return responses.stream().map(Response::get).collect(Collectors.toList());
     });
-    return statuses;
   }
 
   protected Collection<RedisClientDelegate> allRedisDelegates() {
@@ -995,54 +926,24 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return delegates;
   }
 
-  protected String executionKey(RedisClientDelegate delegate, Execution execution) {
-    if (delegate instanceof JedisClientDelegate) {
-      return format("%s:%s", execution.getType(), execution.getId());
-    } else if (delegate instanceof DynomiteClientDelegate) {
-      return format("{%s:%s}", execution.getType(), execution.getId());
-    } else {
-      throw new UnsupportedRepositoryException("Unsupported RedisClientDelegate type");
-    }
+  protected String executionKey(Execution execution) {
+    return format("%s:%s", execution.getType(), execution.getId());
   }
 
-  private String executionKey(RedisClientDelegate delegate, Stage stage) {
-    if (delegate instanceof JedisClientDelegate) {
-      return format("%s:%s", stage.getExecution().getType(), stage.getExecution().getId());
-    } else if (delegate instanceof DynomiteClientDelegate) {
-      return format("{%s:%s}", stage.getExecution().getType(), stage.getExecution().getId());
-    } else {
-      throw new UnsupportedRepositoryException("Unsupported RedisClientDelegate type");
-    }
+  private String executionKey(Stage stage) {
+    return format("%s:%s", stage.getExecution().getType(), stage.getExecution().getId());
   }
 
-  private String executionKey(RedisClientDelegate delegate, ExecutionType type, String id) {
-    if (delegate instanceof JedisClientDelegate) {
-      return format("%s:%s", type, id);
-    } else if (delegate instanceof DynomiteClientDelegate) {
-      return format("{%s:%s}", type, id);
-    } else {
-      throw new UnsupportedRepositoryException("Unsupported RedisClientDelegate type");
-    }
+  private String executionKey(ExecutionType type, String id) {
+    return format("%s:%s", type, id);
   }
 
-  private String pipelineKey(RedisClientDelegate delegate, String id) {
-    if (delegate instanceof JedisClientDelegate) {
-      return format("%s:%s", PIPELINE, id);
-    } else if (delegate instanceof DynomiteClientDelegate) {
-      return format("{%s:%s}", PIPELINE, id);
-    } else {
-      throw new UnsupportedRepositoryException("Unsupported RedisClientDelegate type");
-    }
+  private String pipelineKey(String id) {
+    return format("%s:%s", PIPELINE, id);
   }
 
-  private String orchestrationKey(RedisClientDelegate delegate, String id) {
-    if (delegate instanceof JedisClientDelegate) {
-      return format("%s:%s", ORCHESTRATION, id);
-    } else if (delegate instanceof DynomiteClientDelegate) {
-      return format("{%s:%s}", ORCHESTRATION, id);
-    } else {
-      throw new UnsupportedRepositoryException("Unsupported RedisClientDelegate type");
-    }
+  private String orchestrationKey(String id) {
+    return format("%s:%s", ORCHESTRATION, id);
   }
 
   private RedisClientDelegate getRedisDelegate(Execution execution) {
@@ -1059,7 +960,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
     }
 
     RedisClientDelegate delegate = redisClientDelegate.withCommandsClient(c -> {
-      if (c.exists(executionKey(redisClientDelegate, type, id))) {
+      if (c.exists(executionKey(type, id))) {
         return redisClientDelegate;
       } else {
         return null;
@@ -1068,7 +969,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
     if (delegate == null) {
       delegate = previousRedisClientDelegate.get().withCommandsClient(c -> {
-        if (c.exists(executionKey(previousRedisClientDelegate.get(), type, id))) {
+        if (c.exists(executionKey(type, id))) {
           return previousRedisClientDelegate.get();
         } else {
           return null;
@@ -1106,12 +1007,12 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   private RedisClientDelegate getRedisDelegateForOrchestrationId(String id) {
-    if (StringUtils.isBlank(id) || !previousRedisClientDelegate.isPresent()) {
+    if (Strings.isNullOrEmpty(id) || !previousRedisClientDelegate.isPresent()) {
       return redisClientDelegate;
     }
 
     RedisClientDelegate delegate = redisClientDelegate.withCommandsClient(c -> {
-      if (c.exists(orchestrationKey(redisClientDelegate, id))) {
+      if (c.exists(orchestrationKey(id))) {
         return redisClientDelegate;
       } else {
         return null;
@@ -1120,7 +1021,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
     if (delegate == null) {
       delegate = previousRedisClientDelegate.get().withCommandsClient(c -> {
-        if (c.exists(orchestrationKey(previousRedisClientDelegate.get(), id))) {
+        if (c.exists(orchestrationKey(id))) {
           return previousRedisClientDelegate.get();
         } else {
           return null;
@@ -1131,4 +1032,30 @@ public class RedisExecutionRepository implements ExecutionRepository {
     return (delegate == null) ? redisClientDelegate : delegate;
   }
 
+  private static class ImmutablePair<L, R> {
+
+    private final L left;
+    private final R right;
+
+    public ImmutablePair(L left, R right) {
+      this.left = left;
+      this.right = right;
+    }
+
+    public static <T, U> ImmutablePair<T, U> of(T left, U right) {
+      return new ImmutablePair<>(left, right);
+    }
+
+    public static <T, U> ImmutablePair<T, U> nullPair() {
+      return new ImmutablePair<>(null, null);
+    }
+
+    public L getLeft() {
+      return left;
+    }
+
+    public R getRight() {
+      return right;
+    }
+  }
 }
