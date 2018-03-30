@@ -25,9 +25,9 @@ const helpContents: {[key: string]: string} = {
   'pipeline.config.canary.scaleUpDelay': '<p>The number of minutes to wait before scaling up the canary.</p>',
   'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
   'pipeline.config.canary.baselineGroup': '<p>The server group to treat as the <em>control</em> in the canary analysis.</p>',
-  'pipeline.config.canary.baselineRegion': '<p>The region of the server group to treat as the <em>control</em> in the canary analysis.</p>',
+  'pipeline.config.canary.baselineLocation': '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>control</em> in the canary analysis.</p>',
   'pipeline.config.canary.canaryGroup': '<p>The server group to treat as the <em>experiment</em> in the canary analysis.</p>',
-  'pipeline.config.canary.canaryRegion': '<p>The region of the server group to treat as the <em>experiment</em> in the canary analysis.</p>',
+  'pipeline.config.canary.canaryLocation': '<p>The location (could be a region, a namespace, or something else) of the server group to treat as the <em>experiment</em> in the canary analysis.</p>',
   'pipeline.config.canary.startTimeIso': '<p>The overall start time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a></p>',
   'pipeline.config.canary.endTimeIso': '<p>The overall end time of the data points to be retrieved, specified as a UTC instant using <a target="_" href="https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#ISO_INSTANT">ISO-8601 instant format.</a></p>',
   'pipeline.config.canary.extendedScopeParams': `

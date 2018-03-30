@@ -43,9 +43,9 @@ interface IKayentaStageCanaryConfig {
 interface IKayentaStageCanaryConfigScope {
   scopeName: string;
   controlScope: string,
-  controlRegion: string,
+  controlLocation: string,
   experimentScope: string;
-  experimentRegion: string,
+  experimentLocation: string,
   startTimeIso?: string;
   endTimeIso?: string;
   step?: number;
@@ -235,11 +235,11 @@ class CanaryStage implements IComponentController {
   public populateScopeWithExpressions(): void {
     this.stage.canaryConfig.scopes[0].controlScope =
       '${ #stage(\'Clone Server Group\')[\'context\'][\'source\'][\'serverGroupName\'] }';
-    this.stage.canaryConfig.scopes[0].controlRegion =
+    this.stage.canaryConfig.scopes[0].controlLocation =
       '${ deployedServerGroups[0].region }';
     this.stage.canaryConfig.scopes[0].experimentScope =
       '${ deployedServerGroups[0].serverGroup }';
-    this.stage.canaryConfig.scopes[0].experimentRegion =
+    this.stage.canaryConfig.scopes[0].experimentLocation =
       '${ deployedServerGroups[0].region }';
   }
 }
