@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageComplete
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
+import com.netflix.spinnaker.orca.fixture.task
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
@@ -767,6 +768,62 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
       it("does not do anything silly like running the after stage again") {
         verify(queue, never()).push(isA<StartStage>())
+      }
+    }
+
+    given("after stages were planned but not run yet") {
+      val pipeline = pipeline {
+        stage {
+          refId = "2"
+          type = "deploy"
+          name = "Deploy"
+          status = RUNNING
+          stage {
+            refId = "2=1"
+            type = "createServerGroup"
+            name = "Deploy in us-west-2"
+            status = RUNNING
+            task {
+              name = "determineSourceServerGroup"
+              status = SUCCEEDED
+            }
+            stage {
+              refId = "2=1>3"
+              type = "applySourceServerGroupCapacity"
+              name = "restoreMinCapacityFromSnapshot"
+              syntheticStageOwner = STAGE_AFTER
+              requisiteStageRefIds = setOf("2=1>2")
+            }
+            stage {
+              refId = "2=1>2"
+              type = "disableCluster"
+              name = "disableCluster"
+              syntheticStageOwner = STAGE_AFTER
+              requisiteStageRefIds = setOf("2=1>1")
+            }
+            stage {
+              refId = "2=1>1"
+              type = "shrinkCluster"
+              name = "shrinkCluster"
+              syntheticStageOwner = STAGE_AFTER
+            }
+          }
+        }
+      }
+      val message = CompleteStage(pipeline.stageByRef("2=1"))
+
+      beforeGroup {
+        whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving $message") {
+        subject.handle(message)
+      }
+
+      it("starts the first after stage") {
+        verify(queue).push(StartStage(pipeline.stageByRef("2=1>1")))
       }
     }
   }

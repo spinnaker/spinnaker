@@ -54,7 +54,7 @@ class CompleteStageHandler(
       if (stage.status in setOf(RUNNING, NOT_STARTED)) {
         var status = stage.determineStatus()
         try {
-          if (status == NOT_STARTED || (status.isComplete && !status.isHalt)) {
+          if (status in setOf(RUNNING, NOT_STARTED) || (status.isComplete && !status.isHalt)) {
             // check to see if this stage has any unplanned synthetic after stages
             var afterStages = stage.firstAfterStages()
             if (afterStages.isEmpty()) {
@@ -210,13 +210,15 @@ private fun Stage.determineStatus(): ExecutionStatus {
   val syntheticStatuses = syntheticStages().map(Stage::getStatus)
   val taskStatuses = tasks.map(Task::getStatus)
   val allStatuses = syntheticStatuses + taskStatuses
+  val afterStageStatuses = afterStages().map(Stage::getStatus)
   return when {
-    allStatuses.isEmpty()                 -> NOT_STARTED
-    allStatuses.contains(TERMINAL)        -> TERMINAL
-    allStatuses.contains(STOPPED)         -> STOPPED
-    allStatuses.contains(CANCELED)        -> CANCELED
-    allStatuses.contains(FAILED_CONTINUE) -> FAILED_CONTINUE
-    allStatuses.all { it == SUCCEEDED }   -> SUCCEEDED
-    else                                  -> TERMINAL
+    allStatuses.isEmpty()                    -> NOT_STARTED
+    allStatuses.contains(TERMINAL)           -> TERMINAL
+    allStatuses.contains(STOPPED)            -> STOPPED
+    allStatuses.contains(CANCELED)           -> CANCELED
+    allStatuses.contains(FAILED_CONTINUE)    -> FAILED_CONTINUE
+    allStatuses.all { it == SUCCEEDED }      -> SUCCEEDED
+    afterStageStatuses.contains(NOT_STARTED) -> RUNNING // after stages were planned but not run yet
+    else                                     -> TERMINAL
   }
 }
