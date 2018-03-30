@@ -5,6 +5,7 @@ import { PAGER_DUTY_READ_SERVICE } from './pagerDuty.read.service';
 import { PAGER_DUTY_SELECT_FIELD_COMPONENT } from './pagerDutySelectField.component';
 import { PAGER_DUTY_TAG_COMPONENT } from './pagerDutyTag.component';
 import { PAGER_DUTY_WRITE_SERVICE } from './pagerDuty.write.service';
+import { PAGER_STATES } from './pager.states';
 
 export const PAGER_DUTY_MODULE = 'spinnaker.core.pagerDuty';
 module(PAGER_DUTY_MODULE, [
@@ -13,4 +14,5 @@ module(PAGER_DUTY_MODULE, [
   PAGER_DUTY_SELECT_FIELD_COMPONENT,
   PAGER_DUTY_TAG_COMPONENT,
   PAGER_DUTY_WRITE_SERVICE,
+  PAGER_STATES,
 ]);

@@ -82,6 +82,8 @@ export interface ISpinnakerSettings {
   notifications: INotificationSettings;
   pagerDuty?: {
     accountName?: string;
+    defaultSubject?: string;
+    defaultDetails?: string;
     required?: boolean;
   };
   pollSchedule: number;
