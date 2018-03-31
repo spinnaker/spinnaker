@@ -45,13 +45,15 @@ public class DefaultNodeIdentity implements NodeIdentity {
         } catch (SocketException ignored) {
             return UNKNOWN_HOST;
         }
-        if (interfaces == null) {
+        if (interfaces == null || validationHost == null) {
             return UNKNOWN_HOST;
         }
 
         for (NetworkInterface networkInterface : Collections.list(interfaces)) {
             try {
-                if (networkInterface.isLoopback()) {
+                if (networkInterface.isLoopback() &&
+                  !validationHost.equals("localhost") &&
+                  !validationHost.startsWith("127.")) {
                     continue;
                 }
 

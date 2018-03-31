@@ -113,7 +113,7 @@ class DynomiteConfig {
     }
 
     @Override
-    Collection<Host> getHosts() {
+    List<Host> getHosts() {
       return hosts
     }
   }

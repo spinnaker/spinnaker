@@ -165,6 +165,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     try {
       MDC.remove(AuthenticatedRequest.SPINNAKER_USER)
       MDC.remove(AuthenticatedRequest.SPINNAKER_ACCOUNTS)
+      MDC.remove(AuthenticatedRequest.SPINNAKER_EXECUTION_ID)
     } catch (Exception e) {
       log.error("Unable to clear thread locals, reason: ${e.message}")
     }

@@ -179,7 +179,7 @@ class DynomiteCacheSpec extends WriteableCacheSpec {
 
     def localHostSupplier = new HostSupplier() {
       @Override
-      Collection<Host> getHosts() {
+      List<Host> getHosts() {
         return [localHost]
       }
     }
@@ -227,7 +227,7 @@ class DynomiteCacheSpec extends WriteableCacheSpec {
 
     def localHostSupplier = new HostSupplier() {
       @Override
-      Collection<Host> getHosts() {
+      List<Host> getHosts() {
         return [localHost]
       }
     }
