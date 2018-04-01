@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.IntentConvergenceRecord
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -45,8 +46,7 @@ object RedisIntentActivityRepositoryTest {
   val mapper = configureObjectMapper(ObjectMapper(), keelProperties, listOf())
 
   val subject = RedisIntentActivityRepository(
-    mainRedisClientDelegate = JedisClientDelegate(jedisPool),
-    previousRedisClientDelegate = null,
+    redisClientSelector = RedisClientSelector(listOf(JedisClientDelegate("primaryDefault", jedisPool))),
     keelProperties = keelProperties ,
     objectMapper = mapper,
     clock = clock

@@ -24,8 +24,14 @@ import org.springframework.stereotype.Component
 class ThreadPoolQueueExecutor(
   @Qualifier("messageHandlerPool") executor: ThreadPoolTaskExecutor
 ) : QueueExecutor<ThreadPoolTaskExecutor>(executor) {
+
   override fun hasCapacity() =
     executor.threadPoolExecutor.run {
       activeCount < maximumPoolSize
+    }
+
+  override fun availableCapacity(): Int =
+    executor.threadPoolExecutor.run {
+      maximumPoolSize - activeCount
     }
 }

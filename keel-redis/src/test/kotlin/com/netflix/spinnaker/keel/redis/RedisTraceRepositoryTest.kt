@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -44,7 +45,11 @@ object RedisTraceRepositoryTest {
     disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
   }
   val clock = Clock.systemDefaultZone()
-  val traceRepository = RedisTraceRepository(JedisClientDelegate(jedisPool), null, objectMapper, clock)
+  val traceRepository = RedisTraceRepository(
+    RedisClientSelector(listOf(JedisClientDelegate("primaryDefault", jedisPool))),
+    objectMapper,
+    clock
+  )
 
   @BeforeEach
   fun setup() {

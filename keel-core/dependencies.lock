@@ -5,7 +5,7 @@
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -21,7 +21,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -43,7 +43,7 @@
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -59,7 +59,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -81,7 +81,7 @@
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -97,7 +97,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -139,7 +139,7 @@
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -155,7 +155,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -177,7 +177,7 @@
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -193,7 +193,7 @@
             "requested": "1.2.+"
         },
         "com.netflix.spinnaker.kork:kork-core": {
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "net.logstash.logback:logstash-logback-encoder": {
@@ -221,7 +221,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -265,7 +265,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -288,15 +288,15 @@
             "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-RC1",
+            "locked": "1.1.0",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -319,7 +319,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -363,7 +363,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -386,15 +386,15 @@
             "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-RC1",
+            "locked": "1.1.0",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -417,7 +417,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -461,7 +461,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -484,23 +484,23 @@
             "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.1.0-RC1",
+            "locked": "1.1.0",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-RC1",
+            "locked": "1.1.0",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {
@@ -523,7 +523,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "2.9.4",
+            "locked": "2.9.5",
             "requested": "2.9.4"
         },
         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310": {
@@ -567,7 +567,7 @@
             "firstLevelTransitive": [
                 "com.netflix.spinnaker.keel:keel-core"
             ],
-            "locked": "1.114.0",
+            "locked": "1.124.0",
             "requested": "+"
         },
         "com.nhaarman:mockito-kotlin": {
@@ -590,23 +590,23 @@
             "requested": "1.2.21"
         },
         "org.junit.jupiter:junit-jupiter-api": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-engine": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.jupiter:junit-jupiter-params": {
-            "locked": "5.1.0-RC1",
+            "locked": "5.1.0",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-launcher": {
-            "locked": "1.1.0-RC1",
+            "locked": "1.1.0",
             "requested": "+"
         },
         "org.junit.platform:junit-platform-runner": {
-            "locked": "1.1.0-RC1",
+            "locked": "1.1.0",
             "requested": "+"
         },
         "org.slf4j:slf4j-api": {

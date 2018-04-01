@@ -19,10 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentConvergenceRecord
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.time.Clock
 import javax.annotation.PostConstruct
@@ -30,14 +29,15 @@ import javax.annotation.PostConstruct
 @Component
 class RedisIntentActivityRepository
 @Autowired constructor(
-  @Qualifier("mainRedisClient") private val mainRedisClientDelegate: RedisClientDelegate,
-  @Qualifier("previousRedisClient") private val previousRedisClientDelegate: RedisClientDelegate?,
+  redisClientSelector: RedisClientSelector,
   private val keelProperties: KeelProperties,
   private val objectMapper: ObjectMapper,
   private val clock: Clock
-) : IntentActivityRepository {
+) : AbstractRedisRepository(redisClientSelector), IntentActivityRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
+
+  override val clientName = "intentActivity"
 
   @PostConstruct fun init() {
     log.info("Using ${javaClass.simpleName}")
@@ -110,29 +110,6 @@ class RedisIntentActivityRepository
         if (it.size > 1) log.warn("Two messages with the same timestampMillis. This shouldn't happen.")
       }
       .firstOrNull()
-
-  private fun getClientForId(id: String?): RedisClientDelegate {
-    if (id == null) {
-      return mainRedisClientDelegate
-    }
-
-    var client: RedisClientDelegate? = null
-    mainRedisClientDelegate.withCommandsClient {
-      if (it.exists(id)) {
-        client = mainRedisClientDelegate
-      }
-    }
-
-    if (client == null && previousRedisClientDelegate != null) {
-      previousRedisClientDelegate.withCommandsClient {
-        if (it.exists(id)) {
-          client = previousRedisClientDelegate
-        }
-      }
-    }
-
-    return client ?: mainRedisClientDelegate
-  }
 }
 
 internal fun historyKey(intentId: String) = "history:$intentId"

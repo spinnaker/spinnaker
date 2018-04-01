@@ -16,10 +16,8 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator
-import com.netflix.spinnaker.q.migration.FqnTypeInfoSerializationMigrator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
@@ -37,6 +35,4 @@ open class SchedulerConfiguration {
       extraSubtypes = keelSubTypes.map { it.rootType().name to it.searchPackages() }.toMap() + extraSubtypes
     }
   }
-
-  @Bean open fun fqnTypeInfoSerializationMigrator() = FqnTypeInfoSerializationMigrator()
 }

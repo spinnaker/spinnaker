@@ -22,12 +22,5 @@ keiko:
       deadLetterQueueName: keel.queue.deadLetters
 
 redis:
-  enabled: true
   connection: redis://localhost:6379
 #  connectionPrevious: null
-
-dynomite:
-  enabled: false
-  main:
-    clusterName: keel
-#    hosts: []

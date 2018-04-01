@@ -19,10 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.util.*
@@ -31,13 +30,14 @@ import javax.annotation.PostConstruct
 @Component
 class RedisTraceRepository
 @Autowired constructor(
-  @Qualifier("mainRedisClient") private val mainRedisClientDelegate: RedisClientDelegate,
-  @Qualifier("previousRedisClient") private val previousRedisClientDelegate: RedisClientDelegate?,
+  redisClientSelector: RedisClientSelector,
   private val objectMapper: ObjectMapper,
   private val clock: Clock
-) : TraceRepository {
+) : AbstractRedisRepository(redisClientSelector), TraceRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
+
+  override val clientName = "trace"
 
   @PostConstruct fun init() {
     log.info("Using ${javaClass.simpleName}")
@@ -46,7 +46,7 @@ class RedisTraceRepository
   override fun record(trace: Trace) {
     val createTs = clock.millis()
     traceKey().let { traceKey: String ->
-      mainRedisClientDelegate.withCommandsClient { c ->
+      getClientForId(traceKey).withCommandsClient { c ->
         c.hmset(traceKey, mapOf(
           "intent" to objectMapper.writeValueAsString(trace.intent),
           "createTs" to createTs.toString(),
@@ -59,23 +59,26 @@ class RedisTraceRepository
   }
 
   // TODO rz - should include limits
-  override fun getForIntent(intentId: String)
-    = mainRedisClientDelegate
-       .withCommandsClient<Set<String>> {
-         it.zrangeByScore(intentTracesKey(intentId), "-inf", "+inf")
-       }
-       .let { index ->
-         mainRedisClientDelegate.withCommandsClient<List<Map<String, String>>> { c ->
-           index.map { c.hgetAll(it) }
-         }
-       }
-       .map {
-         Trace(
-           startingState = objectMapper.readValue<Map<String, Any>>(it["startingState"], ANY_MAP_TYPE),
-           intent = objectMapper.readValue(it["intent"], Intent::class.java),
-           createTs = it["createTs"]?.toLong()
-         )
-       }
+  override fun getForIntent(intentId: String) =
+    intentTracesKey(intentId)
+      .let { key ->
+        val client = getClientForId(key)
+        client.withCommandsClient<Set<String>> {
+          it.zrangeByScore(intentTracesKey(intentId), "-inf", "+inf")
+        }
+        .let { index ->
+          client.withCommandsClient<List<Map<String, String>>> { c ->
+            index.map { c.hgetAll(it) }
+          }
+        }
+        .map {
+          Trace(
+            startingState = objectMapper.readValue<Map<String, Any>>(it["startingState"], ANY_MAP_TYPE),
+            intent = objectMapper.readValue(it["intent"], Intent::class.java),
+            createTs = it["createTs"]?.toLong()
+          )
+        }
+      }
 }
 
 internal fun intentTracesKey(intentId: String) = "traces:$intentId"
