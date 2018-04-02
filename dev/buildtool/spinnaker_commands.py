@@ -119,7 +119,7 @@ class PublishSpinnakerFactory(CommandFactory):
     PublishChangelogFactory().init_argparser(parser, defaults)
 
     self.add_argument(
-        parser, 'spinnaker_release_alias', defaults, None, required=True,
+        parser, 'spinnaker_release_alias', defaults, None,
         help='The spinnaker version alias to publish as.')
     self.add_argument(
         parser, 'halyard_bom_bucket', defaults, 'halconfig',
@@ -140,6 +140,7 @@ class PublishSpinnakerCommand(CommandProcessor):
     super(PublishSpinnakerCommand, self).__init__(factory, options, **kwargs)
     check_options_set(options, [
         'spinnaker_version',
+        'spinnaker_release_alias',
         'bom_version',
         'changelog_gist_url',
         'github_owner',
