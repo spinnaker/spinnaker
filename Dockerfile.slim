@@ -1,0 +1,9 @@
+FROM openjdk:8-jre-alpine
+
+MAINTAINER delivery-engineering@netflix.com
+
+COPY ./kayenta-web/build/install/kayenta /opt/kayenta
+
+RUN apk --nocache add --update bash
+
+CMD ["/opt/kayenta/bin/kayenta"]
