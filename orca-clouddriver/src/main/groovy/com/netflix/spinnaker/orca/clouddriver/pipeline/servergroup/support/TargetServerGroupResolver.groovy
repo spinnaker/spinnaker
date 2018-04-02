@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support
 
-import com.netflix.spinnaker.kork.core.RetrySupport
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -107,7 +107,7 @@ class TargetServerGroupResolver {
   static TargetServerGroup fromPreviousStage(Stage stage) {
     // The DetermineTargetServerGroupStage has all the TargetServerGroups we want - go find it!
     def dtsgStage = stage.execution.stages.find {
-      isDTSGStage(it) && (sameParent(stage, it) || isParentOf(stage, it))
+      isDTSGStage(it) && stage.ancestors().contains(it)
     }
 
     if (!dtsgStage) {
@@ -148,14 +148,6 @@ class TargetServerGroupResolver {
 
   private static boolean isDTSGStage(Stage stage) {
     return stage.type == DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
-  }
-
-  private static boolean sameParent(Stage a, Stage b) {
-    return a.parentStageId == b.parentStageId
-  }
-
-  private static boolean isParentOf(Stage a, Stage b) {
-    return a.id == b.parentStageId
   }
 
   private <T> T fetchWithRetries(Class<T> responseType, Closure<Response> fetchClosure) {

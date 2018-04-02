@@ -110,18 +110,19 @@ class TargetServerGroupResolverSpec extends Specification {
     Stage stageLookingForRefs
     pipeline {
       commonParent = stage {
-        id = "1"
-      }
-      dtsgStage = stage {
-        type = DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
-        id = "2"
-        parentStageId = "1"
-        context = [targetReferences: [decoy, want]]
-      }
-      stageLookingForRefs = stage {
-        id = "3"
-        parentStageId = "1"
-        context = [region: "north-pole"]
+        refId = "1"
+        dtsgStage = stage {
+          refId = "1<1"
+          type = DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
+          context = [targetReferences: [decoy, want]]
+        }
+        stage {
+          refId = "1<2"
+          requisiteStageRefIds = ["1<1"]
+          stageLookingForRefs = stage {
+            context = [region: "north-pole"]
+          }
+        }
       }
     }
 
