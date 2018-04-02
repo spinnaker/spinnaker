@@ -41,6 +41,7 @@ from buildtool import (
     run_subprocess,
     check_subprocess,
     check_subprocesses_to_logfile,
+    check_options_set,
     raise_and_log_error,
     write_to_path,
     ConfigError,
@@ -73,6 +74,8 @@ class BuildHalyardCommand(GradleCommandProcessor):
     options_copy.bom_version = None
     self.__build_version = None  # recorded after build
     self.__versions_url = options.halyard_version_commits_url
+    check_options_set(options, ['halyard_version'])
+
     if not self.__versions_url:
       self.__versions_url = '{base}/{filename}'.format(
           base=options.halyard_bucket_base_url,
@@ -272,7 +275,7 @@ class PublishHalyardCommandFactory(CommandFactory):
              ' to use when rebuilding halyard.')
 
     self.add_argument(
-        parser, 'halyard_version', defaults, None, required=True,
+        parser, 'halyard_version', defaults, None,
         help='The semantic version of the release to publish.')
 
     self.add_argument(

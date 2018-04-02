@@ -49,6 +49,7 @@
 # Google
 #############
 # deploy_hal_google_service_account:
+# deploy_google_machine_type: n1-standard-4
 # deploy_google_image_family: ubuntu-1404-lts
 # deploy_google_image_project: ubuntu-os-cloud
 # deploy_google_project:
@@ -221,6 +222,7 @@
 
 # testing_enabled: true
 # test_profiles: all_tests.yaml
+# test_service_startup_timeout: 300
 # test_extra_profile_bindings:
 # test_concurrency:
 # test_default_quota: google_backend_service=5,google_forwarding_rules=10,google_ssl_certificates=5,google_cpu=20,appengine_deployment=1

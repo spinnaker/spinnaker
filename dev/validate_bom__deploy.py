@@ -1112,6 +1112,9 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         parser, 'deploy_google_instance', defaults, None,
         help='Google instance to deploy to if --deploy_hal_platform is "gce".')
     add_parser_argument(
+        parser, 'deploy_google_machine_type', defaults, 'n1-standard-4',
+        help='Google machine type if --deploy_hal_platform is "gce".')
+    add_parser_argument(
         parser, 'deploy_google_image_family', defaults, 'ubuntu-1404-lts',
         help='Google image family to deploy if --deploy_hal_platform is "gce".')
     add_parser_argument(
@@ -1188,7 +1191,7 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
     check_subprocess(
         'gcloud compute instances create'
         ' --account {gcloud_account}'
-        ' --machine-type n1-standard-4'
+        ' --machine-type {machine_type}'
         ' --image-family {image_family}'
         ' --image-project {image_project}'
         ' --metadata block-project-ssh-keys=TRUE,ssh-keys="{ssh_key}"'
@@ -1198,6 +1201,7 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         ' --scopes {scopes}'
         ' {instance}'
         .format(gcloud_account=options.deploy_hal_google_service_account,
+                machine_type=options.deploy_google_machine_type,
                 image_family=options.deploy_google_image_family,
                 image_project=options.deploy_google_image_project,
                 project=options.deploy_google_project,
