@@ -117,6 +117,10 @@ module(HELP_CONTENTS, [])
         <p>The GCS object name, in the form <code>gs://bucket/path/to/file.yml</code>.</p>`,
     'pipeline.config.expectedArtifact.defaultGcs.reference': `
         <p>The GCS object name, <i>optionally</i> appending the version. An example: <code>gs://bucket/file.yml#123948581</code></p>`,
+    'pipeline.config.expectedArtifact.s3.name': `
+        <p>The S3 object name, in the form <code>s3://bucket/path/to/file.yml</code>.</p>`,
+    'pipeline.config.expectedArtifact.defaultS3.reference': `
+        <p>The S3 object name, <i>optionally</i> appending the version. An example: <code>s3://bucket/file.yml#123948581</code></p>`,
     'pipeline.config.expectedArtifact.docker.name': `
         <p>The Docker image name you want to trigger on changes to. By default, this does <i>not</i> include the image tag or digest, only the registry and image repository.</p>`,
     'pipeline.config.expectedArtifact.defaultDocker.reference': `

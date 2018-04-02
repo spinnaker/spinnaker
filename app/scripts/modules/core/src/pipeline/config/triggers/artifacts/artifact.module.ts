@@ -11,6 +11,8 @@ import { ARTIFACT } from './artifact.component';
 import { GITHUB_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/github/github.artifact';
 import { BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/base64.artifact';
 import { DEFAULT_BASE64_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/base64/defaultBase64.artifact';
+import { S3_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/s3/s3.artifact';
+import { DEFAULT_S3_ARTIFACT } from 'core/pipeline/config/triggers/artifacts/s3/defaultS3.artifact';
 
 export const ARTIFACT_MODULE = 'spinnaker.core.pipeline.config.trigger.artifacts';
 
@@ -21,6 +23,8 @@ module(ARTIFACT_MODULE, [
   GITHUB_ARTIFACT,
   DOCKER_ARTIFACT,
   BASE64_ARTIFACT,
+  S3_ARTIFACT,
+  DEFAULT_S3_ARTIFACT,
   DEFAULT_DOCKER_ARTIFACT,
   DEFAULT_GCS_ARTIFACT,
   DEFAULT_GITHUB_ARTIFACT,
