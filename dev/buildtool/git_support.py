@@ -757,6 +757,17 @@ class GitRunner(object):
     messages = CommitMessage.make_list_from_result(result)
     return tag, messages
 
+  def query_commit_at_tag(self, git_dir, tag):
+    """Return the commit for the given tag, or None if tag is not known."""
+    retcode, stdout = self.run_git(git_dir, 'show-ref -- ' + tag)
+    if retcode != 0:
+      return None
+    lines = stdout.split('\n')
+    if len(lines) != 1:
+      raise_and_log_error(
+          UnexpectedError('"{tag}" -> "{msg}"'.format(tag=tag, msg=stdout)))
+    return stdout.split(' ')[0]
+
   def query_local_repository_commit_id(self, git_dir):
     """Returns the current commit for the repository at git_dir."""
     result = self.check_run(git_dir, 'rev-parse HEAD')

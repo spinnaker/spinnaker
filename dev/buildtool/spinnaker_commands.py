@@ -168,6 +168,7 @@ class PublishSpinnakerCommand(CommandProcessor):
     # in the tagging pass. Since we are spread against multiple repositiories,
     # we cannot do this atomically. The two passes gives us more protection
     # from a partial push due to errors in a repo.
+    names_to_push = set([])
     for which in ['tag', 'push']:
       for name, spec in bom['services'].items():
         if name in ['monitoring-third-party', 'defaultArtifact']:
@@ -185,22 +186,51 @@ class PublishSpinnakerCommand(CommandProcessor):
         repository = self.__scm.make_repository_spec(name)
         self.__scm.ensure_local_repository(repository)
         if which == 'tag':
-          self.__branch_and_tag_repository(repository, branch)
+          added = self.__branch_and_tag_repository(repository, branch)
+          if added:
+            names_to_push.add(name)
         else:
-          self.__push_branch_and_tag_repository(repository, branch)
+          self.__push_branch_and_maybe_tag_repository(repository, branch,
+                                                      name in names_to_push)
+
+  def __already_have_tag(self, repository, tag):
+    """Determine if we already have the tag in the repository."""
+    git_dir = repository.git_dir
+    existing_commit = self.__git.query_commit_at_tag(git_dir, tag)
+    if not existing_commit:
+      return False
+    want_commit = self.__git.query_local_repository_commit_id(git_dir)
+    if want_commit == existing_commit:
+      logging.debug('Already have "%s" at %s', tag, want_commit)
+      return True
+
+    raise_and_log_error(
+        ConfigError(
+            '"{tag}" already exists in "{repo}" at commit {have}, not {want}'
+            .format(tag=tag, repo=git_dir,
+                    have=existing_commit, want=want_commit)))
 
   def __branch_and_tag_repository(self, repository, branch):
     """Create a branch and/or verison tag in the repository, if needed."""
     version = self.__scm.determine_repository_version(repository)
     tag = 'version-' + version
-    self.__git.check_run(repository.git_dir, 'tag ' + tag)
+    if self.__already_have_tag(repository, tag):
+      return False
 
-  def __push_branch_and_tag_repository(self, repository, branch):
+    self.__git.check_run(repository.git_dir, 'tag ' + tag)
+    return True
+
+  def __push_branch_and_maybe_tag_repository(self, repository, branch,
+                                             also_tag):
     """Push the branch and verison tag to the origin."""
     source_info = self.__scm.lookup_source_info(repository)
     tag = 'version-' + source_info.summary.version
     self.__git.push_branch_to_origin(repository.git_dir, branch)
-    self.__git.push_tag_to_origin(repository.git_dir, tag)
+    if also_tag:
+      self.__git.push_tag_to_origin(repository.git_dir, tag)
+    else:
+      logging.info('%s was already tagged with "%s" -- skip',
+                   repository.git_dir, tag)
 
   def _do_command(self):
     """Implements CommandProcessor interface."""
