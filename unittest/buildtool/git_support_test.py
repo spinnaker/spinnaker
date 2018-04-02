@@ -314,6 +314,15 @@ class TestGitRunner(unittest.TestCase):
     self.assertEquals(BRANCH_B,
                       self.git.query_local_repository_branch(test_dir))
 
+  def test_commit_at_tag(self):
+    self.run_git('checkout ' + VERSION_A)
+    want = self.git.query_local_repository_commit_id(self.git_dir)
+    self.run_git('checkout master')
+    self.assertEquals(
+        want, self.git.query_commit_at_tag(self.git_dir, VERSION_A))
+    self.assertIsNone(
+        self.git.query_commit_at_tag(self.git_dir, 'BogusTag'))
+
   def test_summarize(self):
     # All the tags in this fixture are where the head is tagged, so
     # these are not that interesting. This is tested again in the
