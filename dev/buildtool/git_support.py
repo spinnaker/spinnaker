@@ -614,7 +614,7 @@ class GitRunner(object):
         help='Disable pushing to git.')
 
   @staticmethod
-  def __normalize_repo_url(url):
+  def normalize_repo_url(url):
     """Normalize a repo url for purposes of checking equality.
 
     Returns:
@@ -644,8 +644,8 @@ class GitRunner(object):
   @staticmethod
   def is_same_repo(first, second):
     """Determine if two URLs refer to the same github repo."""
-    normalized_first = GitRunner.__normalize_repo_url(first)
-    normalized_second = GitRunner.__normalize_repo_url(second)
+    normalized_first = GitRunner.normalize_repo_url(first)
+    normalized_second = GitRunner.normalize_repo_url(second)
     return normalized_first == normalized_second
 
   @staticmethod
@@ -926,20 +926,27 @@ class GitRunner(object):
           ConfigError('At most one of commit or branch can be specified.'))
 
     origin = repository.origin
+    parts = self.normalize_repo_url(repository.origin)
+    if len(parts) == 3:
+      pull_url = (self.make_ssh_url(*parts) if self.__options.github_pull_ssh
+                  else self.make_https_url(*parts))
+    else:
+      pull_url = origin
+
     git_dir = repository.git_dir
-    logging.debug('Begin cloning %s', origin)
+    logging.debug('Begin cloning %s', pull_url)
     parent_dir = os.path.dirname(git_dir)
     ensure_dir_exists(parent_dir)
 
-    clone_command = 'clone ' + origin
+    clone_command = 'clone ' + pull_url
     if branch:
       branches = [branch]
       if default_branch:
         branches.append(default_branch)
-      self.__check_clone_branch(origin, parent_dir, clone_command, branches)
+      self.__check_clone_branch(pull_url, parent_dir, clone_command, branches)
     else:
       self.check_run(parent_dir, clone_command)
-    logging.info('Cloned %s into %s', origin, parent_dir)
+    logging.info('Cloned %s into %s', pull_url, parent_dir)
 
     if commit:
       self.check_run(git_dir, 'checkout -q ' + commit, echo=True)
@@ -956,7 +963,7 @@ class GitRunner(object):
       self.check_run(
           git_dir, 'remote set-url --push {which} disabled'.format(which=which))
     if which != 'origin' or not self.__options.github_disable_upstream_push:
-      parts = self.__normalize_repo_url(repository.origin)
+      parts = self.normalize_repo_url(repository.origin)
       if len(parts) == 3:
         # Origin is not a local path
         logging.debug('Fixing origin push url')
@@ -964,7 +971,7 @@ class GitRunner(object):
                     else self.make_https_url(*parts))
         self.check_run(git_dir, 'remote set-url --push origin ' + push_url)
 
-    logging.debug('Finished cloning %s', origin)
+    logging.debug('Finished cloning %s', pull_url)
 
   def tag_head(self, git_dir, tag):
     """Add tag to the local repository HEAD."""

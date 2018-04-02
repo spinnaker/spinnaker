@@ -35,6 +35,7 @@ from buildtool import (
     RepositoryCommandProcessor,
 
     HalRunner,
+    GitRunner,
     check_subprocess,
 
     check_path_exists,
@@ -93,8 +94,12 @@ class BomBuilder(object):
     if self.__bom_dependencies_path:
       check_path_exists(self.__bom_dependencies_path, "bom_dependencies_path")
 
-  def to_url_prefix(self, url):
+  def to_git_url_prefix(self, url):
     """Determine url up to the terminal path component."""
+    if url.startswith('git@'):
+      parts = GitRunner.normalize_repo_url(url)
+      url = GitRunner.make_https_url(*parts)
+
     # We're assuming no query parameter/fragment since these are git URLs.
     # otherwise we need to parse the url and extract the path
     return url[:url.rfind('/')]
@@ -119,7 +124,7 @@ class BomBuilder(object):
     """Determine which of repositories url's is most commonly used."""
     prefix_count = {}
     for repository in self.__repositories.values():
-      url_prefix = self.to_url_prefix(repository.origin)
+      url_prefix = self.to_git_url_prefix(repository.origin)
       prefix_count[url_prefix] = prefix_count.get(url_prefix, 0) + 1
     default_prefix = None
     max_count = 0
@@ -151,7 +156,7 @@ class BomBuilder(object):
     for name, version_info in self.__services.items():
       repository = self.__repositories[name]
       origin = repository.origin
-      source_prefix = self.to_url_prefix(origin)
+      source_prefix = self.to_git_url_prefix(origin)
       if source_prefix != default_source_prefix:
         version_info['gitPrefix'] = source_prefix
 
