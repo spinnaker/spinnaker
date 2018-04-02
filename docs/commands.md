@@ -1079,7 +1079,7 @@ hal config canary edit [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--redux-logger-enabled`: Whether or not to enable redux logging in the canary module in deck (*Default*: `true`).
- * `--show-all-configs-enabled`: Whether or not to show all canary configs in deck, or just those scoped to the current application (*Default*: `false`).
+ * `--show-all-configs-enabled`: Whether or not to show all canary configs in deck, or just those scoped to the current application (*Default*: `true`).
  * `--stages-enabled`: Whether or not to enable canary stages in deck (*Default*: `true`).
  * `--templates-enabled`: Whether or not to enable custom filter templates for canary configs in deck (*Default*: `true`).
 

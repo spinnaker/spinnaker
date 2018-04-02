@@ -42,7 +42,7 @@ public class Canary extends Node implements Cloneable {
   boolean stagesEnabled = true;
   String atlasWebComponentsUrl;
   boolean templatesEnabled = true;
-  boolean showAllConfigsEnabled = false;
+  boolean showAllConfigsEnabled = true;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

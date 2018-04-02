@@ -93,7 +93,7 @@ public class EditCanaryCommand extends AbstractConfigCommand {
   @Parameter(
       names = "--show-all-configs-enabled",
       arity = 1,
-      description = "Whether or not to show all canary configs in deck, or just those scoped to the current application (*Default*: `false`)."
+      description = "Whether or not to show all canary configs in deck, or just those scoped to the current application (*Default*: `true`)."
   )
   private Boolean showAllConfigsEnabled;
 
