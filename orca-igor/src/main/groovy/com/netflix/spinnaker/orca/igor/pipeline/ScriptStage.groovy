@@ -16,19 +16,26 @@
 
 package com.netflix.spinnaker.orca.igor.pipeline
 
+import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
+import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class ScriptStage implements StageDefinitionBuilder, RestartableStage {
+@Slf4j
+class ScriptStage implements StageDefinitionBuilder, RestartableStage, CancellableStage {
+
+  @Autowired StopJenkinsJobTask stopJenkinsJobTask
 
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
@@ -49,5 +56,18 @@ class ScriptStage implements StageDefinitionBuilder, RestartableStage {
     }
     stage.context.remove("buildInfo")
     stage.context.remove("buildNumber")
+  }
+
+  @Override
+  Result cancel(Stage stage) {
+    log.info("Cancelling stage (stageId: ${stage.id}, executionId: ${stage.execution.id}, context: ${stage.context as Map})")
+
+    try {
+      stopJenkinsJobTask.execute(stage)
+    } catch (Exception e) {
+      log.error("Failed to cancel stage (stageId: ${stage.id}, executionId: ${stage.execution.id}), e: ${e.message}", e)
+    }
+
+    return new Result(stage, [:])
   }
 }
