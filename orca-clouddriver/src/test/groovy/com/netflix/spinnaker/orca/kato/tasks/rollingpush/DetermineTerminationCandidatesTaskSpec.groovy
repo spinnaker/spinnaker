@@ -59,19 +59,21 @@ class DetermineTerminationCandidatesTaskSpec extends Specification {
     1 * oortService.getServerGroupFromCluster(application, account, cluster, serverGroup, region, cloudProvider) >> oortResponse
     response.context.terminationInstanceIds == expectedTerminations
     response.context.knownInstanceIds.toSet() == knownInstanceIds.toSet()
+    expectedTerminations == response.context.terminationInstanceIds
 
     where:
-    order    | relaunchAllInstances | totalRelaunches | instances             || expectedTerminations
-    null     | null                 | null            | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
-    'oldest' | null                 | null            | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
-    'newest' | null                 | null            | null                  || ['i-4', 'i-3', 'i-2', 'i-1']
-    'oldest' | null                 | 2               | null                  || ['i-1', 'i-2']
-    'oldest' | true                 | 2               | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
-    'oldest' | false                | 2               | null                  || ['i-1', 'i-2']
-    'newest' | false                | 2               | null                  || ['i-4', 'i-3']
-    null     | true                 | 4               | null                  || ['i-1', 'i-2', 'i-3', 'i-4']
-    null     | true                 | 4               | ['i-4', 'i-9']        || ['i-4']
-    null     | true                 | 4               | ['i-4', 'i-2', 'i-3'] || ['i-4', 'i-2', 'i-3']
+    order    | relaunchAllInstances | totalRelaunches | instances                    || expectedTerminations
+    null     | null                 | null            | null                         || ['i-1', 'i-2', 'i-3', 'i-4']
+    'oldest' | null                 | null            | null                         || ['i-1', 'i-2', 'i-3', 'i-4']
+    'newest' | null                 | null            | null                         || ['i-4', 'i-3', 'i-2', 'i-1']
+    'oldest' | null                 | 2               | null                         || ['i-1', 'i-2']
+    'oldest' | true                 | 2               | null                         || ['i-1', 'i-2', 'i-3', 'i-4']
+    'oldest' | false                | 2               | null                         || ['i-1', 'i-2']
+    'newest' | false                | 2               | null                         || ['i-4', 'i-3']
+    null     | true                 | 4               | null                         || ['i-1', 'i-2', 'i-3', 'i-4']
+    null     | true                 | 4               | ['i-4', 'i-9']               || ['i-4']
+    null     | true                 | 4               | ['i-4', 'i-2', 'i-3']        || ['i-4', 'i-2', 'i-3']
+    'given'  | null                 | null            | ['i-3', 'i-2', 'i-4', 'i-1'] || ['i-3', 'i-2', 'i-4', 'i-1']
 
     account = 'test'
     application = 'foo'
