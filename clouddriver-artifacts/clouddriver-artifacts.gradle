@@ -1,5 +1,8 @@
 dependencies {
   compile project(":clouddriver-core")
+
+  spinnaker.group('amazon')
+
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")
