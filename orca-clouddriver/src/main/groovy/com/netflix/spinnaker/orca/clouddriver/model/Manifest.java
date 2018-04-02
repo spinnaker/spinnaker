@@ -30,6 +30,7 @@ public class Manifest {
   @Data
   public static class Status {
     Condition stable;
+    Condition failed;
   }
 
   @Data

@@ -67,6 +67,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
     List<String> messages = new ArrayList<>();
     boolean allStable = true;
+    boolean anyFailed = false;
 
     for (Map.Entry<String, List<String>> entry : deployedManifests.entrySet()) {
       String location = entry.getKey();
@@ -87,16 +88,23 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           allStable = false;
           messages.add(identifier + ": " + status.getStable().getMessage());
         }
+
+        if (status.getFailed() != null && status.getFailed().isState()) {
+          anyFailed = true;
+          messages.add(identifier + ": " + status.getFailed().getMessage());
+        }
       }
     }
 
-    if (allStable) {
-      return TaskResult.SUCCEEDED;
-    } else {
-      Map<String, Object> context = new ImmutableMap.Builder<String, Object>()
-          .put("stableMessages", messages)
-          .build();
+    Map<String, Object> context = new ImmutableMap.Builder<String, Object>()
+        .put("messages", messages)
+        .build();
 
+    if (anyFailed) {
+      return new TaskResult(ExecutionStatus.TERMINAL, context);
+    } else if (allStable) {
+      return new TaskResult(ExecutionStatus.SUCCEEDED, context, new HashMap<>());
+    } else {
       return new TaskResult(ExecutionStatus.RUNNING, context, new HashMap<>());
     }
   }
