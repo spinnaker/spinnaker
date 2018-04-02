@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesPodCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
@@ -27,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
+import io.kubernetes.client.models.V1Pod;
+import io.kubernetes.client.models.V1PodStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -60,7 +63,34 @@ public class KubernetesPodHandler extends KubernetesHandler implements CanDelete
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return new Status();
+    Status result = new Status();
+    V1Pod pod = KubernetesCacheDataConverter.getResource(manifest, V1Pod.class);
+    V1PodStatus status = pod.getStatus();
+
+    if (status == null) {
+      result.unstable("No status reported yet")
+          .unavailable("No availability reported");
+      return result;
+    }
+
+    // https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
+    String phase = status.getPhase();
+
+    if (phase == null ) {
+      result.unstable("No phase reported yet")
+          .unavailable("No availability reported");
+    } else if (phase.equals("pending")) {
+      result.unstable("Pod is 'pending'")
+          .unavailable("Pod has not been scheduled yet");
+    } else if (phase.equals("unknown")) {
+      result.unstable("Pod has 'unknown' phase")
+          .unavailable("No availability reported");
+    } else if (phase.equals("failed")) {
+      result.failed("Pod has 'failed'")
+          .unavailable("Pod is not running");
+    }
+
+    return result;
   }
 
   @Override

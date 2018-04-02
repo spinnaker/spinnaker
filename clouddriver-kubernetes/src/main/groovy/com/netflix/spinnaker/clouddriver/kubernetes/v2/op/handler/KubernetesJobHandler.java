@@ -26,9 +26,12 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1Job;
+import io.kubernetes.client.models.V1JobCondition;
 import io.kubernetes.client.models.V1JobSpec;
 import io.kubernetes.client.models.V1JobStatus;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class KubernetesJobHandler extends KubernetesHandler implements
@@ -88,9 +91,18 @@ public class KubernetesJobHandler extends KubernetesHandler implements
       succeeded = status.getSucceeded();
     }
     if (succeeded < completions) {
-      return result.unstable("Waiting for jobs to finish");
+      List<V1JobCondition> conditions = status.getConditions();
+      if (conditions != null && conditions.stream().anyMatch(this::jobDeadlineExceeded)) {
+        return result.failed("Job deadline exceeded");
+      } else {
+        return result.unstable("Waiting for jobs to finish");
+      }
     }
 
     return result;
+  }
+
+  private boolean jobDeadlineExceeded(V1JobCondition condition) {
+    return "DeadlineExceeded".equalsIgnoreCase(condition.getReason()) && "True".equalsIgnoreCase(condition.getStatus());
   }
 }
