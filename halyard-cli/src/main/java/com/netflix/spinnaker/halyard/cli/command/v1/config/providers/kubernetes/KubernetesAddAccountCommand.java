@@ -113,6 +113,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   )
   public Boolean configureImagePullSecrets = true;
 
+  @Parameter(
+      names = "--skin",
+      arity = 1,
+      hidden = true
+  )
+  public String skin;
+
   @Override
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
@@ -128,6 +135,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setOAuthServiceAccount(oAuthServiceAccount);
     account.setOAuthScopes(oAuthScopes);
     account.setNamingStrategy(namingStrategy);
+    account.setSkin(skin);
     return account;
   }
 

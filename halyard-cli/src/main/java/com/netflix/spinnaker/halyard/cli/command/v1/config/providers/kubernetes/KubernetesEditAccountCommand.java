@@ -206,6 +206,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   )
   public Boolean configureImagePullSecrets;
 
+  @Parameter(
+      names = "--skin",
+      arity = 1,
+      hidden = true
+  )
+  public String skin;
+
   @Override
   protected Account editAccount(KubernetesAccount account) {
     boolean contextSet = context != null && !context.isEmpty();
@@ -272,6 +279,7 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     
     account.setOAuthServiceAccount(isSet(oAuthServiceAccount) ? oAuthServiceAccount : account.getOAuthServiceAccount());
     account.setNamingStrategy(isSet(namingStrategy) ? namingStrategy : account.getNamingStrategy());
+    account.setSkin(isSet(skin) ? skin : account.getSkin());
     
     return account;
   }
