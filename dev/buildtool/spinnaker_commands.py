@@ -206,7 +206,10 @@ class PublishSpinnakerCommand(CommandProcessor):
     """Implements CommandProcessor interface."""
     options = self.options
     spinnaker_version = options.spinnaker_version
-    publish_changelog_command = PublishChangelogFactory().make_command(options)
+    options_copy = copy.copy(options)
+    options_copy.git_branch = 'master'  # push to master in spinnaker.github.io
+    publish_changelog_command = PublishChangelogFactory().make_command(
+        options_copy)
     changelog_gist_url = options.changelog_gist_url
 
     # Make sure changelog exists already.
