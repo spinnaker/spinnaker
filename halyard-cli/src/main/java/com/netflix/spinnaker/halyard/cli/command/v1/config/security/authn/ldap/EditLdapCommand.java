@@ -49,19 +49,29 @@ public class EditLdapCommand extends AbstractEditAuthnMethodCommand<Ldap> {
 
   @Parameter(
       names = "--user-dn-pattern",
-      description = "Placeholder...uid={0},ou=users"
+      description = "The pattern for finding a user's DN using simple pattern matching. For "
+        + "example, if your LDAP server has the URL ldap://mysite.com/dc=spinnaker,dc=org, "
+        + "and you have the pattern 'uid={0},ou=members', 'me' will map to a DN "
+        + "uid=me,ou=members,dc=spinnaker,dc=org. If no match is found, will try to find the user "
+        + "using user-search-filter, if set."
   )
   private String userDnPattern;
 
   @Parameter(
       names = "--user-search-base",
-      description = "Placeholder..."
+      description = "The part of the directory tree under which user searches should be performed. "
+        + "If user-search-base isn't supplied, the search will be performed from the root."
   )
   private String userSearchBase;
 
   @Parameter(
       names = "--user-search-filter",
-      description = "Placeholder"
+      description = "The filter to use when searching for a user's DN. Will search either from "
+        + "user-search-base (if specified) or root for entires matching the filter, then attempt "
+        + "to bind as that user with the login password. For example, the filter 'uid={0}' would "
+        + "apply to any user where uid matched the user's login name. If --user-dn-pattern is also "
+        + "specified, will attempt to find a match using the specified pattern first, before "
+        + "searching with the specified search filter if no match is found from the pattern."
   )
   private String userSearchFilter;
 
