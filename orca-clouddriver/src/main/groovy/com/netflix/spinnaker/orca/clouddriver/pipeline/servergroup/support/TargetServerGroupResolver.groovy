@@ -106,35 +106,30 @@ class TargetServerGroupResolver {
    */
   static TargetServerGroup fromPreviousStage(Stage stage) {
     // The DetermineTargetServerGroupStage has all the TargetServerGroups we want - go find it!
-    def dtsgStage = stage.execution.stages.find {
-      isDTSGStage(it) && stage.ancestors().contains(it)
-    }
+    def dtsgStage = stage.ancestors().find { isDTSGStage(it) }
 
     if (!dtsgStage) {
-      throw new TargetServerGroup.NotFoundException("No DetermineServerGroupStage found for stage ${stage}")
-    } else if (!dtsgStage.context.targetReferences){
-      throw new TargetServerGroup.NotFoundException("No TargetServerGroups found for stage ${stage}")
+      throw new TargetServerGroup.NotFoundException("No DetermineServerGroupStage found for stage $stage.id")
+    } else if (!dtsgStage.context.targetReferences) {
+      throw new TargetServerGroup.NotFoundException("No TargetServerGroups found for stage $stage.id")
     }
     List<TargetServerGroup> tsgs = dtsgStage.context.targetReferences.collect {
       return new TargetServerGroup(it)
     }
     if (!tsgs) {
-      throw new TargetServerGroup.NotFoundException("No targetReferences found on DetermineTargetServerGroup stage " +
-        "${stage}")
+      throw new TargetServerGroup.NotFoundException("No targetReferences found on DetermineTargetServerGroup stage $stage.id")
     }
 
     // TODO(duftler): Confirm that every stage.context will have a targetLocation at this point, and then drop the else branch.
     def targetLocation = stage.context.targetLocation
     def tsg =
-      targetLocation
-      ? tsgs.find {
-          def candidateLocation = it.getLocation(targetLocation.type as Location.Type)
-          return candidateLocation.value == targetLocation.value
-        }
-      : tsgs.find {
-          def location = it.getLocation().value
-          return (stage.context.region == location) || (stage.context.zone == location) || (stage.context.namespace == location)
-        }
+      targetLocation ? tsgs.find {
+        def candidateLocation = it.getLocation(targetLocation.type as Location.Type)
+        return candidateLocation.value == targetLocation.value
+      } : tsgs.find {
+        def location = it.getLocation().value
+        return (stage.context.region == location) || (stage.context.zone == location) || (stage.context.namespace == location)
+      }
     if (!tsg) {
       def locations = []
       stage.context.region && locations << stage.context.region

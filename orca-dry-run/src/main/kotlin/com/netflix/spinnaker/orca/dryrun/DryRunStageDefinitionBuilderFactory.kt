@@ -37,7 +37,7 @@ class DryRunStageDefinitionBuilderFactory(
     }
 
   private val Stage.shouldExecuteNormallyInDryRun: Boolean
-    get() = isManualJudgment || isPipeline || isExpressionPrecondition || isFindImage
+    get() = isManualJudgment || isPipeline || isExpressionPrecondition || isFindImage || isDetermineTargetServerGroup
 
   private val Stage.isManualJudgment: Boolean
     get() = type == "manualJudgment"
@@ -47,6 +47,9 @@ class DryRunStageDefinitionBuilderFactory(
 
   private val Stage.isFindImage: Boolean
     get() = type in setOf("findImage", "findImageFromTags")
+
+  private val Stage.isDetermineTargetServerGroup: Boolean
+    get() = type == "determineTargetServerGroup"
 
   private val Stage.isExpressionPrecondition: Boolean
     get() = isPreconditionStage && (isExpressionChild || isExpressionParent)
