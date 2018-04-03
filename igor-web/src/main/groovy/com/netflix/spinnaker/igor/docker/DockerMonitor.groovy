@@ -97,7 +97,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: {})", kv("account", account))
 
         List<ImageDelta> delta = []
-        images.findAll { it != null }.parallelStream().forEach { TaggedImage image ->
+        images.findAll { it != null }.forEach { TaggedImage image ->
             String imageId = new DockerRegistryV2Key(igorProperties.spinnaker.jedis.prefix, DockerRegistryCache.ID, account, image.repository, image.tag)
             if (shouldUpdateCache(cachedImages, imageId, image, trackDigests)) {
                 delta.add(new ImageDelta(imageId: imageId, image: image))
@@ -133,7 +133,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
      */
     @Override
     void commitDelta(DockerPollingDelta delta, boolean sendEvents) {
-        delta.items.findAll { it != null }.parallelStream().forEach { ImageDelta item ->
+        delta.items.findAll { it != null }.forEach { ImageDelta item ->
             if (item != null) {
                 cache.setLastDigest(item.image.account, item.image.repository, item.image.tag, item.image.digest)
                 log.info("New tagged image: {}, {}. Digest is now [$item.image.digest].", kv("account", item.image.account), kv("image", item.imageId))
