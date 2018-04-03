@@ -1,12 +1,12 @@
 <div class="form-group">
   <div class="col-md-{{::$ctrl.labelColumns || 3}} sm-label-right">
-    <b>HTTP Health Check</b>
+    <b>Health Check</b>
   </div>
   <div class="col-md-6">
     <ui-select ng-model="$ctrl.autoHealingPolicy.healthCheck" class="form-control input-sm" required>
       <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="httpHealthCheck in $ctrl.httpHealthChecks | filter: $select.search">
-        <span ng-bind-html="httpHealthCheck | highlight: $select.search"></span>
+      <ui-select-choices repeat="healthCheck in $ctrl.healthChecks | filter: $select.search">
+        <span ng-bind-html="healthCheck | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>
   </div>
@@ -63,7 +63,7 @@
 <div class="form-group small" style="margin-top: 20px">
   <div class="col-md-7 col-md-offset-{{::$ctrl.labelColumns || 3}}">
     <gce-cache-refresh cache-key="healthChecks"
-                       cache-key-alias="HTTP health checks"
+                       cache-key-alias="Health checks"
                        on-refresh="$ctrl.onHealthCheckRefresh()">
     </gce-cache-refresh>
   </div>

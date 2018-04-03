@@ -11,7 +11,7 @@ import './upsertAutoHealingPolicy.modal.less';
 class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   public autoHealingPolicy: IGceAutoHealingPolicy;
   public taskMonitor: TaskMonitor;
-  public httpHealthChecks: string[];
+  public healthChecks: string[];
   public action: 'Edit' | 'New';
   public isNew: boolean;
   public submitButtonLabel: string;
@@ -43,9 +43,9 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   }
 
   public onHealthCheckRefresh(): void {
-    this.gceHealthCheckReader.listHealthChecks('HTTP')
+    this.gceHealthCheckReader.listHealthChecks()
       .then((healthChecks) => {
-        this.httpHealthChecks = chain(healthChecks)
+        this.healthChecks = chain(healthChecks)
           .filter({ account: this.serverGroup.account })
           .map('name')
           .value() as string[];

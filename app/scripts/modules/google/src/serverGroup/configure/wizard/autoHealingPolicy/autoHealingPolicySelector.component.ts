@@ -3,7 +3,7 @@ import { set } from 'lodash';
 import { IGceAutoHealingPolicy } from 'google/domain/autoHealingPolicy';
 
 class GceAutoHealingPolicySelector implements IController {
-  public httpHealthChecks: string[];
+  public healthChecks: string[];
   public autoHealingPolicy: IGceAutoHealingPolicy;
   public enabled: boolean;
   public viewState: {maxUnavailableMetric: 'percent' | 'fixed'};
@@ -42,7 +42,7 @@ class GceAutoHealingPolicySelectorComponent implements IComponentOptions {
   public bindings: any = {
     onHealthCheckRefresh: '&',
     setAutoHealingPolicy: '&',
-    httpHealthChecks: '<',
+    healthChecks: '<',
     autoHealingPolicy: '<',
     enabled: '<',
     labelColumns: '@?',

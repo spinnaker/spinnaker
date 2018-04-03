@@ -88,12 +88,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
         authScopes: $q.when(angular.copy(authScopes)),
-        httpHealthChecks: gceHealthCheckReader.listHealthChecks('HTTP'),
+        healthChecks: gceHealthCheckReader.listHealthChecks(),
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);
         var networkReloader = $q.when(null);
-        var httpHealthCheckReloader = $q.when(null);
+        var healthCheckReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {};
         command.backingData = backingData;
@@ -124,14 +124,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           command.enableAutoHealing = true;
         }
         if (_.has(command, 'autoHealingPolicy.healthCheck')) {
-          // Verify http health check is accounted for; otherwise, try refreshing http health checks cache.
-          var httpHealthChecks = getHttpHealthChecks(command);
-          if (!_.chain(httpHealthChecks).includes(command.autoHealingPolicy.healthCheck).value()) {
-            httpHealthCheckReloader = refreshHttpHealthChecks(command, true);
+          // Verify health check is accounted for; otherwise, try refreshing health checks cache.
+          var healthChecks = getHealthChecks(command);
+          if (!_.chain(healthChecks).includes(command.autoHealingPolicy.healthCheck).value()) {
+            healthCheckReloader = refreshHealthChecks(command, true);
           }
         }
 
-        return $q.all([loadBalancerReloader, securityGroupReloader, networkReloader, httpHealthCheckReloader]).then(function() {
+        return $q.all([loadBalancerReloader, securityGroupReloader, networkReloader, healthCheckReloader]).then(function() {
           gceTagManager.register(command);
           attachEventHandlers(command);
         });
@@ -328,14 +328,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return result;
     }
 
-    function getHttpHealthChecks(command) {
-      return _.chain(command.backingData.httpHealthChecks)
+    function getHealthChecks(command) {
+      return _.chain(command.backingData.healthChecks)
         .filter({account: command.credentials})
         .map('name')
         .value();
     }
 
-    function configureHttpHealthChecks(command) {
+    function configureHealthChecks(command) {
       var result = { dirty: {} };
       var filteredData = command.backingData.filtered;
 
@@ -343,9 +343,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         return result;
       }
 
-      filteredData.httpHealthChecks = getHttpHealthChecks(command);
+      filteredData.healthChecks = getHealthChecks(command);
 
-      if (_.has(command, 'autoHealingPolicy.healthCheck') && !_.chain(filteredData.httpHealthChecks).includes(command.autoHealingPolicy.healthCheck).value()) {
+      if (_.has(command, 'autoHealingPolicy.healthCheck') && !_.chain(filteredData.healthChecks).includes(command.autoHealingPolicy.healthCheck).value()) {
         delete command.autoHealingPolicy.healthCheck;
         result.dirty.autoHealingPolicy = true;
       } else {
@@ -436,15 +436,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       });
     }
 
-    function refreshHttpHealthChecks(command, skipCommandReconfiguration) {
+    function refreshHealthChecks(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('healthChecks')
         .then(function() {
-          return gceHealthCheckReader.listHealthChecks('HTTP');
+          return gceHealthCheckReader.listHealthChecks();
         })
-        .then(function(httpHealthChecks) {
-          command.backingData.httpHealthChecks = httpHealthChecks;
+        .then(function(healthChecks) {
+          command.backingData.healthChecks = healthChecks;
           if (!skipCommandReconfiguration) {
-            configureHttpHealthChecks(command);
+            configureHealthChecks(command);
           }
         });
     }
@@ -626,7 +626,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
             angular.extend(result.dirty, command.networkChanged().dirty);
           }
 
-          angular.extend(result.dirty, configureHttpHealthChecks(command).dirty);
+          angular.extend(result.dirty, configureHealthChecks(command).dirty);
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
         } else {
           command.region = null;
@@ -696,7 +696,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       refreshLoadBalancers: refreshLoadBalancers,
       refreshSecurityGroups: refreshSecurityGroups,
       refreshInstanceTypes: refreshInstanceTypes,
-      refreshHttpHealthChecks: refreshHttpHealthChecks,
+      refreshHealthChecks: refreshHealthChecks,
     };
 
 

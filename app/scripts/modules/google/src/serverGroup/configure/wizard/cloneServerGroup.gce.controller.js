@@ -347,7 +347,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     };
 
     this.onHealthCheckRefresh = function() {
-      gceServerGroupConfigurationService.refreshHttpHealthChecks($scope.command);
+      gceServerGroupConfigurationService.refreshHealthChecks($scope.command);
     };
 
     this.setAutoHealingPolicy = function(autoHealingPolicy) {
