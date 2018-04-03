@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.FixedOrPercent
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagersSetAutoHealingRequest
@@ -146,7 +147,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
         def autoHealingPolicy =
           buildAutoHealingPolicyFromAutoHealingPolicyDescription(
-            copyAndOverrideAncestorAutoHealingPolicy(ancestorAutoHealingPolicyDescription, description.autoHealingPolicy))
+            copyAndOverrideAncestorAutoHealingPolicy(ancestorAutoHealingPolicyDescription, description.autoHealingPolicy),
+            project, compute)
         isRegional ? regionalRequest(autoHealingPolicy) : zonalRequest(autoHealingPolicy)
 
       } else {
@@ -154,7 +156,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
         def autoHealingPolicy =
           buildAutoHealingPolicyFromAutoHealingPolicyDescription(
-            normalizeNewAutoHealingPolicy(description.autoHealingPolicy))
+            normalizeNewAutoHealingPolicy(description.autoHealingPolicy),
+            project, compute)
         isRegional ? regionalRequest(autoHealingPolicy) : zonalRequest(autoHealingPolicy)
       }
     }
@@ -240,18 +243,15 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     return newPolicy
   }
 
-  private buildAutoHealingPolicyFromAutoHealingPolicyDescription(GoogleAutoHealingPolicy autoHealingPolicyDescription) {
+  private buildAutoHealingPolicyFromAutoHealingPolicyDescription(GoogleAutoHealingPolicy autoHealingPolicyDescription, String project, Compute compute) {
+    // Note: Cache queries for these health checks must occur in this order since queryHealthCheck() will make a live
+    // call that fails on a missing health check.
+    def autoHealingHealthCheck = GCEUtil.queryNestedHealthCheck(project, description.accountName, description.autoHealingPolicy.healthCheck, compute, cacheView, task, BASE_PHASE, this) ?:
+      GCEUtil.queryHealthCheck(project, description.accountName, description.autoHealingPolicy.healthCheck, compute, cacheView, task, BASE_PHASE, this)
+
     List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy = autoHealingPolicyDescription?.healthCheck
       ? [new InstanceGroupManagerAutoHealingPolicy(
-          healthCheck: GCEUtil.queryHealthCheck(
-            description.credentials.project,
-            description.accountName,
-            autoHealingPolicyDescription.healthCheck,
-            description.credentials.compute,
-            cacheView,
-            task,
-            BASE_PHASE,
-            this).selfLink,
+          healthCheck: autoHealingHealthCheck.selfLink,
           initialDelaySec: autoHealingPolicyDescription.initialDelaySec)]
       : null
 

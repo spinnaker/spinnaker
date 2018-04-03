@@ -78,6 +78,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     httpHealthChecks.each { HttpHealthCheck hc ->
       ret << new GoogleHealthCheck(
         name: hc.getName(),
+        selfLink: hc.getSelfLink(),
         healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
         kind: GoogleHealthCheck.HealthCheckKind.httpHealthCheck,
         port: hc.getPort(),
@@ -97,6 +98,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     httpsHealthChecks.each { HttpsHealthCheck hc ->
       ret << new GoogleHealthCheck(
         name: hc.getName(),
+        selfLink: hc.getSelfLink(),
         healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
         kind: GoogleHealthCheck.HealthCheckKind.httpsHealthCheck,
         port: hc.getPort(),
@@ -116,6 +118,7 @@ class GoogleHealthCheckCachingAgent extends AbstractGoogleCachingAgent {
     healthChecks.each { HealthCheck hc ->
       def newHC = new GoogleHealthCheck(
         name: hc.getName(),
+        selfLink: hc.getSelfLink(),
         kind: GoogleHealthCheck.HealthCheckKind.healthCheck,
         checkIntervalSec: hc.getCheckIntervalSec(),
         timeoutSec: hc.getTimeoutSec(),

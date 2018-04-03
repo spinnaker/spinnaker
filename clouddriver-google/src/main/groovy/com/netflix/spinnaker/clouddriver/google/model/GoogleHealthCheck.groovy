@@ -23,6 +23,7 @@ import groovy.transform.Canonical
 class GoogleHealthCheck {
   String name
   String requestPath
+  String selfLink
   int port
   HealthCheckType healthCheckType
 
@@ -103,6 +104,7 @@ class GoogleHealthCheck {
     int healthyThreshold = GoogleHealthCheck.this.healthyThreshold
     int port = GoogleHealthCheck.this.port
     String requestPath = GoogleHealthCheck.this.requestPath
+    String selfLink = GoogleHealthCheck.this.selfLink
     String kind = GoogleHealthCheck.this.kind
     String target = GoogleHealthCheck.this.target
   }

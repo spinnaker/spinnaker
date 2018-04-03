@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy
@@ -385,17 +386,15 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       description.autoscalingPolicy = GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(ancestorServerGroup.autoscalingPolicy)
     }
 
+    // Note: Cache queries for these health checks must occur in this order since queryHealthCheck() will make a live
+    // call that fails on a missing health check.
+    def autoHealingHealthCheck = GCEUtil.queryNestedHealthCheck(project, description.accountName, description.autoHealingPolicy.healthCheck, compute, cacheView, task, BASE_PHASE, this) ?:
+      GCEUtil.queryHealthCheck(project, description.accountName, description.autoHealingPolicy.healthCheck, compute, cacheView, task, BASE_PHASE, this)
+
     List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy =
-      description.autoHealingPolicy?.healthCheck
+      autoHealingHealthCheck
       ? [new InstanceGroupManagerAutoHealingPolicy(
-             healthCheck: GCEUtil.queryHealthCheck(project,
-                                                   description.accountName,
-                                                   description.autoHealingPolicy.healthCheck,
-                                                   compute,
-                                                   cacheView,
-                                                   task,
-                                                   BASE_PHASE,
-                                                   this).selfLink,
+             healthCheck: autoHealingHealthCheck.selfLink,
              initialDelaySec: description.autoHealingPolicy.initialDelaySec)]
       : null
 

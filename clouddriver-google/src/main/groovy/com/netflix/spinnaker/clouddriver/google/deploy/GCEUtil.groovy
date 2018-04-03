@@ -52,6 +52,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HTTP_HEALTH_CHECKS
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.HEALTH_CHECKS
 
 @Slf4j
 class GCEUtil {
@@ -241,6 +242,22 @@ class GCEUtil {
         updateStatusAndThrowNotFoundException("Http(s) health check $healthCheckName not found.", task, phase)
       }
     }
+  }
+
+  static def queryNestedHealthCheck(String projectName,
+                                    String account,
+                                    String healthCheckName,
+                                    Compute compute,
+                                    Cache cacheView,
+                                    Task task,
+                                    String phase,
+                                    GoogleExecutorTraits executor) {
+    task.updateStatus phase, "Looking up health check $healthCheckName..."
+
+    def healthCheckIdentifiers = cacheView.filterIdentifiers(HEALTH_CHECKS.ns, Keys.getHealthCheckKey(account, 'healthCheck', healthCheckName))
+    def results = cacheView.getAll(HEALTH_CHECKS.ns, healthCheckIdentifiers, RelationshipCacheFilter.none())
+
+    return results[0]?.attributes?.healthCheck
   }
 
   static List<ForwardingRule> queryRegionalForwardingRules(String projectName,
