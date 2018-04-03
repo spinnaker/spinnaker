@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
+import * as classNames from 'classnames';
+import { noop } from '@spinnaker/core';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import { Tabs, Tab } from 'kayenta/layout/tabs';
@@ -13,7 +15,8 @@ export const ALL = 'all';
 interface IGroupTabsStateProps {
   groupList: string[];
   selectedGroup: string;
-  editing: boolean
+  editing: boolean;
+  disableConfigEdit: boolean;
 }
 
 interface IGroupTabsDispatchProps {
@@ -25,7 +28,7 @@ interface IGroupTabsDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup, editing, editGroupBegin }: IGroupTabsStateProps & IGroupTabsDispatchProps) {
+function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup, editing, editGroupBegin, disableConfigEdit }: IGroupTabsStateProps & IGroupTabsDispatchProps) {
   const GroupTab = ({ group, editable = false }: { group: string, editable?: boolean }) => {
     const selected = selectedGroup === group;
     return (
@@ -36,7 +39,13 @@ function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup, editing, e
           onClick={selectGroup}
           defaultGroup={ALL}
         />
-        {selected && editable && !editing && (<i data-group={group} onClick={editGroupBegin} className="fa fa-pencil"/>)}
+        {selected && editable && !editing && (
+          <i
+            data-group={group}
+            onClick={disableConfigEdit ? noop : editGroupBegin}
+            className={classNames('fas', 'fa-pencil-alt', { disabled: disableConfigEdit })}
+          />
+        )}
       </Tab>
     );
   };
@@ -62,6 +71,7 @@ function mapStateToProps(state: ICanaryState): IGroupTabsStateProps {
     groupList: state.selectedConfig.group.list,
     selectedGroup: state.selectedConfig.group.selected,
     editing: !!state.selectedConfig.group.edit || state.selectedConfig.group.edit === '',
+    disableConfigEdit: state.app.disableConfigEdit,
   };
 }
 
