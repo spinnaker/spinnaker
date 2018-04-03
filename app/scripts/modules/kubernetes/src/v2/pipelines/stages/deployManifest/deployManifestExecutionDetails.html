@@ -10,7 +10,7 @@
             {{manifest.kind}} {{manifest.metadata.name}}<br />
             <kubernetes-show-manifest-yaml manifest="manifest" link-name="'YAML'"></kubernetes-show-manifest-yaml>
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <kubernetes-show-manifest-details manifest="manifest" account-id="stage.context.account" link-name="'Details'"></kubernetes-show-manifest-details>
+            <kubernetes-show-manifest-details application="application" manifest-contents="manifest" account-id="stage.context.account" link-name="'Details'"></kubernetes-show-manifest-details>
           </dl>
         </div>
       </div>

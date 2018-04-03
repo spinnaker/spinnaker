@@ -10,6 +10,7 @@ export interface IManifest {
   manifest: any;
   status: IManifestStatus;
   artifacts: IArtifact[];
+  events: any[];
 }
 
 export interface IManifestStatus {
