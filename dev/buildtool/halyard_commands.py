@@ -74,7 +74,6 @@ class BuildHalyardCommand(GradleCommandProcessor):
     options_copy.bom_version = None
     self.__build_version = None  # recorded after build
     self.__versions_url = options.halyard_version_commits_url
-    check_options_set(options, ['halyard_version'])
 
     if not self.__versions_url:
       self.__versions_url = '{base}/{filename}'.format(
@@ -313,6 +312,8 @@ class PublishHalyardCommand(CommandProcessor):
     options_copy.github_hostname = 'github.com'
     # Overrides later if --git_allow_publish_master_branch is false
     super(PublishHalyardCommand, self).__init__(factory, options_copy, **kwargs)
+
+    check_options_set(options, ['halyard_version'])
 
     self.__scm = BranchSourceCodeManager(options_copy, self.get_input_dir())
     self.__hal = HalRunner(options_copy)
