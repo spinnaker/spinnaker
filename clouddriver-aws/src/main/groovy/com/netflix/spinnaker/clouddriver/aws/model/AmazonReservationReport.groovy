@@ -51,6 +51,7 @@ class AmazonReservationReport implements ReservationReport {
     WINDOWS("WINDOWS", false),
     WINDOWS_VPC("WINDOWS", true),
     WINDOWS_SQL_SERVER("WINDOWS_SQL_SERVER", false),
+    WINDOWS_VPC_BYOL("WINDOWS", true),
     RHEL("RHEL", false),
     UNKNOWN("UNKNOWN", false)
 
