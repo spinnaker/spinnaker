@@ -29,6 +29,7 @@ import rx.schedulers.Schedulers;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
@@ -42,7 +43,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     protected final IgorConfigurationProperties igorProperties;
     protected final Registry registry;
 
-    private Long lastPoll;
+    private final AtomicLong lastPoll = new AtomicLong();
 
     private final Id itemsCachedId;
     private final Id itemsOverThresholdId;
@@ -76,11 +77,11 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
         initialize();
         worker.schedulePeriodically(() -> {
             if (isInService()) {
-                lastPoll = System.currentTimeMillis();
                 poll(true);
+                lastPoll.set(System.currentTimeMillis());
             } else {
                 log.info("not in service (lastPoll: {})", (lastPoll == null) ? "n/a" : lastPoll.toString());
-                lastPoll = null;
+                lastPoll.set(0);
             }
         }, 0, getPollInterval(), TimeUnit.SECONDS);
     }
@@ -164,7 +165,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
 
     @Override
     public Long getLastPoll() {
-        return lastPoll;
+        return lastPoll.get();
     }
 
     protected @Nullable Integer getPartitionUpperThreshold(String partition) {

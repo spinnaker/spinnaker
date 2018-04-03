@@ -27,6 +27,8 @@ import org.springframework.boot.actuate.health.Status
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 /**
  * The health status is based on whether the poller is running and how long ago it last polled. If twice the polling
  * interval has passed since the last poll the poller is considered _down_.
@@ -38,6 +40,8 @@ public class PollingMonitorHealth implements HealthIndicator {
     @Autowired
     ApplicationContext applicationContext
 
+    private final AtomicBoolean upOnce = new AtomicBoolean(false)
+
     @Override
     public Health health() {
         List<Health> healths = []
@@ -46,8 +50,9 @@ public class PollingMonitorHealth implements HealthIndicator {
                 if (poller.lastPoll == null) {
                     healths << Health.unknown().withDetail("${poller.name}.status", 'not polling yet').build()
                 } else {
-                    // Check if twice the polling interval has elapsed.
-                    if (System.currentTimeMillis() - poller.lastPoll > (poller.pollInterval * 5 * DateTimeConstants.MILLIS_PER_SECOND)) {
+                    final long elapsed = System.currentTimeMillis() - poller.lastPoll
+                    if (elapsed > (poller.pollInterval * 5 * DateTimeConstants.MILLIS_PER_SECOND)) {
+                        log.warn("${poller.name} ${elapsed}msec since last poll, this poller is DOWN")
                         healths << Health.down().withDetail("${poller.name}.status", 'stopped').withDetail("${poller.name}.lastPoll", poller.lastPoll.toString()).build()
                     } else {
                         healths << Health.up().withDetail("${poller.name}.status", 'running').withDetail("${poller.name}.lastPoll", poller.lastPoll.toString()).build()
@@ -72,7 +77,18 @@ public class PollingMonitorHealth implements HealthIndicator {
                 }
             }
 
-        return health.build()
+        Health healthResult = health.build()
+        if (healthResult.status.code == Status.UP.code) {
+            upOnce.set(true)
+        } else {
+            if (upOnce.get()) {
+                health.withDetail("actualStatus", healthResult.status.toString())
+                health.up()
+                healthResult = health.build()
+            }
+        }
+
+        return healthResult
     }
 
     private List<PollingMonitor> getPollingMonitors() {
