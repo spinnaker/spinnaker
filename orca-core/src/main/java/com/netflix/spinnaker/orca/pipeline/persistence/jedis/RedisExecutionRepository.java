@@ -917,6 +917,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       p.sync();
       return responses.stream()
         .map(Response::get)
+        .filter(Objects::nonNull) // apparently we have some null statuses even though that makes no sense
         .map(ExecutionStatus::valueOf)
         .collect(Collectors.toList());
     });
