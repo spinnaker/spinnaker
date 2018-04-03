@@ -60,6 +60,16 @@
  * [**hal config canary google disable**](#hal-config-canary-google-disable)
  * [**hal config canary google edit**](#hal-config-canary-google-edit)
  * [**hal config canary google enable**](#hal-config-canary-google-enable)
+ * [**hal config canary prometheus**](#hal-config-canary-prometheus)
+ * [**hal config canary prometheus account**](#hal-config-canary-prometheus-account)
+ * [**hal config canary prometheus account add**](#hal-config-canary-prometheus-account-add)
+ * [**hal config canary prometheus account delete**](#hal-config-canary-prometheus-account-delete)
+ * [**hal config canary prometheus account edit**](#hal-config-canary-prometheus-account-edit)
+ * [**hal config canary prometheus account get**](#hal-config-canary-prometheus-account-get)
+ * [**hal config canary prometheus account list**](#hal-config-canary-prometheus-account-list)
+ * [**hal config canary prometheus disable**](#hal-config-canary-prometheus-disable)
+ * [**hal config canary prometheus edit**](#hal-config-canary-prometheus-edit)
+ * [**hal config canary prometheus enable**](#hal-config-canary-prometheus-enable)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
  * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
@@ -1044,6 +1054,7 @@ hal config canary [parameters] [subcommands]
  * `edit`: Edit Spinnaker's canary analysis settings.
  * `enable`: Set Spinnaker's canary analysis to enabled.
  * `google`: Configure your canary analysis Google service integration settings for Spinnaker.
+ * `prometheus`: Configure your canary analysis Prometheus service integration settings for Spinnaker.
 
 ---
 ## hal config canary disable
@@ -1271,6 +1282,175 @@ Set Spinnaker's canary analysis Google service integration to enabled.
 #### Usage
 ```
 hal config canary google enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus
+
+Configure your canary analysis Prometheus service integration settings for Spinnaker.
+
+#### Usage
+```
+hal config canary prometheus [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the Prometheus service integration's canary accounts.
+ * `disable`: Set Spinnaker's canary analysis Prometheus service integration to disabled.
+ * `edit`: Edit Spinnaker's canary analysis Prometheus service integration settings.
+ * `enable`: Set Spinnaker's canary analysis Prometheus service integration to enabled.
+
+---
+## hal config canary prometheus account
+
+Manage and view Spinnaker configuration for the Prometheus service integration's canary accounts.
+
+#### Usage
+```
+hal config canary prometheus account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a canary account to the Prometheus service integration.
+ * `delete`: Delete a specific Prometheus canary account by name.
+ * `edit`: Edit a canary account in the Prometheus service integration.
+ * `get`: Get the specified canary account details for the Prometheus service integration.
+ * `list`: List the canary account names for the Prometheus service integration.
+
+---
+## hal config canary prometheus account add
+
+Add a canary account to the Prometheus service integration.
+
+#### Usage
+```
+hal config canary prometheus account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--base-url`: (*Required*) The base URL to the Prometheus server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus account delete
+
+Delete a specific Prometheus canary account by name.
+
+#### Usage
+```
+hal config canary prometheus account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus account edit
+
+Edit a canary account in the Prometheus service integration.
+
+#### Usage
+```
+hal config canary prometheus account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--base-url`: The base URL to the Prometheus server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus account get
+
+Get the specified canary account details for the Prometheus service integration.
+
+#### Usage
+```
+hal config canary prometheus account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus account list
+
+List the canary account names for the Prometheus service integration.
+
+#### Usage
+```
+hal config canary prometheus account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus disable
+
+Set Spinnaker's canary analysis Prometheus service integration to disabled.
+
+#### Usage
+```
+hal config canary prometheus disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus edit
+
+Edit Spinnaker's canary analysis Prometheus service integration settings.
+
+#### Usage
+```
+hal config canary prometheus edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--metadata-caching-interval-ms`: Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`).
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary prometheus enable
+
+Set Spinnaker's canary analysis Prometheus service integration to enabled.
+
+#### Usage
+```
+hal config canary prometheus enable [parameters]
 ```
 
 #### Parameters

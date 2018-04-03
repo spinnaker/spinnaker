@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.validate.v1.canary;
+package com.netflix.spinnaker.halyard.config.validate.v1.canary.google;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Setter;

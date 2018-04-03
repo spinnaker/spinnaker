@@ -14,60 +14,38 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.canary;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Parameters(separators = "=")
-public abstract class AbstractEnableDisableCanaryServiceIntegrationCommand extends AbstractConfigCommand {
+public class EditCanaryPrometheusCommand extends AbstractConfigCommand {
 
-  @Override
-  public String getCommandName() {
-    return isEnable() ? "enable" : "disable";
-  }
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName = "edit";
 
-  private String subjunctivePerfectAction() {
-    return isEnable() ? "enabled" : "disabled";
-  }
+  @Getter(AccessLevel.PUBLIC)
+  private String description = "Edit Spinnaker's canary analysis Prometheus service integration settings.";
 
-  private String indicativePastPerfectAction() {
-    return isEnable() ? "enabled" : "disabled";
-  }
-
-  protected abstract String getName();
-
-  protected abstract boolean isEnable();
-
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
-  @Override
-  public String getShortDescription() {
-    return "Set Spinnaker's canary analysis " + getName() + " service integration to " + subjunctivePerfectAction() + ".";
-  }
-
-  @Override
-  public String getLongDescription() {
-    return getShortDescription();
-  }
+  @Parameter(
+      names = "--metadata-caching-interval-ms",
+      description = "Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`)."
+  )
+  private Long metadataCachingIntervalMS;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-
     // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
     Canary canary = new OperationHandler<Canary>()
         .setFailureMesssage("Failed to get canary.")
@@ -76,9 +54,10 @@ public abstract class AbstractEnableDisableCanaryServiceIntegrationCommand exten
 
     int originalHash = canary.hashCode();
 
-    AbstractCanaryServiceIntegration canaryServiceIntegration = CanaryUtils.getServiceIntegrationByName(canary, currentDeployment, getName(), true);
+    PrometheusCanaryServiceIntegration prometheusCanaryServiceIntegration =
+        (PrometheusCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, PrometheusCanaryServiceIntegration.class);
 
-    canaryServiceIntegration.setEnabled(isEnable());
+    prometheusCanaryServiceIntegration.setMetadataCachingIntervalMS(isSet(metadataCachingIntervalMS) ? metadataCachingIntervalMS : prometheusCanaryServiceIntegration.getMetadataCachingIntervalMS());
 
     if (originalHash == canary.hashCode()) {
       AnsiUi.failure("No changes supplied.");
@@ -86,9 +65,9 @@ public abstract class AbstractEnableDisableCanaryServiceIntegrationCommand exten
     }
 
     new OperationHandler<Void>()
-        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " canary analysis " + getName() + " service integration.")
-        .setFailureMesssage("Failed to " + getCommandName() + " canary analysis " + getName() + " service integration.")
         .setOperation(Daemon.setCanary(currentDeployment, !noValidate, canary))
+        .setFailureMesssage("Failed to edit canary analysis Prometheus service integration settings.")
+        .setSuccessMessage("Successfully edited canary analysis Prometheus service integration settings.")
         .get();
   }
 }

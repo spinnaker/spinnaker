@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.canary;
 
+import com.google.common.collect.Lists;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
@@ -24,8 +29,6 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +36,9 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = false)
 public class Canary extends Node implements Cloneable {
   boolean enabled;
-  List<? extends AbstractCanaryServiceIntegration> serviceIntegrations = Collections.singletonList(new GoogleCanaryServiceIntegration());
+  List<? extends AbstractCanaryServiceIntegration> serviceIntegrations =
+      Lists.newArrayList(new GoogleCanaryServiceIntegration(),
+                         new PrometheusCanaryServiceIntegration());
   boolean reduxLoggerEnabled = true;
   String defaultMetricsAccount;
   String defaultStorageAccount;
@@ -61,8 +66,10 @@ public class Canary extends Node implements Cloneable {
 
   public static Class<? extends AbstractCanaryAccount> translateCanaryAccountType(String serviceIntegrationName) {
     switch (serviceIntegrationName) {
-      case "google" :
+      case GoogleCanaryServiceIntegration.NAME :
         return GoogleCanaryAccount.class;
+      case PrometheusCanaryServiceIntegration.NAME :
+        return PrometheusCanaryAccount.class;
       default:
         throw new IllegalArgumentException("No account type for canary service integration " + serviceIntegrationName + ".");
     }

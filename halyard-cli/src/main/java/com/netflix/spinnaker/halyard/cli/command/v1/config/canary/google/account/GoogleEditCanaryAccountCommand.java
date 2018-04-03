@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CommonC
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.GoogleCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 
 @Parameters(separators = "=")
 public class GoogleEditCanaryAccountCommand extends AbstractEditCanaryAccountCommand<GoogleCanaryAccount> {

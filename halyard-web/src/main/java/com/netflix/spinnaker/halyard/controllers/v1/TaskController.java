@@ -1,16 +1,11 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.google.longrunning.GetOperationRequest;
-import com.google.longrunning.Operation;
 import com.google.longrunning.OperationsGrpc;
-import com.google.longrunning.OperationsGrpc.OperationsImplBase;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
-import com.netflix.spinnaker.halyard.proto.DeploymentsOuterClass;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

@@ -25,12 +25,13 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
 public class EditCanaryGoogleCommand extends AbstractConfigCommand {
+
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";
 
@@ -53,7 +54,6 @@ public class EditCanaryGoogleCommand extends AbstractConfigCommand {
 
   @Parameter(
       names = "--metadata-caching-interval-ms",
-      arity = 1,
       description = "Number of milliseconds to wait in between caching the names of available metric types (for use in building canary configs; *Default*: `60000`)."
   )
   private Long metadataCachingIntervalMS;

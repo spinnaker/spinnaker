@@ -27,8 +27,8 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.GoogleCanaryAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 
 import java.util.UUID;
 

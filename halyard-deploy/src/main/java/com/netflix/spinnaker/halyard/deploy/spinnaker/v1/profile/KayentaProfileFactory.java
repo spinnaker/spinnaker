@@ -18,8 +18,10 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.GoogleCanaryAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -66,6 +68,7 @@ public class KayentaProfileFactory extends SpringProfileFactory {
       GoogleConfig google;
       StackdriverConfig stackdriver;
       GcsConfig gcs;
+      PrometheusConfig prometheus;
 
       KayentaConfig(Canary canary) {
         for (AbstractCanaryServiceIntegration svc : canary.getServiceIntegrations()) {
@@ -74,6 +77,9 @@ public class KayentaProfileFactory extends SpringProfileFactory {
             google = new GoogleConfig(googleSvc);
             stackdriver = new StackdriverConfig(googleSvc);
             gcs = new GcsConfig(googleSvc);
+          } else if (svc instanceof PrometheusCanaryServiceIntegration) {
+            PrometheusCanaryServiceIntegration prometheusSvc = (PrometheusCanaryServiceIntegration)svc;
+            prometheus = new PrometheusConfig(prometheusSvc);
           }
         }
       }
@@ -106,6 +112,19 @@ public class KayentaProfileFactory extends SpringProfileFactory {
 
         GcsConfig(GoogleCanaryServiceIntegration googleSvc) {
           enabled = googleSvc.isStackdriverEnabled();
+        }
+      }
+
+      @Data
+      static class PrometheusConfig {
+        private boolean enabled;
+        private Long metadataCachingIntervalMS;
+        List<PrometheusCanaryAccount> accounts;
+
+        PrometheusConfig(PrometheusCanaryServiceIntegration prometheusSvc) {
+          enabled = prometheusSvc.isEnabled();
+          metadataCachingIntervalMS = prometheusSvc.getMetadataCachingIntervalMS();
+          accounts = prometheusSvc.getAccounts();
         }
       }
     }

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.canary;
+package com.netflix.spinnaker.halyard.config.model.v1.canary.google;
 
+import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -26,7 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 @ToString(callSuper = true)
 @Slf4j
 public class GoogleCanaryServiceIntegration extends AbstractCanaryServiceIntegration<GoogleCanaryAccount> implements Cloneable {
-  String name = "google";
+  public static final String NAME = "google";
+
+  String name = NAME;
   private boolean gcsEnabled;
   private boolean stackdriverEnabled;
   private Long metadataCachingIntervalMS;

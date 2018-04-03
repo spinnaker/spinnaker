@@ -50,7 +50,7 @@ public class ListCanaryAccountsCommand extends AbstractCanaryServiceIntegrationC
 
   @Override
   protected void executeThis() {
-    AbstractCanaryServiceIntegration serviceIntegration = CanaryUtils.getServiceIntegrationByName(getCurrentDeployment(), getServiceIntegration(), noValidate);
+    AbstractCanaryServiceIntegration serviceIntegration = CanaryUtils.getServiceIntegrationByName(null, getCurrentDeployment(), getServiceIntegration(), noValidate);
     List<AbstractCanaryAccount> accounts = serviceIntegration.getAccounts();
 
     if (accounts.isEmpty()) {

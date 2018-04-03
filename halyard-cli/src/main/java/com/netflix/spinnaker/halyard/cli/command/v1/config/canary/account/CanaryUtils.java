@@ -32,13 +32,16 @@ public class CanaryUtils {
         .orElseThrow(() -> new IllegalArgumentException("Canary service integration of type " + serviceIntegrationClass.getSimpleName() + " not found."));
   }
 
-  static AbstractCanaryServiceIntegration getServiceIntegrationByName(String currentDeployment,
-                                                                      String serviceIntegrationName,
-                                                                      boolean noValidate) {
-    Canary canary = new OperationHandler<Canary>()
-        .setFailureMesssage("Failed to get canary.")
-        .setOperation(Daemon.getCanary(currentDeployment, !noValidate))
-        .get();
+  public static AbstractCanaryServiceIntegration getServiceIntegrationByName(Canary canary,
+                                                                             String currentDeployment,
+                                                                             String serviceIntegrationName,
+                                                                             boolean noValidate) {
+    if (canary == null) {
+      canary = new OperationHandler<Canary>()
+          .setFailureMesssage("Failed to get canary.")
+          .setOperation(Daemon.getCanary(currentDeployment, !noValidate))
+          .get();
+    }
 
     return canary.getServiceIntegrations()
         .stream()
