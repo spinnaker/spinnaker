@@ -389,6 +389,7 @@ declare -A COMPONENTS=( ['clouddriver']='clouddriver' \
   ['front50']='front50' \
   ['gate']='gate' \
   ['igor']='igor' \
+  ['kayenta']='kayenta' \
   ['orca']='orca' \
   ['rosco']='rosco' \
   ['consul']='consul-server' \
