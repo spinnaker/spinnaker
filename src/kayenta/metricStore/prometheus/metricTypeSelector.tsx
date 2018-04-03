@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import Select, { Option } from 'react-select';
+import { Option } from 'react-select';
 import { ICanaryState } from 'kayenta/reducers';
 import { IPrometheusMetricDescriptor } from './domain/IPrometheusMetricDescriptor';
 import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 import * as Creators from 'kayenta/actions/creators';
+import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
 
 interface IPrometheusMetricTypeSelectorDispatchProps {
   load: (filter: string) => void;
@@ -27,7 +28,7 @@ const PrometheusMetricTypeSelector = ({ loading, load, options, value, onChange 
   }
 
   return (
-    <Select
+    <DisableableReactSelect
       isLoading={loading}
       options={options}
       onChange={onChange}
@@ -39,6 +40,7 @@ const PrometheusMetricTypeSelector = ({ loading, load, options, value, onChange 
           return input;
         }
       }
+      disabledStateKeys={[DISABLE_EDIT_CONFIG]}
     />
   );
 };

@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { isString } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
+import * as classNames from 'classnames';
 
 import { HelpField } from '@spinnaker/core';
-
-import KayentaInput from '../layout/kayentaInput';
 
 import './canaryScores.less';
 
@@ -21,6 +20,7 @@ export interface ICanaryScoresProps {
   unhealthyHelpFieldId?: string;
   unhealthyLabel?: string;
   unhealthyScore: string;
+  disabled?: boolean;
 }
 
 @autoBindMethods
@@ -57,12 +57,16 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                 <HelpField id={this.props.unhealthyHelpFieldId || 'pipeline.config.canary.unhealthyScore'}/>
               </div>
               <div className="col-md-2">
-                <KayentaInput
+                <input
                   type="number"
                   required={true}
+                  disabled={this.props.disabled}
                   value={Number.isNaN(unhealthy) ? '' : unhealthy}
                   onChange={this.handleUnhealthyChange}
-                  className={this.isUnhealthyScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-min'}
+                  className={classNames('form-control', 'input-sm', {
+                    'ng-invalid': !this.isUnhealthyScoreValid(successful, unhealthy),
+                    'ng-invalid-validate-min': !this.isUnhealthyScoreValid(successful, unhealthy)
+                  })}
                 />
               </div>
               <div className="col-md-2 col-md-offset-1 sm-label-right">
@@ -70,12 +74,16 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                 <HelpField id={this.props.successfulHelpFieldId || 'pipeline.config.canary.successfulScore'}/>
               </div>
               <div className="col-md-2">
-                <KayentaInput
+                <input
                   type="number"
                   required={true}
+                  disabled={this.props.disabled}
                   value={Number.isNaN(successful) ? '' : successful}
                   onChange={this.handleSuccessfulChange}
-                  className={this.isSuccessfulScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-max'}
+                  className={classNames('form-control', 'input-sm', {
+                    'ng-invalid': !this.isSuccessfulScoreValid(successful, unhealthy),
+                    'ng-invalid-validate-max': !this.isSuccessfulScoreValid(successful, unhealthy)
+                  })}
                 />
               </div>
             </div>

@@ -8,6 +8,7 @@ export interface IAppState {
   deleteConfigModalOpen: boolean;
   configJsonModalOpen: boolean;
   configJsonModalTabState: ConfigJsonModalTabState;
+  disableConfigEdit: boolean;
 }
 
 const deleteConfigModalOpen = handleActions({
@@ -25,8 +26,11 @@ const configJsonModalTabState = handleActions({
   [Actions.CONFIG_JSON_MODAL_OPEN]: () => ConfigJsonModalTabState.Edit,
 }, ConfigJsonModalTabState.Edit);
 
+const disableConfigEdit = handleActions<boolean>({}, false);
+
 export const app: Reducer<IAppState> = combineReducers<IAppState>({
   deleteConfigModalOpen,
   configJsonModalOpen,
   configJsonModalTabState,
+  disableConfigEdit,
 });

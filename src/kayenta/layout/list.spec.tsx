@@ -1,8 +1,11 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
 import { IUpdateListPayload, List, ListAction, updateListReducer } from './list';
-import { IKayentaAction } from '../actions/creators';
+import { IKayentaAction } from 'kayenta/actions/creators';
 import createSpy = jasmine.createSpy;
+import { rootReducer } from '../reducers';
 
 describe('Reducer: updateListReducer', () => {
 
@@ -39,10 +42,12 @@ describe('Component: List', () => {
 
   it('renders a list', () => {
     const component = mount(
-      <List
-        list={['a', 'b', 'c']}
-        actionCreator={() => null}
-      />
+      <Provider store={createStore(rootReducer)}>
+        <List
+          list={['a', 'b', 'c']}
+          actionCreator={() => null}
+        />
+      </Provider>
     );
 
     expect(component.find('input').length).toEqual(3);
@@ -51,10 +56,12 @@ describe('Component: List', () => {
   it('emits the correct value and index on update', () => {
     const spy = createSpy('actionCreator');
     const component = mount(
-      <List
-        list={['a', 'b', 'c']}
-        actionCreator={spy}
-      />
+      <Provider store={createStore(rootReducer)}>
+        <List
+          list={['a', 'b', 'c']}
+          actionCreator={spy}
+        />
+      </Provider>
     );
 
     const input = component.find('input').at(1);

@@ -6,7 +6,7 @@ import FormRow from 'kayenta/layout/formRow';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import FormList from 'kayenta/layout/formList';
-import KayentaInput from 'kayenta/layout/kayentaInput';
+import { DisableableInput, DisableableTextarea, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import MetricStoreSelector from './metricStoreSelector';
 
 interface INameAndDescriptionDispatchProps {
@@ -26,18 +26,20 @@ function NameAndDescription({ name, description, changeName, changeDescription }
   return (
     <FormList>
       <FormRow label="Configuration Name">
-        <KayentaInput
+        <DisableableInput
           type="text"
           value={name}
           onChange={changeName}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
         />
       </FormRow>
       <MetricStoreSelector />
       <FormRow label="Description">
-        <textarea
+        <DisableableTextarea
           className="form-control input-sm"
           value={description}
           onChange={changeDescription}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
         />
       </FormRow>
     </FormList>

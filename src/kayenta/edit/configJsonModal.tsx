@@ -4,12 +4,13 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get, omit } from 'lodash';
 
-import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from '../reducers/index';
 import { jsonUtilityService, NgReact, IJsonDiff } from '@spinnaker/core';
-import { mapStateToConfig } from '../service/canaryConfig.service';
-import Styleguide from '../layout/styleguide';
-import { Tab, Tabs } from '../layout/tabs';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryState } from 'kayenta/reducers';
+import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
+import Styleguide from 'kayenta/layout/styleguide';
+import { Tab, Tabs } from 'kayenta/layout/tabs';
+import { DisableableTextarea, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 const { DiffView } = NgReact;
 
@@ -59,12 +60,13 @@ function ConfigJsonModal({ show, configJson, id, deserializationError, closeModa
             </section>
             <section className="kayenta-config-json">
               {tabState === ConfigJsonModalTabState.Edit && (
-                <textarea
+                <DisableableTextarea
                   rows={configJson.split('\n').length}
                   className="form-control code flex-fill"
                   spellCheck={false}
                   value={configJson}
                   onChange={setConfigJson}
+                  disabledStateKeys={[DISABLE_EDIT_CONFIG]}
                 />
               )}
               {tabState === ConfigJsonModalTabState.Diff && !deserializationError && (

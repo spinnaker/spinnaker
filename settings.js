@@ -87,7 +87,7 @@ window.spinnakerSettings = {
     stagesEnabled: canaryStagesEnabled,
     atlasWebComponentsUrl: atlasWebComponentsUrl,
     templatesEnabled: templatesEnabled,
-    showAllConfigs: false,
+    showAllConfigs: true,
   },
   feature: {
     entityTags: entityTagsEnabled,

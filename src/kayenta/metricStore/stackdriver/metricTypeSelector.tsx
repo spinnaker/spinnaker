@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import Select, { Option } from 'react-select';
+import { Option } from 'react-select';
 import { ICanaryState } from 'kayenta/reducers';
 import { IStackdriverMetricDescriptor } from './domain/IStackdriverMetricDescriptor';
 import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 import * as Creators from 'kayenta/actions/creators';
+import { DisableableReactSelect, DISABLE_EDIT_CONFIG } from'kayenta/layout/disableable';
 
 interface IStackdriverMetricTypeSelectorDispatchProps {
   load: (filter: string) => void;
@@ -27,7 +28,7 @@ const StackdriverMetricTypeSelector = ({ loading, load, options, value, onChange
   }
 
   return (
-    <Select
+    <DisableableReactSelect
       isLoading={loading}
       options={options}
       onChange={onChange}
@@ -39,6 +40,7 @@ const StackdriverMetricTypeSelector = ({ loading, load, options, value, onChange
           return input;
         }
       }
+      disabledStateKeys={[DISABLE_EDIT_CONFIG]}
     />
   );
 };

@@ -1,12 +1,12 @@
 import * as React from 'react';
-import Select, { Option } from 'react-select';
+import { Option } from 'react-select';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
 
-import { ICanaryState } from '../reducers/index';
-import * as Creators from '../actions/creators';
-import FormRow from '../layout/formRow';
-import KayentaInput from '../layout/kayentaInput';
+import { ICanaryState } from 'kayenta/reducers';
+import * as Creators from 'kayenta/actions/creators';
+import FormRow from 'kayenta/layout/formRow';
+import { DisableableInput, DisableableReactSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface IJudgeSelectStateProps {
   judgeOptions: Option[];
@@ -32,21 +32,23 @@ function JudgeSelect({ judgeOptions, selectedJudge, handleJudgeSelect, renderSta
     case JudgeSelectRenderState.Multiple:
       return (
         <FormRow>
-          <Select
+          <DisableableReactSelect
             value={selectedJudge}
             options={judgeOptions}
             clearable={false}
             onChange={handleJudgeSelect}
+            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
           />
         </FormRow>
       );
     case JudgeSelectRenderState.Single:
       return (
         <FormRow>
-          <KayentaInput
+          <DisableableInput
             type="text"
             value={selectedJudge}
             disabled={true}
+            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
           />
         </FormRow>
       );

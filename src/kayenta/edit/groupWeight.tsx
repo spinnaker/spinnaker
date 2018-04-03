@@ -4,11 +4,11 @@ import { Action } from 'redux';
 import { get, isNumber } from 'lodash';
 
 import FormRow from '../layout/formRow';
-import KayentaInput from '../layout/kayentaInput';
-import { ICanaryState } from '../reducers/index';
-import { ICanaryConfig } from '../domain/ICanaryConfig';
-import * as Creators from '../actions/creators';
-import { mapStateToConfig } from '../service/canaryConfig.service';
+import { DisableableInput, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
+import { ICanaryState } from 'kayenta/reducers';
+import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
+import * as Creators from 'kayenta/actions/creators';
+import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 
 export interface IGroupWeightOwnProps {
   group: string;
@@ -29,12 +29,13 @@ function GroupWeight({ group, config, handleInputChange }: IGroupWeightOwnProps 
   const groupWeight = getGroupWeights(config)[group];
   return (
     <FormRow label={group}>
-      <KayentaInput
+      <DisableableInput
         type="number"
         value={isNumber(groupWeight) ? groupWeight : ''}
         onChange={handleInputChange}
         min={0}
         max={100}
+        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       />
     </FormRow>
   );

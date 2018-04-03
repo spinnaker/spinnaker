@@ -1,11 +1,14 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
+import * as classNames from 'classnames';
+import { noop } from '@spinnaker/core';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import { ITableColumn, Table } from 'kayenta/layout/table';
 import ChangeMetricGroupModal from './changeMetricGroupModal';
+import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
 
 interface IMetricListStateProps {
   selectedGroup: string;
@@ -14,6 +17,7 @@ interface IMetricListStateProps {
   changingGroupMetric: ICanaryMetricConfig;
   groupList: string[];
   metricStore: string;
+  disableEdit: boolean;
 }
 
 interface IMetricListDispatchProps {
@@ -26,7 +30,7 @@ interface IMetricListDispatchProps {
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal, metricStore }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, editMetric, removeMetric, changingGroupMetric, openChangeMetricGroupModal, metricStore, disableEdit }: IMetricListStateProps & IMetricListDispatchProps) {
 
   const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
@@ -55,9 +59,11 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
             onClick={openChangeMetricGroupModal}
           />
           <i
-            className="fa fa-trash"
+            className={classNames('fa', 'fa-trash', {
+              disabled: disableEdit,
+            })}
             data-id={metric.id}
-            onClick={removeMetric}
+            onClick={disableEdit ? noop : removeMetric}
           />
         </div>
       ),
@@ -79,15 +85,16 @@ function MetricList({ metrics, groupList, selectedGroup, showGroups, addMetric, 
         </p>
       ) : null}
       {changingGroupMetric && <ChangeMetricGroupModal metric={changingGroupMetric}/>}
-      <button
+      <DisableableButton
         className="passive"
         data-group={selectedGroup}
         data-default={groupList[0]}
         data-metric-store={metricStore}
         onClick={addMetric}
+        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
         Add Metric
-      </button>
+      </DisableableButton>
     </section>
   );
 }
@@ -110,6 +117,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
     changingGroupMetric: state.selectedConfig.metricList.find(m =>
       m.id === state.selectedConfig.changeMetricGroup.metric),
     metricStore: state.selectedConfig.selectedStore,
+    disableEdit: state.app.disableConfigEdit,
   };
 }
 

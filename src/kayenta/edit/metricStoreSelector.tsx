@@ -6,6 +6,7 @@ import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
 import { KayentaAccountType } from 'kayenta/domain';
 import FormRow from 'kayenta/layout/formRow';
+import { DisableableSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface IMetricStoreSelectorStateProps {
   stores: string[];
@@ -23,17 +24,18 @@ const MetricStoreSelector = ({ stores, selectedStore, select }: IMetricStoreSele
 
   return (
     <FormRow label="Metric Store">
-      <select
+      <DisableableSelect
         value={selectedStore || ''}
         onChange={select}
         className="form-control input-sm"
+        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
         {
           stores.map(s => (
             <option key={s} value={s}>{s}</option>
           ))
         }
-      </select>
+      </DisableableSelect>
     </FormRow>
   );
 };

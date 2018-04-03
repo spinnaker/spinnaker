@@ -6,8 +6,7 @@ import { ICanaryState } from 'kayenta/reducers';
 import { editingTemplateSelector } from 'kayenta/selectors';
 import { Dispatch } from 'redux';
 import FormRow from 'kayenta/layout/formRow';
-import KayentaInput from 'kayenta/layout/kayentaInput';
-import KayentaTextarea from 'kayenta/layout/kayentaTextarea';
+import { DisableableInput, DisableableTextarea, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import * as Creators from 'kayenta/actions/creators';
 import Styleguide from 'kayenta/layout/styleguide';
 
@@ -32,16 +31,18 @@ const EditTemplateModal = ({ name, editName, value, editValue, cancel, confirm }
         </Modal.Header>
         <Modal.Body>
           <FormRow label="Name">
-            <KayentaInput
+            <DisableableInput
               type="text"
               value={name || ''}
               onChange={editName}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
           </FormRow>
           <FormRow label="Template">
-            <KayentaTextarea
+            <DisableableTextarea
               value={value || ''}
               onChange={editValue}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
           </FormRow>
         </Modal.Body>

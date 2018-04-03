@@ -1,6 +1,6 @@
 import * as React from 'react';
-import KayentaInput from './kayentaInput';
-import { IKayentaAction } from '../actions/creators';
+import { DisableableInput, DISABLE_EDIT_CONFIG } from './disableable';
+import { IKayentaAction } from 'kayenta/actions/creators';
 import AddNewButton from './addNewButton';
 import DeleteButton from './deleteButton';
 
@@ -60,9 +60,10 @@ export const List = ({ list, valueKey, actionCreator }: IListProps) => {
       {
         list.map((value, i) =>
           <div key={valueKey ? valueKey(value) : i} className="horizontal form-group kayenta-list">
-            <KayentaInput
+            <DisableableInput
               value={value}
               onChange={onChange(i)}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
             <DeleteButton onClick={deleteValue(i)}/>
           </div>

@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+
 import { ICanaryState } from 'kayenta/reducers';
 import { Table, ITableColumn } from 'kayenta/layout/table';
 import { configTemplatesSelector } from 'kayenta/selectors';
-import { Dispatch } from 'redux';
 import * as Creators from 'kayenta/actions/creators';
 import EditTemplateModal from './editModal';
+import { DisableableButton, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface ITemplatesStateProps {
   templates: ITemplate[];
@@ -58,12 +60,13 @@ const Templates = ({ templates, edit, remove, add }: ITemplatesStateProps & ITem
         rowKey={t => t.name}
         headerClassName="background-white"
       />
-      <button
+      <DisableableButton
         className="passive"
         onClick={add}
+        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       >
         Add Template
-      </button>
+      </DisableableButton>
     </section>
   );
 };

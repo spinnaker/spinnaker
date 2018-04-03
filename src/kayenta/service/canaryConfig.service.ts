@@ -96,7 +96,10 @@ export function buildNewConfig(state: ICanaryState): ICanaryConfig {
 }
 
 export function buildConfigCopy(state: ICanaryState): ICanaryConfig {
-  const config = mapStateToConfig(state);
+  const config: ICanaryConfig = {
+    ...mapStateToConfig(state),
+    applications: [state.data.application.name], // Copy into current application.
+  };
   if (!config) {
     return null;
   }

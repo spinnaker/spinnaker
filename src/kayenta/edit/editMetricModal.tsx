@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
-import Select, { Option } from 'react-select';
+import { Option } from 'react-select';
 import { noop } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
@@ -11,7 +11,7 @@ import MetricConfigurerDelegator from './metricConfigurerDelegator';
 import metricStoreConfigService from 'kayenta/metricStore/metricStoreConfig.service';
 import Styleguide from 'kayenta/layout/styleguide';
 import FormRow from 'kayenta/layout/formRow';
-import KayentaInput from 'kayenta/layout/kayentaInput';
+import { DisableableInput, DisableableSelect, DisableableReactSelect, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import { configTemplatesSelector } from 'kayenta/selectors';
 import { CanarySettings } from 'kayenta/canary.settings';
 
@@ -37,7 +37,15 @@ interface IEditMetricModalStateProps {
 function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
   return (
     <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
-      <input name="direction" type="radio" value={value} onChange={action} checked={value === current}/> {label}
+      <DisableableInput
+        name="direction"
+        type="radio"
+        value={value}
+        onChange={action}
+        checked={value === current}
+        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+      />
+        {label}
     </label>
   );
 }
@@ -61,10 +69,11 @@ function FilterTemplateSelector({ metricStore, template, templates, select }: IF
 
   return (
     <FormRow label="Filter Template">
-      <Select
+      <DisableableReactSelect
         value={template}
         options={templates}
         onChange={select}
+        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       />
     </FormRow>
   );
@@ -89,29 +98,36 @@ function EditMetricModal({ metric, rename, changeGroup, groups, confirm, cancel,
         <Modal.Body>
           <FormRow label="Group">
             {metric.groups.length > 1 && (
-              <KayentaInput
+              <DisableableInput
                 type="text"
                 value={metric.groups}
                 data-id={metric.id}
                 onChange={changeGroup}
+                disabledStateKeys={[DISABLE_EDIT_CONFIG]}
               />
             )}
             {metric.groups.length < 2 && (
-              <select value={metricGroup} onChange={changeGroup} className="form-control input-sm">
+              <DisableableSelect
+                value={metricGroup}
+                onChange={changeGroup}
+                className="form-control input-sm"
+                disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+              >
                 {
                   groups.map(g => (
                     <option key={g} value={g}>{g}</option>
                   ))
                 }
-              </select>
+              </DisableableSelect>
             )}
           </FormRow>
           <FormRow label="Name">
-            <KayentaInput
+            <DisableableInput
               type="text"
               value={metric.name}
               data-id={metric.id}
               onChange={rename}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
           </FormRow>
           <FormRow label="Fail on">
@@ -126,10 +142,11 @@ function EditMetricModal({ metric, rename, changeGroup, groups, confirm, cancel,
             select={selectTemplate}
           />
           <FormRow label="Scope Name">
-            <KayentaInput
+            <DisableableInput
               type="text"
               value={metric.scopeName}
               onChange={updateScopeName}
+              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
             />
           </FormRow>
           <MetricConfigurerDelegator/>

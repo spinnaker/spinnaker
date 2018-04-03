@@ -218,12 +218,27 @@ const selectedMetricStoreReducer = (state: ICanaryState, action: Action & any) =
   }
 };
 
+const disableConfigEditReducer = (state: ICanaryState) => {
+  if (!state.selectedConfig.config) {
+    return state;
+  }
+
+  return {
+    ...state,
+    app: {
+      ...state.app,
+      disableConfigEdit: !state.selectedConfig.config.applications.includes(state.data.application.name),
+    }
+  }
+};
+
 export const rootReducer = (state: ICanaryState, action: Action & any): ICanaryState => {
   return [
     combined,
     judgeRenderStateReducer,
     selectedMetricStoreReducer,
     selectedMetricReducer,
+    disableConfigEditReducer,
     validationErrorsReducer,
     isInSyncWithServerReducer,
   ].reduce((s, reducer) => reducer(s, action), state);

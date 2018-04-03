@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import * as Creators from '../actions/creators';
+import * as Creators from 'kayenta/actions/creators';
 import DeleteConfigModal from './deleteModal';
-import { ICanaryState } from '../reducers/index';
+import { ICanaryState } from 'kayenta/reducers';
+import { DisableableButton, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface IDeleteButtonStateProps {
   disabled: boolean;
@@ -19,10 +20,15 @@ interface IDeleteButtonDispatchProps {
 function DeleteConfigButton({ openDeleteConfigModal, disabled }: IDeleteButtonDispatchProps & IDeleteButtonStateProps) {
   return (
     <div>
-      <button className="passive" disabled={disabled} onClick={openDeleteConfigModal}>
+      <DisableableButton
+        className="passive"
+        disabled={disabled}
+        onClick={openDeleteConfigModal}
+        disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+      >
         <i className="fa fa-trash"/>
         <span>Delete</span>
-      </button>
+      </DisableableButton>
       <DeleteConfigModal/>
     </div>
   );

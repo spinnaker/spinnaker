@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import FormRow from 'kayenta/layout/formRow';
 import { ICanaryState } from 'kayenta/reducers';
 import * as Creators from 'kayenta/actions/creators';
-import KayentaInput from 'kayenta/layout/kayentaInput';
+import { DisableableInput, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import { ICanaryMetricConfig } from 'kayenta/domain';
 import autoBindMethods from 'class-autobind-decorator';
 
@@ -35,10 +35,11 @@ class DatadogMetricConfigurer extends React.Component<DatadogMetricConfigurerPro
     return (
       <section>
         <FormRow label="Datadog Metric">
-          <KayentaInput
+          <DisableableInput
             type="text"
             value={queryFinder(editingMetric)}
             onChange={this.onChange}
+            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
           />
         </FormRow>
       </section>

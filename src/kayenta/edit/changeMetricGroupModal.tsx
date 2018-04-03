@@ -5,10 +5,11 @@ import { Modal } from 'react-bootstrap';
 
 import { noop } from '@spinnaker/core';
 
-import * as Creators from '../actions/creators';
-import { ICanaryState } from '../reducers/index';
-import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
-import Styleguide from '../layout/styleguide';
+import * as Creators from 'kayenta/actions/creators';
+import { ICanaryState } from 'kayenta/reducers';
+import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import Styleguide from 'kayenta/layout/styleguide';
+import { DISABLE_EDIT_CONFIG, DisableableSelect } from 'kayenta/layout/disableable';
 
 interface IChangeMetricGroupModalOwnProps {
   metric: ICanaryMetricConfig;
@@ -33,14 +34,19 @@ function ChangeMetricGroupModal({ groups, toGroup, confirm, clear, select }: ICh
           <Modal.Title>Change Metric Group</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <select value={toGroup || ''} onChange={select} className="form-control input-sm">
+          <DisableableSelect
+            value={toGroup || ''}
+            onChange={select}
+            className="form-control input-sm"
+            disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+          >
             <option value={''}>-- select group --</option>
             {
               groups.map(g => (
                 <option key={g} value={g}>{g}</option>
               ))
             }
-          </select>
+          </DisableableSelect>
         </Modal.Body>
         <Modal.Footer>
           <ul className="list-inline pull-right">

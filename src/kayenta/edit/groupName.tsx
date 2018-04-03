@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
-import { ICanaryState } from '../reducers';
-import * as Creators from '../actions/creators';
-import KayentaInput from '../layout/kayentaInput';
+import { ICanaryState } from 'kayenta/reducers';
+import * as Creators from 'kayenta/actions/creators';
+import { DisableableInput, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 
 interface IGroupNameStateProps {
   group: string;
@@ -30,10 +30,11 @@ function GroupName({ editing, edit, group, onClick, handleUpdate, handleSubmit, 
   if (editing) {
     return (
       <form onSubmit={handleSubmit} data-group={group} data-edit={edit}>
-        <KayentaInput
+        <DisableableInput
           autoFocus={true}
           value={edit}
           onChange={handleUpdate}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
         />
       </form>
     );

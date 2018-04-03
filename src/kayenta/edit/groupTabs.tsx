@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Action } from 'redux';
 import { connect } from 'react-redux';
-import { ICanaryState } from '../reducers';
-import * as Creators from '../actions/creators';
-import { Tabs, Tab } from '../layout/tabs';
+import { ICanaryState } from 'kayenta/reducers';
+import * as Creators from 'kayenta/actions/creators';
+import { Tabs, Tab } from 'kayenta/layout/tabs';
+import { DisableableButton, DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
 import GroupName from './groupName';
 
 export const ALL = 'all';
@@ -44,7 +45,13 @@ function GroupTabs({ groupList, selectedGroup, selectGroup, addGroup, editing, e
       <Tabs>
         <GroupTab group=""/>
         {groupList.map(group => <GroupTab key={group} group={group} editable={true}/>)}
-        <button className="passive float-right" onClick={addGroup}>Add Group</button>
+        <DisableableButton
+          className="passive float-right"
+          onClick={addGroup}
+          disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+        >
+          Add Group
+        </DisableableButton>
       </Tabs>
     </section>
   );
