@@ -93,7 +93,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
         long startTime = System.currentTimeMillis()
         log.info "Polling cycle started: ${new Date()}"
         buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
-            { master -> pollSingle(new PollContext(master)) }
+            { master -> pollSingle(new PollContext(master, !sendEvents)) }
         )
         log.info "Polling cycle done in ${System.currentTimeMillis() - startTime}ms"
     }

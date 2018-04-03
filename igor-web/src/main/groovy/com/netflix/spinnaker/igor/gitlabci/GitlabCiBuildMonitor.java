@@ -81,7 +81,7 @@ public class GitlabCiBuildMonitor extends CommonPollingMonitor<GitlabCiBuildMoni
     @Override
     public void poll(boolean sendEvents) {
         buildMasters.filteredMap(BuildServiceProvider.GITLAB_CI).keySet().stream()
-            .map(it -> new PollContext(it, sendEvents))
+            .map(it -> new PollContext(it, !sendEvents))
             .forEach(this::pollSingle);
     }
 

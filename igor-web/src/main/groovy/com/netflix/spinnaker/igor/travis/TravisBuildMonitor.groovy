@@ -86,7 +86,7 @@ class TravisBuildMonitor extends CommonPollingMonitor<BuildDelta, BuildPollingDe
     @Override
     void poll(boolean sendEvents) {
         buildMasters.filteredMap(BuildServiceProvider.TRAVIS).keySet().each { master ->
-            pollSingle(new PollContext(master, sendEvents))
+            pollSingle(new PollContext(master, !sendEvents))
         }
     }
 
