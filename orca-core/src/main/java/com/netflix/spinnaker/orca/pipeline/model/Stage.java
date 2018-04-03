@@ -40,6 +40,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
@@ -451,7 +452,7 @@ public class Stage implements Serializable {
     try {
       return objectMapper.readValue(data, type);
     } catch (IOException e) {
-      throw new RuntimeException("Could not convert " + new String(data) + " to " + type.getSimpleName());
+      throw new RuntimeException("Could not convert " + new String(data, UTF_8) + " to " + type.getSimpleName(), e);
     }
   }
 

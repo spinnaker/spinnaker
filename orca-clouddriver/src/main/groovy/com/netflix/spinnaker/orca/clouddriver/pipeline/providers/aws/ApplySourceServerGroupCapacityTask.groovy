@@ -67,10 +67,16 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
         targetServerGroup.capacity.min as Long
       )
 
-      // only update the min capacity, desired + max should be inherited/unchanged from the target server group
-      context.capacity = targetServerGroup.capacity + [
-        min: minCapacity
-      ]
+      if (context.cloudProvider == "aws") {
+        // aws is the only cloud provider supporting partial resizes
+        // updating anything other than 'min' could result in instances being
+        // unnecessarily destroyed or created if autoscaling has occurred
+        context.capacity = [ min: minCapacity ]
+      } else {
+        context.capacity = targetServerGroup.capacity + [
+          min: minCapacity
+        ]
+      }
 
       log.info("Restoring min capacity of ${context.region}/${targetServerGroup.name} to ${minCapacity} (currentMin: ${targetServerGroup.capacity.min}, snapshotMin: ${sourceServerGroupCapacitySnapshot.min})")
 

@@ -121,17 +121,19 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
       max    : 20
     ]
 
+    def context = [
+      credentials    : "test",
+      region         : "us-east-1",
+      asgName        : "application-stack-v001",
+      serverGroupName: "application-stack-v001",
+      cloudProvider  : cloudProvider
+    ]
+
     task = new ApplySourceServerGroupCapacityTask() {
       @Override
       ApplySourceServerGroupCapacityTask.TargetServerGroupContext getTargetServerGroupContext(Stage stage) {
         return new ApplySourceServerGroupCapacityTask.TargetServerGroupContext(
-          context: [
-            credentials    : "test",
-            region         : "us-east-1",
-            asgName        : "application-stack-v001",
-            serverGroupName: "application-stack-v001",
-            cloudProvider  : "aws"
-          ],
+          context: context,
           sourceServerGroupCapacitySnapshot: sourceServerGroupCapacitySnapshot
         )
       }
@@ -156,26 +158,24 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
       "test",
       "application-stack-v001",
       "us-east-1",
-      "aws"
+      cloudProvider
     ) >> Optional.of(targetServerGroup)
 
-    result == [
-      cloudProvider  : "aws",
-      credentials    : "test",
-      asgName        : "application-stack-v001",
-      serverGroupName: "application-stack-v001",
-      region         : "us-east-1",
-      capacity       : [
-        min    : expectedMinCapacity,
-        desired: 5,
-        max    : 10
-      ]
-    ]
+    result.cloudProvider == cloudProvider
+    result.credentials == "test"
+    result.asgName == "application-stack-v001"
+    result.serverGroupName == "application-stack-v001"
+    result.region == "us-east-1"
+    result.capacity == (cloudProvider == "aws"
+      ? [ min: expectedMinCapacity ]
+      : [ min: expectedMinCapacity, desired: 5, max : 10 ])
 
     where:
-    originalMinCapacity || expectedMinCapacity
-    0                   || 0            // min(currentMin, snapshotMin) == 0
-    10                  || 5            // min(currentMin, snapshotMin) == 5
+    cloudProvider || originalMinCapacity || expectedMinCapacity
+    "aws"         || 0                   || 0            // min(currentMin, snapshotMin) == 0
+    "aws"         || 10                  || 5            // min(currentMin, snapshotMin) == 5
+    "notaws"      || 0                   || 0            // min(currentMin, snapshotMin) == 0
+    "notaws"      || 10                  || 5            // min(currentMin, snapshotMin) == 5
   }
 
   void "should get TargetServerGroupContext with explicitly provided coordinates"() {
