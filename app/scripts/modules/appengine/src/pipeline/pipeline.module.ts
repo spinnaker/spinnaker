@@ -9,7 +9,6 @@ import { APPENGINE_START_SERVER_GROUP_STAGE } from './stages/startServerGroup/ap
 import { APPENGINE_STOP_SERVER_GROUP_STAGE } from './stages/stopServerGroup/appengineStopServerGroupStage';
 
 export const APPENGINE_PIPELINE_MODULE = 'spinnaker.appengine.pipeline.module';
-
 module(APPENGINE_PIPELINE_MODULE, [
   APPENGINE_DESTROY_ASG_STAGE,
   APPENGINE_DISABLE_ASG_STAGE,

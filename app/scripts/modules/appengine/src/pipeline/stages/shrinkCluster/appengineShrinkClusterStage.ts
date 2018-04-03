@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, AccountService, PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
 
 import { IAppengineStage, IAppengineStageScope } from 'appengine/domain/index';
 import { AppengineStageCtrl } from '../appengineStage.controller';
@@ -43,10 +43,11 @@ class AppengineShrinkClusterStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_SHRINK_CLUSTER_STAGE = 'spinnaker.appengine.pipeline.stage.shrinkClusterStage';
 
-module(APPENGINE_SHRINK_CLUSTER_STAGE, [ACCOUNT_SERVICE])
-  .config(function(pipelineConfigProvider: any) {
+module(APPENGINE_SHRINK_CLUSTER_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
+  .config(function(pipelineConfigProvider: PipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
+      key: 'shrinkCluster',
       cloudProvider: 'appengine',
       templateUrl: require('./shrinkClusterStage.html'),
       validators: [

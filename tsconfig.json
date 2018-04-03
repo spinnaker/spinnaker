@@ -32,7 +32,10 @@
       "amazon": ["amazon/src"],
       "@spinnaker/google": ["google/src"],
       "google/*": ["google/src/*"],
-      "google": ["google/src"]
+      "google": ["google/src"],
+      "@spinnaker/appengine": ["appengine/src"],
+      "appengine/*": ["appengine/src/*"],
+      "appengine/": ["appengine/src"]
     },
     "pretty": true,
     "removeComments": true,

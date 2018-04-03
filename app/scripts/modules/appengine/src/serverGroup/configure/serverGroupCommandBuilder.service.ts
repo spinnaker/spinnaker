@@ -19,7 +19,7 @@ import {
   IAppengineGitTrigger,
   IAppengineJenkinsTrigger,
   IAppengineServerGroup
-} from 'appengine/domain/index';
+} from 'appengine/domain';
 
 import { AppengineProviderSettings } from 'appengine/appengine.settings';
 import { AppengineDeployDescription } from '../transformer';
@@ -62,7 +62,7 @@ export enum AppengineSourceType {
   CONTAINER_IMAGE = 'containerImage',
 }
 
-interface IViewState {
+export interface IViewState {
   mode: string;
   submitButtonLabel: string;
   disableStrategySelection: boolean;

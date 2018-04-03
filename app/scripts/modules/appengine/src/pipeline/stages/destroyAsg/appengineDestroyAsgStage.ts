@@ -1,8 +1,8 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, AccountService, PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
 
-import { IAppengineStageScope } from 'appengine/domain/index';
+import { IAppengineStageScope } from 'appengine/domain';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
 class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
@@ -23,10 +23,11 @@ class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_DESTROY_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.destroyAsgStage';
 
-module(APPENGINE_DESTROY_ASG_STAGE, [ACCOUNT_SERVICE])
-  .config(function(pipelineConfigProvider: any) {
+module(APPENGINE_DESTROY_ASG_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
+      key: 'destroyServerGroup',
       cloudProvider: 'appengine',
       templateUrl: require('./destroyAsgStage.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),

@@ -1,9 +1,9 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, AccountService, PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
-import { IAppengineStageScope } from 'appengine/domain/index';
+import { IAppengineStageScope } from 'appengine/domain';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
 class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
@@ -32,10 +32,12 @@ export const APPENGINE_ENABLE_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.en
 
 module(APPENGINE_ENABLE_ASG_STAGE, [
   ACCOUNT_SERVICE,
+  PIPELINE_CONFIG_PROVIDER,
 ])
-  .config(function(pipelineConfigProvider: any) {
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
+      key: 'enableServerGroup',
       cloudProvider: 'appengine',
       templateUrl: require('./enableAsgStage.html'),
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),

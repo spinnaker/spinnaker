@@ -1,12 +1,12 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, AccountService, PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineStageScope } from 'appengine/domain/index';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
-class AppengineStartServerGroupStageCtrl extends AppengineStageCtrl {
+class AppengineStopServerGroupStageCtrl extends AppengineStageCtrl {
   constructor(public $scope: IAppengineStageScope, protected accountService: AccountService) {
     'ngInject';
     super($scope, accountService);
@@ -25,20 +25,20 @@ class AppengineStartServerGroupStageCtrl extends AppengineStageCtrl {
   }
 }
 
-export const APPENGINE_START_SERVER_GROUP_STAGE = 'spinnaker.appengine.pipeline.stage.startServerGroupStage';
+export const APPENGINE_STOP_SERVER_GROUP_STAGE = 'spinnaker.appengine.pipeline.stage.stopServerGroupStage';
 
-module(APPENGINE_START_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE])
-  .config(function(pipelineConfigProvider: any) {
+module(APPENGINE_STOP_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
-      label: 'Start Server Group',
-      description: 'Starts a server group.',
-      key: 'startAppEngineServerGroup',
-      templateUrl: require('./startServerGroupStage.html'),
-      executionDetailsUrl: require('./startServerGroupExecutionDetails.html'),
-      executionConfigSections: ['startServerGroupConfig', 'taskStatus'],
-      executionStepLabelUrl: require('./startServerGroupStepLabel.html'),
-      controller: 'appengineStartServerGroupStageCtrl',
-      controllerAs: 'startServerGroupStageCtrl',
+      label: 'Stop Server Group',
+      description: 'Stops a server group.',
+      key: 'stopAppEngineServerGroup',
+      templateUrl: require('./stopServerGroupStage.html'),
+      executionDetailsUrl: require('./stopServerGroupExecutionDetails.html'),
+      executionConfigSections: ['stopServerGroupConfig', 'taskStatus'],
+      executionStepLabelUrl: require('./stopServerGroupStepLabel.html'),
+      controller: 'appengineStopServerGroupStageCtrl',
+      controllerAs: 'stopServerGroupStageCtrl',
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
@@ -47,4 +47,4 @@ module(APPENGINE_START_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE])
       cloudProvider: 'appengine',
     });
   })
-  .controller('appengineStartServerGroupStageCtrl', AppengineStartServerGroupStageCtrl);
+  .controller('appengineStopServerGroupStageCtrl', AppengineStopServerGroupStageCtrl);

@@ -66,6 +66,8 @@ function configure(env, webpackOpts) {
         'openstack': path.join(__dirname, 'app', 'scripts', 'modules', 'openstack', 'src'),
         '@spinnaker/openstack': path.join(__dirname, 'app', 'scripts', 'modules', 'openstack', 'src'),
         'coreImports': path.resolve(__dirname, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
+        'appengine': path.join(__dirname, 'app', 'scripts', 'modules', 'appengine', 'src'),
+        '@spinnaker/appengine': path.join(__dirname, 'app', 'scripts', 'modules', 'appengine', 'src'),
       }
     },
     module: {
