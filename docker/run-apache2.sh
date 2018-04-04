@@ -27,7 +27,6 @@ then
 	# SSL not enabled
 	cp docker/spinnaker.conf.gen spinnaker.conf
 else
-	service apache2 stop
 	a2enmod ssl
 	cp docker/spinnaker.conf.ssl spinnaker.conf
 	sed -ie 's|{%DECK_CERT_PATH%}|'$_DECK_CERT_PATH'|g' spinnaker.conf

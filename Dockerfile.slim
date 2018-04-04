@@ -6,10 +6,8 @@ COPY docker /opt/deck/docker
 
 WORKDIR /opt/deck
 
-RUN adduser --disabled-password --system spinnaker
-
-USER spinnaker
-
 RUN docker/setup-apache2.sh
+
+USER www-data
 
 CMD docker/run-apache2.sh
