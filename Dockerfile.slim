@@ -6,6 +6,10 @@ COPY docker /opt/deck/docker
 
 WORKDIR /opt/deck
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 RUN docker/setup-apache2.sh
 
 CMD docker/run-apache2.sh
