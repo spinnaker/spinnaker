@@ -6,4 +6,8 @@ COPY ./fiat-web/build/install/fiat /opt/fiat
 
 RUN apk --nocache add --update bash
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 CMD ["/opt/fiat/bin/fiat"]
