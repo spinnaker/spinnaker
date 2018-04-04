@@ -72,5 +72,5 @@ module.exports = angular
       }
     };
 
-    this.cancel = $uibModalInstance.dismiss;
+    this.cancel = () => $uibModalInstance.dismiss({ source: 'footer'});
   });

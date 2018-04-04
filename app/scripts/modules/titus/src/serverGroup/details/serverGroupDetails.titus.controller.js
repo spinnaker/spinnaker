@@ -254,7 +254,31 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       confirmationModalService.confirm(confirmationModalParams);
     };
 
-    this.enableServerGroup = function enableServerGroup() {
+    this.enableServerGroup = () => {
+      if (!this.isRollbackEnabled()) {
+        this.showEnableServerGroupModal();
+        return;
+      }
+
+      const confirmationModalParams = {
+        header: 'Rolling back?',
+        body: `Spinnaker provides an orchestrated rollback feature to carefully restore a different version of this
+             server group. Do you want to use the orchestrated rollback?`,
+        buttonText: `Yes, let's start the orchestrated rollback`,
+        cancelButtonText: 'No, I just want to enable the server group',
+      };
+
+      confirmationModalService.confirm(confirmationModalParams)
+        .then(() => this.rollbackServerGroup())
+        .catch(({ source }) => {
+          // don't show the enable modal if the user cancels with the header button
+          if (source === 'footer') {
+            this.showEnableServerGroupModal();
+          }
+        });
+    };
+
+    this.showEnableServerGroupModal = () => {
       var serverGroup = $scope.serverGroup;
 
       var taskMonitor = {

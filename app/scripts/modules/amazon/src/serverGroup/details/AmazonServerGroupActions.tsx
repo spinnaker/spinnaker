@@ -127,6 +127,30 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
   }
 
   private enableServerGroup(): void {
+    if (!this.isRollbackEnabled()) {
+      this.showEnableServerGroupModal();
+      return;
+    }
+
+    const confirmationModalParams = {
+      header: 'Rolling back?',
+      body: `Spinnaker provides an orchestrated rollback feature to carefully restore a different version of this
+             server group. Do you want to use the orchestrated rollback?`,
+      buttonText: `Yes, let's start the orchestrated rollback`,
+      cancelButtonText: 'No, I just want to enable the server group',
+    };
+
+    ReactInjector.confirmationModalService.confirm(confirmationModalParams)
+      .then(() => this.rollbackServerGroup())
+      .catch(({ source }) => {
+        // don't show the enable modal if the user cancels with the header button
+        if (source === 'footer') {
+          this.showEnableServerGroupModal();
+        }
+      });
+  };
+
+  private showEnableServerGroupModal(): void {
     const { app, serverGroup } = this.props;
 
     const taskMonitor = {
