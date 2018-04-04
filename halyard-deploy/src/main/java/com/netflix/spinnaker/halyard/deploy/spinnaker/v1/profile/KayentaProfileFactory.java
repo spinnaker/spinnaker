@@ -18,6 +18,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
@@ -69,6 +71,7 @@ public class KayentaProfileFactory extends SpringProfileFactory {
       StackdriverConfig stackdriver;
       GcsConfig gcs;
       PrometheusConfig prometheus;
+      DatadogConfig datadog;
 
       KayentaConfig(Canary canary) {
         for (AbstractCanaryServiceIntegration svc : canary.getServiceIntegrations()) {
@@ -80,6 +83,9 @@ public class KayentaProfileFactory extends SpringProfileFactory {
           } else if (svc instanceof PrometheusCanaryServiceIntegration) {
             PrometheusCanaryServiceIntegration prometheusSvc = (PrometheusCanaryServiceIntegration)svc;
             prometheus = new PrometheusConfig(prometheusSvc);
+          } else if (svc instanceof DatadogCanaryServiceIntegration) {
+            DatadogCanaryServiceIntegration datadogSvc = (DatadogCanaryServiceIntegration)svc;
+            datadog = new DatadogConfig(datadogSvc);
           }
         }
       }
@@ -125,6 +131,17 @@ public class KayentaProfileFactory extends SpringProfileFactory {
           enabled = prometheusSvc.isEnabled();
           metadataCachingIntervalMS = prometheusSvc.getMetadataCachingIntervalMS();
           accounts = prometheusSvc.getAccounts();
+        }
+      }
+
+      @Data
+      static class DatadogConfig {
+        private boolean enabled;
+        List<DatadogCanaryAccount> accounts;
+
+        DatadogConfig(DatadogCanaryServiceIntegration datadogSvc) {
+          enabled = datadogSvc.isEnabled();
+          accounts = datadogSvc.getAccounts();
         }
       }
     }

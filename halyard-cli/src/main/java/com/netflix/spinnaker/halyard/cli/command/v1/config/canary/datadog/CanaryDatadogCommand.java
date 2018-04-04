@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.canary;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.datadog;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.datadog.CanaryDatadogCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CanaryGoogleCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus.CanaryPrometheusCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.EnableDisableCanaryServiceIntegrationCommandBuilder;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.datadog.account.DatadogCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Parameters(separators = "=")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CanaryCommand extends AbstractConfigCommand {
+public class CanaryDatadogCommand extends AbstractConfigCommand {
 
-  String commandName = "canary";
+  String commandName = DatadogCanaryServiceIntegration.NAME;
 
-  String shortDescription = "Configure your canary analysis settings for Spinnaker.";
+  String shortDescription = "Configure your canary analysis Datadog service integration settings for Spinnaker.";
 
   String longDescription = shortDescription;
 
-  public CanaryCommand() {
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(true).build());
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(false).build());
-    registerSubcommand(new EditCanaryCommand());
-    registerSubcommand(new CanaryGoogleCommand());
-    registerSubcommand(new CanaryPrometheusCommand());
-    registerSubcommand(new CanaryDatadogCommand());
+  public CanaryDatadogCommand() {
+    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Datadog").setEnable(true).build());
+    registerSubcommand(new EnableDisableCanaryServiceIntegrationCommandBuilder().setName("Datadog").setEnable(false).build());
+    registerSubcommand(new DatadogCanaryAccountCommand());
   }
 
   @Override

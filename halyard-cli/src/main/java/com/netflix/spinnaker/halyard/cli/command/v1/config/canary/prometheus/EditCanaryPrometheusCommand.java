@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.AbstractEditCanaryServiceIntegrationCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -29,13 +30,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public class EditCanaryPrometheusCommand extends AbstractConfigCommand {
+public class EditCanaryPrometheusCommand extends AbstractEditCanaryServiceIntegrationCommand {
 
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "edit";
-
-  @Getter(AccessLevel.PUBLIC)
-  private String description = "Edit Spinnaker's canary analysis Prometheus service integration settings.";
+  @Override
+  protected String getServiceIntegration() {
+    return "Prometheus";
+  }
 
   @Parameter(
       names = "--metadata-caching-interval-ms",

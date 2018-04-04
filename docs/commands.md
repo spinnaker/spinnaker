@@ -47,6 +47,15 @@
  * [**hal config artifact http disable**](#hal-config-artifact-http-disable)
  * [**hal config artifact http enable**](#hal-config-artifact-http-enable)
  * [**hal config canary**](#hal-config-canary)
+ * [**hal config canary datadog**](#hal-config-canary-datadog)
+ * [**hal config canary datadog account**](#hal-config-canary-datadog-account)
+ * [**hal config canary datadog account add**](#hal-config-canary-datadog-account-add)
+ * [**hal config canary datadog account delete**](#hal-config-canary-datadog-account-delete)
+ * [**hal config canary datadog account edit**](#hal-config-canary-datadog-account-edit)
+ * [**hal config canary datadog account get**](#hal-config-canary-datadog-account-get)
+ * [**hal config canary datadog account list**](#hal-config-canary-datadog-account-list)
+ * [**hal config canary datadog disable**](#hal-config-canary-datadog-disable)
+ * [**hal config canary datadog enable**](#hal-config-canary-datadog-enable)
  * [**hal config canary disable**](#hal-config-canary-disable)
  * [**hal config canary edit**](#hal-config-canary-edit)
  * [**hal config canary enable**](#hal-config-canary-enable)
@@ -1050,11 +1059,168 @@ hal config canary [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
+ * `datadog`: Configure your canary analysis Datadog service integration settings for Spinnaker.
  * `disable`: Set Spinnaker's canary analysis to disabled.
  * `edit`: Edit Spinnaker's canary analysis settings.
  * `enable`: Set Spinnaker's canary analysis to enabled.
  * `google`: Configure your canary analysis Google service integration settings for Spinnaker.
  * `prometheus`: Configure your canary analysis Prometheus service integration settings for Spinnaker.
+
+---
+## hal config canary datadog
+
+Configure your canary analysis Datadog service integration settings for Spinnaker.
+
+#### Usage
+```
+hal config canary datadog [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the Datadog service integration's canary accounts.
+ * `disable`: Set Spinnaker's canary analysis Datadog service integration to disabled.
+ * `enable`: Set Spinnaker's canary analysis Datadog service integration to enabled.
+
+---
+## hal config canary datadog account
+
+Manage and view Spinnaker configuration for the Datadog service integration's canary accounts.
+
+#### Usage
+```
+hal config canary datadog account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a canary account to the Datadog service integration.
+ * `delete`: Delete a specific Datadog canary account by name.
+ * `edit`: Edit a canary account in the Datadog service integration.
+ * `get`: Get the specified canary account details for the Datadog service integration.
+ * `list`: List the canary account names for the Datadog service integration.
+
+---
+## hal config canary datadog account add
+
+Add a canary account to the Datadog service integration.
+
+#### Usage
+```
+hal config canary datadog account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--api-key`: (*Required*) (*Sensitive data* - user will be prompted on standard input) Your org's unique Datadog API key. See https://app.datadoghq.com/account/settings#api.
+ * `--application-key`: (*Required*) (*Sensitive data* - user will be prompted on standard input) Your Datadog application key. See https://app.datadoghq.com/account/settings#api.
+ * `--base-url`: (*Required*) The base URL to the Datadog server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary datadog account delete
+
+Delete a specific Datadog canary account by name.
+
+#### Usage
+```
+hal config canary datadog account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary datadog account edit
+
+Edit a canary account in the Datadog service integration.
+
+#### Usage
+```
+hal config canary datadog account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--api-key`: (*Sensitive data* - user will be prompted on standard input) Your org's unique Datadog API key. See https://app.datadoghq.com/account/settings#api.
+ * `--application-key`: (*Sensitive data* - user will be prompted on standard input) Your Datadog application key. See https://app.datadoghq.com/account/settings#api.
+ * `--base-url`: The base URL to the Datadog server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary datadog account get
+
+Get the specified canary account details for the Datadog service integration.
+
+#### Usage
+```
+hal config canary datadog account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary datadog account list
+
+List the canary account names for the Datadog service integration.
+
+#### Usage
+```
+hal config canary datadog account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary datadog disable
+
+Set Spinnaker's canary analysis Datadog service integration to disabled.
+
+#### Usage
+```
+hal config canary datadog disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary datadog enable
+
+Set Spinnaker's canary analysis Datadog service integration to enabled.
+
+#### Usage
+```
+hal config canary datadog enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config canary disable

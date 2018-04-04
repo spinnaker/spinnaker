@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.AbstractEditCanaryServiceIntegrationCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -30,13 +31,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public class EditCanaryGoogleCommand extends AbstractConfigCommand {
+public class EditCanaryGoogleCommand extends AbstractEditCanaryServiceIntegrationCommand {
 
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "edit";
-
-  @Getter(AccessLevel.PUBLIC)
-  private String description = "Edit Spinnaker's canary analysis Google service integration settings.";
+  @Override
+  protected String getServiceIntegration() {
+    return "Google";
+  }
 
   @Parameter(
       names = "--gcs-enabled",

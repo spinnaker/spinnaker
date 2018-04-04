@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.canary;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
@@ -34,7 +35,8 @@ import java.util.stream.Collectors;
 
 @JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "name")
 @JsonSubTypes({@JsonSubTypes.Type(value = GoogleCanaryServiceIntegration.class, name = GoogleCanaryServiceIntegration.NAME),
-               @JsonSubTypes.Type(value = PrometheusCanaryServiceIntegration.class, name = PrometheusCanaryServiceIntegration.NAME)})
+               @JsonSubTypes.Type(value = PrometheusCanaryServiceIntegration.class, name = PrometheusCanaryServiceIntegration.NAME),
+               @JsonSubTypes.Type(value = DatadogCanaryServiceIntegration.class, name = DatadogCanaryServiceIntegration.NAME)})
 @Data
 @EqualsAndHashCode(callSuper = false)
 public abstract class AbstractCanaryServiceIntegration<A extends AbstractCanaryAccount> extends Node implements Cloneable {
