@@ -1,0 +1,310 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spinnaker
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spinnaker-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: spinnaker
+
+---
+
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: spin-halyard
+  namespace: spinnaker
+  labels:
+    app: spin
+    stack: halyard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spin
+      stack: halyard
+  template:
+    metadata:
+      labels:
+        app: spin
+        stack: halyard
+    spec:
+      containers:
+      - name: halyard-daemon
+        # todo - make :stable or digest of :stable
+        image: gcr.io/spinnaker-marketplace/halyard:0.43.0-20180321134158
+        imagePullPolicy: Always
+        readinessProbe:
+          exec:
+            command:
+            - wget
+            - -q
+            - --spider
+            - http://localhost:8064/health
+        ports:
+        - containerPort: 8064
+        volumeMounts:
+        - name: halconfig
+          mountPath: /root/.hal/config
+          subPath: config
+        - name: halconfig
+          mountPath: /root/.hal/default/service-settings/deck.yml
+          subPath: deck.yml
+        - name: halconfig
+          mountPath: /root/.hal/default/service-settings/gate.yml
+          subPath: gate.yml
+        - name: halconfig
+          mountPath: /root/.hal/default/service-settings/igor.yml
+          subPath: igor.yml
+        - name: halconfig
+          mountPath: /root/.hal/default/service-settings/fiat.yml
+          subPath: fiat.yml
+      volumes:
+      - name: halconfig
+        configMap:
+          name: halconfig
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-halyard
+  namespace: spinnaker
+spec:
+  ports:
+    - port: 8064
+      targetPort: 8064
+      protocol: TCP
+  selector:
+    app: spin
+    stack: halyard
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: halconfig
+  namespace: spinnaker
+data:
+  igor.yml: |
+    enabled: false
+    skipLifeCycleManagement: true
+  fiat.yml: |
+    enabled: false
+    skipLifeCycleManagement: true
+  gate.yml: |
+    host: 0.0.0.0
+  deck.yml: |
+    host: 0.0.0.0
+    env:
+      API_HOST: http://spin-gate.spinnaker:8084/
+  config: |
+    currentDeployment: default
+    deploymentConfigurations:
+    - name: default
+      version: io-codelab
+      providers:
+        appengine:
+          enabled: false
+          accounts: []
+        aws:
+          enabled: false
+          accounts: []
+          defaultKeyPairTemplate: '{{name}}-keypair'
+          defaultRegions:
+          - name: us-west-2
+          defaults:
+            iamRole: BaseIAMRole
+        azure:
+          enabled: false
+          accounts: []
+          bakeryDefaults:
+            templateFile: azure-linux.json
+            baseImages: []
+        dcos:
+          enabled: false
+          accounts: []
+          clusters: []
+        dockerRegistry:
+          enabled: false
+          accounts: []
+        google:
+          enabled: false
+          accounts: []
+          bakeryDefaults:
+            templateFile: gce.json
+            baseImages: []
+            zone: us-central1-f
+            network: default
+            useInternalIp: false
+        kubernetes:
+          enabled: true
+          accounts:
+          - name: my-kubernetes-account
+            requiredGroupMembership: []
+            providerVersion: V2
+            dockerRegistries: []
+            configureImagePullSecrets: true
+            serviceAccount: true
+            namespaces: []
+            omitNamespaces: 
+            - kube-system
+            - spinnaker
+            kinds: []
+            omitKinds: []
+            customResources: []
+            oauthScopes: []
+            oAuthScopes: []
+          primaryAccount: my-kubernetes-account
+        openstack:
+          enabled: false
+          accounts: []
+          bakeryDefaults:
+            baseImages: []
+        oraclebmcs:
+          enabled: false
+          accounts: []
+      deploymentEnvironment:
+        size: SMALL
+        type: Distributed
+        accountName: my-kubernetes-account
+        updateVersions: true
+        consul:
+          enabled: false
+        vault:
+          enabled: false
+        customSizing: {}
+        gitConfig:
+          upstreamUser: spinnaker
+      persistentStorage:
+        persistentStoreType: gcs
+        azs: {}
+        gcs:
+          project: {%PROJECT_ID%}
+          bucket: {%BUCKET_NAME%}
+          rootFolder: front50
+        redis: {}
+        s3: {}
+        oraclebmcs: {}
+      features:
+        artifacts: true
+        auth: false
+        fiat: false
+        chaos: false
+        entityTags: false
+        jobs: false
+      metricStores:
+        datadog:
+          enabled: false
+        prometheus:
+          enabled: false
+          add_source_metalabels: true
+        stackdriver:
+          enabled: false
+        period: 30
+        enabled: false
+      notifications:
+        slack:
+          enabled: false
+      timezone: America/Los_Angeles
+      ci:
+        jenkins:
+          enabled: false
+          masters: []
+        travis:
+          enabled: false
+          masters: []
+      security:
+        apiSecurity:
+          ssl:
+            enabled: false
+          overrideBaseUrl: /gate
+        uiSecurity:
+          ssl:
+            enabled: false
+        authn:
+          oauth2:
+            enabled: false
+            client: {}
+            resource: {}
+            userInfoMapping: {}
+          saml:
+            enabled: false
+          ldap:
+            enabled: false
+          x509:
+            enabled: false
+          enabled: false
+        authz:
+          groupMembership:
+            service: EXTERNAL
+            google:
+              roleProviderType: GOOGLE
+            github:
+              roleProviderType: GITHUB
+            file:
+              roleProviderType: FILE
+          enabled: false
+      artifacts:
+        gcs:
+          enabled: true
+          accounts: 
+          - name: {%SPIN_GCS_ACCOUNT%}
+        github:
+          enabled: false
+          accounts: []
+        http:
+          enabled: false
+          accounts: []
+      pubsub:
+        google:
+          enabled: true
+          subscriptions: 
+          - name: {%SPIN_GCS_PUB_SUB%}
+            subscriptionName: {%GCS_SUB%}
+            project: {%PROJECT_ID%}
+            messageFormat: GCS
+          - name: {%SPIN_GCR_PUB_SUB%}
+            subscriptionName: {%GCR_SUB%}
+            project: {%PROJECT_ID%}
+            messageFormat: GCR
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hal-deploy-apply
+  namespace: spinnaker
+  labels:
+    app: job
+    stack: hal-deploy
+spec:
+  template:
+    metadata:
+      labels:
+        app: job
+        stack: hal-deploy
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: hal-deploy-apply
+        # todo use a custom image
+        image: gcr.io/spinnaker-marketplace/halyard:0.43.0-20180321134158
+        command:
+        - /bin/sh
+        args:
+        - -c
+        - "hal deploy apply --no-validate --daemon-endpoint http://spin-halyard.spinnaker:8064"

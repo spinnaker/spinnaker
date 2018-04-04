@@ -1,0 +1,223 @@
+{
+    "appConfig": {},
+    "application": "demo",
+    "expectedArtifacts": [
+        {
+            "defaultArtifact": {
+                "kind": "default.gcs",
+                "name": "{%BUCKET_URI%}/manifests/frontend.yml",
+                "reference": "{%BUCKET_URI%}/manifests/frontend.yml",
+                "type": "gcs/object"
+            },
+            "id": "manifest-artifact",
+            "matchArtifact": {
+                "kind": "gcs",
+                "name": "{%BUCKET_URI%}/manifests/frontend.yml",
+                "type": "gcs/object"
+            },
+            "useDefaultArtifact": true,
+            "usePriorArtifact": false,
+            "usePriorExecution": false
+        },
+        {
+            "defaultArtifact": {
+                "kind": "default.gcs",
+                "name": "{%BUCKET_URI%}/manifests/backend.yml",
+                "reference": "{%BUCKET_URI%}/manifests/backend.yml",
+                "type": "gcs/object"
+            },
+            "id": "914df03c-6716-4afc-b25f-d4253885781a",
+            "matchArtifact": {
+                "kind": "gcs",
+                "name": "{%BUCKET_URI%}/manifests/backend.yml",
+                "type": "gcs/object"
+            },
+            "useDefaultArtifact": true,
+            "usePriorArtifact": false,
+            "usePriorExecution": false
+        },
+        {
+            "defaultArtifact": {
+                "kind": "default.docker",
+                "name": "gcr.io/{%PROJECT_ID%}/frontend",
+                "reference": "gcr.io/{%PROJECT_ID%}/frontend",
+                "type": "docker/image"
+            },
+            "id": "0ec6f2cc-1dd6-40b1-a6ce-a0c9ab47f13a",
+            "matchArtifact": {
+                "kind": "docker",
+                "name": "gcr.io/{%PROJECT_ID%}/frontend",
+                "type": "docker/image"
+            },
+            "useDefaultArtifact": true,
+            "usePriorArtifact": true,
+            "usePriorExecution": false
+        },
+        {
+            "defaultArtifact": {
+                "kind": "default.docker",
+                "name": "gcr.io/{%PROJECT_ID%}/backend",
+                "reference": "gcr.io/{%PROJECT_ID%}/backend",
+                "type": "docker/image"
+            },
+            "id": "773205b3-f98f-4314-8acf-4041af7ad32f",
+            "matchArtifact": {
+                "kind": "docker",
+                "name": "gcr.io/{%PROJECT_ID%}/backend",
+                "type": "docker/image"
+            },
+            "useDefaultArtifact": true,
+            "usePriorArtifact": true,
+            "usePriorExecution": false
+        }
+    ],
+    "id": "f1d724be-7f75-43fc-b0f5-d7efa4b173af",
+    "index": 0,
+    "keepWaitingPipelines": false,
+    "lastModifiedBy": "anonymous",
+    "limitConcurrent": true,
+    "name": "Deploy to Staging",
+    "stages": [
+        {
+            "account": "my-kubernetes-account",
+            "canary": false,
+            "cloudProvider": "kubernetes",
+            "manifestArtifactAccount": "my-gcs-account",
+            "manifestArtifactId": "manifest-artifact",
+            "moniker": {
+                "app": "demo",
+                "cluster": "frontend"
+            },
+            "name": "Deploy Frontend to Staging",
+            "namespace": "staging",
+            "refId": "1",
+            "relationships": {
+                "loadBalancers": [],
+                "securityGroups": []
+            },
+            "requiredArtifactIds": [
+                "0ec6f2cc-1dd6-40b1-a6ce-a0c9ab47f13a"
+            ],
+            "requisiteStageRefIds": [],
+            "source": "artifact",
+            "type": "deployManifest"
+        },
+        {
+            "account": "my-kubernetes-account",
+            "canary": false,
+            "cloudProvider": "kubernetes",
+            "manifestArtifactAccount": "my-gcs-account",
+            "manifestArtifactId": "914df03c-6716-4afc-b25f-d4253885781a",
+            "moniker": {
+                "app": "demo",
+                "cluster": "backend"
+            },
+            "name": "Deploy Backend to Staging",
+            "namespace": "staging",
+            "refId": "2",
+            "relationships": {
+                "loadBalancers": [],
+                "securityGroups": []
+            },
+            "requiredArtifactIds": [
+                "773205b3-f98f-4314-8acf-4041af7ad32f"
+            ],
+            "requisiteStageRefIds": [],
+            "source": "artifact",
+            "type": "deployManifest"
+        },
+        {
+            "failPipeline": true,
+            "instructions": "<p>Run <code>kubectl proxy &</code>, and check the frontend with <code>~/services/frontend/check.sh</code>.</p>",
+            "judgmentInputs": [],
+            "name": "Manual Judgment",
+            "notifications": [],
+            "refId": "3",
+            "requisiteStageRefIds": [
+                "1",
+                "4"
+            ],
+            "type": "manualJudgment"
+        },
+        {
+            "account": "my-kubernetes-account",
+            "cloudProvider": "kubernetes",
+            "manifestArtifactAccount": "my-gcs-account",
+            "manifests": [
+                {
+                    "apiVersion": "batch/v1",
+                    "kind": "Job",
+                    "metadata": {
+                        "name": "check-backend",
+                        "namespace": "${ namespace }"
+                    },
+                    "spec": {
+                        "template": {
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "args": [
+                                            "-c",
+                                            "curl http://backend.${ namespace }/"
+                                        ],
+                                        "command": [
+                                            "/bin/sh"
+                                        ],
+                                        "image": "gcr.io/spinnaker-marketplace/halyard:stable",
+                                        "name": "call-curl"
+                                    }
+                                ],
+                                "restartPolicy": "OnFailure"
+                            }
+                        }
+                    }
+                }
+            ],
+            "moniker": {
+                "app": "demo",
+                "cluster": "backend-test"
+            },
+            "name": "Run Backend Tests",
+            "namespace": "staging",
+            "refId": "4",
+            "relationships": {
+                "loadBalancers": [],
+                "securityGroups": []
+            },
+            "requisiteStageRefIds": [
+                "2"
+            ],
+            "source": "text",
+            "type": "deployManifest"
+        }
+    ],
+    "triggers": [
+        {
+            "attributeConstraints": {
+                "eventType": "OBJECT_FINALIZE"
+            },
+            "enabled": true,
+            "expectedArtifactIds": [
+                "manifest-artifact",
+                "914df03c-6716-4afc-b25f-d4253885781a"
+            ],
+            "payloadConstraints": {},
+            "pubsubSystem": "google",
+            "subscriptionName": "{%SPIN_GCS_PUB_SUB%}",
+            "type": "pubsub"
+        },
+        {
+            "attributeConstraints": {},
+            "enabled": true,
+            "expectedArtifactIds": [
+                "0ec6f2cc-1dd6-40b1-a6ce-a0c9ab47f13a",
+                "773205b3-f98f-4314-8acf-4041af7ad32f"
+            ],
+            "payloadConstraints": {},
+            "pubsubSystem": "google",
+            "subscriptionName": "{%SPIN_GCR_PUB_SUB%}",
+            "type": "pubsub"
+        }
+    ],
+    "updateTs": "1521809431616"
+}

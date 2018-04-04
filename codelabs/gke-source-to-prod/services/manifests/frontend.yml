@@ -1,0 +1,64 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: '${ namespace }'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: '${ namespace }'
+data:
+  BACKEND_ENDPOINT: 'http://backend.${ namespace }'
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: 'frontend-${ canary ? "canary" : "primary" }'
+  namespace: '${ namespace }'
+  labels:
+    stack: frontend
+    tier: '${ namespace }'
+    canary: '${ canary ? "true" : "false" }'
+spec:
+  replicas: '${ #toInt( canary ? 1 : 5 ) }'
+  selector:
+    matchLabels:
+      stack: frontend
+      tier: '${ namespace }'
+      canary: '${ canary ? "true" : "false" }'
+  template:
+    metadata:
+      labels:
+        stack: frontend
+        tier: '${ namespace }'
+        canary: '${ canary ? "true" : "false" }'
+    spec:
+      containers:
+      - name: primary
+        image: gcr.io/{%PROJECT_ID%}/frontend
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+        envFrom:
+        - configMapRef:
+            name: frontend-config
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: frontend
+  namespace: '${ namespace }'
+spec:
+  selector:
+    stack: frontend
+    tier: '${ namespace }'
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
