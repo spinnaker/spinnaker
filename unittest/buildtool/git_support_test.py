@@ -44,6 +44,7 @@ VERSION_A = 'version-0.4.0'
 VERSION_B = 'version-0.5.0'
 BRANCH_A = 'branch-a'
 BRANCH_B = 'branch-b'
+BRANCH_C = 'branch-c'
 BRANCH_BASE = 'baseline'
 UPSTREAM_USER = 'unittest'
 TEST_REPO_NAME = 'test_repository'
@@ -85,12 +86,28 @@ class TestGitRunner(unittest.TestCase):
         gitify('add "{dir}/a_file"'.format(dir=git_dir)),
         gitify('commit -a -m "feat(test): added a_file"'),
         gitify('tag {a_version} HEAD'.format(a_version=VERSION_A)),
+        gitify('checkout master'),
         gitify('checkout -b {b_branch}'.format(b_branch=BRANCH_B)),
         'touch "{dir}/b_file"'.format(dir=git_dir),
         gitify('add "{dir}/b_file"'.format(dir=git_dir)),
         gitify('commit -a -m "feat(test): added b_file"'),
-        gitify('tag {b_version} HEAD'.format(b_version=VERSION_B))])
+        gitify('tag {b_version} HEAD'.format(b_version=VERSION_B)),
 
+        gitify('checkout master'),
+        'touch "{dir}/master_file"'.format(dir=git_dir),
+        gitify('add "{dir}/master_file"'.format(dir=git_dir)),
+        gitify('commit -a -m "feat(test): added master_file"'),
+        gitify('checkout -b {c_branch}'.format(c_branch=BRANCH_C)),
+        'touch "{dir}/c_file"'.format(dir=git_dir),
+        gitify('add "{dir}/c_file"'.format(dir=git_dir)),
+        gitify('commit -a -m "feat(test): added c_file"'),
+      
+        gitify('checkout master'),
+        'touch "{dir}/extra_file"'.format(dir=git_dir),
+        gitify('add "{dir}/extra_file"'.format(dir=git_dir)),
+        gitify('commit -a -m "feat(test): added extra_file"'),
+        gitify('tag version-9.9.9 HEAD')])
+        
   @classmethod
   def tearDownClass(cls):
     shutil.rmtree(cls.base_temp_dir)
@@ -147,6 +164,20 @@ class TestGitRunner(unittest.TestCase):
     ]
     for url in variants[1:]:
       self.assertFalse(GitRunner.is_same_repo(variants[0], url))
+
+  def test_determine_tag_at_later_branch(self):
+    git = self.git
+    test_method = git.query_local_repository_commits_to_existing_tag_from_id
+
+    self.run_git('checkout ' + BRANCH_C)
+    commit_id = git.query_local_repository_commit_id(self.git_dir)
+    all_tags = git.query_tag_commits(self.git_dir, TAG_VERSION_PATTERN)
+    tag, messages = test_method(self.git_dir, commit_id, all_tags)
+    self.assertEquals(VERSION_B, tag)
+    self.assertEquals(2, len(messages))
+    self.assertTrue(messages[0].message.find('added c_file'))
+    self.assertTrue(messages[1].message.find('added master_file'))
+
 
   def test_determine_tag_at_patch(self):
     git = self.git
