@@ -6,4 +6,8 @@ COPY ./kayenta-web/build/install/kayenta /opt/kayenta
 
 RUN apk --nocache add --update bash
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 CMD ["/opt/kayenta/bin/kayenta"]
