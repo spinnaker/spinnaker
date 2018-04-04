@@ -28,6 +28,9 @@ bakery:
   # the use of those endpoints.
   roscoApisEnabled: true
   allowMissingPackageInstallation: false
+kayenta:
+  enabled: false
+  baseUrl: http://localhost:8090
 
 redis:
   connection: ${REDIS_URL:redis://localhost:6379}
