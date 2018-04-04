@@ -246,8 +246,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
   private buildAutoHealingPolicyFromAutoHealingPolicyDescription(GoogleAutoHealingPolicy autoHealingPolicyDescription, String project, Compute compute) {
     // Note: Cache queries for these health checks must occur in this order since queryHealthCheck() will make a live
     // call that fails on a missing health check.
-    def autoHealingHealthCheck = GCEUtil.queryNestedHealthCheck(project, description.accountName, description.autoHealingPolicy.healthCheck, compute, cacheView, task, BASE_PHASE, this) ?:
-      GCEUtil.queryHealthCheck(project, description.accountName, description.autoHealingPolicy.healthCheck, compute, cacheView, task, BASE_PHASE, this)
+    def autoHealingHealthCheck = GCEUtil.queryNestedHealthCheck(project, description.accountName, autoHealingPolicyDescription.healthCheck, compute, cacheView, task, BASE_PHASE, this) ?:
+      GCEUtil.queryHealthCheck(project, description.accountName, autoHealingPolicyDescription.healthCheck, compute, cacheView, task, BASE_PHASE, this)
 
     List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy = autoHealingPolicyDescription?.healthCheck
       ? [new InstanceGroupManagerAutoHealingPolicy(
