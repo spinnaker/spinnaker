@@ -17,13 +17,27 @@ package com.netflix.spinnaker.keel
 
 /**
  * ACTIVE: An Intent is currently being enforced and will be regularly checked for any state to converge on.
+ * INACTIVE: An Intent that is not currently being enforced, but whose resource may still exist.
+ * ABSENT: An Intent whose underlying resource has been deleted, and its expected state is to remain deleted.
  * ISOLATED_ACTIVE: An Intent that is meant to be applied once, but has not been yet.
- * ISOLATED_APPLIED: An Intent that is meant to be applied once, and has been.
- * DELETED: An Intent that has been soft-deleted.
+ * ISOLATED_INACTIVE: An Intent that is meant to be applied once, and has been.
+ * ISOLATED_ABSENT: An Intent whose underlying resource has been deleted, and its absence unenforced.
  */
 enum class IntentStatus {
   ACTIVE,
+  INACTIVE,
+  ABSENT,
   ISOLATED_ACTIVE,
-  ISOLATED_APPLIED,
-  DELETED
+  ISOLATED_INACTIVE,
+  ISOLATED_ABSENT;
+
+  fun shouldSchedule() = scheduleValues().contains(this)
+  fun shouldIsolate() = isolateValues().contains(this)
+  fun shouldDeleteResource() = absentValues().contains(this)
+
+  companion object {
+    fun scheduleValues() = listOf(ACTIVE, ABSENT, ISOLATED_ACTIVE, ISOLATED_ABSENT)
+    fun isolateValues() = listOf(ISOLATED_ACTIVE, ISOLATED_INACTIVE, ISOLATED_ABSENT)
+    fun absentValues() = listOf(ABSENT, ISOLATED_ABSENT)
+  }
 }

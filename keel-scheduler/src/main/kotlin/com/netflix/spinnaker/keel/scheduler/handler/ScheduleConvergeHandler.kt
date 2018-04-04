@@ -18,8 +18,7 @@ package com.netflix.spinnaker.keel.scheduler.handler
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.IntentRepository
-import com.netflix.spinnaker.keel.IntentStatus.ACTIVE
-import com.netflix.spinnaker.keel.IntentStatus.ISOLATED_ACTIVE
+import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.event.BeforeIntentScheduleEvent
 import com.netflix.spinnaker.keel.filter.Filter
 import com.netflix.spinnaker.keel.scheduler.ScheduleConvergence
@@ -50,7 +49,7 @@ class ScheduleConvergeHandler
     log.info("Scheduling intent convergence work")
 
     try {
-      intentRepository.getIntents(status = listOf(ACTIVE, ISOLATED_ACTIVE))
+      intentRepository.getIntents(status = IntentStatus.scheduleValues())
         .also { log.info("Attempting to schedule ${it.size} active intents") }
         .filter { intent ->
           applicationEventPublisher.publishEvent(BeforeIntentScheduleEvent(intent))

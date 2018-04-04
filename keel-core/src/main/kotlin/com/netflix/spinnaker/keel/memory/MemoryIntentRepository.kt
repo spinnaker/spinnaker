@@ -52,7 +52,7 @@ class MemoryIntentRepository(
 
   override fun deleteIntent(id: String, preserveHistory: Boolean) {
     if (preserveHistory) {
-      getIntent(id)?.status = IntentStatus.DELETED
+      getIntent(id)?.status = IntentStatus.ABSENT
     } else {
       intents.remove(id)
     }

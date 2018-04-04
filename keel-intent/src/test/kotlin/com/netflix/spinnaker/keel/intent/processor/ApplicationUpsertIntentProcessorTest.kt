@@ -31,13 +31,13 @@ import org.junit.jupiter.api.Test
 import retrofit.RetrofitError.httpError
 import retrofit.client.Response
 
-object ApplicationIntentProcessorTest {
+object ApplicationUpsertIntentProcessorTest {
 
   val traceRepository = mock<TraceRepository>()
   val front50Service = mock<Front50Service>()
   val objectMapper = ObjectMapper()
 
-  val subject = ApplicationIntentProcessor(traceRepository, front50Service, objectMapper)
+  val subject = ApplicationUpsertIntentProcessor(traceRepository, front50Service, objectMapper)
 
   @AfterEach
   fun cleanup() {

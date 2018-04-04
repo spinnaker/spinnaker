@@ -77,8 +77,8 @@ class ConvergeIntentHandler
           intentActivityRepository.addOrchestrations(intent.id(), result.orchestrationIds)
           applicationEventPublisher.publishEvent(IntentConvergeSuccessEvent(intent, result.orchestrationIds))
 
-          if (intent.status == IntentStatus.ISOLATED_ACTIVE) {
-            intent.status = IntentStatus.ISOLATED_APPLIED
+          if (intent.status.shouldIsolate()) {
+            intent.status = IntentStatus.ISOLATED_INACTIVE
             intentRepository.upsertIntent(intent)
           }
 

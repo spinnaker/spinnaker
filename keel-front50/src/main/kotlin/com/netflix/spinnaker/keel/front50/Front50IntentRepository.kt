@@ -73,7 +73,7 @@ class Front50IntentRepository(
       getIntent(id).also { intent ->
         applicationEventPublisher.publishEvent(BeforeIntentDeleteEvent(intent))
         if (preserveHistory) {
-          intent.status = IntentStatus.DELETED
+          intent.status = IntentStatus.INACTIVE
           upsertIntent(intent)
         } else {
           front50Service.deleteIntent(id)

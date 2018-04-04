@@ -32,22 +32,20 @@ import com.netflix.spinnaker.keel.state.FieldMutator
 import com.netflix.spinnaker.keel.state.StateInspector
 import com.netflix.spinnaker.keel.tracing.Trace
 import com.netflix.spinnaker.keel.tracing.TraceRepository
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 @Component
-class ApplicationIntentProcessor
+class ApplicationUpsertIntentProcessor
 @Autowired constructor(
   private val traceRepository: TraceRepository,
   private val front50Service: Front50Service,
   private val objectMapper: ObjectMapper
 ): IntentProcessor<ApplicationIntent> {
 
-  private val log = LoggerFactory.getLogger(javaClass)
-
-  override fun supports(intent: Intent<IntentSpec>) = intent is ApplicationIntent
+  override fun supports(intent: Intent<IntentSpec>) =
+    intent is ApplicationIntent && !intent.status.shouldDeleteResource()
 
   override fun converge(intent: ApplicationIntent): ConvergeResult {
     val changeSummary = ChangeSummary(intent.id())
