@@ -14,50 +14,36 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.account;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.account;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.CommonCanaryCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractAddCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CommonCanaryGoogleCommandProperties;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.CommonCanaryAwsCommandProperties;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 
 import java.util.UUID;
 
 @Parameters(separators = "=")
-public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand {
+public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand {
 
   @Override
   protected String getServiceIntegration() {
-    return "Google";
+    return "AWS";
   }
 
   @Parameter(
-      names = "--project",
-      required = true,
-      description = CommonCanaryGoogleCommandProperties.PROJECT_DESCRIPTION
-  )
-  private String project;
-
-  @Parameter(
-      names = "--json-path",
-      converter = LocalFileConverter.class,
-      description = CommonGoogleCommandProperties.JSON_PATH_DESCRIPTION
-  )
-  private String jsonPath;
-
-  @Parameter(
       names = "--bucket",
-      description = CommonCanaryGoogleCommandProperties.BUCKET
+      required = true,
+      description = CommonCanaryAwsCommandProperties.BUCKET
   )
   private String bucket;
 
@@ -67,35 +53,17 @@ public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountComma
   )
   private String rootFolder;
 
-  @Parameter(
-      names = "--bucket-location",
-      description = CommonCanaryGoogleCommandProperties.BUCKET_LOCATION
-  )
-  private String bucketLocation;
-
   @Override
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
-    GoogleCanaryAccount account = (GoogleCanaryAccount)new GoogleCanaryAccount().setName(accountName);
-    account.setProject(project).setJsonPath(jsonPath);
+    AwsCanaryAccount account = (AwsCanaryAccount)new AwsCanaryAccount().setName(accountName);
 
-    account.setBucket(bucket).setBucketLocation(bucketLocation);
-
+    account.setBucket(bucket);
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
 
-    if (account.getBucket() == null) {
-      String bucketName = "spin-kayenta-" + UUID.randomUUID().toString();
-      AnsiUi.raw("Generated canary bucket name: " + bucketName);
-      account.setBucket(bucketName);
-    }
+    AwsCanaryServiceIntegration awsCanaryServiceIntegration =
+        (AwsCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
 
-    GoogleCanaryServiceIntegration googleCanaryServiceIntegration =
-        (GoogleCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, GoogleCanaryServiceIntegration.class);
-
-    if (googleCanaryServiceIntegration.isStackdriverEnabled()) {
-      account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
-    }
-
-    if (googleCanaryServiceIntegration.isGcsEnabled()) {
+    if (awsCanaryServiceIntegration.isS3Enabled()) {
       account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.CONFIGURATION_STORE);
       account.getSupportedTypes().add(AbstractCanaryServiceIntegration.SupportedTypes.OBJECT_STORE);
     }

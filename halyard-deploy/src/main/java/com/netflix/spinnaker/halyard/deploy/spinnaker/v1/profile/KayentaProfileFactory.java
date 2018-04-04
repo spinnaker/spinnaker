@@ -18,6 +18,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
@@ -72,6 +74,8 @@ public class KayentaProfileFactory extends SpringProfileFactory {
       GcsConfig gcs;
       PrometheusConfig prometheus;
       DatadogConfig datadog;
+      AwsConfig aws;
+      S3Config s3;
 
       KayentaConfig(Canary canary) {
         for (AbstractCanaryServiceIntegration svc : canary.getServiceIntegrations()) {
@@ -86,6 +90,10 @@ public class KayentaProfileFactory extends SpringProfileFactory {
           } else if (svc instanceof DatadogCanaryServiceIntegration) {
             DatadogCanaryServiceIntegration datadogSvc = (DatadogCanaryServiceIntegration)svc;
             datadog = new DatadogConfig(datadogSvc);
+          } else if (svc instanceof AwsCanaryServiceIntegration) {
+            AwsCanaryServiceIntegration awsSvc = (AwsCanaryServiceIntegration)svc;
+            aws = new AwsConfig(awsSvc);
+            s3 = new S3Config(awsSvc);
           }
         }
       }
@@ -117,7 +125,7 @@ public class KayentaProfileFactory extends SpringProfileFactory {
         private boolean enabled;
 
         GcsConfig(GoogleCanaryServiceIntegration googleSvc) {
-          enabled = googleSvc.isStackdriverEnabled();
+          enabled = googleSvc.isGcsEnabled();
         }
       }
 
@@ -142,6 +150,26 @@ public class KayentaProfileFactory extends SpringProfileFactory {
         DatadogConfig(DatadogCanaryServiceIntegration datadogSvc) {
           enabled = datadogSvc.isEnabled();
           accounts = datadogSvc.getAccounts();
+        }
+      }
+
+      @Data
+      static class AwsConfig {
+        private boolean enabled;
+        List<AwsCanaryAccount> accounts;
+
+        AwsConfig(AwsCanaryServiceIntegration awsSvc) {
+          enabled = awsSvc.isEnabled();
+          accounts = awsSvc.getAccounts();
+        }
+      }
+
+      @Data
+      static class S3Config {
+        private boolean enabled;
+
+        S3Config(AwsCanaryServiceIntegration awsSvc) {
+          enabled = awsSvc.isS3Enabled();
         }
       }
     }

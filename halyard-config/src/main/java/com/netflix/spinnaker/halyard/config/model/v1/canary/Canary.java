@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.halyard.config.model.v1.canary;
 
 import com.google.common.collect.Lists;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
@@ -41,7 +43,8 @@ public class Canary extends Node implements Cloneable {
   List<? extends AbstractCanaryServiceIntegration> serviceIntegrations =
       Lists.newArrayList(new GoogleCanaryServiceIntegration(),
                          new PrometheusCanaryServiceIntegration(),
-                         new DatadogCanaryServiceIntegration());
+                         new DatadogCanaryServiceIntegration(),
+                         new AwsCanaryServiceIntegration());
   boolean reduxLoggerEnabled = true;
   String defaultMetricsAccount;
   String defaultStorageAccount;
@@ -75,6 +78,8 @@ public class Canary extends Node implements Cloneable {
         return PrometheusCanaryAccount.class;
       case DatadogCanaryServiceIntegration.NAME :
         return DatadogCanaryAccount.class;
+      case AwsCanaryServiceIntegration.NAME :
+        return AwsCanaryAccount.class;
       default:
         throw new IllegalArgumentException("No account type for canary service integration " + serviceIntegrationName + ".");
     }

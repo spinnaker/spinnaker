@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.accoun
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.CommonCanaryCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractEditCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CommonCanaryGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
@@ -54,7 +55,7 @@ public class GoogleEditCanaryAccountCommand extends AbstractEditCanaryAccountCom
 
   @Parameter(
       names = "--root-folder",
-      description = CommonCanaryGoogleCommandProperties.ROOT_FOLDER
+      description = CommonCanaryCommandProperties.ROOT_FOLDER
   )
   private String rootFolder;
 

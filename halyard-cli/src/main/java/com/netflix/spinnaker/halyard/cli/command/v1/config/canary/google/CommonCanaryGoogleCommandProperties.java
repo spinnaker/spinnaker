@@ -23,9 +23,6 @@ public class CommonCanaryGoogleCommandProperties {
       + "specified, a random name will be chosen. If you specify a globally unique bucket name "
       + "that doesn't exist yet, Halyard will create that bucket for you.";
 
-  public static final String ROOT_FOLDER = "The root folder in the chosen bucket to place all of the canary service's persistent data in "
-      + "(*Default*: `kayenta`).";
-
   public static final String BUCKET_LOCATION = "This is only required if the bucket you specify doesn't exist yet. In that case, the "
       + "bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.";
 }
