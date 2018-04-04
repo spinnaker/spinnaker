@@ -15,4 +15,8 @@ RUN apk --nocache add --update bash wget  && \
 
 ENV PATH "/packer:$PATH"
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 CMD ["/opt/rosco/bin/rosco"]
