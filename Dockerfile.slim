@@ -6,4 +6,8 @@ COPY ./front50-web/build/install/front50 /opt/front50
 
 RUN apk --nocache add --update bash
 
+RUN adduser -D -S spinnaker
+
+USER spinnaker
+
 CMD ["/opt/front50/bin/front50"]
