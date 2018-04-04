@@ -267,15 +267,18 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
       }
     }
 
+    int expectedByApplicationIndexCount = configurationStoreAccountCredentialsSet.size();
     // So long as this instance has performed an indexing, or failed to acquire the lock since another instance was in
     // the process of indexing, the index should be available. We also verify that the number of by-application index
     // keys matches the number of configured configuration store accounts.
-    if (cyclesCompleted > 0 && existingByApplicationIndexCount == configurationStoreAccountCredentialsSet.size()) {
+    if (cyclesCompleted > 0 && existingByApplicationIndexCount == expectedByApplicationIndexCount) {
       builder.up();
     } else {
       builder.down();
     }
 
+    builder.withDetail("existingByApplicationIndexCount", existingByApplicationIndexCount);
+    builder.withDetail("expectedByApplicationIndexCount", expectedByApplicationIndexCount);
     builder.withDetail("cyclesInitiated", cyclesInitiated);
     builder.withDetail("cyclesCompleted", cyclesCompleted);
   }
