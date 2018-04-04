@@ -6,4 +6,8 @@ COPY ./igor-web/build/install/igor /opt/igor
 
 RUN apk --nocache add --update bash
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 CMD ["/opt/igor/bin/igor"]
