@@ -6,4 +6,8 @@ COPY ./echo-web/build/install/echo /opt/echo
 
 RUN apk --nocache add --update bash
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 CMD ["/opt/echo/bin/echo"]
