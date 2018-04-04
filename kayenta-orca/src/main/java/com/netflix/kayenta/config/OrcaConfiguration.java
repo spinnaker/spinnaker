@@ -16,12 +16,9 @@
 
 package com.netflix.kayenta.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.QueueConfiguration;
-import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration;
 import com.netflix.spinnaker.orca.config.RedisConfiguration;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
-import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.RedisExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
@@ -31,17 +28,13 @@ import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoCon
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.*;
 
-import javax.inject.Inject;
 import java.net.InetAddress;
 import java.util.UUID;
-
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 @Configuration
 @Import({
   RedisExecutionRepository.class,
   com.netflix.spinnaker.orca.config.OrcaConfiguration.class,
-  OrcaPersistenceConfiguration.class,
   PropertyPlaceholderAutoConfiguration.class,
   QueueConfiguration.class,
   RedisConfiguration.class,
