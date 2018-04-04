@@ -53,6 +53,7 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
     ServiceSettings monitoringService = services.getMonitoringDaemon();
     MetricStores metricStores = deploymentConfiguration.getMetricStores();
     List<String> enabledMetricStores = new ArrayList<>();
+    List<String> files = new ArrayList<>();
 
     DatadogStore datadogStore = metricStores.getDatadog();
     if (datadogStore.isEnabled()) {
@@ -67,6 +68,7 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
     StackdriverStore stackdriverStore = metricStores.getStackdriver();
     if (stackdriverStore.isEnabled()) {
       enabledMetricStores.add("stackdriver");
+      files.addAll(backupRequiredFiles(stackdriverStore, deploymentConfiguration.getName()));
     }
 
     profile.appendContents(yamlToString(metricStores));
@@ -89,6 +91,7 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
 
     profile.appendContents(yamlToString(monitorConfig));
     profile.appendContents(profile.getBaseContents());
+    profile.setRequiredFiles(files);
   }
 
   @Data
