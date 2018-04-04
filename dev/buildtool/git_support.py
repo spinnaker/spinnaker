@@ -248,15 +248,16 @@ class CommitTag(
   @staticmethod
   def compare_tags(first, second):
     """Comparator for instances compares the lexical order of the tags."""
-    return cmp(first.tag, second.tag)
+    return cmp(first.version, second.version)
 
   # pylint: disable=multiple-statements
-  def __lt__(self, other): return self.tag.__lt__(other.tag)
-  def __le__(self, other): return self.tag.__le__(other.tag)
-  def __eq__(self, other): return self.tag.__eq__(other.tag)
-  def __ge__(self, other): return self.tag.__ge__(other.tag)
-  def __gt__(self, other): return self.tag.__gt__(other.tag)
-  def __ne__(self, other): return self.tag.__ne__(other.tag)
+  def __cmp__(self, other): return self.version.__cmp__(other.version)
+  def __lt__(self, other): return self.version < other.version
+  def __le__(self, other): return self.version <= other.version
+  def __eq__(self, other): return self.version == other.version
+  def __ge__(self, other): return self.version >= other.version
+  def __gt__(self, other): return self.version > other.version
+  def __ne__(self, other): return self.version != other.version
 
 
 class CommitMessage(
@@ -717,43 +718,102 @@ class GitRunner(object):
     for cmd in commands:
       self.check_run(git_dir, cmd)
 
+  def find_newest_tag_and_common_commit_from_id(
+      self, git_dir, commit_id, commit_tags):
+    """Returns most recent tag and common commit to a given commit_id.
+
+    So if we have this:
+       <tag 0.1.0>
+         |
+         A - B - C <tag 0.2.0) - ...
+         |
+         X
+         |
+         Y - Z <id>
+    Then we want for <id> to get the tag <0.2.0> and commit A.
+    We'll use this to know that the changes since the tag are X, Y, Z,
+    and be able to determine the new semantic version tag based on 0.2.0 even
+    though it is not directly in <id>'s hierarchy.
+    """
+    # Find the starting commit, which is most recent tag in our direct history.
+    # For the example in the function docs, this would be tat 0.1.0
+    retcode, most_recent_ancestor_tag = self.run_git(
+        git_dir, 'describe --abbrev=0 --tags --match version-* ' + commit_id)
+    if retcode != 0:
+      start_tag = 'version-0.0.0'
+      logging.warning('No baseline tag for "%s", assuming this is first one.',
+                      git_dir)
+      start_commit = self.check_run(git_dir, 'rev-list --max-parents=0 HEAD')
+    else:
+      start_tag = most_recent_ancestor_tag
+      start_commit = self.check_run(git_dir, 'rev-list -n 1 ' + start_tag)
+
+    if start_commit == commit_id:
+      logging.debug(
+          'Commit %s is already tagged with %s', start_commit, start_tag)
+      return start_tag, start_commit
+
+    # Get the master commit so we can use it in the merge-base call below.
+    # If we checked out some branch other than master, we might not have
+    # the actual branch so cannot use the symbolic name.
+    master_commit = self.check_run(git_dir, 'show-ref master').split(' ')[0]
+
+    # Find branch our commit is on. There could be multiple branches.
+    # We'll remember them all. These should be the same in practice, but
+    # could be different if a branch spawned another for some reason.
+    commit_branches = self.check_run(
+        git_dir, 'branch --contains {id}'.format(id=commit_id))
+    commit_branch_nodes = set([])
+    for commit_branch in commit_branches.split('\n'):
+      if commit_branch.startswith('*'):
+        commit_branch = commit_branch[1:].strip()
+      if commit_branch.startswith('('):
+        # Skip detached branches from when we checkout specific commits
+        continue
+
+      # Find place our branch diverges from master. We'll be using this to
+      # detect if a tag we consider was after our branch. We'll do this by
+      # checking if the common point between us is it is here.
+      commit_branch_nodes.add(self.check_run(
+          git_dir, 'merge-base {branch} {master}'.format(
+              branch=commit_branch, master=master_commit)))
+
+    logging.debug('Initial tag id=%s branch=%s which diverged @ %s with tag=%s.',
+                  commit_id, commit_branches, commit_branch_nodes, start_tag)
+
+    # Now there could be other versions that were created in branches between
+    # that first commit and our commit, such as tag 0.2.0 in the above.
+    start_version = LooseVersion(start_tag)
+    for tag_entry in reversed(sorted(commit_tags)):
+      tag = tag_entry.tag
+      if LooseVersion(tag) <= start_version:
+        logging.debug('tag %s <= %s', tag, start_tag)
+        break
+
+      # Find where in our commit history the branch this tag is on intersects
+      tag_intersect = self.check_run(git_dir, 'merge-base {id} {tag}'.format(
+          id=commit_id, tag=tag))
+      if tag_intersect in commit_branch_nodes:
+        logging.debug('tag %s intersects branch at %s', tag, tag_intersect)
+        continue
+      logging.debug('Found newer tag=%s at intersect id=%s', tag, tag_intersect)
+      return tag, tag_intersect
+
+    return start_tag, start_commit
+
+
   def query_local_repository_commits_to_existing_tag_from_id(
       self, git_dir, commit_id, commit_tags):
     """Returns the list of commit messages to the local repository."""
     # pylint: disable=invalid-name
 
-    id_to_newest_tag = {}
-    for commit_tag in sorted(commit_tags):
-      id_to_newest_tag[commit_tag.commit_id] = commit_tag.tag
-    tag = id_to_newest_tag.get(commit_id)
-    if tag is not None:
-      return tag, []
-
-    result = self.check_run(git_dir, 'log --pretty=oneline ' + commit_id)
-    lines = result.split('\n')
-    count = 0
-    for line in lines:
-      line_id = line.split(' ', 1)[0]
-      tag = id_to_newest_tag.get(line_id)
-      if tag:
-        break
-      count += 1
-
-    if tag is None:
-      if self.options.git_allow_no_baseline_tag:
-        logging.warning('No baseline tag for "%s", but that is allowed.',
-                        git_dir)
-        tag = ''
-      else:
-        raise_and_log_error(
-            ConfigError(
-                'There is no baseline tag for commit "{id}" in {dir}.'.format(
-                    id=commit_id, dir=git_dir)))
+    tag, found_commit = self.find_newest_tag_and_common_commit_from_id(
+        git_dir, commit_id, commit_tags)
 
     result = self.check_run(
         git_dir,
-        'log -n {count} --pretty=medium {id}'.format(
-            count=count, id=commit_id))
+        'log --pretty=medium {found_commit}..{id}'.format(
+            found_commit=found_commit, id=commit_id))
     messages = CommitMessage.make_list_from_result(result)
     return tag, messages
 
