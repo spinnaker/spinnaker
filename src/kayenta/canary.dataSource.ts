@@ -75,7 +75,8 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       loader: loadCanaryJudges,
       onLoad: judgesLoaded,
       afterLoad: afterJudgesLoad,
-      lazy: false,
+      lazy: true,
+      autoActivate: true,
     });
 
     const loadCanaryExecutions = (application: Application) => {
@@ -112,6 +113,7 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       loader: loadCanaryExecutions,
       onLoad: canaryExecutionsLoaded,
       afterLoad: afterCanaryExecutionsLoaded,
-      lazy: false,
+      lazy: true,
+      autoActivate: true,
     });
   });
