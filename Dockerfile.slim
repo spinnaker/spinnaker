@@ -6,7 +6,7 @@ COPY docker /opt/deck/docker
 
 WORKDIR /opt/deck
 
-RUN useradd -m spinnaker -U
+RUN adduser -D -S spinnaker
 
 USER spinnaker
 
