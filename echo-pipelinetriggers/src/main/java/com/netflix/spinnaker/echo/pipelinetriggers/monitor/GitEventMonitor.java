@@ -68,7 +68,6 @@ public class GitEventMonitor extends TriggerMonitor {
   @Override
   public void processEvent(Event event) {
     super.validateEvent(event);
-    log.info("e = {}", event);
     if (!event.getDetails().getType().equalsIgnoreCase(GitEvent.TYPE)) {
       return;
     }
