@@ -89,7 +89,7 @@ internal class TriggerDeserializer
           get("slug").textValue()
         )
         else -> DefaultTrigger(
-          get("type").textValue(),
+          get("type")?.textValue() ?: "none",
           get("correlationId")?.textValue(),
           get("user")?.textValue() ?: "[anonymous]",
           get("parameters")?.mapValue(parser) ?: mutableMapOf(),

@@ -74,6 +74,24 @@ class TriggerSpec extends Specification {
     }'''
   }
 
+  def "can parse a trigger with no type"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Trigger)
+
+    expect:
+    with(trigger) {
+      type == "none"
+      user == "[anonymous]"
+      notifications == []
+    }
+
+    where:
+    triggerJson = '''
+    {
+    }'''
+  }
+
+
   def "can parse nested parameters"() {
     given:
     def trigger = mapper.readValue(triggerJson, Trigger)
