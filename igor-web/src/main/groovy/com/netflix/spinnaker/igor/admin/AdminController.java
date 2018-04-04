@@ -54,7 +54,7 @@ public class AdminController {
      * @param monitorName The polling monitor name (ex: "DockerMonitor")
      * @param partition The partition name, if not provided, method will re-index the entire monitor
      */
-    @RequestMapping(value = "/pollers/fastforward/{name}", method = RequestMethod.POST)
+    @RequestMapping(value = "/pollers/fastforward/{monitorName}", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void fastForward(@PathVariable String monitorName,
                         @RequestParam(required = false) String partition) {
