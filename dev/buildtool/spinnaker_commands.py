@@ -223,8 +223,7 @@ class PublishSpinnakerCommand(CommandProcessor):
   def __push_branch_and_maybe_tag_repository(self, repository, branch,
                                              also_tag):
     """Push the branch and verison tag to the origin."""
-    source_info = self.__scm.lookup_source_info(repository)
-    tag = 'version-' + source_info.summary.version
+    tag = 'version-' + self.__scm.determine_repository_version(repository)
     self.__git.push_branch_to_origin(repository.git_dir, branch)
     if also_tag:
       self.__git.push_tag_to_origin(repository.git_dir, tag)
