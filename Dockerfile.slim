@@ -6,7 +6,7 @@ COPY docker /opt/deck/docker
 
 WORKDIR /opt/deck
 
-RUN adduser -D -S spinnaker
+RUN adduser --disabled-password --system spinnaker
 
 USER spinnaker
 
