@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
@@ -71,6 +72,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
 
   @Autowired
   String clouddriverUserAgentApplicationName
+
+  @Autowired
+  SafeRetry safeRetry
 
   ModifyGoogleServerGroupInstanceTemplateAtomicOperation(ModifyGoogleServerGroupInstanceTemplateDescription description) {
     this.description = description
@@ -171,6 +175,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
                                                        BASE_PHASE,
                                                        clouddriverUserAgentApplicationName,
                                                        googleConfigurationProperties.baseImageProjects,
+                                                       safeRetry,
                                                        this)
 
         instanceTemplateProperties.setDisks(attachedDisks)

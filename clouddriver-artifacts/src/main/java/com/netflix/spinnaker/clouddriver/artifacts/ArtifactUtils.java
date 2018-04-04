@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.Stack;
 
 public class ArtifactUtils {
+  public static final String GCE_IMAGE_TYPE = "gce/image";
+
   public static void untarStreamToPath(InputStream inputStream, String basePath) throws IOException {
     class DirectoryTimestamp {
       public DirectoryTimestamp(File d, long m) {

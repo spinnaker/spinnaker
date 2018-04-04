@@ -20,21 +20,27 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.http.HttpRequest
+import com.google.api.client.http.HttpRequestFactory
+import com.google.api.client.http.HttpResponse
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.DefaultRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -62,9 +68,18 @@ class GCEUtilSpec extends Specification {
   @Shared
   def taskMock
 
+  @Shared
+  def safeRetry
+
   def setupSpec() {
     this.taskMock = Mock(Task)
     TaskRepository.threadLocalTask.set(taskMock)
+
+    this.safeRetry = Stub(SafeRetry)
+    safeRetry.doRetry(*_) >> { args ->
+      def operation = args[0] as Closure
+      return operation()
+    }
   }
 
   void "query source images should succeed"() {
@@ -158,6 +173,107 @@ class GCEUtilSpec extends Specification {
         }
       }
       thrown GoogleResourceNotFoundException
+  }
+
+  void "getImageFromArtifact"() {
+    setup:
+    def returnImage
+    def executorMock = Mock(GoogleExecutorTraits)
+
+    def compute = GroovyMock(Compute)
+    compute.getRequestFactory() >> {
+      def requestFactory = GroovyMock(HttpRequestFactory)
+      requestFactory.buildGetRequest(_) >> {
+        def httpRequest = GroovyMock(HttpRequest)
+        httpRequest.setParser(_) >> {
+          return httpRequest
+        }
+        httpRequest.execute() >> {
+          def response = GroovyMock(HttpResponse)
+          response.parseAs(_) >> {
+            return returnImage
+          }
+          response.asType(HttpResponse) >> {
+            return response
+          }
+          return response
+        }
+        return httpRequest
+      }
+      return requestFactory
+    }
+
+    def soughtImage = new Image(name: IMAGE_NAME)
+    def artifact = Artifact.builder()
+      .name(IMAGE_NAME)
+      .reference("https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/images/$IMAGE_NAME")
+      .type("gce/image")
+      .build()
+
+    when:
+    returnImage = soughtImage
+    def sourceImage = GCEUtil.getImageFromArtifact(artifact, compute, taskMock, PHASE, safeRetry, executorMock)
+
+    then:
+    sourceImage == soughtImage
+
+    when:
+    artifact = Artifact.builder().type("github/file").build()
+    returnImage = soughtImage
+    GCEUtil.getImageFromArtifact(artifact, compute, taskMock, PHASE, safeRetry, executorMock)
+
+    then:
+    thrown GoogleOperationException
+  }
+
+  void "getBootImage"() {
+    setup:
+    def credentials = GroovyMock(GoogleNamedAccountCredentials)
+    def compute = GroovyMock(Compute)
+    credentials.compute >> compute
+    credentials.project >> PROJECT_NAME
+    def executor = GroovyMock(GoogleExecutorTraits)
+    def artifact = new Artifact()
+    GroovySpy(GCEUtil, global: true)
+
+    when:
+    def description = new BasicGoogleDeployDescription(credentials: credentials, image: IMAGE_NAME)
+    GCEUtil.getBootImage(description,
+                         taskMock,
+                         PHASE,
+                         GOOGLE_APPLICATION_NAME,
+                         [IMAGE_PROJECT_NAME],
+                         safeRetry,
+                         executor)
+
+    then:
+    1 * GCEUtil.queryImage(PROJECT_NAME,
+                           IMAGE_NAME,
+                           credentials,
+                           compute,
+                           taskMock,
+                           PHASE,
+                           GOOGLE_APPLICATION_NAME,
+                           [IMAGE_PROJECT_NAME],
+                           executor) >> { return new Image() }
+    0 * GCEUtil.getImageFromArtifact(*_)
+
+    when:
+    description = new BasicGoogleDeployDescription(credentials: credentials,
+                                                   image: IMAGE_NAME,
+                                                   imageArtifact: artifact,
+                                                   imageSource: "ARTIFACT")
+    GCEUtil.getBootImage(description,
+                         taskMock,
+                         PHASE,
+                         GOOGLE_APPLICATION_NAME,
+                         [IMAGE_PROJECT_NAME],
+                         safeRetry,
+                         executor)
+
+    then:
+    0 * GCEUtil.queryImage(*_)
+    1 * GCEUtil.getImageFromArtifact(artifact, compute, taskMock, PHASE, safeRetry, executor) >> { return new Image() }
   }
 
   void "instance metadata with zero key-value pairs roundtrips properly"() {

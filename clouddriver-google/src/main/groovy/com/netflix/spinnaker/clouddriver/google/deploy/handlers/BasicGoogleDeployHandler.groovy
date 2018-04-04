@@ -200,6 +200,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                    BASE_PHASE,
                                                    clouddriverUserAgentApplicationName,
                                                    googleConfigurationProperties.baseImageProjects,
+                                                   safeRetry,
                                                    this)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network,

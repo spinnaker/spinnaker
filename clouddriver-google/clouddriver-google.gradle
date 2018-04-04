@@ -1,4 +1,5 @@
 dependencies {
+  compile project(":clouddriver-artifacts")
   compile project(":clouddriver-core")
   compile project(":clouddriver-consul")
   compile project(":clouddriver-google-common")

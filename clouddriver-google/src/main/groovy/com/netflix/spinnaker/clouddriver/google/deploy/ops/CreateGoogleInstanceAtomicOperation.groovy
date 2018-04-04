@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
@@ -50,6 +51,9 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
 
   @Autowired
   String clouddriverUserAgentApplicationName
+
+  @Autowired
+  SafeRetry safeRetry
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -102,6 +106,7 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
                                                    BASE_PHASE,
                                                    clouddriverUserAgentApplicationName,
                                                    googleConfigurationProperties.baseImageProjects,
+                                                   safeRetry,
                                                    this)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network,
