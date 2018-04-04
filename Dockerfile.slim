@@ -6,4 +6,8 @@ COPY ./gate-web/build/install/gate /opt/gate
 
 RUN apk --nocache add --update bash
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 CMD ["/opt/gate/bin/gate"]
