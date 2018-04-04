@@ -47,7 +47,7 @@ public class CanaryExecutionStatusResponse {
 
   protected CanaryConfig config;
 
-  protected String configId;
+  protected String canaryConfigId;
 
   protected CanaryExecutionRequest canaryExecutionRequest;
 

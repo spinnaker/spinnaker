@@ -135,9 +135,9 @@ public class ExecutionMapper {
         .parentPipelineExecutionId((String)contextContext.get("parentPipelineExecutionId"))
         .pipelineId(pipeline.getId())
         .storageAccountName(storageAccountName);
-    if (contextContext.containsKey("configId")) {
-      String configId = (String)contextContext.get("configId");
-      canaryExecutionStatusResponseBuilder.configId(configId);
+    if (contextContext.containsKey("canaryConfigId")) {
+      String canaryConfigId = (String)contextContext.get("canaryConfigId");
+      canaryExecutionStatusResponseBuilder.canaryConfigId(canaryConfigId);
     }
     if (contextContext.containsKey("configurationAccountName")) {
       String configurationAccountName = (String)contextContext.get("configurationAccountName");
