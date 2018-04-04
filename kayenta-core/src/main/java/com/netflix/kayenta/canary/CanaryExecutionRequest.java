@@ -33,6 +33,8 @@ public class CanaryExecutionRequest {
 
   protected List<Metadata> metadata;
 
+  protected Map<String, Object> siteLocal;
+
   public Duration calculateDuration() {
     Set<Duration> durationsFound = new HashSet<>();
 
