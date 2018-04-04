@@ -6,7 +6,7 @@ COPY ./igor-web/build/install/igor /opt/igor
 
 RUN apk --nocache add --update bash
 
-RUN useradd -m spinnaker -U
+RUN adduser -D -S spinnaker
 
 USER spinnaker
 
