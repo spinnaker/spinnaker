@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2015 Google, Inc.
  *
@@ -16,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
@@ -24,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.springframework.validation.Errors
 
 /**
@@ -239,9 +243,22 @@ class StandardGceAttributeValidator {
     validateName(serverGroupName, "serverGroupName")
   }
 
-  // TODO(duftler): Also validate against set of supported GCE images.
-  def validateImage(String image) {
-    validateNotEmpty(image, "image")
+  def validateImage(BaseGoogleInstanceDescription.ImageSource imageSource, String image, Artifact imageArtifact) {
+    if (imageSource == BaseGoogleInstanceDescription.ImageSource.ARTIFACT) {
+      validateImageArtifact(imageArtifact)
+    } else {
+      validateNotEmpty(image, "image")
+    }
+  }
+
+  def validateImageArtifact(Artifact imageArtifact) {
+    if (!validateNotEmpty(imageArtifact, "imageArtifact")) {
+      // If there's no artifact at all, return early rather than try to validate the null artifact
+      return false
+    }
+    if (imageArtifact.getType() != ArtifactUtils.GCE_IMAGE_TYPE) {
+      errors.rejectValue("imageArtifact.type", "${context}.imageArtifact.type.invalid")
+    }
   }
 
   def validateImageName(String imageName) {

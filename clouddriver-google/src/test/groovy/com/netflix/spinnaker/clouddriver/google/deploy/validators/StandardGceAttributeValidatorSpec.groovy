@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
+import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -398,12 +400,17 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateImage("Unchecked")
+      validator.validateImage(BaseGoogleInstanceDescription.ImageSource.STRING, "Unchecked", null)
     then:
       0 * errors._
 
     when:
-      validator.validateImage(" ")
+      validator.validateImage(BaseGoogleInstanceDescription.ImageSource.STRING, " ", null)
+    then:
+      0 * errors._
+
+    when:
+      validator.validateImage(null, "Unchecked", null)
     then:
       0 * errors._
   }
@@ -414,9 +421,52 @@ class StandardGceAttributeValidatorSpec extends Specification {
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateImage("")
+      validator.validateImage(BaseGoogleInstanceDescription.ImageSource.STRING, "", null)
     then:
       1 * errors.rejectValue("image", "${DECORATOR}.image.empty")
+      0 * errors._
+
+    when:
+      validator.validateImage(null, "", null)
+    then:
+      1 * errors.rejectValue("image", "${DECORATOR}.image.empty")
+      0 * errors._
+  }
+
+  void "valid image artifact"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+      def artifact = Artifact.ArtifactBuilder.newInstance().type("gce/image").build()
+
+    when:
+      validator.validateImage(BaseGoogleInstanceDescription.ImageSource.ARTIFACT, "", artifact)
+    then:
+      0 * errors._
+  }
+
+  void "missing image artifact"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateImage(BaseGoogleInstanceDescription.ImageSource.ARTIFACT, "", null)
+    then:
+      1 * errors.rejectValue("imageArtifact", "${DECORATOR}.imageArtifact.empty")
+      0 * errors._
+  }
+
+  void "invalid image artifact type"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+      def artifact = Artifact.ArtifactBuilder.newInstance().type("github/file").build()
+
+    when:
+      validator.validateImage(BaseGoogleInstanceDescription.ImageSource.ARTIFACT, "", artifact)
+    then:
+      1 * errors.rejectValue("imageArtifact.type", "${DECORATOR}.imageArtifact.type.invalid")
       0 * errors._
   }
 

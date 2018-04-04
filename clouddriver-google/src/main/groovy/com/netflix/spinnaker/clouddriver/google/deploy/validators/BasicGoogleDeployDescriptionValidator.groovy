@@ -40,7 +40,7 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     def helper = new StandardGceAttributeValidator("basicGoogleDeployDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateImage(description.image)
+    helper.validateImage(description.imageSource, description.image, description.imageArtifact)
     helper.validateInstanceType(description.instanceType,
                                 description.regional ? description.region : description.zone,
                                 description.credentials)
