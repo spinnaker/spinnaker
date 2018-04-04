@@ -6,4 +6,8 @@ COPY ./orca-web/build/install/orca /opt/orca
 
 RUN apk --no-cache add --update bash
 
+RUN useradd -m spinnaker -U
+
+USER spinnaker
+
 CMD ["/opt/orca/bin/orca"]
