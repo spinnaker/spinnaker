@@ -25,7 +25,6 @@ import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.q.Queue
-import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -82,23 +81,50 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
         pipelineConfigId = configId
       }
 
-      beforeGroup {
-        whenever(
-          repository.retrievePipelinesForPipelineConfigId(
-            configId,
-            ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
-          )
-        ) doReturn just(waitingPipeline)
+      given("the queue should not be purged") {
+        beforeGroup {
+          whenever(
+            repository.retrievePipelinesForPipelineConfigId(
+              configId,
+              ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
+            )
+          ) doReturn just(waitingPipeline)
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving the message") {
+          subject.handle(StartWaitingExecutions(configId))
+        }
+
+        it("starts the waiting pipeline") {
+          verify(queue).push(StartExecution(waitingPipeline))
+        }
       }
 
-      afterGroup(::resetMocks)
+      given("the queue should be purged") {
+        beforeGroup {
+          whenever(
+            repository.retrievePipelinesForPipelineConfigId(
+              configId,
+              ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
+            )
+          ) doReturn just(waitingPipeline)
+        }
 
-      on("receiving the message") {
-        subject.handle(StartWaitingExecutions(configId))
-      }
+        afterGroup(::resetMocks)
 
-      it("starts the waiting pipeline") {
-        verify(queue).push(StartExecution(waitingPipeline))
+        on("receiving the message") {
+          subject.handle(StartWaitingExecutions(configId, purgeQueue = true))
+        }
+
+        it("starts the waiting pipeline") {
+          verify(queue).push(StartExecution(waitingPipeline))
+        }
+
+        it("does not cancel anything") {
+          verify(queue, never()).push(isA<CancelExecution>())
+        }
       }
     }
 
@@ -114,7 +140,7 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
       val oldest = waitingPipelines.minBy { it.buildTime!! }!!
       val newest = waitingPipelines.maxBy { it.buildTime!! }!!
 
-      and("the queue should not be purged") {
+      given("the queue should not be purged") {
         beforeGroup {
           whenever(
             repository.retrievePipelinesForPipelineConfigId(
@@ -139,7 +165,7 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
         }
       }
 
-      and("the queue should be purged") {
+      given("the queue should be purged") {
         beforeGroup {
           whenever(
             repository.retrievePipelinesForPipelineConfigId(
@@ -160,9 +186,7 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
         }
 
         it("cancels all the other waiting pipelines") {
-          (waitingPipelines - newest).forEach {
-            verify(queue).push(CancelExecution(it))
-          }
+          verify(queue, times(waitingPipelines.size - 1)).push(isA<CancelExecution>())
         }
 
         it("does not cancel the one it's trying to start") {

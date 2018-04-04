@@ -49,13 +49,12 @@ class StartWaitingExecutionsHandler(
           pipelines
             .maxBy { it.buildTime ?: 0L }
             ?.let { newest ->
-              log.info("Starting queued {} {} {}", newest.application, newest.name, newest.id)
+              log.info("Starting queued pipeline {} {} {}", newest.application, newest.name, newest.id)
               queue.push(StartExecution(newest))
-              (pipelines - newest)
-                .also { queued ->
-                  log.info("Dropping queued {} {} {}", newest.application, newest.name, queued.map { it.id })
-                }
+              pipelines
+                .filter { it.id != newest.id }
                 .forEach {
+                  log.info("Dropping queued pipeline {} {} {}", it.application, it.name, it.id)
                   queue.push(CancelExecution(it))
                 }
             }
@@ -63,7 +62,7 @@ class StartWaitingExecutionsHandler(
           pipelines
             .minBy { it.buildTime ?: 0L }
             ?.let { oldest ->
-              log.info("Starting queued {} {} {}", oldest.application, oldest.name, oldest.id)
+              log.info("Starting queued pipeline {} {} {}", oldest.application, oldest.name, oldest.id)
               queue.push(StartExecution(oldest))
             }
         }
