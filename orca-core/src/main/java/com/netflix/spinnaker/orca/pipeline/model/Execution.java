@@ -316,20 +316,15 @@ public class Execution implements Serializable {
       .orElseThrow(() -> new IllegalArgumentException(String.format("No stage with refId %s exists", refId)));
   }
 
-  @Override public final boolean equals(Object o) {
+  @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-
     Execution execution = (Execution) o;
-
-    return id.equals(execution.id);
+    return Objects.equals(id, execution.id);
   }
 
-  @Override public final int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + id.hashCode();
-    return result;
+  @Override public int hashCode() {
+    return Objects.hash(id);
   }
 
   @Deprecated

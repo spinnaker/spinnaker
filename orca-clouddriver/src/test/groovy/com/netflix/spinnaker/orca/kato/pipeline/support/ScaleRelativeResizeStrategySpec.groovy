@@ -21,13 +21,15 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Locat
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ScaleRelativeResizeStrategySpec extends Specification {
   OortHelper oortHelper = Mock(OortHelper)
-  Stage stage = Mock(Stage)
+  Stage stage = ExecutionBuilder.stage {}
   ScaleRelativeResizeStrategy strategy = new ScaleRelativeResizeStrategy(oortHelper: oortHelper)
+
   @Unroll
   def "should scale target capacity up or down by percentage or number"() {
 
@@ -73,7 +75,8 @@ class ScaleRelativeResizeStrategySpec extends Specification {
   static final String region = 'us-east-1'
   static final String account = 'test'
   static final String clusterName = application + '-main'
-  static final Location location = new Location(type: Location.Type.REGION, value: region)
+  static
+  final Location location = new Location(type: Location.Type.REGION, value: region)
 
   ResizeStrategy.OptionalConfiguration cfg(String direction, Integer scalePct = null, Integer scaleNum = null) {
     def cfg = new ResizeStrategy.OptionalConfiguration()
@@ -87,12 +90,8 @@ class ScaleRelativeResizeStrategySpec extends Specification {
     return cfg
   }
 
-
-
   static String asgName() {
     clusterName + '-v' + asgSeq.incrementAndGet()
   }
-
-
 
 }

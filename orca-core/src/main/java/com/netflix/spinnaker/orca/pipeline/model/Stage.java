@@ -336,20 +336,15 @@ public class Stage implements Serializable {
     this.lastModified = lastModified;
   }
 
-  @Override public final boolean equals(Object o) {
+  @Override public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-
     Stage stage = (Stage) o;
-
-    return id.equals(stage.id);
+    return Objects.equals(id, stage.id);
   }
 
-  @Override public final int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + id.hashCode();
-    return result;
+  @Override public int hashCode() {
+    return Objects.hash(id);
   }
 
   public Task taskById(String taskId) {
