@@ -486,7 +486,7 @@ class ValidateBomTestController(object):
                         service_name)
       raise
 
-    timeout = timeout or options.test_service_startup_timeout
+    timeout = timeout or self.options.test_service_startup_timeout
     end_time = time.time() + timeout
     logging.info('Waiting on "%s..."', service_name)
     if port is None:
