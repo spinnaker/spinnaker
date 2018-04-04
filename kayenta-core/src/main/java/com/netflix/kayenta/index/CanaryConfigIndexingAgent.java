@@ -34,6 +34,7 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.scheduling.annotation.Scheduled;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -247,6 +248,8 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
       }
 
       cyclesCompleted++;
+    } catch (JedisException e) {
+      log.error("Jedis issue in canary config indexing agent: ", e);
     }
   }
 
