@@ -18,7 +18,7 @@ RUN wget https://storage.googleapis.com/kubernetes-release/release/stable.txt &&
 
 ENV PATH=$PATH:/opt/google-cloud-sdk/bin/
 
-RUN useradd -m spinnaker -U
+RUN adduser -D -S spinnaker
 
 USER spinnaker
 
