@@ -57,15 +57,15 @@ class CompleteExecutionHandler(
           publisher.publishEvent(
             ExecutionComplete(this, message.executionType, message.executionId, status)
           )
-          execution.pipelineConfigId?.let {
-            queue.push(StartWaitingExecutions(it, purgeQueue = !execution.isKeepWaitingPipelines))
-          }
           if (status != SUCCEEDED) {
             execution.topLevelStages.filter { it.status == RUNNING }.forEach {
               queue.push(CancelStage(it))
             }
           }
         }
+      }
+      execution.pipelineConfigId?.let {
+        queue.push(StartWaitingExecutions(it, purgeQueue = !execution.isKeepWaitingPipelines))
       }
     }
   }
