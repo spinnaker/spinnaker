@@ -20,6 +20,7 @@ import com.netflix.discovery.DiscoveryClient
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.build.model.GenericArtifact
+import com.netflix.spinnaker.igor.config.DockerRegistryProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
@@ -29,20 +30,21 @@ import com.netflix.spinnaker.igor.polling.DeltaItem
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.stereotype.Service
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
 @Service
 @SuppressWarnings('CatchException')
-@ConditionalOnProperty('dockerRegistry.enabled')
+@ConditionalOnClass(DockerRegistryAccounts)
 class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta> {
 
     private final DockerRegistryCache cache
     private final DockerRegistryAccounts dockerRegistryAccounts
     private final Optional<EchoService> echoService
-    private final Optional<DockerRegistryCacheV2KeysMigration> keysMigration;
+    private final Optional<DockerRegistryCacheV2KeysMigration> keysMigration
+    private final DockerRegistryProperties dockerRegistryProperties
 
     @Autowired
     DockerMonitor(IgorConfigurationProperties properties,
@@ -51,12 +53,14 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                   DockerRegistryCache cache,
                   DockerRegistryAccounts dockerRegistryAccounts,
                   Optional<EchoService> echoService,
-                  Optional<DockerRegistryCacheV2KeysMigration> keysMigration) {
+                  Optional<DockerRegistryCacheV2KeysMigration> keysMigration,
+                  DockerRegistryProperties dockerRegistryProperties) {
         super(properties, registry, discoveryClient)
         this.cache = cache
         this.dockerRegistryAccounts = dockerRegistryAccounts
         this.echoService = echoService
-        this.keysMigration = keysMigration;
+        this.keysMigration = keysMigration
+        this.dockerRegistryProperties = dockerRegistryProperties
     }
 
     @Override
@@ -177,7 +181,11 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
 
     @Override
     protected Integer getPartitionUpperThreshold(String partition) {
-        return dockerRegistryAccounts.accounts.find { it.name == partition }?.itemUpperThreshold
+        def upperThreshold = dockerRegistryAccounts.accounts.find { it.name == partition }?.itemUpperThreshold
+        if (!upperThreshold) {
+            upperThreshold = dockerRegistryProperties.itemUpperThreshold
+        }
+        return upperThreshold
     }
 
     private static class DockerPollingDelta implements PollingDelta<ImageDelta> {

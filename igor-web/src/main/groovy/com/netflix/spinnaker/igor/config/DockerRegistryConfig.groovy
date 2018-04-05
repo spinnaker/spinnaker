@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.docker.service.ClouddriverService
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoints
@@ -32,6 +33,7 @@ import retrofit.client.OkClient
 
 @Configuration
 @ConditionalOnProperty(['services.clouddriver.baseUrl', 'dockerRegistry.enabled'])
+@EnableConfigurationProperties(DockerRegistryProperties)
 @CompileStatic
 class DockerRegistryConfig {
     @Bean
