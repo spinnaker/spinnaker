@@ -54,7 +54,7 @@
     position: relative;
     box-shadow: 0 0 3px 1px var(--color-alto);
   }
-  .nav-item {
+  .nav-item, .dropdown-toggle {
     &:after {
       content: ' ';
       width: 0;
@@ -68,8 +68,7 @@
       z-index: 3;
       transition: border-bottom-color 200ms ease-in;
     }
-    &.active, &:focus, &:hover {
-      background-color: transparent;
+    &.active, &:hover {
       color: var(--color-primary);
       .badge {
         background-color: var(--color-primary);
