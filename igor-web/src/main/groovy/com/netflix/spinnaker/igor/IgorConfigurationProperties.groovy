@@ -48,9 +48,10 @@ class IgorConfigurationProperties {
             /**
              * Defines the upper threshold for number of new cache items before a cache update cycle will be completely
              * rejected. This is to protect against potentially re-indexing old caches due to downstream service errors.
-             * Once this threshold is tripped, API-driven resolution may be required.
+             * Once this threshold is tripped, API-driven resolution may be required. By default set higher than most
+             * use cases would require since it's a feature that requires more hands-on operations.
              */
-            int itemUpperThreshold = 10
+            int itemUpperThreshold = 1000
         }
 
         @NestedConfigurationProperty
