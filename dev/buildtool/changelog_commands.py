@@ -366,7 +366,7 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
       raise_and_log_error(
           ConfigError(
               'Changelog gist "{url}": {error}'.format(
-                  url=options.changelog_gitst_url,
+                  url=options.changelog_gist_url,
                   error=error.message)))
 
   def _do_repository(self, repository):
