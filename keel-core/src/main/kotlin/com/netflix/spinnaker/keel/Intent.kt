@@ -20,6 +20,7 @@ import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.policy.Policy
+import java.time.Instant
 import kotlin.reflect.KClass
 
 /**
@@ -31,6 +32,9 @@ import kotlin.reflect.KClass
  * @param attributes User-land specific metadata and extension data.
  * @param policies User-defined behavioral policies specific to the intent.
  * @param cas An optional ID-granular pessimistic lock.
+ * @param createdAt Timestamp of when the intent was created.
+ * @param updatedAt Timestamp of when the intent was last updated.
+ * @param lastUpdatedBy Identifier of who or what last updated the intent.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -43,7 +47,10 @@ abstract class Intent<out S : IntentSpec>
   val labels: MutableMap<String, String> = mutableMapOf(),
   val attributes: MutableList<Attribute<*>> = mutableListOf(),
   val policies: List<Policy<*>> = listOf(),
-  val cas: Long? = null
+  val cas: Long? = null,
+  var createdAt: Instant? = null,
+  var updatedAt: Instant? = null,
+  var lastUpdatedBy: String? = null
 ) {
 
   protected abstract val id: String

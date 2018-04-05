@@ -21,11 +21,13 @@ import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.scheduler.ScheduleService
 import com.netflix.spinnaker.keel.tracing.TraceRepository
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import java.time.Instant
 import javax.ws.rs.QueryParam
 
 @RestController
@@ -68,6 +70,12 @@ class IntentController
     val intentList = mutableListOf<UpsertIntentResponse>()
 
     req.intents.forEach { intent ->
+      if (intent.createdAt == null) {
+        intent.createdAt = Instant.now()
+      }
+      intent.updatedAt = Instant.now()
+      intent.lastUpdatedBy = AuthenticatedRequest.getSpinnakerUser().orElse("[anonymous]")
+
       intentRepository.upsertIntent(intent)
 
       if (keelProperties.immediatelyRunIntents) {
