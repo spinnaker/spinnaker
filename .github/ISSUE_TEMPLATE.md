@@ -6,30 +6,30 @@ Make sure you have read through the [Spinnaker FAQ](https://www.spinnaker.io/com
 
 Please provide:
 
-*Title*
+## Title
 
 A descriptive title.
 
-*Cloud Provider*
+## Cloud Provider
 
 AWS, GCP, Kubernetes, Azure, Cloud Foundry, etc. Please assign a label from the right so your issue can be properly sorted.
 
-*Environment*
+## Environment
 
 As much information about your spinnaker environment as possible, for example: ```I am running Spinnaker using the Amazon images to deploy into AWS and GCP. ```
 
-*Feature Area*
+## Feature Area
 
 Notifications, Pipelines, UI, Jenkins, etc. Please assign a label from the right so your issue can be properly sorted.
 
-*Description*
+## Description
 
 The behavior you expect to see, and the actual behavior.
 
-*Steps to Reproduce*
+## Steps to Reproduce
 
 Ideally, an isolated way to reproduce the behavior (example: GitHub repository with code isolated to the issue that anyone can clone to observe the problem). If not possible, as much information as possible to see this behavior.
 
-*Additional Details*
+## Additional Details
 
 Additional information such as screenshots and exception logs.
