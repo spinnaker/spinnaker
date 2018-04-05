@@ -21,6 +21,7 @@ import * as Creators from 'kayenta/actions/creators';
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';
 module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   .config((applicationStateProvider: ApplicationStateProvider) => {
+  'ngInject';
   const configDetail: INestedState = {
     name: 'configDetail',
     url: '/config/:id?copy&new',

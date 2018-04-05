@@ -54,5 +54,6 @@ const helpContents: {[key: string]: string} = {
 export const CANARY_HELP = 'spinnaker.kayenta.help.contents';
 module(CANARY_HELP, [HELP_CONTENTS_REGISTRY])
   .run((helpContentsRegistry: HelpContentsRegistry) => {
+    'ngInject';
     Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
   });

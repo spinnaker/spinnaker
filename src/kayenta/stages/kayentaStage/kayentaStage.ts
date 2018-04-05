@@ -301,6 +301,7 @@ module(KAYENTA_CANARY_STAGE, [
     KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER,
   ])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
+    'ngInject';
     pipelineConfigProvider.registerStage({
       label: 'Canary Analysis',
       description: 'Runs a canary task',
@@ -325,5 +326,6 @@ module(KAYENTA_CANARY_STAGE, [
   })
   .controller('KayentaCanaryStageCtrl', CanaryStage)
   .run((pipelineConfig: PipelineConfigProvider, kayentaStageTransformer: KayentaStageTransformer) => {
+    'ngInject';
     pipelineConfig.registerTransformer(kayentaStageTransformer);
   });
