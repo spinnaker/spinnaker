@@ -30,14 +30,14 @@ import com.netflix.spinnaker.igor.polling.DeltaItem
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Service
 
 import static net.logstash.logback.argument.StructuredArguments.kv
 
 @Service
 @SuppressWarnings('CatchException')
-@ConditionalOnClass(DockerRegistryAccounts)
+@ConditionalOnBean(DockerRegistryAccounts)
 class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta> {
 
     private final DockerRegistryCache cache
