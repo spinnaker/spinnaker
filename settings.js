@@ -13,6 +13,13 @@ var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
 var canaryEnabled = process.env.CANARY_ENABLED === 'true';
 var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
 var dryRunEnabled = process.env.DRYRUN_ENABLED === 'true' ? true : false;
+var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
+var defaultMetricStore = process.env.METRIC_STORE || 'atlas';
+var canaryStagesEnabled = process.env.CANARY_STAGES_ENABLED === 'true';
+var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
+var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
+var canaryAccount = process.env.CANARY_ACCOUNT || '';
+var canaryFeatureDisabled = process.env.CANARY_FEATURE_ENABLED !== 'true';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -134,6 +141,18 @@ window.spinnakerSettings = {
   pubsubProviders: ['google', 'kafka'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub'],
   searchVersion: 1,
+  canary: {
+    reduxLogger: reduxLoggerEnabled,
+    metricsAccountName: canaryAccount,
+    storageAccountName: canaryAccount,
+    defaultJudge: 'NetflixACAJudge-v1.0',
+    metricStore: defaultMetricStore,
+    stagesEnabled: canaryStagesEnabled,
+    atlasWebComponentsUrl: atlasWebComponentsUrl,
+    templatesEnabled: templatesEnabled,
+    showAllConfigs: true,
+    featureDisabled: canaryFeatureDisabled,
+  },
   feature: {
     artifacts: false,
     canary: canaryEnabled,
