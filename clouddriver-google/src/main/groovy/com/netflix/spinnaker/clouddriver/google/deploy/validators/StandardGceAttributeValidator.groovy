@@ -350,7 +350,7 @@ class StandardGceAttributeValidator {
   }
 
   def validateMinCpuPlatform(String minCpuPlatform, String location, GoogleNamedAccountCredentials credentials) {
-    if (!credentials.locationToCpuPlatformsMap[location].contains(minCpuPlatform)) {
+    if (!credentials.locationToCpuPlatformsMap[location]?.contains(minCpuPlatform)) {
       errors.rejectValue("minCpuPlatform", "${context}.minCpuPlatform.invalid", "CPU platform $minCpuPlatform is not available in $location.")
     }
   }
