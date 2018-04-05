@@ -30,8 +30,6 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.state.FieldMutator
 import com.netflix.spinnaker.keel.state.StateInspector
-import com.netflix.spinnaker.keel.tracing.Trace
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -39,7 +37,6 @@ import retrofit.RetrofitError
 @Component
 class ApplicationUpsertIntentProcessor
 @Autowired constructor(
-  private val traceRepository: TraceRepository,
   private val front50Service: Front50Service,
   private val objectMapper: ObjectMapper
 ): IntentProcessor<ApplicationIntent> {
@@ -58,11 +55,6 @@ class ApplicationUpsertIntentProcessor
     }
 
     changeSummary.type = if (currentState == null) ChangeType.CREATE else ChangeType.UPDATE
-
-    traceRepository.record(Trace(
-      startingState = if (currentState == null) mapOf() else objectMapper.convertValue(currentState, ANY_MAP_TYPE),
-      intent = intent
-    ))
 
     return ConvergeResult(listOf(
       OrchestrationRequest(

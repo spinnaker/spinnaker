@@ -24,23 +24,16 @@ import com.netflix.spinnaker.keel.intent.ParrotIntent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
-import com.netflix.spinnaker.keel.tracing.Trace
-import com.netflix.spinnaker.keel.tracing.TraceRepository
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class ParrotIntentProcessor
-@Autowired constructor(
-  private val traceRepository: TraceRepository
-) : IntentProcessor<ParrotIntent> {
+class ParrotIntentProcessor : IntentProcessor<ParrotIntent> {
 
   override fun supports(intent: Intent<IntentSpec>) = intent is ParrotIntent
 
   override fun converge(intent: ParrotIntent): ConvergeResult {
     val changeSummary = ChangeSummary(intent.id())
     changeSummary.addMessage("Squawk!")
-    traceRepository.record(Trace(mapOf(), intent))
     return ConvergeResult(listOf(
       OrchestrationRequest(
         name = "Squawk!",

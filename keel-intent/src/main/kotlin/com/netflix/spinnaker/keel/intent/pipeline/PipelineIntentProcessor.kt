@@ -21,19 +21,15 @@ import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.PipelineConfig
-import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.notFound
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.state.StateInspector
-import com.netflix.spinnaker.keel.tracing.Trace
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 @Component
 class PipelineIntentProcessor(
-  private val traceRepository: TraceRepository,
   private val front50Service: Front50Service,
   private val objectMapper: ObjectMapper,
   private val pipelineConverter: PipelineConverter
@@ -58,11 +54,6 @@ class PipelineIntentProcessor(
     }
 
     changeSummary.type = if (currentState == null) ChangeType.CREATE else ChangeType.UPDATE
-
-    traceRepository.record(Trace(
-      startingState = if (currentState == null) mapOf() else objectMapper.convertValue(currentState, ANY_MAP_TYPE),
-      intent = intent
-    ))
 
     return ConvergeResult(listOf(
       OrchestrationRequest(

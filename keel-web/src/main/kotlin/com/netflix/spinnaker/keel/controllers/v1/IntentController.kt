@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.scheduler.ScheduleService
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import net.logstash.logback.argument.StructuredArguments
 import org.slf4j.LoggerFactory
@@ -38,7 +37,6 @@ class IntentController
   private val scheduleService: ScheduleService,
   private val intentRepository: IntentRepository,
   private val intentActivityRepository: IntentActivityRepository,
-  private val traceRepository: TraceRepository,
   private val keelProperties: KeelProperties
 ) {
 
@@ -102,9 +100,6 @@ class IntentController
 
   @RequestMapping(value = ["/{id}/history"], method = [(RequestMethod.GET)])
   fun getIntentHistory(@PathVariable("id") id: String) = intentActivityRepository.getHistory(id)
-
-  @RequestMapping(value = ["/{id}/traces"], method = [(RequestMethod.GET)])
-  fun getIntentTrace(@PathVariable("id") id: String) = traceRepository.getForIntent(id)
 
   @RequestMapping(value = ["/{id}/log"], method = [(RequestMethod.GET)])
   fun getLog(@PathVariable("id") id: String) = intentActivityRepository.getLog(id)

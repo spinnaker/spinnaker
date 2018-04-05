@@ -25,7 +25,6 @@ import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.front50.model.PipelineConfig
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
@@ -39,16 +38,15 @@ import retrofit.client.Response
 
 object PipelineIntentProcessorTest {
 
-  val traceRepository = mock<TraceRepository>()
   val front50Service = mock<Front50Service>()
   val objectMapper = ObjectMapper()
   val converter = PipelineConverter(objectMapper)
 
-  val subject = PipelineIntentProcessor(traceRepository, front50Service, objectMapper, converter)
+  val subject = PipelineIntentProcessor(front50Service, objectMapper, converter)
 
   @AfterEach
   fun cleanup() {
-    reset(traceRepository, front50Service)
+    reset(front50Service)
   }
 
   @Test

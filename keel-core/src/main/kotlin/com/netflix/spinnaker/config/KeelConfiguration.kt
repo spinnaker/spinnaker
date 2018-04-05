@@ -20,9 +20,7 @@ import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
-import com.netflix.spinnaker.keel.memory.MemoryTraceRepository
 import com.netflix.spinnaker.keel.policy.Policy
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -67,10 +65,6 @@ open class KeelConfiguration {
   @Bean
   @ConditionalOnMissingBean(IntentActivityRepository::class)
   open fun memoryIntentActivityRepository(): IntentActivityRepository = MemoryIntentActivityRepository(properties)
-
-  @Bean
-  @ConditionalOnMissingBean(TraceRepository::class)
-  open fun memoryTraceRepository(): TraceRepository = MemoryTraceRepository()
 
   @Bean open fun clock(): Clock = Clock.systemDefaultZone()
 

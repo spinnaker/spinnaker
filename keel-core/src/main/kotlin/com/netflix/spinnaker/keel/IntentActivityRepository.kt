@@ -19,21 +19,6 @@ import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.state.FieldState
 
 /**
- * TODO rz - refactor IntentActivityRepository to use this instead
- *
- * @param intentId The ID of the intent that is being evaluated.
- * @param orchestrations A resultant (if any) list of orchestration IDs from the intent.
- * @param reason A human-friendly description of why this operation occurred.
- * @param actor Who (or what) initiated the operation.
- */
-data class IntentActivity(
-  val intentId: String,
-  val orchestrations: List<String>,
-  val reason: String,
-  val actor: String
-)
-
-/**
  * @param intentId The ID of the intent that is being evaluated.
  * @param changeType The type of change that took place this cycle.
  * @param orchestrations A resultant (if any) list of orchestration IDs from the intent.

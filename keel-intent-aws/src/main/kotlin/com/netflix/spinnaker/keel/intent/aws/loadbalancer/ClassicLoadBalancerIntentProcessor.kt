@@ -30,7 +30,6 @@ import com.netflix.spinnaker.keel.intent.LoadBalancerIntent
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.state.StateInspector
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,7 +38,6 @@ import org.springframework.stereotype.Component
 @Component
 class ClassicLoadBalancerIntentProcessor
 @Autowired constructor(
-  private val traceRepository: TraceRepository,
   private val cloudDriverService: CloudDriverService,
   private val clouddriverCache: CloudDriverCache,
   objectMapper: ObjectMapper,

@@ -30,7 +30,6 @@ import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.intent.ApplicationIntent
 import com.netflix.spinnaker.keel.intent.ReferenceSecurityGroupRule
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
@@ -45,7 +44,6 @@ import retrofit.client.Response
 
 object AmazonSecurityGroupIntentProcessorTest {
 
-  val traceRepository = mock<TraceRepository>()
   val clouddriverCache = mock<CloudDriverCache>()
   val clouddriverService = mock<CloudDriverService>().apply {
     whenever(listNetworks()) doReturn mapOf(
@@ -63,11 +61,11 @@ object AmazonSecurityGroupIntentProcessorTest {
   val converter = AmazonSecurityGroupConverter(clouddriverCache, objectMapper)
   val loader = AmazonSecurityGroupLoader(clouddriverService, clouddriverCache)
 
-  val subject = AmazonSecurityGroupIntentProcessor(traceRepository, intentRepository, objectMapper, converter, loader)
+  val subject = AmazonSecurityGroupIntentProcessor(intentRepository, objectMapper, converter, loader)
 
   @AfterEach
   fun cleanup() {
-    reset(traceRepository, clouddriverService, clouddriverCache)
+    reset(clouddriverService, clouddriverCache)
   }
 
   @Test

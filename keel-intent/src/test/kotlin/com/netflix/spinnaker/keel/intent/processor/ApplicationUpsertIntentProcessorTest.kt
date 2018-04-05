@@ -24,7 +24,6 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.keel.front50.Front50Service
 import com.netflix.spinnaker.keel.front50.model.Application
 import com.netflix.spinnaker.keel.intent.*
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -33,15 +32,14 @@ import retrofit.client.Response
 
 object ApplicationUpsertIntentProcessorTest {
 
-  val traceRepository = mock<TraceRepository>()
   val front50Service = mock<Front50Service>()
   val objectMapper = ObjectMapper()
 
-  val subject = ApplicationUpsertIntentProcessor(traceRepository, front50Service, objectMapper)
+  val subject = ApplicationUpsertIntentProcessor(front50Service, objectMapper)
 
   @AfterEach
   fun cleanup() {
-    reset(traceRepository, front50Service)
+    reset(front50Service)
   }
 
   @Test
@@ -60,8 +58,6 @@ object ApplicationUpsertIntentProcessorTest {
 
     result.orchestrations.size shouldMatch equalTo(1)
     result.orchestrations[0].name shouldMatch equalTo("Create application")
-
-    verify(traceRepository).record(any())
   }
 
   @Test
@@ -77,8 +73,6 @@ object ApplicationUpsertIntentProcessorTest {
     result.orchestrations.size shouldMatch equalTo(1)
     result.orchestrations[0].name shouldMatch equalTo("Update application")
     result.orchestrations[0].job[0]["application"] as Map<Any, Any> shouldMatch hasEntry("description", equalTo("my updated description"))
-
-    verify(traceRepository).record(any())
   }
 
   @Test

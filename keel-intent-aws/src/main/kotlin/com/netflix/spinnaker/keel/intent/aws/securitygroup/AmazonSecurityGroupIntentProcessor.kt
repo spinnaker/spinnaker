@@ -21,15 +21,12 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.dryrun.ChangeType
 import com.netflix.spinnaker.keel.exceptions.DeclarativeException
-import com.netflix.spinnaker.keel.intent.ANY_MAP_TYPE
 import com.netflix.spinnaker.keel.intent.DefaultConvertToJobCommand
 import com.netflix.spinnaker.keel.intent.NamedReferenceSupport
 import com.netflix.spinnaker.keel.intent.SecurityGroupSpec
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.state.StateInspector
-import com.netflix.spinnaker.keel.tracing.Trace
-import com.netflix.spinnaker.keel.tracing.TraceRepository
 import org.springframework.stereotype.Component
 
 /**
@@ -47,7 +44,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class AmazonSecurityGroupIntentProcessor(
-  private val traceRepository: TraceRepository,
   private val intentRepository: IntentRepository,
   private val objectMapper: ObjectMapper,
   private val converter: AmazonSecurityGroupConverter,
@@ -59,11 +55,6 @@ class AmazonSecurityGroupIntentProcessor(
   override fun converge(intent: AmazonSecurityGroupIntent): ConvergeResult {
     val changeSummary = ChangeSummary(intent.id())
     val currentState = loader.load(intent.spec)
-
-    traceRepository.record(Trace(
-      startingState = objectMapper.convertValue(mapOf("state" to currentState), ANY_MAP_TYPE),
-      intent = intent
-    ))
 
     // This processor handles both root security groups, as well as individual rules. If a rule is passed in, we
     // need to source the root intent (or fake it out if it doesn't exist).
