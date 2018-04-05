@@ -122,8 +122,7 @@ public class GitEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected void onMatchingPipeline(Pipeline pipeline) {
-    super.onMatchingPipeline(pipeline);
+  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
       .withTag("name", pipeline.getName());

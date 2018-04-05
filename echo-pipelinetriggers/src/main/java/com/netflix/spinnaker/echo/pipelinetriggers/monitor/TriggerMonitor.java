@@ -24,7 +24,6 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
@@ -42,7 +41,7 @@ import java.util.regex.Pattern;
  */
 @Component
 @Slf4j
-abstract class TriggerMonitor implements EchoEventListener {
+public abstract class TriggerMonitor implements EchoEventListener {
 
   protected final Action1<Pipeline> subscriber;
   protected final Registry registry;
@@ -110,8 +109,11 @@ abstract class TriggerMonitor implements EchoEventListener {
 
   protected abstract boolean isValidTrigger(final Trigger trigger);
 
+  protected abstract void emitMetricsOnMatchingPipeline(Pipeline pipeline);
+
   protected void onMatchingPipeline(Pipeline pipeline) {
     log.info("Found matching pipeline {}:{}", pipeline.getApplication(), pipeline.getName());
+    emitMetricsOnMatchingPipeline(pipeline);
   }
 
   protected void onEventProcessed(final TriggerEvent event) {

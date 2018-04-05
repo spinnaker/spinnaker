@@ -29,9 +29,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
@@ -116,11 +113,10 @@ public class PubsubEventMonitor extends TriggerMonitor {
   }
 
   @Override
-  protected void onMatchingPipeline(Pipeline pipeline) {
-    super.onMatchingPipeline(pipeline);
+  protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
     val id = registry.createId("pipelines.triggered")
-        .withTag("application", pipeline.getApplication())
-        .withTag("name", pipeline.getName());
+      .withTag("application", pipeline.getApplication())
+      .withTag("name", pipeline.getName());
 
     if (isPubsubTrigger(pipeline.getTrigger())) {
       id.withTag("pubsubSystem", pipeline.getTrigger().getPubsubSystem());
