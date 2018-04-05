@@ -97,18 +97,17 @@ export class ApplicationReader {
     const allDataSources: ApplicationDataSource[] = application.dataSources,
       appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
     if (!appDataSources) {
-      allDataSources.filter(ds => ds.optIn).forEach(ds => this.disableDataSource(ds, application));
+      allDataSources.filter(ds => ds.optIn).forEach(ds => this.setDataSourceDisabled(ds, application, true));
       if (this.inferredApplicationWarningService.isInferredApplication(application)) {
-        allDataSources.filter(ds => ds.requireConfiguredApp).forEach(ds => this.disableDataSource(ds, application));
+        allDataSources.filter(ds => ds.requireConfiguredApp).forEach(ds => this.setDataSourceDisabled(ds, application, true));
       }
     } else {
       allDataSources.forEach(ds => {
         if (ds.optional) {
-          if (ds.optIn && !appDataSources.enabled.includes(ds.key)) {
-            this.disableDataSource(ds, application);
-          }
-          if (!ds.optIn && appDataSources.disabled.includes(ds.key)) {
-            this.disableDataSource(ds, application);
+          if (ds.optIn) {
+            this.setDataSourceDisabled(ds, application, !appDataSources.enabled.includes(ds.key));
+          } else {
+            this.setDataSourceDisabled(ds, application, appDataSources.disabled.includes(ds.key));
           }
         }
       });
@@ -116,15 +115,15 @@ export class ApplicationReader {
     allDataSources.filter(ds => ds.requiresDataSource).forEach(ds => {
       const parent = allDataSources.find(p => p.key === ds.requiresDataSource);
       if (parent && parent.disabled) {
-        this.disableDataSource(ds, application);
+        this.setDataSourceDisabled(ds, application, true);
       }
     });
   }
 
-  private disableDataSource(dataSource: ApplicationDataSource, application: Application) {
-    dataSource.disabled = true;
+  private setDataSourceDisabled(dataSource: ApplicationDataSource, application: Application, disabled: boolean) {
+    dataSource.disabled = disabled;
     if (dataSource.badge) {
-      application.dataSources.find(ds => ds.key === dataSource.badge).disabled = true;
+      application.dataSources.find(ds => ds.key === dataSource.badge).disabled = disabled;
     }
   }
 }
