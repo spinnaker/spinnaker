@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.*
 import com.github.jonpeterson.jackson.module.versioning.JsonSerializeToVersion
 import com.netflix.spectator.api.BasicTag
 import com.netflix.spinnaker.keel.attribute.Attribute
-import com.netflix.spinnaker.keel.policy.Policy
 import java.time.Instant
 import kotlin.reflect.KClass
 
@@ -46,7 +45,6 @@ abstract class Intent<out S : IntentSpec>
   var status: IntentStatus = IntentStatus.ACTIVE,
   val labels: MutableMap<String, String> = mutableMapOf(),
   val attributes: MutableList<Attribute<*>> = mutableListOf(),
-  val policies: List<Policy<*>> = listOf(),
   val cas: Long? = null,
   var createdAt: Instant? = null,
   var updatedAt: Instant? = null,
@@ -71,11 +69,6 @@ abstract class Intent<out S : IntentSpec>
 
   @Suppress("UNCHECKED_CAST")
   fun <T : Attribute<Any>> getAttribute(klass: KClass<T>): T? = attributes.firstOrNull { klass.isInstance(it) } as T?
-
-  fun <T : Policy<Any>> hasPolicy(klass: KClass<T>) = policies.any { klass.isInstance(it) }
-
-  @Suppress("UNCHECKED_CAST")
-  fun <T : Policy<Any>> getPolicy(klass: KClass<T>) = policies.firstOrNull { klass.isInstance(it) } as T?
 }
 
 /**

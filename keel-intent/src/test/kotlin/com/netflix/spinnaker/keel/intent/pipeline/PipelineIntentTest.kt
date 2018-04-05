@@ -140,7 +140,6 @@ object PipelineIntentTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
-  "policies": [],
   "id": "Pipeline:keel:Bake",
   "schema": "0"
 }

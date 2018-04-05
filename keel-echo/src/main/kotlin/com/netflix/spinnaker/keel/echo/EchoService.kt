@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.echo
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.keel.policy.NotificationSeverity
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.POST

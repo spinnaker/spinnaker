@@ -110,7 +110,6 @@ object AmazonSecurityGroupIntentTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
-  "policies": [],
   "id": "SecurityGroup:aws:test:us-west-2:keel",
   "schema": "0"
 }
@@ -188,7 +187,6 @@ object AmazonSecurityGroupIntentTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
-  "policies": [],
   "id": "SecurityGroup:aws:test:us-west-2:keel:self:covfefe",
   "schema": "0"
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,46 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.policy
+package com.netflix.spinnaker.keel.echo
 
-import com.fasterxml.jackson.annotation.*
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.netflix.spinnaker.keel.echo.EchoService
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.event.EventKind
 
-private const val KIND = "Notification"
+@JsonTypeName("Notification")
+class NotificationAttribute(value: NotificationSubscriptions) : Attribute<NotificationSubscriptions>("Notification", value)
 
-@JsonTypeName(KIND)
-class NotificationPolicy
-@JsonCreator constructor(
-  spec: NotificationPolicySpec
-) : Policy<NotificationPolicySpec>(
-  kind = KIND,
-  spec = spec
+data class NotificationSubscriptions(
+  val subscriptions: Map<EventKind, List<NotificationSpec>>
 )
 
-data class NotificationPolicySpec(
-  val subscriptions: Map<EventKind, List<NotificationSpec>>
-) : PolicySpec
+enum class NotificationSeverity {
+  NORMAL,
+  HIGH
+}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kind")
 @JsonSubTypes(
-  Type(EmailNotificationSpec::class),
-  Type(HipChatNotificationSpec::class),
-  Type(HipChatNotificationSpec::class),
-  Type(PagerDutyNotificationSpec::class),
-  Type(SlackNotificationSpec::class),
-  Type(SmsNotificationSpec::class)
+  JsonSubTypes.Type(EmailNotificationSpec::class),
+  JsonSubTypes.Type(HipChatNotificationSpec::class),
+  JsonSubTypes.Type(HipChatNotificationSpec::class),
+  JsonSubTypes.Type(PagerDutyNotificationSpec::class),
+  JsonSubTypes.Type(SlackNotificationSpec::class),
+  JsonSubTypes.Type(SmsNotificationSpec::class)
 )
-abstract class NotificationSpec {
-  abstract val to: List<String>
-  abstract val cc: List<String>
-  abstract val severity: NotificationSeverity
+interface NotificationSpec {
+  val to: List<String>
+  val cc: List<String>
+  val severity: NotificationSeverity
 
-  abstract val echoNotificationType: EchoService.Notification.Type
+  val echoNotificationType: EchoService.Notification.Type
 
   @JsonIgnore
-  abstract fun getAdditionalContext(): Map<String, Any?>
+  fun getAdditionalContext(): Map<String, Any?>
 }
 
 @JsonTypeName("email")
@@ -62,7 +61,7 @@ data class EmailNotificationSpec(
   override val severity: NotificationSeverity = NotificationSeverity.NORMAL,
   val subject: String,
   val body: String
-) : NotificationSpec() {
+) : NotificationSpec {
 
   @JsonIgnore
   override val echoNotificationType = EchoService.Notification.Type.EMAIL
@@ -81,7 +80,7 @@ data class HipChatNotificationSpec(
   val message: String,
   val color: String,
   val notify: Boolean
-) : NotificationSpec(){
+) : NotificationSpec {
 
   @JsonIgnore
   override val echoNotificationType = EchoService.Notification.Type.HIPCHAT
@@ -99,7 +98,7 @@ data class PagerDutyNotificationSpec(
   override val cc: List<String> = listOf(),
   override val severity: NotificationSeverity = NotificationSeverity.NORMAL,
   val message: String
-) : NotificationSpec() {
+) : NotificationSpec {
 
   @JsonIgnore
   override val echoNotificationType = EchoService.Notification.Type.PAGER_DUTY
@@ -114,7 +113,7 @@ data class SlackNotificationSpec(
   override val severity: NotificationSeverity = NotificationSeverity.NORMAL,
   val message: String,
   val color: String
-) : NotificationSpec(){
+) : NotificationSpec {
 
   @JsonIgnore
   override val echoNotificationType = EchoService.Notification.Type.SLACK
@@ -131,15 +130,10 @@ data class SmsNotificationSpec(
   override val cc: List<String> = listOf(),
   override val severity: NotificationSeverity = NotificationSeverity.NORMAL,
   val body: String
-) : NotificationSpec(){
+) : NotificationSpec {
 
   @JsonIgnore
   override val echoNotificationType = EchoService.Notification.Type.SMS
 
   override fun getAdditionalContext() = mapOf("body" to body)
-}
-
-enum class NotificationSeverity {
-  NORMAL,
-  HIGH
 }

@@ -17,10 +17,9 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.echo.EchoService
-import com.netflix.spinnaker.keel.policy.NotificationSpec
+import com.netflix.spinnaker.keel.echo.NotificationAttribute
 import com.netflix.spinnaker.keel.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -37,8 +36,6 @@ import retrofit.converter.JacksonConverter
 @ComponentScan(basePackages = ["com.netflix.spinnaker.keel.echo"])
 @Import(RetrofitConfiguration::class)
 open class EchoConfiguration {
-
-  private val log = LoggerFactory.getLogger(javaClass)
 
   @Bean open fun echoEndpoint(@Value("\${echo.baseUrl}") echoBaseUrl: String)
     = Endpoints.newFixedEndpoint(echoBaseUrl)
@@ -58,5 +55,5 @@ open class EchoConfiguration {
     .create(EchoService::class.java)
 
   @Bean open fun notificationSpecSubtype() =
-    ClassSubtypeLocator(NotificationSpec::class.java, listOf("com.netflix.spinnaker.keel.intent"))
+    ClassSubtypeLocator(NotificationAttribute::class.java, listOf("com.netflix.spinnaker.keel.echo"))
 }

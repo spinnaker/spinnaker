@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.attribute.Attribute
 import com.netflix.spinnaker.keel.memory.MemoryIntentActivityRepository
 import com.netflix.spinnaker.keel.memory.MemoryIntentRepository
-import com.netflix.spinnaker.keel.policy.Policy
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -50,9 +49,6 @@ open class KeelConfiguration {
 
   @Bean open fun intentSpecSubTypeLocator() =
     ClassSubtypeLocator(IntentSpec::class.java, properties.intentSpecPackages)
-
-  @Bean open fun policySubTypeLocator() =
-    ClassSubtypeLocator(Policy::class.java, properties.policyPackages)
 
   @Bean open fun attributeSubTypeLocator() =
     ClassSubtypeLocator(Attribute::class.java, properties.attributePackages)

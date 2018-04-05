@@ -132,7 +132,6 @@ object ClassicLoadBalancerIntentTest {
   "status": "ACTIVE",
   "labels": {},
   "attributes": [],
-  "policies": [],
   "id": "LoadBalancer:aws:mgmt:us-west-2:covfefe-elb",
   "schema": "0"
 }

@@ -25,8 +25,6 @@ import com.netflix.spinnaker.keel.Intent
 import com.netflix.spinnaker.keel.IntentSpec
 import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.attribute.Attribute
-import com.netflix.spinnaker.keel.policy.Policy
-import com.netflix.spinnaker.keel.policy.PolicySpec
 
 @JsonTypeName("Test")
 @JsonVersionedModel(currentVersion = "0", propertyName = "schema")
@@ -34,9 +32,8 @@ class TestIntent
 @JsonCreator constructor(
   spec: TestIntentSpec,
   labels: MutableMap<String, String> = mutableMapOf(),
-  attributes: MutableList<Attribute<*>> = mutableListOf(),
-  policies: List<Policy<PolicySpec>> = listOf()
-) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, labels, attributes, policies) {
+  attributes: MutableList<Attribute<*>> = mutableListOf()
+) : Intent<TestIntentSpec>("1", "Test", spec, IntentStatus.ACTIVE, labels, attributes) {
   @JsonIgnore override val id = "test:${spec.id}"
 }
 

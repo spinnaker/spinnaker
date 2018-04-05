@@ -64,3 +64,9 @@ data class TimeWindow(
   val endHour: Int,
   val endMin: Int
 )
+
+/**
+ * Defines the origin of an Intent. When defined, Spinnaker is capable of exposing richer back-linking to where an
+ * Intent is defined.
+ */
+class OriginAttribute(value: String) : Attribute<String>("Origin", value)

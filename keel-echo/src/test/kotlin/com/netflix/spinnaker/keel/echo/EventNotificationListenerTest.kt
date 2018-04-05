@@ -18,13 +18,8 @@ package com.netflix.spinnaker.keel.echo
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.keel.event.AfterIntentUpsertEvent
 import com.netflix.spinnaker.keel.event.EventKind
-import com.netflix.spinnaker.keel.policy.EmailNotificationSpec
-import com.netflix.spinnaker.keel.policy.NotificationPolicy
-import com.netflix.spinnaker.keel.policy.NotificationPolicySpec
-import com.netflix.spinnaker.keel.policy.NotificationSeverity
-import com.netflix.spinnaker.keel.policy.SlackNotificationSpec
-import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
+import com.netflix.spinnaker.keel.test.TestIntent
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
@@ -48,25 +43,23 @@ object EventNotificationListenerTest {
     val event = AfterIntentUpsertEvent(
       TestIntent(
         GenericTestIntentSpec("test:1", mapOf()),
-        policies = listOf(
-          element = NotificationPolicy(
-            NotificationPolicySpec(
-              subscriptions = mapOf(
-                EventKind.AFTER_INTENT_UPSERT to listOf(
-                  EmailNotificationSpec(
-                    to = listOf("example@example.com"),
-                    subject = "Intent was upserted",
-                    body = "test:1 was upserted and you like to know about that"
-                  ),
-                  SlackNotificationSpec(
-                    to = listOf("my-channel"),
-                    message = "test:1 was upserted",
-                    color = "#ff0000"
-                  )
+        attributes = mutableListOf(
+          NotificationAttribute(NotificationSubscriptions(
+            subscriptions = mapOf(
+              EventKind.AFTER_INTENT_UPSERT to listOf(
+                EmailNotificationSpec(
+                  to = listOf("example@example.com"),
+                  subject = "Intent was upserted",
+                  body = "test:1 was upserted and you like to know about that"
+                ),
+                SlackNotificationSpec(
+                  to = listOf("my-channel"),
+                  message = "test:1 was upserted",
+                  color = "#ff0000"
                 )
               )
             )
-          )
+          ))
         )
       )
     )

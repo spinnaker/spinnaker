@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.keel.echo
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.keel.event.EventKind
 import com.netflix.spinnaker.keel.event.IntentAwareEvent
-import com.netflix.spinnaker.keel.policy.NotificationPolicy
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -35,47 +35,39 @@ class EventNotificationListener(
 
   @EventListener(IntentAwareEvent::class)
   fun onIntentAwareEvent(event: IntentAwareEvent) {
-    event.intent.getPolicy(NotificationPolicy::class)
-      ?.also { policy ->
-        policy.spec.subscriptions
+    event.intent.getAttribute(NotificationAttribute::class)
+      ?.also { attribute ->
+        attribute.value.subscriptions
           .filter { it.key == event.kind }
           .forEach { sub ->
-            log.info(
-              "Sending {} notifications for intent (intent: {})",
-              value("kind", sub.key),
-              value("intent", event.intent.id())
-            )
-
-            sub.value.forEach { notification ->
-              try {
-                echoService.create(EchoService.Notification(
-                  notificationType = notification.echoNotificationType,
-                  to = notification.to,
-                  cc = notification.cc,
-                  // TODO rz - Support other, non-generic templates
-                  templateGroup = "keelIntent",
-                  severity = notification.severity,
-                  source = EchoService.Notification.Source("keel"),
-                  additionalContext = notification.getAdditionalContext().toMutableMap().let {
-                    it.putAll(mapOf(
-                      "eventKind" to event.kind.toValue(),
-                      "intentId" to event.intent.id()
-                    ))
-                    it
-                  }
-                ))
-                registry.counter(notificationsId.withTag("result", "success"))
-              } catch (cause: Exception) {
-                log.error(
-                  "Failed creating notification for intent (intent: {}, type: {})",
-                  value("intent", event.intent.id()),
-                  value("kind", sub.key),
-                  cause
-                )
-                registry.counter(notificationsId.withTag("result", "failed"))
-              }
-            }
+            log.info("Sending {} notifications for {}", value("kind", sub.key), value("intentId", event.intent.id()))
+            sub.value.forEach { sendNotification(event.intent.id(), event.kind, it) }
           }
       }
+  }
+
+  private fun sendNotification(intentId: String, eventKind: EventKind, notification: NotificationSpec) {
+    try {
+      echoService.create(EchoService.Notification(
+        notificationType = notification.echoNotificationType,
+        to = notification.to,
+        cc = notification.cc,
+        // TODO rz - Support other, non-generic templates
+        templateGroup = "keelIntent",
+        severity = notification.severity,
+        source = EchoService.Notification.Source("keel"),
+        additionalContext = notification.getAdditionalContext().toMutableMap().let {
+          it.putAll(mapOf(
+            "eventKind" to eventKind.toValue(),
+            "intentId" to intentId
+          ))
+          it
+        }
+      ))
+      registry.counter(notificationsId.withTag("result", "success"))
+    } catch (e: Exception) {
+      log.error("Failed sending {} notification for {}", value("kind", eventKind), value("intentId", intentId), e)
+      registry.counter(notificationsId.withTag("result", "failed"))
+    }
   }
 }
