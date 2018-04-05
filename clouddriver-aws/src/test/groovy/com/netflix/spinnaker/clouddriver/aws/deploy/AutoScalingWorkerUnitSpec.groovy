@@ -17,21 +17,26 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.AlreadyExistsException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.Subnet
-import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class AutoScalingWorkerUnitSpec extends Specification {
 
@@ -171,6 +176,106 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * autoScaling.enableMetricsCollection({ it.metrics == ['GroupMinSize', 'GroupMaxSize'] })
+  }
+
+  void "continues if serverGroup already exists, is reasonably the same and within safety window"() {
+    setup:
+    def autoScalingWorker = new AutoScalingWorker(
+      enabledMetrics: ['GroupMinSize', 'GroupMaxSize'],
+      instanceMonitoring: true,
+      regionScopedProvider: regionScopedProvider,
+      credentials: credential,
+      application: "myasg",
+      region: "us-east-1",
+      classicLoadBalancers: ["one", "two"]
+    )
+
+    when:
+    String asgName = autoScalingWorker.deploy()
+
+    then:
+    noExceptionThrown()
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> "myasg-12345"
+    1 * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    1 * autoScaling.describeAutoScalingGroups(_) >> {
+      new DescribeAutoScalingGroupsResult(
+        autoScalingGroups: [
+          new AutoScalingGroup(
+            autoScalingGroupName: "myasg-v000",
+            launchConfigurationName: "myasg-12345",
+            loadBalancerNames: ["one", "two"],
+            createdTime: new Date()
+          )
+        ]
+      )
+    }
+    asgName == "myasg-v000"
+  }
+
+  void "throws duplicate exception if existing autoscaling group was created before safety window"() {
+    setup:
+    def autoScalingWorker = new AutoScalingWorker(
+      enabledMetrics: ['GroupMinSize', 'GroupMaxSize'],
+      instanceMonitoring: true,
+      regionScopedProvider: regionScopedProvider,
+      credentials: credential,
+      application: "myasg",
+      region: "us-east-1",
+      classicLoadBalancers: ["one", "two"]
+    )
+
+    when:
+    autoScalingWorker.deploy()
+
+    then:
+    thrown(AlreadyExistsException)
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> "myasg-12345"
+    _ * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    _ * autoScaling.describeAutoScalingGroups(_) >> {
+      new DescribeAutoScalingGroupsResult(
+        autoScalingGroups: [
+          new AutoScalingGroup(
+            autoScalingGroupName: "myasg-v000",
+            launchConfigurationName: "myasg-12345",
+            loadBalancerNames: ["one", "two"],
+            createdTime: new Date(Instant.now().minus(3, ChronoUnit.HOURS).toEpochMilli())
+          )
+        ]
+      )
+    }
+  }
+
+  void "throws duplicate exception if existing and desired autoscaling group differ settings"() {
+    setup:
+    def autoScalingWorker = new AutoScalingWorker(
+      enabledMetrics: ['GroupMinSize', 'GroupMaxSize'],
+      instanceMonitoring: true,
+      regionScopedProvider: regionScopedProvider,
+      credentials: credential,
+      application: "myasg",
+      region: "us-east-1",
+      classicLoadBalancers: ["one", "two"]
+    )
+
+    when:
+    autoScalingWorker.deploy()
+
+    then:
+    thrown(AlreadyExistsException)
+    1 * lcBuilder.buildLaunchConfiguration('myasg', null, _, null) >> "myasg-12345"
+    _ * autoScaling.createAutoScalingGroup(_) >> { throw new AlreadyExistsException("Already exists, man") }
+    _ * autoScaling.describeAutoScalingGroups(_) >> {
+      new DescribeAutoScalingGroupsResult(
+        autoScalingGroups: [
+          new AutoScalingGroup(
+            autoScalingGroupName: "myasg-v000",
+            launchConfigurationName: "different",
+            loadBalancerNames: ["three"],
+            createdTime: new Date()
+          )
+        ]
+      )
+    }
   }
 
   @Unroll

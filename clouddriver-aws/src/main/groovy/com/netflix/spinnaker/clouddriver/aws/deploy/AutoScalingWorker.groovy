@@ -15,28 +15,40 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
+
+import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.AlreadyExistsException
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.EnableMetricsCollectionRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.amazonaws.services.autoscaling.model.Tag
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetData
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kork.core.RetrySupport
+import groovy.util.logging.Slf4j
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.function.Supplier
 
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
  *
  *
  */
+@Slf4j
 class AutoScalingWorker {
   private static final String AWS_PHASE = "AWS_DEPLOY"
 
@@ -147,7 +159,7 @@ class AutoScalingWorker {
 
     String launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings, legacyUdf)
 
-    task.updateStatus AWS_PHASE, "Deploying ASG."
+    task.updateStatus AWS_PHASE, "Deploying ASG: $asgName"
 
     createAutoScalingGroup(asgName, launchConfigName)
   }
@@ -232,17 +244,33 @@ class AutoScalingWorker {
     }
 
     def autoScaling = regionScopedProvider.autoScaling
-    retrySupport.retry({ -> autoScaling.createAutoScalingGroup(request) }, 5, 1000, true)
+    Exception ex = retrySupport.retry({ ->
+      try {
+        autoScaling.createAutoScalingGroup(request)
+      } catch (AlreadyExistsException e) {
+        if (!shouldProceedWithExistingState(autoScaling, asgName, request)) {
+          return e
+        }
+        log.debug("Determined pre-existing ASG is desired state, continuing...", e)
+      }
+    }, 10, 1000, false)
+    if (ex != null) {
+      throw ex
+    }
 
     if (suspendedProcesses) {
-      autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
+      retrySupport.retry({ ->
+        autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
+      }, 10, 1000, false)
     }
     if (enabledMetrics && instanceMonitoring) {
       task.updateStatus AWS_PHASE, "Enabling metrics collection for: $asgName"
-      autoScaling.enableMetricsCollection(new EnableMetricsCollectionRequest()
-        .withAutoScalingGroupName(asgName)
-        .withGranularity('1Minute')
-        .withMetrics(enabledMetrics))
+      retrySupport.retry({ ->
+        autoScaling.enableMetricsCollection(new EnableMetricsCollectionRequest()
+          .withAutoScalingGroupName(asgName)
+          .withGranularity('1Minute')
+          .withMetrics(enabledMetrics))
+      }, 10, 1000, false)
     }
 
     retrySupport.retry({ ->
@@ -254,8 +282,44 @@ class AutoScalingWorker {
           desiredCapacity: desiredInstances
         )
       )
-    }, 5, 1000, true)
+    }, 10, 1000, false)
 
     asgName
+  }
+
+  private boolean shouldProceedWithExistingState(AmazonAutoScaling autoScaling, String asgName, CreateAutoScalingGroupRequest request) {
+    DescribeAutoScalingGroupsResult result = autoScaling.describeAutoScalingGroups(
+      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
+    )
+    if (result.autoScalingGroups.isEmpty()) {
+      // This will only happen if we get an AlreadyExistsException from AWS, then immediately after describing it, we
+      // don't get a result back. We'll continue with trying to create because who knows... may as well try.
+      log.error("Attempted to find pre-existing ASG but none was found: $asgName")
+      return true
+    }
+    AutoScalingGroup existingAsg = result.autoScalingGroups.first()
+
+    Set<String> failedPredicates = [
+      "launch configuration": { return existingAsg.launchConfigurationName == request.launchConfigurationName },
+      "availability zones": { return existingAsg.availabilityZones == request.availabilityZones },
+      "subnets": { return existingAsg.getVPCZoneIdentifier() == request.getVPCZoneIdentifier() },
+      "load balancers": { return existingAsg.loadBalancerNames == request.loadBalancerNames },
+      "target groups": { return existingAsg.targetGroupARNs == request.targetGroupARNs },
+      "cooldown": { return existingAsg.defaultCooldown == request.defaultCooldown },
+      "health check grace period": { return existingAsg.healthCheckGracePeriod == request.healthCheckGracePeriod },
+      "health check type": { return existingAsg.healthCheckType == request.healthCheckType },
+      "termination policies": { return existingAsg.terminationPolicies == request.terminationPolicies }
+    ].findAll { !((Supplier<Boolean>) it.value).get() }.keySet()
+
+    if (!failedPredicates.isEmpty()) {
+      task.updateStatus AWS_PHASE, "$asgName already exists and does not seem to match desired state on: ${failedPredicates.join(", ")}"
+      return false
+    }
+    if (existingAsg.createdTime.toInstant().isBefore(Instant.now().minus(1, ChronoUnit.HOURS))) {
+      task.updateStatus AWS_PHASE, "$asgName already exists and appears to be valid, but falls outside of window for deploy retry"
+      return false
+    }
+
+    return true
   }
 }

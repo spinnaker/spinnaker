@@ -16,15 +16,20 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
-import com.amazonaws.services.autoscaling.model.*
-import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
+import com.amazonaws.services.autoscaling.model.AlreadyExistsException
+import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsRequest
+import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsResult
+import com.amazonaws.services.autoscaling.model.PutScheduledUpdateGroupActionRequest
+import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
+import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.clouddriver.aws.services.IdGenerator
+import com.netflix.spinnaker.clouddriver.data.task.Task
 import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 
+@Slf4j
 @Canonical
 class AsgReferenceCopier {
 
@@ -59,7 +64,13 @@ class AsgReferenceCopier {
       if (startTime?.time > System.currentTimeMillis()) {
         request.withStartTime(startTime)
       }
-      targetAutoScaling.putScheduledUpdateGroupAction(request)
+
+      try {
+        targetAutoScaling.putScheduledUpdateGroupAction(request)
+      } catch (AlreadyExistsException e) {
+        // This should never happen as the name is generated with a UUID.
+        log.warn("Scheduled action already exists on ASG, continuing (request: $request)")
+      }
 
       task.updateStatus "AWS_DEPLOY", "Creating scheduled action (${request}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
     }
