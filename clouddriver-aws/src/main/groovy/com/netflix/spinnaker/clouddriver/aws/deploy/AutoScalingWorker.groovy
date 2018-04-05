@@ -247,11 +247,13 @@ class AutoScalingWorker {
     Exception ex = retrySupport.retry({ ->
       try {
         autoScaling.createAutoScalingGroup(request)
+        return null
       } catch (AlreadyExistsException e) {
         if (!shouldProceedWithExistingState(autoScaling, asgName, request)) {
           return e
         }
         log.debug("Determined pre-existing ASG is desired state, continuing...", e)
+        return null
       }
     }, 10, 1000, false)
     if (ex != null) {
