@@ -31,13 +31,21 @@ configuration:
   - enabled: false
     job: ZZ-demo
     master: myMaster
-    name: unnamed0
     type: jenkins
+    name: unnamed0
   - cronExpression: 0 0/12 * * * ?
     enabled: true
     id: b2ba0819-dbe5-42bd-a8b0-0499c131711f
-    name: unnamed1
     type: cron
+    name: unnamed1
+  parameters: []
+  notifications:
+  - address: example@example.com
+    level: pipeline
+    type: email
+    when:
+    - pipeline.failed
+    name: email0
   expectedArtifacts:
   - defaultArtifact:
       kind: custom
@@ -48,14 +56,6 @@ configuration:
       name: MyJenkinsJob
     useDefaultArtifact: false
     usePriorExecution: false
-  parameters: []
-  notifications:
-  - address: example@example.com
-    level: pipeline
-    name: email0
-    type: email
-    when:
-    - pipeline.failed
 variables: []
 stages:
 - id: bake1
