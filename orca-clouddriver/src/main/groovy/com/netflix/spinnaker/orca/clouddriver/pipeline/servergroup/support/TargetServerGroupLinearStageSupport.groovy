@@ -151,19 +151,11 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     def targets = resolver.resolveByParams(params)
     def descriptionList = buildStaticTargetDescriptions(stage, targets)
 
-    descriptionList.inject(null) { Stage previous, Map<String, Object> description ->
-      if (previous == null) {
-        graph.add {
-          it.type = type
-          it.name = name
-          it.context = description
-        }
-      } else {
-        graph.connect(previous) {
-          it.type = type
-          it.name = name
-          it.context = description
-        }
+    descriptionList.each { Map<String, Object> description ->
+      graph.append {
+        it.type = type
+        it.name = name
+        it.context = description
       }
     }
   }
@@ -180,15 +172,15 @@ abstract class TargetServerGroupLinearStageSupport implements StageDefinitionBui
     def singularLocationType = params.locations[0].singularType()
     def pluralLocationType = params.locations[0].pluralType()
 
-    def determineTargetServerGroups = graph.add {
+    graph.add {
       it.type = DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
       it.name = DetermineTargetServerGroupStage.PIPELINE_CONFIG_TYPE
       it.context.putAll(stage.context)
       it.context[pluralLocationType] = params.locations.collect { it.value }
     }
 
-    params.locations.inject(determineTargetServerGroups) { Stage previous, Location location ->
-      graph.connect(previous) {
+    params.locations.each { Location location ->
+      graph.append {
         it.type = type
         it.name = name
         it.context.putAll(stage.context)

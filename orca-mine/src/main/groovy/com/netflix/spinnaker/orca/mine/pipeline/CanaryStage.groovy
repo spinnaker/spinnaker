@@ -21,7 +21,6 @@ import javax.annotation.Nonnull
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.CancellableStage.Result
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -55,12 +54,12 @@ class CanaryStage implements StageDefinitionBuilder, CancellableStage {
     Map<String, Object> deployContext = canaryStageId + parent.context
     Map<String, Object> monitorContext = canaryStageId + [scaleUp: parent.context.scaleUp ?: [:]]
 
-    def deployCanaryStage = graph.add {
+    graph.append {
       it.type = deployCanaryStage.type
       it.name = "Deploy Canary"
       it.context = deployContext
     }
-    graph.connect(deployCanaryStage) {
+    graph.append {
       it.type = monitorCanaryStage.type
       it.name = "Monitor Canary"
       it.context = monitorContext

@@ -66,12 +66,12 @@ val stageWithSyntheticOnFailure = object : StageDefinitionBuilder {
   }
 
   override fun onFailureStages(stage: Stage, graph: StageGraphBuilder) {
-    val stage1 = graph.add {
+    graph.append {
       it.type = singleTaskStage.type
       it.name = "onFailure1"
       it.context = stage.context
     }
-    graph.connect(stage1) {
+    graph.append {
       it.type = singleTaskStage.type
       it.name = "onFailure2"
       it.context = stage.context
@@ -103,12 +103,12 @@ val stageWithSyntheticAfter = object : StageDefinitionBuilder {
   }
 
   override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
-    val first = graph.add {
+    graph.append {
       it.type = singleTaskStage.type
       it.name = "post1"
       it.context = parent.context
     }
-    graph.connect(first) {
+    graph.append {
       it.type = singleTaskStage.type
       it.name = "post2"
       it.context = parent.context
