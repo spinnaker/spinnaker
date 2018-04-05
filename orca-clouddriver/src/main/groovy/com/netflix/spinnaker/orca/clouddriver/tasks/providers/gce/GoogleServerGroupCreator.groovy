@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -49,34 +50,39 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       operation.credentials = operation.account
     }
 
-    operation.image = operation.image ?: getImage(stage)
-
-    if (!operation.image) {
-      throw new IllegalStateException("No image could be found in ${stage.context.region}.")
+    if (stage.context.imageSource == "artifact") {
+      operation.imageSource = "ARTIFACT"
+      operation.imageArtifact = getImageArtifact(stage)
+    } else {
+      operation.imageSource = "STRING"
+      operation.image = operation.image ?: getImage(stage)
+      if (!operation.image) {
+        throw new IllegalStateException("No image could be found in ${stage.context.region}.")
+      }
     }
 
     return [[(ServerGroupCreator.OPERATION): operation]]
   }
 
-  private String getImage(Stage stage) {
+  private Artifact getImageArtifact(Stage stage) {
     def stageContext = stage.getContext()
+
+    def artifactId = stageContext.imageArtifactId as String
+    if (artifactId == null) {
+      throw new IllegalArgumentException("Image source was set to artifact but no artifact was specified.")
+    }
+    return artifactResolver.getBoundArtifactForId(stage, artifactId)
+  }
+
+  private String getImage(Stage stage) {
     String image
 
-    if (stageContext.imageSource == "artifact") {
-      def artifactId = stageContext.imageArtifactId
-      if (artifactId == null) {
-        throw new IllegalStateException("Image source was set to artifact but no artifact was specified.")
-      }
-      def resolvedArtifact = artifactResolver.getBoundArtifactForId(stage, artifactId)
-      image = resolvedArtifact.getName()
-    } else {
-      withImageFromPrecedingStage(stage, null, cloudProvider) {
-        image = image ?: it.imageId
-      }
+    withImageFromPrecedingStage(stage, null, cloudProvider) {
+      image = image ?: it.imageId
+    }
 
-      withImageFromDeploymentDetails(stage, null, cloudProvider) {
-        image = image ?: it.imageId
-      }
+    withImageFromDeploymentDetails(stage, null, cloudProvider) {
+      image = image ?: it.imageId
     }
 
     return image

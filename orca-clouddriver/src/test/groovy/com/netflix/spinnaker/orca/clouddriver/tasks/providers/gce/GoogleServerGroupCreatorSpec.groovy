@@ -50,6 +50,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
           account          : "abc",
           credentials      : "abc",
           image            : "specifiedImage",
+          imageSource      : "STRING",
           region           : "north-pole",
           zone             : "north-pole-1",
         ],
@@ -70,6 +71,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
           account          : "abc",
           credentials      : "abc",
           image            : "testImageId",
+          imageSource      : "STRING",
           region           : "north-pole",
           zone             : "north-pole-1",
           deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
@@ -93,6 +95,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
           account          : "abc",
           credentials      : "abc",
           image            : "testImageId",
+          imageSource      : "STRING",
           region           : "south-pole",
           zone             : "south-pole-1",
           deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
@@ -107,22 +110,19 @@ class GoogleServerGroupCreatorSpec extends Specification {
     stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    artifactResolver.getBoundArtifactForId(*_) >> {
-      Artifact artifact = new Artifact();
-      artifact.setName("santaImage")
-      return artifact
-    }
+    Artifact buildArtifact = Artifact.ArtifactBuilder.newInstance().name("santaImage").build();
+    artifactResolver.getBoundArtifactForId(*_) >> buildArtifact
     ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
 
     then:
     ops == [
       [
         "createServerGroup": [
-          imageSource      : "artifact",
+          imageSource      : "ARTIFACT",
+          imageArtifact    : buildArtifact,
           imageArtifactId  : "b3d33e5a-0423-4bdc-8e37-dea923b57c9a",
           account          : "abc",
           credentials      : "abc",
-          image            : "santaImage",
           region           : "north-pole",
           zone             : "north-pole-1",
           deploymentDetails: [[imageId: "testImageId", region: "north-pole"]],
@@ -144,8 +144,8 @@ class GoogleServerGroupCreatorSpec extends Specification {
     ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
 
     then:
-    IllegalStateException ise = thrown()
-    ise.message == "Image source was set to artifact but no artifact was specified."
+    IllegalArgumentException illegalArgumentException = thrown()
+    illegalArgumentException.message == "Image source was set to artifact but no artifact was specified."
 
     when: "throw error if no image found"
     ctx = [:] << basectx
@@ -156,7 +156,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
     new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
 
     then:
-    ise = thrown()
-    ise.message == "No image could be found in north-pole."
+    IllegalStateException illegalStagteException = thrown()
+    illegalStagteException.message == "No image could be found in north-pole."
   }
 }
