@@ -250,7 +250,7 @@ public class RedisTaskRepository implements TaskRepository {
   public List<Object> getResultObjects(JedisTask task) {
     String resultId = "taskResult:" + task.getId();
 
-    return retry(() -> redisClientDelegate.withCommandsClient(client -> {
+    return retry(() -> clientForTask(task).withCommandsClient(client -> {
       return client.lrange(resultId, 0, -1);
     }), format("Getting results for task %s", task.getId()))
       .stream()
