@@ -49,13 +49,15 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
   }
 
   @Override
-  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+  public void taskGraph(
+    @Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
     builder
       .withTask("determineRollbackCandidates", DetermineRollbackCandidatesTask.class);
   }
 
   @Override
-  public void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+  public void afterStages(
+    @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
     StageData stageData = parent.mapTo(StageData.class);
 
     Map<String, Object> parentOutputs = parent.getOutputs();
@@ -89,7 +91,7 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
       // propagate any attributes of the parent stage that are relevant to this rollback
       context.putAll(propagateParentStageContext(parent.getParent()));
 
-      Stage rollbackStage = graph.add((it) -> {
+      graph.append((it) -> {
         it.setType(rollbackServerGroupStage.getType());
         it.setName("Rollback " + region);
         it.setContext(context);
@@ -97,13 +99,11 @@ public class RollbackClusterStage implements StageDefinitionBuilder {
 
       if (stageData.waitTimeBetweenRegions != null && regionsToRollback.indexOf(region) < regionsToRollback.size() - 1) {
         // only add the waitStage if we're not the very last region!
-        graph.connect(
-          rollbackStage,
-          (it) -> {
-            it.setType(waitStage.getType());
-            it.setName("Wait after " + region);
-            it.setContext(Collections.singletonMap("waitTime", stageData.waitTimeBetweenRegions));
-          });
+        graph.append((it) -> {
+          it.setType(waitStage.getType());
+          it.setName("Wait after " + region);
+          it.setContext(Collections.singletonMap("waitTime", stageData.waitTimeBetweenRegions));
+        });
       }
     }
   }
