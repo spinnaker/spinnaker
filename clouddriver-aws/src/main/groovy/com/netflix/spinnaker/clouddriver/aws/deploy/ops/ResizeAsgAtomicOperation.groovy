@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
+import com.amazonaws.AmazonClientException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
-import com.netflix.config.validation.ValidationException
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -29,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
+  private static final MAX_SIMULTANEOUS_TERMINATIONS = 100
   private static final String PHASE = "RESIZE"
 
   private static Task getTask() {
@@ -85,7 +88,42 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
         .withDesiredCapacity(capacity.desired)
 
     autoScaling.updateAutoScalingGroup request
+
+
+    if (capacity.desired == 0) {
+      // there is an opportunity to expedite a resize to zero by explicitly terminating instances
+      // (server group _must not_ be attached to a load balancer)
+      terminateInstancesInAutoScalingGroup(
+        amazonClientProvider.getAmazonEC2(description.credentials, region, true),
+        describeAutoScalingGroups.getAutoScalingGroups().get(0) as AutoScalingGroup
+      )
+    }
+
     task.updateStatus PHASE, "Completed resize of ${asgName} in ${region}."
+  }
+
+  static void terminateInstancesInAutoScalingGroup(AmazonEC2 amazonEC2, AutoScalingGroup autoScalingGroup) {
+    if (!autoScalingGroup.loadBalancerNames.isEmpty() || !autoScalingGroup.targetGroupARNs.isEmpty()) {
+      task.updateStatus(
+        PHASE,
+        "Skipping explicit instance termination, server group is attached to one or more load balancers"
+      )
+      return
+    }
+
+    def serverGroupName = autoScalingGroup.autoScalingGroupName
+    def instanceIds = autoScalingGroup.instances.instanceId
+
+    def terminatedCount = 0
+    instanceIds.collate(MAX_SIMULTANEOUS_TERMINATIONS).each {
+      try {
+        terminatedCount += it.size()
+        task.updateStatus PHASE, "Terminating ${terminatedCount} of ${instanceIds.size()} instances in ${serverGroupName}"
+        amazonEC2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(it))
+      } catch (Exception e) {
+        task.updateStatus PHASE, "Unable to terminate instances, reason: '${e.message}'"
+      }
+    }
   }
 
   static void validateConstraints(ResizeAsgDescription.Constraints constraints, AutoScalingGroup autoScalingGroup) {
