@@ -59,12 +59,59 @@ class StageGraphBuilderSpec extends Specification {
   }
 
   @Unroll
+  def "appending a single #expectedSyntheticType stage to an empty builder just adds it"() {
+    given:
+    subject.append {
+      it.name = "Z"
+    }
+    def stages = subject.build().toList()
+
+    expect:
+    stages.size() == 1
+
+    and:
+    with(stages.first()) {
+      requisiteStageRefIds.isEmpty()
+      syntheticStageOwner == expectedSyntheticType
+    }
+
+    where:
+    subject              || expectedSyntheticType
+    beforeStages(parent) || STAGE_BEFORE
+    afterStages(parent)  || STAGE_AFTER
+  }
+
+  @Unroll
   def "adding two dependent #expectedSyntheticType stages wires up refId relationships"() {
     given:
     def stage1 = subject.add {
       it.name = "A"
     }
     def stage2 = subject.connect(stage1) {
+      it.name = "B"
+    }
+    def stages = subject.build().toList()
+
+    expect:
+    stages.size() == 2
+
+    and:
+    stage2.requisiteStageRefIds.size() == 1
+    stage2.requisiteStageRefIds.first() == stage1.refId
+
+    where:
+    subject              || expectedSyntheticType
+    beforeStages(parent) || STAGE_BEFORE
+    afterStages(parent)  || STAGE_AFTER
+  }
+
+  @Unroll
+  def "appending a single #expectedSyntheticType stage to a non-empty builder wires up refId relationships with the last stage added"() {
+    given:
+    def stage1 = subject.add {
+      it.name = "A"
+    }
+    def stage2 = subject.append {
       it.name = "B"
     }
     def stages = subject.build().toList()

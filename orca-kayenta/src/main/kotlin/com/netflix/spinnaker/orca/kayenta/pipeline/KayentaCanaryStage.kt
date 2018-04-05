@@ -77,7 +77,7 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
     val stages = ArrayList<Stage>()
 
     var previous: Stage? = if (canaryConfig.beginCanaryAnalysisAfter > ZERO) {
-      graph.add {
+      graph.append {
         it.type = WaitStage.TYPE
         it.name = "Warmup Wait"
         it.context["waitTime"] = canaryConfig.beginCanaryAnalysisAfter.seconds
@@ -90,18 +90,10 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
       // If an end time was explicitly specified, we don't need to synchronize
       // the execution of the canary pipeline with the real time.
       if (canaryConfig.endTime == null) {
-        previous = if (previous == null) {
-          graph.add {
-            it.type = WaitStage.TYPE
-            it.name = "Interval Wait #$i"
-            it.context["waitTime"] = canaryAnalysisInterval.seconds
-          }
-        } else {
-          graph.connect(previous) {
-            it.type = WaitStage.TYPE
-            it.name = "Interval Wait #$i"
-            it.context["waitTime"] = canaryAnalysisInterval.seconds
-          }
+        graph.append {
+          it.type = WaitStage.TYPE
+          it.name = "Interval Wait #$i"
+          it.context["waitTime"] = canaryAnalysisInterval.seconds
         }
       }
 
@@ -113,18 +105,10 @@ class KayentaCanaryStage(private val clock: Clock) : StageDefinitionBuilder {
         canaryConfig.scoreThresholds
       )
 
-      previous = if (previous == null) {
-        graph.add {
-          it.type = RunCanaryPipelineStage.STAGE_TYPE
-          it.name = "Run Canary #$i"
-          it.context.putAll(mapper.convertValue<Map<String, Any>>(runCanaryContext))
-        }
-      } else {
-        graph.connect(previous) {
-          it.type = RunCanaryPipelineStage.STAGE_TYPE
-          it.name = "Run Canary #$i"
-          it.context.putAll(mapper.convertValue<Map<String, Any>>(runCanaryContext))
-        }
+      graph.append {
+        it.type = RunCanaryPipelineStage.STAGE_TYPE
+        it.name = "Run Canary #$i"
+        it.context.putAll(mapper.convertValue<Map<String, Any>>(runCanaryContext))
       }
     }
   }

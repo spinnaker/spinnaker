@@ -39,6 +39,7 @@ public class StageGraphBuilder {
   private final SyntheticStageOwner type;
   private final MutableGraph<Stage> graph = GraphBuilder.directed().build(); // TODO: is this actually useful?
   private final Optional<Stage> requiredPrefix;
+  private @Nullable Stage lastAdded = null;
 
   private StageGraphBuilder(Stage parent, SyntheticStageOwner type, Optional<Stage> requiredPrefix) {
     this.parent = parent;
@@ -98,6 +99,7 @@ public class StageGraphBuilder {
     if (graph.addNode(stage)) {
       stage.setRefId(generateRefId());
     }
+    lastAdded = stage;
   }
 
   /**
@@ -130,6 +132,28 @@ public class StageGraphBuilder {
     requisiteStageRefIds.add(previous.getRefId());
     next.setRequisiteStageRefIds(requisiteStageRefIds);
     graph.putEdge(previous, next);
+  }
+
+  /**
+   * Adds a new stage to the graph and makes it depend on the last stage that
+   * was added if any. This is convenient for straightforward stage graphs to
+   * avoid having to pass around references to stages in order to use
+   * {@link #connect(Stage, Consumer)}.
+   * <p>
+   * If no stages have been added so far, this is synonymous with calling
+   * {@link #add(Consumer)}.
+   *
+   * @param init See {@link #add(Consumer)}
+   * @return the newly created stage.
+   */
+  public @Nonnull Stage append(
+    @Nonnull Consumer<Stage> init
+  ) {
+    if (lastAdded == null) {
+      return add(init);
+    } else {
+      return connect(lastAdded, init);
+    }
   }
 
   /**
