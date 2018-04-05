@@ -69,7 +69,7 @@
     </page-section>
     <render-if-feature feature="artifacts">
       <page-section key="producesArtifacts" label="Produces Artifacts" visible="stageProducesArtifacts()">
-        <produces-artifacts stage="stage"></produces-artifacts>
+        <produces-artifacts stage="stage" pipeline="pipeline"></produces-artifacts>
       </page-section>
     </render-if-feature>
     <page-section key="comments" label="Comments" no-wrapper="true">

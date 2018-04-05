@@ -3,6 +3,7 @@ import { module } from 'angular';
 import {
   PIPELINE_CONFIG_PROVIDER,
   PipelineConfigProvider,
+  ArtifactReferenceServiceProvider,
   SETTINGS
 } from '@spinnaker/core';
 
@@ -16,7 +17,7 @@ export const KUBERNETES_DEPLOY_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipelin
 module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
   PIPELINE_CONFIG_PROVIDER,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+]).config((pipelineConfigProvider: PipelineConfigProvider, artifactReferenceServiceProvider: ArtifactReferenceServiceProvider) => {
   // Todo: replace feature flag with proper versioned provider mechanism once available.
   if (SETTINGS.feature.versionedProviders) {
     pipelineConfigProvider.registerStage({
@@ -35,5 +36,10 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
         { type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' }
       ],
     });
+
+    artifactReferenceServiceProvider.registerReference('stage', () => [
+      ['manifestArtifactId'],
+      ['requiredArtifactIds'],
+    ]);
   }
 }).controller('KubernetesV2DeployManifestConfigCtrl', KubernetesV2DeployManifestConfigCtrl);

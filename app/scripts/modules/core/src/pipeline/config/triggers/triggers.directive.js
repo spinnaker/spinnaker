@@ -2,11 +2,13 @@
 
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { UUIDGenerator } from 'core/utils/uuid.service';
+import { ARTIFACT_REFERENCE_SERVICE_PROVIDER } from 'core/artifact/ArtifactReferenceService';
 
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggersDirective', [
   PIPELINE_CONFIG_PROVIDER,
+  ARTIFACT_REFERENCE_SERVICE_PROVIDER,
 ])
   .directive('triggers', function() {
     return {
@@ -20,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggers
       templateUrl: require('./triggers.html')
     };
   })
-  .controller('triggersCtrl', function($scope, pipelineConfig) {
+  .controller('triggersCtrl', function($scope, pipelineConfig, artifactReferenceService) {
     this.addTrigger = function() {
       var triggerTypes = pipelineConfig.getTriggerTypes(),
           newTrigger = {enabled: true};
@@ -51,8 +53,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggers
       }
 
       pipeline.triggers
-        .forEach(t => t.expectedArtifactIds = t.expectedArtifactIds
-          .filter(eid => expectedArtifact.id !== eid));
+        .forEach(t => {
+          if (t.expectedArtifactIds) {
+            t.expectedArtifactIds = t.expectedArtifactIds.filter(eid => expectedArtifact.id !== eid);
+          }
+        });
+
+      artifactReferenceService.removeReferenceFromStages(expectedArtifact.id, pipeline.stages);
     };
 
     this.addArtifact = () => {
