@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.artifacts.model;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,14 +31,23 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Artifact {
+  @JsonProperty("type")
   private String type;
+  @JsonProperty("name")
   private String name;
+  @JsonProperty("version")
   private String version;
+  @JsonProperty("location")
   private String location;
+  @JsonProperty("reference")
   private String reference;
+  @JsonProperty("metadata")
   private Map<String, Object> metadata;
+  @JsonProperty("artifactAccount")
   private String artifactAccount;
+  @JsonProperty("provenance")
   private String provenance;
+  @JsonProperty("uuid")
   private String uuid;
 
   // Add extra, unknown data to the metadata map:
