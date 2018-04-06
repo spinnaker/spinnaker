@@ -64,16 +64,16 @@ class DockerMonitorSpec extends Specification {
 
         when: "should short circuit if `echoService` is not available"
         new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.empty(), Optional.empty(), dockerRegistryProperties)
-            .postEvent(["imageId"], taggedImage, "imageId")
+            .postEvent(["imageId"] as Set, taggedImage, "imageId")
 
         then:
         notThrown(NullPointerException)
 
         where:
-        cachedImages || echoServiceCallCount
-        null         || 0
-        []           || 0
-        ["job1"]     || 1
+        cachedImages    || echoServiceCallCount
+        null            || 0
+        [] as Set       || 0
+        ["job1"] as Set || 1
 
     }
 
@@ -89,7 +89,7 @@ class DockerMonitorSpec extends Specification {
 
         when:
         new DockerMonitor(properties, registry, discoveryClient, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty(), dockerRegistryProperties)
-            .postEvent(["job1"], taggedImage, "imageId")
+            .postEvent(["job1"] as Set, taggedImage, "imageId")
 
         then:
         1 * echoService.postEvent({ DockerEvent event ->
@@ -107,7 +107,7 @@ class DockerMonitorSpec extends Specification {
     void "should update cache if image is not already cached"() {
         given:
         def subject = createSubject()
-        List<String> cachedImages = [
+        Set<String> cachedImages = [
             'prefix:dockerRegistry:v2:account:registry:tag',
             'prefix:dockerRegistry:v2:account:anotherregistry:tag',
         ]

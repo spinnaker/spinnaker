@@ -139,6 +139,7 @@ public class DockerRegistryCacheV2KeysMigration {
     private Function<List<String>, Integer> oldKeysCallback =
         (keys) -> {
             List<DockerRegistryV1Key> v1Keys = keys.stream()
+                .filter(key -> !DockerRegistryV2Key.isV2Key(key))
                 .map(this::readV1Key)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());

@@ -15,8 +15,12 @@
  */
 package com.netflix.spinnaker.igor.docker;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class DockerRegistryV2Key {
     private static final String VERSION = "v2";
+    private static Pattern V2_PATTERN = Pattern.compile("^.*?:.*?:v2:.*?:.*?:.*$");
     private final String prefix;
     private final String id;
     private final String account;
@@ -57,6 +61,14 @@ public class DockerRegistryV2Key {
 
     public String toString() {
         return String.format("%s:%s:v2:%s:%s:%s", prefix, id, account, registry, tag);
+    }
+
+    public static boolean isV2Key(String key) {
+        if (key == null) {
+            return false;
+        }
+        Matcher matcher = V2_PATTERN.matcher(key);
+        return matcher.matches();
     }
 
     @Override

@@ -20,9 +20,9 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -44,9 +44,9 @@ public class DockerRegistryCache {
         this.igorConfigurationProperties = igorConfigurationProperties;
     }
 
-    public List<String> getImages(String account) {
+    public Set<String> getImages(String account) {
         return redisClientDelegate.withMultiClient(c -> {
-            return new ArrayList<>(c.keys(makeIndexPattern(prefix(), account)));
+            return c.keys(makeIndexPattern(prefix(), account));
         });
     }
 

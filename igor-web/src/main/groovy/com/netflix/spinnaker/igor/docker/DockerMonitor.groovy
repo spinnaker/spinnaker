@@ -94,7 +94,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         Boolean trackDigests = ctx.context.trackDigests ?: false
 
         log.debug("Checking new tags for {}", account)
-        List<String> cachedImages = cache.getImages(account)
+        Set<String> cachedImages = cache.getImages(account)
 
         long startTime = System.currentTimeMillis()
         List<TaggedImage> images = dockerRegistryAccounts.service.getImagesByAccount(account)
@@ -113,7 +113,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         return new DockerPollingDelta(items: delta, cachedImages: cachedImages)
     }
 
-    private boolean shouldUpdateCache(List<String> cachedImages, String imageId, TaggedImage image, boolean trackDigests) {
+    private boolean shouldUpdateCache(Set<String> cachedImages, String imageId, TaggedImage image, boolean trackDigests) {
         boolean updateCache = false
         if (imageId in cachedImages) {
             if (trackDigests) {
@@ -155,7 +155,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         "dockerTagMonitor"
     }
 
-    void postEvent(List<String> cachedImagesForAccount, TaggedImage image, String imageId) {
+    void postEvent(Set<String> cachedImagesForAccount, TaggedImage image, String imageId) {
         if (!echoService.isPresent()) {
             log.warn("Cannot send tagged image notification: Echo is not enabled")
             registry.counter(missedNotificationId.withTags("monitor", getClass().simpleName, "reason", "echoDisabled")).increment()
@@ -190,7 +190,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
 
     private static class DockerPollingDelta implements PollingDelta<ImageDelta> {
         List<ImageDelta> items
-        List<String> cachedImages
+        Set<String> cachedImages
     }
 
     private static class ImageDelta implements DeltaItem {
