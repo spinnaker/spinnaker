@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.client
 
+import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import org.openstack4j.api.compute.ComputeFloatingIPService
@@ -249,11 +250,11 @@ class OpenstackComputeV2ProviderSpec extends OpenstackClientProviderSpec {
     def id = UUID.randomUUID().toString()
 
     when:
-    provider.getSecurityGroup(region, id)
+    SecurityGroup actual = provider.getSecurityGroup(region, id)
 
     then:
-    1 * securityGroupService.get(id)
-    thrown(OpenstackResourceNotFoundException)
+    !actual
+    noExceptionThrown()
   }
 
   def "get security group throws exception"() {

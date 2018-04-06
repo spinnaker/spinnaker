@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.instance
 
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesDescription
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.AbstractStackUpdateOpenstackAtomicOperation
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -57,7 +58,13 @@ class TerminateOpenstackInstancesAtomicOperation extends AbstractStackUpdateOpen
     if (instanceId) {
       task.updateStatus phaseName, "Getting server group name from instance $instanceId ..."
       Server server = provider.getServerInstance(description.region, instanceId)
+      if (!server) {
+        throw new OpenstackResourceNotFoundException("Could not find server: $instanceId in region: $description.region")
+      }
       serverGroupName = server.metadata?.get("metering.stack.name") ?: provider.getStack(description.region, server.metadata?.get("metering.stack"))?.name
+      if (!serverGroupName) {
+        throw new OpenstackResourceNotFoundException("Could not find server group name for server: $instanceId")
+      }
       task.updateStatus phaseName, "Found server group name $serverGroupName from instance $instanceId."
     }
     serverGroupName
@@ -71,12 +78,18 @@ class TerminateOpenstackInstancesAtomicOperation extends AbstractStackUpdateOpen
     Resource asg = provider.getAsgResourceForStack(description.region, stack)
     task.updateStatus phaseName, "Finding nested stack for resource $asg.type ..."
     Stack nested = provider.getStack(description.region, asg.physicalResourceId)
+    if (!nested) {
+      throw new OpenstackResourceNotFoundException("Could not find stack $asg.physicalResourceId in region: $description.region")
+    }
 
     description.instanceIds.each { id ->
 
       //get server name
       task.updateStatus phaseName, "Getting server details for $id ..."
       Server server = provider.getServerInstance(description.region, id)
+      if (!server) {
+        throw new OpenstackResourceNotFoundException("Could not find server: $id in region: $description.region")
+      }
 
       //get resource
       task.updateStatus phaseName, "Finding server group resource for $id ..."

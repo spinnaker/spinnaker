@@ -82,10 +82,11 @@ class OpenstackSwiftV1ProviderSpec extends OpenstackClientProviderSpec {
 
   def "unable to get entity from response"() {
     when:
-    provider.readSwiftObject(region, container, name)
+    String actual = provider.readSwiftObject(region, container, name)
 
     then:
-    thrown(OpenstackResourceNotFoundException)
+    !actual
+    noExceptionThrown()
     1 * objectsService.download(container, name) >> payload
     1 * payload.getHttpResponse() >> response
     1 * response.getStatus() >> 200

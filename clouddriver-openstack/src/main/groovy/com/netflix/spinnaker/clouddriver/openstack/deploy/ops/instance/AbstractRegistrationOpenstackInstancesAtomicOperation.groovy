@@ -23,7 +23,8 @@ import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvide
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.instance.OpenstackInstancesRegistrationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
-import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.LoadBalancerStatusAware
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.loadbalancer.LoadBalancerChecker
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
@@ -31,7 +32,7 @@ import org.openstack4j.model.network.ext.LoadBalancerV2
 /**
  * Base class that will handle both load balancer registration and deregistration.
  */
-abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements AtomicOperation<Void>, LoadBalancerStatusAware {
+abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements AtomicOperation<Void> {
 
   abstract String getBasePhase() // Either 'REGISTER' or 'DEREGISTER'.
   abstract Boolean getAction() // Either 'true' or 'false', for Register and Deregister respectively.
@@ -56,9 +57,12 @@ abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements 
       task.updateStatus basePhase, "Start $verb all instances $preposition load balancers..."
       OpenstackClientProvider provider = description.credentials.provider
       description.loadBalancerIds.each { lb ->
-        BlockingStatusChecker checker = createBlockingActiveStatusChecker(description.credentials, description.region, lb)
         task.updateStatus basePhase, "Getting details for load balancer $lb..."
         LoadBalancerV2 loadBalancer = provider.getLoadBalancer(description.region, lb)
+        if (!loadBalancer) {
+          throw new OpenstackResourceNotFoundException("Could not find load balancer: $lb in region: $description.region")
+        }
+
         description.instanceIds.each { id ->
           task.updateStatus basePhase, "Getting ip address for service instance $id..."
           String ip = provider.getIpForInstance(description.region, id)
@@ -69,15 +73,19 @@ abstract class AbstractRegistrationOpenstackInstancesAtomicOperation implements 
               task.updateStatus basePhase, "Getting internal port from load balancer $loadBalancer.name for listener $listenerItem.id..."
               int internalPort = provider.getInternalLoadBalancerPort(description.region, listenerItem.id)
               task.updateStatus basePhase, "Adding member with ip $ip to load balancer $loadBalancer.name on internal port $internalPort with weight $description.weight..."
-              checker.execute {
-                provider.addMemberToLoadBalancerPool(description.region, ip, listener.defaultPoolId, loadBalancer.vipSubnetId, internalPort, description.weight)
+              provider.addMemberToLoadBalancerPool(description.region, ip, listener.defaultPoolId, loadBalancer.vipSubnetId, internalPort, description.weight)
+              task.updateStatus basePhase, "Waiting on member add status with ip $ip to load balancer $loadBalancer.name on internal port $internalPort with weight $description.weight..."
+              LoadBalancerChecker.from(description.credentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+                provider.getLoadBalancer(description.region, lb)
               }
             } else {
               task.updateStatus basePhase, "Getting member id for server instance $id and ip $ip on load balancer $loadBalancer.name..."
               String memberId = provider.getMemberIdForInstance(description.region, ip, listener.defaultPoolId)
               task.updateStatus basePhase, "Removing member with ip $ip from load balancer $loadBalancer.name..."
-              checker.execute {
-                provider.removeMemberFromLoadBalancerPool(description.region, listener.defaultPoolId, memberId)
+              provider.removeMemberFromLoadBalancerPool(description.region, listener.defaultPoolId, memberId)
+              task.updateStatus basePhase, "Waiting on remove status for mmber with ip $ip from load balancer $loadBalancer.name..."
+              LoadBalancerChecker.from(description.credentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+                provider.getLoadBalancer(description.region, lb)
               }
             }
           }

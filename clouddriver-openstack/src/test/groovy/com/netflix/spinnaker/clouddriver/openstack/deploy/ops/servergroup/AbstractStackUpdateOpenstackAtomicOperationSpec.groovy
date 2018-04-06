@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
@@ -54,6 +55,8 @@ class AbstractStackUpdateOpenstackAtomicOperationSpec extends Specification {
     OpenstackClientProvider provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
     OpenstackNamedAccountCredentials credz = Mock(OpenstackNamedAccountCredentials)
+    credz.getStackConfig() >> new OpenstackConfigurationProperties.StackConfig(pollInterval: 0, pollTimeout: 1)
+
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackServerGroupAtomicOperationDescription(serverGroupName: serverGroupName, account: ACCOUNT_NAME, credentials: credentials, region: region)
@@ -63,6 +66,7 @@ class AbstractStackUpdateOpenstackAtomicOperationSpec extends Specification {
       it.parameters >> { [:] }
       it.outputs >> { [[output_key: ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: yaml], [output_key: ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: yaml]] }
       it.tags >> { tags }
+      it.status >> "UPDATE_COMPLETE"
     }
   }
 
@@ -74,7 +78,7 @@ class AbstractStackUpdateOpenstackAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * credentials.provider.getStack(region, serverGroupName) >> stack
+    2 * credentials.provider.getStack(region, serverGroupName) >> stack
     1 * credentials.provider.getHeatTemplate(region, serverGroupName, serverGroupName) >> yaml
     1 * credentials.provider.updateStack(region, serverGroupName, serverGroupName, yaml, _ as Map, _ as ServerGroupParameters, stack.tags)
     noExceptionThrown()

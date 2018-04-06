@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.securitygr
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import groovy.util.logging.Slf4j
@@ -73,6 +74,9 @@ class UpsertOpenstackSecurityGroupAtomicOperation implements AtomicOperation<Voi
       if (StringUtils.isNotEmpty(description.id)) {
         task.updateStatus BASE_PHASE, "Looking up existing security group with id ${description.id}"
         securityGroup = provider.getSecurityGroup(description.region, description.id)
+        if (!securityGroup) {
+          throw new OpenstackResourceNotFoundException("Could not find securityGroup: $description.id in region: $description.region")
+        }
         task.updateStatus BASE_PHASE, "Updating security group with name ${description.name} and description '${description.description}'"
         securityGroup = provider.updateSecurityGroup(description.region, description.id, description.name, description.description)
       } else {

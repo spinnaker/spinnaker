@@ -122,7 +122,7 @@ class OpenstackLoadbalancerV2ClientProviderSpec extends OpenstackClientProviderS
     LoadBalancerV2 expected = null
 
     when:
-    provider.getLoadBalancer(region, id)
+    LoadBalancerV2 actual = provider.getLoadBalancer(region, id)
 
     then:
     1 * mockClient.networking() >> networkingService
@@ -131,7 +131,8 @@ class OpenstackLoadbalancerV2ClientProviderSpec extends OpenstackClientProviderS
     1 * loadBalancerV2Service.get(id) >> expected
 
     and:
-    thrown(OpenstackProviderException)
+    !actual
+    noExceptionThrown()
   }
 
   def "get load balancer exception"() {

@@ -76,6 +76,7 @@ class OpenstackCredentialsInitializer implements CredentialsInitializerSynchroni
           .insecure(managedAccount.insecure)
           .heatTemplateLocation(managedAccount.heatTemplatePath)
           .lbaasConfig(managedAccount.lbaas)
+          .stackConfig(managedAccount.stack)
           .consulConfig(managedAccount.consul)
           .userDataFile(managedAccount.userDataFile)
           .build()

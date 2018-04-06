@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ResizeOpenstackAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
@@ -55,6 +56,8 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
+    creds.getStackConfig() >> new OpenstackConfigurationProperties.StackConfig(pollInterval: 0, pollTimeout: 1)
+
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
     serverGroupParams = new ServerGroupParameters(maxSize: maxSize, minSize: minSize, desiredSize: desiredSize)
@@ -73,13 +76,14 @@ class ResizeOpenstackAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * provider.getStack(region, createdStackName) >> stack
+    2 * provider.getStack(region, createdStackName) >> stack
     1 * provider.getHeatTemplate(region, createdStackName, stackId) >> template
     1 * stack.getOutputs() >> [[output_key: ServerGroupConstants.SUBTEMPLATE_OUTPUT, output_value: sub['servergroup_resource.yaml']], [output_key: ServerGroupConstants.MEMBERTEMPLATE_OUTPUT, output_value: sub['servergroup_resource_member.yaml']]]
     _ * stack.getParameters() >> serverGroupParams.toParamsMap()
     _ * stack.getId() >> stackId
     _ * stack.getName() >> createdStackName
     _ * stack.getTags() >> tags
+    _ * stack.getStatus() >> "UPDATE_COMPLETE"
     1 * provider.updateStack(region, createdStackName, stackId, template, sub, _ as ServerGroupParameters, tags)
     noExceptionThrown()
   }

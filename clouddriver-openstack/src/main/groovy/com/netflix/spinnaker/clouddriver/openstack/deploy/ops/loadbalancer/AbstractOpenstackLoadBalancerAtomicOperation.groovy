@@ -16,12 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.loadbalancer
 
-import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
-import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.LoadBalancerStatusAware
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup.ServerGroupConstants
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
@@ -34,7 +32,7 @@ import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.openstack.networking.domain.ext.ListItem
 
-abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatusAware, StackPoolMemberAware, LoadBalancerResolver, LoadBalancerStatusAware {
+abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatusAware, StackPoolMemberAware, LoadBalancerResolver {
 
   OpenstackCredentials openstackCredentials
 
@@ -52,6 +50,9 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
       //get stack details
       task.updateStatus operation, "Fetching stack details for server group $stackSummary.name..."
       Stack stack = provider.getStack(region, stackSummary.name)
+      if (!stack) {
+        throw new OpenstackResourceNotFoundException("Could not find stack $stackSummary.name in region: $region")
+      }
       task.updateStatus operation, "Fetched stack details for server group $stackSummary.name."
 
       //update parameters
@@ -79,6 +80,7 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
 
       //update stack
       task.updateStatus operation, "Updating server group $stack.name..."
+      // TODO: this should be wrapped with a checker
       provider.updateStack(region, stack.name, stack.id, template, [(ServerGroupConstants.SUBTEMPLATE_FILE): subtemplate, (ServerGroupConstants.MEMBERTEMPLATE_FILE): memberTemplate], newParams, newParams.loadBalancers)
       task.updateStatus operation, "Successfully updated server group $stack.name."
     }
@@ -94,7 +96,6 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
    * @param listenerStatuses
    */
   protected void deleteLoadBalancerPeripherals(String operation, String region, String loadBalancerId, Collection<ListenerV2> listeners) {
-    BlockingStatusChecker blockingActiveStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
     //remove elements
     listeners?.each { ListenerV2 currentListener ->
       try {
@@ -104,7 +105,11 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
         }
         //delete pool
         task.updateStatus operation, "Deleting pool $lbPool.id on listener $currentListener.id in $region ..."
-        blockingActiveStatusChecker.execute { provider.deletePool(region, lbPool.id) }
+        provider.deletePool(region, lbPool.id)
+        task.updateStatus operation, "Waiting for delete on pool $lbPool.id on listener $currentListener.id in $region ..."
+        LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+          provider.getLoadBalancer(region, loadBalancerId)
+        }
         task.updateStatus operation, "Deleted pool $lbPool.id on listener $currentListener.id in $region."
 
       } catch (OpenstackResourceNotFoundException ope) {
@@ -113,7 +118,11 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
 
       //delete listener
       task.updateStatus operation, "Deleting listener $currentListener.id on load balancer $loadBalancerId in $region..."
-      blockingActiveStatusChecker.execute { provider.deleteListener(region, currentListener.id) }
+      provider.deleteListener(region, currentListener.id)
+      task.updateStatus operation, "Waiting for delete on listener $currentListener.id in $region ..."
+      LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+        provider.getLoadBalancer(region, loadBalancerId)
+      }
       task.updateStatus operation, "Deleted listener $currentListener.id on load balancer $loadBalancerId in $region."
     }
   }
@@ -126,7 +135,11 @@ abstract class AbstractOpenstackLoadBalancerAtomicOperation implements TaskStatu
    */
   protected void removeHealthMonitor(String operation, String region, String loadBalancerId, String id) {
     task.updateStatus operation, "Removing existing monitor ${id} in ${region}..."
-    createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId).execute { provider.deleteMonitor(region, id) }
+    provider.deleteMonitor(region, id)
+    task.updateStatus operation, "Waiting on remove of monitor ${id} in ${region}..."
+    LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+      provider.getLoadBalancer(region, loadBalancerId)
+    }
     task.updateStatus operation, "Removed existing monitor ${id} in ${region}."
   }
 

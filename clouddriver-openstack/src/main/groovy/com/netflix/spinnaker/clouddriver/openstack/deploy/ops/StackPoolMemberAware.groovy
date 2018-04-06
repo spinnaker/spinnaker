@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.MemberData
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
@@ -35,6 +36,10 @@ trait StackPoolMemberAware {
   List<MemberData> buildMemberData(OpenstackCredentials credentials, String region, String subnetId, List<String> lbIds, Closure portParser) {
     lbIds.collectMany { loadBalancerId ->
       LoadBalancerV2 loadBalancer = credentials.provider.getLoadBalancer(region, loadBalancerId)
+      if (!loadBalancer) {
+        throw new OpenstackResourceNotFoundException("Could not find load balancer: $loadBalancerId in region: $region")
+      }
+
       loadBalancer.listeners.collect { item ->
         ListenerV2 listener = credentials.provider.getListener(region, item.id)
         String listenerShortId

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.openstack.client
 
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import groovy.transform.PackageScope
+import lombok.SneakyThrows
 
 import java.util.concurrent.TimeUnit
 
@@ -50,28 +51,21 @@ class BlockingStatusChecker {
   }
 
   @PackageScope
+  @SneakyThrows // used for the Thread.sleep(pollInterval)
   <T> T execute(Closure<T> closure) {
     long startTime = System.currentTimeMillis()
-    boolean isDone = false
+    T result
 
-    T result = closure.call()
-
-    while(!isDone) {
+    while(true) {
+      result = closure.call()
       if (statusChecker.isReady(result)) {
-        isDone = true
-      } else {
-        try {
-          sleep(pollInterval)
-        } catch (Exception e) {
-          //Do nothing
-        }
-        if ((System.currentTimeMillis() - startTime) > timeout) {
-          throw new OpenstackProviderException('Operation timed out')
-        }
+        return result
       }
+      if ((System.currentTimeMillis() - startTime) > timeout) {
+        throw new OpenstackProviderException('Operation timed out')
+      }
+      sleep(pollInterval)
     }
-
-    result
   }
 
   @PackageScope

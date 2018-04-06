@@ -29,6 +29,7 @@ import org.openstack4j.model.heat.Resource
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.heat.StackCreate
 import org.openstack4j.model.heat.StackUpdate
+import org.openstack4j.openstack.heat.domain.HeatStack
 import org.springframework.http.HttpStatus
 
 class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProviderSpec {
@@ -232,12 +233,12 @@ class OpenstackOrchestrationV1ClientProviderSpec extends OpenstackClientProvider
     def name = 'mystack'
 
     when:
-    provider.getStack(region, name)
+    Stack actual = provider.getStack(region, name)
 
     then:
     1 * stackApi.getStackByName(name) >> null
-    def ex = thrown(OpenstackProviderException)
-    ex.message.contains(name)
+    !actual
+    noExceptionThrown()
   }
 
   def "get stack fails - exception"() {

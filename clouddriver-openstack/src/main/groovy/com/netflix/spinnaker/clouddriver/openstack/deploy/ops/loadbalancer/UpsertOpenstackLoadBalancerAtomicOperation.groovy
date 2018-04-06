@@ -66,6 +66,9 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
         resultLoadBalancer = createLoadBalancer(region, description.name, description.subnetId)
       } else {
         resultLoadBalancer = provider.getLoadBalancer(region, description.id)
+        if (!resultLoadBalancer) {
+          throw new OpenstackResourceNotFoundException("Could not find load balancer: $description.id in region: $region")
+        }
         checkPendingLoadBalancerState(resultLoadBalancer)
       }
 
@@ -134,7 +137,9 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
     }
 
     securityGroups?.each {
-      provider.getSecurityGroup(region, it) // Throws resource not found exception.
+      if (!provider.getSecurityGroup(region, it)) {
+        throw new OpenstackResourceNotFoundException("Could not find securityGroup: $it in region: $region")
+      }
     }
   }
   /**
@@ -146,9 +151,12 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    */
   protected LoadBalancerV2 createLoadBalancer(String region, String name, String subnetId) {
     task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating load balancer $name in ${region} ..."
-    String description = generateCreatedTime(System.currentTimeMillis())
-    LoadBalancerV2 result = createBlockingActiveStatusChecker(openstackCredentials, region).execute {
-      provider.createLoadBalancer(region, name, description, subnetId)
+    String createdTime = generateCreatedTime(System.currentTimeMillis())
+
+    LoadBalancerV2 result = provider.createLoadBalancer(region, name, createdTime, subnetId)
+    task.updateStatus UPSERT_LOADBALANCER_PHASE, "Waiting on creation of load balancer $name in ${region} ..."
+    result = LoadBalancerChecker.from(description.credentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.CREATE).execute {
+      provider.getLoadBalancer(region, result.id)
     }
     task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created load balancer $name in ${region}."
     result
@@ -210,19 +218,23 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    * @return
    */
   protected void addListenersAndPools(String region, String loadBalancerId, String name, Algorithm algorithm, Map<String, Listener> listeners, HealthMonitor healthMonitor) {
-    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
     listeners?.each { String key, Listener currentListener ->
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating listener $name in ${region}"
-      ListenerV2 listener = blockingStatusChecker.execute {
-        provider.createListener(region, name, currentListener.externalProtocol.name(), currentListener.externalPort, key, loadBalancerId)
+      ListenerV2 listener = provider.createListener(region, name, currentListener.externalProtocol.name(), currentListener.externalPort, key, loadBalancerId)
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Waiting on creation of listener $name in ${region}"
+      LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+        provider.getLoadBalancer(region, loadBalancerId)
       }
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created listener $name in ${region}"
+
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating pool $name in ${region}"
-      LbPoolV2 lbPool = blockingStatusChecker.execute {
-        provider.createPool(region, name, currentListener.externalProtocol.internalProtocol, algorithm.name(), listener.id)
+      LbPoolV2 pool = provider.createPool(region, name, currentListener.externalProtocol.internalProtocol, algorithm.name(), listener.id)
+      task.updateStatus UPSERT_LOADBALANCER_PHASE, "Waiting on creation of pool $name in ${region}"
+      LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+        provider.getLoadBalancer(region, loadBalancerId)
       }
       task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created pool $name in ${region}"
-      updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
+      updateHealthMonitor(region, loadBalancerId, pool, healthMonitor)
     }
   }
 
@@ -234,13 +246,15 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    * @param listeners
    */
   protected void updateListenersAndPools(String region, String loadBalancerId, Algorithm algorithm, Collection<ListenerV2> listeners, HealthMonitor healthMonitor) {
-    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
-
     listeners?.each { ListenerV2 currentListener ->
       LbPoolV2 lbPool = provider.getPool(region, currentListener.defaultPoolId)
       if (lbPool.lbMethod.name() != algorithm.name()) {
         task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating pool $lbPool.name in ${region} ..."
-        blockingStatusChecker.execute { provider.updatePool(region, lbPool.id, algorithm.name()) }
+        provider.updatePool(region, lbPool.id, algorithm.name())
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "waiting on update for pool $lbPool.name in ${region} ..."
+        LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+          provider.getLoadBalancer(region, loadBalancerId)
+        }
         task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated pool $lbPool.name in ${region}."
       }
 
@@ -255,20 +269,29 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
    * @param lbPool
    */
   protected void updateHealthMonitor(String region, String loadBalancerId, LbPoolV2 lbPool, HealthMonitor healthMonitor) {
-    BlockingStatusChecker blockingStatusChecker = createBlockingActiveStatusChecker(openstackCredentials, region, loadBalancerId)
     if (lbPool.healthMonitorId) {
       if (healthMonitor) {
         HealthMonitorV2 existingMonitor = provider.getMonitor(region, lbPool.healthMonitorId)
         if (existingMonitor.type.name() == healthMonitor.type.name()) {
           task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updating health monitor $lbPool.name in ${region} ..."
-          blockingStatusChecker.execute {
-            provider.updateMonitor(region, lbPool.healthMonitorId, healthMonitor)
+          provider.updateMonitor(region, lbPool.healthMonitorId, healthMonitor)
+          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Waiting on update to health monitor $lbPool.name in ${region} ..."
+          LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+            provider.getLoadBalancer(region, loadBalancerId)
           }
           task.updateStatus UPSERT_LOADBALANCER_PHASE, "Updated health monitor $lbPool.name in ${region}."
         } else {
           task.updateStatus UPSERT_LOADBALANCER_PHASE, "Removing existing monitor ${existingMonitor.id} and creating health monitor for ${lbPool.name} in ${region}..."
-          blockingStatusChecker.execute { provider.deleteMonitor(region, lbPool.healthMonitorId) }
-          blockingStatusChecker.execute { provider.createMonitor(region, lbPool.id, healthMonitor) }
+          provider.deleteMonitor(region, lbPool.healthMonitorId)
+          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Waiting on remove of existing monitor ${existingMonitor.id} in ${region}"
+          LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+            provider.getLoadBalancer(region, loadBalancerId)
+          }
+          task.updateStatus UPSERT_LOADBALANCER_PHASE, "Waiting on creattion of health monitor for ${lbPool.name} in ${region}..."
+          provider.createMonitor(region, lbPool.id, healthMonitor)
+          LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+            provider.getLoadBalancer(region, loadBalancerId)
+          }
           task.updateStatus UPSERT_LOADBALANCER_PHASE, "Removed existing monitor ${existingMonitor.id} and created health monitor for ${lbPool.name} in ${region}."
         }
       } else {
@@ -277,7 +300,11 @@ class UpsertOpenstackLoadBalancerAtomicOperation extends AbstractOpenstackLoadBa
     } else {
       if (healthMonitor) {
         task.updateStatus UPSERT_LOADBALANCER_PHASE, "Creating health monitor for pool $lbPool.name in ${region} ..."
-        blockingStatusChecker.execute { provider.createMonitor(region, lbPool.id, healthMonitor) }
+        provider.createMonitor(region, lbPool.id, healthMonitor)
+        task.updateStatus UPSERT_LOADBALANCER_PHASE, "Waiting on creation of health monitor for pool $lbPool.name in ${region} ..."
+        LoadBalancerChecker.from(openstackCredentials.credentials.lbaasConfig, LoadBalancerChecker.Operation.UPDATE).execute {
+          provider.getLoadBalancer(region, loadBalancerId)
+        }
         task.updateStatus UPSERT_LOADBALANCER_PHASE, "Created health monitor for pool $lbPool.name in ${region}."
       }
     }

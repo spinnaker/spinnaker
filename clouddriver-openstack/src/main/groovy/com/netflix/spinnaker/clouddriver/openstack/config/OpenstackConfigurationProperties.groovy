@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.openstack.config
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import groovy.transform.ToString
 
+import java.util.concurrent.TimeUnit
+
 @ToString(includeNames = true)
 class OpenstackConfigurationProperties {
 
@@ -35,14 +37,20 @@ class OpenstackConfigurationProperties {
     List<String> regions
     Boolean insecure
     String heatTemplatePath
-    LbaasConfig lbaas
+    LbaasConfig lbaas = new LbaasConfig()
+    StackConfig stack = new StackConfig()
     ConsulConfig consul
     String userDataFile
   }
 
   static class LbaasConfig {
-    Integer pollTimeout
-    Integer pollInterval
+    int pollTimeout = 60 // seconds
+    int pollInterval = 5 // seconds
+  }
+
+  static class StackConfig {
+    int pollTimeout = TimeUnit.MINUTES.toSeconds(10).toInteger()
+    int pollInterval = 5 // seconds
   }
 
   List<ManagedAccount> accounts = []

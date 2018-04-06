@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.StackConfig
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Algorithm
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.loadbalancer.OpenstackLoadBalancerDescription.Listener
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackCredentials
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.openstack.task.TaskStatusAware
 import org.openstack4j.model.compute.FloatingIP
+import org.openstack4j.model.compute.SecGroupExtension
 import org.openstack4j.model.network.NetFloatingIP
 import org.openstack4j.model.network.Network
 import org.openstack4j.model.network.Port
@@ -73,7 +75,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
   def setup() {
     provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig(), null)
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new LbaasConfig(pollTimeout: 60, pollInterval: 5), new StackConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig(), null)
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackLoadBalancerDescription(credentials: credentials, region: region, account: account)
@@ -226,15 +228,14 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
       getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
     }
 
-    and:
-    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
-
     when:
+    def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
     LoadBalancerV2 result = operation.createLoadBalancer(region, name, subnetId)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region) >> blockingClientAdapter
-    1 * provider.createLoadBalancer(region, name, _, subnetId) >> loadBalancer
+    1 * loadBalancer.provisioningStatus >> LbProvisioningStatus.ACTIVE
+    1 * provider.createLoadBalancer(region, name, _ as String, subnetId) >> loadBalancer
+    1 * provider.getLoadBalancer(region, "123") >> loadBalancer
 
     and:
     result == loadBalancer
@@ -244,7 +245,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     given:
     String name = 'name'
     String subnetId = UUID.randomUUID()
-    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
 
     and:
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
@@ -253,8 +253,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.createLoadBalancer(region, name, subnetId)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region) >> blockingClientAdapter
-    1 * provider.createLoadBalancer(region, name, _, subnetId) >> { throw openstackProviderException }
+    1 * provider.createLoadBalancer(region, name, _ as String, subnetId) >> { throw openstackProviderException }
 
     and:
     thrown(OpenstackProviderException)
@@ -387,6 +386,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     Algorithm algorithm = Algorithm.ROUND_ROBIN
     String loadBalancerId = UUID.randomUUID()
     String key = 'HTTP:80:8080'
+    LoadBalancerV2 loadBalancer = Stub(LoadBalancerV2) {
+      getId() >> loadBalancerId
+      getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    }
 
     and:
     Listener listener = new Listener(externalProtocol: 'HTTP', externalPort: 80, internalPort: 8080)
@@ -401,7 +404,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.addListenersAndPools(region, loadBalancerId, name, algorithm, [(key): listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
+    2 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
     1 * provider.createListener(region, name, listener.externalProtocol.name(), listener.externalPort, key, loadBalancerId) >> newListener
     //todo: is this right? just doing listener.externalProtocol.name()
     1 * provider.createPool(region, name, listener.externalProtocol.name(), algorithm.name(), newListener.id) >> newLbPool
@@ -418,6 +421,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     HealthMonitor healthMonitor = Mock(HealthMonitor)
     String poolId = UUID.randomUUID()
     LbPoolV2 lbPool = Mock(LbPoolV2)
+    LoadBalancerV2 loadBalancer = Stub(LoadBalancerV2) {
+      getId() >> loadBalancerId
+      getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    }
 
     and:
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
@@ -426,12 +433,11 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
+    2 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.LEAST_CONNECTIONS
     1 * provider.updatePool(region, lbPool.id, algorithm.name()) >> lbPool
-    1 * operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor) >> {}
   }
 
   def "update listeners and pools - no updates"() {
@@ -452,7 +458,6 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateListenersAndPools(region, loadBalancerId, algorithm, [listener], healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.lbMethod >> LbMethod.ROUND_ROBIN
@@ -467,6 +472,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     HealthMonitor healthMonitor = Mock(HealthMonitor)
     String healthMonitorId = UUID.randomUUID()
     HealthMonitorV2 healthMonitorV2 = Mock(HealthMonitorV2)
+    LoadBalancerV2 loadBalancer = Stub(LoadBalancerV2) {
+      getId() >> loadBalancerId
+      getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    }
 
     and:
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
@@ -475,7 +484,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
+    1 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.getMonitor(region, healthMonitorId) >> healthMonitorV2
     1 * healthMonitorV2.type >> HealthMonitorType.PING
@@ -490,6 +499,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     HealthMonitor healthMonitor = Mock(HealthMonitor)
     String healthMonitorId = UUID.randomUUID()
     HealthMonitorV2 healthMonitorV2 = Mock(HealthMonitorV2)
+    LoadBalancerV2 loadBalancer = Stub(LoadBalancerV2) {
+      getId() >> loadBalancerId
+      getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    }
 
     and:
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
@@ -498,7 +511,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
+    2 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.getMonitor(region, healthMonitorId) >> healthMonitorV2
     1 * healthMonitorV2.type >> HealthMonitorType.PING
@@ -513,7 +526,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     LbPoolV2 lbPool = Mock(LbPoolV2)
     HealthMonitor healthMonitor = null
     String healthMonitorId = UUID.randomUUID()
-
+    LoadBalancerV2 loadBalancer = Stub(LoadBalancerV2) {
+      getId() >> loadBalancerId
+      getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    }
 
     and:
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
@@ -522,9 +538,9 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
+    1 * provider.deleteMonitor(region, healthMonitorId)
+    1 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
     _ * lbPool.healthMonitorId >> healthMonitorId
-    1 * operation.removeHealthMonitor(opName, region, loadBalancerId, healthMonitorId) >> {}
   }
 
   def "update health monitor - add monitor no existing"() {
@@ -533,6 +549,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     LbPoolV2 lbPool = Mock(LbPoolV2)
     HealthMonitor healthMonitor = Mock(HealthMonitor)
     String healthMonitorId = null
+    LoadBalancerV2 loadBalancer = Stub(LoadBalancerV2) {
+      getId() >> loadBalancerId
+      getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    }
 
     and:
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
@@ -541,7 +561,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.updateHealthMonitor(region, loadBalancerId, lbPool, healthMonitor)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
+    1 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
     _ * lbPool.healthMonitorId >> healthMonitorId
     1 * provider.createMonitor(region, lbPool.id, healthMonitor)
   }
@@ -550,6 +570,10 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     given:
     String id = UUID.randomUUID()
     String loadBalancerId = UUID.randomUUID()
+    LoadBalancerV2 loadBalancer = Stub(LoadBalancerV2) {
+      getId() >> loadBalancerId
+      getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    }
 
     and:
     def operation = Spy(UpsertOpenstackLoadBalancerAtomicOperation, constructorArgs: [description])
@@ -558,22 +582,8 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     operation.removeHealthMonitor(opName, region, loadBalancerId, id)
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
+    1 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
     1 * provider.deleteMonitor(region, id)
-  }
-
-  def "create blocking status checker"() {
-    given:
-    String loadBalancerId = UUID.randomUUID()
-
-    and:
-    def operation = new UpsertOpenstackLoadBalancerAtomicOperation(description)
-
-    when:
-    BlockingStatusChecker result = operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId)
-
-    then:
-    result.statusChecker != null
   }
 
   def "build listener map"() {
@@ -613,7 +623,7 @@ class UpsertOpenstackLoadBalancerAtomicOperationSpec extends Specification imple
     then:
     1 * provider.getSubnet(region, subnetId) >> Mock(Subnet)
     1 * provider.getNetwork(region, networkId) >> Mock(Network)
-    1 * provider.getSecurityGroup(region, securityGroup)
+    1 * provider.getSecurityGroup(region, securityGroup) >> Mock(SecGroupExtension)
     noExceptionThrown()
   }
 

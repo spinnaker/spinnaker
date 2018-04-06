@@ -166,13 +166,9 @@ class OpenstackComputeV2Provider implements OpenstackComputeProvider, OpenstackR
 
   @Override
   SecGroupExtension getSecurityGroup(String region, String id) {
-    SecGroupExtension securityGroup = handleRequest {
+    handleRequest {
       client.useRegion(region).compute().securityGroups().get(id)
     }
-    if (!securityGroup) {
-      throw new OpenstackResourceNotFoundException("Unable to find security group ${id}")
-    }
-    securityGroup
   }
 
   @Override
@@ -184,13 +180,9 @@ class OpenstackComputeV2Provider implements OpenstackComputeProvider, OpenstackR
 
   @Override
   Server getServerInstance(String region, String instanceId) {
-    Server server = handleRequest {
+    handleRequest {
       client.useRegion(region).compute().servers().get(instanceId)
     }
-    if (!server) {
-      throw new OpenstackProviderException("Could not find server with id ${instanceId}")
-    }
-    server
   }
 
   @Override
@@ -203,6 +195,9 @@ class OpenstackComputeV2Provider implements OpenstackComputeProvider, OpenstackR
   @Override
   String getIpForInstance(String region, String instanceId) {
     Server server = getServerInstance(region, instanceId)
+    if (!server) {
+      throw new OpenstackResourceNotFoundException("unable to find instance: $instanceId in region: $region")
+    }
     /* TODO
       For now just get the first ipv4 address found. Openstack does not associate an instance id
       with load balancer membership, just an ip address. An instance can have multiple IP addresses.
@@ -220,6 +215,9 @@ class OpenstackComputeV2Provider implements OpenstackComputeProvider, OpenstackR
   @Override
   List<? extends Address> getIpsForInstance(String region, String instanceId) {
     Server server = getServerInstance(region, instanceId)
+    if (!server) {
+      throw new OpenstackResourceNotFoundException("unable to find instance: $instanceId in region: $region")
+    }
     server.addresses?.addresses?.collect { n -> n.value }?.flatten()
   }
 

@@ -46,11 +46,7 @@ class OpenstackSwiftV1Provider implements OpenstackSwiftProvider, OpenstackReque
       }
 
       // TODO consider checking content type before reading the response to ensure it is text
-      String entity = response.getEntity(String)
-      if (!entity) {
-        throw new OpenstackResourceNotFoundException("Failed to read the Swift object ${container}/${name} in region ${region}")
-      }
-      entity
+      return response.getEntity(String)
     }
   }
 }

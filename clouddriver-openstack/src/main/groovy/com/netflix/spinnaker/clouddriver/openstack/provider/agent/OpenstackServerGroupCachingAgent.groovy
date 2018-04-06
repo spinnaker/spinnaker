@@ -397,11 +397,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       String serverGroupKey = Keys.getServerGroupKey(serverGroupName, accountName, region)
 
       Stack stack = metricsSupport.readData {
-        try {
           clientProvider.getStack(region, serverGroupName)
-        } catch (OpenstackProviderException e) {
-          //Do nothing ... Exception is thrown if a stack isn't found
-        }
       }
 
       CacheResult cacheResult = metricsSupport.transformData {

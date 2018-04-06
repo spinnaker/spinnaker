@@ -61,13 +61,14 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
   def setup() {
     OpenstackClientProvider provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig(), null)
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "tenant", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), new OpenstackConfigurationProperties.StackConfig(pollTimeout: 600, pollInterval: 5),  new ConsulConfig(), null)
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
     description = new OpenstackInstancesRegistrationDescription(region: region, loadBalancerIds: LB_IDS, instanceIds: INSTANCE_IDS, weight: 1, account: ACCOUNT_NAME, credentials: credentials)
     loadBalancer = Mock(LoadBalancerV2) {
       it.listeners >> { listeners }
       it.vipSubnetId >> { subnetId }
+      it.provisioningStatus >> { LbProvisioningStatus.ACTIVE}
     }
     mockLB = Mock(LoadBalancerV2) {
       it.id >> { _ }
@@ -225,33 +226,6 @@ class AbstractRegistrationOpenstackInstancesAtomicOperationUnitSpec extends Spec
           provider.getMemberIdForInstance(region, ip, listenerMap[listItem.id].defaultPoolId) >> {
             throw new OpenstackProviderException("foobar")
           }
-        }
-      }
-    }
-    Exception ex = thrown(OpenstackOperationException)
-    ex.cause.message == "foobar"
-
-    where:
-    opClass << [DeregisterOpenstackInstancesAtomicOperation]
-  }
-
-  def "should throw exception when failing to remove member"() {
-    given:
-    @Subject def operation = opClass.newInstance(description)
-    OpenstackClientProvider provider = credentials.provider
-
-    when:
-    operation.operate([])
-
-    then:
-    LB_IDS.each { lbid ->
-      provider.getLoadBalancer(region, lbid) >> loadBalancer
-      INSTANCE_IDS.each { id ->
-        provider.getIpForInstance(region, id) >> ip
-        loadBalancer.listeners.each { listItem ->
-          provider.getListener(region, listItem.id) >> listenerMap[listItem.id]
-          provider.getMemberIdForInstance(region, ip, listenerMap[listItem.id].defaultPoolId) >> memberId
-          provider.removeMemberFromLoadBalancerPool(region, listenerMap[listItem.id].defaultPoolId, memberId) >> { throw new OpenstackProviderException("foobar") }
         }
       }
     }

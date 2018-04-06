@@ -90,13 +90,9 @@ class OpenstackOrchestrationV1Provider implements OpenstackOrchestrationProvider
 
   @Override
   Stack getStack(String region, String stackName) {
-    Stack stack = handleRequest {
+    handleRequest {
       getRegionClient(region).heat().stacks().getStackByName(stackName)
     }
-    if (!stack) {
-      throw new OpenstackProviderException("Unable to find stack $stackName in region $region")
-    }
-    stack
   }
 
   @Override

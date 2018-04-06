@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.openstack.security
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.LbaasConfig
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties.StackConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import groovy.transform.ToString
-import org.openstack4j.model.compute.ext.AvailabilityZone
 
 @ToString(includeNames = true, excludes = "password")
 class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCredentials> {
@@ -41,6 +41,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
   final Boolean insecure
   final String heatTemplateLocation
   final LbaasConfig lbaasConfig
+  final StackConfig stackConfig
   final ConsulConfig consulConfig
   final String userDataFile
   Map<String, List<String>> regionToZones
@@ -59,9 +60,20 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    Boolean insecure,
                                    String heatTemplateLocation,
                                    LbaasConfig lbaasConfig,
+                                   StackConfig stackConfig,
                                    ConsulConfig consulConfig,
                                    String userDataFile) {
-    this(accountName, environment, accountType, username, password, null, projectName, domainName, authUrl, regions, insecure, heatTemplateLocation, lbaasConfig, consulConfig, userDataFile)
+    this(accountName, environment, accountType, username, password, null, projectName, domainName, authUrl, regions, insecure, heatTemplateLocation, lbaasConfig, stackConfig, consulConfig, userDataFile)
+  }
+
+  // Explicit getter so that we can mock
+  LbaasConfig getLbaasConfig() {
+    return lbaasConfig
+  }
+
+  // Explicit getter so that we can mock
+  StackConfig getStackConfig() {
+    return stackConfig
   }
 
   OpenstackNamedAccountCredentials(String accountName,
@@ -77,6 +89,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
                                    Boolean insecure,
                                    String heatTemplateLocation,
                                    LbaasConfig lbaasConfig,
+                                   StackConfig stackConfig,
                                    ConsulConfig consulConfig,
                                    String userDataFile) {
     this.name = accountName
@@ -92,6 +105,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     this.insecure = insecure
     this.heatTemplateLocation = heatTemplateLocation
     this.lbaasConfig = lbaasConfig
+    this.stackConfig = stackConfig
     this.consulConfig = consulConfig
     this.userDataFile = userDataFile
     if (this.consulConfig?.enabled) {
@@ -119,6 +133,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
     Boolean insecure
     String heatTemplateLocation
     LbaasConfig lbaasConfig
+    StackConfig stackConfig
     ConsulConfig consulConfig
     String userDataFile
 
@@ -194,6 +209,11 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
       return this
     }
 
+    Builder stackConfig(StackConfig stackConfig) {
+      this.stackConfig = stackConfig
+      return this
+    }
+
     Builder consulConfig(ConsulConfig consulConfig) {
       this.consulConfig = consulConfig
       return this
@@ -217,6 +237,7 @@ class OpenstackNamedAccountCredentials implements AccountCredentials<OpenstackCr
         insecure,
         heatTemplateLocation,
         lbaasConfig,
+        stackConfig,
         consulConfig,
         userDataFile)
       def provider = account.credentials.provider

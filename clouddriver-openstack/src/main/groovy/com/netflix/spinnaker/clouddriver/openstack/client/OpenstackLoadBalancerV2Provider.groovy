@@ -66,14 +66,9 @@ class OpenstackLoadBalancerV2Provider implements OpenstackLoadBalancerProvider, 
 
   @Override
   LoadBalancerV2 getLoadBalancer(final String region, final String id) {
-    LoadBalancerV2 result = handleRequest {
+    handleRequest {
       getRegionClient(region).networking().lbaasV2().loadbalancer().get(id)
     }
-
-    if (!result) {
-      throw new OpenstackResourceNotFoundException("Unable to find load balancer ${id} in ${region}")
-    }
-    result
   }
 
   @Override

@@ -254,6 +254,9 @@ openstack:
       lbaas:
         pollTimeout: ${OS_LBAAS_POLL_TIMEOUT:60}
         pollInterval: ${OS_LBAAS_POLL_INTERVAL:5}
+      stack:
+        pollTimeout: ${OS_STACK_POLL_TIMEOUT:600}
+        pollInterval: ${OS_STACK_POLL_INTERVAL:5}
 
 kubernetes:
   enabled: false

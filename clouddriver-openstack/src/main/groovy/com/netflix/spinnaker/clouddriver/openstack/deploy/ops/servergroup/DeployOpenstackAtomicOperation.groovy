@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
+import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.deploy.OpenstackServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.DeployOpenstackAtomicOperationDescription
@@ -26,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergrou
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.ServerGroupParameters
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.UserDataType
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
+import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.StackPoolMemberAware
 import com.netflix.spinnaker.clouddriver.openstack.domain.LoadBalancerResolver
 import com.netflix.spinnaker.clouddriver.openstack.task.TaskStatusAware
@@ -33,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
+import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.Subnet
 
 import java.util.concurrent.ConcurrentHashMap
@@ -197,6 +201,16 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
 
       provider.deploy(description.region, stackName, template, subtemplates, params,
         description.disableRollback, description.timeoutMins, description.serverGroupParameters.loadBalancers)
+
+      task.updateStatus BASE_PHASE, "Waiting on heat stack creation status $stackName..."
+      // create a status checker for the stack creation status
+      def config = description.credentials.credentials.stackConfig
+      StackChecker stackChecker = new StackChecker(StackChecker.Operation.CREATE)
+      BlockingStatusChecker statusChecker = BlockingStatusChecker.from(config.pollTimeout, config.pollInterval, stackChecker)
+      statusChecker.execute {
+        provider.getStack(description.region, stackName)
+      }
+
       task.updateStatus BASE_PHASE, "Finished creating heat stack $stackName."
 
       task.updateStatus BASE_PHASE, "Successfully created server group."
@@ -219,6 +233,9 @@ class DeployOpenstackAtomicOperation implements TaskStatusAware, AtomicOperation
         String[] parts = description.userData.split(":")
         if (parts?.length == 2) {
           customUserData = provider.readSwiftObject(description.region, parts[0], parts[1])
+          if (!customUserData) {
+            throw new OpenstackResourceNotFoundException("Failed to read the Swift object ${parts[0]}/${parts[1]} in region ${description.region}")
+          }
         }
       } else {
         customUserData = description.userData

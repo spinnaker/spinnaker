@@ -25,7 +25,7 @@ class OpenstackUserDataProviderSpec extends Specification {
   def "combines common and custom user data"() {
     given:
     def credentials = new OpenstackNamedAccountCredentials('account', 'test', 'main', 'user', 'pw', 'project', 'domain',
-      'endpoint', [], false, '', null, null, '/some/user/data/file/udf')
+      'endpoint', [], false, '', null, null, null, '/some/user/data/file/udf')
     def provider = Spy(OpenstackUserDataProvider, constructorArgs: [credentials]) {
       it.getFileContents(_) >> commonUserData
     }
@@ -56,7 +56,7 @@ class OpenstackUserDataProviderSpec extends Specification {
   def "handles unreadable user data file"() {
       given:
       def credentials = new OpenstackNamedAccountCredentials('account', 'test', 'main', 'user', 'pw', 'project', 'domain',
-        'endpoint', [], false, '', null, null, userDataFile)
+        'endpoint', [], false, '', null, null, null, userDataFile)
       def provider = new OpenstackUserDataProvider(credentials)
       def serverGroupName = 'app-stack-detail-v001'
       def region = 'west'
@@ -75,7 +75,7 @@ class OpenstackUserDataProviderSpec extends Specification {
    def "ensure replace tokens works"() {
      given:
      def credentials = new OpenstackNamedAccountCredentials('my-account', 'test', 'main', 'user', 'pw', 'project', 'domain',
-       'endpoint', [], false, '', null, null, '/user/data/file/udf')
+       'endpoint', [], false, '', null, null, null, '/user/data/file/udf')
      def provider = Spy(OpenstackUserDataProvider, constructorArgs: [credentials]) {
        it.getFileContents(_) >> rawUserData
      }

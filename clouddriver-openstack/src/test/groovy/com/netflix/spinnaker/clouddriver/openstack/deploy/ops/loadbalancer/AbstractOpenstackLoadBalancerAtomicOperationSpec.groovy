@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import org.openstack4j.model.common.ActionResponse
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LbPoolV2
+import org.openstack4j.model.network.ext.LbProvisioningStatus
 import org.openstack4j.model.network.ext.ListenerV2
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import org.openstack4j.openstack.networking.domain.ext.ListItem
@@ -50,8 +51,6 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   @Shared
   Throwable openstackProviderException = new OpenstackProviderException('foo')
   @Shared
-  BlockingStatusChecker blockingClientAdapter = BlockingStatusChecker.from(60, 5) { true }
-  @Shared
   String opName = 'TEST_PHASE'
 
   def setupSpec() {
@@ -61,7 +60,7 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
   def setup() {
     provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
-    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "project", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig(), null)
+    OpenstackNamedAccountCredentials credz = new OpenstackNamedAccountCredentials("name", "test", "main", "user", "pw", "project", "domain", "endpoint", [], false, "", new OpenstackConfigurationProperties.LbaasConfig(pollTimeout: 60, pollInterval: 5), new OpenstackConfigurationProperties.StackConfig(pollTimeout: 60, pollInterval: 5), new ConsulConfig(), null)
     OpenstackProviderFactory.createProvider(credz) >> { provider }
     credentials = new OpenstackCredentials(credz)
 
@@ -70,6 +69,7 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
 
   def "remove listeners and pools"() {
     given:
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
     String loadBalancerId = UUID.randomUUID()
     ListenerV2 listener = Mock(ListenerV2) {
       getId() >> '123'
@@ -87,17 +87,20 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.deleteLoadBalancerPeripherals(opName, region, loadBalancerId, [listener])
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
-    _ * lbPool.healthMonitorId >> healthMonitorId
-    1 * operation.removeHealthMonitor(opName, region, loadBalancerId, healthMonitorId) >> {}
+    2 * lbPool.getHealthMonitorId() >> healthMonitorId
+    1 * provider.deleteMonitor(region, healthMonitorId) >> ActionResponse.actionSuccess()
     1 * provider.deletePool(region, poolId) >> ActionResponse.actionSuccess()
     1 * provider.deleteListener(region, listener.id) >> ActionResponse.actionSuccess()
+    3 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
+    3 * loadBalancer.getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
+    noExceptionThrown()
   }
 
   def "remove listeners and pools - no health monitor"() {
     given:
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
     String loadBalancerId = UUID.randomUUID()
     ListenerV2 listener = Mock(ListenerV2) {
       getId() >> '123'
@@ -115,17 +118,19 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.deleteLoadBalancerPeripherals(opName, region, loadBalancerId, [listener])
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> lbPool
     _ * lbPool.healthMonitorId >> healthMonitorId
     0 * operation.removeHealthMonitor(opName, region, loadBalancerId, healthMonitorId) >> {}
     1 * provider.deletePool(region, poolId) >> ActionResponse.actionSuccess()
     1 * provider.deleteListener(region, listener.id) >> ActionResponse.actionSuccess()
+    2 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
+    2 * loadBalancer.getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
   }
 
   def "remove listeners and pools - no pool"() {
     given:
+    LoadBalancerV2 loadBalancer = Mock(LoadBalancerV2)
     String loadBalancerId = UUID.randomUUID()
     ListenerV2 listener = Mock(ListenerV2) {
       getId() >> '123'
@@ -143,13 +148,14 @@ class AbstractOpenstackLoadBalancerAtomicOperationSpec extends Specification {
     operation.deleteLoadBalancerPeripherals(opName, region, loadBalancerId, [listener])
 
     then:
-    1 * operation.createBlockingActiveStatusChecker(credentials, region, loadBalancerId) >> blockingClientAdapter
     _ * listener.defaultPoolId >> poolId
     1 * provider.getPool(region, poolId) >> { throw new OpenstackResourceNotFoundException('test') }
     _ * lbPool.healthMonitorId >> healthMonitorId
     0 * operation.removeHealthMonitor(opName, region, loadBalancerId, healthMonitorId) >> {}
     0 * provider.deletePool(region, poolId) >> ActionResponse.actionSuccess()
     1 * provider.deleteListener(region, listener.id) >> ActionResponse.actionSuccess()
+    1 * provider.getLoadBalancer(region, loadBalancerId) >> loadBalancer
+    1 * loadBalancer.getProvisioningStatus() >> LbProvisioningStatus.ACTIVE
   }
 
   def "update server group success"() {

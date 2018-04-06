@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackClientProvider
 import com.netflix.spinnaker.clouddriver.openstack.client.OpenstackProviderFactory
+import com.netflix.spinnaker.clouddriver.openstack.config.OpenstackConfigurationProperties
 import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergroup.OpenstackServerGroupAtomicOperationDescription
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
@@ -47,6 +48,8 @@ class DestroyOpenstackAtomicOperationSpec extends Specification {
     provider = Mock(OpenstackClientProvider)
     GroovyMock(OpenstackProviderFactory, global: true)
     OpenstackNamedAccountCredentials creds = Mock(OpenstackNamedAccountCredentials)
+    creds.getStackConfig() >> new OpenstackConfigurationProperties.StackConfig(pollInterval: 0, pollTimeout: 1)
+
     OpenstackProviderFactory.createProvider(creds) >> { provider }
     credentials = new OpenstackCredentials(creds)
     description = new OpenstackServerGroupAtomicOperationDescription(serverGroupName: STACK, region: REGION, credentials: credentials)
@@ -61,7 +64,7 @@ class DestroyOpenstackAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * provider.getStack(description.region, description.serverGroupName) >> mockStack
+    2 * provider.getStack(description.region, description.serverGroupName) >>> [mockStack, null]
     1 * provider.destroy(description.region, mockStack)
     noExceptionThrown()
   }

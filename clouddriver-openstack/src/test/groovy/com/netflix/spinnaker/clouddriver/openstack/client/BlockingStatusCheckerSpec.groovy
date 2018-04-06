@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.openstack.client
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackProviderException
 import org.openstack4j.model.network.ext.LoadBalancerV2
 import spock.lang.Specification
-import java.util.concurrent.TimeUnit
 
 class BlockingStatusCheckerSpec extends Specification {
 
