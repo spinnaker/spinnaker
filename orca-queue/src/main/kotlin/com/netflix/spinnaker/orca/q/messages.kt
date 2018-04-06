@@ -73,10 +73,22 @@ data class CompleteTask(
   override val application: String,
   override val stageId: String,
   override val taskId: String,
-  val status: ExecutionStatus
+  val status: ExecutionStatus,
+  val originalStatus: ExecutionStatus?
 ) : Message(), TaskLevel {
   constructor(source: TaskLevel, status: ExecutionStatus) :
-    this(source.executionType, source.executionId, source.application, source.stageId, source.taskId, status)
+    this(source, status, status)
+
+  constructor(source: TaskLevel, status: ExecutionStatus, originalStatus: ExecutionStatus) :
+    this(
+      source.executionType,
+      source.executionId,
+      source.application,
+      source.stageId,
+      source.taskId,
+      status,
+      originalStatus
+    )
 }
 
 @JsonTypeName("pauseTask")

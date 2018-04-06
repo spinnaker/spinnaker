@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.TaskComplete
 import com.netflix.spinnaker.orca.ext.nextTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
@@ -49,9 +51,7 @@ class CompleteTaskHandler(
       } else {
         repository.storeStage(mergedContextStage)
 
-        if (message.status !in setOf(SUCCEEDED)) {
-          queue.push(CompleteStage(message))
-        } else if (task.isStageEnd) {
+        if (shouldCompleteStage(task, message.status, message.originalStatus)) {
           queue.push(CompleteStage(message))
         } else {
           mergedContextStage.nextTask(task).let {
@@ -66,6 +66,21 @@ class CompleteTaskHandler(
         publisher.publishEvent(TaskComplete(this, mergedContextStage, task))
       }
     }
+  }
+
+  fun shouldCompleteStage(task: Task, status: ExecutionStatus, originalStatus: ExecutionStatus?) : Boolean {
+    if (task.isStageEnd) {
+      // last task in the stage
+      return true
+    }
+
+    if (originalStatus == FAILED_CONTINUE) {
+      // the task explicitly returned FAILED_CONTINUE and _should_ run subsequent tasks
+      return false
+    }
+
+    // the task was not successful and _should not_ run subsequent tasks
+    return status != SUCCEEDED
   }
 
   override val messageType = CompleteTask::class.java

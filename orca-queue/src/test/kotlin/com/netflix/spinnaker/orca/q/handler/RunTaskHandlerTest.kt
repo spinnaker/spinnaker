@@ -469,6 +469,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           "foo",
           message.stageId,
           message.taskId,
+          CANCELED,
           CANCELED
         ))
       }
@@ -509,6 +510,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
           "foo",
           message.stageId,
           message.taskId,
+          CANCELED,
           CANCELED
         ))
       }

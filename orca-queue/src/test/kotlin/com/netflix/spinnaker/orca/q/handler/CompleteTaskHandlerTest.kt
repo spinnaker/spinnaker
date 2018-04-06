@@ -65,6 +65,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           pipeline.application,
           pipeline.stages.first().id,
           "1",
+          successfulStatus,
           successfulStatus
         )
 
@@ -122,6 +123,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           pipeline.application,
           pipeline.stages.first().id,
           "1",
+          SUCCEEDED,
           SUCCEEDED
         )
 
@@ -171,6 +173,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
             pipeline.application,
             pipeline.stageByRef("1").id,
             "4",
+            REDIRECT,
             REDIRECT
           )
 
@@ -224,6 +227,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
         pipeline.application,
         pipeline.stages.first().id,
         "1",
+        status,
         status
       )
 
@@ -268,6 +272,25 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
           assertThat(it.status).isEqualTo(status)
         })
       }
+    }
+  }
+
+  describe("when a task should complete parent stage") {
+    val task = fun(isStageEnd: Boolean) : Task {
+      val task = Task()
+      task.isStageEnd = isStageEnd
+      return task
+    }
+
+    it("is last task in stage") {
+      subject.shouldCompleteStage(task(true), SUCCEEDED, SUCCEEDED) == true
+      subject.shouldCompleteStage(task(false), SUCCEEDED, SUCCEEDED) == false
+    }
+
+    it("did not originally complete with FAILED_CONTINUE") {
+      subject.shouldCompleteStage(task(false), TERMINAL, TERMINAL) == true
+      subject.shouldCompleteStage(task(false), FAILED_CONTINUE, TERMINAL) == true
+      subject.shouldCompleteStage(task(false), FAILED_CONTINUE, FAILED_CONTINUE) == false
     }
   }
 })
