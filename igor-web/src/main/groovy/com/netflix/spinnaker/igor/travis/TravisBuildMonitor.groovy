@@ -111,7 +111,7 @@ class TravisBuildMonitor extends CommonPollingMonitor<BuildDelta, BuildPollingDe
             V3Build build = item.build
             log.info("({}) Build update {} [running:{}]", kv("master", master), build.toString(), TravisResultConverter.running(build.state))
             if (build.state == TravisBuildState.passed) {
-                item.genericBuild = travisService.getGenericBuild(build) // This also parses the log for artifacts
+                item.genericBuild = travisService.getGenericBuild(build, true) // This also parses the log for artifacts
             }
             if (build.number > buildCache.getLastBuild(master, build.repository.slug, TravisResultConverter.running(build.state))) {
                 buildCache.setLastBuild(master, build.repository.slug, build.number, TravisResultConverter.running(build.state), buildCacheJobTTLSeconds())

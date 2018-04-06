@@ -78,7 +78,7 @@ class TravisBuildMonitorSpec extends Specification {
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
 
-        1 * travisService.getGenericBuild(build) >> TravisBuildConverter.genericBuild(build, MASTER)
+        1 * travisService.getGenericBuild(build, true) >> TravisBuildConverter.genericBuild(build, MASTER)
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/master', false) >> 3
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo', false) >> 5
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/master', 4, false, CACHED_JOB_TTL_SECONDS)
@@ -118,7 +118,7 @@ class TravisBuildMonitorSpec extends Specification {
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
 
-        1 * travisService.getGenericBuild(build) >> TravisBuildConverter.genericBuild(build, MASTER)
+        1 * travisService.getGenericBuild(build, true) >> TravisBuildConverter.genericBuild(build, MASTER)
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/master', false) >> 3
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/master', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
@@ -153,7 +153,7 @@ class TravisBuildMonitorSpec extends Specification {
         build.repository >> repository
         repository.slug >> 'test-org/test-repo'
 
-        1 * travisService.getGenericBuild(build) >> TravisBuildConverter.genericBuild(build, MASTER)
+        1 * travisService.getGenericBuild(build, true) >> TravisBuildConverter.genericBuild(build, MASTER)
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/my_branch', false) >> 3
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)
@@ -226,8 +226,8 @@ class TravisBuildMonitorSpec extends Specification {
         buildDifferentBranch.getState() >> TravisBuildState.passed
         buildDifferentBranch.repository >> repository
         repository.slug >> 'test-org/test-repo'
-        1 * travisService.getGenericBuild(build) >> TravisBuildConverter.genericBuild(build, MASTER)
-        1 * travisService.getGenericBuild(buildDifferentBranch) >> TravisBuildConverter.genericBuild(buildDifferentBranch, MASTER)
+        1 * travisService.getGenericBuild(build, true) >> TravisBuildConverter.genericBuild(build, MASTER)
+        1 * travisService.getGenericBuild(buildDifferentBranch, true) >> TravisBuildConverter.genericBuild(buildDifferentBranch, MASTER)
         1 * buildCache.getLastBuild(MASTER, 'test-org/test-repo/my_branch', false) >> 2
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo/my_branch', 4, false, CACHED_JOB_TTL_SECONDS)
         1 * buildCache.setLastBuild(MASTER, 'test-org/test-repo', 4, false, CACHED_JOB_TTL_SECONDS)

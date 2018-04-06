@@ -289,15 +289,19 @@ class TravisService implements BuildService {
         return travisClient.repoWrapper(getAccessToken(), repoSlug).repo
     }
 
-    GenericBuild getGenericBuild(Build build, String repoSlug) {
+    GenericBuild getGenericBuild(Build build, String repoSlug, boolean fetchLogs = false) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, repoSlug, baseUrl)
-        parseAndDecorateArtifacts(getLog(build), genericBuild)
+        if (fetchLogs) {
+            parseAndDecorateArtifacts(getLog(build), genericBuild)
+        }
         return genericBuild
     }
 
-    GenericBuild getGenericBuild(V3Build build) {
+    GenericBuild getGenericBuild(V3Build build, boolean fetchLogs = false) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, baseUrl)
-        parseAndDecorateArtifacts(getLog(build), genericBuild)
+        if (fetchLogs) {
+            parseAndDecorateArtifacts(getLog(build), genericBuild)
+        }
         return genericBuild
     }
 
