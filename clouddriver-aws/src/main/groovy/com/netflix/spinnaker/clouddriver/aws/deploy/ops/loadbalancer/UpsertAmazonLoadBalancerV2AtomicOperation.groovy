@@ -21,6 +21,7 @@ import com.amazonaws.services.elasticloadbalancingv2.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.LoadBalancerV2UpsertHandler
@@ -49,6 +50,9 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
 
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
+
+  @Autowired
+  DeployDefaults deployDefaults
 
   private final UpsertAmazonLoadBalancerV2Description description
   ObjectMapper objectMapper = new ObjectMapper()
@@ -96,7 +100,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
           subnetIds = regionScopedProvider.subnetAnalyzer.getSubnetIdsForZones(availabilityZones,
                   description.subnetType, SubnetTarget.ELB, 1)
         }
-        loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners)
+        loadBalancer = LoadBalancerV2UpsertHandler.createLoadBalancer(loadBalancing, loadBalancerName, isInternal, subnetIds, securityGroups, description.targetGroups, description.listeners, deployDefaults)
         dnsName = loadBalancer.DNSName
 
         // Enable AWS shield. We only do this on creation. The ELB must be external, the account must be enabled with
@@ -119,7 +123,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Upser
       } else {
         task.updateStatus BASE_PHASE, "Found existing load balancer named ${loadBalancerName} in ${region}... Using that."
         dnsName = loadBalancer.DNSName
-        LoadBalancerV2UpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, securityGroups, description.targetGroups, description.listeners)
+        LoadBalancerV2UpsertHandler.updateLoadBalancer(loadBalancing, loadBalancer, securityGroups, description.targetGroups, description.listeners, deployDefaults)
       }
 
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.name} in ${region}."

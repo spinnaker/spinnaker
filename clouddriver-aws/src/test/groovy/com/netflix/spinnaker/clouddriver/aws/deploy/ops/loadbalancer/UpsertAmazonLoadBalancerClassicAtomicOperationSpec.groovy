@@ -22,11 +22,14 @@ import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
+import com.amazonaws.services.elasticloadbalancing.model.ConnectionDraining
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerResult
 import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesRequest
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesResult
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
@@ -173,6 +176,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
             loadBalancerName: "kato-main-frontend",
             loadBalancerAttributes: new LoadBalancerAttributes(
                     crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: true),
+                    connectionDraining: new ConnectionDraining(enabled: false),
                     additionalAttributes: []
             )
     ))
@@ -237,6 +241,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
         externalPort: 8080,
         internalPort: 8080
       ))
+    description.crossZoneBalancing = true
 
     when:
     operation.operate([])
@@ -265,6 +270,11 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
                     healthyThreshold: 10
             )
     ))
+    1 * loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest(loadBalancerName: "kato-main-frontend")) >>
+            new DescribeLoadBalancerAttributesResult(loadBalancerAttributes:
+              new LoadBalancerAttributes(
+                crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: false),
+                connectionDraining: new ConnectionDraining(enabled: false)))
     1 * loadBalancing.modifyLoadBalancerAttributes(new ModifyLoadBalancerAttributesRequest(
             loadBalancerName: "kato-main-frontend",
             loadBalancerAttributes: new LoadBalancerAttributes(
@@ -273,6 +283,84 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
             )
     ))
     0 * _
+  }
+
+  @Unroll
+  void "should use existing loadbalancer attributes to #desc if not explicitly provided in description"() {
+    def existingLoadBalancers = [
+      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
+        .withListenerDescriptions(
+        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
+      )
+    ]
+
+    given:
+    description.crossZoneBalancing = descriptionCrossZone
+    description.connectionDraining = descriptionDraining
+    description.deregistrationDelay = descriptionTimeout
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
+    1 * loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
+      loadBalancerName: "kato-main-frontend",
+      securityGroups: ["sg-1234"]
+    ))
+    1 * loadBalancing.configureHealthCheck(new ConfigureHealthCheckRequest(
+      loadBalancerName: "kato-main-frontend",
+      healthCheck: new HealthCheck(
+        target: "HTTP:7001/health",
+        interval: 10,
+        timeout: 5,
+        unhealthyThreshold: 2,
+        healthyThreshold: 10
+      )
+    ))
+    1 * loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest(loadBalancerName: "kato-main-frontend")) >>
+      new DescribeLoadBalancerAttributesResult(loadBalancerAttributes:
+        new LoadBalancerAttributes(
+          crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: existingCrossZone),
+          connectionDraining: new ConnectionDraining(enabled: existingDraining, timeout: existingTimeout)))
+    expectedInv * loadBalancing.modifyLoadBalancerAttributes(new ModifyLoadBalancerAttributesRequest(
+      loadBalancerName: "kato-main-frontend",
+      loadBalancerAttributes: expectedAttributes))
+    0 * _
+
+
+    where:
+    desc                | expectedInv | existingCrossZone | descriptionCrossZone | existingDraining | existingTimeout | descriptionDraining | descriptionTimeout
+    "make no changes"   | 0           | true              | null                 | true             | 300             | null                | null
+    "enable cross zone" | 1           | false             | true                 | true             | 123             | null                | null
+    "enable draining"   | 1           | true              | null                 | false            | 300             | true                | null
+    "modify timeout"    | 1           | true              | null                 | false            | 300             | null                | 150
+
+    expectedAttributes = expectedAttributes(existingCrossZone, descriptionCrossZone, existingDraining, existingTimeout, descriptionDraining, descriptionTimeout)
+  }
+
+  private LoadBalancerAttributes expectedAttributes(existingCrossZone, descriptionCrossZone, existingDraining, existingTimeout, descriptionDraining, descriptionTimeout) {
+    CrossZoneLoadBalancing czlb = null
+    if (existingCrossZone != descriptionCrossZone && descriptionCrossZone != null) {
+      czlb = new CrossZoneLoadBalancing(enabled:  descriptionCrossZone)
+    }
+
+    ConnectionDraining cd = null
+    if ((descriptionDraining != null || descriptionTimeout != null) && (existingDraining != descriptionDraining || existingTimeout != descriptionTimeout)) {
+      cd = new ConnectionDraining(enabled: [descriptionDraining, existingDraining].findResult(Closure.IDENTITY), timeout: [descriptionTimeout, existingTimeout].findResult(Closure.IDENTITY))
+    }
+    if (cd == null && czlb == null) {
+      return null
+    }
+    LoadBalancerAttributes lba = new LoadBalancerAttributes().withAdditionalAttributes(Collections.emptyList())
+    if (cd != null) {
+      lba.setConnectionDraining(cd)
+    }
+    if (czlb != null) {
+      lba.setCrossZoneLoadBalancing(czlb)
+    }
+    return lba
   }
 
   void "should attempt to apply all listener modifications regardless of individual failures"() {
@@ -340,6 +428,8 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     then:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
             new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
+    1 * loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest(loadBalancerName: "kato-main-frontend")) >>
+            new DescribeLoadBalancerAttributesResult(loadBalancerAttributes:  new LoadBalancerAttributes(crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: true)))
     1 * loadBalancing.modifyLoadBalancerAttributes(_) >> {  ModifyLoadBalancerAttributesRequest request ->
       assert !request.loadBalancerAttributes.crossZoneLoadBalancing.enabled
     }
@@ -442,6 +532,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
     then:
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerPorts: [111]))
     1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
             listeners: [ new Listener(loadBalancerPort: 80, instancePort: 8501, protocol: "HTTP", instanceProtocol: "HTTP") ]
@@ -460,6 +551,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
     then:
     1 * loadBalancing.describeLoadBalancers(_) >> new DescribeLoadBalancersResult(loadBalancerDescriptions: [loadBalancer])
+    1 * loadBalancing.describeLoadBalancerAttributes(_) >> new DescribeLoadBalancerAttributesResult()
     1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerPorts: [111]))
     0 * loadBalancing.deleteLoadBalancerListeners(_)
     1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(

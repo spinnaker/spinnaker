@@ -20,6 +20,7 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType
@@ -104,6 +105,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
   def setup() {
     operation.amazonClientProvider = mockAmazonClientProvider
     operation.regionScopedProviderFactory = regionScopedProviderFactory
+    operation.deployDefaults = new AwsConfiguration.DeployDefaults()
   }
 
   void "should create load balancer"() {

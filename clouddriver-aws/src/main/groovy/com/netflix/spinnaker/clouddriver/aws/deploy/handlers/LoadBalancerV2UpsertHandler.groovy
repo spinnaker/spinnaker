@@ -46,6 +46,8 @@ import com.amazonaws.services.elasticloadbalancingv2.model.SetSecurityGroupsRequ
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupAttribute
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -60,10 +62,14 @@ class LoadBalancerV2UpsertHandler {
   }
 
   private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes) {
+    return modifyTargetGroupAttributes(loadBalancing, targetGroup, attributes, null)
+  }
+  private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes, DeployDefaults deployDefaults) {
     def targetGroupAttributes = []
     if (attributes) {
-      if (attributes.deregistrationDelay != null) {
-        targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.timeout_seconds", value: attributes.deregistrationDelay.toString()))
+      Integer deregistrationDelay = [attributes.deregistrationDelay, deployDefaults?.loadBalancing?.deregistrationDelayDefault].findResult(Closure.IDENTITY)
+      if (deregistrationDelay != null) {
+        targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.timeout_seconds", value: deregistrationDelay.toString()))
       }
       if (attributes.stickinessEnabled != null) {
         targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.enabled", value: attributes.stickinessEnabled.toString()))
@@ -89,7 +95,7 @@ class LoadBalancerV2UpsertHandler {
     return null
   }
 
-  static List<TargetGroup> createTargetGroups(List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroupsToCreate, AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, List<String> amazonErrors) {
+  static List<TargetGroup> createTargetGroups(List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroupsToCreate, AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, List<String> amazonErrors, DeployDefaults deployDefaults) {
     String loadBalancerName = loadBalancer.loadBalancerName
     List<TargetGroup> createdTargetGroups = new ArrayList<TargetGroup>()
 
@@ -124,7 +130,7 @@ class LoadBalancerV2UpsertHandler {
         createdTargetGroups.add(createdTargetGroup)
 
         // Add attributes
-        String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, createdTargetGroup, targetGroup.attributes)
+        String exceptionMessage = modifyTargetGroupAttributes(loadBalancing, createdTargetGroup, targetGroup.attributes, deployDefaults)
         if (exceptionMessage) {
           amazonErrors << exceptionMessage
         }
@@ -277,10 +283,12 @@ class LoadBalancerV2UpsertHandler {
     }
   }
 
-  static void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer,
-                                        Collection<String> securityGroups,
-                                        List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
-                                        List<UpsertAmazonLoadBalancerV2Description.Listener> listeners) {
+  static void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing,
+                                 LoadBalancer loadBalancer,
+                                 Collection<String> securityGroups,
+                                 List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
+                                 List<UpsertAmazonLoadBalancerV2Description.Listener> listeners,
+                                 DeployDefaults deployDefaults) {
     def amazonErrors = []
     def loadBalancerName = loadBalancer.loadBalancerName
     def loadBalancerArn = loadBalancer.loadBalancerArn
@@ -338,7 +346,7 @@ class LoadBalancerV2UpsertHandler {
     existingTargetGroups.removeAll(removedTargetGroups)
 
     // Create any target groups to create
-    List<TargetGroup> createdTargetGroups = createTargetGroups(targetGroupsToCreate, loadBalancing, loadBalancer, amazonErrors)
+    List<TargetGroup> createdTargetGroups = createTargetGroups(targetGroupsToCreate, loadBalancing, loadBalancer, amazonErrors, deployDefaults)
     existingTargetGroups.addAll(createdTargetGroups)
 
     // Update any target groups that need updating
@@ -418,9 +426,10 @@ class LoadBalancerV2UpsertHandler {
   }
 
   static LoadBalancer createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
-                                          Collection<String> subnetIds, Collection<String> securityGroups,
-                                          List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
-                                          List<UpsertAmazonLoadBalancerV2Description.Listener> listeners) {
+                                         Collection<String> subnetIds, Collection<String> securityGroups,
+                                         List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
+                                         List<UpsertAmazonLoadBalancerV2Description.Listener> listeners,
+                                         DeployDefaults deployDefaults) {
     def request = new CreateLoadBalancerRequest().withName(loadBalancerName)
 
     // Networking Related
@@ -447,7 +456,7 @@ class LoadBalancerV2UpsertHandler {
     List<LoadBalancer> loadBalancers = result.getLoadBalancers()
     if (loadBalancers != null && loadBalancers.size() > 0) {
       createdLoadBalancer = loadBalancers.get(0)
-      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners)
+      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners, deployDefaults)
     }
     createdLoadBalancer
   }

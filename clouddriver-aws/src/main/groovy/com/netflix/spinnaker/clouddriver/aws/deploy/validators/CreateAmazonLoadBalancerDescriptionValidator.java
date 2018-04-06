@@ -69,6 +69,12 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
         if (classicDescription.getListeners() == null || classicDescription.getListeners().size() == 0) {
           errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.empty");
         }
+
+        if (classicDescription.getDeregistrationDelay() != null) {
+          if (classicDescription.getDeregistrationDelay() < 1 || classicDescription.getDeregistrationDelay() > 3600) {
+            errors.rejectValue("deregistrationDelay", "createAmazonLoadBalancerDescription.deregistrationDelay.invalid");
+          }
+        }
         break;
       case APPLICATION:
         UpsertAmazonLoadBalancerV2Description albDescription = (UpsertAmazonLoadBalancerV2Description) description;

@@ -27,6 +27,8 @@ public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoad
   private Integer unhealthyThreshold = 2;
   private Integer healthyThreshold = 10;
   private String application;
+  private Boolean connectionDraining;
+  private Integer deregistrationDelay;
 
   public List<Listener> getListeners() {
     return listeners;
@@ -84,7 +86,7 @@ public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoad
     this.crossZoneBalancing = crossZoneBalancing;
   }
 
-  private Boolean crossZoneBalancing = Boolean.TRUE;
+  private Boolean crossZoneBalancing;
 
   public String getApplication() {
     return application;
@@ -100,6 +102,22 @@ public class UpsertAmazonLoadBalancerClassicDescription extends UpsertAmazonLoad
 
   public void setHealthCheckPort(Integer healthCheckPort) {
     this.healthCheckPort = healthCheckPort;
+  }
+
+  public Boolean getConnectionDraining() {
+    return connectionDraining;
+  }
+
+  public void setConnectionDraining(Boolean connectionDraining) {
+    this.connectionDraining = connectionDraining;
+  }
+
+  public Integer getDeregistrationDelay() {
+    return deregistrationDelay;
+  }
+
+  public void setDeregistrationDelay(Integer deregistrationDelay) {
+    this.deregistrationDelay = deregistrationDelay;
   }
 
   public static class Listener {

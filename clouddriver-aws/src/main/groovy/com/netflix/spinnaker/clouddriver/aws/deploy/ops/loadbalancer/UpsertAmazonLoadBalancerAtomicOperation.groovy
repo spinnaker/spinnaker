@@ -21,7 +21,9 @@ import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
+import com.amazonaws.services.elasticloadbalancing.model.ConnectionDraining
 import com.amazonaws.services.elasticloadbalancing.model.CrossZoneLoadBalancing
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancerAttributesRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.HealthCheck
 import com.amazonaws.services.elasticloadbalancing.model.Listener
@@ -203,15 +205,48 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         task.updateStatus BASE_PHASE, "Healthcheck configured."
       }
 
-      // Apply balancing opinions...
-      loadBalancing.modifyLoadBalancerAttributes(
-        new ModifyLoadBalancerAttributesRequest(loadBalancerName: loadBalancerName)
-          .withLoadBalancerAttributes(
-          new LoadBalancerAttributes(
-            crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: description.crossZoneBalancing)
+      CrossZoneLoadBalancing crossZoneLoadBalancing = null
+      ConnectionDraining connectionDraining = null
+
+      if (loadBalancer) {
+        def currentAttributes = loadBalancing.describeLoadBalancerAttributes(new DescribeLoadBalancerAttributesRequest().withLoadBalancerName(loadBalancerName)).loadBalancerAttributes
+
+        Boolean crossZoneBalancingEnabled = [description.crossZoneBalancing, currentAttributes?.crossZoneLoadBalancing?.enabled, deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Closure.IDENTITY)
+
+        if (crossZoneBalancingEnabled != currentAttributes?.crossZoneLoadBalancing?.enabled) {
+          crossZoneLoadBalancing = new CrossZoneLoadBalancing(enabled: crossZoneBalancingEnabled)
+        }
+
+        Boolean connectionDrainingEnabled = [description.connectionDraining, currentAttributes?.connectionDraining?.enabled, deployDefaults.loadBalancing.connectionDrainingDefault].findResult(Closure.IDENTITY)
+        Integer deregistrationDelay = [description.deregistrationDelay, currentAttributes?.connectionDraining?.timeout, deployDefaults.loadBalancing.deregistrationDelayDefault].findResult(Closure.IDENTITY)
+
+        if (connectionDrainingEnabled != currentAttributes?.connectionDraining?.enabled || deregistrationDelay != currentAttributes?.connectionDraining?.timeout) {
+          connectionDraining = new ConnectionDraining(
+            enabled: connectionDrainingEnabled,
+            timeout: deregistrationDelay)
+        }
+      } else {
+        crossZoneLoadBalancing = new CrossZoneLoadBalancing(enabled: [description.crossZoneBalancing, deployDefaults.loadBalancing.crossZoneBalancingDefault].findResult(Boolean.TRUE, Closure.IDENTITY))
+        connectionDraining = new ConnectionDraining(
+          enabled: [description.connectionDraining, deployDefaults.loadBalancing.connectionDrainingDefault].findResult(Boolean.FALSE, Closure.IDENTITY),
+          timeout: [description.deregistrationDelay, deployDefaults.loadBalancing.deregistrationDelayDefault].findResult(Closure.IDENTITY))
+      }
+
+      if (crossZoneLoadBalancing != null || connectionDraining != null) {
+        LoadBalancerAttributes attributes = new LoadBalancerAttributes()
+        if (crossZoneLoadBalancing) {
+          attributes.setCrossZoneLoadBalancing(crossZoneLoadBalancing)
+        }
+        if (connectionDraining) {
+          attributes.setConnectionDraining(connectionDraining)
+        }
+        // Apply balancing opinions...
+        loadBalancing.modifyLoadBalancerAttributes(
+          new ModifyLoadBalancerAttributesRequest(loadBalancerName: loadBalancerName)
+            .withLoadBalancerAttributes(attributes)
           )
-        )
-      )
+      }
+
 
       task.updateStatus BASE_PHASE, "Done deploying ${loadBalancerName} to ${description.credentials.name} in ${region}."
       operationResult.loadBalancers[region] = new LoadBalancer(loadBalancerName, dnsName)
