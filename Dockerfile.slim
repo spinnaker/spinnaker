@@ -8,8 +8,8 @@ WORKDIR /opt/deck
 
 RUN docker/setup-apache2.sh
 
-USER www-data
-
 RUN chown -R www-data:www-data docker
+
+USER www-data
 
 CMD docker/run-apache2.sh
