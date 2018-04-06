@@ -77,6 +77,9 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
   @Autowired
   BakeDebianIgorService igorService;
 
+  @Autowired(required = false)
+  BakeDebianKayentaService kayentaService;
+
   @Autowired
   BakeDebianMonitoringDaemonService monitoringDaemonService;
 

@@ -59,6 +59,9 @@ public class GoogleDistributedServiceProvider extends DistributedServiceProvider
   @Autowired
   GoogleIgorService igorService;
 
+  @Autowired(required = false)
+  GoogleKayentaService kayentaService;
+
   @Autowired
   GoogleOrcaBootstrapService orcaBootstrapService;
 

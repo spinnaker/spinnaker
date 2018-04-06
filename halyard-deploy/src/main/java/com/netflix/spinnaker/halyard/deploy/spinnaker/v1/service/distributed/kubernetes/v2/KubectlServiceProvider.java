@@ -56,6 +56,9 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
   @Autowired
   KubernetesV2IgorService igorService;
 
+  @Autowired(required = false)
+  KubernetesV2KayentaService kayentaService;
+
   @Autowired
   KubernetesV2OrcaService orcaService;
 

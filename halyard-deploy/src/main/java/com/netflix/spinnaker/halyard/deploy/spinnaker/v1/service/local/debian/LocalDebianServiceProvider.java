@@ -64,6 +64,9 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
   @Autowired
   LocalDebianIgorService igorService;
 
+  @Autowired(required = false)
+  LocalDebianKayentaService kayentaService;
+
   @Autowired
   LocalDebianMonitoringDaemonService monitoringDaemonService;
 

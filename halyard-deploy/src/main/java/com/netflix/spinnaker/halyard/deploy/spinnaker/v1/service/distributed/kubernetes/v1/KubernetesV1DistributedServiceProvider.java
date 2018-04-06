@@ -54,6 +54,9 @@ public class KubernetesV1DistributedServiceProvider extends DistributedServicePr
   @Autowired
   KubernetesV1IgorService igorService;
 
+  @Autowired(required = false)
+  KubernetesV1KayentaService kayentaService;
+
   @Autowired
   KubernetesV1MonitoringDaemonService monitoringDaemonService;
 
