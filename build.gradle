@@ -27,6 +27,7 @@ buildscript {
     classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.16.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
+
   }
 }
 
@@ -52,6 +53,8 @@ subprojects { project ->
   dependencies {
     spinnaker.group('test')
     testCompile spinnaker.dependency('groovy')
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'org.spockframework:spock-spring:1.0-groovy-2.4'
   }
 }
 

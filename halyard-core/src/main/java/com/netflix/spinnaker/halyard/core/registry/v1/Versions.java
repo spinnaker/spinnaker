@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @Data
 public class Versions {
   public final static String BRANCH_PREFIX = "branch:";
+  public final static String LOCAL_PREFIX = "local:";
 
   @Data
   public static class Version {
@@ -56,6 +57,14 @@ public class Versions {
 
   public static String fromBranch(String version) {
     return version.substring(BRANCH_PREFIX.length());
+  }
+
+  public static boolean isLocal(String version) {
+    return version.startsWith(LOCAL_PREFIX);
+  }
+
+  public static String fromLocal(String version) {
+    return version.substring(LOCAL_PREFIX.length());
   }
 
   @Data

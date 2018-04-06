@@ -1,0 +1,37 @@
+server:
+  port: ${services.orca.port:8083}
+  address: ${services.orca.host:localhost}
+
+oort:
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
+
+front50:
+  enabled: true
+  baseUrl: ${services.front50.baseUrl:http://localhost:8080}
+
+mort:
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
+
+kato:
+  baseUrl: ${services.clouddriver.baseUrl:http://localhost:7002}
+
+bakery:
+  enabled: true
+  baseUrl: ${services.rosco.baseUrl:http://localhost:8087}
+  extractBuildDetails: ${services.rosco.extractBuildDetails:true}
+  allowMissingPackageInstallation: ${services.rosco.allowMissingPackageInstallation:false}
+
+echo:
+  enabled: true
+  baseUrl: ${services.echo.baseUrl:http://localhost:8089}
+
+igor:
+  enabled: true
+  baseUrl: ${services.igor.baseUrl:http://localhost:8088}
+
+redis:
+  connection: ${services.redis.baseUrl:redis://localhost:6379}
+
+tasks:
+  executionWindow:
+    timezone: ${global.spinnaker.timezone:America/Los_Angeles}
