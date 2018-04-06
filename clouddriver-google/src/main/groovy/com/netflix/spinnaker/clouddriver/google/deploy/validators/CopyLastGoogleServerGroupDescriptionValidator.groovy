@@ -55,7 +55,9 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
     }
 
     if (description.minCpuPlatform) {
-      helper.validateMinCpuPlatform(description.minCpuPlatform, description.zone, description.credentials)
+      helper.validateMinCpuPlatform(description.minCpuPlatform,
+                                    description.regional ? description.region : description.zone,
+                                    description.credentials)
     }
   }
 }
