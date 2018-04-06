@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,8 @@
  * limitations under the License.
  */
 
-include 'echo-core',
-        'echo-model',
-        'echo-web',
-        'echo-notifications',
-        'echo-pipelinetriggers',
-        'echo-scheduler',
-        'echo-rest',
-        'echo-webhooks',
-        'echo-pubsub-core',
-        'echo-pubsub-aws',
-        'echo-pubsub-google',
-        'echo-test'
-
-rootProject.name = 'echo'
-
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
-
-rootProject.children.each {
-    setBuildFile it
+dependencies {
+  spinnaker.group("retrofitDefault")
+  compile project(':echo-pipelinetriggers')
+  spinnaker.group("spockBase")
 }

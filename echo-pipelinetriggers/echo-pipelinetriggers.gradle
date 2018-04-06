@@ -33,5 +33,5 @@ dependencies {
   compile group: 'org.codehaus.groovy', name: 'groovy', version: "2.4.5"
   compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
   testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
-
+  testCompile project(':echo-test')
 }
