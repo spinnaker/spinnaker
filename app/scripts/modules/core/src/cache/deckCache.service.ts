@@ -21,9 +21,8 @@ class SelfClearingLocalStorage implements ILocalStorage {
     try {
       if (k.includes(SETTINGS.gateUrl)) {
         const response = JSON.parse(v);
-        if (response.value && Array.isArray(response.value) && (response.value.length > 2) && Array.isArray(response.value[2])) {
-
-          const val: any = response.value[2]['content-type'];
+        if (response.value && Array.isArray(response.value) && (response.value.length > 2) && response.value[2]['content-type']) {
+          const val: string = response.value[2]['content-type'];
           if (val && !val.includes('application/json')) {
             return;
           }
