@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.q.Message
+import java.time.Duration
 
 /**
  * Messages used internally by the queueing system.
@@ -124,6 +125,8 @@ data class RunTask(
   override val taskId: String,
   val taskType: Class<out Task>
 ) : Message(), TaskLevel {
+  override val ackTimeoutMs = Duration.ofMinutes(10).toMillis()
+
   constructor(message: StageLevel, taskId: String, taskType: Class<out Task>) :
     this(message.executionType, message.executionId, message.application, message.stageId, taskId, taskType)
 
