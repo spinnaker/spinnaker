@@ -15,73 +15,58 @@
  */
 package com.netflix.spinnaker.keel.memory
 
-import com.netflix.spinnaker.config.KeelProperties
+import com.netflix.spinnaker.keel.ActivityRecord
 import com.netflix.spinnaker.keel.IntentActivityRepository
-import com.netflix.spinnaker.keel.IntentConvergenceRecord
+import com.netflix.spinnaker.keel.model.ListCriteria
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import java.util.concurrent.ConcurrentHashMap
 import javax.annotation.PostConstruct
 
-class MemoryIntentActivityRepository
-@Autowired constructor(
-  private val keelProperties: KeelProperties
-) : IntentActivityRepository {
+class MemoryIntentActivityRepository : IntentActivityRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  private val orchestrations: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
-
-  private val convergenceLog: ConcurrentHashMap<String, MutableList<IntentConvergenceRecord>> = ConcurrentHashMap()
+  private val activities: ConcurrentHashMap<String, MutableList<ActivityRecord>> = ConcurrentHashMap()
 
   @PostConstruct
   fun init() {
     log.info("Using ${javaClass.simpleName}")
   }
 
-  override fun addOrchestration(intentId: String, orchestrationId: String) {
-    val orchestrationUUID = parseOrchestrationId(orchestrationId)
-    if (!orchestrations.containsKey(intentId)) {
-      orchestrations[intentId] = mutableSetOf()
-    }
-    if (orchestrations[intentId]?.contains(orchestrationUUID) == false) {
-      orchestrations[intentId]?.add(orchestrationUUID)
+  override fun record(activity: ActivityRecord) {
+    ensureIntentLog(activity.intentId)
+    activities[activity.intentId]!!.add(activity)
+  }
+
+  override fun getHistory(intentId: String, criteria: ListCriteria): List<ActivityRecord> {
+    ensureIntentLog(intentId)
+    return activities[intentId]!!.let { limitOffset(it, criteria) }
+  }
+
+  override fun <T : ActivityRecord> getHistory(intentId: String, kind: Class<T>, criteria: ListCriteria): List<T> {
+    ensureIntentLog(intentId)
+    return activities[intentId]!!
+      .filterIsInstance(kind)
+      .let { limitOffset(it, criteria) }
+  }
+
+  private fun ensureIntentLog(intentId: String) {
+    if (!activities.containsKey(intentId)) {
+      activities[intentId] = mutableListOf()
     }
   }
 
-  override fun addOrchestrations(intentId: String, orchestrations: List<String>) {
-    orchestrations.forEach { addOrchestration(intentId, it) }
-  }
-
-  override fun getHistory(intentId: String) = orchestrations.getOrDefault(intentId, mutableSetOf()).toList()
-
-  override fun logConvergence(intentConvergenceRecord: IntentConvergenceRecord) {
-    val intentId = intentConvergenceRecord.intentId
-    if (!convergenceLog.containsKey(intentId)){
-      convergenceLog[intentId] = mutableListOf(intentConvergenceRecord)
-    } else {
-      if (convergenceLog[intentId] == null) {
-        convergenceLog[intentId] = mutableListOf(intentConvergenceRecord)
+  private fun <T : ActivityRecord> limitOffset(list: List<T>, criteria: ListCriteria): List<T> =
+    list.let {
+      val size = it.size
+      if (size <= criteria.offset) {
+        listOf()
       } else {
-        convergenceLog[intentId]?.let { l ->
-          l.add(intentConvergenceRecord)
-          // Drop oldest entries if we're over the message limit
-          val numMsgsLeft = keelProperties.maxConvergenceLogEntriesPerIntent - l.count()
-          if (numMsgsLeft < 0){
-            convergenceLog[intentId] = l.drop(-1*numMsgsLeft).toMutableList()
-          }
+        var lastIndex = criteria.offset + criteria.limit
+        if (lastIndex >= size) {
+          lastIndex = size
         }
+        it.subList(criteria.offset, lastIndex).toList()
       }
     }
-  }
-
-  override fun getLog(intentId: String): List<IntentConvergenceRecord>
-    = convergenceLog[intentId] ?: emptyList()
-
-  // if there are multiple messages with the same timestamp, return the first
-  override fun getLogEntry(intentId: String, timestampMillis: Long)
-    = convergenceLog[intentId]?.filter { it.timestampMillis == timestampMillis }?.toList()?.also {
-      // The same intent shouldn't be processed more than once at the exact same time.
-      if (it.size > 1) log.warn("Two messages with the same timestampMillis. This shouldn't happen.")
-    }?.first()
 }

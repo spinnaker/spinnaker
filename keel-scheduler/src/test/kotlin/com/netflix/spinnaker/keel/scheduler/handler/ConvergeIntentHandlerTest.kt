@@ -16,22 +16,15 @@
 package com.netflix.spinnaker.keel.scheduler.handler
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.keel.IntentActivityRepository
 import com.netflix.spinnaker.keel.IntentRepository
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.orca.OrcaLaunchedIntentResult
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
-import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
+import com.netflix.spinnaker.keel.test.TestIntent
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import com.nhaarman.mockito_kotlin.whenever
+import com.nhaarman.mockito_kotlin.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.context.ApplicationEventPublisher
@@ -43,17 +36,16 @@ object ConvergeIntentHandlerTest {
 
   val queue = mock<Queue>()
   val intentRepository = mock<IntentRepository>()
-  val intentActivityRepository = mock<IntentActivityRepository>()
   val orcaIntentLauncher = mock<OrcaIntentLauncher>()
   val clock = Clock.fixed(Instant.ofEpochSecond(500), ZoneId.systemDefault())
   val registry = NoopRegistry()
   val applicationEventPublisher = mock<ApplicationEventPublisher>()
 
-  val subject = ConvergeIntentHandler(queue, intentRepository, intentActivityRepository, orcaIntentLauncher, clock, registry, applicationEventPublisher)
+  val subject = ConvergeIntentHandler(queue, intentRepository, orcaIntentLauncher, clock, registry, applicationEventPublisher)
 
   @AfterEach
   fun cleanup() {
-    reset(queue, intentRepository, intentActivityRepository, orcaIntentLauncher, applicationEventPublisher)
+    reset(queue, intentRepository, orcaIntentLauncher, applicationEventPublisher)
   }
 
   @Test
@@ -96,7 +88,6 @@ object ConvergeIntentHandlerTest {
     subject.handle(message)
 
     verify(orcaIntentLauncher).launch(refreshedIntent)
-    verify(intentActivityRepository).addOrchestrations("test:1", listOf("one"))
-    verifyNoMoreInteractions(orcaIntentLauncher, intentActivityRepository)
+    verifyNoMoreInteractions(orcaIntentLauncher)
   }
 }

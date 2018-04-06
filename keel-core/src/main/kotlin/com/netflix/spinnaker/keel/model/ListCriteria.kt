@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.keel.model
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-
-@ConfigurationProperties("keel")
-class KeelProperties {
-  var prettyPrintJson: Boolean = false
-  var immediatelyRunIntents: Boolean = true
-  var maxConvergenceLogEntriesPerIntent: Int = 1000
-
-  var intentPackages: List<String> = listOf("com.netflix.spinnaker.keel.intent")
-  var intentSpecPackages: List<String> = listOf("com.netflix.spinnaker.keel.intent")
-  var attributePackages: List<String> = listOf("com.netflix.spinnaker.keel.attribute")
+// TODO validation
+interface ListCriteria {
+  val limit: Int
+  val offset: Int
 }
+
+data class PagingListCriteria(
+  override val limit: Int = 10,
+  override val offset: Int = 0
+) : ListCriteria

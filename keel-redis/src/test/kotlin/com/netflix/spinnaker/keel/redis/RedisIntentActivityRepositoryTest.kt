@@ -21,8 +21,12 @@ import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.config.configureObjectMapper
 import com.netflix.spinnaker.hamkrest.shouldEqual
-import com.netflix.spinnaker.keel.IntentConvergenceRecord
-import com.netflix.spinnaker.keel.dryrun.ChangeType
+import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.dryrun.ChangeSummary
+import com.netflix.spinnaker.keel.model.PagingListCriteria
+import com.netflix.spinnaker.keel.test.GenericTestIntentSpec
+import com.netflix.spinnaker.keel.test.TestIntent
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
@@ -32,7 +36,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle
 import redis.clients.jedis.JedisPool
-import java.time.Clock
 
 @TestInstance(Lifecycle.PER_CLASS)
 object RedisIntentActivityRepositoryTest {
@@ -42,14 +45,14 @@ object RedisIntentActivityRepositoryTest {
   val keelProperties = KeelProperties().apply {
     maxConvergenceLogEntriesPerIntent = 5
   }
-  val clock = Clock.systemDefaultZone()
-  val mapper = configureObjectMapper(ObjectMapper(), keelProperties, listOf())
+  val mapper = configureObjectMapper(ObjectMapper(), keelProperties, listOf(
+    ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(Intent::class.java, listOf("com.netflix.spinnaker.keel"))
+  ))
 
   val subject = RedisIntentActivityRepository(
     redisClientSelector = RedisClientSelector(listOf(JedisClientDelegate("primaryDefault", jedisPool))),
-    keelProperties = keelProperties ,
-    objectMapper = mapper,
-    clock = clock
+    keelProperties = keelProperties,
+    objectMapper = mapper
   )
 
   @BeforeEach
@@ -65,41 +68,39 @@ object RedisIntentActivityRepositoryTest {
   }
 
   @Test
-  fun `listing history for an intent returns ordered orchestrations`() {
-    subject.addOrchestration("hello", "abcd")
-    subject.addOrchestrations("world", listOf("1234", "5678", "lol"))
-    subject.addOrchestration("hello", "covfefe")
+  fun `listing log for an intent returns ordered records`() {
+    val aUpsertRecord = IntentChangeRecord("a", "rob", IntentChangeAction.UPSERT, TestIntent(GenericTestIntentSpec("a")))
+    val aConvergeRecord = IntentConvergenceRecord("a", "keel", ConvergeResult(listOf(), ChangeSummary("a")))
+    val bConvergeRecord = IntentConvergenceRecord("b", "keel", ConvergeResult(listOf(), ChangeSummary("b")))
+    val aUpsertRecord2 = IntentChangeRecord("a", "rob", IntentChangeAction.UPSERT, TestIntent(GenericTestIntentSpec("a")))
+    subject.record(aUpsertRecord)
+    subject.record(aConvergeRecord)
+    subject.record(bConvergeRecord)
+    subject.record(aUpsertRecord2)
 
-    subject.getHistory("world").let {
-      it shouldMatch equalTo(listOf("1234", "5678", "lol"))
-    }
-
-    subject.getHistory("hello").let {
-      it shouldMatch equalTo(listOf("abcd", "covfefe"))
-    }
+    subject.getHistory("a", PagingListCriteria()).size shouldMatch equalTo(3)
+    subject.getHistory("a", IntentChangeRecord::class.java, PagingListCriteria()).size shouldMatch equalTo(2)
   }
 
   @Test
   fun `only the specified number of convergence log messages should be kept`() {
     val intentId = "Application:emilykeeltest"
 
-    val record = IntentConvergenceRecord(
-      intentId = intentId,
-      changeType = ChangeType.NO_CHANGE,
-      orchestrations = emptyList(),
-      messages = listOf("System state matches desired state"),
-      diff = emptySet(),
-      actor = "keel:scheduledConvergence",
-      timestampMillis = 1516214128706
-    )
-    subject.logConvergence(record)
-    subject.logConvergence(record.copy(timestampMillis = 1516214135581))
-    subject.logConvergence(record.copy(timestampMillis = 1516214157620))
-    subject.logConvergence(record.copy(timestampMillis = 1516214167665))
-    subject.logConvergence(record.copy(timestampMillis = 1516214192806))
-    subject.logConvergence(record.copy(timestampMillis = 1516214217947))
-    subject.logConvergence(record.copy(timestampMillis = 1516214243088))
+    val recordFactory = {
+      IntentConvergenceRecord(
+        intentId = intentId,
+        actor = "keel:scheduledConvergence",
+        result = ConvergeResult(listOf(), ChangeSummary("a"))
+      )
+    }
+    subject.record(recordFactory())
+    subject.record(recordFactory())
+    subject.record(recordFactory())
+    subject.record(recordFactory())
+    subject.record(recordFactory())
+    subject.record(recordFactory())
+    subject.record(recordFactory())
 
-    subject.getLog(intentId).size shouldEqual keelProperties.maxConvergenceLogEntriesPerIntent
+    subject.getHistory(intentId, PagingListCriteria()).size shouldEqual keelProperties.maxConvergenceLogEntriesPerIntent
   }
 }

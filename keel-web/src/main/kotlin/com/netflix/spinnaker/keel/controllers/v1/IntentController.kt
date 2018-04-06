@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.controllers.v1
 import com.netflix.spinnaker.config.KeelProperties
 import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.DryRunIntentLauncher
+import com.netflix.spinnaker.keel.model.PagingListCriteria
 import com.netflix.spinnaker.keel.model.UpsertIntentRequest
 import com.netflix.spinnaker.keel.scheduler.ScheduleService
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -98,15 +99,19 @@ class IntentController
       }
   }
 
-  @RequestMapping(value = ["/{id}/history"], method = [(RequestMethod.GET)])
-  fun getIntentHistory(@PathVariable("id") id: String) = intentActivityRepository.getHistory(id)
-
   @RequestMapping(value = ["/{id}/log"], method = [(RequestMethod.GET)])
-  fun getLog(@PathVariable("id") id: String) = intentActivityRepository.getLog(id)
+  fun getLog(@PathVariable("id") id: String,
+             @RequestParam("limit", defaultValue = "10", required = false) limit: Int,
+             @RequestParam("offset", defaultValue = "10", required = false) offset: Int,
+             @RequestParam("kind", required = false) kind: String?): List<ActivityRecord> {
+    if (kind == null) {
+      return intentActivityRepository.getHistory(id, PagingListCriteria(limit, offset))
+    }
 
-  @RequestMapping(value = ["/{id}/log/{timestampMillis}"], method = [(RequestMethod.GET)])
-  fun getLogEntry(@PathVariable("id") id: String, @PathVariable("timestampMillis") timestampMillis: Long)
-    = intentActivityRepository.getLogEntry(id, timestampMillis)
+    val clazz = activityRecordClassForName(kind) ?: throw IllegalArgumentException("Unknown activity record kind: $kind")
+
+    return intentActivityRepository.getHistory(id, clazz, PagingListCriteria(limit, offset))
+  }
 }
 
 data class UpsertIntentResponse(

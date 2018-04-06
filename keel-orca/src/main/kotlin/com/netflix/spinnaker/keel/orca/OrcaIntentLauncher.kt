@@ -21,21 +21,17 @@ import com.netflix.spinnaker.keel.*
 import com.netflix.spinnaker.keel.dryrun.ChangeSummary
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
 import java.util.concurrent.TimeUnit
 
 @Component(value = "orcaIntentLauncher")
-open class OrcaIntentLauncher
-@Autowired constructor(
+open class OrcaIntentLauncher(
   private val intentProcessors: List<IntentProcessor<*>>,
   private val orcaService: OrcaService,
   private val registry: Registry,
   private val applicationEventPublisher: ApplicationEventPublisher,
-  private val intentActivityRepository: IntentActivityRepository,
-  private val clock: Clock
+  private val intentActivityRepository: IntentActivityRepository
 ) : IntentLauncher<OrcaLaunchedIntentResult> {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -61,14 +57,10 @@ open class OrcaIntentLauncher
         orcaService.orchestrate(it).ref
       }
 
-      intentActivityRepository.logConvergence(IntentConvergenceRecord(
+      intentActivityRepository.record(IntentConvergenceRecord(
         intentId = intent.id(),
-        changeType = result.changeSummary.type,
-        orchestrations = orchestrationIds,
-        messages = result.changeSummary.message,
-        diff = result.changeSummary.diff,
-        actor = "keel:scheduledConvergence",
-        timestampMillis = clock.millis()
+        actor = "keel:scheduledConverge",
+        result = result
       ))
 
       log.info(

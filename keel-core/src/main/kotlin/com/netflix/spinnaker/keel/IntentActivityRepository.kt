@@ -15,51 +15,70 @@
  */
 package com.netflix.spinnaker.keel
 
-import com.netflix.spinnaker.keel.dryrun.ChangeType
-import com.netflix.spinnaker.keel.state.FieldState
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
+import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.keel.model.ListCriteria
+import java.time.Instant
+
+@JsonTypeInfo(use = NAME, include = PROPERTY, property = "kind")
+@JsonSubTypes(
+  Type(IntentChangeRecord::class),
+  Type(IntentConvergenceRecord::class)
+)
+sealed class ActivityRecord {
+  abstract val intentId: String
+  abstract val actor: String
+  val timestamp: Instant = Instant.now()
+}
+
+enum class IntentChangeAction { UPSERT, DELETE }
 
 /**
- * @param intentId The ID of the intent that is being evaluated.
- * @param changeType The type of change that took place this cycle.
- * @param orchestrations A resultant (if any) list of orchestration IDs from the intent.
- * @param messages Human-friendly messages about the change.
- * @param diff The diff between current and desired state.
- * @param actor Who (or what) initiated the operation.
- * @param timestampMillis The timestamp in millis the record was created.
+ * An activity record for whenever a change is made to [intentId]
  */
-data class IntentConvergenceRecord(
-  val intentId: String,
-  val changeType: ChangeType,
-  val orchestrations: List<String>?,
-  val messages: List<String>?,
-  val diff: Set<FieldState>,
-  val actor: String,
-  val timestampMillis: Long
-)
+@JsonTypeName("IntentChange")
+data class IntentChangeRecord(
+  override val intentId: String,
+  override val actor: String,
+  val action: IntentChangeAction,
+  val value: Intent<IntentSpec>
+) : ActivityRecord()
 
+/**
+ * Activity record whenever an intent is converged.
+ */
+@JsonTypeName("IntentConvergence")
+data class IntentConvergenceRecord(
+  override val intentId: String,
+  override val actor: String,
+  val result: ConvergeResult
+) : ActivityRecord()
+
+/**
+ * Find the [ActivityRecord] class for [name]. Everyone loves reflection.
+ */
+fun activityRecordClassForName(name: String): Class<ActivityRecord>? {
+  return ActivityRecord::class.annotations
+    .filterIsInstance<JsonSubTypes>()
+    .firstOrNull()
+    ?.let { subTypes ->
+      @Suppress("UNCHECKED_CAST")
+      subTypes.value.find { it.name == name }?.value as Class<ActivityRecord>?
+    }
+}
+
+/**
+ * Responsible for recording all activity related to intents. This is primarily meant for diagnostics and auditing.
+ */
 interface IntentActivityRepository {
 
-  fun addOrchestration(intentId: String, orchestrationId: String)
+  fun record(activity: ActivityRecord)
 
-  fun addOrchestrations(intentId: String, orchestrations: List<String>)
+  fun getHistory(intentId: String, criteria: ListCriteria): List<ActivityRecord>
 
-  fun getHistory(intentId: String): List<String>
-
-  fun logConvergence(intentConvergenceRecord: IntentConvergenceRecord)
-
-  fun getLog(intentId: String): List<IntentConvergenceRecord>
-
-  /**
-   * Permalink to a specific log message, identified by timestampMillis
-   * @param intentId The ID of the intent that is being evaluated.
-   * @param timestampMillis The timestamp of the log message,
-   *  used as the unique identifier of the message, in milliseconds.
-   */
-  fun getLogEntry(intentId: String, timestampMillis: Long): IntentConvergenceRecord?
-
-  /**
-   * If orchestrationId is passed in as a link to the task in orca, strip the leading path
-   * off so that we're storing the actual orchestrationId
-   */
-  fun parseOrchestrationId(orchestrationId: String) = orchestrationId.removePrefix("/tasks/")
+  fun <T : ActivityRecord> getHistory(intentId: String, kind: Class<T>, criteria: ListCriteria): List<T>
 }

@@ -60,7 +60,7 @@ open class KeelConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(IntentActivityRepository::class)
-  open fun memoryIntentActivityRepository(): IntentActivityRepository = MemoryIntentActivityRepository(properties)
+  open fun memoryIntentActivityRepository(): IntentActivityRepository = MemoryIntentActivityRepository()
 
   @Bean open fun clock(): Clock = Clock.systemDefaultZone()
 

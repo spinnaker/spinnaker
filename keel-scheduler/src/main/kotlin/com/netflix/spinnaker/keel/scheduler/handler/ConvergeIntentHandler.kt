@@ -16,7 +16,10 @@
 package com.netflix.spinnaker.keel.scheduler.handler
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.keel.*
+import com.netflix.spinnaker.keel.Intent
+import com.netflix.spinnaker.keel.IntentRepository
+import com.netflix.spinnaker.keel.IntentSpec
+import com.netflix.spinnaker.keel.IntentStatus
 import com.netflix.spinnaker.keel.event.*
 import com.netflix.spinnaker.keel.orca.OrcaIntentLauncher
 import com.netflix.spinnaker.keel.scheduler.ConvergeIntent
@@ -37,7 +40,6 @@ class ConvergeIntentHandler
 @Autowired constructor(
   override val queue: Queue,
   private val intentRepository: IntentRepository,
-  private val intentActivityRepository: IntentActivityRepository,
   private val orcaIntentLauncher: OrcaIntentLauncher,
   private val clock: Clock,
   private val registry: Registry,
@@ -74,7 +76,6 @@ class ConvergeIntentHandler
       orcaIntentLauncher.launch(intent)
         .takeIf { it.orchestrationIds.isNotEmpty() }
         ?.also { result ->
-          intentActivityRepository.addOrchestrations(intent.id(), result.orchestrationIds)
           applicationEventPublisher.publishEvent(IntentConvergeSuccessEvent(intent, result.orchestrationIds))
 
           if (intent.status.shouldIsolate()) {
