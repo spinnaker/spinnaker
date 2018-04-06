@@ -94,7 +94,7 @@ class RunTaskHandler(
                 CANCELED                             -> {
                   task.onCancel(stage)
                   val status = stage.failureStatus(default = result.status)
-                  queue.push(CompleteTask(message, status))
+                  queue.push(CompleteTask(message, status, result.status))
                   trackResult(stage, taskModel, status)
                 }
                 TERMINAL                             -> {
