@@ -8,7 +8,7 @@ WORKDIR /opt/deck
 
 RUN docker/setup-apache2.sh
 
-RUN chown -R www-data:www-data docker
+RUN chown -R www-data:www-data /opt/deck
 
 USER www-data
 
