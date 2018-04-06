@@ -24,7 +24,7 @@ import spock.lang.Specification
 class SubnetAnalyzerSpec extends Specification {
 
   static SubnetData subnet(String id, String zone, String purpose, SubnetTarget target, String vpcId = 'vpc-1') {
-    new SubnetData(subnetId: id, availabilityZone: zone, purpose: purpose, target: target, vpcId: vpcId)
+    new SubnetData(subnetId: id, availabilityZone: zone, purpose: purpose, target: target, vpcId: vpcId, availableIpAddressCount: 42)
   }
 
   static SecurityGroup securityGroup(String id, String vpcId = null) {

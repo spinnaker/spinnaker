@@ -18,9 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.model
 import com.amazonaws.services.ec2.model.Subnet
 import com.google.common.base.Function
 import com.google.common.base.Preconditions
-import com.google.common.base.Supplier
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.Maps
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
 import groovy.transform.Canonical
@@ -68,12 +66,12 @@ class SubnetAnalyzer {
     }
     Map<String, Collection<SubnetData>> zonesToSubnets = mapZonesToTargetSubnets(target).asMap()
     zonesToSubnets.subMap(zones).findResults { z, c ->
-      List<String> filtered = c.findResults { it.purpose == purpose ? it.subnetId : null }
+      List<SubnetData> filtered = c.findResults { it.purpose == purpose ? it : null }
       if (maxSubnetsPerZone != null) {
-        Collections.shuffle(filtered)
-        return filtered.take(maxSubnetsPerZone)
+        filtered.sort { -it.availableIpAddressCount }
+        filtered =  filtered.take(maxSubnetsPerZone)
       }
-      return filtered
+      return filtered.collect { it.subnetId }
     }.flatten()
   }
 
