@@ -36,8 +36,21 @@ class RunJobTask extends AbstractCloudProviderAwareTask implements RetryableTask
   @Autowired
   List<JobRunner> jobRunners
 
+  @Autowired
+  JobUtils jobUtils
+
   long backoffPeriod = 2000
   long timeout = 60000
+
+  @Override
+  void onTimeout(Stage stage) {
+    jobUtils.cancelWait(stage)
+  }
+
+  @Override
+  void onCancel(Stage stage) {
+    jobUtils.cancelWait(stage)
+  }
 
   @Override
   TaskResult execute(Stage stage) {

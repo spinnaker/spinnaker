@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.fixture.task
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -512,8 +513,8 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         ))
       }
 
-      it("does not execute the task") {
-        verifyZeroInteractions(task)
+      it("it tries to cancel the task") {
+        verify(task).onCancel(any())
       }
     }
 

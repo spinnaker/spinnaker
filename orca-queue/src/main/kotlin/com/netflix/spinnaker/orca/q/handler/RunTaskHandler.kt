@@ -63,12 +63,20 @@ class RunTaskHandler(
     message.withTask { stage, taskModel, task ->
       val execution = stage.execution
       try {
-        if (execution.isCanceled || execution.status.isComplete) {
+        if (execution.isCanceled) {
+          task.onCancel(stage)
+          queue.push(CompleteTask(message, CANCELED))
+        } else if (execution.status.isComplete) {
           queue.push(CompleteTask(message, CANCELED))
         } else if (execution.status == PAUSED) {
           queue.push(PauseTask(message))
         } else {
-          task.checkForTimeout(stage, taskModel, message)
+          try {
+            task.checkForTimeout(stage, taskModel, message)
+          } catch (e: TimeoutException) {
+            task.onTimeout(stage)
+            throw e
+          }
 
           stage.withAuth {
             task.execute(stage.withMergedContext()).let { result: TaskResult ->
@@ -83,7 +91,13 @@ class RunTaskHandler(
                   queue.push(CompleteTask(message, result.status))
                   trackResult(stage, taskModel, result.status)
                 }
-                TERMINAL, CANCELED                   -> {
+                CANCELED                             -> {
+                  task.onCancel(stage)
+                  val status = stage.failureStatus(default = result.status)
+                  queue.push(CompleteTask(message, status))
+                  trackResult(stage, taskModel, status)
+                }
+                TERMINAL                             -> {
                   val status = stage.failureStatus(default = result.status)
                   queue.push(CompleteTask(message, status))
                   trackResult(stage, taskModel, status)

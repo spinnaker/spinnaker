@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
-import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.job.MonitorJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
@@ -33,14 +33,14 @@ class RunJobStage implements StageDefinitionBuilder {
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
       .withTask("runJob", RunJobTask)
-      .withTask("monitorDeploy", MonitorKatoTask)
-
-    if (stage.getContext().containsKey("expectedArtifacts")) {
-      builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
-    }
+      .withTask("monitorDeploy", MonitorJobTask)
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
       builder.withTask("waitOnJobCompletion", WaitOnJobCompletion)
+    }
+
+    if (stage.getContext().containsKey("expectedArtifacts")) {
+      builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
     }
   }
 }

@@ -16,12 +16,10 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.job
 
-import com.netflix.spinnaker.kork.core.RetrySupport
-
-import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -30,6 +28,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.TimeUnit
 
 @Component
 public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implements OverridableTimeoutRetryableTask {
@@ -45,7 +45,20 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
   @Autowired
   RetrySupport retrySupport
 
+  @Autowired
+  JobUtils jobUtils
+
   static final String REFRESH_TYPE = "Job"
+
+  @Override
+  void onTimeout(Stage stage) {
+    jobUtils.cancelWait(stage)
+  }
+
+  @Override
+  void onCancel(Stage stage) {
+    jobUtils.cancelWait(stage)
+  }
 
   @Override
   TaskResult execute(Stage stage) {
