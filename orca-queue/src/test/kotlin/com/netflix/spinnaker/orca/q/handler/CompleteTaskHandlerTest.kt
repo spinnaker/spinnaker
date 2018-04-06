@@ -50,7 +50,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
 
   fun resetMocks() = reset(queue, repository, publisher)
 
-  setOf(SUCCEEDED, FAILED_CONTINUE).forEach { successfulStatus ->
+  setOf(SUCCEEDED).forEach { successfulStatus ->
     describe("when a task completes with $successfulStatus status") {
       given("the stage contains further tasks") {
         val pipeline = pipeline {
