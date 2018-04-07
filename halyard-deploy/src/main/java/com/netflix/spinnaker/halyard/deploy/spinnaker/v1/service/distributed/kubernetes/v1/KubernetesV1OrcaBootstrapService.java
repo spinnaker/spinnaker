@@ -50,6 +50,7 @@ public class KubernetesV1OrcaBootstrapService extends OrcaBootstrapService imple
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     List<String> profiles = new ArrayList<>();
     profiles.add("bootstrap");
+    profiles.add("bootstrap-local");
     KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(profiles);
     String location = kubernetesSharedServiceSettings.getDeployLocation();

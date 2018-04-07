@@ -54,6 +54,7 @@ public class GoogleOrcaBootstrapService extends OrcaBootstrapService implements 
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     List<String> profiles = new ArrayList<>();
     profiles.add("bootstrap");
+    profiles.add("bootstrap-local");
     Settings settings = new Settings(profiles);
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setAddress(buildAddress())
