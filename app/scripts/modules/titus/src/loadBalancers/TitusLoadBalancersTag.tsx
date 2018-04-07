@@ -52,7 +52,7 @@ class LoadBalancerButton extends React.Component<ILoadBalancerSingleItemProps> {
         <button className="btn btn-link no-padding" onClick={this.onClick}>
           <span className="badge badge-counter">
             <span className="icon">
-              <span className="icon-elb"/>
+              <span className="fa icon-sitemap"/>
             </span>
           </span>
         </button>
