@@ -21,7 +21,10 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackPro
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.heat.Stack;
 
-class StackChecker implements BlockingStatusChecker.StatusChecker<Stack> {
+/**
+ * This class checks if an OpenStack stack is in a ready state.
+ */
+public class StackChecker implements BlockingStatusChecker.StatusChecker<Stack> {
   Operation operation;
 
   enum Operation {
