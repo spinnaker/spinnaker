@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.r;
+package com.netflix.kayenta.mannwhitney
 
-public interface CIIgnoreTest {}
+case class MannWhitneyResult(confidenceInterval: Array[Double], estimate: Double) {
+
+}

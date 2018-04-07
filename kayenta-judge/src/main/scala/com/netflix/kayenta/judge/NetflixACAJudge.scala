@@ -27,8 +27,8 @@ import com.netflix.kayenta.judge.preprocessing.{Transforms, ValidationResult, Va
 import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.judge.utils.MapUtils
+import com.netflix.kayenta.mannwhitney.MannWhitneyException
 import com.netflix.kayenta.metrics.MetricSetPair
-import com.netflix.kayenta.r.{MannWhitney, RExecutionException}
 import com.typesafe.scalalogging.StrictLogging
 import org.springframework.stereotype.Component
 
@@ -48,16 +48,10 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
                      scoreThresholds: CanaryClassifierThresholdsConfig,
                      metricSetPairList: util.List[MetricSetPair]): CanaryJudgeResult = {
 
-    //Connect to RServe to perform the Mann-Whitney U Test
-    val mw = new MannWhitney()
-
     //Metric Classification
     val metricResults = metricSetPairList.asScala.toList.map { metricPair =>
-      classifyMetric(canaryConfig, metricPair, mw)
+      classifyMetric(canaryConfig, metricPair)
     }
-
-    //Disconnect from RServe
-    mw.disconnect()
 
     //Get the group weights from the canary configuration
     val groupWeights = Option(canaryConfig.getClassifier.getGroupWeights) match {
@@ -153,7 +147,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     * @param metric
     * @return
     */
-  def classifyMetric(canaryConfig: CanaryConfig, metric: MetricSetPair, mw: MannWhitney): CanaryAnalysisResult ={
+  def classifyMetric(canaryConfig: CanaryConfig, metric: MetricSetPair): CanaryAnalysisResult ={
 
     val metricConfig = canaryConfig.getMetrics.asScala.find(m => m.getName == metric.getName) match {
       case Some(config) => config
@@ -169,10 +163,6 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     val directionalityOption = MapUtils.get(metricConfig.getAnalysisConfigurations, "canary", "direction")
     val directionalityString = if (directionalityOption.isDefined) directionalityOption.get.toString else "default"
     val directionality = MetricDirection.parse(directionalityString)
-
-    logger.debug("Metric " + metric.getName + " Directionality " + directionality + " string=" + directionalityOption)
-    logger.debug("Metric " + metric.getName + " Experiment data point count: " + experimentValues.length)
-    logger.debug("Metric " + metric.getName + " Control data point count: " + controlValues.length)
 
     //=============================================
     // Metric Validation
@@ -198,7 +188,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Classification
     // ============================================
-    val mannWhitney = new MannWhitneyClassifier(fraction = 0.25, confLevel = 0.98, mw)
+    val mannWhitney = new MannWhitneyClassifier(fraction = 0.25, confLevel = 0.98)
 
     val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)
@@ -217,7 +207,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
         .build()
 
     } catch {
-      case e: RExecutionException =>
+      case e: MannWhitneyException =>
         logger.error("Metric Classification Failed", e)
         resultBuilder
           .classification(Error.toString)

@@ -3,13 +3,6 @@ jdk:
 - oraclejdk8
 dist: trusty
 sudo: false
-addons:
-  apt:
-    packages:
-      - r-base
-      - r-cran-rserve
-before_install:
-  - sh gradle/start-rserve.sh
 install: true
 script: gradle/buildViaTravis.sh
 before_cache: gradle/prepCaches.sh

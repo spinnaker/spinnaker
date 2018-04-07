@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.r;
+package com.netflix.kayenta.mannwhitney
 
-import lombok.Builder;
-import lombok.Getter;
+class MannWhitneyException(message: String) extends Exception {
+  def this(message: String, cause: Throwable) {
+    this(message)
+    initCause(cause)
+  }
 
-@Builder
-public class MannWhitneyResult {
-  @Getter
-  private double[] confidenceInterval;
+  def this(cause: Throwable) {
+    this(Option(cause).map(_.toString).orNull, cause)
+  }
 
-  @Getter
-  private double pValue;
-
-  @Getter
-  private double estimate;
+  def this() {
+    this(null: String)
+  }
 }

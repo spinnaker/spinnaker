@@ -1,0 +1,12 @@
+apply plugin: 'scala'
+apply plugin: 'java'
+
+dependencies {
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+
+    compile 'org.scala-lang:scala-library-all:2.12.2'
+    compile 'org.scala-lang:scala-reflect:2.12.2'
+    compile 'com.typesafe.scala-logging:scala-logging_2.12:3.5.0'
+
+    testCompile 'org.scalatest:scalatest_2.12:3.0.1'
+}
