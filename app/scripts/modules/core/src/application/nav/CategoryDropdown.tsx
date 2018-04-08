@@ -1,3 +1,4 @@
+import { MenuTitle } from 'core/application/nav/MenuTitle';
 import * as React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { UISref, UISrefActive } from '@uirouter/react';
@@ -105,24 +106,6 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
     )
   }
 
-  private createMenuTitle(isActive: boolean): JSX.Element {
-    const { runningCount, tags } = this.state;
-    const { category, application } = this.props;
-    const defaultDataSource = category.dataSources[0];
-    return (
-      <UISref to={defaultDataSource.sref}>
-        <a className="nav-item">
-          <span className={`horizontal middle ${isActive ? 'active' : ''}`} onClick={this.close}>
-            <NavIcon icon={category.icon}/>
-            {' ' + category.label}
-            {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
-            <DataSourceNotifications tags={tags} application={application} tabName={category.label}/>
-          </span>
-        </a>
-      </UISref>
-    );
-  }
-
   private createMenuItem(dataSource: ApplicationDataSource): JSX.Element {
     const { category, application } = this.props;
     return (
@@ -139,8 +122,8 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
   }
 
   public render() {
-    const { open } = this.state;
-    const { category } = this.props;
+    const { open, runningCount, tags } = this.state;
+    const { category, application } = this.props;
     if (category.dataSources.length === 1) {
       return this.createNonMenuEntry();
     }
@@ -155,13 +138,15 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
         onToggle={noop} // the UiSref on .Toggle handles navigation, but the component complains if this prop is missing
         className={open ? 'open' : ''}
       >
-        <Dropdown.Toggle
-          bsStyle="link"
-          className={`horizontal middle ${isActive ? 'active' : ''}`}
-          noCaret={true}
-        >
-          {this.createMenuTitle(isActive)}
-        </Dropdown.Toggle>
+        <MenuTitle
+          bsRole="toggle"
+          isActive={isActive}
+          category={category}
+          application={application}
+          runningCount={runningCount}
+          tags={tags}
+          closeMenu={this.close}
+        />
         <Dropdown.Menu>
           {category.dataSources.map(dataSource => this.createMenuItem(dataSource))}
         </Dropdown.Menu>
