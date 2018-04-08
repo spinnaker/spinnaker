@@ -2,7 +2,7 @@ import { module } from 'angular';
 import { IStage } from 'core/domain'
 import { isEmpty, get } from 'lodash';
 
-type SupportedStage = 'stage';
+export type SupportedStage = 'stage';
 
 interface IWalker {
   (refContainer: any): (string|number)[][];
