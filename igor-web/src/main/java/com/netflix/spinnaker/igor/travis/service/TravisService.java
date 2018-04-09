@@ -122,7 +122,7 @@ public class TravisService implements BuildService {
         return new SimpleJava8HystrixCommand<>(groupKey, buildCommandKey("getGenericBuild"), () -> {
             String repoSlug = cleanRepoSlug(inputRepoSlug);
             Build build = getBuild(repoSlug, buildNumber);
-            return getGenericBuild(build, repoSlug);
+            return getGenericBuild(build, repoSlug, true);
         }).execute();
     }
 
