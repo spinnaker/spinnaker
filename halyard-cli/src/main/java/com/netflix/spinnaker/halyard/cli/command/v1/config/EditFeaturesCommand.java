@@ -78,6 +78,13 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   )
   private Boolean infrastructureStages = null;
 
+  @Parameter(
+      names = "--appengine-container-image-url-deployments",
+      description = "Enable appengine deployments using a container image URL from gcr.io.",
+      arity = 1
+  )
+  private Boolean appengineContainerImageUrlDeployments = null;
+
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
@@ -95,6 +102,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     features.setArtifacts(artifacts != null ? artifacts : features.getArtifacts());
     features.setMineCanary(mineCanary != null ? mineCanary : features.getMineCanary());
     features.setInfrastructureStages(infrastructureStages != null ? infrastructureStages : features.getInfrastructureStages());
+    features.setAppengineContainerImageUrlDeployments(appengineContainerImageUrlDeployments != null ? appengineContainerImageUrlDeployments : features.getAppengineContainerImageUrlDeployments());
 
     if (originalHash == features.hashCode()) {
       AnsiUi.failure("No changes supplied.");

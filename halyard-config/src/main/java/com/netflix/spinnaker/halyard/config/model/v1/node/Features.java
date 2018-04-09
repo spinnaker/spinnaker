@@ -49,6 +49,8 @@ public class Features extends Node {
   private Boolean artifacts;
   @ValidForSpinnakerVersion(lowerBound = "1.5.0", message = "Canary is not configurable prior to this release. Will be stable at a later release.")
   private Boolean mineCanary;
+  @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Appengine container URL deployments were not supported prior to this release.")
+  private Boolean appengineContainerImageUrlDeployments;
   @ValidForSpinnakerVersion(lowerBound = "1.7.0", message = "Infrastructure Stages is not configurable prior to this release. Will be stable at a later release.")
   private Boolean infrastructureStages;
 
