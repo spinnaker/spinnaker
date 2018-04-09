@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -52,8 +53,9 @@ public class KayentaProfileFactory extends SpringProfileFactory {
     Canary canary = deploymentConfiguration.getCanary();
 
     if (canary.isEnabled()) {
+      List<String> files = new ArrayList<>(backupRequiredFiles(canary, deploymentConfiguration.getName()));
       KayentaConfigWrapper kayentaConfig = new KayentaConfigWrapper(endpoints.getServices().getKayenta(), canary);
-      profile.appendContents(yamlToString(kayentaConfig));
+      profile.appendContents(yamlToString(kayentaConfig)).setRequiredFiles(files);
     }
   }
 

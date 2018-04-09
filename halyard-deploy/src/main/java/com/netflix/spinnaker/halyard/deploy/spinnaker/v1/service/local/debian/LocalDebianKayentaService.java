@@ -27,14 +27,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-// TODO(duftler): Remove this once the kayenta repo is public.
-@ConditionalOnExpression("${canary.enabled:false}")
 public class LocalDebianKayentaService extends KayentaService implements LocalDebianService<KayentaService.Kayenta> {
   final String upstartServiceName = "kayenta";
 

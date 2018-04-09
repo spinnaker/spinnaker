@@ -25,7 +25,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -34,8 +33,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-// TODO(duftler): Remove this once the kayenta repo is public.
-@ConditionalOnExpression("${canary.enabled:false}")
 public class BakeDebianKayentaService extends KayentaService implements BakeDebianService<KayentaService.Kayenta> {
   final String upstartServiceName = "kayenta";
 

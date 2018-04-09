@@ -24,7 +24,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -32,8 +31,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-// TODO(duftler): Remove this once the kayenta repo is public.
-@ConditionalOnExpression("${canary.enabled:false}")
 public class GoogleKayentaService extends KayentaService implements GoogleDistributedService<KayentaService.Kayenta> {
   final DeployPriority deployPriority = new DeployPriority(4);
   final boolean requiredToBootstrap = false;

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CanaryService {
+
   @Autowired
   private LookupService lookupService;
 

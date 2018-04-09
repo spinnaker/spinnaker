@@ -38,14 +38,9 @@ import java.util.stream.Collectors;
  */
 @Component
 public class CanaryAccountService {
-  @Autowired
-  private LookupService lookupService;
 
   @Autowired
   private CanaryService canaryService;
-
-  @Autowired
-  private ValidateService validateService;
 
   @Autowired
   private OptionsService optionsService;
