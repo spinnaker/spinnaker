@@ -20,7 +20,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.CommonCanaryCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractEditCanaryAccountCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.CommonCanaryAwsCommandProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
 
@@ -34,7 +33,7 @@ public class AwsEditCanaryAccountCommand extends AbstractEditCanaryAccountComman
 
   @Parameter(
       names = "--bucket",
-      description = CommonCanaryAwsCommandProperties.BUCKET
+      description = CommonCanaryCommandProperties.BUCKET
   )
   private String bucket;
 

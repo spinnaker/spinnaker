@@ -24,14 +24,11 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.Canary
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CommonCanaryGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
-
-import java.util.UUID;
 
 @Parameters(separators = "=")
 public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand {
@@ -57,7 +54,7 @@ public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountComma
 
   @Parameter(
       names = "--bucket",
-      description = CommonCanaryGoogleCommandProperties.BUCKET
+      description = CommonCanaryCommandProperties.BUCKET
   )
   private String bucket;
 
@@ -79,14 +76,7 @@ public class GoogleAddCanaryAccountCommand extends AbstractAddCanaryAccountComma
     account.setProject(project).setJsonPath(jsonPath);
 
     account.setBucket(bucket).setBucketLocation(bucketLocation);
-
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
-
-    if (account.getBucket() == null) {
-      String bucketName = "spin-kayenta-" + UUID.randomUUID().toString();
-      AnsiUi.raw("Generated canary bucket name: " + bucketName);
-      account.setBucket(bucketName);
-    }
 
     GoogleCanaryServiceIntegration googleCanaryServiceIntegration =
         (GoogleCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, GoogleCanaryServiceIntegration.class);

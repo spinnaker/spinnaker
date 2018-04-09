@@ -49,7 +49,7 @@ public class GoogleEditCanaryAccountCommand extends AbstractEditCanaryAccountCom
 
   @Parameter(
       names = "--bucket",
-      description = CommonCanaryGoogleCommandProperties.BUCKET
+      description = CommonCanaryCommandProperties.BUCKET
   )
   private String bucket;
 

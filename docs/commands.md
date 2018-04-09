@@ -1131,7 +1131,7 @@ hal config canary aws account add ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
- * `--bucket`: (*Required*) The name of a storage bucket that your specified account has access to.
+ * `--bucket`: The name of a storage bucket that your specified account has access to. If you specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
@@ -1165,7 +1165,7 @@ hal config canary aws account edit ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
- * `--bucket`: The name of a storage bucket that your specified account has access to.
+ * `--bucket`: The name of a storage bucket that your specified account has access to. If you specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
@@ -1512,7 +1512,7 @@ hal config canary google account add ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
- * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
+ * `--bucket`: The name of a storage bucket that your specified account has access to. If you specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.
  * `--bucket-location`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
@@ -1549,7 +1549,7 @@ hal config canary google account edit ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
- * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
+ * `--bucket`: The name of a storage bucket that your specified account has access to. If you specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.
  * `--bucket-location`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.

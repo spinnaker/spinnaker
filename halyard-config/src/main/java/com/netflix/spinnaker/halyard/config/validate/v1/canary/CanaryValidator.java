@@ -20,9 +20,11 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.canary.aws.AwsCanaryValidator;
 import com.netflix.spinnaker.halyard.config.validate.v1.canary.google.GoogleCanaryValidator;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,8 @@ public class CanaryValidator extends Validator<Canary> {
     for (AbstractCanaryServiceIntegration s : n.getServiceIntegrations()) {
       if (s instanceof GoogleCanaryServiceIntegration) {
         new GoogleCanaryValidator().setHalyardVersion(halyardVersion).setRegistry(registry).validate(p, (GoogleCanaryServiceIntegration)s);
+      } else if (s instanceof AwsCanaryServiceIntegration) {
+        new AwsCanaryValidator().validate(p, (AwsCanaryServiceIntegration)s);
       }
     }
   }

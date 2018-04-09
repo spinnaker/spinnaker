@@ -21,16 +21,12 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.CommonCanaryCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractAddCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.CommonCanaryAwsCommandProperties;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
-
-import java.util.UUID;
 
 @Parameters(separators = "=")
 public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand {
@@ -42,8 +38,7 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
 
   @Parameter(
       names = "--bucket",
-      required = true,
-      description = CommonCanaryAwsCommandProperties.BUCKET
+      description = CommonCanaryCommandProperties.BUCKET
   )
   private String bucket;
 
