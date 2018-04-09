@@ -76,7 +76,7 @@ public class BillOfMaterials {
     Artifact monitoringDaemon;
     Artifact spinnaker;
 
-    Artifact defaultArtifact;
+    Artifact defaultArtifact = new Artifact();
 
     String getArtifactVersion(String artifactName) {
       return getFieldArtifact(Services.class, this, artifactName).getVersion();
