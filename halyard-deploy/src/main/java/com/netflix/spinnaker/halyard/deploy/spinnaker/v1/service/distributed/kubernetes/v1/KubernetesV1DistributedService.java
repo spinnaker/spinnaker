@@ -77,6 +77,7 @@ import io.fabric8.kubernetes.api.model.extensions.ReplicaSet;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.utils.Strings;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.util.SocketUtils;
@@ -380,6 +381,12 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     KubernetesProbe readinessProbe = new KubernetesProbe();
     KubernetesHandler handler = new KubernetesHandler();
     int port = settings.getPort();
+    String scheme = settings.getScheme();
+    if (StringUtils.isNotEmpty(scheme)) {
+      scheme = scheme.toUpperCase();
+    } else {
+      scheme = null;
+    }
 
     String healthEndpoint = settings.getHealthEndpoint();
     if (healthEndpoint != null) {
@@ -387,6 +394,7 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
       KubernetesHttpGetAction action = new KubernetesHttpGetAction();
       action.setPath(healthEndpoint);
       action.setPort(port);
+      action.setUriScheme(scheme);
       handler.setHttpGetAction(action);
     } else {
       handler.setType(KubernetesHandlerType.TCP);
