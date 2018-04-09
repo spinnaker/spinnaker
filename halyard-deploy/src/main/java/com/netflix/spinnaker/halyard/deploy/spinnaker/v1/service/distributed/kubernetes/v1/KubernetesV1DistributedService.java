@@ -99,8 +99,12 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
   ServiceInterfaceFactory getServiceInterfaceFactory();
   ObjectMapper getObjectMapper();
 
-  default String getHomeDirectory() {
+  default String getRootHomeDirectory() {
     return "/root";
+  }
+
+  default String getHomeDirectory() {
+    return "/home/spinnaker";
   }
 
   default JobExecutor getJobExecutor() {

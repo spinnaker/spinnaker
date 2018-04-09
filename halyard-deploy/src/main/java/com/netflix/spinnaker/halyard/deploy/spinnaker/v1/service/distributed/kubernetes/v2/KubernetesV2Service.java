@@ -68,8 +68,12 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     return Arrays.asList("wget", "--spider", "-q", settings.getScheme() + "://localhost:" + settings.getPort() + settings.getHealthEndpoint());
   }
 
-  default String getHomeDirectory() {
+  default String getRootHomeDirectory() {
     return "/root";
+  }
+
+  default String getHomeDirectory() {
+    return "/home/spinnaker";
   }
 
   default String getNamespaceYaml(GenerateService.ResolvedConfiguration resolvedConfiguration) {

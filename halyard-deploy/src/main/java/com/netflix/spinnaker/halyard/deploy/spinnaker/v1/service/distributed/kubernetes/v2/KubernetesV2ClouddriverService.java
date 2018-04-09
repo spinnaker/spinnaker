@@ -49,7 +49,8 @@ public class KubernetesV2ClouddriverService extends ClouddriverService implement
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
-    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(p -> profiles.add(p));
+    generateAwsProfile(deploymentConfiguration, endpoints, getRootHomeDirectory()).ifPresent(profiles::add);
+    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(profiles::add);
     return profiles;
   }
 
