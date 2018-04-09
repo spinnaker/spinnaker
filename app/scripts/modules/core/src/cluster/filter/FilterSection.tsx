@@ -33,16 +33,17 @@ export class FilterSection extends React.Component<IFilterSectionProps, IFilterS
       <div className="collapsible-filter-section">
         <div className="section-heading clickable" onClick={this.toggle}>
           <h4>
-            <span className={`glyphicon glyphicon-chevron-${this.getIcon()}`}/>
+            <span className={`glyphicon glyphicon-chevron-${this.getIcon()}`} />
             {` ${this.props.heading}`}
-            {this.props.helpKey && (<span> <HelpField id={this.props.helpKey} placement="right"/></span>)}
+            {this.props.helpKey && (
+              <span>
+                {' '}
+                <HelpField id={this.props.helpKey} placement="right" />
+              </span>
+            )}
           </h4>
         </div>
-        { this.state.expanded && (
-          <div className="content-body">
-            {this.props.children}
-          </div>
-        )}
+        {this.state.expanded && <div className="content-body">{this.props.children}</div>}
       </div>
     );
   }

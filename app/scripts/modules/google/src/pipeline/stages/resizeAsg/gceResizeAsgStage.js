@@ -4,32 +4,32 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage..resizeAsgStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage..resizeAsgStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
       cloudProvider: 'gce',
       templateUrl: require('./resizeAsgStage.html'),
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
-      defaultTimeoutMs: (3 * 60 * 60 * 1000) + (21 * 60 * 1000), // 3h21m
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
+      defaultTimeoutMs: 3 * 60 * 60 * 1000 + 21 * 60 * 1000, // 3h21m
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'action' },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('gceResizeAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('gceResizeAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..resizeAsgStage', 
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function (accounts) {
+    accountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -53,26 +53,26 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..resizeAsgStage', 
       },
       {
         label: 'Scale Down',
-        val: 'scale_down'
+        val: 'scale_down',
       },
       {
         label: 'Scale to Cluster Size',
-        val: 'scale_to_cluster'
+        val: 'scale_to_cluster',
       },
       {
         label: 'Scale to Exact Size',
-        val: 'scale_exact'
+        val: 'scale_exact',
       },
     ];
 
     $scope.resizeTypes = [
       {
         label: 'Percentage',
-        val: 'pct'
+        val: 'pct',
       },
       {
         label: 'Incremental',
-        val: 'incr'
+        val: 'incr',
       },
     ];
 
@@ -87,7 +87,11 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..resizeAsgStage', 
     stage.cloudProvider = 'gce';
     stage.cloudProviderType = 'gce';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Google'];
     }
 
@@ -115,4 +119,3 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..resizeAsgStage', 
       }
     };
   });
-

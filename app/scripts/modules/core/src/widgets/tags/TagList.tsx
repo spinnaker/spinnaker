@@ -23,7 +23,7 @@ export class TagList extends React.Component<ITagListProps> {
     onDelete: () => {},
     onFocus: () => {},
     onKeyUp: () => {},
-    onUpdate: () => {}
+    onUpdate: () => {},
   };
 
   private tagElements: HTMLElement[] = [];
@@ -44,7 +44,6 @@ export class TagList extends React.Component<ITagListProps> {
   }
 
   private handleDelete(tag: ITag, deleteType: DeleteType): void {
-
     const index = this.findIndex(tag);
     this.tagElements.splice(index, 1);
     this.props.onUpdate(this.tagElements);
@@ -62,7 +61,7 @@ export class TagList extends React.Component<ITagListProps> {
           if (index === 0) {
             this.tagElements[0].focus();
           } else {
-            if (index <= (this.tagElements.length - 1)) {
+            if (index <= this.tagElements.length - 1) {
               this.tagElements[index].focus();
             } else {
               this.tagElements[index - 1].focus();
@@ -86,7 +85,6 @@ export class TagList extends React.Component<ITagListProps> {
   }
 
   private handleKeyUp(tag: ITag, key: Key): void {
-
     const index = this.findIndex(tag);
     switch (key) {
       case Key.LEFT_ARROW:
@@ -97,7 +95,7 @@ export class TagList extends React.Component<ITagListProps> {
         }
         break;
       case Key.RIGHT_ARROW:
-        if (index === (this.tagElements.length - 1)) {
+        if (index === this.tagElements.length - 1) {
           this.props.onKeyUp();
         } else {
           this.tagElements[index + 1].focus();

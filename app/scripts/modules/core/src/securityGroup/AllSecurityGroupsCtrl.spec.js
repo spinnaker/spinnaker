@@ -1,14 +1,9 @@
 'use strict';
 
-describe('Controller: AllSecurityGroupsCtrl', function () {
-
+describe('Controller: AllSecurityGroupsCtrl', function() {
   var scope;
 
-  beforeEach(
-    window.module(
-      require('./AllSecurityGroupsCtrl.js').name
-    )
-  );
+  beforeEach(window.module(require('./AllSecurityGroupsCtrl.js').name));
 
   beforeEach(
     window.inject(function($rootScope, $controller) {
@@ -18,14 +13,14 @@ describe('Controller: AllSecurityGroupsCtrl', function () {
         app: {
           securityGroups: { data: [], onRefresh: angular.noop },
           loadBalancers: { onRefresh: angular.noop },
-          serverGroups: { onRefresh: angular.noop }
+          serverGroups: { onRefresh: angular.noop },
         },
         $uibModal: {},
       });
-    })
+    }),
   );
 
-  it('should initialize the controller', function () {
+  it('should initialize the controller', function() {
     expect(this.controller).toBeDefined();
   });
 });

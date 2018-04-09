@@ -15,7 +15,7 @@ export const GlobalSearchRecentItems = ({
   categories,
   onItemKeyDown,
   onResultClick,
-  resultRef
+  resultRef,
 }: IGlobalSearchRecentItemsProps) => {
   if (!categories.length) {
     return null;
@@ -23,7 +23,7 @@ export const GlobalSearchRecentItems = ({
 
   return (
     <ul className="dropdown-menu" role="menu">
-      {categories.map((category, categoryIndex) => ([
+      {categories.map((category, categoryIndex) => [
         <li key={category.category} className="category-heading">
           <div className="category-heading">Recent {category.category}</div>
         </li>,
@@ -32,23 +32,16 @@ export const GlobalSearchRecentItems = ({
           const account = result.account || params.account || params.accountId || params.accountName;
 
           return (
-            <li
-              key={result.id}
-              className="result"
-              onClick={() => onResultClick(category.category)}
-            >
+            <li key={result.id} className="result" onClick={() => onResultClick(category.category)}>
               <UISref to={result.state} params={result.params}>
-                <a
-                  ref={(ref) => resultRef(categoryIndex, index, ref)}
-                  onKeyDown={onItemKeyDown}
-                >
+                <a ref={ref => resultRef(categoryIndex, index, ref)} onKeyDown={onItemKeyDown}>
                   <SearchResult displayName={result.displayName} account={account} />
                 </a>
               </UISref>
             </li>
           );
-        })
-      ]))}
+        }),
+      ])}
     </ul>
   );
-}
+};

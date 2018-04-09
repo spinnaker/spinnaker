@@ -15,11 +15,10 @@ export interface IAuthenticationService {
 }
 
 export class AuthenticationService implements IAuthenticationService {
-
   private user: IUser = {
     name: '[anonymous]',
     roles: [],
-    authenticated: false
+    authenticated: false,
   };
 
   private authEvents: Function[] = [];
@@ -49,5 +48,4 @@ export class AuthenticationService implements IAuthenticationService {
 }
 
 export const AUTHENTICATION_SERVICE = 'spinnaker.authentication.service';
-module(AUTHENTICATION_SERVICE, [])
-  .service('authenticationService', AuthenticationService);
+module(AUTHENTICATION_SERVICE, []).service('authenticationService', AuthenticationService);

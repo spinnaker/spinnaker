@@ -5,13 +5,16 @@ import { IExecutionDetailsComponentProps, IExecutionDetailsComponentState } from
 import { ExecutionDetailsSectionNav } from 'core/pipeline/details';
 import { ReactInjector } from 'core/reactShims';
 
-export class StepExecutionDetails extends React.Component<IExecutionDetailsComponentProps, IExecutionDetailsComponentState> {
+export class StepExecutionDetails extends React.Component<
+  IExecutionDetailsComponentProps,
+  IExecutionDetailsComponentState
+> {
   constructor(props: IExecutionDetailsComponentProps) {
     super(props);
     this.state = {
-      configSections: props.detailsSections.map((s) => s.title),
+      configSections: props.detailsSections.map(s => s.title),
       currentSection: null,
-    }
+    };
   }
 
   public updateCurrentSection(): void {
@@ -30,7 +33,7 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsCompo
   }
 
   public componentWillReceiveProps(nextProps: IExecutionDetailsComponentProps): void {
-    const configSections = nextProps.detailsSections.map((s) => s.title);
+    const configSections = nextProps.detailsSections.map(s => s.title);
     if (!isEqual(this.state.configSections, configSections)) {
       this.setState({ configSections });
       this.syncDetails(configSections);
@@ -44,7 +47,7 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsCompo
     return (
       <div>
         <ExecutionDetailsSectionNav sections={configSections} />
-        {this.props.detailsSections.map((Section) => (
+        {this.props.detailsSections.map(Section => (
           <Section key={Section.title} name={Section.title} current={currentSection} {...this.props} />
         ))}
       </div>

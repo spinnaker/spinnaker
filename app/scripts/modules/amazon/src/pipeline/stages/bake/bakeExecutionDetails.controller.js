@@ -5,12 +5,14 @@ import { get } from 'lodash';
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.bake.executionDetails.controller', [
-  require('@uirouter/angularjs').default,
-])
-  .controller('awsBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
-                                                       $interpolate) {
-
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
+  .controller('awsBakeExecutionDetailsCtrl', function(
+    $scope,
+    $stateParams,
+    executionDetailsSectionService,
+    $interpolate,
+  ) {
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -18,7 +20,8 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.bake.executionD
       $scope.provider = $scope.stage.context.cloudProviderType || 'aws';
       $scope.roscoMode = SETTINGS.feature.roscoMode;
       $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
-      $scope.bakeFailedNoError = get($scope.stage, 'context.status.result') === 'FAILURE' && !$scope.stage.failureMessage;
+      $scope.bakeFailedNoError =
+        get($scope.stage, 'context.status.result') === 'FAILURE' && !$scope.stage.failureMessage;
     };
 
     let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
@@ -26,5 +29,4 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.bake.executionD
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

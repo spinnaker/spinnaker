@@ -5,7 +5,9 @@ import { HelpField, IWizardPageProps, ValidationError, wizardPage } from '@spinn
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
-class AdvancedSettingsImpl extends React.Component<IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>> {
+class AdvancedSettingsImpl extends React.Component<
+  IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>
+> {
   public static LABEL = 'Advanced Settings';
 
   public validate(values: IAmazonClassicLoadBalancerUpsertCommand): { [key: string]: string } {
@@ -23,10 +25,11 @@ class AdvancedSettingsImpl extends React.Component<IWizardPageProps & FormikProp
     return (
       <div className="form-group">
         <div className="col-md-8 nest">
-
           <div className="form-group">
             <div className="col-md-6 sm-label-right">
-              <span><b>Timeout</b> <HelpField id="loadBalancer.advancedSettings.healthTimeout"/></span>
+              <span>
+                <b>Timeout</b> <HelpField id="loadBalancer.advancedSettings.healthTimeout" />
+              </span>
             </div>
             <div className="col-md-4">
               <Field
@@ -39,46 +42,53 @@ class AdvancedSettingsImpl extends React.Component<IWizardPageProps & FormikProp
             </div>
             {errors.healthTimeout && (
               <div className="col-md-12 col-md-offset-6">
-                <ValidationError message={errors.healthTimeout}/>
+                <ValidationError message={errors.healthTimeout} />
               </div>
             )}
           </div>
 
           <div className="form-group">
             <div className="col-md-6 sm-label-right">
-              <span><b>Interval</b> <HelpField id="loadBalancer.advancedSettings.healthInterval"/></span>
+              <span>
+                <b>Interval</b> <HelpField id="loadBalancer.advancedSettings.healthInterval" />
+              </span>
             </div>
             <div className="col-md-4">
-              <Field className="form-control input-sm" type="number" min="0" name="healthInterval"/>
+              <Field className="form-control input-sm" type="number" min="0" name="healthInterval" />
             </div>
           </div>
 
           <div className="form-group">
             <div className="col-md-6 sm-label-right">
-              <span><b>Healthy Threshold</b> <HelpField id="loadBalancer.advancedSettings.healthyThreshold"/></span>
+              <span>
+                <b>Healthy Threshold</b> <HelpField id="loadBalancer.advancedSettings.healthyThreshold" />
+              </span>
             </div>
             <div className="col-md-4">
-              <Field className="form-control input-sm" type="number" min="0" name="healthyThreshold"/>
+              <Field className="form-control input-sm" type="number" min="0" name="healthyThreshold" />
             </div>
           </div>
 
           <div className="form-group">
             <div className="col-md-6 sm-label-right">
-              <span><b>Unhealthy Threshold</b> <HelpField id="loadBalancer.advancedSettings.unhealthyThreshold"/></span>
+              <span>
+                <b>Unhealthy Threshold</b> <HelpField id="loadBalancer.advancedSettings.unhealthyThreshold" />
+              </span>
             </div>
             <div className="col-md-4">
-              <Field className="form-control input-sm" type="number" min="0" name="unhealthyThreshold"/>
+              <Field className="form-control input-sm" type="number" min="0" name="unhealthyThreshold" />
             </div>
           </div>
-
         </div>
         <div className="col-md-12">
-          <p>Additional configuration options (idle timeout, cross-zone load balancing, session stickiness, access logs)
-            are available via the AWS console.</p>
+          <p>
+            Additional configuration options (idle timeout, cross-zone load balancing, session stickiness, access logs)
+            are available via the AWS console.
+          </p>
         </div>
       </div>
     );
   }
-};
+}
 
 export const AdvancedSettings = wizardPage(AdvancedSettingsImpl);

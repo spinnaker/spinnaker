@@ -6,24 +6,23 @@ const angular = require('angular');
 
 import { DcosProviderSettings } from '../../../dcos.settings';
 
-module.exports = angular.module('spinnaker.dcos.pipeline.stage.runJobStage', [
-  require('dcos/job/general.component.js').name,
-  //TODO Add back when scheduled jobs are supported better by Spinnaker
-  //require('dcos/job/schedule.component.js').name,
-  require('dcos/job/labels.component.js').name
-])
+module.exports = angular
+  .module('spinnaker.dcos.pipeline.stage.runJobStage', [
+    require('dcos/job/general.component.js').name,
+    //TODO Add back when scheduled jobs are supported better by Spinnaker
+    //require('dcos/job/schedule.component.js').name,
+    require('dcos/job/labels.component.js').name,
+  ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'runJob',
       cloudProvider: 'dcos',
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
-      validators: [
-        { type: 'requiredField', fieldName: 'account' },
-        { type: 'requiredField', fieldName: 'general.id' }
-      ]
+      validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'general.id' }],
     });
-  }).controller('dcosRunJobStageCtrl', function($scope, accountService, $q) {
+  })
+  .controller('dcosRunJobStageCtrl', function($scope, accountService, $q) {
     let stage = $scope.stage;
     this.stage = $scope.stage;
 
@@ -43,8 +42,7 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.runJobStage', [
       this.updateRegions();
     };
 
-    this.regionChanged = () => {
-    };
+    this.regionChanged = () => {};
 
     this.updateRegions = () => {
       if (stage.account) {
@@ -58,7 +56,7 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.runJobStage', [
       }
     };
 
-    this.onChange = (changes) => {
+    this.onChange = changes => {
       stage.docker.image.registry = changes.registry;
     };
 
@@ -72,8 +70,7 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.runJobStage', [
 
       var defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
 
-      stage.account =
-        defaultAccountIsValid ? defaultAccount : (firstDcosAccount ? firstDcosAccount : 'my-dcos-account');
+      stage.account = defaultAccountIsValid ? defaultAccount : firstDcosAccount ? firstDcosAccount : 'my-dcos-account';
 
       attemptToSetValidDcosCluster(accountsByName, stage);
     }
@@ -85,29 +82,36 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.runJobStage', [
       if (selectedAccount) {
         var clusterNames = _.map(selectedAccount.dcosClusters, 'name');
         var defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
-        stage.dcosCluster = defaultDcosClusterIsValid ? defaultDcosCluster : (clusterNames.length == 1 ? clusterNames[0] : null);
+        stage.dcosCluster = defaultDcosClusterIsValid
+          ? defaultDcosCluster
+          : clusterNames.length == 1 ? clusterNames[0] : null;
         stage.region = stage.dcosCluster;
       }
     }
 
     function setRegistry() {
       if (stage.account) {
-        _.set(stage, 'docker.image.registry', $scope.backingData.credentialsKeyedByAccount[stage.account].dockerRegistries[0].accountName);
+        _.set(
+          stage,
+          'docker.image.registry',
+          $scope.backingData.credentialsKeyedByAccount[stage.account].dockerRegistries[0].accountName,
+        );
       }
     }
 
-    $q.all({
-      credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('dcos'),
-    }).then((backingData) => {
-      backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
-      $scope.backingData = backingData;
+    $q
+      .all({
+        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('dcos'),
+      })
+      .then(backingData => {
+        backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
+        $scope.backingData = backingData;
 
-      if (!stage.account) {
-        attemptToSetValidAccount(backingData.credentialsKeyedByAccount, stage);
-      }
+        if (!stage.account) {
+          attemptToSetValidAccount(backingData.credentialsKeyedByAccount, stage);
+        }
 
-      setRegistry();
-      this.updateRegions();
-    });
-
+        setRegistry();
+        this.updateRegions();
+      });
   });

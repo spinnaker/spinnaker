@@ -5,70 +5,85 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, CACHE_INITIALIZER_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
-  ACCOUNT_SERVICE,
-  CACHE_INITIALIZER_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  require('../../image/image.reader.js').name,
-])
-  .factory('kubernetesServerGroupConfigurationService', function($q, accountService, kubernetesImageReader,
-                                                                 loadBalancerReader, cacheInitializer) {
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
+    ACCOUNT_SERVICE,
+    CACHE_INITIALIZER_SERVICE,
+    LOAD_BALANCER_READ_SERVICE,
+    require('../../image/image.reader.js').name,
+  ])
+  .factory('kubernetesServerGroupConfigurationService', function(
+    $q,
+    accountService,
+    kubernetesImageReader,
+    loadBalancerReader,
+    cacheInitializer,
+  ) {
     function configureCommand(application, command, query = '') {
       // this ensures we get the images we need when cloning or copying a server group template.
       const containers = command.containers.concat(command.initContainers || []);
       let queries = containers
-         .filter(c => {
+        .filter(c => {
           return !c.imageDescription.fromContext;
-         })
+        })
         .map(c => {
           if (c.imageDescription.fromTrigger) {
             return c.imageDescription.repository;
           } else {
             return grabImageAndTag(c.imageDescription.imageId);
-          }});
+          }
+        });
       if (query) {
         queries.push(query);
       }
 
       let imagesPromise;
       if (queries.length) {
-        imagesPromise = $q.all(queries
-          .map(q => kubernetesImageReader.findImages({
-            provider: 'dockerRegistry',
-            count: 50,
-            q: q })))
+        imagesPromise = $q
+          .all(
+            queries.map(q =>
+              kubernetesImageReader.findImages({
+                provider: 'dockerRegistry',
+                count: 50,
+                q: q,
+              }),
+            ),
+          )
           .then(_.flatten);
       } else {
         imagesPromise = $q.when([{ message: 'Please type your search...' }]);
       }
 
-      return $q.all({
-        accounts: accountService.listAccounts('kubernetes', 'v1'),
-        loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
-        allImages: imagesPromise
-      }).then(function(backingData) {
-        backingData.filtered = {};
-        backingData.securityGroups = [];
+      return $q
+        .all({
+          accounts: accountService.listAccounts('kubernetes', 'v1'),
+          loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
+          allImages: imagesPromise,
+        })
+        .then(function(backingData) {
+          backingData.filtered = {};
+          backingData.securityGroups = [];
 
-        if (command.viewState.contextImages) {
-          backingData.allImages = backingData.allImages.concat(command.viewState.contextImages);
-        }
+          if (command.viewState.contextImages) {
+            backingData.allImages = backingData.allImages.concat(command.viewState.contextImages);
+          }
 
-        // If we search for *nginx* and *nginx:1.11.1*, we might get two copies of nginx:1.11.1.
-        backingData.allImages = _.uniqWith(backingData.allImages, _.isEqual);
+          // If we search for *nginx* and *nginx:1.11.1*, we might get two copies of nginx:1.11.1.
+          backingData.allImages = _.uniqWith(backingData.allImages, _.isEqual);
 
+          var accountMap = _.fromPairs(
+            _.map(backingData.accounts, function(account) {
+              return [account.name, accountService.getAccountDetails(account.name)];
+            }),
+          );
 
-        var accountMap = _.fromPairs(_.map(backingData.accounts, function(account) {
-          return [account.name, accountService.getAccountDetails(account.name)];
-        }));
-
-        return $q.all(accountMap).then(function(accountMap) {
-          backingData.accountMap = accountMap;
-          command.backingData = backingData;
-          configureAccount(command);
-          attachEventHandlers(command);
+          return $q.all(accountMap).then(function(accountMap) {
+            backingData.accountMap = accountMap;
+            command.backingData = backingData;
+            configureAccount(command);
+            attachEventHandlers(command);
+          });
         });
-      });
     }
 
     function grabImageAndTag(imageId) {
@@ -76,13 +91,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
     }
 
     function mapImageToContainer(command) {
-      return (image) => {
+      return image => {
         if (image.message) {
           return image;
         }
 
         return {
-          name: image.repository.replace(/_/g, '').replace(/[\/ ]/g, '-').toLowerCase(),
+          name: image.repository
+            .replace(/_/g, '')
+            .replace(/[\/ ]/g, '-')
+            .toLowerCase(),
           imageDescription: {
             repository: image.repository,
             tag: image.tag,
@@ -106,13 +124,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
             cpu: null,
           },
           ports: [
-          {
-            name: 'http',
-            containerPort: 80,
-            protocol: 'TCP',
-            hostPort: null,
-            hostIp: null,
-          }
+            {
+              name: 'http',
+              containerPort: 80,
+              protocol: 'TCP',
+              hostPort: null,
+              hostIp: null,
+            },
           ],
           livenessProbe: null,
           readinessProbe: null,
@@ -174,21 +192,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           }
         }
       });
-      return [ validContainers, invalidContainers ];
+      return [validContainers, invalidContainers];
     }
 
     function configureContainers(command) {
-      var result = { dirty : {} };
+      var result = { dirty: {} };
       angular.extend(result.dirty, configureImages(command).dirty);
-      command.backingData.filtered.containers = _.map(command.backingData.filtered.images, mapImageToContainer(command));
+      command.backingData.filtered.containers = _.map(
+        command.backingData.filtered.images,
+        mapImageToContainer(command),
+      );
 
-      const [ validContainers, invalidContainers ] = getValidContainers(command, command.containers);
+      const [validContainers, invalidContainers] = getValidContainers(command, command.containers);
       command.containers = validContainers;
       if (invalidContainers.length > 0) {
         result.dirty.containers = invalidContainers;
       }
 
-      const [ validInitContainers, invalidInitContainers ] = getValidContainers(command, command.initContainers || []);
+      const [validInitContainers, invalidInitContainers] = getValidContainers(command, command.initContainers || []);
       command.initContainers = validInitContainers;
       if (invalidInitContainers.length > 0) {
         result.dirty.initContainers = invalidInitContainers;
@@ -197,7 +218,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
     }
 
     function configureSecurityGroups(command) {
-      var result = { dirty : {} };
+      var result = { dirty: {} };
       command.backingData.filtered.securityGroups = command.backingData.securityGroups;
       return result;
     }
@@ -247,11 +268,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       if (!command.namespace) {
         command.backingData.filtered.images = [];
       } else {
-        var accounts = _.map(_.filter(command.backingData.account.dockerRegistries, function(registry) {
-          return _.includes(registry.namespaces, command.namespace);
-        }), function(registry) {
-          return registry.accountName;
-        });
+        var accounts = _.map(
+          _.filter(command.backingData.account.dockerRegistries, function(registry) {
+            return _.includes(registry.namespaces, command.namespace);
+          }),
+          function(registry) {
+            return registry.accountName;
+          },
+        );
         command.backingData.filtered.images = _.filter(command.backingData.allImages, function(image) {
           return image.fromContext || image.fromTrigger || _.includes(accounts, image.account) || image.message;
         });

@@ -2,25 +2,24 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.serverGroup.display.tasks.tag', [
-])
+module.exports = angular
+  .module('spinnaker.core.serverGroup.display.tasks.tag', [])
   .directive('runningTasksTag', function() {
     return {
       restrict: 'E',
       scope: {
         application: '=',
         tasks: '=',
-        executions: '='
+        executions: '=',
       },
       templateUrl: require('./runningTasksTag.html'),
       controller: 'RunningTaskTagController',
     };
   })
-  .controller('RunningTaskTagController', function ($scope) {
+  .controller('RunningTaskTagController', function($scope) {
     $scope.popoverTemplate = require('./runningTasksPopover.html');
-    $scope.popover = { show : false };
+    $scope.popover = { show: false };
     $scope.runningExecutions = function() {
       return ($scope.executions || []).filter(e => e.isRunning || e.hasNotStarted);
     };
-
   });

@@ -6,7 +6,6 @@ import { ScalingPolicyTypeRegistry } from './ScalingPolicyTypeRegistry';
 import { IScalingPolicy } from 'amazon/domain';
 
 export class ScalingPolicyDetailsSummaryController implements IController {
-
   public templateUrl: string;
   public policy: IScalingPolicy;
   public serverGroup: IServerGroup;
@@ -26,7 +25,7 @@ export class ScalingPolicyDetailsSummary implements IComponentOptions {
   };
   public controller = ScalingPolicyDetailsSummaryController;
   public template = `<div ng-include src="$ctrl.templateUrl"></div>`;
-};
+}
 
 export const DETAILS_SUMMARY = 'spinnaker.amazon.scalingPolicy.details.summary.component';
 module(DETAILS_SUMMARY, []).component('scalingPolicySummary', new ScalingPolicyDetailsSummary());

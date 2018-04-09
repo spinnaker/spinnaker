@@ -1,11 +1,11 @@
 declare module 'react-ultimate-pagination' {
   export interface ItemTypeToComponent {
-    PAGE: React.ComponentType<{ value: any, isActive: boolean, onClick: any }>;
-    ELLIPSIS: React.ComponentType<{ value: any, isActive: boolean, onClick: any }>;
-    FIRST_PAGE_LINK: React.ComponentType<{ value: any, isActive: boolean, onClick: any }>;
-    PREVIOUS_PAGE_LINK: React.ComponentType<{ value: any, isActive: boolean, onClick: any }>;
-    NEXT_PAGE_LINK: React.ComponentType<{ value: any, isActive: boolean, onClick: any }>;
-    LAST_PAGE_LINK: React.ComponentType<{ value: any, isActive: boolean, onClick: any }>;
+    PAGE: React.ComponentType<{ value: any; isActive: boolean; onClick: any }>;
+    ELLIPSIS: React.ComponentType<{ value: any; isActive: boolean; onClick: any }>;
+    FIRST_PAGE_LINK: React.ComponentType<{ value: any; isActive: boolean; onClick: any }>;
+    PREVIOUS_PAGE_LINK: React.ComponentType<{ value: any; isActive: boolean; onClick: any }>;
+    NEXT_PAGE_LINK: React.ComponentType<{ value: any; isActive: boolean; onClick: any }>;
+    LAST_PAGE_LINK: React.ComponentType<{ value: any; isActive: boolean; onClick: any }>;
   }
 
   export interface IUltimatePaginationProps {
@@ -20,7 +20,10 @@ declare module 'react-ultimate-pagination' {
     disabled?: boolean;
   }
 
-  export function createUltimatePagination(options: {itemTypeToComponent: ItemTypeToComponent, WrapperComponent: React.ComponentClass = 'div'}): React.ComponentClass<IUltimatePaginationProps>;
+  export function createUltimatePagination(options: {
+    itemTypeToComponent: ItemTypeToComponent;
+    WrapperComponent: React.ComponentClass = 'div';
+  }): React.ComponentClass<IUltimatePaginationProps>;
   export interface ItemTypes {
     PAGE: 'PAGE';
     ELLIPSIS: 'ELLIPSIS';

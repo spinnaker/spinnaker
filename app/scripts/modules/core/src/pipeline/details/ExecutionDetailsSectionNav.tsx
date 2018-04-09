@@ -13,7 +13,10 @@ export interface IExecutionDetailsSectionNavState {
   activeSection: string;
 }
 
-export class ExecutionDetailsSectionNav extends React.Component<IExecutionDetailsSectionNavProps, IExecutionDetailsSectionNavState> {
+export class ExecutionDetailsSectionNav extends React.Component<
+  IExecutionDetailsSectionNavProps,
+  IExecutionDetailsSectionNavState
+> {
   private stateChangeSuccessSubscription: Subscription;
 
   public constructor(props: IExecutionDetailsSectionNavProps) {
@@ -22,7 +25,9 @@ export class ExecutionDetailsSectionNav extends React.Component<IExecutionDetail
   }
 
   public componentDidMount(): void {
-    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() => this.setState(this.getState(this.props)));
+    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() =>
+      this.setState(this.getState(this.props)),
+    );
   }
 
   private getState(props: IExecutionDetailsSectionNavProps): IExecutionDetailsSectionNavState {
@@ -42,20 +47,24 @@ export class ExecutionDetailsSectionNav extends React.Component<IExecutionDetail
   public render() {
     return (
       <ul className="nav nav-pills">
-        {this.props.sections.map((section) => <Section key={section} section={section} active={this.state.activeSection === section}/>)}
+        {this.props.sections.map(section => (
+          <Section key={section} section={section} active={this.state.activeSection === section} />
+        ))}
       </ul>
     );
   }
 }
 
-const Section = (props: { section: string, active: boolean }): JSX.Element => {
+const Section = (props: { section: string; active: boolean }): JSX.Element => {
   const clicked = () => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution details section selected', label: props.section });
     ReactInjector.$state.go('.', { details: props.section });
-  }
+  };
   return (
     <li>
-      <a className={`clickable ${props.active ? 'active' : ''}`} onClick={clicked}>{robotToHuman(props.section)}</a>
+      <a className={`clickable ${props.active ? 'active' : ''}`} onClick={clicked}>
+        {robotToHuman(props.section)}
+      </a>
     </li>
   );
-}
+};

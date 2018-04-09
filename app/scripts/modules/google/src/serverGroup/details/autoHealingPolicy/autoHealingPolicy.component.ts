@@ -9,9 +9,11 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
   public serverGroup: IGceServerGroup;
   public application: Application;
 
-  constructor(private $uibModal: IModalService,
-              private confirmationModalService: ConfirmationModalService,
-              private gceAutoscalingPolicyWriter: any) {
+  constructor(
+    private $uibModal: IModalService,
+    private confirmationModalService: ConfirmationModalService,
+    private gceAutoscalingPolicyWriter: any,
+  ) {
     'ngInject';
   }
 
@@ -23,10 +25,10 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
       size: 'md',
       resolve: {
         application: () => this.application,
-        serverGroup: () => this.serverGroup
-      }
+        serverGroup: () => this.serverGroup,
+      },
     });
-};
+  }
 
   public deletePolicy(): void {
     const taskMonitor = {
@@ -39,7 +41,7 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
       buttonText: 'Delete autohealer',
       account: this.serverGroup.account,
       taskMonitorConfig: taskMonitor,
-      submitMethod: () => this.gceAutoscalingPolicyWriter.deleteAutoHealingPolicy(this.application, this.serverGroup)
+      submitMethod: () => this.gceAutoscalingPolicyWriter.deleteAutoHealingPolicy(this.application, this.serverGroup),
     });
   }
 }
@@ -72,5 +74,4 @@ class GceAutoHealingPolicyDetails implements IComponentOptions {
 }
 
 export const GCE_AUTOHEALING_POLICY_DETAILS = 'spinnaker.gce.autoHealingPolicyDetails.component';
-module(GCE_AUTOHEALING_POLICY_DETAILS, [])
-  .component('gceAutoHealingPolicyDetails', new GceAutoHealingPolicyDetails());
+module(GCE_AUTOHEALING_POLICY_DETAILS, []).component('gceAutoHealingPolicyDetails', new GceAutoHealingPolicyDetails());

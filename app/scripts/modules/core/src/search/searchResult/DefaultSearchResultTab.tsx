@@ -19,12 +19,12 @@ export class DefaultSearchResultTab extends React.Component<ISearchResultTabProp
     const Badge = () => {
       switch (status) {
         case SearchStatus.SEARCHING:
-          return <Spinner size="small"/>;
+          return <Spinner size="small" />;
 
         case SearchStatus.ERROR:
           return (
             <Tooltip value={error && error.toString()}>
-              <i className="fa fa-exclamation-triangle"/>
+              <i className="fa fa-exclamation-triangle" />
             </Tooltip>
           );
 
@@ -33,7 +33,7 @@ export class DefaultSearchResultTab extends React.Component<ISearchResultTabProp
             return <div className="badge">{countLabel}</div>;
           }
 
-          return <div className="badge faded">{countLabel}</div>
+          return <div className="badge faded">{countLabel}</div>;
       }
     };
 
@@ -41,9 +41,11 @@ export class DefaultSearchResultTab extends React.Component<ISearchResultTabProp
 
     return (
       <div className={`flex-container-h baseline search-group ${focusOrBlurClass}`}>
-        <span className={`flex-nogrow search-group-icon ${iconClass}`}/>
+        <span className={`flex-nogrow search-group-icon ${iconClass}`} />
         <div className="flex-grow search-group-name">{type.displayName}</div>
-        <div className="flex-nogrow"><Badge/></div>
+        <div className="flex-nogrow">
+          <Badge />
+        </div>
       </div>
     );
   }

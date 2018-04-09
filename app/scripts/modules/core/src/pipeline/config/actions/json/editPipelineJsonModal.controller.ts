@@ -14,14 +14,12 @@ export interface IEditPipelineJsonModalCommand {
 }
 
 export class EditPipelineJsonModalCtrl implements IController {
-
   public isStrategy: boolean;
   public command: IEditPipelineJsonModalCommand;
-  public mode = 'pipeline'
+  public mode = 'pipeline';
   private immutableFields = ['name', 'application', 'index', 'id', '$$hashKey'];
 
-  constructor(private $uibModalInstance: IModalServiceInstance,
-              private pipeline: IPipeline, private plan?: IPipeline) {
+  constructor(private $uibModalInstance: IModalServiceInstance, private pipeline: IPipeline, private plan?: IPipeline) {
     'ngInject';
   }
 
@@ -31,7 +29,6 @@ export class EditPipelineJsonModalCtrl implements IController {
   }
 
   private validatePipeline(pipeline: IPipeline): void {
-
     const refIds = new Set<string | number>();
     const badIds = new Set<string | number>();
     if (pipeline.stages) {
@@ -43,7 +40,9 @@ export class EditPipelineJsonModalCtrl implements IController {
       });
 
       if (badIds.size) {
-        throw new Error(`The refId property must be unique across stages.  Duplicate id(s): ${Array.from(badIds).toString()}`);
+        throw new Error(
+          `The refId property must be unique across stages.  Duplicate id(s): ${Array.from(badIds).toString()}`,
+        );
       }
     }
   }
@@ -59,7 +58,7 @@ export class EditPipelineJsonModalCtrl implements IController {
     this.command = {
       pipelineJSON: jsonUtilityService.makeSortedStringFromObject(copy),
       pipelinePlanJSON: copyPlan ? jsonUtilityService.makeSortedStringFromObject(copyPlan) : null,
-      locked: copy.locked
+      locked: copy.locked,
     };
   }
 

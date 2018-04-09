@@ -10,10 +10,19 @@ module.exports = angular
     ACCOUNT_SERVICE,
     TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js').name,
-    require('../configure/CreateSecurityGroupCtrl.js').name
+    require('../configure/CreateSecurityGroupCtrl.js').name,
   ])
-  .controller('azureCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, $state, taskMonitorBuilder, accountService,
-                                                            azureSecurityGroupWriter, securityGroup, application) {
+  .controller('azureCloneSecurityGroupController', function(
+    $scope,
+    $uibModalInstance,
+    $controller,
+    $state,
+    taskMonitorBuilder,
+    accountService,
+    azureSecurityGroupWriter,
+    securityGroup,
+    application,
+  ) {
     var ctrl = this;
 
     $scope.pages = {
@@ -21,7 +30,7 @@ module.exports = angular
       ingress: require('../configure/createSecurityGroupIngress.html'),
     };
 
-    securityGroup.securityRules = _.map(securityGroup.securityRules,function(rule) {
+    securityGroup.securityRules = _.map(securityGroup.securityRules, function(rule) {
       var temp = rule.destinationPortRange.split('-');
       rule.startPort = Number(temp[0]);
       rule.endPort = Number(temp[1]);
@@ -36,7 +45,7 @@ module.exports = angular
       });
     };
 
-    ctrl.cancel = function () {
+    ctrl.cancel = function() {
       $uibModalInstance.dismiss();
     };
 
@@ -80,7 +89,7 @@ module.exports = angular
         destinationAddressPrefix: '*',
         destinationPortRange: '7001-7001',
         startPort: 7001,
-        endPort: 7001
+        endPort: 7001,
       });
     };
 
@@ -108,22 +117,18 @@ module.exports = angular
       application.securityGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    ctrl.portUpdated = function(ruleset, index)
-    {
-        ruleset[index].destinationPortRange =
-            ruleset[index].startPort + '-' + ruleset[index].endPort;
+    ctrl.portUpdated = function(ruleset, index) {
+      ruleset[index].destinationPortRange = ruleset[index].startPort + '-' + ruleset[index].endPort;
     };
     ctrl.removeRule = function(ruleset, index) {
       ruleset.splice(index, 1);
     };
     ctrl.moveUp = function(ruleset, index) {
-      if(index === 0)
-        return;
+      if (index === 0) return;
       swapRules(ruleset, index, index - 1);
     };
     ctrl.moveDown = function(ruleset, index) {
-      if(index === ruleset.length - 1)
-        return;
+      if (index === ruleset.length - 1) return;
       swapRules(ruleset, index, index + 1);
     };
     function swapRules(ruleset, a, b) {
@@ -139,21 +144,19 @@ module.exports = angular
       ruleset[b].priority = priorityB;
     }
 
-    ctrl.upsert = function () {
-      $scope.taskMonitor.submit(
-        function() {
-          let params = {
-            cloudProvider: 'azure',
-            appName: application.name,
-            securityGroupName: $scope.securityGroup.name,
-            region: $scope.securityGroup.region,
-            subnet : 'none',
-            vpcId: 'null'
-            };
-          $scope.securityGroup.type = 'upsertSecurityGroup';
+    ctrl.upsert = function() {
+      $scope.taskMonitor.submit(function() {
+        let params = {
+          cloudProvider: 'azure',
+          appName: application.name,
+          securityGroupName: $scope.securityGroup.name,
+          region: $scope.securityGroup.region,
+          subnet: 'none',
+          vpcId: 'null',
+        };
+        $scope.securityGroup.type = 'upsertSecurityGroup';
 
-          return azureSecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Clone', params);
-        }
-      );
+        return azureSecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Clone', params);
+      });
     };
   });

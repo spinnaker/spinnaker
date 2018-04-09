@@ -13,7 +13,9 @@ export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionPr
         <div className="col-md-9">
           <dl className="dl-narrow dl-horizontal">
             <dt>Account</dt>
-            <dd><AccountTag account={stage.context.credentials}/></dd>
+            <dd>
+              <AccountTag account={stage.context.credentials} />
+            </dd>
             <dt>Region</dt>
             <dd>{stage.context.region || (stage.context.regions || []).join(', ')}</dd>
             <dt>Cluster</dt>
@@ -29,7 +31,7 @@ export function DisableClusterExecutionDetails(props: IExecutionDetailsSectionPr
       <StageExecutionLogs stage={props.stage} />
     </ExecutionDetailsSection>
   );
-};
+}
 
 export namespace DisableClusterExecutionDetails {
   export const title = 'disableClusterConfig';

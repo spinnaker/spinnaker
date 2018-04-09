@@ -32,9 +32,9 @@ export interface IWebhookParameter {
 interface IPreconfiguredWebhook {
   type: string;
   label: string;
-  noUserConfigurableFields: boolean
+  noUserConfigurableFields: boolean;
   description?: string;
-  waitForCompletion?: boolean
+  waitForCompletion?: boolean;
   preconfiguredProperties?: string[];
   parameters?: IWebhookParameter[];
 }
@@ -47,16 +47,18 @@ export class WebhookStage implements IController {
   public noUserConfigurableFields: boolean;
   public parameters: IWebhookParameter[] = [];
 
-  constructor(public stage: any,
-              private jsonUtilityService: JsonUtilityService,
-              private $uibModal: IModalService,
-              private pipelineConfig: PipelineConfigProvider) {
+  constructor(
+    public stage: any,
+    private jsonUtilityService: JsonUtilityService,
+    private $uibModal: IModalService,
+    private pipelineConfig: PipelineConfigProvider,
+  ) {
     'ngInject';
     this.methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
 
     this.viewState = {
       waitForCompletion: this.stage.waitForCompletion || false,
-      statusUrlResolution: this.stage.statusUrlResolution || 'getMethod'
+      statusUrlResolution: this.stage.statusUrlResolution || 'getMethod',
     };
 
     this.command = {
@@ -69,7 +71,8 @@ export class WebhookStage implements IController {
     if (stageConfig && stageConfig.configuration) {
       this.preconfiguredProperties = stageConfig.configuration.preconfiguredProperties || [];
       this.noUserConfigurableFields = stageConfig.configuration.noUserConfigurableFields;
-      this.viewState.waitForCompletion = stageConfig.configuration.waitForCompletion || this.viewState.waitForCompletion;
+      this.viewState.waitForCompletion =
+        stageConfig.configuration.waitForCompletion || this.viewState.waitForCompletion;
       this.parameters = stageConfig.configuration.parameters || [];
     }
 
@@ -78,7 +81,7 @@ export class WebhookStage implements IController {
     }
 
     this.parameters.forEach((config: any) => {
-      if (!(config.name in this.stage.parameterValues) && (config.defaultValue !== null)) {
+      if (!(config.name in this.stage.parameterValues) && config.defaultValue !== null) {
         this.stage.parameterValues[config.name] = config.defaultValue;
       }
     });
@@ -115,13 +118,16 @@ export class WebhookStage implements IController {
     if (!this.stage.customHeaders) {
       this.stage.customHeaders = {};
     }
-    this.$uibModal.open({
-      templateUrl: require('./modal/addCustomHeader.html'),
-      controller: 'WebhookStageAddCustomHeaderCtrl',
-      controllerAs: 'addCustomHeader',
-    }).result.then((customHeader: ICustomHeader) => {
-      this.stage.customHeaders[customHeader.key] = customHeader.value;
-    }).catch(() => {});
+    this.$uibModal
+      .open({
+        templateUrl: require('./modal/addCustomHeader.html'),
+        controller: 'WebhookStageAddCustomHeaderCtrl',
+        controllerAs: 'addCustomHeader',
+      })
+      .result.then((customHeader: ICustomHeader) => {
+        this.stage.customHeaders[customHeader.key] = customHeader.value;
+      })
+      .catch(() => {});
   }
 
   public displayField(field: string): boolean {
@@ -131,47 +137,47 @@ export class WebhookStage implements IController {
 
 export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
 
-module(WEBHOOK_STAGE, [
-  JSON_UTILITY_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
-  API_SERVICE
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerStage({
-    label: 'Webhook',
-    description: 'Runs a Webhook job',
-    key: 'webhook',
-    restartable: true,
-    controller: 'WebhookStageCtrl',
-    producesArtifacts: true,
-    controllerAs: '$ctrl',
-    templateUrl: require('./webhookStage.html'),
-    executionDetailsUrl: require('./webhookExecutionDetails.html'),
-    validators: [
-      { type: 'requiredField', fieldName: 'url' },
-      { type: 'requiredField', fieldName: 'method' }
-    ]
-  });
-}).run((pipelineConfig: PipelineConfigProvider, API: Api) => {
-  API.one('webhooks').all('preconfigured').getList().then((preconfiguredWebhooks: Array<IPreconfiguredWebhook>) => {
-    preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) => pipelineConfig.registerStage({
-      label: preconfiguredWebhook.label,
-      description: preconfiguredWebhook.description,
-      key: preconfiguredWebhook.type,
-      alias: 'preconfiguredWebhook',
-      addAliasToConfig: true,
+module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER, API_SERVICE])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+    pipelineConfigProvider.registerStage({
+      label: 'Webhook',
+      description: 'Runs a Webhook job',
+      key: 'webhook',
       restartable: true,
       controller: 'WebhookStageCtrl',
+      producesArtifacts: true,
       controllerAs: '$ctrl',
       templateUrl: require('./webhookStage.html'),
       executionDetailsUrl: require('./webhookExecutionDetails.html'),
-      validators: [],
-      configuration: {
-        preconfiguredProperties: preconfiguredWebhook.preconfiguredProperties,
-        waitForCompletion: preconfiguredWebhook.waitForCompletion,
-        noUserConfigurableFields: preconfiguredWebhook.noUserConfigurableFields,
-        parameters: preconfiguredWebhook.parameters
-      }
-    }))
+      validators: [{ type: 'requiredField', fieldName: 'url' }, { type: 'requiredField', fieldName: 'method' }],
+    });
   })
-
-}).controller('WebhookStageCtrl', WebhookStage);
+  .run((pipelineConfig: PipelineConfigProvider, API: Api) => {
+    API.one('webhooks')
+      .all('preconfigured')
+      .getList()
+      .then((preconfiguredWebhooks: Array<IPreconfiguredWebhook>) => {
+        preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) =>
+          pipelineConfig.registerStage({
+            label: preconfiguredWebhook.label,
+            description: preconfiguredWebhook.description,
+            key: preconfiguredWebhook.type,
+            alias: 'preconfiguredWebhook',
+            addAliasToConfig: true,
+            restartable: true,
+            controller: 'WebhookStageCtrl',
+            controllerAs: '$ctrl',
+            templateUrl: require('./webhookStage.html'),
+            executionDetailsUrl: require('./webhookExecutionDetails.html'),
+            validators: [],
+            configuration: {
+              preconfiguredProperties: preconfiguredWebhook.preconfiguredProperties,
+              waitForCompletion: preconfiguredWebhook.waitForCompletion,
+              noUserConfigurableFields: preconfiguredWebhook.noUserConfigurableFields,
+              parameters: preconfiguredWebhook.parameters,
+            },
+          }),
+        );
+      });
+  })
+  .controller('WebhookStageCtrl', WebhookStage);

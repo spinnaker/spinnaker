@@ -2,8 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
-  .directive('securityGroup', function ($rootScope, $timeout, securityGroupFilterModel) {
+module.exports = angular
+  .module('spinnaker.core.securityGroup.directive', [])
+  .directive('securityGroup', function($rootScope, $timeout, securityGroupFilterModel) {
     return {
       restrict: 'E',
       replace: true,
@@ -14,7 +15,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
         sortFilter: '=',
         heading: '=',
       },
-      link: function (scope) {
+      link: function(scope) {
         scope.sortFilter = securityGroupFilterModel.sortFilter;
         scope.$state = $rootScope.$state;
 
@@ -27,7 +28,6 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
           vpcId: securityGroup.vpcId,
           provider: securityGroup.provider,
         };
-      }
+      },
     };
-  }
-);
+  });

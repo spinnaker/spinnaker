@@ -1,32 +1,29 @@
 'use strict';
 
-describe('Basic Settings Mixin Controller:', function () {
+describe('Basic Settings Mixin Controller:', function() {
   var controller, $scope;
 
+  beforeEach(window.module(require('./basicSettingsMixin.controller.js').name));
+
   beforeEach(
-    window.module(
-      require('./basicSettingsMixin.controller.js').name
-    )
+    window.inject(function($controller, $rootScope, namingService) {
+      $scope = $rootScope.$new();
+      $scope.application = { name: 'app', serverGroups: [] };
+      $scope.command = { viewState: {} };
+      controller = $controller('BasicSettingsMixin', {
+        $scope: $scope,
+        namingService: namingService,
+        $uibModalStack: { dismissAll: angular.noop },
+      });
+    }),
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, namingService) {
-    $scope = $rootScope.$new();
-    $scope.application = { name: 'app', serverGroups: [] };
-    $scope.command = { viewState: { }};
-    controller = $controller('BasicSettingsMixin', {
-      $scope: $scope,
-      namingService: namingService,
-      $uibModalStack: { dismissAll: angular.noop },
-    });
-  }));
-
-  describe('pattern testing: templating not enabled', function () {
-
+  describe('pattern testing: templating not enabled', function() {
     beforeEach(function() {
-      $scope.command.viewState = { };
+      $scope.command.viewState = {};
     });
 
-    it('stack should accept underscores, letters, numbers, and nothing', function () {
+    it('stack should accept underscores, letters, numbers, and nothing', function() {
       var test = controller.stackPattern.test;
       expect(test('a')).toBe(true);
       expect(test('ab')).toBe(true);
@@ -37,7 +34,7 @@ describe('Basic Settings Mixin Controller:', function () {
       expect(test('')).toBe(true);
     });
 
-    it('stack should fail on dashes or various other special characters', function () {
+    it('stack should fail on dashes or various other special characters', function() {
       var test = controller.stackPattern.test;
       expect(test('-a')).toBe(false);
       expect(test('a-')).toBe(false);
@@ -61,7 +58,7 @@ describe('Basic Settings Mixin Controller:', function () {
       expect(test('-')).toBe(true);
     });
 
-    it('detail should fail on various special characters', function () {
+    it('detail should fail on various special characters', function() {
       var test = controller.detailPattern.test;
       expect(test('$')).toBe(true);
       expect(test('9*')).toBe(false);
@@ -71,18 +68,17 @@ describe('Basic Settings Mixin Controller:', function () {
     });
   });
 
-  describe('pattern testing: templating enabled', function () {
+  describe('pattern testing: templating enabled', function() {
     beforeEach(function() {
       $scope.command.viewState = { templatingEnabled: true };
     });
 
-    it('unfortunately is greedy and accepts invalid placeholders', function () {
+    it('unfortunately is greedy and accepts invalid placeholders', function() {
       expect(controller.stackPattern.test('${not valid - trailing closing curly brackets}}}')).toBe(true);
       expect(controller.detailPattern.test('${not valid - trailing closing curly brackets}}}')).toBe(true);
     });
 
-
-    it('stack should accept underscores, letters, numbers, and nothing', function () {
+    it('stack should accept underscores, letters, numbers, and nothing', function() {
       var test = controller.stackPattern.test;
       expect(test('a')).toBe(true);
       expect(test('ab')).toBe(true);
@@ -93,7 +89,7 @@ describe('Basic Settings Mixin Controller:', function () {
       expect(test('')).toBe(true);
     });
 
-    it('stack should accept template placeholders', function () {
+    it('stack should accept template placeholders', function() {
       var test = controller.stackPattern.test;
       expect(test('${a}')).toBe(true);
       expect(test('b${a}')).toBe(true);
@@ -119,7 +115,7 @@ describe('Basic Settings Mixin Controller:', function () {
       expect(test('-')).toBe(true);
     });
 
-    it('detail should accept template placeholders', function () {
+    it('detail should accept template placeholders', function() {
       var test = controller.detailPattern.test;
       expect(test('${a}')).toBe(true);
       expect(test('b${a}')).toBe(true);
@@ -128,7 +124,5 @@ describe('Basic Settings Mixin Controller:', function () {
       expect(test('c-${a}b${d}')).toBe(true);
       expect(test('c_${a}b${d}')).toBe(true);
     });
-
   });
-
 });

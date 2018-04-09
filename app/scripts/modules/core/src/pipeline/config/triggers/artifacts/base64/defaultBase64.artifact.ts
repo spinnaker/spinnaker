@@ -14,9 +14,7 @@ const DOMBase64Errors: { [key: string]: string } = {
   5: 'The string to encode contains characters outside the latin1 range.',
 };
 
-module(DEFAULT_BASE64_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(DEFAULT_BASE64_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'Base64',
     description: 'An artifact that includes its referenced resource as part of its payload.',

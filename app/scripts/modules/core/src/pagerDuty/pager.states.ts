@@ -6,8 +6,7 @@ import { Pager } from './Pager';
 
 export const PAGER_STATES = 'spinnaker.core.pager.states';
 
-module(PAGER_STATES, [STATE_CONFIG_PROVIDER])
-  .config((stateConfigProvider: StateConfigProvider) => {
+module(PAGER_STATES, [STATE_CONFIG_PROVIDER]).config((stateConfigProvider: StateConfigProvider) => {
   const pageState: INestedState = {
     url: '/page?app&q&keys&by&direction&hide_no_apps',
     name: 'page',
@@ -54,9 +53,9 @@ module(PAGER_STATES, [STATE_CONFIG_PROVIDER])
     },
     data: {
       pageTitleSection: {
-        title: 'Pager'
-      }
-    }
+        title: 'Pager',
+      },
+    },
   };
   stateConfigProvider.addToRootState(pageState);
 });

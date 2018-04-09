@@ -32,5 +32,4 @@ export class PageNavigationState {
 
 export const PAGE_NAVIGATION_STATE = 'spinnaker.core.presentation.navigation.pageState';
 
-module(PAGE_NAVIGATION_STATE, [])
-  .service('pageNavigationState', PageNavigationState);
+module(PAGE_NAVIGATION_STATE, []).service('pageNavigationState', PageNavigationState);

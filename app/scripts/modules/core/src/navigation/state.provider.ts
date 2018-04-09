@@ -1,7 +1,11 @@
 import { IServiceProvider, module } from 'angular';
 import { isEqual, isPlainObject } from 'lodash';
 import {
-  Ng1StateDeclaration, Ng1ViewDeclaration, ParamDeclaration, UrlRouterProvider, UrlService
+  Ng1StateDeclaration,
+  Ng1ViewDeclaration,
+  ParamDeclaration,
+  UrlRouterProvider,
+  UrlService,
 } from '@uirouter/angularjs';
 
 import { STATE_HELPER, StateHelper } from './stateHelper.provider';
@@ -20,11 +24,10 @@ export interface IReactHybridIntermediate extends Ng1StateDeclaration {
 export interface INestedState extends IReactHybridIntermediate {
   children?: INestedState[];
   component?: React.ComponentClass<any> | string;
-  views?: { [key: string]: ReactViewDeclaration | Ng1ViewDeclaration; };
+  views?: { [key: string]: ReactViewDeclaration | Ng1ViewDeclaration };
 }
 
 export class StateConfigProvider implements IServiceProvider {
-
   private root: INestedState = {
     name: 'home',
     abstract: true,
@@ -37,7 +40,9 @@ export class StateConfigProvider implements IServiceProvider {
     children: [],
   };
 
-  constructor(private $urlRouterProvider: UrlRouterProvider, private stateHelperProvider: StateHelper) { 'ngInject'; }
+  constructor(private $urlRouterProvider: UrlRouterProvider, private stateHelperProvider: StateHelper) {
+    'ngInject';
+  }
 
   /**
    * Adds a root state, e.g. /applications, /projects, /infrastructure
@@ -68,7 +73,7 @@ export class StateConfigProvider implements IServiceProvider {
     this.$urlRouterProvider.when(base, replacement);
   }
 
-  public buildDynamicParams(paramConfig: IFilterConfig[]): {[key: string]: (ParamDeclaration | any)} {
+  public buildDynamicParams(paramConfig: IFilterConfig[]): { [key: string]: ParamDeclaration | any } {
     return paramConfig.reduce((acc: any, p) => {
       const param = p.param || p.model;
       acc[param] = {
@@ -95,7 +100,10 @@ export const trueKeyObjectParamType = {
   decode: (val: string) => {
     if (val) {
       const r: any = {};
-      val.split(',').map(k => k.replace(/%2c/g, ',')).forEach(k => r[k] = true);
+      val
+        .split(',')
+        .map(k => k.replace(/%2c/g, ','))
+        .forEach(k => (r[k] = true));
       return r;
     }
     return {};
@@ -103,12 +111,17 @@ export const trueKeyObjectParamType = {
   encode: (val: any) => {
     if (val) {
       const r = Object.keys(val).filter(k => val[k]);
-      return r.length ? r.sort().map(k => k.replace(/,/g, '%2c')).join(',') : null;
+      return r.length
+        ? r
+            .sort()
+            .map(k => k.replace(/,/g, '%2c'))
+            .join(',')
+        : null;
     }
     return null;
   },
   equals: (a: any, b: any) => isEqual(a, b),
-  is: (val: any) => isPlainObject(val)
+  is: (val: any) => isPlainObject(val),
 };
 
 export const inverseBooleanParamType = {
@@ -151,24 +164,25 @@ export const sortKeyParamType = {
     return null;
   },
   equals: (a: any, b: any) => isEqual(a, b),
-  is: (val: any) => isPlainObject(val)
+  is: (val: any) => isPlainObject(val),
 };
 
 export const STATE_CONFIG_PROVIDER = 'spinnaker.core.navigation.state.config.provider';
-module(STATE_CONFIG_PROVIDER, [
-  require('@uirouter/angularjs').default,
-  STATE_HELPER,
-]).provider('stateConfig', StateConfigProvider)
+module(STATE_CONFIG_PROVIDER, [require('@uirouter/angularjs').default, STATE_HELPER])
+  .provider('stateConfig', StateConfigProvider)
   .config(($urlRouterProvider: UrlRouterProvider) => {
     $urlRouterProvider.otherwise('/');
     // Don't crash on trailing slashes
-    $urlRouterProvider.when('/{path:.*}/', ['$match', ($match: any) => {
-      return '/' + $match.path;
-    }]);
+    $urlRouterProvider.when('/{path:.*}/', [
+      '$match',
+      ($match: any) => {
+        return '/' + $match.path;
+      },
+    ]);
   })
   .config(($urlServiceProvider: UrlService) => {
     $urlServiceProvider.config.type('trueKeyObject', trueKeyObjectParamType);
     $urlServiceProvider.config.type('inverse-boolean', inverseBooleanParamType);
     $urlServiceProvider.config.type('boolean', booleanParamType);
     $urlServiceProvider.config.type('sortKey', sortKeyParamType);
-});
+  });

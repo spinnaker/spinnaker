@@ -4,26 +4,28 @@ const angular = require('angular');
 require('./advancedSettings.directive.html');
 
 describe('Directive: GCE Group Advanced Settings Selector', function() {
-
   beforeEach(
     window.module(
       require('./advancedSettingsSelector.directive.js').name,
-      require('../securityGroups/tagManager.service.js').name
-    )
+      require('../securityGroups/tagManager.service.js').name,
+    ),
   );
 
-  beforeEach(window.inject(function($rootScope, $compile, gceTagManager) {
-    ['showToolTip',
-     'updateSelectedTags',
-     'getToolTipContent',
-     'inferSelectedSecurityGroupFromTag'].forEach((prop) => spyOn(gceTagManager, prop));
-    this.gceTagManager = gceTagManager;
-    this.scope = $rootScope.$new();
-    this.scope.command = {instanceMetadata: [], tags: [], labels: [], authScopes: []};
-    this.elem = angular.element('<gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>');
-    this.element = $compile(this.elem)(this.scope);
-    this.scope.$digest();
-  }));
+  beforeEach(
+    window.inject(function($rootScope, $compile, gceTagManager) {
+      ['showToolTip', 'updateSelectedTags', 'getToolTipContent', 'inferSelectedSecurityGroupFromTag'].forEach(prop =>
+        spyOn(gceTagManager, prop),
+      );
+      this.gceTagManager = gceTagManager;
+      this.scope = $rootScope.$new();
+      this.scope.command = { instanceMetadata: [], tags: [], labels: [], authScopes: [] };
+      this.elem = angular.element(
+        '<gce-server-group-advanced-settings-selector command="command"></gce-server-group-advanced-settings-selector>',
+      );
+      this.element = $compile(this.elem)(this.scope);
+      this.scope.$digest();
+    }),
+  );
 
   it('should correctly add tags to the command', function() {
     expect(this.scope.command.tags.length).toEqual(0);
@@ -32,7 +34,10 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
     this.scope.$apply();
     expect(this.scope.command.tags.length).toEqual(1);
 
-    this.elem.find('table.tags input').val('myTag').trigger('input');
+    this.elem
+      .find('table.tags input')
+      .val('myTag')
+      .trigger('input');
     this.scope.$apply();
 
     expect(this.scope.command.tags.length).toEqual(1);
@@ -40,7 +45,7 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
   });
 
   it('should correctly remove a tag from the command', function() {
-    this.scope.command.tags.push({'value': 'myTag1'}, {'value': 'myTag2'});
+    this.scope.command.tags.push({ value: 'myTag1' }, { value: 'myTag2' });
     this.scope.$apply();
 
     var removeLinks = this.elem.find('table.tags a');

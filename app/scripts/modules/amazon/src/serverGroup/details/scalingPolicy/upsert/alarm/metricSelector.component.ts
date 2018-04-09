@@ -3,23 +3,29 @@ import { IController, IComponentOptions, module } from 'angular';
 import { Dictionary, get } from 'lodash';
 import { Subject } from 'rxjs';
 
-import { CLOUD_METRICS_READ_SERVICE, CloudMetricsReader, ICloudMetricDescriptor, IServerGroup, IMetricAlarmDimension } from '@spinnaker/core';
+import {
+  CLOUD_METRICS_READ_SERVICE,
+  CloudMetricsReader,
+  ICloudMetricDescriptor,
+  IServerGroup,
+  IMetricAlarmDimension,
+} from '@spinnaker/core';
 
 import { IConfigurableMetric } from 'amazon/serverGroup';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { NAMESPACES } from './namespaces';
 
 export interface IMetricOption extends ICloudMetricDescriptor {
-  label: string,
+  label: string;
   dimensionValues: string;
 }
 
 export interface IMetricEditorState {
-  advancedMode: boolean,
-  metricsLoaded: boolean,
-  metrics: IMetricOption[],
-  selectedMetric: ICloudMetricDescriptor,
-  noDefaultMetrics?: boolean,
+  advancedMode: boolean;
+  metricsLoaded: boolean;
+  metrics: IMetricOption[];
+  selectedMetric: ICloudMetricDescriptor;
+  noDefaultMetrics?: boolean;
 }
 
 const dimensionSorter = (a: IMetricAlarmDimension, b: IMetricAlarmDimension): number => {
@@ -27,7 +33,6 @@ const dimensionSorter = (a: IMetricAlarmDimension, b: IMetricAlarmDimension): nu
 };
 
 export class MetricSelectorController implements IController {
-
   public alarmUpdated: Subject<void>;
   public namespaceUpdated = new Subject();
 
@@ -48,8 +53,13 @@ export class MetricSelectorController implements IController {
       selectedMetric: null,
     };
     const dimensions = this.alarm.dimensions;
-    if (!dimensions || !dimensions.length || dimensions.length > 1 ||
-      dimensions[0].name !== 'AutoScalingGroupName' || dimensions[0].value !== this.serverGroup.name) {
+    if (
+      !dimensions ||
+      !dimensions.length ||
+      dimensions.length > 1 ||
+      dimensions[0].name !== 'AutoScalingGroupName' ||
+      dimensions[0].value !== this.serverGroup.name
+    ) {
       this.state.advancedMode = true;
     }
     this.updateAvailableMetrics();
@@ -57,7 +67,7 @@ export class MetricSelectorController implements IController {
   }
 
   public simpleMode(): void {
-    this.alarm.dimensions = [ { name: 'AutoScalingGroupName', value: this.serverGroup.name }];
+    this.alarm.dimensions = [{ name: 'AutoScalingGroupName', value: this.serverGroup.name }];
     this.state.advancedMode = false;
     this.updateAvailableMetrics();
   }
@@ -73,15 +83,21 @@ export class MetricSelectorController implements IController {
       dimensions.namespace = alarm.namespace;
     }
 
-    this.cloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, dimensions).then(
-      (results) => {
+    this.cloudMetricsReader
+      .listMetrics('aws', this.serverGroup.account, this.serverGroup.region, dimensions)
+      .then(results => {
         results = results || [];
         this.state.metricsLoaded = true;
         this.state.metrics = results.map(r => this.buildMetricOption(r)).sort((a, b) => a.label.localeCompare(b.label));
-        const currentDimensions = alarm.dimensions.sort(dimensionSorter).map((d: IMetricAlarmDimension) => d.value).join(', ');
-        const selected = this.state.metrics.find(metric =>
-          metric.name === alarm.metricName && metric.namespace === alarm.namespace &&
-          metric.dimensionValues === currentDimensions
+        const currentDimensions = alarm.dimensions
+          .sort(dimensionSorter)
+          .map((d: IMetricAlarmDimension) => d.value)
+          .join(', ');
+        const selected = this.state.metrics.find(
+          metric =>
+            metric.name === alarm.metricName &&
+            metric.namespace === alarm.namespace &&
+            metric.dimensionValues === currentDimensions,
         );
         if (!results.length && !this.state.advancedMode) {
           this.state.noDefaultMetrics = true;
@@ -100,19 +116,28 @@ export class MetricSelectorController implements IController {
   }
 
   private buildMetricOption(metric: ICloudMetricDescriptor): IMetricOption {
-    const option: IMetricOption = Object.assign({
-      label: `(${metric.namespace}) ${metric.name}`,
-      dimensions: [],
-      dimensionValues: metric.dimensions.sort(dimensionSorter).map(d => d.value).join(', ')
-    }, metric);
+    const option: IMetricOption = Object.assign(
+      {
+        label: `(${metric.namespace}) ${metric.name}`,
+        dimensions: [],
+        dimensionValues: metric.dimensions
+          .sort(dimensionSorter)
+          .map(d => d.value)
+          .join(', '),
+      },
+      metric,
+    );
     return option;
   }
 
   private convertDimensionsToObject(): Dictionary<string> {
-    return this.alarm.dimensions.reduce((acc: Dictionary<string>, dimension: IMetricAlarmDimension) => {
-      acc[dimension.name] = dimension.value;
-      return acc;
-    }, {} as Dictionary<string>);
+    return this.alarm.dimensions.reduce(
+      (acc: Dictionary<string>, dimension: IMetricAlarmDimension) => {
+        acc[dimension.name] = dimension.value;
+        return acc;
+      },
+      {} as Dictionary<string>,
+    );
   }
 
   // used to determine if dimensions have changed when selecting a metric
@@ -132,9 +157,10 @@ export class MetricSelectorController implements IController {
     }
     if (this.state.selectedMetric) {
       const selected = this.state.selectedMetric,
-        dimensionsChanged = selected && this.dimensionsToString(alarm.dimensions) !== this.dimensionsToString(selected.dimensions),
-        alarmUpdated = alarm.metricName !== selected.name || alarm.namespace !== selected.namespace ||
-          dimensionsChanged;
+        dimensionsChanged =
+          selected && this.dimensionsToString(alarm.dimensions) !== this.dimensionsToString(selected.dimensions),
+        alarmUpdated =
+          alarm.metricName !== selected.name || alarm.namespace !== selected.namespace || dimensionsChanged;
       alarm.metricName = selected.name;
       alarm.namespace = selected.namespace;
       if (dimensionsChanged) {
@@ -218,6 +244,4 @@ const component: IComponentOptions = {
 };
 
 export const METRIC_SELECTOR_COMPONENT = 'spinnaker.amazon.scalingPolicy.alarm.metric.editor';
-module(METRIC_SELECTOR_COMPONENT, [
-  CLOUD_METRICS_READ_SERVICE
-]).component('awsMetricSelector', component);
+module(METRIC_SELECTOR_COMPONENT, [CLOUD_METRICS_READ_SERVICE]).component('awsMetricSelector', component);

@@ -4,11 +4,9 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.details.controller', [
-  require('@uirouter/angularjs').default,
-])
-  .controller('CanaryExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
-
+module.exports = angular
+  .module('spinnaker.canary.details.controller', [require('@uirouter/angularjs').default])
+  .controller('CanaryExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
 
     $scope.configUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.analysisConfigUrl : null;
@@ -29,5 +27,4 @@ module.exports = angular.module('spinnaker.canary.details.controller', [
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

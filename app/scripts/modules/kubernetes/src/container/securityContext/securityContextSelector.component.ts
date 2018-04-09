@@ -20,7 +20,7 @@ class SecurityContextSelector implements IController {
       model: 'runAsUser',
       type: 'number',
       inputClasses: 'form-control input-sm',
-      columns: 4
+      columns: 4,
     },
     {
       label: 'Run As Non-Root',
@@ -42,7 +42,7 @@ class SecurityContextSelector implements IController {
 
 class SecurityContextSelectorComponent implements IComponentOptions {
   public bindings: any = {
-    component: '='
+    component: '=',
   };
   public templateUrl: string = require('./securityContextSelector.component.html');
   public controller: any = SecurityContextSelector;
@@ -51,7 +51,6 @@ class SecurityContextSelectorComponent implements IComponentOptions {
 export const KUBERNETES_SECURITY_CONTEXT_SELECTOR = 'spinnaker.kubernetes.securityContextSelector.component';
 
 module(KUBERNETES_SECURITY_CONTEXT_SELECTOR, [
-    KUBERNETES_SE_LINUX_OPTIONS_SELECTOR,
-    KUBERNETES_CAPABILITIES_SELECTOR,
-  ])
-  .component('kubernetesSecurityContextSelector', new SecurityContextSelectorComponent());
+  KUBERNETES_SE_LINUX_OPTIONS_SELECTOR,
+  KUBERNETES_CAPABILITIES_SELECTOR,
+]).component('kubernetesSecurityContextSelector', new SecurityContextSelectorComponent());

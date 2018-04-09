@@ -10,7 +10,7 @@ class ExpectedArtifactController implements IComponentController {
   public context: any;
 
   public constructor(private $attrs: IAttributes) {
-    'nginject'
+    'nginject';
 
     this.usePriorExecution = this.$attrs.$attr.hasOwnProperty('usePriorExecution');
   }
@@ -65,10 +65,8 @@ class ExpectedArtifactComponent implements IComponentOptions {
     </div>
   </div>
 </div>
-`
+`;
 }
 
 export const EXPECTED_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifacts.expected';
-module(EXPECTED_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).component('expectedArtifact', new ExpectedArtifactComponent());
+module(EXPECTED_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).component('expectedArtifact', new ExpectedArtifactComponent());

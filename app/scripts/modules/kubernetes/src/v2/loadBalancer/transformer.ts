@@ -34,20 +34,21 @@ class KubernetesV2LoadBalancerTransformer {
           failed: 0,
           unknown: 0,
           starting: 0,
-        }
+        },
       )
       .value();
 
     instanceCounts.outOfService += chain(serverGroups)
       .map(serverGroup => serverGroup.detachedInstances)
       .flatten()
-      .value()
-      .length;
+      .value().length;
 
     return instanceCounts;
   }
 }
 
 export const KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER = 'spinnaker.kubernetes.v2.loadBalancerTransformer';
-module(KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER, [])
-  .service('kubernetesV2LoadBalancerTransformer', KubernetesV2LoadBalancerTransformer);
+module(KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER, []).service(
+  'kubernetesV2LoadBalancerTransformer',
+  KubernetesV2LoadBalancerTransformer,
+);

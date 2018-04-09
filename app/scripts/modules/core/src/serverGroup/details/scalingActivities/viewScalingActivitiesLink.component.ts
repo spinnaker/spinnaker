@@ -5,7 +5,9 @@ import { SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl } from './scalingActivit
 class ViewScalingActivitiesLinkCtrl implements IController {
   public serverGroup: any;
 
-  public constructor(private $uibModal: IModalService) { 'ngInject'; }
+  public constructor(private $uibModal: IModalService) {
+    'ngInject';
+  }
 
   public showScalingActivities(): void {
     this.$uibModal.open({
@@ -13,15 +15,15 @@ class ViewScalingActivitiesLinkCtrl implements IController {
       controller: ScalingActivitiesCtrl,
       controllerAs: '$ctrl',
       resolve: {
-        serverGroup: () => this.serverGroup
-      }
+        serverGroup: () => this.serverGroup,
+      },
     });
   }
 }
 
 export class ViewScalingActivitiesLink implements IComponentOptions {
   public bindings: any = {
-    serverGroup: '<'
+    serverGroup: '<',
   };
   public controller: any = ViewScalingActivitiesLinkCtrl;
   public template = `<a href ng-click="$ctrl.showScalingActivities()">View Scaling Activities</a>`;
@@ -29,7 +31,7 @@ export class ViewScalingActivitiesLink implements IComponentOptions {
 
 export const VIEW_SCALING_ACTIVITIES_LINK = 'spinnaker.core.serverGroup.details.viewScalingActivities.link';
 
-module(VIEW_SCALING_ACTIVITIES_LINK, [
-    SCALING_ACTIVITIES_CTRL,
-  ])
-  .component('viewScalingActivitiesLink', new ViewScalingActivitiesLink());
+module(VIEW_SCALING_ACTIVITIES_LINK, [SCALING_ACTIVITIES_CTRL]).component(
+  'viewScalingActivitiesLink',
+  new ViewScalingActivitiesLink(),
+);

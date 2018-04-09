@@ -13,7 +13,10 @@ export interface IAmazonLoadBalancerChoiceModalState {
 }
 
 @BindAll()
-export class AmazonLoadBalancerChoiceModal extends React.Component<ILoadBalancerModalProps, IAmazonLoadBalancerChoiceModalState> {
+export class AmazonLoadBalancerChoiceModal extends React.Component<
+  ILoadBalancerModalProps,
+  IAmazonLoadBalancerChoiceModalState
+> {
   constructor(props: ILoadBalancerModalProps) {
     super(props);
     this.state = {
@@ -55,14 +58,19 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<ILoadBalancer
     }
 
     return (
-      <Modal show={this.props.show} onHide={this.close} className="create-pipeline-modal-overflow-visible" backdrop="static">
+      <Modal
+        show={this.props.show}
+        onHide={this.close}
+        className="create-pipeline-modal-overflow-visible"
+        backdrop="static"
+      >
         <Modal.Header closeButton={true}>
           <Modal.Title>Select Type of Load Balancer</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="modal-body">
             <div className="card-choices">
-              {choices.map((choice) => (
+              {choices.map(choice => (
                 <div
                   key={choice.type}
                   className={`card ${selectedChoice === choice ? 'active' : ''}`}
@@ -70,17 +78,17 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<ILoadBalancer
                 >
                   <h3 className="load-balancer-label">{choice.label}</h3>
                   <h3>({choice.sublabel})</h3>
-                  <div>
-                    {choice.description}
-                  </div>
+                  <div>{choice.description}</div>
                 </div>
               ))}
             </div>
-            <div className="load-balancer-description"/>
+            <div className="load-balancer-description" />
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={this.choose}>Configure Load Balancer <span className="glyphicon glyphicon-chevron-right"/></Button>
+          <Button onClick={this.choose}>
+            Configure Load Balancer <span className="glyphicon glyphicon-chevron-right" />
+          </Button>
         </Modal.Footer>
       </Modal>
     );

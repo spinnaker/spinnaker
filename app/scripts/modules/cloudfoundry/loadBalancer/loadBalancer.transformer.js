@@ -2,27 +2,29 @@
 
 import _ from 'lodash';
 
-import {CloudFoundryProviderSettings} from '../cf.settings';
+import { CloudFoundryProviderSettings } from '../cf.settings';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
-  .factory('cfLoadBalancerTransformer', function ($q) {
-
+module.exports = angular
+  .module('spinnaker.cf.loadBalancer.transformer', [])
+  .factory('cfLoadBalancerTransformer', function($q) {
     function updateHealthCounts(container) {
       var instances = container.instances;
       var serverGroups = container.serverGroups || [container];
       container.instanceCounts = {
-        up: instances.filter(function (instance) {
+        up: instances.filter(function(instance) {
           return instance.health[0].state === 'InService';
         }).length,
-        down: instances.filter(function (instance) {
+        down: instances.filter(function(instance) {
           return instance.health[0].state === 'OutOfService';
         }).length,
-        outOfService: serverGroups.reduce(function (acc, serverGroup) {
-          return serverGroup.instances.filter(function (instance) {
-            return instance.healthState === 'OutOfService';
-          }).length + acc;
+        outOfService: serverGroups.reduce(function(acc, serverGroup) {
+          return (
+            serverGroup.instances.filter(function(instance) {
+              return instance.healthState === 'OutOfService';
+            }).length + acc
+          );
         }, 0),
       };
     }
@@ -33,7 +35,9 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
       instance.account = loadBalancer.account;
       instance.region = loadBalancer.region;
       instance.health.type = 'LoadBalancer';
-      instance.healthState = instance.health.state ? instance.health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
+      instance.healthState = instance.health.state
+        ? instance.health.state === 'InService' ? 'Up' : 'Down'
+        : 'OutOfService';
       instance.health = [instance.health];
       instance.loadBalancers = [loadBalancer.name];
     }
@@ -56,10 +60,16 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
         });
         updateHealthCounts(serverGroup);
       });
-      var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
+      var activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
-      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
+      loadBalancer.instances = _.chain(activeServerGroups)
+        .map('instances')
+        .flatten()
+        .value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups)
+        .map('detachedInstances')
+        .flatten()
+        .value();
       updateHealthCounts(loadBalancer);
       return $q.when(loadBalancer);
     }
@@ -89,5 +99,4 @@ module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
-
   });

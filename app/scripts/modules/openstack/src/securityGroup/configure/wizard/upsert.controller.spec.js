@@ -4,113 +4,124 @@ import { OpenStackProviderSettings } from '../../../openstack.settings';
 
 describe('Controller: openstackCreateSecurityGroupCtrl', function() {
   // load the controller's module
-  beforeEach(
-    window.module(
-      require('./upsert.controller').name,
-      APPLICATION_MODEL_BUILDER
-    )
-  );
+  beforeEach(window.module(require('./upsert.controller').name, APPLICATION_MODEL_BUILDER));
 
   afterEach(OpenStackProviderSettings.resetToOriginal);
 
   // Initialize the controller and a mock scope
   var testSuite;
-  beforeEach(window.inject(function ($controller, $rootScope, $q, applicationModelBuilder) {
-    testSuite = this;
-    OpenStackProviderSettings.defaults.account = 'account1';
+  beforeEach(
+    window.inject(function($controller, $rootScope, $q, applicationModelBuilder) {
+      testSuite = this;
+      OpenStackProviderSettings.defaults.account = 'account1';
 
-    this.testData = {
-      securityGroupList: [
-        {account: 'account1', region: 'region1', name: 'sc111'},
-        {account: 'account1', region: 'region1', name: 'sc112'},
-        {account: 'account1', region: 'region1', name: 'sc113'},
-        {account: 'account2', region: 'region1', name: 'sc211'},
-        {account: 'account2', region: 'region1', name: 'sc212'},
-        {account: 'account2', region: 'region1', name: 'sc213'}
-      ],
-      accountList: [
-        {name: 'account1'},
-        {name: 'account2'},
-        {name: 'account3'}
-      ],
-      regionList: ['region1', 'region2', 'region3']
-    };
+      this.testData = {
+        securityGroupList: [
+          { account: 'account1', region: 'region1', name: 'sc111' },
+          { account: 'account1', region: 'region1', name: 'sc112' },
+          { account: 'account1', region: 'region1', name: 'sc113' },
+          { account: 'account2', region: 'region1', name: 'sc211' },
+          { account: 'account2', region: 'region1', name: 'sc212' },
+          { account: 'account2', region: 'region1', name: 'sc213' },
+        ],
+        accountList: [{ name: 'account1' }, { name: 'account2' }, { name: 'account3' }],
+        regionList: ['region1', 'region2', 'region3'],
+      };
 
-    this.testEditData = {
-      account: undefined, region: 'region1', name: 'sc111', edit: true, rules: [ ], accountName: undefined, description: undefined, application: 'sc111', detail: '', stack: ''
-    };
+      this.testEditData = {
+        account: undefined,
+        region: 'region1',
+        name: 'sc111',
+        edit: true,
+        rules: [],
+        accountName: undefined,
+        description: undefined,
+        application: 'sc111',
+        detail: '',
+        stack: '',
+      };
 
+      this.securityGroupDefaults = {
+        provider: 'openstack',
+        region: '',
+        application: 'app',
+        stack: '',
+        description: '',
+        detail: '',
+        account: 'account1',
+        rules: [],
+      };
 
-    this.securityGroupDefaults = {
-      provider: 'openstack', region: '', application: 'app', stack: '', description: '', detail: '', account: 'account1', rules: []
-    };
+      this.$scope = $rootScope.$new();
 
-    this.$scope = $rootScope.$new();
-
-    this.mockState = {
-      go: jasmine.createSpy(),
-      includes: jasmine.createSpy().and.callFake(function () {
-        return testSuite.mockState.stateIncludesSecurityGroupDetails;
-      })
-    };
-    this.mockModal = {
-      dismiss: jasmine.createSpy(),
-      close: jasmine.createSpy()
-    };
-    let application = applicationModelBuilder.createApplication('app', {key: 'securityGroups', onLoad: angular.noop, loader: angular.noop});
-    application.securityGroups.refresh = jasmine.createSpy();
-    application.securityGroups.onNextRefresh = jasmine.createSpy().and.callFake(function (scope, callback) {
-      testSuite.applicationRefreshCallback = callback;
-    });
-    this.mockApplication = application;
-
-    function addDeferredMock(obj, method) {
-      obj[method] = jasmine.createSpy().and.callFake(function () {
-        var d = $q.defer();
-        obj[method].deferred = d;
-        return d.promise;
+      this.mockState = {
+        go: jasmine.createSpy(),
+        includes: jasmine.createSpy().and.callFake(function() {
+          return testSuite.mockState.stateIncludesSecurityGroupDetails;
+        }),
+      };
+      this.mockModal = {
+        dismiss: jasmine.createSpy(),
+        close: jasmine.createSpy(),
+      };
+      let application = applicationModelBuilder.createApplication('app', {
+        key: 'securityGroups',
+        onLoad: angular.noop,
+        loader: angular.noop,
       });
-      return obj;
-    }
-
-    this.mockSecurityGroupReader = addDeferredMock({}, 'loadSecurityGroups');
-
-    this.mockAccountService = addDeferredMock({}, 'listAccounts');
-    this.mockSecurityGroupWriter = addDeferredMock({}, 'upsertSecurityGroup');
-    this.mockTaskMonitor = {
-      submit: jasmine.createSpy()
-    };
-    this.mockTaskMonitorBuilder = {
-      buildTaskMonitor: jasmine.createSpy().and.callFake(function (arg) {
-        testSuite.taskCompletionCallback = arg.onTaskComplete;
-        return testSuite.mockTaskMonitor;
-      })
-    };
-
-    this.createController = function (securityGroup) {
-      this.ctrl = $controller('openstackUpsertSecurityGroupController', {
-        $scope: this.$scope,
-        $uibModalInstance: this.mockModal,
-        $state: this.mockState,
-        application: this.mockApplication,
-        securityGroup: securityGroup ,
-        securityGroupReader: this.mockSecurityGroupReader,
-        accountService: this.mockAccountService,
-        securityGroupWriter: this.mockSecurityGroupWriter,
-        taskMonitorBuilder: this.mockTaskMonitorBuilder
+      application.securityGroups.refresh = jasmine.createSpy();
+      application.securityGroups.onNextRefresh = jasmine.createSpy().and.callFake(function(scope, callback) {
+        testSuite.applicationRefreshCallback = callback;
       });
-    };
-  }));
+      this.mockApplication = application;
 
-  describe('initialized for create', function () {
+      function addDeferredMock(obj, method) {
+        obj[method] = jasmine.createSpy().and.callFake(function() {
+          var d = $q.defer();
+          obj[method].deferred = d;
+          return d.promise;
+        });
+        return obj;
+      }
 
-    beforeEach(function () {
-      var securityGroup = { edit: false};
+      this.mockSecurityGroupReader = addDeferredMock({}, 'loadSecurityGroups');
+
+      this.mockAccountService = addDeferredMock({}, 'listAccounts');
+      this.mockSecurityGroupWriter = addDeferredMock({}, 'upsertSecurityGroup');
+      this.mockTaskMonitor = {
+        submit: jasmine.createSpy(),
+      };
+      this.mockTaskMonitorBuilder = {
+        buildTaskMonitor: jasmine.createSpy().and.callFake(function(arg) {
+          testSuite.taskCompletionCallback = arg.onTaskComplete;
+          return testSuite.mockTaskMonitor;
+        }),
+      };
+
+      this.createController = function(securityGroup) {
+        this.ctrl = $controller('openstackUpsertSecurityGroupController', {
+          $scope: this.$scope,
+          $uibModalInstance: this.mockModal,
+          $state: this.mockState,
+          application: this.mockApplication,
+          securityGroup: securityGroup,
+          securityGroupReader: this.mockSecurityGroupReader,
+          accountService: this.mockAccountService,
+          securityGroupWriter: this.mockSecurityGroupWriter,
+          taskMonitorBuilder: this.mockTaskMonitorBuilder,
+        });
+      };
+    }),
+  );
+
+  describe('initialized for create', function() {
+    beforeEach(function() {
+      var securityGroup = { edit: false };
 
       this.createController(securityGroup);
     });
 
-    it('has the expected methods and properties', function () {
+    it('has the expected methods and properties', function() {
       expect(this.ctrl.updateName).toBeDefined();
       expect(this.ctrl.accountUpdated).toBeDefined();
       expect(this.ctrl.getName).toBeDefined();
@@ -118,101 +129,104 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       expect(this.ctrl.cancel).toBeDefined();
     });
 
-    it('initializes the scope', function () {
+    it('initializes the scope', function() {
       expect(this.$scope.state).toEqual({
         accountsLoaded: true,
         securityGroupNamesLoaded: false,
-        submitting: false
+        submitting: false,
       });
       expect(this.$scope.isNew).toEqual(true);
       expect(this.$scope.securityGroup).toEqual(this.securityGroupDefaults);
     });
 
-    it('builds the task monitor', function () {
+    it('builds the task monitor', function() {
       expect(this.mockTaskMonitorBuilder.buildTaskMonitor).toHaveBeenCalled();
     });
 
-    it('requests the list of accounts', function () {
+    it('requests the list of accounts', function() {
       expect(this.mockAccountService.listAccounts).toHaveBeenCalledWith('openstack');
     });
 
-    describe('& account list returned', function () {
-
-      beforeEach(function () {
+    describe('& account list returned', function() {
+      beforeEach(function() {
         this.mockAccountService.listAccounts.deferred.resolve(this.testData.accountList);
         this.$scope.$digest();
       });
 
-      it('sets the account to the first one in the list', function () {
+      it('sets the account to the first one in the list', function() {
         expect(this.$scope.securityGroup.account).toEqual(this.testData.accountList[0].name);
       });
 
-      describe('& securityGroup list returned', function () {
-        beforeEach(function () {
+      describe('& securityGroup list returned', function() {
+        beforeEach(function() {
           this.mockSecurityGroupReader.loadSecurityGroups.deferred.resolve(this.testData.loadSecurityGroups);
           this.$scope.$digest();
         });
 
-        it('- updates the list of security Group names', function () {
+        it('- updates the list of security Group names', function() {
           expect(this.$scope.state.securityGroupNamesLoaded).toBeTruthy();
           expect(this.$scope.existingSecurityGroupNames).toEqual(
-            _.map(_.filter(this.testData.loadSecurityGroups, {account: 'account1'}), function (lb) {
+            _.map(_.filter(this.testData.loadSecurityGroups, { account: 'account1' }), function(lb) {
               return lb.name;
-            })
+            }),
           );
         });
 
-        describe('& account selection changed', function () {
-          beforeEach(function () {
+        describe('& account selection changed', function() {
+          beforeEach(function() {
             this.$scope.securityGroup.account = 'account2';
             this.ctrl.accountUpdated();
           });
 
-          describe('& submit() called', function () {
-            beforeEach(function () {
+          describe('& submit() called', function() {
+            beforeEach(function() {
               this.ctrl.submit();
             });
 
-            it('- calls mockTaskMonitor.submit()', function () {
+            it('- calls mockTaskMonitor.submit()', function() {
               expect(this.mockTaskMonitor.submit).toHaveBeenCalled();
             });
 
-            describe('& task monitor invokes callback', function () {
-              beforeEach(function () {
+            describe('& task monitor invokes callback', function() {
+              beforeEach(function() {
                 this.mockTaskMonitor.submit.calls.mostRecent().args[0]();
               });
 
-              it('- calls upsertSecurityGroup()', function () {
+              it('- calls upsertSecurityGroup()', function() {
                 expect(this.mockSecurityGroupWriter.upsertSecurityGroup).toHaveBeenCalledWith(
-                  this.$scope.securityGroup, this.mockApplication, 'Create', {
-                    cloudProvider: 'openstack'
-                  });
+                  this.$scope.securityGroup,
+                  this.mockApplication,
+                  'Create',
+                  {
+                    cloudProvider: 'openstack',
+                  },
+                );
               });
 
-              describe('& task completes', function () {
-                beforeEach(function () {
+              describe('& task completes', function() {
+                beforeEach(function() {
                   this.taskCompletionCallback();
                 });
 
-                it('- refreshes the security groups', function () {
+                it('- refreshes the security groups', function() {
                   expect(this.mockApplication.securityGroups.refresh).toHaveBeenCalled();
                 });
 
-                describe('& user closes the dialog', function () {
-                  beforeEach(function () {
+                describe('& user closes the dialog', function() {
+                  beforeEach(function() {
                     this.$scope.$$destroyed = true;
                   });
 
-                  afterEach(function () {
+                  afterEach(function() {
                     this.$scope.$$destroyed = false;
                   });
 
-                  describe('& security Groups are refreshed', function () {
-                    beforeEach(function () {
+                  describe('& security Groups are refreshed', function() {
+                    beforeEach(function() {
                       this.applicationRefreshCallback();
                     });
 
-                    it('- does nothing', function () {
+                    it('- does nothing', function() {
                       expect(this.mockState.go).not.toHaveBeenCalled();
                     });
                   });
@@ -220,12 +234,12 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
               });
             });
           });
-          describe('cancel() called', function () {
-            beforeEach(function () {
+          describe('cancel() called', function() {
+            beforeEach(function() {
               this.ctrl.cancel();
             });
 
-            it('closes the dialog', function () {
+            it('closes the dialog', function() {
               expect(this.mockModal.dismiss).toHaveBeenCalled();
             });
           });
@@ -239,7 +253,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       this.createController(angular.copy(this.testEditData));
     });
 
-    it('has the expected methods and properties', function () {
+    it('has the expected methods and properties', function() {
       expect(this.ctrl.updateName).toBeDefined();
       expect(this.ctrl.getName).toBeDefined();
       expect(this.ctrl.onRegionChanged).toBeDefined();
@@ -251,7 +265,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       expect(this.$scope.state).toEqual({
         accountsLoaded: true,
         securityGroupNamesLoaded: false,
-        submitting: false
+        submitting: false,
       });
       expect(this.$scope.isNew).toBeFalsy();
       expect(this.$scope.securityGroup).toEqual(_.defaults(angular.copy(this.testEditData)));
@@ -272,11 +286,10 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
         this.applicationRefreshCallback();
         expect(this.mockModal.close).toHaveBeenCalled();
         expect(this.mockState.go).toHaveBeenCalledWith('^.securityGroupDetails', {
-
           name: this.$scope.securityGroup.name,
           accountId: this.$scope.securityGroup.account,
           namespace: undefined,
-          provider: 'openstack'
+          provider: 'openstack',
         });
       });
     });

@@ -16,7 +16,6 @@ export interface IApplicationRefresherState {
 
 @BindAll()
 export class ApplicationRefresher extends React.Component<IApplicationRefresherProps, IApplicationRefresherState> {
-
   private activeStateRefreshUnsubscribe: () => void;
   private activeStateChangeSubscription: Subscription;
   private stopListeningToAppRefresh: Function;
@@ -24,13 +23,13 @@ export class ApplicationRefresher extends React.Component<IApplicationRefresherP
   constructor(props: IApplicationRefresherProps) {
     super(props);
     this.configureApplicationEventListeners(props.app);
-    this.state = Object.assign(
-      this.parseRefreshState(props),
-    );
+    this.state = Object.assign(this.parseRefreshState(props));
   }
 
   private resetActiveStateRefreshStream(props: IApplicationRefresherProps): void {
-    if (this.activeStateRefreshUnsubscribe) { this.activeStateRefreshUnsubscribe(); }
+    if (this.activeStateRefreshUnsubscribe) {
+      this.activeStateRefreshUnsubscribe();
+    }
     const activeState = props.app.activeState || props.app;
     this.activeStateRefreshUnsubscribe = activeState.onRefresh(null, () => {
       this.setState(this.parseRefreshState(props));
@@ -82,11 +81,7 @@ export class ApplicationRefresher extends React.Component<IApplicationRefresherP
 
   public render() {
     return (
-      <Refresher
-        refreshing={this.state.refreshing}
-        lastRefresh={this.state.lastRefresh}
-        refresh={this.handleRefresh}
-      />
+      <Refresher refreshing={this.state.refreshing} lastRefresh={this.state.lastRefresh} refresh={this.handleRefresh} />
     );
   }
 }

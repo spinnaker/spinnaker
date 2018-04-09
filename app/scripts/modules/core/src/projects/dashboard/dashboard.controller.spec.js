@@ -1,45 +1,54 @@
 'use strict';
 
-describe('Controller: Project Dashboard', function () {
+describe('Controller: Project Dashboard', function() {
+  var executionService,
+    projectReader,
+    schedulerFactory,
+    recentHistoryService,
+    projectConfig,
+    vm,
+    $q,
+    $scope,
+    clusters = [],
+    executions = [];
 
-  var executionService, projectReader, schedulerFactory, recentHistoryService, projectConfig, vm, $q, $scope,
-      clusters = [],
-      executions = [];
+  beforeEach(window.module(require('./dashboard.controller.js').name));
 
   beforeEach(
-    window.module(
-      require('./dashboard.controller.js').name
-    )
+    window.inject(function(
+      $controller,
+      $rootScope,
+      _executionService_,
+      _projectReader_,
+      _schedulerFactory_,
+      _recentHistoryService_,
+      _$q_,
+    ) {
+      executionService = _executionService_;
+      projectReader = _projectReader_;
+      schedulerFactory = _schedulerFactory_;
+      recentHistoryService = _recentHistoryService_;
+      $q = _$q_;
+      $scope = $rootScope.$new();
+      projectConfig = { name: 'the project', config: { applications: ['a', 'b'], clusters: ['a'] } };
+
+      this.initialize = () => {
+        vm = $controller('ProjectDashboardCtrl', {
+          $scope: $scope,
+          executionService: executionService,
+          projectReader: projectReader,
+          schedulerFactory: schedulerFactory,
+          recentHistoryService: recentHistoryService,
+          projectConfiguration: projectConfig,
+        });
+      };
+    }),
   );
 
-  beforeEach(window.inject(function ($controller, $rootScope, _executionService_, _projectReader_, _schedulerFactory_,
-                                     _recentHistoryService_, _$q_) {
-
-    executionService = _executionService_;
-    projectReader = _projectReader_;
-    schedulerFactory = _schedulerFactory_;
-    recentHistoryService = _recentHistoryService_;
-    $q = _$q_;
-    $scope = $rootScope.$new();
-    projectConfig = { name: 'the project', config: { applications: ['a', 'b'], clusters: ['a'] } };
-
-    this.initialize = () => {
-      vm = $controller('ProjectDashboardCtrl', {
-        $scope: $scope,
-        executionService: executionService,
-        projectReader: projectReader,
-        schedulerFactory: schedulerFactory,
-        recentHistoryService: recentHistoryService,
-        projectConfiguration: projectConfig,
-      });
-    };
-
-  }));
-
-  describe('recent history application', function () {
+  describe('recent history application', function() {
     it('adds project applications via recent history', function() {
       var historyType = null,
-          appList = null;
+        appList = null;
       spyOn(recentHistoryService, 'addExtraDataToLatest').and.callFake((type, project) => {
         historyType = type;
         appList = project.config.applications;
@@ -49,24 +58,22 @@ describe('Controller: Project Dashboard', function () {
       expect(appList).toBe(projectConfig.config.applications);
     });
 
-    it('removes project from recent history if not found', function () {
+    it('removes project from recent history if not found', function() {
       var historyType = null;
       projectConfig.notFound = true;
-      spyOn(recentHistoryService, 'removeLastItem').and.callFake((type) => historyType = type);
+      spyOn(recentHistoryService, 'removeLastItem').and.callFake(type => (historyType = type));
       this.initialize();
       expect(historyType).toBe('projects');
     });
-
   });
 
-  describe('initialization, no errors', function () {
+  describe('initialization, no errors', function() {
     beforeEach(function() {
       spyOn(projectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.when(executions));
     });
 
-    it('loads clusters on initialization, sets state, then sets state when clusters finish loading', function () {
-
+    it('loads clusters on initialization, sets state, then sets state when clusters finish loading', function() {
       this.initialize();
 
       let state = vm.state.clusters;
@@ -84,8 +91,7 @@ describe('Controller: Project Dashboard', function () {
       expect(state.lastRefresh).not.toBeUndefined();
     });
 
-    it('loads executions on initialization, sets state, then sets state when executions finish loading', function () {
-
+    it('loads executions on initialization, sets state, then sets state when executions finish loading', function() {
       this.initialize();
 
       let state = vm.state.executions;
@@ -104,8 +110,8 @@ describe('Controller: Project Dashboard', function () {
     });
   });
 
-  describe('initialization with errors', function () {
-    it('loads clusters as expected, but sets error flag when executions fail to load', function () {
+  describe('initialization with errors', function() {
+    it('loads clusters as expected, but sets error flag when executions fail to load', function() {
       spyOn(projectReader, 'getProjectClusters').and.callFake(() => $q.when(clusters));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.reject(null));
 
@@ -128,7 +134,7 @@ describe('Controller: Project Dashboard', function () {
       expect(state.executions.lastRefresh).toBeUndefined();
     });
 
-    it('loads executions as expected, but sets error flag when clusters fail to load', function () {
+    it('loads executions as expected, but sets error flag when clusters fail to load', function() {
       spyOn(projectReader, 'getProjectClusters').and.callFake(() => $q.reject(null));
       spyOn(executionService, 'getProjectExecutions').and.callFake(() => $q.when(executions));
 
@@ -151,5 +157,4 @@ describe('Controller: Project Dashboard', function () {
       expect(state.executions.lastRefresh).not.toBeUndefined();
     });
   });
-
 });

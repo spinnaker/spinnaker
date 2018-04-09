@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.rollbackClusterStage', [
-])
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.rollbackClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'rollbackCluster',
@@ -12,20 +12,21 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.rollbackCluster
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'regions' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('awsRollbackClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('awsRollbackClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(function (accounts) {
+    accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -39,7 +40,11 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.rollbackCluster
     stage.cloudProvider = 'aws';
     stage.targetHealthyRollbackPercentage = stage.targetHealthyRollbackPercentage || 100;
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Amazon'];
     }
 

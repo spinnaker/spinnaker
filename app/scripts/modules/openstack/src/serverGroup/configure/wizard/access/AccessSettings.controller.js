@@ -2,59 +2,66 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.openstack.accessSettings', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  require('../../../../common/cacheBackedMultiSelectField.directive.js').name,
-]).controller('openstackServerGroupAccessSettingsCtrl', function($scope, loadBalancerReader, securityGroupReader, networkReader, v2modalWizardService) {
-
-  // Loads all load balancers in the current application, region, and account
-  $scope.updateLoadBalancers = function() {
-    var filter = {
-      account: $scope.command.credentials,
-      region: $scope.command.region
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.openstack.accessSettings', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    require('../../../../common/cacheBackedMultiSelectField.directive.js').name,
+  ])
+  .controller('openstackServerGroupAccessSettingsCtrl', function(
+    $scope,
+    loadBalancerReader,
+    securityGroupReader,
+    networkReader,
+    v2modalWizardService,
+  ) {
+    // Loads all load balancers in the current application, region, and account
+    $scope.updateLoadBalancers = function() {
+      var filter = {
+        account: $scope.command.credentials,
+        region: $scope.command.region,
+      };
+      $scope.application.loadBalancers.refresh();
+      $scope.allLoadBalancers = _.filter($scope.application.loadBalancers.data, filter);
     };
-    $scope.application.loadBalancers.refresh();
-    $scope.allLoadBalancers = _.filter($scope.application.loadBalancers.data, filter);
-  };
-  $scope.$watch('command.credentials', $scope.updateLoadBalancers);
-  $scope.$watch('command.region', $scope.updateLoadBalancers);
-  $scope.$watch('application.loadBalancers', $scope.updateLoadBalancers);
-  $scope.updateLoadBalancers();
+    $scope.$watch('command.credentials', $scope.updateLoadBalancers);
+    $scope.$watch('command.region', $scope.updateLoadBalancers);
+    $scope.$watch('application.loadBalancers', $scope.updateLoadBalancers);
+    $scope.updateLoadBalancers();
 
-  $scope.$watch('command.associatePublicIpAddress', resetFloatingNetworkIp);
+    $scope.$watch('command.associatePublicIpAddress', resetFloatingNetworkIp);
 
-  // Loads all security groups in the current region and account
-  $scope.updateSecurityGroups = function() {
-    $scope.allSecurityGroups = getSecurityGroups();
-  };
-  // The backingData the getSecurityGroups gets resolved after the form is loaded, so lets watch it
-  $scope.$watch(function() {
-    return _.map(getSecurityGroups(), 'id').join();
-  }, $scope.updateSecurityGroups);
+    // Loads all security groups in the current region and account
+    $scope.updateSecurityGroups = function() {
+      $scope.allSecurityGroups = getSecurityGroups();
+    };
+    // The backingData the getSecurityGroups gets resolved after the form is loaded, so lets watch it
+    $scope.$watch(function() {
+      return _.map(getSecurityGroups(), 'id').join();
+    }, $scope.updateSecurityGroups);
 
-  $scope.$watch('accessSettings.$valid', function(newVal) {
-    if (newVal) {
-      v2modalWizardService.markClean('access-settings');
-      v2modalWizardService.markComplete('access-settings');
-    } else {
-      v2modalWizardService.markIncomplete('access-settings');
+    $scope.$watch('accessSettings.$valid', function(newVal) {
+      if (newVal) {
+        v2modalWizardService.markClean('access-settings');
+        v2modalWizardService.markComplete('access-settings');
+      } else {
+        v2modalWizardService.markIncomplete('access-settings');
+      }
+    });
+
+    function getSecurityGroups() {
+      var account = $scope.command.credentials;
+      var region = $scope.command.region;
+      if (!account || !region) {
+        return [];
+      } else {
+        return _.get($scope.command.backingData.securityGroups, [account, 'openstack', region]);
+      }
+    }
+
+    function resetFloatingNetworkIp() {
+      if ($scope.command.associatePublicIpAddress === false) {
+        $scope.command.floatingNetworkId = undefined;
+      }
     }
   });
-
-  function getSecurityGroups() {
-    var account = $scope.command.credentials;
-    var region = $scope.command.region;
-    if (!account || !region) {
-      return [];
-    } else {
-      return _.get($scope.command.backingData.securityGroups, [account, 'openstack', region]);
-    }
-  }
-
-  function resetFloatingNetworkIp() {
-    if ($scope.command.associatePublicIpAddress === false) {
-      $scope.command.floatingNetworkId = undefined;
-    }
-  }
-});

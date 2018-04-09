@@ -1,13 +1,12 @@
 import { IComponentOptions, module } from 'angular';
 
-
 const scalingPolicyPopover: IComponentOptions = {
   bindings: {
     policy: '=',
-    serverGroup: '='
+    serverGroup: '=',
   },
   templateUrl: require('./scalingPolicyPopover.component.html'),
-  controller: function () {
+  controller: function() {
     this.$onInit = () => {
       this.alarm = this.policy.alarms[0];
 
@@ -20,10 +19,11 @@ const scalingPolicyPopover: IComponentOptions = {
       }
       this.showWait = showWait;
     };
-  }
+  },
 };
 
 export const SCALING_POLICY_POPOVER = 'spinnaker.amazon.serverGroup.details.scalingPolicy.popover.component';
-module(SCALING_POLICY_POPOVER, [
-  require('../chart/metricAlarmChart.component.js').name
-]).component('awsScalingPolicyPopover', scalingPolicyPopover);
+module(SCALING_POLICY_POPOVER, [require('../chart/metricAlarmChart.component.js').name]).component(
+  'awsScalingPolicyPopover',
+  scalingPolicyPopover,
+);

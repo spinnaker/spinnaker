@@ -13,20 +13,19 @@ module.exports = angular
     SECURITY_GROUP_WRITER,
     ACCOUNT_SERVICE,
   ])
-  .controller('azureConfigSecurityGroupMixin', function ($scope,
-                                                         $state,
-                                                         $uibModalInstance,
-                                                         taskMonitorBuilder,
-                                                         application,
-                                                         securityGroup,
-                                                         securityGroupReader,
-                                                         securityGroupWriter,
-                                                         accountService,
-                                                         modalWizardService,
-                                                         cacheInitializer) {
-
-
-
+  .controller('azureConfigSecurityGroupMixin', function(
+    $scope,
+    $state,
+    $uibModalInstance,
+    taskMonitorBuilder,
+    application,
+    securityGroup,
+    securityGroupReader,
+    securityGroupWriter,
+    accountService,
+    modalWizardService,
+    cacheInitializer,
+  ) {
     var ctrl = this;
 
     $scope.isNew = true;
@@ -79,12 +78,10 @@ module.exports = angular
 
     $scope.securityGroup = securityGroup;
 
-    ctrl.upsert = function () {
-      $scope.taskMonitor.submit(
-        function() {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
-        }
-      );
+    ctrl.upsert = function() {
+      $scope.taskMonitor.submit(function() {
+        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
+      });
     };
 
     function clearSecurityGroups() {
@@ -112,8 +109,7 @@ module.exports = angular
     //  return foundInAllRegions;
     //};
 
-    ctrl.regionUpdated = function() {
-    };
+    ctrl.regionUpdated = function() {};
 
     this.vpcUpdated = function() {
       var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName,
@@ -132,7 +128,7 @@ module.exports = angular
       var existingSecurityGroupNames = [];
       var availableSecurityGroups = [];
 
-      regions.forEach(function (region) {
+      regions.forEach(function(region) {
         var regionalVpcId = null;
         if (vpcId) {
           var baseVpc = _.find($scope.allVpcs, { id: vpcId });
@@ -156,12 +152,10 @@ module.exports = angular
       clearInvalidSecurityGroups();
     }
 
-    ctrl.mixinUpsert = function (descriptor) {
-      $scope.taskMonitor.submit(
-        function() {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
-        }
-      );
+    ctrl.mixinUpsert = function(descriptor) {
+      $scope.taskMonitor.submit(function() {
+        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
+      });
     };
 
     function clearInvalidSecurityGroups() {
@@ -191,14 +185,14 @@ module.exports = angular
     var allSecurityGroups = {};
 
     ctrl.initializeSecurityGroups = function() {
-      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+      return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
         var region = $scope.securityGroup.regions[0];
         var vpcId = $scope.securityGroup.vpcId || null;
 
         var availableGroups;
-        if(account && region) {
+        if (account && region) {
           availableGroups = _.filter(securityGroups[account].azure[region], { vpcId: vpcId });
         } else {
           availableGroups = securityGroups;
@@ -208,7 +202,7 @@ module.exports = angular
       });
     };
 
-    ctrl.cancel = function () {
+    ctrl.cancel = function() {
       $uibModalInstance.dismiss();
     };
 
@@ -229,7 +223,7 @@ module.exports = angular
     ctrl.namePattern = {
       test: function(name) {
         return ctrl.getCurrentNamePattern().test(name);
-      }
+      },
     };
 
     ctrl.addRule = function(ruleset) {
@@ -245,14 +239,11 @@ module.exports = angular
     };
 
     ctrl.dismissRemovedRules = function() {
-       $scope.state.removedRules = [];
-       modalWizardService.getWizard().markClean('Ingress');
-       modalWizardService.getWizard().markComplete('Ingress');
+      $scope.state.removedRules = [];
+      modalWizardService.getWizard().markClean('Ingress');
+      modalWizardService.getWizard().markComplete('Ingress');
     };
 
     var classicPattern = /^[\x00-\x7F]+$/;
     var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
-
-
   });
-

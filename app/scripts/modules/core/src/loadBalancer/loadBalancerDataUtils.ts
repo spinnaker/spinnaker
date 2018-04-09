@@ -17,7 +17,11 @@ export class LoadBalancerDataUtils {
       if (lbHealth) {
         const matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
 
-        if (matchedHealth !== undefined && matchedHealth.healthState !== undefined && loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()] !== undefined) {
+        if (
+          matchedHealth !== undefined &&
+          matchedHealth.healthState !== undefined &&
+          loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()] !== undefined
+        ) {
           loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()]++;
         }
       }
@@ -26,20 +30,23 @@ export class LoadBalancerDataUtils {
   }
 
   public static populateLoadBalancers(application: Application, serverGroup: IServerGroup): IPromise<ILoadBalancer[]> {
-    return application.getDataSource('loadBalancers').ready().then(() => {
-      const loadBalancers = serverGroup.loadBalancers.map((lbName: string) => {
-        const match = application.getDataSource('loadBalancers')
-          .data
-          .find((lb: ILoadBalancer): boolean => {
-            return lb.name === lbName
-              && lb.account === serverGroup.account
-              && (lb.region === serverGroup.region || lb.region === 'global');
+    return application
+      .getDataSource('loadBalancers')
+      .ready()
+      .then(() => {
+        const loadBalancers = serverGroup.loadBalancers.map((lbName: string) => {
+          const match = application.getDataSource('loadBalancers').data.find((lb: ILoadBalancer): boolean => {
+            return (
+              lb.name === lbName &&
+              lb.account === serverGroup.account &&
+              (lb.region === serverGroup.region || lb.region === 'global')
+            );
           });
 
-        return this.buildLoadBalancer(match, serverGroup);
-      });
+          return this.buildLoadBalancer(match, serverGroup);
+        });
 
-      return loadBalancers.filter(x => !!x);
-    });
+        return loadBalancers.filter(x => !!x);
+      });
   }
 }

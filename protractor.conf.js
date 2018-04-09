@@ -6,7 +6,7 @@ exports.config = {
   getPageTimeout: 20000,
   allScriptsTimeout: 20000,
   capabilities: {
-    'browserName': 'chrome',
+    browserName: 'chrome',
   },
   // ----- Options to be passed to minijasminenode -----
   jasmineNodeOpts: {
@@ -17,6 +17,6 @@ exports.config = {
     // If true, include stack traces in failures.
     includeStackTrace: true,
     // Default time to wait in ms before a test fails.
-    defaultTimeoutInterval: 30000
-  }
+    defaultTimeoutInterval: 30000,
+  },
 };

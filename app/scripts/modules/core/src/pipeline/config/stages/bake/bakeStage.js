@@ -1,6 +1,6 @@
 'use strict';
 
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 
 const angular = require('angular');
 

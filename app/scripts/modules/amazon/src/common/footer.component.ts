@@ -21,7 +21,7 @@ const footerComponent: IComponentOptions = {
       </button>
     </div>
   `,
-  controller: () => {}
+  controller: () => {},
 };
 
 export const AWS_FOOTER_COMPONENT = 'spinnaker.amazon.footer';

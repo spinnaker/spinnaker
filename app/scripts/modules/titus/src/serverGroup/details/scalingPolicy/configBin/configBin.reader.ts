@@ -16,11 +16,9 @@ export interface IClusterConfig {
 }
 
 export class ConfigBinService {
-
   public getConfig(clusterName: string): IPromise<IClusterConfig> {
     return ReactInjector.API.one('configbin', 'cloudwatch-forwarding', clusterName).get();
   }
-
 }
 
 export const configBinService = new ConfigBinService();

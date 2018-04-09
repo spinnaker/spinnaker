@@ -4,7 +4,7 @@ import { get } from 'lodash';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
-  ExecutionDetailsSectionService
+  ExecutionDetailsSectionService,
 } from 'core/pipeline/details/executionDetailsSection.service';
 
 export class TravisExecutionDetailsCtrl implements IController {
@@ -13,9 +13,11 @@ export class TravisExecutionDetailsCtrl implements IController {
   public failureMessage: string;
   public stage: any;
 
-  constructor(private $stateParams: StateParams,
-              private executionDetailsSectionService: ExecutionDetailsSectionService,
-              private $scope: IScope) {
+  constructor(
+    private $stateParams: StateParams,
+    private executionDetailsSectionService: ExecutionDetailsSectionService,
+    private $scope: IScope,
+  ) {
     'ngInject';
     this.stage = this.$scope.stage;
     this.initialize();
@@ -49,6 +51,7 @@ export class TravisExecutionDetailsCtrl implements IController {
 }
 
 export const TRAVIS_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.core.pipeline.stage.travis.executionDetails.controller';
-module(TRAVIS_EXECUTION_DETAILS_CONTROLLER, [
-  EXECUTION_DETAILS_SECTION_SERVICE,
-]).controller('TravisExecutionDetailsCtrl', TravisExecutionDetailsCtrl);
+module(TRAVIS_EXECUTION_DETAILS_CONTROLLER, [EXECUTION_DETAILS_SECTION_SERVICE]).controller(
+  'TravisExecutionDetailsCtrl',
+  TravisExecutionDetailsCtrl,
+);

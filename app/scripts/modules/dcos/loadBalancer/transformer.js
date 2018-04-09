@@ -7,8 +7,9 @@ const angular = require('angular');
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 import { DcosProviderSettings } from '../dcos.settings';
 
-module.exports = angular.module('spinnaker.dcos.loadBalancer.transformer', [ACCOUNT_SERVICE])
-  .factory('dcosLoadBalancerTransformer', function (accountService, $q) {
+module.exports = angular
+  .module('spinnaker.dcos.loadBalancer.transformer', [ACCOUNT_SERVICE])
+  .factory('dcosLoadBalancerTransformer', function(accountService, $q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
@@ -27,8 +28,9 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.transformer', [ACCO
 
         var defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
 
-        loadBalancer.account =
-          defaultAccountIsValid ? defaultAccount : (firstDcosAccount ? firstDcosAccount : 'my-dcos-account');
+        loadBalancer.account = defaultAccountIsValid
+          ? defaultAccount
+          : firstDcosAccount ? firstDcosAccount : 'my-dcos-account';
 
         attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, loadBalancer);
       });
@@ -39,7 +41,9 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.transformer', [ACCO
       if (selectedAccount) {
         var clusterNames = _.map(selectedAccount.dcosClusters, 'name');
         var defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
-        loadBalancer.dcosCluster = defaultDcosClusterIsValid ? defaultDcosCluster : (clusterNames.length == 1 ? clusterNames[0] : null);
+        loadBalancer.dcosCluster = defaultDcosClusterIsValid
+          ? defaultDcosCluster
+          : clusterNames.length == 1 ? clusterNames[0] : null;
         loadBalancer.region = loadBalancer.dcosCluster;
       }
     }
@@ -60,15 +64,14 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.transformer', [ACCO
             succeeded: 0,
             failed: 0,
             unknown: 0,
-          }
+          },
         )
         .value();
 
       instanceCounts.outOfService += _.chain(serverGroups)
         .map('detachedInstances')
         .flatten()
-        .value()
-        .length;
+        .value().length;
 
       return instanceCounts;
     }
@@ -87,8 +90,8 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.transformer', [ACCO
         portRange: {
           protocol: 'tcp',
           minPort: 10000,
-          maxPort: 10100
-        }
+          maxPort: 10100,
+        },
       };
 
       attemptToSetValidAccount(defaultAccount, defaultDcosCluster, loadBalancer);
@@ -103,6 +106,6 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.transformer', [ACCO
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
-      convertLoadBalancerForEditing: convertLoadBalancerForEditing
+      convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
   });

@@ -1,21 +1,40 @@
 'use strict';
 
-import {EXECUTION_SERVICE} from 'core/pipeline/service/execution.service';
+import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.widget.spelAutocomplete', [
-    require('./jsonListBuilder').name,
-    EXECUTION_SERVICE,
-  ])
+  .module('spinnaker.core.widget.spelAutocomplete', [require('./jsonListBuilder').name, EXECUTION_SERVICE])
   .factory('spelAutocomplete', function($q, jsonListBuilder, executionService) {
-    let brackets = [{open: '(', close: ')'}, {open: '[', close: ']'}, ];
-    let quotes = [{open: '\'', close: '\'' }, {open: '\"', close: '\"' }];
-    let helperFunctions = ['alphanumerical', 'readJson', 'fromUrl', 'propertiesFromUrl', 'jsonFromUrl', 'judgment', 'stage', 'toBoolean', 'toFloat', 'toInt', 'toJson', 'toBase64', 'fromBase64'];
-    let helperParams = ['execution', 'parameters', 'trigger', 'scmInfo', 'scmInfo.sha1', 'scmInfo.branch', 'deployedServerGroups'];
-    let codedHelperParams = helperParams.map((param) => {
-      return {name: param, type: 'param'};
+    let brackets = [{ open: '(', close: ')' }, { open: '[', close: ']' }];
+    let quotes = [{ open: "'", close: "'" }, { open: '"', close: '"' }];
+    let helperFunctions = [
+      'alphanumerical',
+      'readJson',
+      'fromUrl',
+      'propertiesFromUrl',
+      'jsonFromUrl',
+      'judgment',
+      'stage',
+      'toBoolean',
+      'toFloat',
+      'toInt',
+      'toJson',
+      'toBase64',
+      'fromBase64',
+    ];
+    let helperParams = [
+      'execution',
+      'parameters',
+      'trigger',
+      'scmInfo',
+      'scmInfo.sha1',
+      'scmInfo.branch',
+      'deployedServerGroups',
+    ];
+    let codedHelperParams = helperParams.map(param => {
+      return { name: param, type: 'param' };
     });
 
     let textcompleteConfig = [
@@ -28,14 +47,14 @@ module.exports = angular
         index: 1,
         replace: function replace() {
           return ['${ ', ' }'];
-        }
+        },
       },
       {
         id: 'match quotes',
         match: /("|')(\w*)$/,
         index: 1,
         search: function(term, callback) {
-          let found = quotes.filter((quote) => {
+          let found = quotes.filter(quote => {
             if (quote.open.indexOf(term) === 0) {
               return quote;
             }
@@ -46,15 +65,15 @@ module.exports = angular
           return `'...'`;
         },
         replace: function replace() {
-          return [`'` , `'`];
-        }
+          return [`'`, `'`];
+        },
       },
       {
         id: 'match brackets',
         match: /(\[|\(|')(\w*)$/,
         index: 1,
         search: function(term, callback) {
-          let found = brackets.filter((bracket) => {
+          let found = brackets.filter(bracket => {
             if (bracket.open.indexOf(term) === 0) {
               return bracket;
             }
@@ -65,22 +84,20 @@ module.exports = angular
           return `${value.open}...${value.close}`;
         },
         replace: function replace(bracket) {
-          return [`${bracket.open}  ` , `  ${bracket.close}`];
-        }
+          return [`${bracket.open}  `, `  ${bracket.close}`];
+        },
       },
     ];
 
-
-    let paramInList = (checkParam) => {
-      return (testParam) => checkParam.name === testParam.name;
+    let paramInList = checkParam => {
+      return testParam => checkParam.name === testParam.name;
     };
-
 
     let addToTextcompleteConfig = (configList = [], textcompleteConfig) => {
       let textcompleteConfigCopy = textcompleteConfig.slice(0);
 
-      configList.forEach((newConfig) => {
-        if(textcompleteConfig.filter( (config) => config.id === newConfig.id ).length === 0) {
+      configList.forEach(newConfig => {
+        if (textcompleteConfig.filter(config => config.id === newConfig.id).length === 0) {
           return textcompleteConfigCopy.push(newConfig);
         }
       });
@@ -88,65 +105,71 @@ module.exports = angular
       return textcompleteConfigCopy;
     };
 
-
-    const listSearchFn = (list) => {
+    const listSearchFn = list => {
       return (term, callback) => {
-        callback(list.filter((item) => {
-          if (item.leaf.includes(term)) {
-            return item;
-          }
-        }));
+        callback(
+          list.filter(item => {
+            if (item.leaf.includes(term)) {
+              return item;
+            }
+          }),
+        );
       };
     };
 
-    const leafTemplateFn = (stage) => {
-      return `${stage.leaf} <span class="glyphicon glyphicon-triangle-right spel-value-separator"></span> <span class="marker value">${stage.value}</span>`;
+    const leafTemplateFn = stage => {
+      return `${
+        stage.leaf
+      } <span class="glyphicon glyphicon-triangle-right spel-value-separator"></span> <span class="marker value">${
+        stage.value
+      }</span>`;
     };
-
 
     let addExecutionForAutocomplete = (pipeline, textcompleteConfig) => {
       if (pipeline) {
         let executionList = jsonListBuilder.convertJsonKeysToBracketedList(pipeline, ['task']);
 
-        let configList = [{
-          id: `execution: ${pipeline.id}`,
-          match: /execution(\w*|\s*)$/,
-          index: 1,
-          search: listSearchFn(executionList),
-          template: leafTemplateFn,
-          replace: (value) => {
-            return `execution${value.leaf}`;
-          }
-        }];
+        let configList = [
+          {
+            id: `execution: ${pipeline.id}`,
+            match: /execution(\w*|\s*)$/,
+            index: 1,
+            search: listSearchFn(executionList),
+            template: leafTemplateFn,
+            replace: value => {
+              return `execution${value.leaf}`;
+            },
+          },
+        ];
         return addToTextcompleteConfig(configList, textcompleteConfig);
       }
       return textcompleteConfig;
     };
 
-
     let addDeloyedServerGroupsForAutoComplete = (pipeline, textcompleteConfig) => {
       if (pipeline && pipeline.context && pipeline.context.deploymentDetails) {
         let deployList = jsonListBuilder.convertJsonKeysToBracketedList(pipeline.context.deploymentDetails);
 
-        let configList = [{
-          id: `deploymentServerGroups: ${pipeline.id}`,
-          match: /deployedServerGroups(\w*|\s*)$/,
-          index: 1,
-          search: listSearchFn(deployList),
-          template: leafTemplateFn,
-          replace: (value) => {
-            return `deployedServerGroups${value.leaf}`;
-          }
-        }];
+        let configList = [
+          {
+            id: `deploymentServerGroups: ${pipeline.id}`,
+            match: /deployedServerGroups(\w*|\s*)$/,
+            index: 1,
+            search: listSearchFn(deployList),
+            template: leafTemplateFn,
+            replace: value => {
+              return `deployedServerGroups${value.leaf}`;
+            },
+          },
+        ];
         return addToTextcompleteConfig(configList, textcompleteConfig);
       }
       return textcompleteConfig;
     };
 
     let addStageDataForAutocomplete = (pipeline, textcompleteConfig) => {
-      if(pipeline && pipeline.stages) {
-        let configList = pipeline.stages.map((stage) => {
-
+      if (pipeline && pipeline.stages) {
+        let configList = pipeline.stages.map(stage => {
           let stageList = jsonListBuilder.convertJsonKeysToBracketedList(stage, ['task']);
 
           return {
@@ -155,26 +178,22 @@ module.exports = angular
             index: 1,
             search: listSearchFn(stageList),
             template: leafTemplateFn,
-            replace: (param) => {
+            replace: param => {
               return `#stage('${stage.name}')${param.leaf}`;
-            }
+            },
           };
-
         });
         return addToTextcompleteConfig(configList, textcompleteConfig);
       }
 
       return textcompleteConfig;
-
     };
 
-
     let addManualJudgementConfigForAutocomplete = (pipeline, textcompleteConfig) => {
-      if(pipeline && pipeline.stages) {
+      if (pipeline && pipeline.stages) {
+        let manualJudgementStageList = pipeline.stages.filter(stage => stage.type === 'manualJudgment');
 
-        let manualJudgementStageList = pipeline.stages.filter((stage) => stage.type === 'manualJudgment');
-
-        let configList = manualJudgementStageList.map((stage) => {
+        let configList = manualJudgementStageList.map(stage => {
           let stageList = jsonListBuilder.convertJsonKeysToBracketedList(stage);
 
           return {
@@ -183,26 +202,22 @@ module.exports = angular
             index: 1,
             search: listSearchFn(stageList),
             template: leafTemplateFn,
-            replace: (param) => {
+            replace: param => {
               return `#judgement('${stage.name}')${param.leaf}`;
-            }
+            },
           };
-
         });
 
         return addToTextcompleteConfig(configList, textcompleteConfig);
       }
 
       return textcompleteConfig;
-
     };
 
-
     let addTriggerConfigForAutocomplete = (pipeline, textcompleteConfig) => {
-
-      if(pipeline && pipeline.trigger) {
+      if (pipeline && pipeline.trigger) {
         let triggerAsList = [pipeline.trigger];
-        let configList = triggerAsList.map((trigger) => {
+        let configList = triggerAsList.map(trigger => {
           let triggerInfoList = jsonListBuilder.convertJsonKeysToBracketedList(trigger);
           return {
             id: `trigger config: ${trigger.type}`,
@@ -212,7 +227,7 @@ module.exports = angular
             template: leafTemplateFn,
             replace: function replace(value) {
               return `trigger${value.leaf}`;
-            }
+            },
           };
         });
 
@@ -222,11 +237,10 @@ module.exports = angular
       return textcompleteConfig;
     };
 
-
     let addParameterConfigForAutocomplete = (pipeline, textcompleteConfig) => {
-      if(pipeline && pipeline.parameterConfig) {
+      if (pipeline && pipeline.parameterConfig) {
         let paramsAsList = [pipeline.parameterConfig];
-        let configList = paramsAsList.map((params) => {
+        let configList = paramsAsList.map(params => {
           let paramsInfoList = jsonListBuilder.convertJsonKeysToBracketedList(params);
           return {
             id: `parameter config: ${Object.keys(params).join(',')}`,
@@ -236,7 +250,7 @@ module.exports = angular
             template: leafTemplateFn,
             replace: function replace(value) {
               return `parameters${value.leaf}`;
-            }
+            },
           };
         });
 
@@ -246,104 +260,106 @@ module.exports = angular
       return textcompleteConfig;
     };
 
-
     let addStageNamesToCodeHelperList = (pipeline, textcompleteConfig) => {
       if (pipeline && pipeline.stages) {
-
         let codedHelperParamsCopy = codedHelperParams.slice(0);
 
         let pipelineHasParameters = pipeline.parameterConfig && pipeline.parameterConfig.length;
         codedHelperParamsCopy = pipelineHasParameters
-                                  ? codedHelperParamsCopy
-                                  : codedHelperParamsCopy.filter((param) => param.name !== 'parameters');
+          ? codedHelperParamsCopy
+          : codedHelperParamsCopy.filter(param => param.name !== 'parameters');
         let trigger = pipeline.trigger || {};
-        let hasJenkinsTriggerOrStage = trigger.type === 'jenkins' || pipeline.stages.some((stage) => stage.type === 'jenkins');
+        let hasJenkinsTriggerOrStage =
+          trigger.type === 'jenkins' || pipeline.stages.some(stage => stage.type === 'jenkins');
         codedHelperParamsCopy = hasJenkinsTriggerOrStage
           ? codedHelperParamsCopy
-          : codedHelperParamsCopy.filter((param) => !param.name.includes('scmInfo'));
+          : codedHelperParamsCopy.filter(param => !param.name.includes('scmInfo'));
 
-        pipeline.stages.forEach((stage) => {
-          let newParam = {name: stage.name, type: stage.type};
+        pipeline.stages.forEach(stage => {
+          let newParam = { name: stage.name, type: stage.type };
           if (codedHelperParamsCopy.filter(paramInList(newParam)).length === 0) {
-            codedHelperParamsCopy.push({name: stage.name, type: 'stage'});
+            codedHelperParamsCopy.push({ name: stage.name, type: 'stage' });
           }
         });
 
-        let configList = [{
-          id: 'params',
-          match: /(\s*|\w*)\?(\s*|\w*|')$/,
-          index: 2,
-          search: function (term, callback) {
-            callback(codedHelperParamsCopy.filter((param) => {
-              if (param.name.includes(term) || param.type.includes(term)) {
-                return param;
-              }
-            }));
+        let configList = [
+          {
+            id: 'params',
+            match: /(\s*|\w*)\?(\s*|\w*|')$/,
+            index: 2,
+            search: function(term, callback) {
+              callback(
+                codedHelperParamsCopy.filter(param => {
+                  if (param.name.includes(term) || param.type.includes(term)) {
+                    return param;
+                  }
+                }),
+              );
+            },
+            template: function(value) {
+              return `<span class="marker ${value.type}"></span> ${value.name}`;
+            },
+            replace: function replace(param) {
+              return `${param.name}`;
+            },
           },
-          template: function (value) {
-            return `<span class="marker ${value.type}"></span> ${value.name}`;
-          },
-          replace: function replace (param) {
-            return `${param.name}`;
-          }
-        }];
+        ];
 
         return addToTextcompleteConfig(configList, textcompleteConfig);
       }
       return textcompleteConfig;
     };
-
 
     let addHelperFunctionsBasedOnStages = (pipeline, textcompleteConfig) => {
       if (pipeline && pipeline.stages) {
         let helperFunctionsCopy = helperFunctions.slice(0);
-        let hasManualJudmentStage = pipeline.stages.some((stage) => stage.type === 'manualJudgment');
-        if(!hasManualJudmentStage) {
-          helperFunctionsCopy = helperFunctions.filter((fnName) => fnName !== 'judgment');
+        let hasManualJudmentStage = pipeline.stages.some(stage => stage.type === 'manualJudgment');
+        if (!hasManualJudmentStage) {
+          helperFunctionsCopy = helperFunctions.filter(fnName => fnName !== 'judgment');
         }
 
-        let configList = [{
-          id: 'helper functions',
-          match: /#(\w*)$/,
-          index: 1,
-          search: function (term, callback) {
-            callback(helperFunctionsCopy.filter((helper) => {
-              if (helper.indexOf(term) === 0) {
-                return helper;
-              }
-            }));
-          },
-          template: (value) => {
-            return `<span class="marker function"></span> #${value}`;
-          },
+        let configList = [
+          {
+            id: 'helper functions',
+            match: /#(\w*)$/,
+            index: 1,
+            search: function(term, callback) {
+              callback(
+                helperFunctionsCopy.filter(helper => {
+                  if (helper.indexOf(term) === 0) {
+                    return helper;
+                  }
+                }),
+              );
+            },
+            template: value => {
+              return `<span class="marker function"></span> #${value}`;
+            },
 
-          replace: function replace (helper) {
-            if (helper === 'toJson') {
-              return [`#${helper}(`, ')'];
-            }
-            return [`#${helper}( '`, `' )`];
-          }
-        }];
+            replace: function replace(helper) {
+              if (helper === 'toJson') {
+                return [`#${helper}(`, ')'];
+              }
+              return [`#${helper}( '`, `' )`];
+            },
+          },
+        ];
 
         return addToTextcompleteConfig(configList, textcompleteConfig);
-
       }
       return textcompleteConfig;
     };
 
-
-
-
     let executionCache = {};
 
-    let getLastExecutionByPipelineConfig = (pipelineConfig) => {
-      if(executionCache[pipelineConfig.id]) {
+    let getLastExecutionByPipelineConfig = pipelineConfig => {
+      if (executionCache[pipelineConfig.id]) {
         return $q.when(executionCache[pipelineConfig.id]);
       } else {
         return executionService
           .getLastExecutionForApplicationByConfigId(pipelineConfig.application, pipelineConfig.id)
-          .then((execution) => {
-            if(execution) {
+          .then(execution => {
+            if (execution) {
               executionCache[pipelineConfig.id] = execution;
               return execution;
             } else {
@@ -353,13 +369,13 @@ module.exports = angular
       }
     };
 
-    let addPipelineInfo = (pipelineConfig) => {
-      if(pipelineConfig && pipelineConfig.id) {
+    let addPipelineInfo = pipelineConfig => {
+      if (pipelineConfig && pipelineConfig.id) {
         return getLastExecutionByPipelineConfig(pipelineConfig)
-          .then((lastExecution) => {
+          .then(lastExecution => {
             return lastExecution || pipelineConfig;
           })
-          .then((pipeline) => {
+          .then(pipeline => {
             return addStageNamesToCodeHelperList(
               pipeline,
               addStageDataForAutocomplete(
@@ -372,29 +388,24 @@ module.exports = angular
                       pipeline,
                       addHelperFunctionsBasedOnStages(
                         pipeline,
-                        addExecutionForAutocomplete (
+                        addExecutionForAutocomplete(
                           pipeline,
-                          addDeloyedServerGroupsForAutoComplete(
-                            pipeline,
-                            textcompleteConfig.slice(0)
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-              )
+                          addDeloyedServerGroupsForAutoComplete(pipeline, textcompleteConfig.slice(0)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             );
           });
       } else {
         return $q.when(textcompleteConfig);
       }
-
     };
 
     return {
       textcompleteConfig: textcompleteConfig,
-      addPipelineInfo: addPipelineInfo
+      addPipelineInfo: addPipelineInfo,
     };
-
   });

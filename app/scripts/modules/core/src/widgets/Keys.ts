@@ -1,5 +1,4 @@
 export class Key {
-
   static get BACKSPACE(): string {
     return 'Backspace';
   }

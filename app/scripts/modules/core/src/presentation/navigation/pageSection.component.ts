@@ -61,5 +61,4 @@ class PageSectionComponent implements ng.IComponentOptions {
 
 export const PAGE_SECTION_COMPONENT = 'spinnaker.core.presentation.navigation.pageSection';
 
-module(PAGE_SECTION_COMPONENT, [])
-  .component('pageSection', new PageSectionComponent());
+module(PAGE_SECTION_COMPONENT, []).component('pageSection', new PageSectionComponent());

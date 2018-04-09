@@ -10,10 +10,9 @@ class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
     'ngInject';
     super($scope, accountService);
 
-    super.setAccounts()
-      .then(() => {
-        super.setStageRegion();
-      });
+    super.setAccounts().then(() => {
+      super.setStageRegion();
+    });
 
     super.setStageCloudProvider();
     super.setTargets();
@@ -34,11 +33,13 @@ module(APPENGINE_DESTROY_ASG_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('appengineDestroyAsgStageCtrl', AppengineDestroyAsgStageCtrl);
+  })
+  .controller('appengineDestroyAsgStageCtrl', AppengineDestroyAsgStageCtrl);

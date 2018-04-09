@@ -6,7 +6,7 @@ class GceAutoHealingPolicySelector implements IController {
   public healthChecks: string[];
   public autoHealingPolicy: IGceAutoHealingPolicy;
   public enabled: boolean;
-  public viewState: {maxUnavailableMetric: 'percent' | 'fixed'};
+  public viewState: { maxUnavailableMetric: 'percent' | 'fixed' };
   private setAutoHealingPolicy: Function;
 
   public $onInit(): void {
@@ -52,6 +52,7 @@ class GceAutoHealingPolicySelectorComponent implements IComponentOptions {
 }
 
 export const GCE_AUTOHEALING_POLICY_SELECTOR = 'spinnaker.gce.autoHealingPolicy.selector.component';
-module(GCE_AUTOHEALING_POLICY_SELECTOR, [])
-  .component('gceAutoHealingPolicySelector', new GceAutoHealingPolicySelectorComponent());
-
+module(GCE_AUTOHEALING_POLICY_SELECTOR, []).component(
+  'gceAutoHealingPolicySelector',
+  new GceAutoHealingPolicySelectorComponent(),
+);

@@ -5,15 +5,13 @@ import _ from 'lodash';
 
 import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.instanceType.service', [
-  API_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
-])
-  .factory('azureInstanceTypeService', function ($http, $q, API, infrastructureCaches) {
-
+module.exports = angular
+  .module('spinnaker.azure.instanceType.service', [API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
+  .factory('azureInstanceTypeService', function($http, $q, API, infrastructureCaches) {
     var m3 = {
       type: 'M3',
-      description: 'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+      description:
+        'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
       instanceTypes: [
         {
           name: 'm3.medium',
@@ -23,9 +21,9 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 4,
-            count: 1
+            count: 1,
           },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 'm3.large',
@@ -35,9 +33,9 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 32,
-            count: 1
+            count: 1,
           },
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'm3.xlarge',
@@ -47,9 +45,9 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 40,
-            count: 2
+            count: 2,
           },
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'm3.2xlarge',
@@ -59,16 +57,17 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 80,
-            count: 2
+            count: 2,
           },
-          costFactor: 3
-        }
-      ]
+          costFactor: 3,
+        },
+      ],
     };
 
     var t2 = {
       type: 'T2',
-      description: 'T2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      description:
+        'T2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       instanceTypes: [
         {
           name: 't2.small',
@@ -76,7 +75,7 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           cpu: 1,
           memory: 2,
           storage: { type: 'EBS' },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 't2.medium',
@@ -84,14 +83,15 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           cpu: 2,
           memory: 4,
           storage: { type: 'EBS' },
-          costFactor: 2
-        }
-      ]
+          costFactor: 2,
+        },
+      ],
     };
 
     var m3micro = {
       type: 'M3',
-      description: 'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+      description:
+        'This family includes the M3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
       instanceTypes: [
         {
           name: 'm3.medium',
@@ -101,16 +101,17 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 4,
-            count: 1
+            count: 1,
           },
-          costFactor: 1
-        }
-      ]
+          costFactor: 1,
+        },
+      ],
     };
 
     var r3 = {
       type: 'R3',
-      description: 'R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+      description:
+        'R3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
       instanceTypes: [
         {
           name: 'r3.large',
@@ -120,9 +121,9 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 32,
-            count: 1
+            count: 1,
           },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 'r3.xlarge',
@@ -132,9 +133,9 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 80,
-            count: 1
+            count: 1,
           },
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'r3.2xlarge',
@@ -144,9 +145,9 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 160,
-            count: 1
+            count: 1,
           },
-          costFactor: 3
+          costFactor: 3,
         },
         {
           name: 'r3.4xlarge',
@@ -156,11 +157,11 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
           storage: {
             type: 'SSD',
             size: 320,
-            count: 1
+            count: 1,
           },
-          costFactor: 4
-        }
-      ]
+          costFactor: 4,
+        },
+      ],
     };
 
     var categories = [
@@ -168,30 +169,30 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
         type: 'general',
         label: 'General Purpose',
         description: 'Instances that provide a balance of compute, memory, and network resources',
-        families: [ m3 ],
-        icon: 'hdd'
+        families: [m3],
+        icon: 'hdd',
       },
       {
         type: 'memory',
         label: 'High Memory',
         description: 'Instances that are optimized for memory-intensive applications',
-        families: [ r3 ],
-        icon: 'hdd'
+        families: [r3],
+        icon: 'hdd',
       },
       {
         type: 'micro',
         label: 'Micro Utility',
         description: 'Instances that provide relatively small amounts of memory and CPU power',
         families: [t2, m3micro],
-        icon: 'hdd'
+        icon: 'hdd',
       },
       {
         type: 'custom',
         label: 'Custom Type',
         description: 'Select the instance type below.',
         families: [],
-        icon: 'asterisk'
-      }
+        icon: 'asterisk',
+      },
     ];
 
     function calculateStorage(type) {
@@ -205,21 +206,21 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
       var stats = {
         cpu: {
           min: Number.MAX_VALUE,
-          max: -Number.MAX_VALUE
+          max: -Number.MAX_VALUE,
         },
         memory: {
           min: Number.MAX_VALUE,
-          max: -Number.MAX_VALUE
+          max: -Number.MAX_VALUE,
         },
         storage: {
           min: Number.MAX_VALUE,
-          max: -Number.MAX_VALUE
+          max: -Number.MAX_VALUE,
         },
         costFactor: {
           min: Number.MAX_VALUE,
-          max: -Number.MAX_VALUE
+          max: -Number.MAX_VALUE,
         },
-        families: []
+        families: [],
       };
 
       if (category.families && category.families.length) {
@@ -260,13 +261,17 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
       if (cached) {
         return $q.when(cached);
       }
-      return API
-        .one('instanceTypes')
+      return API.one('instanceTypes')
         .get()
-        .then(function (types) {
+        .then(function(types) {
           var result = _.chain(types)
-            .map(function (type) {
-              return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };
+            .map(function(type) {
+              return {
+                region: type.region,
+                account: type.account,
+                name: type.name,
+                key: [type.region, type.account, type.name].join(':'),
+              };
             })
             .uniqBy('key')
             .groupBy('region')
@@ -298,7 +303,6 @@ module.exports = angular.module('spinnaker.azure.instanceType.service', [
     return {
       getCategories: getCategories,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
-      getAllTypesByRegion: getAllTypesByRegion
+      getAllTypesByRegion: getAllTypesByRegion,
     };
-  }
-);
+  });

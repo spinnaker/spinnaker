@@ -4,13 +4,21 @@ import { defaults } from 'lodash';
 import { IVpc } from '@spinnaker/core';
 
 import {
-  IScalingAdjustmentView, IScalingPolicyView, IScalingPolicyAlarmView, IAmazonServerGroup, IStepAdjustmentView,
-  IScalingPolicy, IAmazonServerGroupView, ITargetTrackingPolicy
+  IScalingAdjustmentView,
+  IScalingPolicyView,
+  IScalingPolicyAlarmView,
+  IAmazonServerGroup,
+  IStepAdjustmentView,
+  IScalingPolicy,
+  IAmazonServerGroupView,
+  ITargetTrackingPolicy,
 } from '../domain';
 import { VPC_READ_SERVICE, VpcReader } from '../vpc/vpc.read.service';
 
 export class AwsServerGroupTransformer {
-  public constructor(private vpcReader: VpcReader) { 'ngInject'; }
+  public constructor(private vpcReader: VpcReader) {
+    'ngInject';
+  }
 
   private addComparator(alarm: IScalingPolicyAlarmView): void {
     if (!alarm.comparisonOperator) {
@@ -39,37 +47,42 @@ export class AwsServerGroupTransformer {
 
   public transformScalingPolicy(policy: IScalingPolicy): IScalingPolicyView {
     const view: IScalingPolicyView = Object.assign({}, policy) as IScalingPolicyView;
-    const upperBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) => b.metricIntervalUpperBound - a.metricIntervalUpperBound,
-          lowerBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) => a.metricIntervalLowerBound - b.metricIntervalLowerBound;
+    const upperBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) =>
+        b.metricIntervalUpperBound - a.metricIntervalUpperBound,
+      lowerBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) =>
+        a.metricIntervalLowerBound - b.metricIntervalLowerBound;
 
     view.alarms = policy.alarms || [];
-    view.alarms.forEach((alarm) => this.addComparator(alarm));
+    view.alarms.forEach(alarm => this.addComparator(alarm));
     this.addAdjustmentAttributes(view); // simple policies
     if (view.stepAdjustments && view.stepAdjustments.length) {
-      view.stepAdjustments.forEach((sa) => this.addAdjustmentAttributes(sa)); // step policies
-      const sorter = policy.stepAdjustments.every(a => a.metricIntervalUpperBound !== undefined) ?
-        upperBoundSorter : lowerBoundSorter;
+      view.stepAdjustments.forEach(sa => this.addAdjustmentAttributes(sa)); // step policies
+      const sorter = policy.stepAdjustments.every(a => a.metricIntervalUpperBound !== undefined)
+        ? upperBoundSorter
+        : lowerBoundSorter;
       view.stepAdjustments.sort((a, b) => sorter(a, b));
     }
     return view;
-  };
+  }
 
   public normalizeServerGroupDetails(serverGroup: IAmazonServerGroup): IAmazonServerGroupView {
     const view: IAmazonServerGroupView = Object.assign({}, serverGroup) as IAmazonServerGroupView;
     if (serverGroup.scalingPolicies) {
-      view.scalingPolicies = serverGroup.scalingPolicies.map((policy) => this.transformScalingPolicy(policy));
+      view.scalingPolicies = serverGroup.scalingPolicies.map(policy => this.transformScalingPolicy(policy));
     }
     return view;
   }
 
   public normalizeServerGroup(serverGroup: IAmazonServerGroup): IPromise<IAmazonServerGroup> {
-    serverGroup.instances.forEach((instance) => { instance.vpcId = serverGroup.vpcId; });
-    return this.vpcReader.listVpcs().then((vpc) => this.addVpcNameToServerGroup(serverGroup)(vpc));
+    serverGroup.instances.forEach(instance => {
+      instance.vpcId = serverGroup.vpcId;
+    });
+    return this.vpcReader.listVpcs().then(vpc => this.addVpcNameToServerGroup(serverGroup)(vpc));
   }
 
   private addVpcNameToServerGroup(serverGroup: IAmazonServerGroup): (vpc: IVpc[]) => IAmazonServerGroup {
     return (vpcs: IVpc[]) => {
-      const match = vpcs.find((test) => test.id === serverGroup.vpcId);
+      const match = vpcs.find(test => test.id === serverGroup.vpcId);
       serverGroup.vpcName = match ? match.name : '';
       return serverGroup;
     };
@@ -104,21 +117,25 @@ export class AwsServerGroupTransformer {
 
   public constructNewStepScalingPolicyTemplate(serverGroup: IAmazonServerGroup): IScalingPolicy {
     return {
-      alarms: [{
-        namespace: 'AWS/EC2',
-        metricName: 'CPUUtilization',
-        threshold: 50,
-        statistic: 'Average',
-        comparisonOperator: 'GreaterThanThreshold',
-        evaluationPeriods: 1,
-        dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name }],
-        period: 60,
-      }],
+      alarms: [
+        {
+          namespace: 'AWS/EC2',
+          metricName: 'CPUUtilization',
+          threshold: 50,
+          statistic: 'Average',
+          comparisonOperator: 'GreaterThanThreshold',
+          evaluationPeriods: 1,
+          dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name }],
+          period: 60,
+        },
+      ],
       adjustmentType: 'ChangeInCapacity',
-      stepAdjustments: [{
-        scalingAdjustment: 1,
-        metricIntervalLowerBound: 0,
-      }],
+      stepAdjustments: [
+        {
+          scalingAdjustment: 1,
+          metricIntervalLowerBound: 0,
+        },
+      ],
       estimatedInstanceWarmup: 600,
     };
   }
@@ -130,15 +147,15 @@ export class AwsServerGroupTransformer {
       targetTrackingConfiguration: {
         targetValue: null,
         predefinedMetricSpecification: {
-          predefinedMetricType: 'ASGAverageCPUUtilization'
-        }
-      }
+          predefinedMetricType: 'ASGAverageCPUUtilization',
+        },
+      },
     };
   }
 }
 
 export const AWS_SERVER_GROUP_TRANSFORMER = 'spinnaker.amazon.serverGroup.transformer';
-module(AWS_SERVER_GROUP_TRANSFORMER, [
-  VPC_READ_SERVICE,
-])
-  .service('awsServerGroupTransformer', AwsServerGroupTransformer);
+module(AWS_SERVER_GROUP_TRANSFORMER, [VPC_READ_SERVICE]).service(
+  'awsServerGroupTransformer',
+  AwsServerGroupTransformer,
+);

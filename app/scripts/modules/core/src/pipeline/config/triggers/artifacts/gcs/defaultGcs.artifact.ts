@@ -6,9 +6,7 @@ import { PipelineConfigProvider } from 'core/pipeline';
 import { isNil } from 'lodash';
 
 export const DEFAULT_GCS_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultGcs';
-module(DEFAULT_GCS_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(DEFAULT_GCS_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'GCS',
     description: 'A GCS object.',
@@ -55,4 +53,3 @@ module(DEFAULT_GCS_ARTIFACT, [
 `,
   });
 });
-

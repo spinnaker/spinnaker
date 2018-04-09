@@ -1,4 +1,4 @@
-import { IComponentOptions,  module } from 'angular';
+import { IComponentOptions, module } from 'angular';
 
 export class AccountSelectFieldWrapperComponent implements IComponentOptions {
   public bindings: any = {
@@ -28,5 +28,7 @@ export class AccountSelectFieldWrapperComponent implements IComponentOptions {
 }
 
 export const ACCOUNT_SELECT_FIELD_WRAPPER = 'spinnaker.core.account.accountSelectFieldWrapper.component';
-module(ACCOUNT_SELECT_FIELD_WRAPPER, [])
-  .component('accountSelectFieldWrapper', new AccountSelectFieldWrapperComponent());
+module(ACCOUNT_SELECT_FIELD_WRAPPER, []).component(
+  'accountSelectFieldWrapper',
+  new AccountSelectFieldWrapperComponent(),
+);

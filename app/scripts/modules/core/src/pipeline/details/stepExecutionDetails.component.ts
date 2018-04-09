@@ -10,7 +10,9 @@ export class StepExecutionDetailsController implements IController {
   public sourceUrl: string;
   public stage: IExecutionStage;
 
-  constructor(private $scope: IScope) { 'ngInject'; }
+  constructor(private $scope: IScope) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     // This is pretty dirty but executionDetails has its dirty tentacles
@@ -45,5 +47,4 @@ export class StepExecutionDetailsComponent implements IComponentOptions {
 }
 
 export const STEP_EXECUTION_DETAILS_COMPONENT = 'spinnaker.core.pipeline.stepExecutionDetails.component';
-module(STEP_EXECUTION_DETAILS_COMPONENT, [])
-  .component('stepExecutionDetails', new StepExecutionDetailsComponent());
+module(STEP_EXECUTION_DETAILS_COMPONENT, []).component('stepExecutionDetails', new StepExecutionDetailsComponent());

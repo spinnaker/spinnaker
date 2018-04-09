@@ -25,11 +25,10 @@ module.exports = angular
       ticks: '=?', // object - sets number of x/y ticks on graph; defaults to { x: 6, y: 3 }
       margins: '=?', // object - defaults to { top: 5, left: 5 }
       stats: '=?', // object - this is gross - used to backfill units when statistics calls return, since AWS API does
-                   // not provide a unit of measurement for an alarm or a metric, only statistics
+      // not provide a unit of measurement for an alarm or a metric, only statistics
     },
     templateUrl: require('./metricAlarmChart.component.html'),
     controller: function(cloudMetricsReader, $filter) {
-
       // converts alarm into parameters used to retrieve statistic data
       let getFilterParameters = () => {
         let alarm = this.alarm;
@@ -61,43 +60,41 @@ module.exports = angular
         this.chartData = {
           loading: true,
           noData: false, // flag set when server error occurs or no data available from server
-          threshold: [
-            {val: threshold, timestamp: start},
-            {val: threshold, timestamp: end},
-          ],
+          threshold: [{ val: threshold, timestamp: start }, { val: threshold, timestamp: end }],
           datapoints: [],
-          baseline: [
-            {val: 0, timestamp: start},
-            {val: 0, timestamp: end},
-          ],
-          topline: [
-            {val: topline, timestamp: start},
-            {val: topline, timestamp: end},
-          ]
+          baseline: [{ val: 0, timestamp: start }, { val: 0, timestamp: end }],
+          topline: [{ val: topline, timestamp: start }, { val: topline, timestamp: end }],
         };
       };
 
       // forces tooltips to render with the same time format we use throughout the application
-      let tooltipHook = (rows) => {
+      let tooltipHook = rows => {
         if (!rows) {
           return null;
         }
         return {
           abscissas: $filter('timestamp')(rows[0].row.x.getTime()),
-          rows: rows.map(function (row) {
+          rows: rows.map(function(row) {
             return {
               label: row.series.label,
               value: _.round(row.row.y1, 2),
               color: row.series.color,
-              id: row.series.id
+              id: row.series.id,
             };
-          })
+          }),
         };
       };
 
       let updateChartData = () => {
-        cloudMetricsReader.getMetricStatistics(this.serverGroup.type, this.serverGroup.account, this.serverGroup.region, this.alarm.metricName, getFilterParameters())
-          .then((stats) => {
+        cloudMetricsReader
+          .getMetricStatistics(
+            this.serverGroup.type,
+            this.serverGroup.account,
+            this.serverGroup.region,
+            this.alarm.metricName,
+            getFilterParameters(),
+          )
+          .then(stats => {
             if (this.stats) {
               this.stats.unit = stats.unit;
             }
@@ -122,10 +119,10 @@ module.exports = angular
         let statKey = _.camelCase(this.alarm.statistic);
         initializeStatistics(statKey);
 
-        let ticks = this.ticks || {x: 6, y: 3};
+        let ticks = this.ticks || { x: 6, y: 3 };
 
         this.chartOptions = {
-          margin: this.margins || {top: 5, left: 5},
+          margin: this.margins || { top: 5, left: 5 },
           tooltipHook: tooltipHook,
           series: [
             {
@@ -135,7 +132,7 @@ module.exports = angular
               label: `${this.alarm.metricName} (${statKey})`,
               color: 'hsla(88, 48%, 48%, 1)',
               type: ['line'],
-              id: 'alarmData'
+              id: 'alarmData',
             },
             {
               axis: 'y',
@@ -153,7 +150,7 @@ module.exports = angular
               label: ' ',
               color: 'transparent',
               type: ['line'],
-              id: 'baseline'
+              id: 'baseline',
             },
             {
               axis: 'y',
@@ -162,19 +159,19 @@ module.exports = angular
               label: ' ',
               color: 'transparent',
               type: ['line'],
-              id: 'topline'
-            }
+              id: 'topline',
+            },
           ],
           axes: {
-            x: {key: 'timestamp', type: 'date', ticks: ticks.x},
-            y: {ticks: ticks.y},
-            x2: {ticks: 0}, // hide right hand x-axis labels
-            y2: {ticks: 0} // hide top y-axis labels
+            x: { key: 'timestamp', type: 'date', ticks: ticks.x },
+            y: { ticks: ticks.y },
+            x2: { ticks: 0 }, // hide right hand x-axis labels
+            y2: { ticks: 0 }, // hide top y-axis labels
           },
           zoom: {
             x: true,
-            y: true
-          }
+            y: true,
+          },
         };
         updateChartData();
       };
@@ -193,5 +190,5 @@ module.exports = angular
           this.alarmUpdated.unsubscribe();
         }
       };
-    }
+    },
   });

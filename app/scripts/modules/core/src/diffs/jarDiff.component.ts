@@ -16,7 +16,6 @@ export interface IJarDiff {
 }
 
 class JarDiffComponentController implements IController {
-
   public jarDiffs: IJarDiff;
   public hasJarDiffs = false;
 
@@ -31,7 +30,7 @@ class JarDiffComponentController implements IController {
 
 class JarDiffComponent implements IComponentOptions {
   public bindings: any = {
-    jarDiffs: '<'
+    jarDiffs: '<',
   };
   public controller: any = JarDiffComponentController;
   public template = `

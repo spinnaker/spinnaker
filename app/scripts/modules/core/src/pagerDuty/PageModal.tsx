@@ -62,12 +62,11 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
   }
 
   private getDefaultState(props: IPageModalProps): IPageModalState {
-
     const defaultSubject = get(SETTINGS, 'pagerDuty.defaultSubject', 'Urgent Issue');
     const defaultDetails = get(SETTINGS, 'pagerDuty.defaultDetails', '');
 
     return {
-      accountName: SETTINGS.pagerDuty && SETTINGS.pagerDuty.accountName || '',
+      accountName: (SETTINGS.pagerDuty && SETTINGS.pagerDuty.accountName) || '',
       subject: defaultSubject,
       details: defaultDetails,
       pageCount: props.services.length,
@@ -104,7 +103,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
       const { applications, services } = this.props;
       const { subject, details } = this.state;
 
-      return pagerDutyWriter.sendPage(applications, services.map((s) => s.integration_key), subject, { details });
+      return pagerDutyWriter.sendPage(applications, services.map(s => s.integration_key), subject, { details });
     };
 
     taskMonitor.submit(submitMethod);
@@ -124,7 +123,9 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
         <TaskMonitorWrapper monitor={taskMonitor} />
         {!submitting && (
           <Modal.Header closeButton={true}>
-            <Modal.Title>Page {pageCount} {pageCount === 1 ? 'service' : 'services'}</Modal.Title>
+            <Modal.Title>
+              Page {pageCount} {pageCount === 1 ? 'service' : 'services'}
+            </Modal.Title>
           </Modal.Header>
         )}
         {!submitting && (
@@ -133,7 +134,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
               <div>
                 <label>Services to Page</label>
                 <div>
-                  {services.map((service) => (
+                  {services.map(service => (
                     <span className="service-to-page" key={service.integration_key}>
                       <a
                         title={service.name}
@@ -148,11 +149,22 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
               </div>
               <div>
                 <label>Subject</label>
-                  <input name="subject" type="text" style={{ width: '100%' }} value={subject} onChange={this.handleSubjectChanged}/>
+                <input
+                  name="subject"
+                  type="text"
+                  style={{ width: '100%' }}
+                  value={subject}
+                  onChange={this.handleSubjectChanged}
+                />
               </div>
               <div>
                 <label>Details (Not visible/heard in phone/SMS)</label>
-                <textarea name="details" style={{ width: '100%', height: '260px' }} value={details} onChange={this.handleDetailsChanged}/>
+                <textarea
+                  name="details"
+                  style={{ width: '100%', height: '260px' }}
+                  value={details}
+                  onChange={this.handleDetailsChanged}
+                />
               </div>
             </div>
           </Modal.Body>
@@ -168,7 +180,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
             />
           </Modal.Footer>
         )}
-        </Modal>
+      </Modal>
     );
   }
 }

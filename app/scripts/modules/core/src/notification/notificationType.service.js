@@ -2,11 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notifications.service', [
-  require('./notificationTypeConfig.provider.js').name,
-])
-  .factory('notificationTypeService', function (notificationTypeConfig) {
-
+module.exports = angular
+  .module('spinnaker.core.notifications.service', [require('./notificationTypeConfig.provider.js').name])
+  .factory('notificationTypeService', function(notificationTypeConfig) {
     function listNotificationTypes() {
       return notificationTypeConfig.listNotificationTypes();
     }
@@ -17,7 +15,6 @@ module.exports = angular.module('spinnaker.core.notifications.service', [
 
     return {
       listNotificationTypes: listNotificationTypes,
-      getNotificationType: getNotificationType
+      getNotificationType: getNotificationType,
     };
-
   });

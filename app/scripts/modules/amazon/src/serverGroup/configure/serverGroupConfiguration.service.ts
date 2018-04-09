@@ -1,5 +1,19 @@
 import { module, IPromise, IQService } from 'angular';
-import { chain, clone, cloneDeep, extend, find, flatten, has, intersection, keys, map, partition, some, xor } from 'lodash';
+import {
+  chain,
+  clone,
+  cloneDeep,
+  extend,
+  find,
+  flatten,
+  has,
+  intersection,
+  keys,
+  map,
+  partition,
+  some,
+  xor,
+} from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
@@ -73,22 +87,39 @@ export interface IAmazonServerGroupCommand extends IServerGroupCommand {
 }
 
 export class AwsServerGroupConfigurationService {
-  private enabledMetrics = ['GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'];
+  private enabledMetrics = [
+    'GroupMinSize',
+    'GroupMaxSize',
+    'GroupDesiredCapacity',
+    'GroupInServiceInstances',
+    'GroupPendingInstances',
+    'GroupStandbyInstances',
+    'GroupTerminatingInstances',
+    'GroupTotalInstances',
+  ];
   private healthCheckTypes = ['EC2', 'ELB'];
-  private terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
+  private terminationPolicies = [
+    'OldestInstance',
+    'NewestInstance',
+    'OldestLaunchConfiguration',
+    'ClosestToNextInstanceHour',
+    'Default',
+  ];
 
-  constructor(private $q: IQService,
-              private awsImageReader: any,
-              private accountService: AccountService,
-              private securityGroupReader: SecurityGroupReader,
-              private awsInstanceTypeService: any,
-              private cacheInitializer: CacheInitializerService,
-              private subnetReader: SubnetReader,
-              private keyPairsReader: KeyPairsReader,
-              private loadBalancerReader: LoadBalancerReader,
-              private namingService: NamingService,
-              private serverGroupCommandRegistry: ServerGroupCommandRegistry,
-              private autoScalingProcessService: any) {
+  constructor(
+    private $q: IQService,
+    private awsImageReader: any,
+    private accountService: AccountService,
+    private securityGroupReader: SecurityGroupReader,
+    private awsInstanceTypeService: any,
+    private cacheInitializer: CacheInitializerService,
+    private subnetReader: SubnetReader,
+    private keyPairsReader: KeyPairsReader,
+    private loadBalancerReader: LoadBalancerReader,
+    private namingService: NamingService,
+    private serverGroupCommandRegistry: ServerGroupCommandRegistry,
+    private autoScalingProcessService: any,
+  ) {
     'ngInject';
   }
 
@@ -96,7 +127,7 @@ export class AwsServerGroupConfigurationService {
     command.backingData = {
       enabledMetrics: clone(this.enabledMetrics),
       healthCheckTypes: clone(this.healthCheckTypes),
-      terminationPolicies: clone(this.terminationPolicies)
+      terminationPolicies: clone(this.terminationPolicies),
     } as IAmazonServerGroupCommandBackingData;
   }
 
@@ -106,7 +137,9 @@ export class AwsServerGroupConfigurationService {
     if (command.viewState.disableImageSelection) {
       imageLoader = this.$q.when(null);
     } else {
-      imageLoader = command.viewState.imageId ? this.loadImagesFromAmi(command) : this.loadImagesFromApplicationName(application, command.selectedProvider);
+      imageLoader = command.viewState.imageId
+        ? this.loadImagesFromAmi(command)
+        : this.loadImagesFromApplicationName(application, command.selectedProvider);
     }
     command.toggleSuspendedProcess = (process: string): void => {
       command.suspendedProcesses = command.suspendedProcesses || [];
@@ -127,7 +160,7 @@ export class AwsServerGroupConfigurationService {
       }
     };
 
-    command.getBlockDeviceMappingsSource = (): IBlockDeviceMappingSource  => {
+    command.getBlockDeviceMappingsSource = (): IBlockDeviceMappingSource => {
       if (command.copySourceCustomBlockDeviceMappings) {
         return 'source';
       } else if (command.useAmiBlockDeviceMappings) {
@@ -153,58 +186,62 @@ export class AwsServerGroupConfigurationService {
     };
 
     command.regionIsDeprecated = (): boolean => {
-      return has(command, 'backingData.filtered.regions') &&
-        command.backingData.filtered.regions.some((region) => region.name === command.region && region.deprecated);
+      return (
+        has(command, 'backingData.filtered.regions') &&
+        command.backingData.filtered.regions.some(region => region.name === command.region && region.deprecated)
+      );
     };
 
-    return this.$q.all({
-      credentialsKeyedByAccount: this.accountService.getCredentialsKeyedByAccount('aws'),
-      securityGroups: this.securityGroupReader.getAllSecurityGroups(),
-      loadBalancers: this.loadBalancerReader.listLoadBalancers('aws'),
-      subnets: this.subnetReader.listSubnets(),
-      preferredZones: this.accountService.getPreferredZonesByAccount('aws'),
-      keyPairs: this.keyPairsReader.listKeyPairs(),
-      packageImages: imageLoader,
-      instanceTypes: this.awsInstanceTypeService.getAllTypesByRegion(),
-      enabledMetrics: this.$q.when(clone(this.enabledMetrics)),
-      healthCheckTypes: this.$q.when(clone(this.healthCheckTypes)),
-      terminationPolicies: this.$q.when(clone(this.terminationPolicies)),
-    }).then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
-      let loadBalancerReloader = this.$q.when();
-      let securityGroupReloader = this.$q.when();
-      let instanceTypeReloader = this.$q.when();
-      backingData.accounts = keys(backingData.credentialsKeyedByAccount);
-      backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
-      backingData.scalingProcesses = this.autoScalingProcessService.listProcesses();
-      command.backingData = backingData as IAmazonServerGroupCommandBackingData;
-      this.configureVpcId(command);
-      backingData.filtered.securityGroups = this.getRegionalSecurityGroups(command);
-      if (command.viewState.disableImageSelection) {
-        this.configureInstanceTypes(command);
-      }
-
-      if (command.loadBalancers && command.loadBalancers.length) {
-        // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-        const loadBalancerNames = this.getLoadBalancerNames(command);
-        if (intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
-          loadBalancerReloader = this.refreshLoadBalancers(command, true);
+    return this.$q
+      .all({
+        credentialsKeyedByAccount: this.accountService.getCredentialsKeyedByAccount('aws'),
+        securityGroups: this.securityGroupReader.getAllSecurityGroups(),
+        loadBalancers: this.loadBalancerReader.listLoadBalancers('aws'),
+        subnets: this.subnetReader.listSubnets(),
+        preferredZones: this.accountService.getPreferredZonesByAccount('aws'),
+        keyPairs: this.keyPairsReader.listKeyPairs(),
+        packageImages: imageLoader,
+        instanceTypes: this.awsInstanceTypeService.getAllTypesByRegion(),
+        enabledMetrics: this.$q.when(clone(this.enabledMetrics)),
+        healthCheckTypes: this.$q.when(clone(this.healthCheckTypes)),
+        terminationPolicies: this.$q.when(clone(this.terminationPolicies)),
+      })
+      .then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
+        let loadBalancerReloader = this.$q.when();
+        let securityGroupReloader = this.$q.when();
+        let instanceTypeReloader = this.$q.when();
+        backingData.accounts = keys(backingData.credentialsKeyedByAccount);
+        backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
+        backingData.scalingProcesses = this.autoScalingProcessService.listProcesses();
+        command.backingData = backingData as IAmazonServerGroupCommandBackingData;
+        this.configureVpcId(command);
+        backingData.filtered.securityGroups = this.getRegionalSecurityGroups(command);
+        if (command.viewState.disableImageSelection) {
+          this.configureInstanceTypes(command);
         }
-      }
-      if (command.securityGroups && command.securityGroups.length) {
-        const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(command), 'id');
-        if (intersection(command.securityGroups, regionalSecurityGroupIds).length < command.securityGroups.length) {
-          securityGroupReloader = this.refreshSecurityGroups(command, true);
-        }
-      }
-      if (command.instanceType) {
-        instanceTypeReloader = this.refreshInstanceTypes(command, true);
-      }
 
-      return this.$q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(() => {
-        this.applyOverrides('afterConfiguration', command);
-        this.attachEventHandlers(command);
+        if (command.loadBalancers && command.loadBalancers.length) {
+          // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
+          const loadBalancerNames = this.getLoadBalancerNames(command);
+          if (intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
+            loadBalancerReloader = this.refreshLoadBalancers(command, true);
+          }
+        }
+        if (command.securityGroups && command.securityGroups.length) {
+          const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(command), 'id');
+          if (intersection(command.securityGroups, regionalSecurityGroupIds).length < command.securityGroups.length) {
+            securityGroupReloader = this.refreshSecurityGroups(command, true);
+          }
+        }
+        if (command.instanceType) {
+          instanceTypeReloader = this.refreshInstanceTypes(command, true);
+        }
+
+        return this.$q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(() => {
+          this.applyOverrides('afterConfiguration', command);
+          this.attachEventHandlers(command);
+        });
       });
-    });
   }
 
   public applyOverrides(phase: string, command: IAmazonServerGroupCommand): void {
@@ -246,7 +283,7 @@ export class AwsServerGroupConfigurationService {
           q: packageBase + (addDashToQuery ? '-*' : '*'),
         });
       },
-      (): any[] => []
+      (): any[] => [],
     );
   }
 
@@ -254,16 +291,24 @@ export class AwsServerGroupConfigurationService {
     const result: IAmazonServerGroupCommandResult = { dirty: {} };
     if (command.credentials && command.region) {
       // isDefault is imperfect, since we don't know what the previous account/region was, but probably a safe bet
-      const isDefault = some<any>(command.backingData.credentialsKeyedByAccount, (c) => c.defaultKeyPair && command.keyPair && command.keyPair.indexOf(c.defaultKeyPair.replace('{{region}}', '')) === 0);
+      const isDefault = some<any>(
+        command.backingData.credentialsKeyedByAccount,
+        c =>
+          c.defaultKeyPair &&
+          command.keyPair &&
+          command.keyPair.indexOf(c.defaultKeyPair.replace('{{region}}', '')) === 0,
+      );
       const filtered = chain(command.backingData.keyPairs)
         .filter({ account: command.credentials, region: command.region })
         .map('keyName')
         .value();
       if (command.keyPair && filtered.length && !filtered.includes(command.keyPair)) {
-        const acct: IAccountDetails = command.backingData.credentialsKeyedByAccount[command.credentials] || {
+        const acct: IAccountDetails =
+          command.backingData.credentialsKeyedByAccount[command.credentials] ||
+          ({
             regions: [],
-            defaultKeyPair: null
-          } as IAccountDetails;
+            defaultKeyPair: null,
+          } as IAccountDetails);
         if (acct.defaultKeyPair) {
           // {{region}} is the only supported substitution pattern
           const defaultKeyPair = acct.defaultKeyPair.replace('{{region}}', command.region);
@@ -288,9 +333,15 @@ export class AwsServerGroupConfigurationService {
   public configureInstanceTypes(command: IAmazonServerGroupCommand): IServerGroupCommandResult {
     const result: IAmazonServerGroupCommandResult = { dirty: {} };
     if (command.region && (command.virtualizationType || command.viewState.disableImageSelection)) {
-      let filtered = this.awsInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
+      let filtered = this.awsInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [
+        command.region,
+      ]);
       if (command.virtualizationType) {
-        filtered = this.awsInstanceTypeService.filterInstanceTypes(filtered, command.virtualizationType, !!command.vpcId);
+        filtered = this.awsInstanceTypeService.filterInstanceTypes(
+          filtered,
+          command.virtualizationType,
+          !!command.vpcId,
+        );
       }
       if (command.instanceType && !filtered.includes(command.instanceType)) {
         result.dirty.instanceType = command.instanceType;
@@ -315,15 +366,15 @@ export class AwsServerGroupConfigurationService {
     }
     if (command.region) {
       regionalImages = command.backingData.packageImages
-        .filter((image) => image.amis && image.amis[command.region])
-        .map((image) => {
+        .filter(image => image.amis && image.amis[command.region])
+        .map(image => {
           return {
             virtualizationType: image.attributes.virtualizationType,
             imageName: image.imageName,
-            ami: image.amis ? image.amis[command.region][0] : null
+            ami: image.amis ? image.amis[command.region][0] : null,
           };
         });
-      const match = regionalImages.find((image) => image.imageName === command.amiName);
+      const match = regionalImages.find(image => image.imageName === command.amiName);
       if (command.amiName && !match) {
         result.dirty.amiName = true;
         command.amiName = null;
@@ -341,8 +392,10 @@ export class AwsServerGroupConfigurationService {
   }
 
   public configureAvailabilityZones(command: IAmazonServerGroupCommand): void {
-    command.backingData.filtered.availabilityZones =
-      find<IRegion>(command.backingData.credentialsKeyedByAccount[command.credentials].regions, { name: command.region }).availabilityZones;
+    command.backingData.filtered.availabilityZones = find<IRegion>(
+      command.backingData.credentialsKeyedByAccount[command.credentials].regions,
+      { name: command.region },
+    ).availabilityZones;
   }
 
   public configureSubnetPurposes(command: IAmazonServerGroupCommand): IServerGroupCommandResult {
@@ -358,7 +411,11 @@ export class AwsServerGroupConfigurationService {
       .uniqBy('purpose')
       .value();
 
-    if (!chain(filteredData.subnetPurposes).some({ purpose: command.subnetType }).value()) {
+    if (
+      !chain(filteredData.subnetPurposes)
+        .some({ purpose: command.subnetType })
+        .value()
+    ) {
       command.subnetType = null;
       result.dirty.subnetType = true;
     }
@@ -379,18 +436,18 @@ export class AwsServerGroupConfigurationService {
     const newRegionalSecurityGroups = this.getRegionalSecurityGroups(command);
     if (currentOptions && command.securityGroups) {
       // not initializing - we are actually changing groups
-      const currentGroupNames = command.securityGroups.map((groupId) => {
+      const currentGroupNames = command.securityGroups.map(groupId => {
         const match = find(currentOptions, { id: groupId });
         return match ? match.name : groupId;
       });
 
-      const matchedGroups = command.securityGroups.map((groupId) => {
-        const securityGroup = find(currentOptions, { id: groupId }) ||
-          find(currentOptions, { name: groupId });
-        return securityGroup ? securityGroup.name : null;
-      })
-      .map((groupName) => find(newRegionalSecurityGroups, { name: groupName }))
-      .filter((group) => group);
+      const matchedGroups = command.securityGroups
+        .map(groupId => {
+          const securityGroup = find(currentOptions, { id: groupId }) || find(currentOptions, { name: groupId });
+          return securityGroup ? securityGroup.name : null;
+        })
+        .map(groupName => find(newRegionalSecurityGroups, { name: groupName }))
+        .filter(group => group);
 
       const matchedGroupNames = map(matchedGroups, 'name');
       const removed = xor(currentGroupNames, matchedGroupNames);
@@ -413,9 +470,12 @@ export class AwsServerGroupConfigurationService {
     return result;
   }
 
-  public refreshSecurityGroups(command: IAmazonServerGroupCommand, skipCommandReconfiguration?: boolean): IPromise<void> {
+  public refreshSecurityGroups(
+    command: IAmazonServerGroupCommand,
+    skipCommandReconfiguration?: boolean,
+  ): IPromise<void> {
     return this.cacheInitializer.refreshCache('securityGroups').then(() => {
-      return this.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
+      return this.securityGroupReader.getAllSecurityGroups().then(securityGroups => {
         command.backingData.securityGroups = securityGroups;
         if (!skipCommandReconfiguration) {
           this.configureSecurityGroupOptions(command);
@@ -424,7 +484,10 @@ export class AwsServerGroupConfigurationService {
     });
   }
 
-  public refreshInstanceTypes(command: IAmazonServerGroupCommand, skipCommandReconfiguration?: boolean): IPromise<void> {
+  public refreshInstanceTypes(
+    command: IAmazonServerGroupCommand,
+    skipCommandReconfiguration?: boolean,
+  ): IPromise<void> {
     return this.cacheInitializer.refreshCache('instanceTypes').then(() => {
       return this.awsInstanceTypeService.getAllTypesByRegion().then((instanceTypes: string[]) => {
         command.backingData.instanceTypes = instanceTypes;
@@ -445,29 +508,37 @@ export class AwsServerGroupConfigurationService {
       .filter({ name: command.region })
       .map<IAmazonLoadBalancer>('loadBalancers')
       .flattenDeep<IAmazonLoadBalancer>()
-      .value()
+      .value();
   }
 
   public getLoadBalancerNames(command: IAmazonServerGroupCommand): string[] {
-    const loadBalancers = this.getLoadBalancerMap(command).filter((lb) => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId === command.vpcId);
-    return loadBalancers.map((lb) => lb.name).sort();
+    const loadBalancers = this.getLoadBalancerMap(command).filter(
+      lb => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId === command.vpcId,
+    );
+    return loadBalancers.map(lb => lb.name).sort();
   }
 
   public getVpcLoadBalancerNames(command: IAmazonServerGroupCommand): string[] {
-    const loadBalancersForVpc = this.getLoadBalancerMap(command).filter((lb) => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId);
-    return loadBalancersForVpc.map((lb) => lb.name).sort();
+    const loadBalancersForVpc = this.getLoadBalancerMap(command).filter(
+      lb => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId,
+    );
+    return loadBalancersForVpc.map(lb => lb.name).sort();
   }
 
   public getTargetGroupNames(command: IAmazonServerGroupCommand): string[] {
-    const loadBalancersV2 = this.getLoadBalancerMap(command).filter((lb) => lb.loadBalancerType !== 'classic') as IAmazonApplicationLoadBalancer[];
-    const instanceTargetGroups = flatten(loadBalancersV2.map<any>((lb) => lb.targetGroups.filter((tg) => tg.targetType === 'instance')));
-    return instanceTargetGroups.map((tg) => tg.name).sort();
+    const loadBalancersV2 = this.getLoadBalancerMap(command).filter(
+      lb => lb.loadBalancerType !== 'classic',
+    ) as IAmazonApplicationLoadBalancer[];
+    const instanceTargetGroups = flatten(
+      loadBalancersV2.map<any>(lb => lb.targetGroups.filter(tg => tg.targetType === 'instance')),
+    );
+    return instanceTargetGroups.map(tg => tg.name).sort();
   }
 
-  private getValidMatches(all: string[], current: string[]): { valid: string[], invalid: string[], spel: string[] } {
-    const spel = current.filter((v) => v.includes('${'));
+  private getValidMatches(all: string[], current: string[]): { valid: string[]; invalid: string[]; spel: string[] } {
+    const spel = current.filter(v => v.includes('${'));
     const matched = intersection(all, current);
-    const [ valid, invalid ] = partition(current, (c) => matched.includes(c) || spel.includes(c));
+    const [valid, invalid] = partition(current, c => matched.includes(c) || spel.includes(c));
     return { valid, invalid, spel };
   }
 
@@ -500,7 +571,7 @@ export class AwsServerGroupConfigurationService {
       if (invalid.length) {
         result.dirty.targetGroups = invalid;
       }
-      command.spelTargetGroups = spel ||  [];
+      command.spelTargetGroups = spel || [];
     }
 
     command.backingData.filtered.loadBalancers = newLoadBalancers;
@@ -511,7 +582,7 @@ export class AwsServerGroupConfigurationService {
 
   public refreshLoadBalancers(command: IAmazonServerGroupCommand, skipCommandReconfiguration?: boolean) {
     return this.cacheInitializer.refreshCache('loadBalancers').then(() => {
-      return this.loadBalancerReader.listLoadBalancers('aws').then((loadBalancers) => {
+      return this.loadBalancerReader.listLoadBalancers('aws').then(loadBalancers => {
         command.backingData.loadBalancers = loadBalancers;
         if (!skipCommandReconfiguration) {
           this.configureLoadBalancerOptions(command);
@@ -520,96 +591,104 @@ export class AwsServerGroupConfigurationService {
     });
   }
 
-    public configureVpcId(command: IAmazonServerGroupCommand): IAmazonServerGroupCommandResult {
+  public configureVpcId(command: IAmazonServerGroupCommand): IAmazonServerGroupCommandResult {
+    const result: IAmazonServerGroupCommandResult = { dirty: {} };
+    if (!command.subnetType) {
+      command.vpcId = null;
+      result.dirty.vpcId = true;
+    } else {
+      const subnet = find<ISubnet>(command.backingData.subnets, {
+        purpose: command.subnetType,
+        account: command.credentials,
+        region: command.region,
+      });
+      command.vpcId = subnet ? subnet.vpcId : null;
+    }
+    extend(result.dirty, this.configureInstanceTypes(command).dirty);
+    return result;
+  }
+
+  public attachEventHandlers(command: IAmazonServerGroupCommand): void {
+    command.usePreferredZonesChanged = (): IAmazonServerGroupCommandResult => {
+      const currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
       const result: IAmazonServerGroupCommandResult = { dirty: {} };
-      if (!command.subnetType) {
-        command.vpcId = null;
-        result.dirty.vpcId = true;
+      const preferredZonesForAccount = command.backingData.preferredZones[command.credentials];
+      if (preferredZonesForAccount && preferredZonesForAccount[command.region] && command.viewState.usePreferredZones) {
+        command.availabilityZones = cloneDeep(preferredZonesForAccount[command.region].sort());
       } else {
-        const subnet = find<ISubnet>(command.backingData.subnets, { purpose: command.subnetType, account: command.credentials, region: command.region });
-        command.vpcId = subnet ? subnet.vpcId : null;
+        command.availabilityZones = intersection(
+          command.availabilityZones,
+          command.backingData.filtered.availabilityZones,
+        );
+        const newZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
+        if (currentZoneCount !== newZoneCount) {
+          result.dirty.availabilityZones = true;
+        }
       }
-      extend(result.dirty, this.configureInstanceTypes(command).dirty);
       return result;
-    }
+    };
 
-    public attachEventHandlers(command: IAmazonServerGroupCommand): void {
-      command.usePreferredZonesChanged = (): IAmazonServerGroupCommandResult => {
-        const currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
-        const result: IAmazonServerGroupCommandResult = { dirty: {} };
-        const preferredZonesForAccount = command.backingData.preferredZones[command.credentials];
-        if (preferredZonesForAccount && preferredZonesForAccount[command.region] && command.viewState.usePreferredZones) {
-          command.availabilityZones = cloneDeep(preferredZonesForAccount[command.region].sort());
-        } else {
-          command.availabilityZones = intersection(command.availabilityZones, command.backingData.filtered.availabilityZones);
-          const newZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
-          if (currentZoneCount !== newZoneCount) {
-            result.dirty.availabilityZones = true;
-          }
-        }
-        return result;
-      };
+    command.subnetChanged = (): IServerGroupCommandResult => {
+      const result = this.configureVpcId(command);
+      extend(result.dirty, this.configureSecurityGroupOptions(command).dirty);
+      extend(result.dirty, this.configureLoadBalancerOptions(command).dirty);
+      command.viewState.dirty = command.viewState.dirty || {};
+      extend(command.viewState.dirty, result.dirty);
+      return result;
+    };
 
-      command.subnetChanged = (): IServerGroupCommandResult => {
-        const result = this.configureVpcId(command);
-        extend(result.dirty, this.configureSecurityGroupOptions(command).dirty);
-        extend(result.dirty, this.configureLoadBalancerOptions(command).dirty);
-        command.viewState.dirty = command.viewState.dirty || {};
-        extend(command.viewState.dirty, result.dirty);
-        return result;
-      };
+    command.regionChanged = (): IServerGroupCommandResult => {
+      const result: IAmazonServerGroupCommandResult = { dirty: {} };
+      const filteredData = command.backingData.filtered;
+      extend(result.dirty, this.configureSubnetPurposes(command).dirty);
+      if (command.region) {
+        extend(result.dirty, command.subnetChanged().dirty);
+        extend(result.dirty, this.configureInstanceTypes(command).dirty);
 
-      command.regionChanged = (): IServerGroupCommandResult => {
-        const result: IAmazonServerGroupCommandResult = { dirty: {} };
-        const filteredData = command.backingData.filtered;
-        extend(result.dirty, this.configureSubnetPurposes(command).dirty);
-        if (command.region) {
-          extend(result.dirty, command.subnetChanged().dirty);
-          extend(result.dirty, this.configureInstanceTypes(command).dirty);
+        this.configureAvailabilityZones(command);
+        extend(result.dirty, command.usePreferredZonesChanged().dirty);
 
-          this.configureAvailabilityZones(command);
-          extend(result.dirty, command.usePreferredZonesChanged().dirty);
+        extend(result.dirty, this.configureImages(command).dirty);
+        extend(result.dirty, this.configureKeyPairs(command).dirty);
+      } else {
+        filteredData.regionalAvailabilityZones = null;
+      }
 
-          extend(result.dirty, this.configureImages(command).dirty);
-          extend(result.dirty, this.configureKeyPairs(command).dirty);
-        } else {
-          filteredData.regionalAvailabilityZones = null;
-        }
+      return result;
+    };
 
-        return result;
-      };
+    command.clusterChanged = (): void => {
+      command.moniker = this.namingService.getMoniker(command.application, command.stack, command.freeFormDetails);
+    };
 
-      command.clusterChanged = (): void => {
-        command.moniker = this.namingService.getMoniker(command.application, command.stack, command.freeFormDetails);
-      };
-
-      command.credentialsChanged = (): IServerGroupCommandResult => {
-        const result: IAmazonServerGroupCommandResult = { dirty: {} };
-        const backingData = command.backingData;
-        if (command.credentials) {
-          const regionsForAccount: IAccountDetails = backingData.credentialsKeyedByAccount[command.credentials] || { regions: [], defaultKeyPair: null } as IAccountDetails;
-          backingData.filtered.regions = regionsForAccount.regions;
-          if (!some(backingData.filtered.regions, { name: command.region })) {
-            command.region = null;
-            result.dirty.region = true;
-          } else {
-            extend(result.dirty, command.regionChanged().dirty);
-          }
-        } else {
+    command.credentialsChanged = (): IServerGroupCommandResult => {
+      const result: IAmazonServerGroupCommandResult = { dirty: {} };
+      const backingData = command.backingData;
+      if (command.credentials) {
+        const regionsForAccount: IAccountDetails =
+          backingData.credentialsKeyedByAccount[command.credentials] ||
+          ({ regions: [], defaultKeyPair: null } as IAccountDetails);
+        backingData.filtered.regions = regionsForAccount.regions;
+        if (!some(backingData.filtered.regions, { name: command.region })) {
           command.region = null;
+          result.dirty.region = true;
+        } else {
+          extend(result.dirty, command.regionChanged().dirty);
         }
-        return result;
-      };
+      } else {
+        command.region = null;
+      }
+      return result;
+    };
 
-      command.imageChanged = (): IServerGroupCommandResult => this.configureInstanceTypes(command);
+    command.imageChanged = (): IServerGroupCommandResult => this.configureInstanceTypes(command);
 
-      command.instanceTypeChanged = (): void => {
-        command.ebsOptimized = this.awsInstanceTypeService.isEbsOptimized(command.instanceType);
-      };
+    command.instanceTypeChanged = (): void => {
+      command.ebsOptimized = this.awsInstanceTypeService.isEbsOptimized(command.instanceType);
+    };
 
-      this.applyOverrides('attachEventHandlers', command);
-    }
-
+    this.applyOverrides('attachEventHandlers', command);
+  }
 }
 
 export const AWS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.amazon.serverGroup.configure.service';
@@ -624,5 +703,4 @@ module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE, [
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   require('../details/scalingProcesses/autoScalingProcess.service.js').name,
-])
-  .service('awsServerGroupConfigurationService', AwsServerGroupConfigurationService);
+]).service('awsServerGroupConfigurationService', AwsServerGroupConfigurationService);

@@ -15,22 +15,21 @@ const ngmodule = module(TASKS_MONITOR_DIRECTIVE, [
   require('./taskMonitorStatus.component').name,
 ]);
 
-ngmodule.directive('taskMonitor', function () {
+ngmodule.directive('taskMonitor', function() {
   return {
     restrict: 'E',
     templateUrl: require('./taskMonitor.html'),
     scope: {
-      taskMonitor: '=monitor'
-    }
+      taskMonitor: '=monitor',
+    },
   };
 });
-
 
 export class TaskMonitorWrapperComponent implements IComponentOptions {
   public template = `<task-monitor monitor="$ctrl.monitor"></task-monitor>`;
   public bindings = {
-    monitor: '<'
-  }
+    monitor: '<',
+  };
 }
 
 ngmodule.component('taskMonitorWrapper', new TaskMonitorWrapperComponent());

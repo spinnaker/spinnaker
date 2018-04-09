@@ -1,27 +1,28 @@
 import { mock } from 'angular';
 
 import {
-  SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl, IScalingEventSummary,
-  IRawScalingActivity
+  SCALING_ACTIVITIES_CTRL,
+  ScalingActivitiesCtrl,
+  IScalingEventSummary,
+  IRawScalingActivity,
 } from './scalingActivities.controller';
 
 describe('Controller: ScalingActivitiesCtrl', () => {
-
   let activities: IRawScalingActivity[] = [],
-      $scope: ng.IScope,
-      $q: ng.IQService,
-      serverGroupReader: any,
-      ctrl: ScalingActivitiesCtrl;
+    $scope: ng.IScope,
+    $q: ng.IQService,
+    serverGroupReader: any,
+    ctrl: ScalingActivitiesCtrl;
 
+  beforeEach(mock.module(SCALING_ACTIVITIES_CTRL));
 
-  beforeEach(
-    mock.module(
-      SCALING_ACTIVITIES_CTRL
-    )
-  );
-
-  beforeEach(function () {
-    mock.inject(function ($controller: ng.IControllerService, $rootScope: ng.IRootScopeService, _serverGroupReader_: any, _$q_: ng.IQService) {
+  beforeEach(function() {
+    mock.inject(function(
+      $controller: ng.IControllerService,
+      $rootScope: ng.IRootScopeService,
+      _serverGroupReader_: any,
+      _$q_: ng.IQService,
+    ) {
       $scope = $rootScope.$new();
       $q = _$q_;
       serverGroupReader = _serverGroupReader_;
@@ -32,32 +33,31 @@ describe('Controller: ScalingActivitiesCtrl', () => {
         serverGroupReader: serverGroupReader,
         serverGroup: {
           name: 'asg-v001',
-          region: 'us-east-1'
+          region: 'us-east-1',
         },
-        $uibModalInstance: jasmine.createSpyObj('$uibModalInstance', ['dismiss'])
+        $uibModalInstance: jasmine.createSpyObj('$uibModalInstance', ['dismiss']),
       }) as ScalingActivitiesCtrl;
 
       activities.length = 0;
     });
   });
 
-  describe('Activity grouping', function () {
-
-    it('groups activities by cause, parsing availability zone from details, sorted by start date, newest first', function () {
+  describe('Activity grouping', function() {
+    it('groups activities by cause, parsing availability zone from details, sorted by start date, newest first', function() {
       activities = [
         {
           description: 'Launching a new EC2 instance: i-05c487e8',
           details: '{"Availability Zone":"us-east-1d"}',
           cause: 'common cause',
           statusCode: 'Successful',
-          startTime: 3
+          startTime: 3,
         },
         {
           description: 'Launching a new EC2 instance: i-abcdefgh',
           details: '{"Availability Zone":"us-east-1e"}',
           cause: 'common cause',
           statusCode: 'Successful',
-          startTime: 3
+          startTime: 3,
         },
         {
           description: 'some other thing',
@@ -65,7 +65,7 @@ describe('Controller: ScalingActivitiesCtrl', () => {
           cause: 'some other cause',
           statusCode: 'Successful',
           startTime: 2,
-        }
+        },
       ];
 
       ctrl.$onInit();
@@ -110,7 +110,7 @@ describe('Controller: ScalingActivitiesCtrl', () => {
           cause: 'some cause',
           statusCode: 'z',
           startTime: 1,
-        }
+        },
       ];
 
       ctrl.$onInit();
@@ -124,6 +124,5 @@ describe('Controller: ScalingActivitiesCtrl', () => {
       expect(result[0].events[2].availabilityZone).toBe('unknown');
       expect(result[0].events[3].availabilityZone).toBe('us-east-1c');
     });
-
   });
 });

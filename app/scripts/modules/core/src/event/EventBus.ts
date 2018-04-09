@@ -9,7 +9,6 @@ export interface IEventMessage {
  * Simple message bus, allowing events to be picked up across disparate components
  */
 export class EventBus {
-
   private static message$: Subject<IEventMessage> = new Subject<IEventMessage>();
 
   /**

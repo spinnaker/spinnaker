@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.capacity.controller', [])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.capacity.controller', [])
   .controller('titusServerGroupCapacityCtrl', function($scope, v2modalWizardService) {
-
     v2modalWizardService.markComplete('capacity');
     v2modalWizardService.markClean('capacity');
 
@@ -15,5 +15,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.capacity.
         v2modalWizardService.markDirty('capacity');
       }
     });
-
   });

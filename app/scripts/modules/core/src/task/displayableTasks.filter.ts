@@ -3,9 +3,7 @@ import { module } from 'angular';
 import { ITaskStep } from 'core/domain';
 
 export function displayableTasks(input: ITaskStep[]): ITaskStep[] {
-  const blacklist = [
-    'stageStart', 'stageEnd', 'determineTargetServerGroup'
-  ];
+  const blacklist = ['stageStart', 'stageEnd', 'determineTargetServerGroup'];
 
   let result: ITaskStep[] = [];
   if (input) {
@@ -19,5 +17,4 @@ export function displayableTaskFilter() {
 }
 
 export const DISPLAYABLE_TASKS_FILTER = 'spinnaker.pipelines.stages.core.displayableTasks.filter';
-module(DISPLAYABLE_TASKS_FILTER, [])
-  .filter('displayableTasks', displayableTaskFilter);
+module(DISPLAYABLE_TASKS_FILTER, []).filter('displayableTasks', displayableTaskFilter);

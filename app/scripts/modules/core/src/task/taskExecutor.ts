@@ -24,9 +24,12 @@ export interface ITaskCommand {
 }
 
 export class TaskExecutor {
-
-  public constructor(private $q: IQService, private authenticationService: AuthenticationService,
-                     private taskReader: TaskReader, private taskWriter: TaskWriter) {
+  public constructor(
+    private $q: IQService,
+    private authenticationService: AuthenticationService,
+    private taskReader: TaskReader,
+    private taskWriter: TaskWriter,
+  ) {
     'ngInject';
   }
 
@@ -41,7 +44,7 @@ export class TaskExecutor {
     if (taskCommand.job[0].providerType === 'aws') {
       delete taskCommand.job[0].providerType;
     }
-    taskCommand.job.forEach(j => j.user = this.authenticationService.getAuthenticatedUser().name);
+    taskCommand.job.forEach(j => (j.user = this.authenticationService.getAuthenticatedUser().name));
 
     return this.taskWriter.postTaskCommand(taskCommand).then(
       (task: any) => {
@@ -55,7 +58,7 @@ export class TaskExecutor {
       (response: IHttpPromiseCallbackArg<any>) => {
         const error: any = {
           status: response.status,
-          message: response.statusText
+          message: response.statusText,
         };
         if (response.data && response.data.message) {
           error.log = response.data.message;
@@ -63,16 +66,14 @@ export class TaskExecutor {
           error.log = 'Sorry, no more information.';
         }
         return this.$q.reject(error);
-      }
+      },
     );
-
   }
 }
 
 export const TASK_EXECUTOR = 'spinnaker.core.task.executor';
 
-module(TASK_EXECUTOR, [
-  AUTHENTICATION_SERVICE,
-  TASK_READ_SERVICE,
-  TASK_WRITE_SERVICE,
-]).service('taskExecutor', TaskExecutor);
+module(TASK_EXECUTOR, [AUTHENTICATION_SERVICE, TASK_READ_SERVICE, TASK_WRITE_SERVICE]).service(
+  'taskExecutor',
+  TaskExecutor,
+);

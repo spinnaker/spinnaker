@@ -12,18 +12,30 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal,
-                                                               instanceWriter, confirmationModalService, recentHistoryService,
-                                                               cloudProviderRegistry, instanceReader, instance, app, kubernetesProxyUiService, $q) {
+module.exports = angular
+  .module('spinnaker.instance.detail.kubernetes.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('kubernetesInstanceDetailsController', function(
+    $scope,
+    $state,
+    $uibModal,
+    instanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+    kubernetesProxyUiService,
+    $q,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('kubernetes', 'instance.detailsTemplateUrl');
 
@@ -35,7 +47,12 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
     this.application = app;
 
     this.uiLink = function uiLink() {
-      return kubernetesProxyUiService.buildLink($scope.instance.account, 'pod', $scope.instance.region, $scope.instance.name);
+      return kubernetesProxyUiService.buildLink(
+        $scope.instance.account,
+        'pod',
+        $scope.instance.region,
+        $scope.instance.name,
+      );
     };
 
     this.showYaml = function showYaml() {
@@ -43,7 +60,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       $scope.userData = $scope.instance.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
@@ -57,8 +74,8 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         account = instance.account;
         namespace = instance.region;
       } else {
-        app.serverGroups.data.some(function (serverGroup) {
-          return serverGroup.instances.some(function (possibleInstance) {
+        app.serverGroups.data.some(function(serverGroup) {
+          return serverGroup.instances.some(function(possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -71,8 +88,8 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another application
-          app.loadBalancers.data.some(function (loadBalancer) {
-            return loadBalancer.instances.some(function (possibleInstance) {
+          app.loadBalancers.data.some(function(loadBalancer) {
+            return loadBalancer.instances.some(function(possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = [loadBalancer.name];
@@ -84,12 +101,12 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
           });
           if (!instanceSummary) {
             // perhaps it is in a disabled server group via a load balancer
-            app.loadBalancers.data.some(function (loadBalancer) {
-              return loadBalancer.serverGroups.some(function (serverGroup) {
+            app.loadBalancers.data.some(function(loadBalancer) {
+              return loadBalancer.serverGroups.some(function(serverGroup) {
                 if (!serverGroup.isDisabled) {
                   return false;
                 }
-                return serverGroup.instances.some(function (possibleInstance) {
+                return serverGroup.instances.some(function(possibleInstance) {
                   if (possibleInstance.id === instance.instanceId) {
                     instanceSummary = possibleInstance;
                     loadBalancers = [loadBalancer.name];
@@ -135,9 +152,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
           $scope.instance.id = details.name;
           $scope.instance.provider = 'kubernetes';
           setBaseIpAddress();
-        },
-          autoClose
-        );
+        }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -157,7 +172,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     this.terminateInstance = function terminateInstance() {
@@ -167,14 +182,14 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
-        let params = {cloudProvider: 'kubernetes'};
+      var submitMethod = function() {
+        let params = { cloudProvider: 'kubernetes' };
 
         if (instance.serverGroup) {
           params.managedInstanceGroupName = instance.serverGroup;
@@ -192,7 +207,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         account: instance.account,
         provider: 'kubernetes',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -202,11 +217,14 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.name + ' with ' + loadBalancerNames
+        title: 'Registering ' + instance.name + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'], namespace: instance.region || instance.namespace } );
+      var submitMethod = function() {
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
+          interestingHealthProviderNames: ['Kubernetes'],
+          namespace: instance.region || instance.namespace,
+        });
       };
 
       confirmationModalService.confirm({
@@ -214,7 +232,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         buttonText: 'Register ' + instance.name,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -224,11 +242,14 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.name + ' from ' + loadBalancerNames
+        title: 'Deregistering ' + instance.name + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, { interestingHealthProviderNames: ['Kubernetes'], namespace: instance.region || instance.namespace } );
+      var submitMethod = function() {
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
+          interestingHealthProviderNames: ['Kubernetes'],
+          namespace: instance.region || instance.namespace,
+        });
       };
 
       confirmationModalService.confirm({
@@ -237,7 +258,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
         provider: 'kubernetes',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -261,15 +282,14 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance;
-      return (instance.health.some(function (health) {
+      return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+    let initialize = app.isStandalone
+      ? retrieveInstance()
+      : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -283,5 +303,4 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
     });
 
     $scope.account = instance.account;
-  }
-);
+  });

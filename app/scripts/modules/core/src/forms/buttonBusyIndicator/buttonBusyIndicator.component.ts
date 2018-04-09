@@ -7,5 +7,4 @@ export class ButtonBusyIndicatorComponent implements IComponentOptions {
 }
 
 export const BUTTON_BUSY_INDICATOR_COMPONENT = 'spinnaker.core.forms.buttonBusyIndicator.component';
-module(BUTTON_BUSY_INDICATOR_COMPONENT, [])
-  .component('buttonBusyIndicator', new ButtonBusyIndicatorComponent());
+module(BUTTON_BUSY_INDICATOR_COMPONENT, []).component('buttonBusyIndicator', new ButtonBusyIndicatorComponent());

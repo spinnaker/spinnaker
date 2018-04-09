@@ -5,11 +5,12 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.region.regionSelectField.directive', [
-  ACCOUNT_SERVICE,
-  require('../common/selectField.component.js').name
-])
-  .directive('osRegionSelectField', function (accountService) {
+module.exports = angular
+  .module('spinnaker.openstack.region.regionSelectField.directive', [
+    ACCOUNT_SERVICE,
+    require('../common/selectField.component.js').name,
+  ])
+  .directive('osRegionSelectField', function(accountService) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -24,14 +25,14 @@ module.exports = angular.module('spinnaker.openstack.region.regionSelectField.di
         readOnly: '<',
         allowNoSelection: '=',
         noOptionsMessage: '@',
-        noSelectionMessage: '@'
+        noSelectionMessage: '@',
       },
       link: function(scope) {
         _.defaults(scope, {
           label: 'Region',
           labelColumnSize: 3,
           valueColumnSize: 7,
-          options: [{label: scope.model, value: scope.model}],
+          options: [{ label: scope.model, value: scope.model }],
           filter: {},
           backingCache: 'regions',
           updateOptions: function() {
@@ -45,14 +46,15 @@ module.exports = angular.module('spinnaker.openstack.region.regionSelectField.di
           },
           onValueChanged: function(newValue) {
             scope.model = newValue;
-            if(scope.onChange) {
-              scope.onChange({region: newValue});
+            if (scope.onChange) {
+              scope.onChange({ region: newValue });
             }
-          }
+          },
         });
 
-
-        scope.$watch('account', function() { scope.$broadcast('updateOptions'); });
-      }
+        scope.$watch('account', function() {
+          scope.$broadcast('updateOptions');
+        });
+      },
     };
-});
+  });

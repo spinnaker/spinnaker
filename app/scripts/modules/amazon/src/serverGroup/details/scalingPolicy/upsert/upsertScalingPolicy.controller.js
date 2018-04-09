@@ -18,9 +18,14 @@ module.exports = angular
     require('./alarm/alarmConfigurer.component.js').name,
     TASK_MONITOR_BUILDER,
   ])
-  .controller('awsUpsertScalingPolicyCtrl', function ($uibModalInstance, scalingPolicyWriter,
-                                                      taskMonitorBuilder, serverGroup, application, policy) {
-
+  .controller('awsUpsertScalingPolicyCtrl', function(
+    $uibModalInstance,
+    scalingPolicyWriter,
+    taskMonitorBuilder,
+    serverGroup,
+    application,
+    policy,
+  ) {
     this.serverGroup = serverGroup;
 
     this.viewState = {
@@ -60,7 +65,7 @@ module.exports = angular
         unit: alarm.unit,
         alarmActionArns: alarm.alarmActions,
         insufficientDataActionArns: alarm.insufficientDataActions,
-        okActionArns: alarm.okActions
+        okActionArns: alarm.okActions,
       };
     }
 
@@ -88,7 +93,6 @@ module.exports = angular
       }
 
       this.command = command;
-
     };
 
     function initializeStepPolicy(command, policy) {
@@ -97,7 +101,7 @@ module.exports = angular
         estimatedInstanceWarmup: policy.estimatedInstanceWarmup || command.cooldown || 600,
         metricAggregationType: 'Average',
       };
-      command.step.stepAdjustments = policy.stepAdjustments.map((adjustment) => {
+      command.step.stepAdjustments = policy.stepAdjustments.map(adjustment => {
         let step = {
           scalingAdjustment: Math.abs(adjustment.scalingAdjustment),
         };
@@ -120,7 +124,7 @@ module.exports = angular
 
     this.boundsChanged = () => {
       let source = this.viewState.comparatorBound === 'min' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound',
-          target = source === 'metricIntervalLowerBound' ? 'metricIntervalUpperBound' : 'metricIntervalLowerBound';
+        target = source === 'metricIntervalLowerBound' ? 'metricIntervalUpperBound' : 'metricIntervalLowerBound';
 
       if (this.command.step) {
         let steps = this.command.step.stepAdjustments;
@@ -142,9 +146,11 @@ module.exports = angular
         delete command.step;
         initializeSimplePolicy(command, policy);
       } else {
-        let stepAdjustments = [{
-          scalingAdjustment: command.simple.scalingAdjustment
-        }];
+        let stepAdjustments = [
+          {
+            scalingAdjustment: command.simple.scalingAdjustment,
+          },
+        ];
         if (this.viewState.comparatorBound === 'min') {
           stepAdjustments[0].metricIntervalUpperBound = 0;
         } else {
@@ -170,7 +176,7 @@ module.exports = angular
 
       if (command.step) {
         // adjust metricIntervalLowerBound/UpperBound for each step based on alarm threshold
-        command.step.stepAdjustments.forEach((step) => {
+        command.step.stepAdjustments.forEach(step => {
           if (this.viewState.operator === 'Remove') {
             step.scalingAdjustment = 0 - step.scalingAdjustment;
             delete command.step.estimatedInstanceWarmup;

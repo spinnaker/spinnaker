@@ -11,21 +11,22 @@ import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigPro
 import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
 import { PIPELINE_BAKE_STAGE_CHOOSE_OS } from 'core/pipeline/config/stages/bake/bakeStageChooseOs.component';
 
-module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
-  ACCOUNT_SERVICE,
-  API_SERVICE,
-  BASE_EXECUTION_DETAILS_CTRL,
-  EDIT_STAGE_JSON_CONTROLLER,
-  PIPELINE_CONFIG_PROVIDER,
-  PIPELINE_CONFIG_SERVICE,
-  require('./overrideTimeout/overrideTimeout.directive.js').name,
-  require('./overrideFailure/overrideFailure.component.js').name,
-  require('./optionalStage/optionalStage.directive.js').name,
-  CONFIRMATION_MODAL_SERVICE,
-  PIPELINE_BAKE_STAGE_CHOOSE_OS,
-  require('./core/stageConfigField/stageConfigField.directive.js').name,
-  require('./bake/bakeStage.module').name,
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.stage', [
+    ACCOUNT_SERVICE,
+    API_SERVICE,
+    BASE_EXECUTION_DETAILS_CTRL,
+    EDIT_STAGE_JSON_CONTROLLER,
+    PIPELINE_CONFIG_PROVIDER,
+    PIPELINE_CONFIG_SERVICE,
+    require('./overrideTimeout/overrideTimeout.directive.js').name,
+    require('./overrideFailure/overrideFailure.component.js').name,
+    require('./optionalStage/optionalStage.directive.js').name,
+    CONFIRMATION_MODAL_SERVICE,
+    PIPELINE_BAKE_STAGE_CHOOSE_OS,
+    require('./core/stageConfigField/stageConfigField.directive.js').name,
+    require('./bake/bakeStage.module').name,
+  ])
   .directive('pipelineConfigStage', function() {
     return {
       restrict: 'E',
@@ -39,12 +40,20 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       templateUrl: require('./stage.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
-      }
+      },
     };
   })
-  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache, $uibModal,
-                                          pipelineConfigService, pipelineConfig, accountService) {
-
+  .controller('StageConfigCtrl', function(
+    $scope,
+    $element,
+    $compile,
+    $controller,
+    $templateCache,
+    $uibModal,
+    pipelineConfigService,
+    pipelineConfig,
+    accountService,
+  ) {
     var lastStageScope;
 
     $scope.options = {
@@ -58,8 +67,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     });
 
     if ($scope.pipeline.strategy) {
-      $scope.options.stageTypes = $scope.options.stageTypes.filter((stageType) => {
-            return stageType.strategy || false;
+      $scope.options.stageTypes = $scope.options.stageTypes.filter(stageType => {
+        return stageType.strategy || false;
       });
     }
 
@@ -69,8 +78,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
 
     $scope.groupDependencyOptions = function(stage) {
       var requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
-      return stage.available ? 'Available' :
-        requisiteStageRefIds.includes(stage.refId) ? null : 'Downstream dependencies (unavailable)';
+      return stage.available
+        ? 'Available'
+        : requisiteStageRefIds.includes(stage.refId) ? null : 'Downstream dependencies (unavailable)';
     };
 
     $scope.stageProducesArtifacts = function() {
@@ -108,16 +118,19 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     };
 
     this.editStageJson = () => {
-      $uibModal.open({
-        size: 'lg modal-fullscreen',
-        templateUrl: require('./core/editStageJson.modal.html'),
-        controller: 'editStageJsonCtrl as $ctrl',
-        resolve: {
-          stage: () => $scope.stage
-        }
-      }).result.then(() => {
-        $scope.$broadcast('pipeline-json-edited');
-      }).catch(() => {});
+      $uibModal
+        .open({
+          size: 'lg modal-fullscreen',
+          templateUrl: require('./core/editStageJson.modal.html'),
+          controller: 'editStageJsonCtrl as $ctrl',
+          resolve: {
+            stage: () => $scope.stage,
+          },
+        })
+        .result.then(() => {
+          $scope.$broadcast('pipeline-json-edited');
+        })
+        .catch(() => {});
     };
 
     this.selectStageType = stage => {
@@ -146,7 +159,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
 
       $scope.updateAvailableDependencyStages();
       var type = $scope.stage.type,
-          stageScope = $scope.$new();
+        stageScope = $scope.$new();
 
       // clear existing contents
       $element.find('.stage-details').html('');
@@ -188,7 +201,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     function applyConfigController(config, stageScope) {
       if (config.controller) {
         var ctrl = config.controller.split(' as ');
-        var controller = $controller(ctrl[0], {$scope: stageScope, stage: $scope.stage, viewState: $scope.viewState});
+        var controller = $controller(ctrl[0], { $scope: stageScope, stage: $scope.stage, viewState: $scope.viewState });
         if (ctrl.length === 2) {
           stageScope[ctrl[1]] = controller;
         }
@@ -201,7 +214,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     function updateStageName(config, oldVal) {
       // apply a default name if the type changes and the user has not specified a name
       if (oldVal) {
-        var oldConfig = getConfig({type: oldVal});
+        var oldConfig = getConfig({ type: oldVal });
         if (oldConfig && $scope.stage.name === oldConfig.label) {
           $scope.stage.name = config.label;
         }
@@ -218,29 +231,29 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     $scope.$watch('stage.refId', this.selectStage);
   })
   .controller('RestartStageCtrl', function($scope, $stateParams, $http, API, confirmationModalService) {
-    var restartStage = function () {
-      return API
-        .one('pipelines')
+    var restartStage = function() {
+      return API.one('pipelines')
         .one($stateParams.executionId)
         .one('stages', $scope.stage.id)
         .one('restart')
-        .data({skip: false})
+        .data({ skip: false })
         .put()
-        .then(function () {
+        .then(function() {
           $scope.stage.isRestarting = true;
         });
     };
 
-    this.restart = function () {
+    this.restart = function() {
       let body = null;
       if ($scope.execution.isRunning) {
-        body = '<p><strong>This pipeline is currently running - restarting this stage will result in multiple concurrently running pipelines.</strong></p>';
+        body =
+          '<p><strong>This pipeline is currently running - restarting this stage will result in multiple concurrently running pipelines.</strong></p>';
       }
       confirmationModalService.confirm({
         header: 'Really restart ' + $scope.stage.name + '?',
         buttonText: 'Restart ' + $scope.stage.name,
         body: body,
-        submitMethod: restartStage
+        submitMethod: restartStage,
       });
     };
   });

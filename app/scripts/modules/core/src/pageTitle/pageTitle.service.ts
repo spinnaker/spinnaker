@@ -125,7 +125,7 @@ export class PageTitleService {
     return {
       main: this.configureMain(data.pageTitleMain),
       section: this.configureSection(data.pageTitleSection),
-      details: this.configureDetails(data.pageTitleDetails)
+      details: this.configureDetails(data.pageTitleDetails),
     };
   }
 

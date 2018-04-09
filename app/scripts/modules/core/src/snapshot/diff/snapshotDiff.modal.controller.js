@@ -9,7 +9,8 @@ import { JSON_UTILITY_SERVICE } from 'core/utils/json/json.utility.service';
 
 import './snapshotDiff.modal.less';
 
-module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.controller', [
+module.exports = angular
+  .module('spinnaker.deck.core.snapshot.diff.modal.controller', [
     require('../snapshot.read.service.js').name,
     require('../snapshot.write.service.js').name,
     CONFIRMATION_MODAL_SERVICE,
@@ -17,8 +18,16 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
     require('../../pipeline/config/actions/history/diffSummary.component.js').name,
     DIFF_VIEW_COMPONENT,
   ])
-  .controller('SnapshotDiffModalCtrl', function (availableAccounts, application, $filter, $uibModalInstance,
-                                                 snapshotReader, snapshotWriter, jsonUtilityService, confirmationModalService) {
+  .controller('SnapshotDiffModalCtrl', function(
+    availableAccounts,
+    application,
+    $filter,
+    $uibModalInstance,
+    snapshotReader,
+    snapshotWriter,
+    jsonUtilityService,
+    confirmationModalService,
+  ) {
     this.availableAccounts = availableAccounts;
     this.selectedAccount = _.head(availableAccounts);
     this.compareOptions = ['most recent', 'previous version'];
@@ -31,37 +40,35 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
           left = this.snapshots[version + 1].contents;
         }
         return left;
-      }
+      },
     };
 
     let resetView = () => {
       this.state = {
         loading: true,
-        error: false
+        error: false,
       };
       this.diff = jsonUtilityService.diff([], []);
       this.snapshots = [];
       this.version = 0;
     };
 
-    let formatSnapshots = (snapshots) => {
-      let formatted = snapshots
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .map((s, index) => {
-          return {
-            formattedTimestamp: $filter('timestamp')(s.timestamp),
-            timestamp: s.timestamp,
-            contents: JSON.stringify(s.infrastructure, null, 2),
-            json: s.infrastructure,
-            index: index
-          };
-        });
+    let formatSnapshots = snapshots => {
+      let formatted = snapshots.sort((a, b) => b.timestamp - a.timestamp).map((s, index) => {
+        return {
+          formattedTimestamp: $filter('timestamp')(s.timestamp),
+          timestamp: s.timestamp,
+          contents: JSON.stringify(s.infrastructure, null, 2),
+          json: s.infrastructure,
+          index: index,
+        };
+      });
 
       _.head(formatted).formattedTimestamp += ' (most recent)';
       return formatted;
     };
 
-    let loadSuccess = (snapshots) => {
+    let loadSuccess = snapshots => {
       this.state.loading = false;
       if (!snapshots.length) {
         return;
@@ -76,11 +83,10 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
       this.state.error = true;
     };
 
-    this.getSnapshotHistoryForAccount = (account) => {
+    this.getSnapshotHistoryForAccount = account => {
       resetView();
       if (account) {
-        snapshotReader.getSnapshotHistory(application.name, account)
-          .then(loadSuccess, loadError);
+        snapshotReader.getSnapshotHistory(application.name, account).then(loadSuccess, loadError);
       } else {
         loadSuccess([]);
       }
@@ -88,7 +94,11 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
 
     this.restoreSnapshot = () => {
       let submitMethod = () => {
-        return snapshotWriter.restoreSnapshot(application, this.selectedAccount, this.snapshots[this.version].timestamp);
+        return snapshotWriter.restoreSnapshot(
+          application,
+          this.selectedAccount,
+          this.snapshots[this.version].timestamp,
+        );
       };
 
       let taskMonitor = {
@@ -103,7 +113,7 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
         provider: 'gce',
         body: '<p>This will change your infrastructure to the state specified in the snapshot selected</p>',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 

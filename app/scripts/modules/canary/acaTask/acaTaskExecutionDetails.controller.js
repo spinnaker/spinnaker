@@ -4,14 +4,19 @@ const angular = require('angular');
 
 import { CLUSTER_FILTER_SERVICE, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.acaTask.details.controller', [
-  require('@uirouter/angularjs').default,
-  CLUSTER_FILTER_SERVICE,
-  require('../canary/canaryDeployment/canaryDeploymentHistory.service.js').name
-])
-  .controller('acaTaskExecutionDetailsCtrl', function ($scope, $stateParams,
-                                                       executionDetailsSectionService, canaryDeploymentHistoryService, clusterFilterService) {
-
+module.exports = angular
+  .module('spinnaker.canary.acaTask.details.controller', [
+    require('@uirouter/angularjs').default,
+    CLUSTER_FILTER_SERVICE,
+    require('../canary/canaryDeployment/canaryDeploymentHistory.service.js').name,
+  ])
+  .controller('acaTaskExecutionDetailsCtrl', function(
+    $scope,
+    $stateParams,
+    executionDetailsSectionService,
+    canaryDeploymentHistoryService,
+    clusterFilterService,
+  ) {
     $scope.configSections = ['canarySummary', 'canaryConfig', 'canaryAnalysisHistory'];
 
     $scope.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
@@ -39,22 +44,25 @@ module.exports = angular.module('spinnaker.canary.acaTask.details.controller', [
       $scope.loadHistory();
     };
 
-
-    $scope.loadHistory = function () {
-      if ($scope.deployment.canary && $scope.deployment.canary.canaryDeployments && $scope.deployment.canary.canaryDeployments.length > 0) {
+    $scope.loadHistory = function() {
+      if (
+        $scope.deployment.canary &&
+        $scope.deployment.canary.canaryDeployments &&
+        $scope.deployment.canary.canaryDeployments.length > 0
+      ) {
         $scope.viewState.loadingHistory = true;
         $scope.viewState.loadingHistoryError = false;
 
         var canaryDeploymentId = $scope.deployment.canary.canaryDeployments[0].id;
         canaryDeploymentHistoryService.getAnalysisHistory(canaryDeploymentId).then(
-          function (results) {
+          function(results) {
             $scope.analysisHistory = results;
             $scope.viewState.loadingHistory = false;
           },
-          function () {
+          function() {
             $scope.viewState.loadingHistory = false;
             $scope.viewState.loadingHistoryError = true;
-          }
+          },
         );
       } else {
         $scope.analysisHistory = [];
@@ -69,5 +77,4 @@ module.exports = angular.module('spinnaker.canary.acaTask.details.controller', [
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

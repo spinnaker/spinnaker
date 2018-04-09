@@ -39,7 +39,7 @@ interface IZoom {
 }
 
 interface IChartOptions {
-  tooltipHook: {(rows: any[]): any};
+  tooltipHook: { (rows: any[]): any };
   series: IGraphSeries[];
   axes: IAxes;
   zoom: IZoom;
@@ -88,7 +88,9 @@ class ExecutionWindowAtlasGraphController implements IController {
   // Used to determine how tall to make the execution window bars - it's just the max of the SPS data
   private maxCount = 0;
 
-  public constructor(private $http: ng.IHttpService, private $filter: any) { 'ngInject'; }
+  public constructor(private $http: ng.IHttpService, private $filter: any) {
+    'ngInject';
+  }
 
   public buildGraph(): void {
     if (!this.stage.restrictedExecutionWindow.atlasEnabled) {
@@ -106,19 +108,20 @@ class ExecutionWindowAtlasGraphController implements IController {
         if (!metadata) {
           return;
         }
-        const timeseries = data.filter((e: any) => e.type === 'timeseries' && e.data.values.some((v: any) => v !== 'NaN'));
+        const timeseries = data.filter(
+          (e: any) => e.type === 'timeseries' && e.data.values.some((v: any) => v !== 'NaN'),
+        );
         timeseries.forEach((series: any) => {
-          const datapoints = series.data.values
-            .filter((v: any) => !isNaN(v))
-            .map((val: any, idx2: number) => {
-              this.maxCount = Math.max(this.maxCount, val);
-              return {
-                val: Math.round(val), timestamp: new Date(metadata.startTime + metadata.step * idx2)
-              };
-            });
+          const datapoints = series.data.values.filter((v: any) => !isNaN(v)).map((val: any, idx2: number) => {
+            this.maxCount = Math.max(this.maxCount, val);
+            return {
+              val: Math.round(val),
+              timestamp: new Date(metadata.startTime + metadata.step * idx2),
+            };
+          });
           datapoints.unshift({
             val: 0,
-            timestamp: new Date(metadata.startTime - metadata.step)
+            timestamp: new Date(metadata.startTime - metadata.step),
           });
           this.chartData.SPS = datapoints;
           this.chartOptions.series.push({
@@ -127,7 +130,7 @@ class ExecutionWindowAtlasGraphController implements IController {
             key: 'val',
             color: '#' + series.color.substring(2),
             type: ['area'],
-            id: 'SPS'
+            id: 'SPS',
           });
         });
         this.chartData.loading = false;
@@ -155,13 +158,13 @@ class ExecutionWindowAtlasGraphController implements IController {
     };
 
     this.chartOptions = {
-      tooltipHook: (rows) => {
+      tooltipHook: rows => {
         if (!rows) {
           return null;
         }
         return {
           abscissas: this.$filter('timestamp')(rows[0].row.x.getTime()),
-          rows: rows.filter(r => r.row.y1).map((row) => {
+          rows: rows.filter(r => r.row.y1).map(row => {
             if (row.series.dataset === 'windows') {
               return {
                 label: '(in selected window)',
@@ -174,10 +177,10 @@ class ExecutionWindowAtlasGraphController implements IController {
                 label: 'SPS',
                 value: row.row.y1,
                 color: row.series.color,
-                id: row.series.id
+                id: row.series.id,
               };
             }
-          })
+          }),
         };
       },
       series: [
@@ -187,19 +190,19 @@ class ExecutionWindowAtlasGraphController implements IController {
           key: 'val',
           color: 'green',
           type: ['area'],
-          id: 'Selected Execution Windows'
-        }
+          id: 'Selected Execution Windows',
+        },
       ],
       axes: {
         x: { key: 'timestamp', type: 'date', ticks: 6 },
         y: { ticks: 3, padding: { min: 0, max: 4 } },
         x2: { ticks: 0 },
-        y2: { ticks: 0 }
+        y2: { ticks: 0 },
       },
       zoom: {
         x: true,
-        y: true
-      }
+        y: true,
+      },
     };
 
     this.regions = SETTINGS.executionWindow.atlas.regions;
@@ -209,7 +212,9 @@ class ExecutionWindowAtlasGraphController implements IController {
   private getDefaultRegion(): string {
     const deployedRegions = new Set<string>();
     if (this.stage.clusters) {
-      this.stage.clusters.forEach((c: any) => Object.keys(c.availabilityZones).forEach((r: string) => deployedRegions.add(r)));
+      this.stage.clusters.forEach((c: any) =>
+        Object.keys(c.availabilityZones).forEach((r: string) => deployedRegions.add(r)),
+      );
       if (deployedRegions.size === 1 && this.regions.some(r => deployedRegions.has(r.label))) {
         return deployedRegions.values().next().value;
       }
@@ -244,7 +249,7 @@ class ExecutionWindowAtlasGraphController implements IController {
       const inWindow = windows.some(w => w.start <= ts.getTime() && w.end >= ts.getTime());
       this.chartData.windows.push({
         val: inWindow ? this.maxCount * 1.1 : 0,
-        timestamp: ts
+        timestamp: ts,
       });
     });
   }
@@ -253,28 +258,34 @@ class ExecutionWindowAtlasGraphController implements IController {
     const today = new Date();
     const zone: string = SETTINGS.defaultTimeZone;
 
-    const start = momentTimezone.tz(today, zone)
+    const start = momentTimezone
+        .tz(today, zone)
         .hour(window.displayStart.getHours())
         .minute(window.displayStart.getMinutes())
         .seconds(window.displayStart.getSeconds())
         .milliseconds(window.displayStart.getMilliseconds())
-        .subtract(dayOffset, 'days').toDate().getTime(),
-
-      end = momentTimezone.tz(today, zone)
+        .subtract(dayOffset, 'days')
+        .toDate()
+        .getTime(),
+      end = momentTimezone
+        .tz(today, zone)
         .hour(window.displayEnd.getHours())
         .minute(window.displayEnd.getMinutes())
         .seconds(window.displayEnd.getSeconds())
         .milliseconds(window.displayEnd.getMilliseconds())
-        .subtract(dayOffset, 'days').toDate().getTime();
+        .subtract(dayOffset, 'days')
+        .toDate()
+        .getTime();
 
     return { start, end };
   }
 
   private getAtlasUrl(): string {
-    const base: string = SETTINGS.executionWindow.atlas.regions.find((r: IAtlasRegion) => r.label === this.stage.restrictedExecutionWindow.currentRegion).baseUrl;
+    const base: string = SETTINGS.executionWindow.atlas.regions.find(
+      (r: IAtlasRegion) => r.label === this.stage.restrictedExecutionWindow.currentRegion,
+    ).baseUrl;
     return base + SETTINGS.executionWindow.atlas.url;
   }
-
 }
 
 class AtlasGraphComponent implements ng.IComponentOptions {
@@ -329,5 +340,4 @@ class AtlasGraphComponent implements ng.IComponentOptions {
 
 export const EXECUTION_WINDOW_ATLAS_GRAPH = 'spinnaker.core.pipeline.config.executionWindow.atlas.graph';
 
-module(EXECUTION_WINDOW_ATLAS_GRAPH, [])
-  .component('executionWindowAtlasGraph', new AtlasGraphComponent());
+module(EXECUTION_WINDOW_ATLAS_GRAPH, []).component('executionWindowAtlasGraph', new AtlasGraphComponent());

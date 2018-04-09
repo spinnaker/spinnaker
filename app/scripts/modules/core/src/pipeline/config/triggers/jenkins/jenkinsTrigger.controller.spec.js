@@ -3,32 +3,29 @@
 import _ from 'lodash';
 
 describe('Controller: jenkinsTrigger', function() {
+  beforeEach(window.module(require('./jenkinsTrigger.module.js').name));
 
   beforeEach(
-    window.module(
-      require('./jenkinsTrigger.module.js').name
-    )
+    window.inject(function($controller, $rootScope, $q, igorService) {
+      this.$q = $q;
+      this.igorService = igorService;
+      this.$scope = $rootScope.$new();
+      this.initializeController = function(trigger) {
+        this.controller = $controller('JenkinsTriggerCtrl', {
+          $scope: this.$scope,
+          trigger: trigger,
+          igorService: this.igorService,
+        });
+      };
+    }),
   );
-
-  beforeEach(window.inject(function ($controller, $rootScope, $q, igorService) {
-    this.$q = $q;
-    this.igorService = igorService;
-    this.$scope = $rootScope.$new();
-    this.initializeController = function (trigger) {
-      this.controller = $controller('JenkinsTriggerCtrl', {
-        $scope: this.$scope,
-        trigger: trigger,
-        igorService: this.igorService,
-      });
-    };
-  }));
 
   describe('updateJobsList', function() {
     it('gets list of jobs when initialized with a trigger with a master and sets loading states', function() {
       var $q = this.$q,
-          $scope = this.$scope,
-          jobs = ['some_job', 'some_other_job'],
-          trigger = {master: 'jenkins', job: 'some_job'};
+        $scope = this.$scope,
+        jobs = ['some_job', 'some_other_job'],
+        trigger = { master: 'jenkins', job: 'some_job' };
 
       spyOn(this.igorService, 'listJobsForMaster').and.returnValue($q.when(jobs));
       spyOn(this.igorService, 'listMasters').and.returnValue($q.when(['jenkins']));
@@ -46,21 +43,21 @@ describe('Controller: jenkinsTrigger', function() {
     it('updates jobs list when master changes, preserving job if present in both masters', function() {
       var masterA = {
           name: 'masterA',
-          jobs: ['a', 'b']
+          jobs: ['a', 'b'],
         },
         masterB = {
           name: 'masterB',
-          jobs: ['b', 'c']
+          jobs: ['b', 'c'],
         },
         trigger = {
           master: 'masterA',
-          job: 'a'
+          job: 'a',
         },
         $scope = this.$scope,
         $q = this.$q;
 
       spyOn(this.igorService, 'listJobsForMaster').and.callFake(function() {
-        return $q.when(_.find([masterA, masterB], {name: $scope.trigger.master}).jobs);
+        return $q.when(_.find([masterA, masterB], { name: $scope.trigger.master }).jobs);
       });
       spyOn(this.igorService, 'listMasters').and.returnValue($q.when(['masterA', 'masterB']));
       this.initializeController(trigger);
@@ -90,7 +87,7 @@ describe('Controller: jenkinsTrigger', function() {
     it('retains current job if no jobs found in master because that is probably a server-side issue', function() {
       var trigger = {
           master: 'masterA',
-          job: 'a'
+          job: 'a',
         },
         $scope = this.$scope,
         $q = this.$q;
@@ -105,5 +102,4 @@ describe('Controller: jenkinsTrigger', function() {
       expect(trigger.job).toBe('a');
     });
   });
-
 });

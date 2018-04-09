@@ -5,40 +5,41 @@ import { Subject } from 'rxjs';
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.configuration.service', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.configuration.service', [ACCOUNT_SERVICE])
   .factory('titusServerGroupConfigurationService', function(accountService, $q) {
-
-
     function configureCommand(command) {
       command.viewState.accountChangedStream = new Subject();
       command.viewState.regionChangedStream = new Subject();
       command.viewState.groupsRemovedStream = new Subject();
-      command.onStrategyChange = function (strategy) {
+      command.onStrategyChange = function(strategy) {
         // Any strategy other than None or Custom should force traffic to be enabled
         if (strategy.key !== '' && strategy.key !== 'custom') {
           command.inService = true;
         }
       };
       command.image = command.viewState.imageId;
-      return $q.all({
-        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
-        images: [],
-      }).then((backingData) => {
-        backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
-        backingData.filtered = {};
-        backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
-        command.backingData = backingData;
+      return $q
+        .all({
+          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
+          images: [],
+        })
+        .then(backingData => {
+          backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);
+          backingData.filtered = {};
+          backingData.filtered.regions = backingData.credentialsKeyedByAccount[command.credentials].regions;
+          command.backingData = backingData;
 
-        return $q.all([]).then(function() {
-          attachEventHandlers(command);
+          return $q.all([]).then(function() {
+            attachEventHandlers(command);
+          });
         });
-      });
     }
 
     function configureZones(command) {
-      command.backingData.filtered.regions = Object.keys(command.backingData.credentialsKeyedByAccount[command.credentials].regions);
+      command.backingData.filtered.regions = Object.keys(
+        command.backingData.credentialsKeyedByAccount[command.credentials].regions,
+      );
     }
 
     function attachEventHandlers(command) {

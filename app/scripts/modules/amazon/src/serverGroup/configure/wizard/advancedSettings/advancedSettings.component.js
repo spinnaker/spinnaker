@@ -7,9 +7,7 @@ import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.configure.wizard.advancedSettings.component', [
-    V2_MODAL_WIZARD_SERVICE,
-  ])
+  .module('spinnaker.amazon.serverGroup.configure.wizard.advancedSettings.component', [V2_MODAL_WIZARD_SERVICE])
   .component('awsServerGroupAdvancedSettings', {
     bindings: {
       command: '=',
@@ -24,5 +22,5 @@ module.exports = angular
       };
 
       this.disableSpotPricing = AWSProviderSettings.disableSpotPricing;
-    }
+    },
   });

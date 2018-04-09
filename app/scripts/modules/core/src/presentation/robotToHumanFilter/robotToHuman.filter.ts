@@ -14,12 +14,12 @@ export function robotToHuman(input: string): string {
   formattedInput = formattedInput.replace(/[A-Z]/g, ' $&');
 
   // clear snake case
-  formattedInput = formattedInput.replace(/_[a-z]/g, function (str) {
+  formattedInput = formattedInput.replace(/_[a-z]/g, function(str) {
     return ' ' + str.charAt(1).toUpperCase() + str.substr(2);
   });
 
   // then clear dash case
-  formattedInput = formattedInput.replace(/-[a-z]/g, function (str) {
+  formattedInput = formattedInput.replace(/-[a-z]/g, function(str) {
     return ' ' + str.charAt(1).toUpperCase() + str.substr(2);
   });
 
@@ -33,5 +33,4 @@ export function robotToHumanFilter() {
 }
 
 export const ROBOT_TO_HUMAN_FILTER = 'spinnaker.core.presentation.robotToHuman.filter';
-module(ROBOT_TO_HUMAN_FILTER, [])
-  .filter('robotToHuman', robotToHumanFilter);
+module(ROBOT_TO_HUMAN_FILTER, []).filter('robotToHuman', robotToHumanFilter);

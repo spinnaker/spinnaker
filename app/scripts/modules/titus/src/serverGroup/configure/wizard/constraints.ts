@@ -1,5 +1,1 @@
-export const ConstraintOptions = [
-  'ExclusiveHost',
-  'UniqueHost',
-  'ZoneBalance'
-];
+export const ConstraintOptions = ['ExclusiveHost', 'UniqueHost', 'ZoneBalance'];

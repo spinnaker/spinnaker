@@ -12,18 +12,27 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.controller', [
-  require('@uirouter/angularjs').default,
-  ACCOUNT_SERVICE,
-  SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
-  CONFIRMATION_MODAL_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('kubernetesSecurityGroupDetailsController', function ($scope, $state, resolvedSecurityGroup, accountService, app,
-                                                    confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $uibModal, cloudProviderRegistry) {
-
+module.exports = angular
+  .module('spinnaker.securityGroup.kubernetes.details.controller', [
+    require('@uirouter/angularjs').default,
+    ACCOUNT_SERVICE,
+    SECURITY_GROUP_READER,
+    SECURITY_GROUP_WRITER,
+    CONFIRMATION_MODAL_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('kubernetesSecurityGroupDetailsController', function(
+    $scope,
+    $state,
+    resolvedSecurityGroup,
+    accountService,
+    app,
+    confirmationModalService,
+    securityGroupWriter,
+    securityGroupReader,
+    $uibModal,
+    cloudProviderRegistry,
+  ) {
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 
@@ -36,23 +45,30 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
     };
 
     function extractSecurityGroup() {
-      return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
-        $scope.state.loading = false;
+      return securityGroupReader
+        .getSecurityGroupDetails(
+          application,
+          securityGroup.accountId,
+          securityGroup.provider,
+          securityGroup.region,
+          securityGroup.vpcId,
+          securityGroup.name,
+        )
+        .then(function(details) {
+          $scope.state.loading = false;
 
-        if (!details || _.isEmpty(details)) {
-          autoClose();
-        } else {
-          $scope.securityGroup = details;
+          if (!details || _.isEmpty(details)) {
+            autoClose();
+          } else {
+            $scope.securityGroup = details;
 
-          // Change TLS hosts from array to string for the UI
-          for (let idx in $scope.securityGroup.tls) {
-            const tls = $scope.securityGroup.tls[idx];
-            tls.hosts = tls.hosts[0];
+            // Change TLS hosts from array to string for the UI
+            for (let idx in $scope.securityGroup.tls) {
+              const tls = $scope.securityGroup.tls[idx];
+              tls.hosts = tls.hosts[0];
+            }
           }
-        }
-      },
-        autoClose
-      );
+        }, autoClose);
     }
 
     this.showYaml = function showYaml() {
@@ -60,7 +76,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
       $scope.userData = $scope.securityGroup.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
@@ -69,7 +85,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     extractSecurityGroup().then(() => {
@@ -79,7 +95,6 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
         app.securityGroups.onRefresh($scope, extractSecurityGroup);
       }
     });
-
 
     this.editSecurityGroup = function editSecurityGroup() {
       $uibModal.open({
@@ -95,8 +110,8 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
           },
           application: function() {
             return application;
-          }
-        }
+          },
+        },
       });
     };
 
@@ -106,7 +121,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
         title: 'Deleting ' + securityGroup.name,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: $scope.securityGroup.type,
           securityGroupName: securityGroup.name,
@@ -121,13 +136,13 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
         account: securityGroup.accountId,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     if (app.isStandalone) {
       app.securityGroups = {
-        refresh: extractSecurityGroup
+        refresh: extractSecurityGroup,
       };
     }
   });

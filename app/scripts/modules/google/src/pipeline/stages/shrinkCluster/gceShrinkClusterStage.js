@@ -4,34 +4,34 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage..shrinkClusterStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage..shrinkClusterStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'gce',
       templateUrl: require('./shrinkClusterStage.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('gceShrinkClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('gceShrinkClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function (accounts) {
+    accountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -66,4 +66,3 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..shrinkClusterStag
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
   });
-

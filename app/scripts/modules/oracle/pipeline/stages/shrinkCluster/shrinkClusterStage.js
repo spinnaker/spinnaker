@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.oraclebmcs.shrinkClusterStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.oraclebmcs.shrinkClusterStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
@@ -14,23 +13,23 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.oraclebmcs.shrink
       templateUrl: require('./shrinkClusterStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('oraclebmcsShrinkClusterStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('oraclebmcsShrinkClusterStageCtrl', function($scope, accountService) {
     let ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('oraclebmcs').then(function (accounts) {
+    accountService.listAccounts('oraclebmcs').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -56,7 +55,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.oraclebmcs.shrink
     }
 
     ctrl.pluralize = function(str, val) {
-      return (val === 1) ? str : str + 's';
+      return val === 1 ? str : str + 's';
     };
 
     if (stage.retainLargerOverNewer === undefined) {

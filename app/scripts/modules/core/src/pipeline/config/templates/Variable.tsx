@@ -17,9 +17,10 @@ export interface IVariableProps {
 
 @BindAll()
 export class Variable extends React.Component<IVariableProps> {
-
   private getVariableInput(): JSX.Element {
-    const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(this.props.variableMetadata.type);
+    const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(
+      this.props.variableMetadata.type,
+    );
     return input ? input.getInput(this.props.variable, this.props.onChange) : null;
   }
 
@@ -30,12 +31,10 @@ export class Variable extends React.Component<IVariableProps> {
           <div className="col-md-4">
             <div className="pull-right">
               <code>{this.props.variable.name}</code>
-              <VariableMetadataHelpField metadata={this.props.variableMetadata}/>
+              <VariableMetadataHelpField metadata={this.props.variableMetadata} />
             </div>
           </div>
-          <div className="col-md-7">
-            {this.getVariableInput()}
-          </div>
+          <div className="col-md-7">{this.getVariableInput()}</div>
         </div>
       </div>
     );

@@ -2,33 +2,37 @@
 
 import _ from 'lodash';
 
-import {AzureProviderSettings} from '../azure.settings';
+import { AzureProviderSettings } from '../azure.settings';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
-])
-  .factory('azureLoadBalancerTransformer', function ($q) {
-
+module.exports = angular
+  .module('spinnaker.azure.loadBalancer.transformer', [])
+  .factory('azureLoadBalancerTransformer', function($q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
-      serverGroup.account = loadBalancer.account;
-      serverGroup.region = loadBalancer.region;
+        serverGroup.account = loadBalancer.account;
+        serverGroup.region = loadBalancer.region;
 
-      if (serverGroup.detachedInstances) {
-        serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
-          return { id: instanceId };
-        });
-        serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
-      } else {
-        serverGroup.detachedInstances = [];
-      }
-
+        if (serverGroup.detachedInstances) {
+          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+            return { id: instanceId };
+          });
+          serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
+        } else {
+          serverGroup.detachedInstances = [];
+        }
       });
-      var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
+      var activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
-      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
+      loadBalancer.instances = _.chain(activeServerGroups)
+        .map('instances')
+        .flatten()
+        .value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups)
+        .map('detachedInstances')
+        .flatten()
+        .value();
       return $q.resolve(loadBalancer);
     }
 
@@ -62,7 +66,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
 
     function constructNewLoadBalancerTemplate(application) {
       var defaultCredentials = application.defaultCredentials.azure || AzureProviderSettings.defaults.account,
-          defaultRegion = application.defaultRegion || AzureProviderSettings.defaults.region;
+        defaultRegion = application.defaultRegion || AzureProviderSettings.defaults.region;
       return {
         stack: '',
         detail: 'frontend',
@@ -79,8 +83,8 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
             probePath: '/',
             probeInterval: 30,
             unhealthyThreshold: 8,
-			timeout: 120
-          }
+            timeout: 120,
+          },
         ],
         securityGroups: [],
         loadBalancingRules: [
@@ -92,7 +96,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
             probeName: '',
             persistence: 'None',
             idleTimeout: 4,
-          }
+          },
         ],
       };
     }
@@ -102,5 +106,4 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
-
   });

@@ -2,16 +2,16 @@
 
 import _ from 'lodash';
 
-import {PIPELINE_TEMPLATE_SERVICE} from './templates/pipelineTemplate.service';
+import { PIPELINE_TEMPLATE_SERVICE } from './templates/pipelineTemplate.service';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
-  require('@uirouter/angularjs').default,
-  PIPELINE_TEMPLATE_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.controller', [
+    require('@uirouter/angularjs').default,
+    PIPELINE_TEMPLATE_SERVICE,
+  ])
   .controller('PipelineConfigCtrl', function($scope, $stateParams, app, pipelineTemplateService) {
-
     this.application = app;
     this.state = {
       pipelinesLoaded: false,
@@ -25,8 +25,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
         this.isTemplatedPipeline = true;
         this.hasDynamicSource = this.containsJinja(this.pipelineConfig.config.pipeline.template.source);
         if (!this.pipelineConfig.isNew) {
-          return pipelineTemplateService.getPipelinePlan(this.pipelineConfig, $stateParams.executionId)
-            .then(plan => this.pipelinePlan = plan)
+          return pipelineTemplateService
+            .getPipelinePlan(this.pipelineConfig, $stateParams.executionId)
+            .then(plan => (this.pipelinePlan = plan))
             .catch(error => {
               this.templateError = error;
               this.pipelineConfig.isNew = true;
@@ -42,6 +43,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
 
     if (!app.notFound) {
       app.pipelineConfigs.activate();
-      app.pipelineConfigs.ready().then(this.initialize).then(() => this.state.pipelinesLoaded = true);
+      app.pipelineConfigs
+        .ready()
+        .then(this.initialize)
+        .then(() => (this.state.pipelinesLoaded = true));
     }
   });

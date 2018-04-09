@@ -1,35 +1,35 @@
 import { IComponentControllerService, mock } from 'angular';
-import { DeployInitializerController, DEPLOY_INITIALIZER_COMPONENT } from 'core/serverGroup/configure/common/deployInitializer.component';
+import {
+  DeployInitializerController,
+  DEPLOY_INITIALIZER_COMPONENT,
+} from 'core/serverGroup/configure/common/deployInitializer.component';
 import { Application, ApplicationModelBuilder, APPLICATION_MODEL_BUILDER } from 'core/application';
 
 describe('Component: deployInitializer', () => {
-
   let ctrl: DeployInitializerController,
-      $componentController: IComponentControllerService,
-      applicationModelBuilder: ApplicationModelBuilder,
-      application: Application;
+    $componentController: IComponentControllerService,
+    applicationModelBuilder: ApplicationModelBuilder,
+    application: Application;
 
   const initialize = () => {
-    ctrl = <DeployInitializerController> $componentController(
+    ctrl = <DeployInitializerController>$componentController(
       'deployInitializer',
       {},
-      { application, command: { viewState: {} }, cloudProvider: 'aws' }
+      { application, command: { viewState: {} }, cloudProvider: 'aws' },
     );
     ctrl.$onInit();
   };
 
-  beforeEach(mock.module(
-    DEPLOY_INITIALIZER_COMPONENT,
-    APPLICATION_MODEL_BUILDER
-  ));
+  beforeEach(mock.module(DEPLOY_INITIALIZER_COMPONENT, APPLICATION_MODEL_BUILDER));
 
-  beforeEach(mock.inject((
-    _applicationModelBuilder_: ApplicationModelBuilder,
-    _$componentController_: IComponentControllerService,
-  ) => {
-    applicationModelBuilder = _applicationModelBuilder_;
-    $componentController = _$componentController_;
-  }));
+  beforeEach(
+    mock.inject(
+      (_applicationModelBuilder_: ApplicationModelBuilder, _$componentController_: IComponentControllerService) => {
+        applicationModelBuilder = _applicationModelBuilder_;
+        $componentController = _$componentController_;
+      },
+    ),
+  );
 
   describe('template initialization', () => {
     it('creates separate template options for each account and region of a cluster', () => {
@@ -58,7 +58,7 @@ describe('Component: deployInitializer', () => {
           region: 'us-east-1',
           cloudProvider: 'aws',
           category: 'serverGroup',
-        }
+        },
       ];
 
       initialize();

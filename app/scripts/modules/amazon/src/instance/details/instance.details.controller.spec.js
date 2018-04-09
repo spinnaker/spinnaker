@@ -1,22 +1,16 @@
 import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
-describe('Controller: awsInstanceDetailsCtrl', function () {
-
+describe('Controller: awsInstanceDetailsCtrl', function() {
   var controller;
   var scope;
   var instanceReader;
   var $q;
   var application;
 
-  beforeEach(
-    window.module(
-      require('./instance.details.controller').name,
-      APPLICATION_MODEL_BUILDER
-    )
-  );
+  beforeEach(window.module(require('./instance.details.controller').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_, applicationModelBuilder) {
+    window.inject(function($rootScope, $controller, _instanceReader_, _$q_, applicationModelBuilder) {
       scope = $rootScope.$new();
       instanceReader = _instanceReader_;
       $q = _$q_;
@@ -33,24 +27,26 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
         });
       };
 
-      application = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true}, {key: 'serverGroups', lazy: true});
-    })
+      application = applicationModelBuilder.createApplication(
+        'app',
+        { key: 'loadBalancers', lazy: true },
+        { key: 'serverGroups', lazy: true },
+      );
+    }),
   );
 
-  describe('health metrics', function () {
+  describe('health metrics', function() {
     it('overrides new health with health from application, adding new fields', function() {
       var details = {
-        health: [
-          { type: 'Discovery', status: 'Up', extra: 'details field', reason: 'mutated'}
-        ]
+        health: [{ type: 'Discovery', status: 'Up', extra: 'details field', reason: 'mutated' }],
       };
       var params = {
-        instanceId: 'i-123', region: 'us-west-1', account: 'test'
+        instanceId: 'i-123',
+        region: 'us-west-1',
+        account: 'test',
       };
 
-      spyOn(instanceReader, 'getInstanceDetails').and.returnValue(
-        $q.when(details)
-      );
+      spyOn(instanceReader, 'getInstanceDetails').and.returnValue($q.when(details));
 
       application.loadBalancers.loaded = true;
 
@@ -61,12 +57,10 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
           instances: [
             {
               id: 'i-123',
-              health: [
-                { type: 'Discovery', status: 'Down', reason: 'original reason'}
-              ]
-            }
-          ]
-        }
+              health: [{ type: 'Discovery', status: 'Down', reason: 'original reason' }],
+            },
+          ],
+        },
       ];
       application.serverGroups.loaded = true;
 
@@ -82,17 +76,19 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
 
   describe('canRegister methods', function() {
     beforeEach(function() {
-      var details = { };
+      var details = {};
       var params = {
-        instanceId: 'i-123', region: 'us-west-1', account: 'test'
+        instanceId: 'i-123',
+        region: 'us-west-1',
+        account: 'test',
       };
 
       spyOn(instanceReader, 'getInstanceDetails').and.returnValue(
         $q.when({
           plain: function() {
             return details;
-          }
-        })
+          },
+        }),
       );
 
       application.loadBalancers.loaded = true;
@@ -104,12 +100,10 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
           instances: [
             {
               id: 'i-123',
-              health: [
-                { type: 'Discovery', state: 'Up', reason: 'original reason'}
-              ]
-            }
-          ]
-        }
+              health: [{ type: 'Discovery', state: 'Up', reason: 'original reason' }],
+            },
+          ],
+        },
       ];
       application.serverGroups.loaded = true;
 
@@ -137,7 +131,6 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
       expect(controller.canRegisterWithLoadBalancer()).toBe(true);
       scope.instance.health[0].state = 'Up';
       expect(controller.canRegisterWithLoadBalancer()).toBe(false);
-
     });
   });
 });

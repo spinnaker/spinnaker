@@ -7,7 +7,7 @@ import {
   IServerGroup,
   ITask,
   TASK_EXECUTOR,
-  TaskExecutor
+  TaskExecutor,
 } from '@spinnaker/core';
 
 import {
@@ -17,7 +17,7 @@ import {
   IStepAdjustment,
   MetricAggregationType,
   ScalingPolicyAdjustmentType,
-  StandardUnitType
+  StandardUnitType,
 } from 'amazon/domain';
 
 export interface IUpsertScalingPolicyCommand extends IJob {
@@ -46,9 +46,9 @@ export interface IStepPolicyDescription {
 }
 
 export interface IConfigurableMetric {
-  namespace: string,
-  metricName: string,
-  dimensions: IMetricAlarmDimension[],
+  namespace: string;
+  metricName: string;
+  dimensions: IMetricAlarmDimension[];
 }
 
 export interface IUpsertAlarmDescription extends IConfigurableMetric {
@@ -68,7 +68,6 @@ export interface IUpsertAlarmDescription extends IConfigurableMetric {
 }
 
 export class ScalingPolicyWriter {
-
   constructor(private taskExecutor: TaskExecutor) {
     'ngInject';
   }
@@ -78,11 +77,15 @@ export class ScalingPolicyWriter {
     return this.taskExecutor.executeTask({
       application,
       description: 'Upsert scaling policy ' + (command.name || command.serverGroupName),
-      job: [command]
+      job: [command],
     });
   }
 
-  public deleteScalingPolicy(application: Application, serverGroup: IServerGroup, scalingPolicy: IScalingPolicy): IPromise<ITask> {
+  public deleteScalingPolicy(
+    application: Application,
+    serverGroup: IServerGroup,
+    scalingPolicy: IScalingPolicy,
+  ): IPromise<ITask> {
     return this.taskExecutor.executeTask({
       application,
       description: 'Delete scaling policy ' + scalingPolicy.policyName,
@@ -94,14 +97,11 @@ export class ScalingPolicyWriter {
           region: serverGroup.region,
           policyName: scalingPolicy.policyName,
           serverGroupName: serverGroup.name,
-        }
-      ]
+        },
+      ],
     });
   }
 }
 
 export const SCALING_POLICY_WRITE_SERVICE = 'spinnaker.amazon.serverGroup.details.scalingPolicy.write.service';
-module(SCALING_POLICY_WRITE_SERVICE, [
-    TASK_EXECUTOR,
-  ])
-  .service('scalingPolicyWriter', ScalingPolicyWriter);
+module(SCALING_POLICY_WRITE_SERVICE, [TASK_EXECUTOR]).service('scalingPolicyWriter', ScalingPolicyWriter);

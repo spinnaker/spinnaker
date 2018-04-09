@@ -1,6 +1,6 @@
 'use strict';
 
-import {KUBERNETES_LIFECYCLE_HOOK_DETAILS} from './lifecycleHookDetails.component';
+import { KUBERNETES_LIFECYCLE_HOOK_DETAILS } from './lifecycleHookDetails.component';
 import { KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL } from './containerDetail.component';
 
 const angular = require('angular');

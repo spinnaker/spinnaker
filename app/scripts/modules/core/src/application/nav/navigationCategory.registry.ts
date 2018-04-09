@@ -40,7 +40,6 @@ export class NavigationCategoryRegistry {
     const { key, order } = category;
     return this.orderOverrides.has(key) ? this.orderOverrides.get(key) : order;
   }
-
 }
 
 export const navigationCategoryRegistry = new NavigationCategoryRegistry();

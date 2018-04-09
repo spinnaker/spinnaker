@@ -2,11 +2,22 @@ import * as React from 'react';
 
 import { Tooltip } from 'core/presentation';
 
-export const SpInput = (props: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> & { error?: string, name: string }) => {
+export const SpInput = (
+  props: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> & {
+    error?: string;
+    name: string;
+  },
+) => {
   const { error, ...inputProps } = props;
-  if (error) { inputProps.className = inputProps.className ? `${inputProps.className} ` : 'invalid'; }
+  if (error) {
+    inputProps.className = inputProps.className ? `${inputProps.className} ` : 'invalid';
+  }
   inputProps.type = inputProps.type || 'text';
-  return <Tooltip id={inputProps.name} value={props.error} placement="right"><input {...inputProps} /></Tooltip>;
+  return (
+    <Tooltip id={inputProps.name} value={props.error} placement="right">
+      <input {...inputProps} />
+    </Tooltip>
+  );
 };
 
 export const spelNumberCheck = (value: string | number, allowNegative?: boolean): string => {
@@ -25,4 +36,3 @@ export const spelNumberCheck = (value: string | number, allowNegative?: boolean)
 
   return !allowNegative && numberValue < 0 ? invalidError : null;
 };
-

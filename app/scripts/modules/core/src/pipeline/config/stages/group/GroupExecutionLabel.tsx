@@ -34,7 +34,7 @@ export class GroupExecutionLabel extends React.Component<IGroupExecutionLabelPro
     const { stage } = this.props;
 
     if (!this.props.executionMarker) {
-      return (<ExecutionBarLabel {...this.props}/>);
+      return <ExecutionBarLabel {...this.props} />;
     }
 
     return (

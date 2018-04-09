@@ -1,19 +1,28 @@
 'use strict';
 
 const angular = require('angular');
-import {TITUS_SECURITY_GROUP_PICKER} from '../../../securityGroup/securityGroupPicker.component';
-import {TITUS_LOAD_BALANCER_SELECTOR} from '../../../loadBalancers/loadBalancerSelector.component';
+import { TITUS_SECURITY_GROUP_PICKER } from '../../../securityGroup/securityGroupPicker.component';
+import { TITUS_LOAD_BALANCER_SELECTOR } from '../../../loadBalancers/loadBalancerSelector.component';
 
-
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [
-  require('@uirouter/angularjs').default,
-  TITUS_SECURITY_GROUP_PICKER,
-  TITUS_LOAD_BALANCER_SELECTOR
-])
-  .controller('titusCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                    serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
-                                                    titusServerGroupConfigurationService,
-                                                    serverGroupCommand, application, title) {
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [
+    require('@uirouter/angularjs').default,
+    TITUS_SECURITY_GROUP_PICKER,
+    TITUS_LOAD_BALANCER_SELECTOR,
+  ])
+  .controller('titusCloneServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    $state,
+    serverGroupWriter,
+    v2modalWizardService,
+    taskMonitorBuilder,
+    titusServerGroupConfigurationService,
+    serverGroupCommand,
+    application,
+    title,
+  ) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
@@ -38,7 +47,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
       if ($scope.$$destroyed) {
         return;
       }
-      let cloneStage = $scope.taskMonitor.task.execution.stages.find((stage) => stage.type === 'cloneServerGroup');
+      let cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
         let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
@@ -49,13 +58,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
             provider: 'titus',
           };
           var transitionTo = '^.^.^.clusters.serverGroup';
-          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+          if ($state.includes('**.clusters.serverGroup')) {
+            // clone via details, all view
             transitionTo = '^.serverGroup';
           }
-          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+          if ($state.includes('**.clusters.cluster.serverGroup')) {
+            // clone or create with details open
             transitionTo = '^.^.serverGroup';
           }
-          if ($state.includes('**.clusters')) { // create new, no details open
+          if ($state.includes('**.clusters')) {
+            // create new, no details open
             transitionTo = '.serverGroup';
           }
           $state.go(transitionTo, newStateParams);
@@ -79,7 +91,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
 
     serverGroupCommand.deferredInitialization = true;
     function configureCommand() {
-      titusServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
+      titusServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function() {
         serverGroupCommand.registry =
           serverGroupCommand.backingData.credentialsKeyedByAccount[serverGroupCommand.credentials].registry;
         $scope.state.loaded = true;
@@ -87,31 +99,32 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServ
       });
     }
 
-    this.isValid = function () {
-      return $scope.command && ($scope.command.viewState.disableImageSelection || $scope.command.imageId) &&
-        ($scope.command.credentials !== null) &&
-        ($scope.command.region !== null) &&
-        ($scope.command.capacity.desired !== null) &&
-        v2modalWizardService.isComplete();
+    this.isValid = function() {
+      return (
+        $scope.command &&
+        ($scope.command.viewState.disableImageSelection || $scope.command.imageId) &&
+        $scope.command.credentials !== null &&
+        $scope.command.region !== null &&
+        $scope.command.capacity.desired !== null &&
+        v2modalWizardService.isComplete()
+      );
     };
 
-    this.showSubmitButton = function () {
+    this.showSubmitButton = function() {
       return v2modalWizardService.allPagesVisited();
     };
 
-    this.clone = function () {
+    this.clone = function() {
       let command = angular.copy($scope.command);
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close(command);
       }
-      $scope.taskMonitor.submit(
-        function() {
-          return serverGroupWriter.cloneServerGroup(command, application);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        return serverGroupWriter.cloneServerGroup(command, application);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 

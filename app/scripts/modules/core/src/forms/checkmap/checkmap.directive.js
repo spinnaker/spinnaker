@@ -4,8 +4,9 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directive', [])
-  .directive('checkmap', function () {
+module.exports = angular
+  .module('spinnaker.core.forms.checkmap.checkmap.directive', [])
+  .directive('checkmap', function() {
     return {
       restrict: 'E',
       templateUrl: require('./checkmap.directive.html'),
@@ -14,7 +15,7 @@ module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directiv
         itemMap: '=',
         // Array of selected items from the itemMap, regardless of key.
         selectedItems: '=',
-        onChange: '&'
+        onChange: '&',
       },
       link: function(scope) {
         function initializeModelHolder() {
@@ -47,7 +48,6 @@ module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directiv
             });
           });
 
-
           angular.copy(newSelectedItems, scope.selectedItems);
 
           if (scope.onChange) {
@@ -59,6 +59,6 @@ module.exports = angular.module('spinnaker.core.forms.checkmap.checkmap.directiv
 
         scope.$watch('itemMap', initializeModelHolder);
         scope.$watch('selectedItems', initializeModelHolder);
-      }
+      },
     };
   });

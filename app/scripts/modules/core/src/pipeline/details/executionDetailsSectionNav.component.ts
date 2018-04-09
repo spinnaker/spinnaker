@@ -4,5 +4,7 @@ import { react2angular } from 'react2angular';
 import { ExecutionDetailsSectionNav } from './ExecutionDetailsSectionNav';
 
 export const EXECUTION_DETAILS_SECTION_NAV = 'spinnaker.core.pipeline.details.executionDetailsSectionNav';
-module(EXECUTION_DETAILS_SECTION_NAV, [])
-  .component('executionDetailsSectionNav', react2angular(ExecutionDetailsSectionNav, ['sections']));
+module(EXECUTION_DETAILS_SECTION_NAV, []).component(
+  'executionDetailsSectionNav',
+  react2angular(ExecutionDetailsSectionNav, ['sections']),
+);

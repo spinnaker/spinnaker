@@ -1,26 +1,23 @@
 'use strict';
 
-describe('Directives: checklist', function () {
-
+describe('Directives: checklist', function() {
   require('./checklist.directive.html');
 
-  beforeEach(
-    window.module(
-      require('./checklist.directive.js').name
-    )
-  );
+  beforeEach(window.module(require('./checklist.directive.js').name));
 
-  beforeEach(window.inject(function ($rootScope, $compile) {
-    this.scope = $rootScope.$new();
-    this.compile = $compile;
-  }));
+  beforeEach(
+    window.inject(function($rootScope, $compile) {
+      this.scope = $rootScope.$new();
+      this.compile = $compile;
+    }),
+  );
 
   it('initializes with provided values', function() {
     var scope = this.scope,
-        compile = this.compile;
+      compile = this.compile;
 
     scope.model = {
-      selections: ['a', 'b', 'c']
+      selections: ['a', 'b', 'c'],
     };
 
     scope.items = ['a', 'b', 'c', 'd'];
@@ -31,7 +28,6 @@ describe('Directives: checklist', function () {
 
     expect(checklist.find('input').length).toBe(4);
     expect(checklist.find('input:checked').length).toBe(3);
-
   });
 
   it('updates selections, model when model or items change externally', function() {
@@ -39,7 +35,7 @@ describe('Directives: checklist', function () {
       compile = this.compile;
 
     scope.model = {
-      selections: ['a', 'b', 'c']
+      selections: ['a', 'b', 'c'],
     };
 
     scope.items = ['a', 'b', 'c', 'd'];
@@ -69,10 +65,10 @@ describe('Directives: checklist', function () {
 
   it('selects all items when clicking "Select All"', function() {
     var scope = this.scope,
-        compile = this.compile;
+      compile = this.compile;
 
     scope.model = {
-      selections: ['a', 'b', 'c']
+      selections: ['a', 'b', 'c'],
     };
 
     scope.items = ['a', 'b', 'c', 'd'];
@@ -88,15 +84,16 @@ describe('Directives: checklist', function () {
 
   it('deselects all items when clicking "Deselect All"', function() {
     var scope = this.scope,
-        compile = this.compile;
+      compile = this.compile;
 
     scope.model = {
-      selections: ['a', 'b', 'c', 'd']
+      selections: ['a', 'b', 'c', 'd'],
     };
 
     scope.items = ['a', 'b', 'c', 'd'];
 
-    var html = '<checklist model="model.selections" items="items" inline="true" include-select-all-button="true"></checklist>';
+    var html =
+      '<checklist model="model.selections" items="items" inline="true" include-select-all-button="true"></checklist>';
     var checklist = compile(html)(scope);
     scope.$digest();
 
@@ -107,10 +104,10 @@ describe('Directives: checklist', function () {
 
   it('shows correct text for "Deselect" or "Select" based on current selection', function() {
     var scope = this.scope,
-        compile = this.compile;
+      compile = this.compile;
 
     scope.model = {
-      selections: ['a', 'b', 'c']
+      selections: ['a', 'b', 'c'],
     };
 
     scope.items = ['a', 'b', 'c', 'd'];

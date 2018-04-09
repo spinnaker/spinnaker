@@ -5,41 +5,39 @@ import { API_SERVICE } from '@spinnaker/core';
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
 describe('vpcReader', function() {
-
   var service, $http, $scope, API;
 
-  beforeEach(
-    window.module(
-      VPC_READ_SERVICE,
-      API_SERVICE
-    )
-  );
+  beforeEach(window.module(VPC_READ_SERVICE, API_SERVICE));
 
-  beforeEach(window.inject(function ($httpBackend, $rootScope, _vpcReader_, _API_) {
-    API = _API_;
-    service = _vpcReader_;
-    $http = $httpBackend;
-    $scope = $rootScope.$new();
-  }));
+  beforeEach(
+    window.inject(function($httpBackend, $rootScope, _vpcReader_, _API_) {
+      API = _API_;
+      service = _vpcReader_;
+      $http = $httpBackend;
+      $scope = $rootScope.$new();
+    }),
+  );
 
   afterEach(function() {
     service.resetCache();
   });
 
   beforeEach(function() {
-    $http.whenGET(API.baseUrl + '/networks/aws').respond(200, [
-      { name: 'vpc1', id: 'vpc-1', deprecated: true },
-      { name: 'vpc2', id: 'vpc-2', deprecated: false },
-      { name: 'vpc3', id: 'vpc-3' },
-    ]);
+    $http
+      .whenGET(API.baseUrl + '/networks/aws')
+      .respond(200, [
+        { name: 'vpc1', id: 'vpc-1', deprecated: true },
+        { name: 'vpc2', id: 'vpc-2', deprecated: false },
+        { name: 'vpc3', id: 'vpc-3' },
+      ]);
   });
 
-
-  it('adds label to vpc, including (deprecated) if deprecated field is true', function () {
-
+  it('adds label to vpc, including (deprecated) if deprecated field is true', function() {
     var result = null;
 
-    service.listVpcs().then(function(vpcs) { result = vpcs; });
+    service.listVpcs().then(function(vpcs) {
+      result = vpcs;
+    });
 
     $http.flush();
     $scope.$digest();
@@ -53,27 +51,31 @@ describe('vpcReader', function() {
   });
 
   it('retrieves vpc name - not label - from id', function() {
-
     var result = null;
 
-    service.getVpcName('vpc-1').then(function(name) { result = name; });
+    service.getVpcName('vpc-1').then(function(name) {
+      result = name;
+    });
 
     $http.flush();
     $scope.$digest();
 
     expect(result).toBe('vpc1');
 
-    service.getVpcName('vpc-2').then(function(name) { result = name; });
+    service.getVpcName('vpc-2').then(function(name) {
+      result = name;
+    });
 
     $scope.$digest();
 
     expect(result).toBe('vpc2');
 
-    service.getVpcName('vpc-4').then(function(name) { result = name; });
+    service.getVpcName('vpc-4').then(function(name) {
+      result = name;
+    });
 
     $scope.$digest();
 
     expect(result).toBe(null);
   });
-
 });

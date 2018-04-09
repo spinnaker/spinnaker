@@ -3,13 +3,13 @@ import * as angular from 'angular';
 import { IScope } from 'angular';
 import { $compile, $controller, $templateRequest } from 'ngimport';
 
-export interface IRenderAngularJSBaseProps extends React.HTMLProps<HTMLDivElement>  {
+export interface IRenderAngularJSBaseProps extends React.HTMLProps<HTMLDivElement> {
   controller?: string;
-  controllerAs?: string
+  controllerAs?: string;
   locals?: { [key: string]: any };
 }
 export type IRenderAngularJSTemplateProps = IRenderAngularJSBaseProps & { template: string };
-export type IRenderAngularJSTemplateUrlProps = IRenderAngularJSBaseProps & { templateUrl: string }
+export type IRenderAngularJSTemplateUrlProps = IRenderAngularJSBaseProps & { templateUrl: string };
 export type IRenderAngularJSProps = IRenderAngularJSTemplateProps | IRenderAngularJSTemplateUrlProps;
 
 export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
@@ -45,10 +45,16 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
     }
   }
 
-  private renderAngularTemplateAndController(ref: Element, templateString: string, controller?: string, controllerAs?: string, locals?: object) {
+  private renderAngularTemplateAndController(
+    ref: Element,
+    templateString: string,
+    controller?: string,
+    controllerAs?: string,
+    locals?: object,
+  ) {
     const $element = angular.element(ref);
     const parentScope = $element.scope();
-    const $scope = this.$scope = parentScope.$new();
+    const $scope = (this.$scope = parentScope.$new());
     $scope.props = this.props;
 
     $element.html(templateString);
@@ -61,12 +67,11 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
     }
   }
 
-
   public componentWillUnmount() {
     this.$scope.$destroy();
   }
 
   public render() {
-    return <div className="AngularJSAdapter" ref={(ref) => this.refCallback(ref)} />
+    return <div className="AngularJSAdapter" ref={ref => this.refCallback(ref)} />;
   }
 }

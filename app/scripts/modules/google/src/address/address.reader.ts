@@ -5,7 +5,7 @@ import {
   InfrastructureCacheService,
   ISearchResults,
   SEARCH_SERVICE,
-  SearchService
+  SearchService,
 } from '@spinnaker/core';
 
 interface IAddressSearchResults {
@@ -33,24 +33,29 @@ export interface IGceAddress {
 }
 
 class GceAddressReader {
-  constructor (private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) { 'ngInject'; }
+  constructor(private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) {
+    'ngInject';
+  }
 
   public listAddresses(region?: string): IPromise<IGceAddress[]> {
     if (region) {
-      return this.listAddresses(null /* region */).then(addresses => addresses.filter(address => address.region === region));
+      return this.listAddresses(null /* region */).then(addresses =>
+        addresses.filter(address => address.region === region),
+      );
     } else {
       return this.searchService
-        .search<IAddressSearchResults>({ q: '', type: 'addresses', allowShortQuery: 'true' }, this.infrastructureCaches.get('addresses'))
+        .search<IAddressSearchResults>(
+          { q: '', type: 'addresses', allowShortQuery: 'true' },
+          this.infrastructureCaches.get('addresses'),
+        )
         .then((searchResults: ISearchResults<IAddressSearchResults>) => {
           if (searchResults && searchResults.results) {
-            return searchResults.results
-              .filter(result => result.provider === 'gce')
-              .map(result => {
-                const address = JSON.parse(result.address) as IGceAddress;
-                address.account = result.account;
-                address.region = result.region;
-                return address;
-              });
+            return searchResults.results.filter(result => result.provider === 'gce').map(result => {
+              const address = JSON.parse(result.address) as IGceAddress;
+              address.account = result.account;
+              address.region = result.region;
+              return address;
+            });
           } else {
             return [];
           }
@@ -61,5 +66,7 @@ class GceAddressReader {
 }
 
 export const GCE_ADDRESS_READER = 'spinnaker.gce.addressReader.service';
-module(GCE_ADDRESS_READER, [SEARCH_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
-  .service('gceAddressReader', GceAddressReader);
+module(GCE_ADDRESS_READER, [SEARCH_SERVICE, INFRASTRUCTURE_CACHE_SERVICE]).service(
+  'gceAddressReader',
+  GceAddressReader,
+);

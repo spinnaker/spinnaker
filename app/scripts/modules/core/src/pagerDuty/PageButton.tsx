@@ -60,6 +60,6 @@ export class PageButton extends React.Component<IPageButtonProps, IPageButtonSta
           />
         )}
       </button>
-    )
+    );
   }
 }

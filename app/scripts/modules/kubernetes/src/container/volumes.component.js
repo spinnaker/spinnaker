@@ -2,15 +2,16 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [])
+module.exports = angular
+  .module('spinnaker.deck.kubernetes.volumes.component', [])
   .component('kubernetesContainerVolumes', {
     bindings: {
       volumeSources: '=',
       volumeMounts: '=',
     },
     templateUrl: require('./volumes.component.html'),
-    controller: function () {
-      ['volumeMounts', 'volumeSources'].forEach((prop) => {
+    controller: function() {
+      ['volumeMounts', 'volumeSources'].forEach(prop => {
         if (!this[prop]) {
           this[prop] = [];
         }
@@ -42,7 +43,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
       this.defaultPersistentVolumeClaim = () => {
         return {
           claimName: '',
-          readOnly: true
+          readOnly: true,
         };
       };
 
@@ -60,7 +61,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
         };
       };
 
-      this.addItem = (sourceIndex) => {
+      this.addItem = sourceIndex => {
         this.volumeSources[sourceIndex].configMap.items.push(this.defaultItem());
       };
 
@@ -81,7 +82,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
       };
 
       this.defaultVolumeMount = (name = '') => {
-        return { name: name, readOnly: false, mountPath: '/', subPath: ''};
+        return { name: name, readOnly: false, mountPath: '/', subPath: '' };
       };
 
       this.addVolume = () => {
@@ -90,14 +91,14 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
         this.volumeSources.push(this.defaultVolumeSource(name));
       };
 
-      this.removeVolume = (index) => {
+      this.removeVolume = index => {
         this.volumeSources.splice(index, 1);
         this.volumeMounts.splice(index, 1);
       };
 
       this.prepVolumes = () => {
         this.volumeSources = this.volumeSources || [];
-        this.volumeSources.map((source) => {
+        this.volumeSources.map(source => {
           if (!source.hostPath) {
             source.hostPath = this.defaultHostPath();
           }
@@ -123,5 +124,5 @@ module.exports = angular.module('spinnaker.deck.kubernetes.volumes.component', [
       };
 
       this.prepVolumes();
-    }
+    },
   });

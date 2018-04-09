@@ -5,14 +5,13 @@ import _ from 'lodash';
 
 import { API_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.instanceType.service', [
-  API_SERVICE,
-])
-  .factory('awsInstanceTypeService', function ($http, $q, API) {
-
+module.exports = angular
+  .module('spinnaker.amazon.instanceType.service', [API_SERVICE])
+  .factory('awsInstanceTypeService', function($http, $q, API) {
     var m4 = {
       type: 'm4',
-      description: 'This family includes the m4 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+      description:
+        'This family includes the m4 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
       instanceTypes: [
         {
           name: 'm4.large',
@@ -20,7 +19,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 2,
           memory: 8,
           storage: { type: 'EBS' },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 'm4.xlarge',
@@ -28,7 +27,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 4,
           memory: 16,
           storage: { type: 'EBS' },
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'm4.2xlarge',
@@ -36,14 +35,15 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 8,
           memory: 32,
           storage: { type: 'EBS' },
-          costFactor: 2
-        }
-      ]
+          costFactor: 2,
+        },
+      ],
     };
 
     var t2gp = {
       type: 't2',
-      description: 't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      description:
+        't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       instanceTypes: [
         {
           name: 't2.small',
@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 1,
           memory: 2,
           storage: { type: 'EBS' },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 't2.medium',
@@ -59,14 +59,15 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 2,
           memory: 4,
           storage: { type: 'EBS' },
-          costFactor: 1
-        }
-      ]
+          costFactor: 1,
+        },
+      ],
     };
 
     var t2 = {
       type: 't2',
-      description: 't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      description:
+        't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       instanceTypes: [
         {
           name: 't2.nano',
@@ -74,7 +75,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 1,
           memory: 0.5,
           storage: { type: 'EBS' },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 't2.micro',
@@ -82,7 +83,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 1,
           memory: 1,
           storage: { type: 'EBS' },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 't2.small',
@@ -90,15 +91,15 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 1,
           memory: 2,
           storage: { type: 'EBS' },
-          costFactor: 1
-        }
-      ]
+          costFactor: 1,
+        },
+      ],
     };
-
 
     var r4 = {
       type: 'r4',
-      description: 'r4 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+      description:
+        'r4 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
       instanceTypes: [
         {
           name: 'r4.large',
@@ -106,7 +107,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 2,
           memory: 15.25,
           storage: { type: 'EBS' },
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 'r4.xlarge',
@@ -114,7 +115,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 4,
           memory: 30.5,
           storage: { type: 'EBS' },
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'r4.2xlarge',
@@ -122,7 +123,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 8,
           memory: 61,
           storage: { type: 'EBS' },
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'r4.4xlarge',
@@ -130,36 +131,36 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
           cpu: 16,
           memory: 122,
           storage: { type: 'EBS' },
-          costFactor: 3
-        }
-      ]
+          costFactor: 3,
+        },
+      ],
     };
 
     var categories = [
       {
         type: 'general',
         label: 'General Purpose',
-        families: [ m4, t2gp ],
-        icon: 'hdd'
+        families: [m4, t2gp],
+        icon: 'hdd',
       },
       {
         type: 'memory',
         label: 'High Memory',
-        families: [ r4 ],
-        icon: 'hdd'
+        families: [r4],
+        icon: 'hdd',
       },
       {
         type: 'micro',
         label: 'Micro Utility',
         families: [t2],
-        icon: 'hdd'
+        icon: 'hdd',
       },
       {
         type: 'custom',
         label: 'Custom Type',
         families: [],
-        icon: 'asterisk'
-      }
+        icon: 'asterisk',
+      },
     ];
 
     function getCategories() {
@@ -167,11 +168,17 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
     }
 
     var getAllTypesByRegion = function getAllTypesByRegion() {
-      return API.one('instanceTypes').get()
-        .then(function (types) {
+      return API.one('instanceTypes')
+        .get()
+        .then(function(types) {
           return _.chain(types)
-            .map(function (type) {
-              return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };
+            .map(function(type) {
+              return {
+                region: type.region,
+                account: type.account,
+                name: type.name,
+                key: [type.region, type.account, type.name].join(':'),
+              };
             })
             .uniqBy('key')
             .groupBy('region')
@@ -183,7 +190,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
 
     function sortTypesByFamilyAndSize(o1, o2) {
       var type1 = o1.split('.'),
-          type2 = o2.split('.');
+        type2 = o2.split('.');
 
       if (type1.length !== 2 || type2.length !== 2) {
         return 0;
@@ -255,7 +262,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
     };
 
     function filterInstanceTypes(instanceTypes, virtualizationType, vpcOnly) {
-      return instanceTypes.filter((instanceType) => {
+      return instanceTypes.filter(instanceType => {
         if (virtualizationType === '*') {
           // show all instance types
           return true;
@@ -286,5 +293,4 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
       filterInstanceTypes,
       isEbsOptimized,
     };
-  }
-);
+  });

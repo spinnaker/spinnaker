@@ -7,7 +7,7 @@ import {
   IInstanceCounts,
   ILoadBalancer,
   ILoadBalancerUpsertCommand,
-  IServerGroup
+  IServerGroup,
 } from '@spinnaker/core';
 
 import { IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy } from 'appengine/domain/index';
@@ -37,10 +37,16 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
   public cloudProvider: string;
   public serverGroups?: any[];
 
-  public static convertTrafficSplitToTrafficSplitDescription(split: IAppengineTrafficSplit): IAppengineTrafficSplitDescription {
-    const allocationDescriptions = reduce(split.allocations, (acc: IAppengineAllocationDescription[], allocation: number, serverGroupName: string) => {
-       return acc.concat({ serverGroupName, allocation, locatorType: 'fromExisting' });
-    }, []);
+  public static convertTrafficSplitToTrafficSplitDescription(
+    split: IAppengineTrafficSplit,
+  ): IAppengineTrafficSplitDescription {
+    const allocationDescriptions = reduce(
+      split.allocations,
+      (acc: IAppengineAllocationDescription[], allocation: number, serverGroupName: string) => {
+        return acc.concat({ serverGroupName, allocation, locatorType: 'fromExisting' });
+      },
+      [],
+    );
 
     return { shardBy: split.shardBy, allocationDescriptions };
   }
@@ -57,27 +63,29 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
   }
 
   public mapAllocationsToDecimals() {
-    this.splitDescription.allocationDescriptions.forEach((description) => {
+    this.splitDescription.allocationDescriptions.forEach(description => {
       description.allocation = description.allocation / 100;
     });
   }
 
   public mapAllocationsToPercentages() {
-    this.splitDescription.allocationDescriptions.forEach((description) => {
+    this.splitDescription.allocationDescriptions.forEach(description => {
       // An allocation percent has at most one decimal place.
-       description.allocation = Math.round(description.allocation * 1000) / 10;
+      description.allocation = Math.round(description.allocation * 1000) / 10;
     });
   }
 }
 
 export class AppengineLoadBalancerTransformer {
-  constructor(private $q: ng.IQService) { 'ngInject'; }
+  constructor(private $q: ng.IQService) {
+    'ngInject';
+  }
 
   public normalizeLoadBalancer(loadBalancer: ILoadBalancer): ng.IPromise<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
-    loadBalancer.serverGroups.forEach((serverGroup) => {
+    loadBalancer.serverGroups.forEach(serverGroup => {
       serverGroup.account = loadBalancer.account;
       serverGroup.region = loadBalancer.region;
 
@@ -90,26 +98,40 @@ export class AppengineLoadBalancerTransformer {
     });
 
     const activeServerGroups = filter(loadBalancer.serverGroups, { isDisabled: false });
-    loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as IInstance[];
+    loadBalancer.instances = chain(activeServerGroups)
+      .map('instances')
+      .flatten()
+      .value() as IInstance[];
     return this.$q.resolve(loadBalancer);
   }
 
-  public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer,
-                                       application: Application): ng.IPromise<IAppengineLoadBalancer> {
-    return application.getDataSource('loadBalancers').ready().then(() => {
-      const upToDateLoadBalancer = application.getDataSource('loadBalancers').data.find((candidate: ILoadBalancer) => {
-        return candidate.name === loadBalancer.name &&
-          (candidate.account === loadBalancer.account || candidate.account === loadBalancer.credentials);
-      });
+  public convertLoadBalancerForEditing(
+    loadBalancer: IAppengineLoadBalancer,
+    application: Application,
+  ): ng.IPromise<IAppengineLoadBalancer> {
+    return application
+      .getDataSource('loadBalancers')
+      .ready()
+      .then(() => {
+        const upToDateLoadBalancer = application
+          .getDataSource('loadBalancers')
+          .data.find((candidate: ILoadBalancer) => {
+            return (
+              candidate.name === loadBalancer.name &&
+              (candidate.account === loadBalancer.account || candidate.account === loadBalancer.credentials)
+            );
+          });
 
-      if (upToDateLoadBalancer) {
-        loadBalancer.serverGroups = cloneDeep(upToDateLoadBalancer.serverGroups);
-      }
-      return loadBalancer;
-    });
+        if (upToDateLoadBalancer) {
+          loadBalancer.serverGroups = cloneDeep(upToDateLoadBalancer.serverGroups);
+        }
+        return loadBalancer;
+      });
   }
 
-  public convertLoadBalancerToUpsertDescription(loadBalancer: IAppengineLoadBalancer): AppengineLoadBalancerUpsertDescription {
+  public convertLoadBalancerToUpsertDescription(
+    loadBalancer: IAppengineLoadBalancer,
+  ): AppengineLoadBalancerUpsertDescription {
     return new AppengineLoadBalancerUpsertDescription(loadBalancer);
   }
 
@@ -117,14 +139,21 @@ export class AppengineLoadBalancerTransformer {
     const instanceCounts: IInstanceCounts = chain(serverGroups)
       .map('instances')
       .flatten()
-      .reduce((acc: IInstanceCounts, instance: any) => {
-        if (has(instance, 'health.state')) {
-          acc[camelCase(instance.health.state)]++;
-        }
-        return acc;
-      }, { up: 0, down: 0, outOfService: 0, succeeded: 0, failed: 0, starting: 0, unknown: 0 }).value();
+      .reduce(
+        (acc: IInstanceCounts, instance: any) => {
+          if (has(instance, 'health.state')) {
+            acc[camelCase(instance.health.state)]++;
+          }
+          return acc;
+        },
+        { up: 0, down: 0, outOfService: 0, succeeded: 0, failed: 0, starting: 0, unknown: 0 },
+      )
+      .value();
 
-    instanceCounts.outOfService += chain(serverGroups).map('detachedInstances').flatten().value().length;
+    instanceCounts.outOfService += chain(serverGroups)
+      .map('detachedInstances')
+      .flatten()
+      .value().length;
     return instanceCounts;
   }
 
@@ -143,5 +172,7 @@ export class AppengineLoadBalancerTransformer {
 
 export const APPENGINE_LOAD_BALANCER_TRANSFORMER = 'spinnaker.appengine.loadBalancer.transformer.service';
 
-module(APPENGINE_LOAD_BALANCER_TRANSFORMER, [])
-  .service('appengineLoadBalancerTransformer', AppengineLoadBalancerTransformer);
+module(APPENGINE_LOAD_BALANCER_TRANSFORMER, []).service(
+  'appengineLoadBalancerTransformer',
+  AppengineLoadBalancerTransformer,
+);

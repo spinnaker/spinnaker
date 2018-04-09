@@ -5,16 +5,15 @@ import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.validation.applicationName', [
-    APPLICATION_NAME_VALIDATOR,
-  ])
-  .factory('dcosApplicationNameValidator', function () {
-
+  .module('spinnaker.dcos.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
+  .factory('dcosApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       let pattern = /^[a-z0-9]+$/;
       if (!pattern.test(name)) {
-        errors.push('The application name can only contain lowercase letters and digits. No other ' +
-          'special characters are allowed.');
+        errors.push(
+          'The application name can only contain lowercase letters and digits. No other ' +
+            'special characters are allowed.',
+        );
       }
     }
 
@@ -30,7 +29,7 @@ module.exports = angular
 
     function validate(name) {
       let warnings = [],
-          errors = [];
+        errors = [];
 
       if (name && name.length) {
         validateSpecialCharacters(name, errors);
@@ -44,7 +43,7 @@ module.exports = angular
     }
 
     return {
-      validate: validate
+      validate: validate,
     };
   })
   .run(function(applicationNameValidator, dcosApplicationNameValidator) {

@@ -8,31 +8,43 @@ import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE, SUBNET_READ_SER
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
-module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.service', [
-  ACCOUNT_SERVICE,
-  SUBNET_READ_SERVICE,
-  INSTANCE_TYPE_SERVICE,
-  NAMING_SERVICE,
-  AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
-])
-  .factory('awsServerGroupCommandBuilder', function ($q, accountService, subnetReader, namingService, instanceTypeService,
-                                                     awsServerGroupConfigurationService) {
-
-    function buildNewServerGroupCommand (application, defaults) {
+module.exports = angular
+  .module('spinnaker.amazon.serverGroupCommandBuilder.service', [
+    ACCOUNT_SERVICE,
+    SUBNET_READ_SERVICE,
+    INSTANCE_TYPE_SERVICE,
+    NAMING_SERVICE,
+    AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
+  ])
+  .factory('awsServerGroupCommandBuilder', function(
+    $q,
+    accountService,
+    subnetReader,
+    namingService,
+    instanceTypeService,
+    awsServerGroupConfigurationService,
+  ) {
+    function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
       var credentialsLoader = accountService.getCredentialsKeyedByAccount('aws');
 
-      var defaultCredentials = defaults.account || application.defaultCredentials.aws || AWSProviderSettings.defaults.account;
+      var defaultCredentials =
+        defaults.account || application.defaultCredentials.aws || AWSProviderSettings.defaults.account;
       var defaultRegion = defaults.region || application.defaultRegions.aws || AWSProviderSettings.defaults.region;
       var defaultSubnet = defaults.subnet || AWSProviderSettings.defaults.subnetType || '';
 
-      var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
+      var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion(
+        'aws',
+        defaultCredentials,
+        defaultRegion,
+      );
 
-      return $q.all({
-        preferredZones: preferredZonesLoader,
-        credentialsKeyedByAccount: credentialsLoader,
-      })
-        .then(function (asyncData) {
+      return $q
+        .all({
+          preferredZones: preferredZonesLoader,
+          credentialsKeyedByAccount: credentialsLoader,
+        })
+        .then(function(asyncData) {
           var availabilityZones = asyncData.preferredZones;
 
           var credentials = asyncData.credentialsKeyedByAccount[defaultCredentials];
@@ -52,7 +64,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
             capacity: {
               min: 1,
               max: 1,
-              desired: 1
+              desired: 1,
             },
             targetHealthyDeployPercentage: 100,
             cooldown: 10,
@@ -85,7 +97,11 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
             },
           };
 
-          if (application.attributes && application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+          if (
+            application.attributes &&
+            application.attributes.platformHealthOnlyShowOverride &&
+            application.attributes.platformHealthOnly
+          ) {
             command.interestingHealthProviderNames = ['Amazon'];
           }
 
@@ -94,12 +110,17 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
-
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
-      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', pipelineCluster.instanceType);
+      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType(
+        'aws',
+        pipelineCluster.instanceType,
+      );
       var commandOptions = { account: pipelineCluster.account, region: region };
-      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
+      var asyncLoader = $q.all({
+        command: buildNewServerGroupCommand(application, commandOptions),
+        instanceProfile: instanceTypeCategoryLoader,
+      });
 
       return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
@@ -109,7 +130,8 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
         var viewState = {
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
-          useSimpleCapacity: pipelineCluster.capacity.min === pipelineCluster.capacity.max && pipelineCluster.useSourceCapacity !== true,
+          useSimpleCapacity:
+            pipelineCluster.capacity.min === pipelineCluster.capacity.max && pipelineCluster.useSourceCapacity !== true,
           usePreferredZones: usePreferredZones,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
@@ -129,7 +151,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
 
         return angular.extend({}, command, pipelineCluster, viewOverrides);
       });
-
     }
 
     // Only used to prepare view requiring template selecting
@@ -137,22 +158,20 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
       return $q.when({
         viewState: {
           requiresTemplateSelection: true,
-        }
+        },
       });
     }
 
     function buildUpdateServerGroupCommand(serverGroup) {
       var command = {
         type: 'modifyAsg',
-        asgs: [
-          { asgName: serverGroup.name, region: serverGroup.region }
-        ],
+        asgs: [{ asgName: serverGroup.name, region: serverGroup.region }],
         cooldown: serverGroup.asg.defaultCooldown,
         enabledMetrics: _.get(serverGroup, 'asg.enabledMetrics', []).map(m => m.metric),
         healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
         healthCheckType: serverGroup.asg.healthCheckType,
         terminationPolicies: angular.copy(serverGroup.asg.terminationPolicies),
-        credentials: serverGroup.account
+        credentials: serverGroup.account,
       };
       awsServerGroupConfigurationService.configureUpdateCommand(command);
       return command;
@@ -191,13 +210,11 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
         const existingTags = {};
         // These tags are applied by Clouddriver (if configured to do so), regardless of what the user might enter
         // Might be worth feature flagging this if it turns out other folks are hard-coding these values
-        const reservedTags = [ 'spinnaker:application', 'spinnaker:stack', 'spinnaker:details' ];
+        const reservedTags = ['spinnaker:application', 'spinnaker:stack', 'spinnaker:details'];
         if (serverGroup.asg.tags) {
-          serverGroup.asg.tags
-            .filter(t => !reservedTags.includes(t.key))
-            .forEach(tag => {
-              existingTags[tag.key] = tag.value;
-            });
+          serverGroup.asg.tags.filter(t => !reservedTags.includes(t.key)).forEach(tag => {
+            existingTags[tag.key] = tag.value;
+          });
         }
 
         var command = {
@@ -215,9 +232,9 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
           region: serverGroup.region,
           useSourceCapacity: false,
           capacity: {
-            'min': serverGroup.asg.minSize,
-            'max': serverGroup.asg.maxSize,
-            'desired': serverGroup.asg.desiredCapacity
+            min: serverGroup.asg.minSize,
+            max: serverGroup.asg.maxSize,
+            desired: serverGroup.asg.desiredCapacity,
           },
           targetHealthyDeployPercentage: 100,
           availabilityZones: zones,
@@ -228,8 +245,8 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
             asgName: serverGroup.asg.autoScalingGroupName,
           },
           suspendedProcesses: (serverGroup.asg.suspendedProcesses || [])
-            .map((process) => process.processName)
-            .filter((name) => !enabledProcesses.includes(name)),
+            .map(process => process.processName)
+            .filter(name => !enabledProcesses.includes(name)),
           tags: Object.assign({}, serverGroup.tags, existingTags),
           targetGroups: serverGroup.targetGroups,
           useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
@@ -245,7 +262,11 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
           },
         };
 
-        if (application.attributes && application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+        if (
+          application.attributes &&
+          application.attributes.platformHealthOnlyShowOverride &&
+          application.attributes.platformHealthOnly
+        ) {
           command.interestingHealthProviderNames = ['Amazon'];
         }
 
@@ -259,7 +280,9 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
         var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
         if (vpcZoneIdentifier !== '') {
           var subnetId = vpcZoneIdentifier.split(',')[0];
-          var subnet = _.chain(asyncData.subnets).find({'id': subnetId}).value();
+          var subnet = _.chain(asyncData.subnets)
+            .find({ id: subnetId })
+            .value();
           command.subnetType = subnet.purpose;
           command.vpcId = subnet.vpcId;
         } else {
@@ -298,4 +321,4 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
       buildUpdateServerGroupCommand: buildUpdateServerGroupCommand,
     };
-});
+  });

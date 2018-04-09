@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.scaleDownClusterStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.kubernetes.pipeline.stage.scaleDownClusterStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'scaleDownCluster',
@@ -15,23 +14,28 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.scaleDownCl
       executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
-        { type: 'requiredField', fieldName: 'namespaces', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        {
+          type: 'requiredField',
+          fieldName: 'remainingFullSizeServerGroups',
+          fieldLabel: 'Keep [X] full size Server Groups',
+        },
+        { type: 'requiredField', fieldName: 'namespaces' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
       strategy: true,
     });
-  }).controller('kubernetesScaleDownClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('kubernetesScaleDownClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      namespacesLoaded: false
+      namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function (accounts) {
+    accountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -63,4 +67,3 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.scaleDownCl
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });
-

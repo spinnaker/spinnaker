@@ -11,7 +11,7 @@ import {
   IAggregatedAccounts,
   ISecurityGroup,
   IVpc,
-  SECURITY_GROUP_READER
+  SECURITY_GROUP_READER,
 } from '@spinnaker/core';
 
 import { VPC_READ_SERVICE } from '@spinnaker/amazon';
@@ -32,26 +32,30 @@ class SecurityGroupPickerController implements ng.IComponentController {
   private vpcs: IVpc[];
   private subscriptions: Subscription[];
 
-  public constructor(private $q: ng.IQService,
-                     private securityGroupReader: any,
-                     private accountService: AccountService,
-                     private cacheInitializer: CacheInitializerService,
-                     private vpcReader: any) {
+  public constructor(
+    private $q: ng.IQService,
+    private securityGroupReader: any,
+    private accountService: AccountService,
+    private cacheInitializer: CacheInitializerService,
+    private vpcReader: any,
+  ) {
     'ngInject';
   }
 
   public $onInit(): void {
-    const credentialLoader: ng.IPromise<void> = this.accountService.getCredentialsKeyedByAccount('titus').then((credentials: IAggregatedAccounts) => {
-      this.credentials = credentials;
-    });
+    const credentialLoader: ng.IPromise<void> = this.accountService
+      .getCredentialsKeyedByAccount('titus')
+      .then((credentials: IAggregatedAccounts) => {
+        this.credentials = credentials;
+      });
     const groupLoader: ng.IPromise<void> = this.securityGroupReader.getAllSecurityGroups().then((groups: any[]) => {
       this.securityGroups = groups;
     });
-    const vpcLoader: ng.IPromise<void> = this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.vpcs = vpcs);
+    const vpcLoader: ng.IPromise<void> = this.vpcReader.listVpcs().then((vpcs: IVpc[]) => (this.vpcs = vpcs));
     this.$q.all([credentialLoader, groupLoader, vpcLoader]).then(() => this.configureSecurityGroupOptions());
     this.subscriptions = [
       this.accountChanged.subscribe(() => this.configureSecurityGroupOptions()),
-      this.regionChanged.subscribe(() => this.configureSecurityGroupOptions())
+      this.regionChanged.subscribe(() => this.configureSecurityGroupOptions()),
     ];
   }
 
@@ -73,11 +77,12 @@ class SecurityGroupPickerController implements ng.IComponentController {
 
   private getVpcId(): string {
     const credentials = this.getCredentials();
-    const match = this.vpcs.find(vpc =>
-      vpc.name === credentials.awsVpc
-      && vpc.account === credentials.awsAccount
-      && vpc.region === this.getRegion()
-      && vpc.cloudProvider === 'aws'
+    const match = this.vpcs.find(
+      vpc =>
+        vpc.name === credentials.awsVpc &&
+        vpc.account === credentials.awsAccount &&
+        vpc.region === this.getRegion() &&
+        vpc.cloudProvider === 'aws',
     );
     return match ? match.id : null;
   }
@@ -111,10 +116,13 @@ class SecurityGroupPickerController implements ng.IComponentController {
         return match ? match.name : groupId;
       });
 
-      const matchedGroups: ISecurityGroup[] = this.groupsToEdit.map((groupId: string) => {
-        const securityGroup: any = currentOptions.find(o => o.id === groupId || o.name === groupId);
-        return securityGroup ? securityGroup.name : null;
-      }).map((groupName: string) => newRegionalSecurityGroups.find(g => g.name === groupName)).filter((group: any) => group);
+      const matchedGroups: ISecurityGroup[] = this.groupsToEdit
+        .map((groupId: string) => {
+          const securityGroup: any = currentOptions.find(o => o.id === groupId || o.name === groupId);
+          return securityGroup ? securityGroup.name : null;
+        })
+        .map((groupName: string) => newRegionalSecurityGroups.find(g => g.name === groupName))
+        .filter((group: any) => group);
 
       const matchedGroupNames: string[] = matchedGroups.map(g => g.name);
       const removed: string[] = _.xor(currentGroupNames, matchedGroupNames);
@@ -136,7 +144,6 @@ class SecurityGroupPickerController implements ng.IComponentController {
     });
     this.loaded = true;
   }
-
 }
 
 class SecurityGroupPickerComponent implements ng.IComponentOptions {
@@ -168,5 +175,4 @@ module(TITUS_SECURITY_GROUP_PICKER, [
   SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
   VPC_READ_SERVICE,
-])
-  .component('titusSecurityGroupPicker', new SecurityGroupPickerComponent());
+]).component('titusSecurityGroupPicker', new SecurityGroupPickerComponent());

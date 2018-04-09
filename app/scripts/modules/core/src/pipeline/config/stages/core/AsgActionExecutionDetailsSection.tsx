@@ -12,7 +12,9 @@ export function AsgActionExecutionDetailsSection(props: IExecutionDetailsSection
         <div className="col-md-9">
           <dl className="dl-narrow dl-horizontal">
             <dt>Account</dt>
-            <dd><AccountTag account={stage.context.credentials}/></dd>
+            <dd>
+              <AccountTag account={stage.context.credentials} />
+            </dd>
             <dt>Region</dt>
             <dd>{stage.context.region}</dd>
             <dt>Server Group</dt>
@@ -21,17 +23,18 @@ export function AsgActionExecutionDetailsSection(props: IExecutionDetailsSection
         </div>
       </div>
       <StageFailureMessage stage={stage} message={stage.failureMessage} />
-      {stage.isCompleted && stage.context.serverGroupName && (
-        <div className="row">
-          <div className="col-md-12">
-            <div className="well alert alert-info">
-              <strong>{action}: </strong>
-              {stage.context.serverGroupName}
+      {stage.isCompleted &&
+        stage.context.serverGroupName && (
+          <div className="row">
+            <div className="col-md-12">
+              <div className="well alert alert-info">
+                <strong>{action}: </strong>
+                {stage.context.serverGroupName}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       <StageExecutionLogs stage={stage} />
     </ExecutionDetailsSection>
   );
-};
+}

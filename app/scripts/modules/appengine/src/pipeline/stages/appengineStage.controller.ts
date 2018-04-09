@@ -11,12 +11,11 @@ export class AppengineStageCtrl implements IController {
   }
 
   public setStageRegion(): void {
-    const selected = this.$scope.accounts.find((account) => account.name === this.$scope.stage.credentials);
+    const selected = this.$scope.accounts.find(account => account.name === this.$scope.stage.credentials);
     if (selected && selected.name) {
-      this.accountService.getAccountDetails(selected.name)
-        .then((accountDetails: IAppengineAccount) => {
-          this.$scope.stage.region = accountDetails.region;
-        });
+      this.accountService.getAccountDetails(selected.name).then((accountDetails: IAppengineAccount) => {
+        this.$scope.stage.region = accountDetails.region;
+      });
     }
   }
 

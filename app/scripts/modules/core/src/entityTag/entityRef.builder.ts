@@ -2,7 +2,6 @@ import { Application } from 'core/application/application.model';
 import { IEntityRef, ILoadBalancer, IRegionalCluster, ISecurityGroup, IServerGroup } from 'core/domain';
 
 export class EntityRefBuilder {
-
   public static buildServerGroupRef(serverGroup: IServerGroup): IEntityRef {
     return {
       cloudProvider: serverGroup.cloudProvider,

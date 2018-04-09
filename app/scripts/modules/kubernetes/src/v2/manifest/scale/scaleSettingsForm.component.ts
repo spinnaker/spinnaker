@@ -23,6 +23,9 @@ class KubernetesScaleManifestSettingsFormComponent implements IComponentOptions 
   `;
 }
 
-export const KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM = 'spinnaker.kubernetes.v2.kubernetes.manifest.scale.settingsForm.component';
-module(KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM, [])
-  .component('kubernetesScaleManifestSettingsForm', new KubernetesScaleManifestSettingsFormComponent());
+export const KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM =
+  'spinnaker.kubernetes.v2.kubernetes.manifest.scale.settingsForm.component';
+module(KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM, []).component(
+  'kubernetesScaleManifestSettingsForm',
+  new KubernetesScaleManifestSettingsFormComponent(),
+);

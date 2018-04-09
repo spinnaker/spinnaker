@@ -10,9 +10,7 @@ export interface IScheduler {
 }
 
 export class SchedulerFactory {
-  constructor(private $log: ILogService,
-              private $window: IWindowService,
-              private $timeout: ITimeoutService) {
+  constructor(private $log: ILogService, private $window: IWindowService, private $timeout: ITimeoutService) {
     'ngInject';
   }
 
@@ -96,13 +94,14 @@ export class SchedulerFactory {
         document.removeEventListener('visibilitychange', watchDocumentVisibility);
         this.$window.removeEventListener('offline', suspendScheduler);
         this.$window.removeEventListener('online', resumeScheduler);
-      }
+      },
     };
   }
 }
 
 export const SCHEDULER_FACTORY = 'spinnaker.core.scheduler';
-module(SCHEDULER_FACTORY, [
-
-]).factory('schedulerFactory', ($log: ILogService, $window: IWindowService, $timeout: ITimeoutService) =>
-                                new SchedulerFactory($log, $window, $timeout));
+module(SCHEDULER_FACTORY, []).factory(
+  'schedulerFactory',
+  ($log: ILogService, $window: IWindowService, $timeout: ITimeoutService) =>
+    new SchedulerFactory($log, $window, $timeout),
+);

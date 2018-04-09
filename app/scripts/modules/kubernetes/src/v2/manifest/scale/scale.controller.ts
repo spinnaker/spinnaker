@@ -1,4 +1,4 @@
-import { copy, IController, module } from 'angular'
+import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import {
@@ -7,7 +7,7 @@ import {
   ManifestWriter,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM } from './scaleSettingsForm.component';
@@ -24,15 +24,17 @@ class KubernetesManifestScaleController implements IController {
   public taskMonitor: TaskMonitor;
   public command: IScaleCommand;
   public verification = {
-    verified: false
+    verified: false,
   };
 
-  constructor(coordinates: IManifestCoordinates,
-              taskMonitorBuilder: TaskMonitorBuilder,
-              currentReplicas: number,
-              private $uibModalInstance: IModalServiceInstance,
-              private manifestWriter: ManifestWriter,
-              private application: Application) {
+  constructor(
+    coordinates: IManifestCoordinates,
+    taskMonitorBuilder: TaskMonitorBuilder,
+    currentReplicas: number,
+    private $uibModalInstance: IModalServiceInstance,
+    private manifestWriter: ManifestWriter,
+    private application: Application,
+  ) {
     'ngInject';
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -56,7 +58,7 @@ class KubernetesManifestScaleController implements IController {
 
   public cancel(): void {
     this.$uibModalInstance.dismiss();
-  };
+  }
 
   public scale(): void {
     this.taskMonitor.submit(() => {
@@ -74,5 +76,4 @@ module(KUBERNETES_MANIFEST_SCALE_CTRL, [
   TASK_MONITOR_BUILDER,
   MANIFEST_WRITER,
   KUBERNETES_SCALE_MANIFEST_SETTINGS_FORM,
-])
-  .controller('kubernetesV2ManifestScaleCtrl', KubernetesManifestScaleController);
+]).controller('kubernetesV2ManifestScaleCtrl', KubernetesManifestScaleController);

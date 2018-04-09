@@ -5,27 +5,26 @@ const angular = require('angular');
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { ACCOUNT_SERVICE } from 'core/account/account.service';
 
-module.exports = angular.module('spinnaker.core.serverGroup.transformer', [
-  PROVIDER_SERVICE_DELEGATE,
-  ACCOUNT_SERVICE
-])
-  .factory('serverGroupTransformer', function (providerServiceDelegate, accountService, $q) {
+module.exports = angular
+  .module('spinnaker.core.serverGroup.transformer', [PROVIDER_SERVICE_DELEGATE, ACCOUNT_SERVICE])
+  .factory('serverGroupTransformer', function(providerServiceDelegate, accountService, $q) {
     function normalizeServerGroup(serverGroup, application) {
       const account = serverGroup.account;
       if (account) {
-        return accountService.getAccountDetails(account)
-          .then((accountDetails) => {
-            // If there is a versioned cloud provider, and the user does not have permission to view the account itself, it will
-            // fail to get the accountDetails and thus fail to get the appropriate skin.
-            return normalizeServerGroupForSkin(serverGroup, application, accountDetails && accountDetails.skin);
-          });
+        return accountService.getAccountDetails(account).then(accountDetails => {
+          // If there is a versioned cloud provider, and the user does not have permission to view the account itself, it will
+          // fail to get the accountDetails and thus fail to get the appropriate skin.
+          return normalizeServerGroupForSkin(serverGroup, application, accountDetails && accountDetails.skin);
+        });
       } else {
         return $q.resolve(normalizeServerGroupForSkin(serverGroup, application));
       }
     }
 
     function normalizeServerGroupForSkin(serverGroup, application, skin) {
-      if (!providerServiceDelegate.hasDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer', skin)) {
+      if (
+        !providerServiceDelegate.hasDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer', skin)
+      ) {
         return null;
       }
       return providerServiceDelegate
@@ -58,5 +57,4 @@ module.exports = angular.module('spinnaker.core.serverGroup.transformer', [
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       jsonReplacer: jsonReplacer,
     };
-
   });

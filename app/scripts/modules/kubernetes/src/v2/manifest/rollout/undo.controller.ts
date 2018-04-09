@@ -1,4 +1,4 @@
-import { copy, IController, module } from 'angular'
+import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import {
@@ -7,7 +7,7 @@ import {
   ManifestWriter,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 
@@ -28,15 +28,17 @@ class KubernetesManifestUndoRolloutController implements IController {
   public taskMonitor: TaskMonitor;
   public command: IUndoRolloutCommand;
   public verification = {
-    verified: false
+    verified: false,
   };
 
-  constructor(coordinates: IManifestCoordinates,
-              taskMonitorBuilder: TaskMonitorBuilder,
-              public revisions: IRolloutRevision[],
-              private $uibModalInstance: IModalServiceInstance,
-              private manifestWriter: ManifestWriter,
-              private application: Application) {
+  constructor(
+    coordinates: IManifestCoordinates,
+    taskMonitorBuilder: TaskMonitorBuilder,
+    public revisions: IRolloutRevision[],
+    private $uibModalInstance: IModalServiceInstance,
+    private manifestWriter: ManifestWriter,
+    private application: Application,
+  ) {
     'ngInject';
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -60,7 +62,7 @@ class KubernetesManifestUndoRolloutController implements IController {
 
   public cancel(): void {
     this.$uibModalInstance.dismiss();
-  };
+  }
 
   public undoRollout(): void {
     this.taskMonitor.submit(() => {
@@ -74,8 +76,7 @@ class KubernetesManifestUndoRolloutController implements IController {
 
 export const KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL = 'spinnaker.kubernetes.v2.manifest.undoRollout.controller';
 
-module(KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL, [
-  TASK_MONITOR_BUILDER,
-  MANIFEST_WRITER,
-])
-  .controller('kubernetesV2ManifestUndoRolloutCtrl', KubernetesManifestUndoRolloutController);
+module(KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL, [TASK_MONITOR_BUILDER, MANIFEST_WRITER]).controller(
+  'kubernetesV2ManifestUndoRolloutCtrl',
+  KubernetesManifestUndoRolloutController,
+);

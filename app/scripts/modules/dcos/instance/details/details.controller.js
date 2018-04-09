@@ -2,20 +2,39 @@
 
 import _ from 'lodash';
 
-import { CLOUD_PROVIDER_REGISTRY, CONFIRMATION_MODAL_SERVICE, INSTANCE_READ_SERVICE, INSTANCE_WRITE_SERVICE, RECENT_HISTORY_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
+import {
+  CLOUD_PROVIDER_REGISTRY,
+  CONFIRMATION_MODAL_SERVICE,
+  INSTANCE_READ_SERVICE,
+  INSTANCE_WRITE_SERVICE,
+  RECENT_HISTORY_SERVICE,
+  ServerGroupTemplates,
+} from '@spinnaker/core';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
-  INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('dcosInstanceDetailsController', function ($scope, $state, $uibModal,
-                                                               instanceWriter, confirmationModalService, recentHistoryService,
-                                                               cloudProviderRegistry, instanceReader, instance, app, dcosProxyUiService, $q) {
+module.exports = angular
+  .module('spinnaker.dcos.instance.details.controller', [
+    INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('dcosInstanceDetailsController', function(
+    $scope,
+    $state,
+    $uibModal,
+    instanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+    dcosProxyUiService,
+    $q,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('dcos', 'instance.detailsTemplateUrl');
 
@@ -25,7 +44,13 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
     };
 
     this.uiLink = function uiLink() {
-      return dcosProxyUiService.buildLink($scope.instance.clusterUrl, $scope.instance.account, $scope.instance.region, $scope.instance.serverGroupName, $scope.instance.name);
+      return dcosProxyUiService.buildLink(
+        $scope.instance.clusterUrl,
+        $scope.instance.account,
+        $scope.instance.region,
+        $scope.instance.serverGroupName,
+        $scope.instance.name,
+      );
     };
 
     this.showJson = function showJson() {
@@ -33,15 +58,15 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
       $scope.userData = $scope.instance.json;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
     function retrieveInstance() {
       var extraData = {};
       var instanceSummary, loadBalancers, account, region;
-      app.serverGroups.data.some(function (serverGroup) {
-        return serverGroup.instances.some(function (possibleInstance) {
+      app.serverGroups.data.some(function(serverGroup) {
+        return serverGroup.instances.some(function(possibleInstance) {
           if (possibleInstance.id === instance.instanceId) {
             instanceSummary = possibleInstance;
             loadBalancers = serverGroup.loadBalancers;
@@ -64,9 +89,7 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
           $scope.instance.serverGroupName = extraData.serverGroup;
           $scope.instance.region = region;
           $scope.instance.loadBalancers = loadBalancers;
-        },
-          autoClose
-        );
+        }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -80,7 +103,7 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     this.terminateInstance = function terminateInstance() {
@@ -90,14 +113,14 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
-        let params = {cloudProvider: 'dcos'};
+      var submitMethod = function() {
+        let params = { cloudProvider: 'dcos' };
 
         if (instance.serverGroup) {
           params.managedInstanceGroupName = instance.serverGroup;
@@ -115,7 +138,7 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
         account: instance.account,
         provider: 'dcos',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -125,11 +148,13 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.name + ' with ' + loadBalancerNames
+        title: 'Registering ' + instance.name + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, { interestingHealthProviderNames: ['Dcos'] } );
+      var submitMethod = function() {
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
+          interestingHealthProviderNames: ['Dcos'],
+        });
       };
 
       confirmationModalService.confirm({
@@ -137,7 +162,7 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
         buttonText: 'Register ' + instance.name,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -147,11 +172,13 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.name + ' from ' + loadBalancerNames
+        title: 'Deregistering ' + instance.name + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, { interestingHealthProviderNames: ['Dcos'] } );
+      var submitMethod = function() {
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
+          interestingHealthProviderNames: ['Dcos'],
+        });
       };
 
       confirmationModalService.confirm({
@@ -160,7 +187,7 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
         provider: 'dcos',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -174,15 +201,14 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance;
-      return (instance.health.some(function (health) {
+      return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+    let initialize = app.isStandalone
+      ? retrieveInstance()
+      : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -195,5 +221,4 @@ module.exports = angular.module('spinnaker.dcos.instance.details.controller', [
     });
 
     $scope.account = instance.account;
-  }
-);
+  });

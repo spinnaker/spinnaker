@@ -25,7 +25,6 @@ export interface IConfirmationModalParams {
 }
 
 export class ConfirmationModalService {
-
   private defaults: IConfirmationModalParams = {
     buttonText: 'Confirm',
     cancelButtonText: 'Cancel',
@@ -44,8 +43,8 @@ export class ConfirmationModalService {
       templateUrl: require('./confirm.html'),
       controller: 'ConfirmationModalCtrl as ctrl',
       resolve: {
-        params: () => extendedParams
-      }
+        params: () => extendedParams,
+      },
     };
 
     if (params.size) {
@@ -58,7 +57,6 @@ export class ConfirmationModalService {
 
     return result;
   }
-
 }
 
 export const CONFIRMATION_MODAL_SERVICE = 'spinnaker.core.confirmationModal.service';

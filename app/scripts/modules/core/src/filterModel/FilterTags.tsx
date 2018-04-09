@@ -24,15 +24,14 @@ export interface IFilterTagsState {
 
 @BindAll()
 export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsState> {
-
   public static defaultProps: Partial<IFilterTagsProps> = {
-    tagCleared: () => {}
+    tagCleared: () => {},
   };
 
   constructor(props: IFilterTagsProps) {
     super(props);
     this.state = {
-      tags: props.tags
+      tags: props.tags,
     };
   }
 
@@ -55,7 +54,7 @@ export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsSta
       <span className="filter-tag" key={[tag.label, tag.value].join(':')}>
         <strong>{tag.label}</strong>: {tag.value}
         <a className="clickable clear-filters" onClick={clearFilter}>
-          <span className="glyphicon glyphicon-remove-sign"/>
+          <span className="glyphicon glyphicon-remove-sign" />
         </a>
       </span>
     );
@@ -65,13 +64,18 @@ export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsSta
     const { tags } = this.state;
     return (
       <div className="col-md-12 filter-tags">
-        {tags && tags.length > 0 && (
-          <span>
-            <span>Filtered by: </span>
-            {tags.map(tag => this.generateTag(tag))}
-            {tags.length > 1 && (<a className="clickable clear-filters" onClick={this.clearAllFilters}>Clear All</a>)}
-          </span>
-        )}
+        {tags &&
+          tags.length > 0 && (
+            <span>
+              <span>Filtered by: </span>
+              {tags.map(tag => this.generateTag(tag))}
+              {tags.length > 1 && (
+                <a className="clickable clear-filters" onClick={this.clearAllFilters}>
+                  Clear All
+                </a>
+              )}
+            </span>
+          )}
       </div>
     );
   }

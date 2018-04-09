@@ -2,12 +2,11 @@
 
 const angular = require('angular');
 
-import {KubernetesProviderSettings} from '../kubernetes.settings';
+import { KubernetesProviderSettings } from '../kubernetes.settings';
 
-module.exports = angular.module('spinnaker.kubernetes.securityGroup.transformer', [
-])
-  .factory('kubernetesSecurityGroupTransformer', function ($q) {
-
+module.exports = angular
+  .module('spinnaker.kubernetes.securityGroup.transformer', [])
+  .factory('kubernetesSecurityGroupTransformer', function($q) {
     function normalizeSecurityGroup(securityGroup) {
       return $q.when(securityGroup); // no-op
     }
@@ -52,7 +51,7 @@ module.exports = angular.module('spinnaker.kubernetes.securityGroup.transformer'
 
     function constructNewIngressTLS() {
       return {
-        hosts : [],
+        hosts: [],
         secretName: '',
       };
     }

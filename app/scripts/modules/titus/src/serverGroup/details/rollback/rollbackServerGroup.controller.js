@@ -5,15 +5,19 @@ const angular = require('angular');
 import { get } from 'lodash';
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.controller', [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-])
-  .controller('titusRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
-                                                        taskMonitorBuilder,
-                                                        application,
-                                                        serverGroup, previousServerGroup,
-                                                        disabledServerGroups, allServerGroups) {
+module.exports = angular
+  .module('spinnaker.titus.serverGroup.details.rollback.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .controller('titusRollbackServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    serverGroupWriter,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+    previousServerGroup,
+    disabledServerGroups,
+    allServerGroups,
+  ) {
     $scope.serverGroup = serverGroup;
     $scope.disabledServerGroups = disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name));
     $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
@@ -29,7 +33,7 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
         rollbackType = 'PREVIOUS_IMAGE';
         $scope.previousServerGroup = {
           name: previousServerGroup.name,
-          imageName: previousServerGroup.imageName
+          imageName: previousServerGroup.imageName,
         };
 
         if (previousServerGroup.imageId && previousServerGroup.imageId !== previousServerGroup.imageName) {
@@ -52,8 +56,8 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
       rollbackContext: {
         rollbackServerGroupName: serverGroup.name,
         restoreServerGroupName: previousServerGroup ? previousServerGroup.name : undefined,
-        targetHealthyRollbackPercentage: healthyPercent
-      }
+        targetHealthyRollbackPercentage: healthyPercent,
+      },
     };
 
     $scope.minHealthy = function(percent) {
@@ -68,7 +72,7 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       var command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
@@ -88,23 +92,23 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
       modalInstance: $uibModalInstance,
     });
 
-    this.rollback = function () {
+    this.rollback = function() {
       if (!this.isValid()) {
         return;
       }
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
       };
 
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 
-    this.label = function (serverGroup) {
+    this.label = function(serverGroup) {
       if (!serverGroup) {
         return '';
       }
@@ -121,7 +125,7 @@ module.exports = angular.module('spinnaker.titus.serverGroup.details.rollback.co
       return serverGroup.name + ' (' + imageName + ')';
     };
 
-    this.group = function (serverGroup) {
+    this.group = function(serverGroup) {
       return serverGroup.isDisabled ? 'Disabled Server Groups' : 'Enabled Server Groups';
     };
   });

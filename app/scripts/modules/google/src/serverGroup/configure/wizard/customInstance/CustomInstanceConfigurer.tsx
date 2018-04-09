@@ -21,7 +21,10 @@ export interface ICustomInstanceConfigurerProps {
 export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
     const vCpuOptions: Option[] = (this.props.vCpuList || []).map(vCpu => ({ label: vCpu + '', value: vCpu }));
-    const memoryOptions: Option[] = (this.props.memoryList || []).map(memory => ({ label: memory + '', value: memory }));
+    const memoryOptions: Option[] = (this.props.memoryList || []).map(memory => ({
+      label: memory + '',
+      value: memory,
+    }));
     const selectedVCpuCountLabel = this.props.selectedVCpuCount ? this.props.selectedVCpuCount + '' : null;
     const selectedMemoryLabel = this.props.selectedMemory ? this.props.selectedMemory + '' : null;
 
@@ -30,7 +33,7 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
         <div className="row">
           <div className="col-md-5 sm-label-right">
             <b>Cores </b>
-            <HelpField id="gce.instance.customInstance.cores"/>
+            <HelpField id="gce.instance.customInstance.cores" />
           </div>
           <div className="col-md-3">
             <Select
@@ -44,7 +47,7 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
         <div className="row" style={{ marginTop: '5px' }}>
           <div className="col-md-5 sm-label-right">
             <b>Memory (Gb) </b>
-            <HelpField id="gce.instance.customInstance.memory"/>
+            <HelpField id="gce.instance.customInstance.memory" />
           </div>
           <div className="col-md-3">
             <Select

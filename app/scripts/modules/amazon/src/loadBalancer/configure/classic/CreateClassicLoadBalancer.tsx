@@ -35,7 +35,10 @@ type ClassicLoadBalancerModal = new () => WizardModal<IAmazonClassicLoadBalancer
 const ClassicLoadBalancerModal = WizardModal as ClassicLoadBalancerModal;
 
 @BindAll()
-export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoadBalancerProps, ICreateClassicLoadBalancerState> {
+export class CreateClassicLoadBalancer extends React.Component<
+  ICreateClassicLoadBalancerProps,
+  ICreateClassicLoadBalancerState
+> {
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
   private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
@@ -43,16 +46,16 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
   constructor(props: ICreateClassicLoadBalancerProps) {
     super(props);
 
-    const loadBalancerCommand = props.loadBalancer ?
-    AwsReactInjector.awsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(props.loadBalancer) :
-    AwsReactInjector.awsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(props.app);
+    const loadBalancerCommand = props.loadBalancer
+      ? AwsReactInjector.awsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(props.loadBalancer)
+      : AwsReactInjector.awsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(props.app);
 
     this.state = {
       includeSecurityGroups: !!loadBalancerCommand.vpcId,
       isNew: !props.loadBalancer,
       loadBalancerCommand,
       taskMonitor: null,
-    }
+    };
 
     const deferred = $q.defer();
     const promise = deferred.promise;
@@ -68,8 +71,16 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
     this.props.showCallback(false);
   }
 
-  protected certificateIdAsARN(accountId: string, certificateId: string, region: string, certificateType: string): string {
-    if (certificateId && (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)) {
+  protected certificateIdAsARN(
+    accountId: string,
+    certificateId: string,
+    region: string,
+    certificateType: string,
+  ): string {
+    if (
+      certificateId &&
+      (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)
+    ) {
       // If they really want to enter the ARN...
       if (certificateType === 'iam') {
         return `arn:aws:iam::${accountId}:server-certificate/${certificateId}`;
@@ -82,10 +93,14 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
   }
 
   protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): IPromise<void> {
-    return ReactInjector.accountService.getAccountDetails(command.credentials).then((account) => {
-      command.listeners.forEach((listener) => {
-        listener.sslCertificateId = this.certificateIdAsARN(account.accountId, listener.sslCertificateName,
-          command.region, listener.sslCertificateType || this.certificateTypes[0]);
+    return ReactInjector.accountService.getAccountDetails(command.credentials).then(account => {
+      command.listeners.forEach(listener => {
+        listener.sslCertificateId = this.certificateIdAsARN(
+          account.accountId,
+          listener.sslCertificateName,
+          command.region,
+          listener.sslCertificateType || this.certificateTypes[0],
+        );
       });
     });
   }
@@ -111,7 +126,7 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
     const availabilityZones: { [region: string]: string[] } = {};
     availabilityZones[loadBalancerCommand.region] = loadBalancerCommand.regionZones || [];
     loadBalancerCommand.availabilityZones = availabilityZones;
-  };
+  }
 
   protected formatCommand(command: IAmazonClassicLoadBalancerUpsertCommand): void {
     this.setAvailabilityZones(command);
@@ -139,7 +154,9 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
   }
 
   public componentWillUnmount(): void {
-    if (this.refreshUnsubscribe) { this.refreshUnsubscribe(); }
+    if (this.refreshUnsubscribe) {
+      this.refreshUnsubscribe();
+    }
   }
 
   private onTaskComplete(values: IAmazonClassicLoadBalancerUpsertCommand): void {
@@ -163,7 +180,7 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
         modalInstance: this.$uibModalInstanceEmulation,
-        onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted)
+        onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted),
       });
 
       taskMonitor.submit(() => {
@@ -187,7 +204,9 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
     const { app, forPipelineConfig, loadBalancer, show } = this.props;
     const { includeSecurityGroups, isNew, loadBalancerCommand, taskMonitor } = this.state;
 
-    if (!show) { return null; }
+    if (!show) {
+      return null;
+    }
 
     const hideSections = new Set<string>();
 
@@ -205,23 +224,28 @@ export class CreateClassicLoadBalancer extends React.Component<ICreateClassicLoa
     }
 
     return (
-        <ClassicLoadBalancerModal
-          heading={heading}
-          initialValues={loadBalancerCommand}
-          taskMonitor={taskMonitor}
-          dismiss={this.dismiss}
-          show={show}
-          submit={this.submit}
-          submitButtonLabel={forPipelineConfig ? (isNew ? 'Add' : 'Done') : (isNew ? 'Create' : 'Update')}
-          validate={this.validate}
-          hideSections={hideSections}
-        >
-          <LoadBalancerLocation app={app} isNew={isNew} forPipelineConfig={forPipelineConfig} loadBalancer={loadBalancer} />
-          <SecurityGroups done={true} />
-          <Listeners done={true} />
-          <HealthCheck done={true} />
-          <AdvancedSettings done={true} />
-        </ClassicLoadBalancerModal>
+      <ClassicLoadBalancerModal
+        heading={heading}
+        initialValues={loadBalancerCommand}
+        taskMonitor={taskMonitor}
+        dismiss={this.dismiss}
+        show={show}
+        submit={this.submit}
+        submitButtonLabel={forPipelineConfig ? (isNew ? 'Add' : 'Done') : isNew ? 'Create' : 'Update'}
+        validate={this.validate}
+        hideSections={hideSections}
+      >
+        <LoadBalancerLocation
+          app={app}
+          isNew={isNew}
+          forPipelineConfig={forPipelineConfig}
+          loadBalancer={loadBalancer}
+        />
+        <SecurityGroups done={true} />
+        <Listeners done={true} />
+        <HealthCheck done={true} />
+        <AdvancedSettings done={true} />
+      </ClassicLoadBalancerModal>
     );
   }
 }

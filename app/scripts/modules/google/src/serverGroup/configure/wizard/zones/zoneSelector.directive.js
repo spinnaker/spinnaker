@@ -3,8 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.google.serverGroup.configure.wizard.capacity.zone.directive', [
-  ])
+  .module('spinnaker.google.serverGroup.configure.wizard.capacity.zone.directive', [])
   .directive('gceZoneSelector', function() {
     return {
       restrict: 'E',

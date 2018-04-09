@@ -6,9 +6,7 @@ import { isString } from 'lodash';
 import './mapEditor.component.less';
 
 module.exports = angular
-  .module('spinnaker.core.forms.mapEditor.component', [
-    require('../../validation/validateUnique.directive').name
-  ])
+  .module('spinnaker.core.forms.mapEditor.component', [require('../../validation/validateUnique.directive').name])
   .component('mapEditor', {
     bindings: {
       model: '=',
@@ -31,8 +29,8 @@ module.exports = angular
       this.addButtonLabel = this.addButtonLabel || 'Add Field';
       this.allowEmpty = this.allowEmpty || false;
       this.labelsLeft = this.labelsLeft || false;
-      this.tableClass = (this.label ? '' : 'no-border-top');
-      this.columnCount = (this.labelsLeft ? 5 : 3);
+      this.tableClass = this.label ? '' : 'no-border-top';
+      this.columnCount = this.labelsLeft ? 5 : 3;
       this.model = this.model || {};
       this.isParameterized = isString(this.model);
       this.hiddenKeys = this.hiddenKeys || [];
@@ -44,7 +42,7 @@ module.exports = angular
         // do not fire the onChange event, since no values have been committed to the object
       };
 
-      this.removeField = (index) => {
+      this.removeField = index => {
         this.backingModel.splice(index, 1);
         this.synchronize();
         this.onChange();
@@ -56,14 +54,14 @@ module.exports = angular
           return;
         }
         let modelStart = JSON.stringify(this.model);
-        let allKeys = this.backingModel.map((pair) => pair.key);
-        modelKeys().forEach((key) => delete this.model[key]);
-        this.backingModel.forEach((pair) => {
+        let allKeys = this.backingModel.map(pair => pair.key);
+        modelKeys().forEach(key => delete this.model[key]);
+        this.backingModel.forEach(pair => {
           if (pair.key && (this.allowEmpty || pair.value)) {
             this.model[pair.key] = pair.value;
           }
           // include other keys to verify no duplicates
-          pair.checkUnique = allKeys.filter((key) => pair.key !== key);
+          pair.checkUnique = allKeys.filter(key => pair.key !== key);
         });
         if (modelStart !== JSON.stringify(this.model)) {
           this.onChange();
@@ -72,8 +70,8 @@ module.exports = angular
 
       this.$onInit = () => {
         if (this.model && !this.isParameterized) {
-          modelKeys().forEach((key) => {
-            this.backingModel.push({key: key, value: this.model[key]});
+          modelKeys().forEach(key => {
+            this.backingModel.push({ key: key, value: this.model[key] });
           });
         }
       };
@@ -81,5 +79,4 @@ module.exports = angular
       $scope.$watch(() => JSON.stringify(this.backingModel), this.synchronize);
     },
     templateUrl: require('./mapEditor.component.html'),
-  }
-);
+  });

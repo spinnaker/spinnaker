@@ -10,16 +10,25 @@ import { DISPLAYABLE_TASKS_FILTER } from './displayableTasks.filter';
 import { SETTINGS } from 'core/config/settings';
 import { TASK_WRITE_SERVICE } from './task.write.service';
 
-module.exports = angular.module('spinnaker.core.task.controller', [
-  require('@uirouter/angularjs').default,
-  require('./taskProgressBar.directive.js').name,
-  VIEW_STATE_CACHE_SERVICE,
-  TASK_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  DISPLAYABLE_TASKS_FILTER
-])
-  .controller('TasksCtrl', function ($scope, $state, $stateParams, $q, app, viewStateCache, taskWriter, confirmationModalService) {
-
+module.exports = angular
+  .module('spinnaker.core.task.controller', [
+    require('@uirouter/angularjs').default,
+    require('./taskProgressBar.directive.js').name,
+    VIEW_STATE_CACHE_SERVICE,
+    TASK_WRITE_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    DISPLAYABLE_TASKS_FILTER,
+  ])
+  .controller('TasksCtrl', function(
+    $scope,
+    $state,
+    $stateParams,
+    $q,
+    app,
+    viewStateCache,
+    taskWriter,
+    confirmationModalService,
+  ) {
     if (app.notFound) {
       return;
     }
@@ -52,7 +61,9 @@ module.exports = angular.module('spinnaker.core.task.controller', [
         expandedTasks: [],
       };
       viewState.loading = true;
-      viewState.itemsPerPage = tasksViewStateCache.get('#common') ? tasksViewStateCache.get('#common').itemsPerPage : 20;
+      viewState.itemsPerPage = tasksViewStateCache.get('#common')
+        ? tasksViewStateCache.get('#common').itemsPerPage
+        : 20;
 
       $scope.viewState = viewState;
       setTaskFilter();
@@ -97,12 +108,17 @@ module.exports = angular.module('spinnaker.core.task.controller', [
       if ($scope.viewState.nameFilter) {
         var normalizedSearch = $scope.viewState.nameFilter.toLowerCase();
         controller.sortedTasks = _.filter(joinedLists, function(task) {
-          return task.name.toLowerCase().includes(normalizedSearch) ||
+          return (
+            task.name.toLowerCase().includes(normalizedSearch) ||
             task.id.toLowerCase().includes(normalizedSearch) ||
             (task.getValueFor('credentials') || '').toLowerCase().includes(normalizedSearch) ||
             (task.getValueFor('region') || '').toLowerCase().includes(normalizedSearch) ||
-            (task.getValueFor('regions') || []).join(' ').toLowerCase().includes(normalizedSearch) ||
-            (task.getValueFor('user') || '').toLowerCase().includes(normalizedSearch);
+            (task.getValueFor('regions') || [])
+              .join(' ')
+              .toLowerCase()
+              .includes(normalizedSearch) ||
+            (task.getValueFor('user') || '').toLowerCase().includes(normalizedSearch)
+          );
         });
       }
       if ($scope.viewState.taskStateFilter) {
@@ -123,8 +139,10 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     };
 
     controller.cancelTask = function(taskId) {
-      var task = application.tasks.data.filter(function(task) { return task.id === taskId; })[0];
-      var submitMethod = function () {
+      var task = application.tasks.data.filter(function(task) {
+        return task.id === taskId;
+      })[0];
+      var submitMethod = function() {
         return taskWriter.cancelTask(application.name, taskId).then(() => application.tasks.refresh());
       };
 
@@ -132,13 +150,15 @@ module.exports = angular.module('spinnaker.core.task.controller', [
         header: 'Really cancel ' + task.name + '?',
         buttonText: 'Yes',
         cancelButtonText: 'No',
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     controller.deleteTask = function(taskId) {
-      var task = application.tasks.data.filter(function(task) { return task.id === taskId; })[0];
-      var submitMethod = function () {
+      var task = application.tasks.data.filter(function(task) {
+        return task.id === taskId;
+      })[0];
+      var submitMethod = function() {
         return taskWriter.deleteTask(taskId).then(() => application.tasks.refresh());
       };
 
@@ -146,7 +166,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
         header: 'Really delete history for ' + task.name + '?',
         body: '<p>This will permanently delete the task history.</p>',
         buttonText: 'Delete',
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -179,10 +199,14 @@ module.exports = angular.module('spinnaker.core.task.controller', [
       return allFiltered.slice(start, end);
     };
 
-
     controller.getFirstDeployServerGroupName = function(task) {
-      if(task.execution && task.execution.stages) {
-        var stage = findStageWithTaskInExecution(task.execution, ['createCopyLastAsg', 'createDeploy', 'cloneServerGroup', 'createServerGroup']);
+      if (task.execution && task.execution.stages) {
+        var stage = findStageWithTaskInExecution(task.execution, [
+          'createCopyLastAsg',
+          'createDeploy',
+          'cloneServerGroup',
+          'createServerGroup',
+        ]);
         return _.chain(stage)
           .get('context')
           .get('deploy.server.groups')
@@ -195,12 +219,12 @@ module.exports = angular.module('spinnaker.core.task.controller', [
 
     controller.getAccountId = function(task) {
       return _.chain(task.variables)
-        .find({'key': 'account'})
+        .find({ key: 'account' })
         .result('value')
         .value();
     };
 
-    controller.getRegion = function (task) {
+    controller.getRegion = function(task) {
       var deployedServerGroups = _.find(task.variables, function(variable) {
         return variable.key === 'deploy.server.groups';
       }).value;
@@ -219,11 +243,13 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     };
 
     function findStageWithTaskInExecution(execution, stageName) {
-      return _.chain(execution.stages).find(function(stage) {
-        return _.some(stage.tasks, function(task) {
-          return stageName.includes(task.name);
-        });
-      }).value();
+      return _.chain(execution.stages)
+        .find(function(stage) {
+          return _.some(stage.tasks, function(task) {
+            return stageName.includes(task.name);
+          });
+        })
+        .value();
     }
 
     function filterRunningTasks() {
@@ -273,5 +299,4 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     });
 
     this.application.tasks.onRefresh($scope, this.sortTasks);
-  }
-);
+  });

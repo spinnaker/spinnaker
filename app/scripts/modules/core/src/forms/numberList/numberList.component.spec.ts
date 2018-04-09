@@ -2,21 +2,22 @@ import { mock } from 'angular';
 import { NUMBER_LIST_COMPONENT, NumberListConstraints } from './numberList.component';
 
 describe('Component: numberList', () => {
-
   let $compile: ng.ICompileService,
-      model: number[],
-      stringModel: string,
-      $scope: ng.IScope,
-      elem: any,
-      constraints: NumberListConstraints,
-      onChange: () => any;
+    model: number[],
+    stringModel: string,
+    $scope: ng.IScope,
+    elem: any,
+    constraints: NumberListConstraints,
+    onChange: () => any;
 
   beforeEach(mock.module(NUMBER_LIST_COMPONENT));
 
-  beforeEach(mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope) => {
-    $compile = _$compile_;
-    $scope = $rootScope.$new();
-  }));
+  beforeEach(
+    mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope) => {
+      $compile = _$compile_;
+      $scope = $rootScope.$new();
+    }),
+  );
 
   const initialize = (startModel: number[]) => {
     model = startModel;
@@ -58,12 +59,18 @@ describe('Component: numberList', () => {
   describe('model synchronization', () => {
     it('does not add invalid entry to model', () => {
       initialize([]);
-      elem.find('input[type="number"]').val('invalid').change();
+      elem
+        .find('input[type="number"]')
+        .val('invalid')
+        .change();
       elem.find('input[type="number"]').change();
       $scope.$digest();
       expect(model).toEqual([]);
 
-      elem.find('input[type="number"]').val('3').change();
+      elem
+        .find('input[type="number"]')
+        .val('3')
+        .change();
       elem.find('input[type="number"]').change();
       $scope.$digest();
       expect(model).toEqual([3]);
@@ -86,9 +93,14 @@ describe('Component: numberList', () => {
 
     it('calls onChange event if present', () => {
       let onChangeCalled = false;
-      onChange = () => { onChangeCalled = true; };
+      onChange = () => {
+        onChangeCalled = true;
+      };
       initialize([1]);
-      elem.find('input[type="number"]').val('2').change();
+      elem
+        .find('input[type="number"]')
+        .val('2')
+        .change();
       $scope.$digest();
       expect(onChangeCalled).toBe(true);
     });
@@ -98,7 +110,7 @@ describe('Component: numberList', () => {
     it('marks invalid fields', () => {
       constraints = {
         min: 4,
-        max: 10
+        max: 10,
       };
       initialize([1, 5, 50]);
       expect(elem.find('.ng-invalid').length).toBe(2);

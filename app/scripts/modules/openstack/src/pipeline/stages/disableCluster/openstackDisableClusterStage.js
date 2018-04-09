@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableClusterStage', [
-])
+module.exports = angular
+  .module('spinnaker.openstack.pipeline.stage.disableClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableCluster',
@@ -11,22 +11,27 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableClust
       templateUrl: require('./disableClusterStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        {
+          type: 'requiredField',
+          fieldName: 'remainingEnabledServerGroups',
+          fieldLabel: 'Keep [X] enabled Server Groups',
+        },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('openstackDisableClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('openstackDisableClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function (accounts) {
+    accountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -39,7 +44,11 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableClust
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'openstack';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Openstack'];
     }
 
@@ -66,4 +75,3 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableClust
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });
-

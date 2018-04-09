@@ -24,7 +24,7 @@ export const HelpMenu = () => {
           <MenuItem href={COMMUNITY_URL} target="_blank">
             Community Resources
           </MenuItem>
-          { SETTINGS.feature.pagerDuty && (
+          {SETTINGS.feature.pagerDuty && (
             <li role="presentation">
               <UISref to="home.page">
                 <a className="clickable">
@@ -37,9 +37,7 @@ export const HelpMenu = () => {
       </Dropdown>
 
       <Dropdown id="help-menu-dropdown-large" pullRight={true}>
-        <Dropdown.Toggle className="hidden-xs hidden-sm hidden-md">
-          Help
-        </Dropdown.Toggle>
+        <Dropdown.Toggle className="hidden-xs hidden-sm hidden-md">Help</Dropdown.Toggle>
         <Dropdown.Menu>
           <MenuItem href={DOCS_URL} target="_blank">
             Docs
@@ -47,7 +45,7 @@ export const HelpMenu = () => {
           <MenuItem href={COMMUNITY_URL} target="_blank">
             Community Resources
           </MenuItem>
-          { SETTINGS.feature.pagerDuty && (
+          {SETTINGS.feature.pagerDuty && (
             <li role="presentation">
               <UISref to="home.page">
                 <a className="clickable">

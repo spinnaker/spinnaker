@@ -2,9 +2,7 @@ import { isString, range } from 'lodash';
 import { UUIDGenerator } from './uuid.service';
 
 describe('UUID Service', () => {
-
   describe('verify uuid generation format', () => {
-
     let uuid: string;
     beforeEach(() => {
       uuid = UUIDGenerator.generateUuid();

@@ -5,34 +5,38 @@ import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.bui
 import { APPLICATION_DATA_SOURCE_REGISTRY } from '../application/service/applicationDataSource.registry';
 import { TASK_READ_SERVICE, TaskReader } from 'core/task/task.read.service';
 
-describe('Task Data Source', function () {
-
+describe('Task Data Source', function() {
   let application: Application,
-      taskReader: TaskReader,
-      $scope: any,
-      applicationModelBuilder: any,
-      applicationDataSourceRegistry: any,
-      $q: ng.IQService;
+    taskReader: TaskReader,
+    $scope: any,
+    applicationModelBuilder: any,
+    applicationDataSourceRegistry: any,
+    $q: ng.IQService;
 
   beforeEach(
     mock.module(
       require('./task.dataSource').name,
       TASK_READ_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
-      APPLICATION_MODEL_BUILDER
-    ));
+      APPLICATION_MODEL_BUILDER,
+    ),
+  );
 
   beforeEach(
-    mock.inject(function (_taskReader_: TaskReader, _$q_: any, $rootScope: any,
-                            _applicationModelBuilder_: any, _applicationDataSourceRegistry_: any) {
+    mock.inject(function(
+      _taskReader_: TaskReader,
+      _$q_: any,
+      $rootScope: any,
+      _applicationModelBuilder_: any,
+      _applicationDataSourceRegistry_: any,
+    ) {
       $q = _$q_;
       $scope = $rootScope.$new();
       taskReader = _taskReader_;
       applicationModelBuilder = _applicationModelBuilder_;
       applicationDataSourceRegistry = _applicationDataSourceRegistry_;
-    })
+    }),
   );
-
 
   function configureApplication() {
     applicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
@@ -42,12 +46,12 @@ describe('Task Data Source', function () {
     $scope.$digest();
   }
 
-  describe('loading tasks', function () {
-    beforeEach(function () {
+  describe('loading tasks', function() {
+    beforeEach(function() {
       spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([]));
     });
 
-    it('loads tasks and sets appropriate flags', function () {
+    it('loads tasks and sets appropriate flags', function() {
       spyOn(taskReader, 'getTasks').and.returnValue($q.when([]));
       configureApplication();
       expect(application.getDataSource('tasks').loaded).toBe(true);
@@ -55,7 +59,7 @@ describe('Task Data Source', function () {
       expect(application.getDataSource('tasks').loadFailure).toBe(false);
     });
 
-    it('sets appropriate flags when task load fails', function () {
+    it('sets appropriate flags when task load fails', function() {
       spyOn(taskReader, 'getTasks').and.returnValue($q.reject(null));
       configureApplication();
       expect(application.getDataSource('tasks').loaded).toBe(false);
@@ -64,12 +68,12 @@ describe('Task Data Source', function () {
     });
   });
 
-  describe('reload tasks', function () {
-    beforeEach(function () {
+  describe('reload tasks', function() {
+    beforeEach(function() {
       spyOn(taskReader, 'getRunningTasks').and.returnValue($q.when([]));
     });
 
-    it('reloads tasks and sets appropriate flags', function () {
+    it('reloads tasks and sets appropriate flags', function() {
       let nextCalls = 0;
       spyOn(taskReader, 'getTasks').and.returnValue($q.when([]));
       configureApplication();
@@ -89,10 +93,10 @@ describe('Task Data Source', function () {
       expect(nextCalls).toBe(1);
     });
 
-    it('sets appropriate flags when task reload fails; subscriber is responsible for error checking', function () {
+    it('sets appropriate flags when task reload fails; subscriber is responsible for error checking', function() {
       spyOn(taskReader, 'getTasks').and.returnValue($q.reject(null));
       let errorsHandled = 0,
-          successesHandled = 0;
+        successesHandled = 0;
       configureApplication();
       application.getDataSource('tasks').onRefresh($scope, () => successesHandled++, () => errorsHandled++);
 
@@ -109,5 +113,4 @@ describe('Task Data Source', function () {
       expect(successesHandled).toBe(0);
     });
   });
-
 });

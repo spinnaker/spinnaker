@@ -1,26 +1,45 @@
 import { module } from 'angular';
 import {
-  APPLICATION_NAME_VALIDATOR, IApplicationNameValidator,
-  ApplicationNameValidator, IValidationResult
+  APPLICATION_NAME_VALIDATOR,
+  IApplicationNameValidator,
+  ApplicationNameValidator,
+  IValidationResult,
 } from './applicationName.validator';
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
 import { SETTINGS } from 'core/config/settings';
 
 export class ExampleApplicationNameValidator implements IApplicationNameValidator {
-
-  public get WARNING_MESSAGE() { return 'WARNING!!!!'; }
-  public get WARNING_CONDITION() { return 'application.warning'; }
-  public get ERROR_MESSAGE() { return 'ERRORRRRRR!!!'; }
-  public get ERROR_CONDITION() { return  'application.error'; }
-  public get COMMON_WARNING_CONDITION() { return  'common.warning'; }
-  public get COMMON_WARNING_MESSAGE() { return  '2COMMON WARNING'; }
-  public get COMMON_ERROR_CONDITION() { return  'common.error'; }
-  public get COMMON_ERROR_MESSAGE() { return  'COMMON ERROR!'; }
-  public get provider() { return 'example'; }
+  public get WARNING_MESSAGE() {
+    return 'WARNING!!!!';
+  }
+  public get WARNING_CONDITION() {
+    return 'application.warning';
+  }
+  public get ERROR_MESSAGE() {
+    return 'ERRORRRRRR!!!';
+  }
+  public get ERROR_CONDITION() {
+    return 'application.error';
+  }
+  public get COMMON_WARNING_CONDITION() {
+    return 'common.warning';
+  }
+  public get COMMON_WARNING_MESSAGE() {
+    return '2COMMON WARNING';
+  }
+  public get COMMON_ERROR_CONDITION() {
+    return 'common.error';
+  }
+  public get COMMON_ERROR_MESSAGE() {
+    return 'COMMON ERROR!';
+  }
+  public get provider() {
+    return 'example';
+  }
 
   public validate(name = ''): IValidationResult {
     const warnings: string[] = [],
-        errors: string[] = [];
+      errors: string[] = [];
     name = name || '';
     if (name === this.WARNING_CONDITION) {
       warnings.push(this.WARNING_MESSAGE);
@@ -43,19 +62,37 @@ export class ExampleApplicationNameValidator implements IApplicationNameValidato
 }
 
 export class ExampleApplicationNameValidator2 implements IApplicationNameValidator {
-  public get WARNING_MESSAGE() { return '2WARNING!!!!'; }
-  public get WARNING_CONDITION() { return 'application.warning2'; }
-  public get ERROR_MESSAGE() { return '2ERRORRRRRR!!!'; }
-  public get ERROR_CONDITION() { return  'application.error™'; }
-  public get COMMON_WARNING_CONDITION() { return  'common.warning'; }
-  public get COMMON_WARNING_MESSAGE() { return  '2COMMON WARNING'; }
-  public get COMMON_ERROR_CONDITION() { return  'common.error'; }
-  public get COMMON_ERROR_MESSAGE() { return  '2COMMON ERROR!'; }
-  public get provider() { return 'example2'; }
+  public get WARNING_MESSAGE() {
+    return '2WARNING!!!!';
+  }
+  public get WARNING_CONDITION() {
+    return 'application.warning2';
+  }
+  public get ERROR_MESSAGE() {
+    return '2ERRORRRRRR!!!';
+  }
+  public get ERROR_CONDITION() {
+    return 'application.error™';
+  }
+  public get COMMON_WARNING_CONDITION() {
+    return 'common.warning';
+  }
+  public get COMMON_WARNING_MESSAGE() {
+    return '2COMMON WARNING';
+  }
+  public get COMMON_ERROR_CONDITION() {
+    return 'common.error';
+  }
+  public get COMMON_ERROR_MESSAGE() {
+    return '2COMMON ERROR!';
+  }
+  public get provider() {
+    return 'example2';
+  }
 
   public validate(name = ''): IValidationResult {
     const warnings: string[] = [],
-        errors: string[] = [];
+      errors: string[] = [];
     name = name || '';
     if (name === this.WARNING_CONDITION) {
       warnings.push(this.WARNING_MESSAGE);
@@ -79,17 +116,19 @@ export class ExampleApplicationNameValidator2 implements IApplicationNameValidat
 
 export const EXAMPLE_APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.modal.validation.example.applicationName';
 
-module(EXAMPLE_APPLICATION_NAME_VALIDATOR, [
-  APPLICATION_NAME_VALIDATOR,
-  CLOUD_PROVIDER_REGISTRY,
-]).service('exampleApplicationNameValidator', ExampleApplicationNameValidator)
+module(EXAMPLE_APPLICATION_NAME_VALIDATOR, [APPLICATION_NAME_VALIDATOR, CLOUD_PROVIDER_REGISTRY])
+  .service('exampleApplicationNameValidator', ExampleApplicationNameValidator)
   .service('exampleApplicationNameValidator2', ExampleApplicationNameValidator2)
-  .run((applicationNameValidator: ApplicationNameValidator,
-        exampleApplicationNameValidator: ExampleApplicationNameValidator,
-        exampleApplicationNameValidator2: ExampleApplicationNameValidator2) => {
-    applicationNameValidator.registerValidator('example', exampleApplicationNameValidator);
-    applicationNameValidator.registerValidator('example2', exampleApplicationNameValidator2);
-  })
+  .run(
+    (
+      applicationNameValidator: ApplicationNameValidator,
+      exampleApplicationNameValidator: ExampleApplicationNameValidator,
+      exampleApplicationNameValidator2: ExampleApplicationNameValidator2,
+    ) => {
+      applicationNameValidator.registerValidator('example', exampleApplicationNameValidator);
+      applicationNameValidator.registerValidator('example2', exampleApplicationNameValidator2);
+    },
+  )
   .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     SETTINGS.providers.example = { defaults: { account: 'test' }, resetToOriginal: () => {} };
     SETTINGS.providers.example2 = { defaults: { account: 'test' }, resetToOriginal: () => {} };

@@ -14,14 +14,18 @@ export interface ICacheProxy {
 }
 
 class SelfClearingLocalStorage implements ILocalStorage {
-
   constructor(private $log: ng.ILogService, private cacheProxy: ICacheProxy) {}
 
   public setItem(k: string, v: any) {
     try {
       if (k.includes(SETTINGS.gateUrl)) {
         const response = JSON.parse(v);
-        if (response.value && Array.isArray(response.value) && (response.value.length > 2) && response.value[2]['content-type']) {
+        if (
+          response.value &&
+          Array.isArray(response.value) &&
+          response.value.length > 2 &&
+          response.value[2]['content-type']
+        ) {
           const val: string = response.value[2]['content-type'];
           if (val && !val.includes('application/json')) {
             return;
@@ -40,7 +44,6 @@ class SelfClearingLocalStorage implements ILocalStorage {
   }
 
   public getItem(k: string): any {
-
     let result: any;
     if (this.cacheProxy[k] !== undefined) {
       result = this.cacheProxy[k];
@@ -110,7 +113,6 @@ export interface ICacheMap {
 }
 
 export class DeckCacheService {
-
   private caches: ICacheMap = Object.create(null);
   private cacheProxy: ICacheProxy = Object.create(null);
 
@@ -119,7 +121,6 @@ export class DeckCacheService {
   }
 
   private static buildCacheKey(namespace: string, cacheId: string): string {
-
     let result: string;
     if (!namespace || !cacheId) {
       result = namespace || cacheId;
@@ -131,7 +132,6 @@ export class DeckCacheService {
   }
 
   private static bombCorruptedCache(namespace: string, cacheId: string, currentVersion: number): void {
-
     // if the "meta-key" (the key that represents the cached keys) somehow got deleted or emptied
     // but the data did not, we need to remove the data or the cache will always return the old stale data
     const basekey: string = DeckCacheService.buildCacheKey(namespace, cacheId);
@@ -143,11 +143,12 @@ export class DeckCacheService {
     }
   }
 
-  private static clearPreviousVersions(namespace: string,
-                                       cacheId: string,
-                                       currentVersion: number,
-                                       cacheFactory: ICacheFactory): void {
-
+  private static clearPreviousVersions(
+    namespace: string,
+    cacheId: string,
+    currentVersion: number,
+    cacheFactory: ICacheFactory,
+  ): void {
     if (currentVersion) {
       DeckCacheService.bombCorruptedCache(namespace, cacheId, currentVersion);
 
@@ -160,7 +161,7 @@ export class DeckCacheService {
 
         cacheFactory.createCache(key, {
           storageMode: 'localStorage',
-          storagePrefix: DeckCacheService.getStoragePrefix(key, i)
+          storagePrefix: DeckCacheService.getStoragePrefix(key, i),
         });
         cacheFactory.get(key).removeAll();
         cacheFactory.get(key).destroy();
@@ -169,9 +170,9 @@ export class DeckCacheService {
   }
 
   private static getStats(cache: ICache): IStats {
-
     const keys: string[] = cache.keys();
-    let ageMin = moment.now(), ageMax = 0;
+    let ageMin = moment.now(),
+      ageMax = 0;
 
     keys.forEach((key: string) => {
       const info: IInfo = cache.info(key) || {};
@@ -182,12 +183,11 @@ export class DeckCacheService {
     return {
       ageMax: ageMax || null,
       ageMin: ageMin || null,
-      keys: keys.length
+      keys: keys.length,
     };
   }
 
   private addLocalStorageCache(namespace: string, cacheId: string, cacheConfig: ICacheConfig): void {
-
     const key: string = DeckCacheService.buildCacheKey(namespace, cacheId);
     const cacheFactory: ICacheFactory = cacheConfig.cacheFactory || this.CacheFactory;
     const currentVersion: number = cacheConfig.version || 1;
@@ -200,15 +200,14 @@ export class DeckCacheService {
       recycleFreq: moment.duration(5, 'seconds').asMilliseconds(),
       storageImpl: new SelfClearingLocalStorage(this.$log, this.cacheProxy),
       storageMode: 'localStorage',
-      storagePrefix: DeckCacheService.getStoragePrefix(key, currentVersion)
+      storagePrefix: DeckCacheService.getStoragePrefix(key, currentVersion),
     });
     this.caches[key] = cacheFactory.get(key);
     this.caches[key].getStats = DeckCacheService.getStats.bind(null, this.caches[key]);
     this.caches[key].config = cacheConfig;
   }
 
-  constructor(private $log: ng.ILogService,
-              private CacheFactory: any) {
+  constructor(private $log: ng.ILogService, private CacheFactory: any) {
     'ngInject';
   }
 
@@ -229,7 +228,4 @@ export class DeckCacheService {
 }
 
 export const DECK_CACHE_SERVICE = 'spinnaker.core.cache.deckCacheService';
-module(DECK_CACHE_SERVICE, [
-  require('angular-cache'),
-])
-  .service('deckCacheFactory', DeckCacheService);
+module(DECK_CACHE_SERVICE, [require('angular-cache')]).service('deckCacheFactory', DeckCacheService);

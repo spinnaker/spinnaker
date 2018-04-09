@@ -14,7 +14,9 @@ export class TravisTriggerOptionsController {
   public command: any;
   public builds: IBuild[];
 
-  constructor(private $scope: IScope, private igorService: IgorService) { 'ngInject'; }
+  constructor(private $scope: IScope, private igorService: IgorService) {
+    'ngInject';
+  }
 
   public $onInit() {
     // These fields will be added to the trigger when the form is submitted
@@ -31,7 +33,7 @@ export class TravisTriggerOptionsController {
 
   private buildLoadSuccess(builds: IBuild[]): void {
     this.builds = builds
-      .filter((build) => !build.building && build.result === 'SUCCESS')
+      .filter(build => !build.building && build.result === 'SUCCESS')
       .sort((a, b) => b.number - a.number);
     if (this.builds.length) {
       // default to what is supplied by the trigger if possible; otherwise, use the latest
@@ -40,12 +42,12 @@ export class TravisTriggerOptionsController {
       this.updateSelectedBuild(defaultSelection);
     }
     this.viewState.buildsLoading = false;
-  };
+  }
 
   private buildLoadFailure(): void {
     this.viewState.buildsLoading = false;
     this.viewState.loadError = true;
-  };
+  }
 
   private initialize() {
     const command = this.command;
@@ -54,19 +56,20 @@ export class TravisTriggerOptionsController {
       return;
     }
     this.viewState.buildsLoading = true;
-    this.igorService.listBuildsForJob(command.trigger.master, command.trigger.job)
-      .then((builds) => this.buildLoadSuccess(builds))
+    this.igorService
+      .listBuildsForJob(command.trigger.master, command.trigger.job)
+      .then(builds => this.buildLoadSuccess(builds))
       .catch(_reason => this.buildLoadFailure());
-  };
+  }
 
   public updateSelectedBuild(item: any): void {
     this.command.extraFields.buildNumber = item.number;
-  };
+  }
 }
 
 class TravisTriggerOptionsComponent implements IComponentOptions {
   public bindings: any = {
-    command: '='
+    command: '=',
   };
   public templateUrl = require('./travisTriggerOptions.component.html');
   public controller: any = TravisTriggerOptionsController;
@@ -74,6 +77,7 @@ class TravisTriggerOptionsComponent implements IComponentOptions {
 
 export const TRAVIS_TRIGGER_OPTIONS_COMPONENT = 'spinnaker.core.pipeline.config.triggers.travis.options.component';
 
-module(TRAVIS_TRIGGER_OPTIONS_COMPONENT, [
-  IGOR_SERVICE
-]).component('travisTriggerOptions', new TravisTriggerOptionsComponent());
+module(TRAVIS_TRIGGER_OPTIONS_COMPONENT, [IGOR_SERVICE]).component(
+  'travisTriggerOptions',
+  new TravisTriggerOptionsComponent(),
+);

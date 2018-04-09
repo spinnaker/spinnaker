@@ -6,12 +6,13 @@ import { ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY, SETTINGS } from '@spinnaker/c
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
-module.exports = angular.module('spinnaker.canary.acaTaskStage', [
-  CLOUD_PROVIDER_REGISTRY,
-  require('../canary/canaryExecutionSummary.controller').name,
-  ACCOUNT_SERVICE,
-])
-  .config(function (pipelineConfigProvider) {
+module.exports = angular
+  .module('spinnaker.canary.acaTaskStage', [
+    CLOUD_PROVIDER_REGISTRY,
+    require('../canary/canaryExecutionSummary.controller').name,
+    ACCOUNT_SERVICE,
+  ])
+  .config(function(pipelineConfigProvider) {
     if (SETTINGS.feature.canary) {
       pipelineConfigProvider.registerStage({
         label: 'ACA Task',
@@ -21,20 +22,25 @@ module.exports = angular.module('spinnaker.canary.acaTaskStage', [
         templateUrl: require('./acaTaskStage.html'),
         executionDetailsUrl: require('./acaTaskExecutionDetails.html'),
         executionSummaryUrl: require('./acaTaskExecutionSummary.html'),
-        stageFilter: (stage) => ['monitorAcaTask', 'acaTask'].includes(stage.type),
+        stageFilter: stage => ['monitorAcaTask', 'acaTask'].includes(stage.type),
         executionLabelComponent: CanaryExecutionLabel,
         controller: 'AcaTaskStageCtrl',
         controllerAs: 'acaTaskStageCtrl',
-        validators: [
-        ],
+        validators: [],
       });
     }
   })
-  .controller('AcaTaskStageCtrl', function ($scope, $uibModal, stage,
-                                           namingService, providerSelectionService,
-                                           authenticationService, cloudProviderRegistry,
-                                           awsServerGroupTransformer, accountService) {
-
+  .controller('AcaTaskStageCtrl', function(
+    $scope,
+    $uibModal,
+    stage,
+    namingService,
+    providerSelectionService,
+    authenticationService,
+    cloudProviderRegistry,
+    awsServerGroupTransformer,
+    accountService,
+  ) {
     var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
     $scope.stage.baseline = $scope.stage.baseline || {};
@@ -42,14 +48,24 @@ module.exports = angular.module('spinnaker.canary.acaTaskStage', [
     $scope.stage.canary.application = $scope.stage.canary.application || $scope.application.name;
     $scope.stage.canary.owner = $scope.stage.canary.owner || (user.authenticated ? user.name : null);
     $scope.stage.canary.watchers = $scope.stage.canary.watchers || [];
-    $scope.stage.canary.canaryConfig = $scope.stage.canary.canaryConfig || { name: [$scope.pipeline.name, 'Canary'].join(' - ') };
-    $scope.stage.canary.canaryConfig.canaryHealthCheckHandler = Object.assign($scope.stage.canary.canaryConfig.canaryHealthCheckHandler || {}, {'@class':'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler'});
+    $scope.stage.canary.canaryConfig = $scope.stage.canary.canaryConfig || {
+      name: [$scope.pipeline.name, 'Canary'].join(' - '),
+    };
+    $scope.stage.canary.canaryConfig.canaryHealthCheckHandler = Object.assign(
+      $scope.stage.canary.canaryConfig.canaryHealthCheckHandler || {},
+      { '@class': 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler' },
+    );
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig = $scope.stage.canary.canaryConfig.canaryAnalysisConfig || {};
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback || false;
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins || 0;
+    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours =
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
+    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback =
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback || false;
+    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins =
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins || 0;
 
-    $scope.stage.canary.canaryDeployments = $scope.stage.canary.canaryDeployments || [{type: 'query', '@class':'.CanaryTaskDeployment'}];
+    $scope.stage.canary.canaryDeployments = $scope.stage.canary.canaryDeployments || [
+      { type: 'query', '@class': '.CanaryTaskDeployment' },
+    ];
 
     $scope.canaryDeployment = $scope.stage.canary.canaryDeployments[0];
 
@@ -68,19 +84,20 @@ module.exports = angular.module('spinnaker.canary.acaTaskStage', [
     }
 
     applicationProviders.forEach(p => {
-      accountService.listAccounts(p)
-        .then(a => $scope.accounts = $scope.accounts.concat(a));
-      accountService.getUniqueAttributeForAllAccounts(p, 'regions')
-        .then(r=> $scope.regions = $scope.regions.concat(r));
+      accountService.listAccounts(p).then(a => ($scope.accounts = $scope.accounts.concat(a)));
+      accountService
+        .getUniqueAttributeForAllAccounts(p, 'regions')
+        .then(r => ($scope.regions = $scope.regions.concat(r)));
     });
 
     //TODO: Extract to be reusable with canaryStage [zkt]
     this.updateWatchersList = () => {
-      if (this.recipients.includes('${')) { //check if SpEL; we don't want to convert to array
+      if (this.recipients.includes('${')) {
+        //check if SpEL; we don't want to convert to array
         $scope.stage.canary.watchers = this.recipients;
       } else {
         $scope.stage.canary.watchers = [];
-        this.recipients.split(',').forEach((email) => {
+        this.recipients.split(',').forEach(email => {
           $scope.stage.canary.watchers.push(email.trim());
         });
       }
@@ -90,12 +107,13 @@ module.exports = angular.module('spinnaker.canary.acaTaskStage', [
 
     this.splitNotificationHours = () => {
       var hoursField = this.notificationHours || '';
-      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(hoursField.split(','), function(str) {
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(hoursField.split(','), function(
+        str,
+      ) {
         if (!parseInt(str.trim()).isNaN) {
           return parseInt(str.trim());
         }
         return 0;
       });
     };
-
   });

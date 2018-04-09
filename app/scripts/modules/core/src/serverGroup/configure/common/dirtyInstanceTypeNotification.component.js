@@ -2,10 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.core.serverGroup.dirtyInstanceTypeNotification.component', [])
+module.exports = angular
+  .module('spinnaker.deck.core.serverGroup.dirtyInstanceTypeNotification.component', [])
   .component('dirtyInstanceTypeNotification', {
     bindings: {
-      command: '='
+      command: '=',
     },
-    templateUrl: require('./dirtyInstanceTypeNotification.component.html')
+    templateUrl: require('./dirtyInstanceTypeNotification.component.html'),
   });

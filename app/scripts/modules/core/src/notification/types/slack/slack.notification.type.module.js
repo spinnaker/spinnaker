@@ -2,11 +2,12 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notification.types.slack', [])
+module.exports = angular
+  .module('spinnaker.core.notification.types.slack', [])
   .config(function(notificationTypeConfigProvider) {
     notificationTypeConfigProvider.registerNotificationType({
       label: 'Slack',
       key: 'slack',
-      addressTemplateUrl: require('./additionalFields.html')
+      addressTemplateUrl: require('./additionalFields.html'),
     });
   });

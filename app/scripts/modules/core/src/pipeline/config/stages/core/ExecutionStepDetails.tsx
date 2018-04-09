@@ -22,14 +22,15 @@ export function ExecutionStepDetails(props: IExecutionStepDetailsProps) {
             <strong>Duration</strong>
           </div>
         </div>
-        { displayableTasks((props.item.tasks || [])).map((task, index) => (
+        {displayableTasks(props.item.tasks || []).map((task, index) => (
           <div key={index} className="row">
             <div className="col-md-9">
-              <span className="small"><StatusGlyph item={task}/></span> {robotToHuman(task.name)}
+              <span className="small">
+                <StatusGlyph item={task} />
+              </span>{' '}
+              {robotToHuman(task.name)}
             </div>
-            <div className="col-md-3 text-right">
-              {duration(task.runningTimeInMs)}
-            </div>
+            <div className="col-md-3 text-right">{duration(task.runningTimeInMs)}</div>
           </div>
         ))}
       </div>

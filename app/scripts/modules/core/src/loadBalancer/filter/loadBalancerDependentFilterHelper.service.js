@@ -4,19 +4,19 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilterHelper.service', [])
-  .factory('loadBalancerDependentFilterHelper', function () {
+module.exports = angular
+  .module('spinnaker.deck.core.loadBalancer.dependentFilterHelper.service', [])
+  .factory('loadBalancerDependentFilterHelper', function() {
     let poolValueCoordinates = [
       { filterField: 'providerType', on: 'loadBalancer', localField: 'type' },
       { filterField: 'account', on: 'loadBalancer', localField: 'account' },
       { filterField: 'region', on: 'loadBalancer', localField: 'region' },
-      { filterField: 'availabilityZone', on: 'instance', localField: 'zone' }
+      { filterField: 'availabilityZone', on: 'instance', localField: 'zone' },
     ];
 
-    function poolBuilder (loadBalancers) {
+    function poolBuilder(loadBalancers) {
       let pool = _.chain(loadBalancers)
-        .map((lb) => {
-
+        .map(lb => {
           let poolUnitTemplate = _.chain(poolValueCoordinates)
             .filter({ on: 'loadBalancer' })
             .reduce((poolUnitTemplate, coordinate) => {
@@ -26,9 +26,9 @@ module.exports = angular.module('spinnaker.deck.core.loadBalancer.dependentFilte
             .value();
 
           let poolUnits = _.chain(['instances', 'detachedInstances'])
-            .map((instanceStatus) => lb[instanceStatus])
+            .map(instanceStatus => lb[instanceStatus])
             .flatten()
-            .map((instance) => {
+            .map(instance => {
               let poolUnit = _.cloneDeep(poolUnitTemplate);
               if (!instance) {
                 return poolUnit;

@@ -15,9 +15,16 @@ module.exports = angular
     require('./diffSummary.component').name,
     DIFF_VIEW_COMPONENT,
   ])
-  .controller('ShowHistoryCtrl', function ($window, pipelineConfigService, jsonUtilityService,
-                                           pipelineConfigId, currentConfig, isStrategy,
-                                           $uibModalInstance, $filter) {
+  .controller('ShowHistoryCtrl', function(
+    $window,
+    pipelineConfigService,
+    jsonUtilityService,
+    pipelineConfigId,
+    currentConfig,
+    isStrategy,
+    $uibModalInstance,
+    $filter,
+  ) {
     this.state = {
       loading: true,
       error: false,
@@ -27,7 +34,7 @@ module.exports = angular
     this.compareOptions = ['previous version', 'current'];
     this.compareTo = this.compareOptions[0];
 
-    let historyLoaded = (history) => {
+    let historyLoaded = history => {
       this.state.loading = false;
       if (currentConfig) {
         history = [currentConfig].concat(history);
@@ -74,8 +81,5 @@ module.exports = angular
       $uibModalInstance.close(this.history[this.version].json);
     };
 
-    pipelineConfigService.getHistory(pipelineConfigId, isStrategy, 100).then(
-      historyLoaded,
-      loadError
-    );
+    pipelineConfigService.getHistory(pipelineConfigId, isStrategy, 100).then(historyLoaded, loadError);
   });

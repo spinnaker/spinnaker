@@ -4,17 +4,18 @@ const angular = require('angular');
 
 import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.directive', [
-  CONFIRMATION_MODAL_SERVICE,
-  require('angular-ui-bootstrap'),
-  require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js').name,
-  require('./modal/upsertAutoscalingPolicy.modal.controller.js').name,
-])
+module.exports = angular
+  .module('spinnaker.gce.instance.details.scalingPolicy.directive', [
+    CONFIRMATION_MODAL_SERVICE,
+    require('angular-ui-bootstrap'),
+    require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js').name,
+    require('./modal/upsertAutoscalingPolicy.modal.controller.js').name,
+  ])
   .component('gceAutoscalingPolicy', {
     bindings: {
       policy: '=',
       application: '=',
-      serverGroup: '='
+      serverGroup: '=',
     },
     templateUrl: require('./autoscalingPolicy.directive.html'),
     controller: function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
@@ -81,8 +82,8 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
           resolve: {
             policy: () => this.policy,
             application: () => this.application,
-            serverGroup: () => this.serverGroup
-          }
+            serverGroup: () => this.serverGroup,
+          },
         });
       };
 
@@ -98,8 +99,8 @@ module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.di
           account: this.serverGroup.account,
           provider: 'gce',
           taskMonitorConfig: taskMonitor,
-          submitMethod: () => gceAutoscalingPolicyWriter.deleteAutoscalingPolicy(this.application, this.serverGroup)
+          submitMethod: () => gceAutoscalingPolicyWriter.deleteAutoscalingPolicy(this.application, this.serverGroup),
         });
       };
-    }
+    },
   });

@@ -8,15 +8,29 @@ export class UnmatchedStageTypeStageCtrl implements IController {
   public errorMessage: string;
   public textareaRows: number;
   // These values are editable with standard UI controls.
-  private keysToHide = new Set<string>(['refId', 'requisiteStageRefIds', 'failPipeline', 'continuePipeline',
-                                        'completeOtherBranchesThenFail', 'restrictExecutionDuringTimeWindow',
-                                        'restrictedExecutionWindow', 'stageEnabled', 'sendNotifications',
-                                        'notifications', 'comments', 'name']);
+  private keysToHide = new Set<string>([
+    'refId',
+    'requisiteStageRefIds',
+    'failPipeline',
+    'continuePipeline',
+    'completeOtherBranchesThenFail',
+    'restrictExecutionDuringTimeWindow',
+    'restrictedExecutionWindow',
+    'stageEnabled',
+    'sendNotifications',
+    'notifications',
+    'comments',
+    'name',
+  ]);
 
-  constructor(public $scope: IScope, private jsonUtilityService: JsonUtilityService) { 'ngInject'; }
+  constructor(public $scope: IScope, private jsonUtilityService: JsonUtilityService) {
+    'ngInject';
+  }
 
   public $onInit(): void {
-    this.stageJson = this.jsonUtilityService.makeSortedStringFromObject(this.makeCleanStageCopy(this.$scope.stage || {}));
+    this.stageJson = this.jsonUtilityService.makeSortedStringFromObject(
+      this.makeCleanStageCopy(this.$scope.stage || {}),
+    );
     this.textareaRows = this.stageJson.split('\n').length;
   }
 
@@ -65,5 +79,7 @@ export class UnmatchedStageTypeStageCtrl implements IController {
 }
 
 export const UNMATCHED_STAGE_TYPE_STAGE_CTRL = 'spinnaker.core.pipeline.stage.unmatchedStageTypeStage.controller';
-module(UNMATCHED_STAGE_TYPE_STAGE_CTRL, [JSON_UTILITY_SERVICE])
-  .controller('UnmatchedStageTypeStageCtrl', UnmatchedStageTypeStageCtrl);
+module(UNMATCHED_STAGE_TYPE_STAGE_CTRL, [JSON_UTILITY_SERVICE]).controller(
+  'UnmatchedStageTypeStageCtrl',
+  UnmatchedStageTypeStageCtrl,
+);

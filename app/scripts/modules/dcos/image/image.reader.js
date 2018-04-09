@@ -4,15 +4,20 @@ import { API_SERVICE } from '@spinnaker/core';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.image.reader', [API_SERVICE])
-  .factory('dcosImageReader', function ($q, API) {
+module.exports = angular
+  .module('spinnaker.dcos.image.reader', [API_SERVICE])
+  .factory('dcosImageReader', function($q, API) {
     function findImages(params) {
-      return API.all('images/find').getList(params).then(function(results) {
-          return results;
-        },
-        function() {
-          return [];
-        });
+      return API.all('images/find')
+        .getList(params)
+        .then(
+          function(results) {
+            return results;
+          },
+          function() {
+            return [];
+          },
+        );
     }
 
     function getImage(/*amiName, region, account*/) {

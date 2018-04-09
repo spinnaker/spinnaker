@@ -10,16 +10,25 @@ export interface IClusterMatchRule {
 }
 
 export interface IClusterMatcher {
-  getMatchingRule(account: string, location: string, clusterName: string, rules: IClusterMatchRule[]): IClusterMatchRule;
+  getMatchingRule(
+    account: string,
+    location: string,
+    clusterName: string,
+    rules: IClusterMatchRule[],
+  ): IClusterMatchRule;
 }
 
 export class DefaultClusterMatcher implements IClusterMatcher {
-
   // constructor is just here to allow us to pass in the namingService for testing; otherwise, it should be taken from
   // the ReactInjector, allowing it to be pluggable
   constructor(private namingService?: NamingService) {}
 
-  public getMatchingRule(account: string, location: string, clusterName: string, rules: IClusterMatchRule[]): IClusterMatchRule {
+  public getMatchingRule(
+    account: string,
+    location: string,
+    clusterName: string,
+    rules: IClusterMatchRule[],
+  ): IClusterMatchRule {
     if (!rules || !rules.length) {
       return null;
     }
@@ -34,12 +43,14 @@ export class DefaultClusterMatcher implements IClusterMatcher {
         const ruleDetail = r.detail || '';
         const stack = nameParts.stack || '';
         const detail = nameParts.freeFormDetails || '';
-        return ('*' === ruleAccount || account === ruleAccount) &&
+        return (
+          ('*' === ruleAccount || account === ruleAccount) &&
           ('*' === ruleLocation || location === ruleLocation) &&
           ('*' === ruleStack || stack === ruleStack) &&
-          ('*' === ruleDetail || detail === ruleDetail);
-        }
-      ).sort((a, b) => {
+          ('*' === ruleDetail || detail === ruleDetail)
+        );
+      })
+      .sort((a, b) => {
         if (a.account !== b.account) {
           return a.account === '*' ? 1 : -1;
         }

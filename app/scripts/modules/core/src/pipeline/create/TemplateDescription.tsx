@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
 import { SETTINGS } from 'core/config/settings';
-import { Spinner } from 'core/widgets/spinners/Spinner'
+import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './TemplateDescription.less';
 
@@ -31,7 +31,7 @@ export class TemplateDescription extends React.Component<ITemplateDescriptionPro
                 </a>
               </p>
             )}
-            {this.props.template.metadata.owner && (<p className="small">{this.props.template.metadata.owner}</p>)}
+            {this.props.template.metadata.owner && <p className="small">{this.props.template.metadata.owner}</p>}
             <p className="small">{this.props.template.metadata.description || 'No template description provided.'}</p>
           </div>
         )}

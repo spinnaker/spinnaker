@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.enableAsgStage', [
-  PIPELINE_CONFIG_PROVIDER,
-])
+module.exports = angular
+  .module('spinnaker.kubernetes.pipeline.stage.enableAsgStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
@@ -19,19 +18,19 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.enableAsgSt
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'namespaces' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
-      ]
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
+      ],
     });
-  }).controller('kubernetesEnableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('kubernetesEnableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      namespacesLoaded: false
+      namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function (accounts) {
+    accountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -52,4 +51,3 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.enableAsgSt
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

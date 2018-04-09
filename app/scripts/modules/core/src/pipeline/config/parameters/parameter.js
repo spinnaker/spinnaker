@@ -2,28 +2,27 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.parameters.parameter', [
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.parameters.parameter', [])
   .directive('parameter', function() {
     return {
       restrict: 'E',
       scope: {
         parameter: '=',
-        pipeline: '='
+        pipeline: '=',
       },
       controller: 'ParameterCtrl as parameterCtrl',
       templateUrl: require('./parameter.html'),
     };
   })
   .controller('ParameterCtrl', function($scope) {
-
     this.remove = function(parameter) {
       var index = $scope.pipeline.parameterConfig.indexOf(parameter);
       $scope.pipeline.parameterConfig.splice(index, 1);
     };
 
     this.addOption = function(parameter) {
-      parameter.options.push({value: ''});
+      parameter.options.push({ value: '' });
     };
 
     this.setupOptions = function(parameter) {
@@ -36,5 +35,4 @@ module.exports = angular.module('spinnaker.core.pipeline.parameters.parameter', 
     this.removeOption = function(index, parameter) {
       parameter.options.splice(index, 1);
     };
-
   });

@@ -20,7 +20,7 @@ export interface IGroupedStageListItemProps {
 class GroupedStageListItem extends React.Component<IGroupedStageListItemProps> {
   private onClick(): void {
     if (this.props.stageClicked) {
-      this.props.stageClicked(this.props.stage)
+      this.props.stageClicked(this.props.stage);
     }
   }
 
@@ -32,19 +32,19 @@ class GroupedStageListItem extends React.Component<IGroupedStageListItemProps> {
       'execution-marker',
       `stage-type-${stage.type.toLowerCase()}`,
       `execution-marker-${stage.status.toLowerCase()}`,
-      stage.isRunning ? 'glowing' : ''
-      ].join(' ');
+      stage.isRunning ? 'glowing' : '',
+    ].join(' ');
 
     return (
       <a onClick={this.onClick} className="clickable">
         <li>
-        <div>
-          <div className={markerClassName}/>
-          <span className="stage-name">{stage.name}</span>
-        </div>
-      </li>
-    </a>
-    )
+          <div>
+            <div className={markerClassName} />
+            <span className="stage-name">{stage.name}</span>
+          </div>
+        </li>
+      </a>
+    );
   }
 }
 
@@ -63,7 +63,9 @@ export class GroupExecutionPopover extends React.Component<IGroupExecutionPopove
       <div>
         <div className="group-name">{stage.name.toUpperCase()}</div>
         <ul className="group-execution-label-list">
-          {stage.groupStages.map((s) => <GroupedStageListItem key={s.name} stage={s} stageClicked={this.subStageClicked}/>)}
+          {stage.groupStages.map(s => (
+            <GroupedStageListItem key={s.name} stage={s} stageClicked={this.subStageClicked} />
+          ))}
         </ul>
       </div>
     );

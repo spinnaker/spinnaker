@@ -1,11 +1,16 @@
 import { ArtifactReferenceServiceProvider } from './ArtifactReferenceService';
 
-const stage = (mixin: any) => Object.assign({}, {
-  name: 'name',
-  type: 'foobar',
-  refId: 'x',
-  requisiteStageRefIds: []
-}, mixin);
+const stage = (mixin: any) =>
+  Object.assign(
+    {},
+    {
+      name: 'name',
+      type: 'foobar',
+      refId: 'x',
+      requisiteStageRefIds: [],
+    },
+    mixin,
+  );
 
 describe('ArtifactReferenceService', () => {
   let svc: ArtifactReferenceServiceProvider;
@@ -24,11 +29,8 @@ describe('ArtifactReferenceService', () => {
     });
 
     it('deletes multiple references from a stage if registered to do so', () => {
-      const stages = [stage({ 'deployedManifest': 'foo', 'requiredArtifactIds': 'foo' })];
-      const refs = () => [
-        ['deployedManifest'],
-        ['requiredArtifactIds']
-      ];
+      const stages = [stage({ deployedManifest: 'foo', requiredArtifactIds: 'foo' })];
+      const refs = () => [['deployedManifest'], ['requiredArtifactIds']];
       svc.registerReference('stage', refs);
       svc.removeReferenceFromStages('foo', stages);
       expect(stages[0].deployedManifest).toBe(undefined);
@@ -36,10 +38,7 @@ describe('ArtifactReferenceService', () => {
     });
 
     it('doesnt delete reference from stage if reference doesnt match', () => {
-      const stages = [
-        stage({ foo: 'ref1' }),
-        stage({ foo: 'ref2' }),
-      ];
+      const stages = [stage({ foo: 'ref1' }), stage({ foo: 'ref2' })];
       const refs = () => [['foo']];
       svc.registerReference('stage', refs);
       svc.removeReferenceFromStages('ref1', stages);
@@ -64,10 +63,7 @@ describe('ArtifactReferenceService', () => {
     });
 
     it('doesnt delete nested references if reference doesnt match', () => {
-      const stages = [
-        stage({ foo: [{ baz: 'ref1' }] }),
-        stage({ foo: [{ baz: 'ref2' }] }),
-      ];
+      const stages = [stage({ foo: [{ baz: 'ref1' }] }), stage({ foo: [{ baz: 'ref2' }] })];
       const refs = () => [['foo', 0, 'baz']];
       svc.registerReference('stage', refs);
       svc.removeReferenceFromStages('ref1', stages);
@@ -76,7 +72,7 @@ describe('ArtifactReferenceService', () => {
     });
 
     it('splices nested reference from array', () => {
-      const stages = [ stage({ path: { to: { reference: ['ref1', 'ref2', 'ref3'] } } }) ];
+      const stages = [stage({ path: { to: { reference: ['ref1', 'ref2', 'ref3'] } } })];
       const refs = () => [['path', 'to', 'reference', 1]];
       svc.registerReference('stage', refs);
       svc.removeReferenceFromStages('ref2', stages);

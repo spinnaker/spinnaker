@@ -5,7 +5,7 @@ import { IGOR_SERVICE } from 'core/ci/igor.service';
 import { STAGE_CORE_MODULE } from '../core/stage.core.module';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 import { TRAVIS_EXECUTION_DETAILS_CONTROLLER } from './travisExecutionDetails.controller';
-import { TRAVIS_STAGE_ADD_PARAMETER_MODAL_CONTROLLER  } from './modal/addParameter.controller.modal';
+import { TRAVIS_STAGE_ADD_PARAMETER_MODAL_CONTROLLER } from './modal/addParameter.controller.modal';
 
 export const TRAVIS_STAGE_MODULE = 'spinnaker.core.pipeline.stage.travis';
 module(TRAVIS_STAGE_MODULE, [

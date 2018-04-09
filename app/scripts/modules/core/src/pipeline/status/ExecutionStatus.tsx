@@ -24,7 +24,7 @@ export interface IExecutionStatusProps {
 
 export interface IExecutionStatusState {
   sortFilter: ISortFilter;
-  parameters: { key: string, value: any }[];
+  parameters: { key: string; value: any }[];
   timestamp: string;
 }
 
@@ -36,20 +36,15 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     super(props);
 
     // these are internal parameters that are not useful to end users
-    const strategyExclusions = [
-      'parentPipelineId',
-      'strategy',
-      'parentStageId',
-      'deploymentDetails',
-      'cloudProvider'
-    ];
+    const strategyExclusions = ['parentPipelineId', 'strategy', 'parentStageId', 'deploymentDetails', 'cloudProvider'];
 
-    let parameters: { key: string, value: any }[] = [];
+    let parameters: { key: string; value: any }[] = [];
 
     const { execution } = this.props;
     if (execution.trigger && execution.trigger.parameters) {
-      parameters = Object.keys(execution.trigger.parameters).sort()
-        .filter((paramKey) => execution.isStrategy ? !strategyExclusions.includes(paramKey) : true)
+      parameters = Object.keys(execution.trigger.parameters)
+        .sort()
+        .filter(paramKey => (execution.isStrategy ? !strategyExclusions.includes(paramKey) : true))
         .map((paramKey: string) => {
           return { key: paramKey, value: JSON.stringify(execution.trigger.parameters[paramKey]) };
         });
@@ -59,7 +54,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
       sortFilter: ReactInjector.executionFilterModel.asFilterModel.sortFilter,
       parameters,
       timestamp: relativeTime(this.props.execution.startTime),
-    }
+    };
   }
 
   private validateTimestamp(): void {
@@ -81,12 +76,18 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
   private getExecutionTypeDisplay(): String {
     const trigger = this.props.execution.trigger;
     switch (trigger.type) {
-      case 'jenkins': return 'Triggered Build';
-      case 'manual': return 'Manual Start';
-      case 'pipeline': return 'Pipeline';
-      case 'docker': return 'Docker Registry';
-      case 'cron': return (trigger as ICronTrigger).cronExpression;
-      default: return trigger.type;
+      case 'jenkins':
+        return 'Triggered Build';
+      case 'manual':
+        return 'Manual Start';
+      case 'pipeline':
+        return 'Pipeline';
+      case 'docker':
+        return 'Docker Registry';
+      case 'cron':
+        return (trigger as ICronTrigger).cronExpression;
+      default:
+        return trigger.type;
     }
   }
 
@@ -113,7 +114,9 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     return (
       <div className="execution-status-section">
         <span className={`trigger-type ${this.state.sortFilter.groupBy !== name ? 'subheading' : ''}`}>
-          <h5 className="build-number"><ExecutionBuildLink execution={execution}/></h5>
+          <h5 className="build-number">
+            <ExecutionBuildLink execution={execution} />
+          </h5>
           <h5 className={`execution-type ${execution.trigger.dryRun ? 'execution-dry-run' : ''}`}>
             {execution.trigger.dryRun && 'DRY RUN: '}
             {this.getExecutionTypeDisplay()}
@@ -121,22 +124,34 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
         </span>
         <ul className="trigger-details">
           {has(execution.trigger, 'buildInfo.url') && <li>{buildDisplayName(execution.trigger.buildInfo)}</li>}
-          {(execution.trigger as IDockerTrigger).tag && <li>{(execution.trigger as IDockerTrigger).repository}:{(execution.trigger as IDockerTrigger).tag}</li>}
+          {(execution.trigger as IDockerTrigger).tag && (
+            <li>
+              {(execution.trigger as IDockerTrigger).repository}:{(execution.trigger as IDockerTrigger).tag}
+            </li>
+          )}
 
           <span>
             <li>
               {execution.trigger.type === 'jenkins' && (execution.trigger as IBuildTrigger).job}
               {['manual', 'pipeline'].includes(execution.trigger.type) && this.executionUser(execution)}
             </li>
-            <li title={timestamp(execution.startTime)}>
-              {this.state.timestamp}
-            </li>
+            <li title={timestamp(execution.startTime)}>{this.state.timestamp}</li>
           </span>
-          {this.state.parameters.map((p) => <li key={p.key} className="break-word"><span className="parameter-key">{p.key}</span>: {p.value}</li>)}
+          {this.state.parameters.map(p => (
+            <li key={p.key} className="break-word">
+              <span className="parameter-key">{p.key}</span>: {p.value}
+            </li>
+          ))}
         </ul>
         <ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />
-        {!standalone && <a className="clickable" onClick={this.toggleDetails}><span className={`small glyphicon ${showingDetails ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}/>Details</a>}
+        {!standalone && (
+          <a className="clickable" onClick={this.toggleDetails}>
+            <span
+              className={`small glyphicon ${showingDetails ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}
+            />Details
+          </a>
+        )}
       </div>
-    )
+    );
   }
 }

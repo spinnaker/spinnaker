@@ -19,10 +19,10 @@ class CapabilitiesSelector implements IController {
       label: 'Drop',
       buttonLabel: 'Drop Linux Capability',
       model: 'drop',
-    }
+    },
   ];
 
-  public add (fieldModel: string): void {
+  public add(fieldModel: string): void {
     const path = ['securityContext', 'capabilities', fieldModel];
     if (!has(this.component, path)) {
       set(this.component, path, []);
@@ -30,7 +30,7 @@ class CapabilitiesSelector implements IController {
     this.component.securityContext.capabilities[fieldModel].push('');
   }
 
-  public remove (fieldModel: string, index: number): void {
+  public remove(fieldModel: string, index: number): void {
     this.component.securityContext.capabilities[fieldModel].splice(index, 1);
   }
 }
@@ -45,5 +45,7 @@ class CapabilitiesSelectorComponent implements IComponentOptions {
 
 export const KUBERNETES_CAPABILITIES_SELECTOR = 'spinnaker.kubernetes.securityContext.capabilitiesSelector.component';
 
-module(KUBERNETES_CAPABILITIES_SELECTOR, [])
-  .component('kubernetesCapabilitiesSelector', new CapabilitiesSelectorComponent());
+module(KUBERNETES_CAPABILITIES_SELECTOR, []).component(
+  'kubernetesCapabilitiesSelector',
+  new CapabilitiesSelectorComponent(),
+);

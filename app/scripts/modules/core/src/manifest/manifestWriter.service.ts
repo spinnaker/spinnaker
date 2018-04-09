@@ -15,7 +15,7 @@ export class ManifestWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application,
-      description
+      description,
     });
   }
 
@@ -25,7 +25,7 @@ export class ManifestWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application,
-      description
+      description,
     });
   }
 
@@ -35,7 +35,7 @@ export class ManifestWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application,
-      description
+      description,
     });
   }
 
@@ -45,7 +45,7 @@ export class ManifestWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application,
-      description
+      description,
     });
   }
 
@@ -55,7 +55,7 @@ export class ManifestWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application,
-      description
+      description,
     });
   }
 
@@ -65,7 +65,7 @@ export class ManifestWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application,
-      description
+      description,
     });
   }
 
@@ -75,12 +75,10 @@ export class ManifestWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application,
-      description
+      description,
     });
   }
 }
 
 export const MANIFEST_WRITER = 'spinnaker.core.manifest.write.service';
-module(MANIFEST_WRITER, [
-  TASK_EXECUTOR,
-]).service('manifestWriter', ManifestWriter);
+module(MANIFEST_WRITER, [TASK_EXECUTOR]).service('manifestWriter', ManifestWriter);

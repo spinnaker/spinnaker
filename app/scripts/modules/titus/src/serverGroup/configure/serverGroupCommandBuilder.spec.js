@@ -1,25 +1,23 @@
 'use strict';
 
-import {TitusProviderSettings} from '../../titus.settings';
+import { TitusProviderSettings } from '../../titus.settings';
 
 describe('titusServerGroupCommandBuilder', function() {
-  beforeEach(
-    window.module(
-      require('./ServerGroupCommandBuilder.js').name
-    )
-  );
+  beforeEach(window.module(require('./ServerGroupCommandBuilder.js').name));
 
-  beforeEach(window.inject(function(titusServerGroupCommandBuilder, namingService, $q, $rootScope) {
-    this.titusServerGroupCommandBuilder = titusServerGroupCommandBuilder;
-    this.$scope = $rootScope;
-    this.$q = $q;
-    this.namingService = namingService;
-  }));
+  beforeEach(
+    window.inject(function(titusServerGroupCommandBuilder, namingService, $q, $rootScope) {
+      this.titusServerGroupCommandBuilder = titusServerGroupCommandBuilder;
+      this.$scope = $rootScope;
+      this.$q = $q;
+      this.namingService = namingService;
+    }),
+  );
 
   afterEach(TitusProviderSettings.resetToOriginal);
 
   describe('buildNewServerGroupCommand', function() {
-    it('should initializes to default values', function () {
+    it('should initializes to default values', function() {
       var command = null;
       TitusProviderSettings.defaults.iamProfile = '{{application}}InstanceProfile';
       this.titusServerGroupCommandBuilder.buildNewServerGroupCommand({ name: 'titusApp' }).then(function(result) {
@@ -32,7 +30,7 @@ describe('titusServerGroupCommandBuilder', function() {
     });
   });
 
-  describe('buildServerGroupCommandFromExisting', function () {
+  describe('buildServerGroupCommandFromExisting', function() {
     it('should set iam profile if available otherwise use the default', function() {
       spyOn(this.namingService, 'parseServerGroupName').and.returnValue(this.$q.when('titusApp-test-test'));
 
@@ -45,13 +43,15 @@ describe('titusServerGroupCommandBuilder', function() {
         iamProfile: 'titusAppInstanceProfile',
         resources: {},
         capacity: {},
-        image: {}
+        image: {},
       };
 
       var command = null;
-      this.titusServerGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'titusApp'}, baseServerGroup).then(function(result) {
-        command = result;
-      });
+      this.titusServerGroupCommandBuilder
+        .buildServerGroupCommandFromExisting({ name: 'titusApp' }, baseServerGroup)
+        .then(function(result) {
+          command = result;
+        });
 
       this.$scope.$digest();
 
@@ -59,5 +59,4 @@ describe('titusServerGroupCommandBuilder', function() {
       expect(command.viewState.mode).toBe('clone');
     });
   });
-
 });

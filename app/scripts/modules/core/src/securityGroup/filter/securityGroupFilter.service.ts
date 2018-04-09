@@ -15,8 +15,10 @@ export class SecurityGroupFilterService {
 
   private lastApplication: Application;
 
-  constructor(private securityGroupFilterModel: SecurityGroupFilterModel,
-              private filterModelService: FilterModelService) {
+  constructor(
+    private securityGroupFilterModel: SecurityGroupFilterModel,
+    private filterModelService: FilterModelService,
+  ) {
     'ngInject';
   }
 
@@ -30,7 +32,7 @@ export class SecurityGroupFilterService {
         securityGroup.vpcName,
         securityGroup.vpcId,
         map(securityGroup.usages.serverGroups, 'name').join(' '),
-        map(securityGroup.usages.loadBalancers, 'name').join(' ')
+        map(securityGroup.usages.loadBalancers, 'name').join(' '),
       ].join(' ');
     }
   }
@@ -97,10 +99,10 @@ export class SecurityGroupFilterService {
         }
       }
     });
-    groupsToRemove.reverse().forEach((idx) => {
+    groupsToRemove.reverse().forEach(idx => {
       oldGroups.splice(idx, 1);
     });
-    newGroups.forEach((newGroup) => {
+    newGroups.forEach(newGroup => {
       const match = find(oldGroups, { heading: newGroup.heading });
       if (!match) {
         oldGroups.push(newGroup);
@@ -123,14 +125,14 @@ export class SecurityGroupFilterService {
 
     forOwn(grouped, (group, key) => {
       const subGroupings = groupBy(group, 'name'),
-          subGroups: ISecurityGroupGroup[] = [];
+        subGroups: ISecurityGroupGroup[] = [];
 
       forOwn(subGroupings, (subGroup, subKey) => {
         const subSubGroups: ISecurityGroupGroup[] = [];
-        subGroup.forEach((securityGroup) => {
-          const heading = securityGroup.vpcName ?
-            `${securityGroup.region} (${securityGroup.vpcName})` :
-            securityGroup.region;
+        subGroup.forEach(securityGroup => {
+          const heading = securityGroup.vpcName
+            ? `${securityGroup.region} (${securityGroup.vpcName})`
+            : securityGroup.region;
           subSubGroups.push({
             heading: heading,
             vpcName: securityGroup.vpcName,
@@ -144,7 +146,6 @@ export class SecurityGroupFilterService {
       });
 
       groups.push({ heading: key, subgroups: sortBy(subGroups, 'heading') });
-
     });
 
     this.sortGroupsByHeading(groups);
@@ -152,11 +153,10 @@ export class SecurityGroupFilterService {
     this.lastApplication = application;
     this.groupsUpdatedStream.next(groups);
   }
-
 }
 
 export const SECURITY_GROUP_FILTER_SERVICE = 'spinnaker.core.securityGroup.filter.service';
-module(SECURITY_GROUP_FILTER_SERVICE, [
-  SECURITY_GROUP_FILTER_MODEL,
-  FILTER_MODEL_SERVICE,
-]).service('securityGroupFilterService', SecurityGroupFilterService);
+module(SECURITY_GROUP_FILTER_SERVICE, [SECURITY_GROUP_FILTER_MODEL, FILTER_MODEL_SERVICE]).service(
+  'securityGroupFilterService',
+  SecurityGroupFilterService,
+);

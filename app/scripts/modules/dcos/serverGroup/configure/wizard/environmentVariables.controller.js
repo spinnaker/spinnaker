@@ -2,10 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.configure.environmentVariables', [
-])
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.configure.environmentVariables', [])
   .controller('dcosServerGroupEnvironmentVariablesController', function($scope) {
-
     $scope.command.viewModel.env = [];
 
     this.isEnvironmentValid = function(env) {
@@ -14,8 +13,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.environmen
 
     // init from the model
     if ($scope.command.env && this.isEnvironmentValid($scope.command.env)) {
-      Object.keys($scope.command.env).forEach((key) => {
-
+      Object.keys($scope.command.env).forEach(key => {
         let val = $scope.command.env[key];
         let secretSource = null;
         if (val.secret) {
@@ -26,7 +24,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.environmen
           name: key,
           value: val,
           rawValue: secretSource || val,
-          isSecret: secretSource != null
+          isSecret: secretSource != null,
         });
       });
     }
@@ -39,7 +37,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.environmen
       $scope.command.viewModel.env.push({
         name: null,
         value: null,
-        isSecret: false
+        isSecret: false,
       });
     };
 
@@ -68,11 +66,11 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.environmen
     this.addSecret = function(index) {
       $scope.command.viewModel.env[index].rawValue = null;
       $scope.command.secrets['secret' + index] = {
-          'source': null
+        source: null,
       };
 
       $scope.command.viewModel.env[index].value = {
-        'secret': 'secret' + index
+        secret: 'secret' + index,
       };
     };
 
@@ -83,16 +81,16 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.environmen
     };
 
     this.synchronize = () => {
-      let allNames = $scope.command.viewModel.env.map((item) => item.name);
+      let allNames = $scope.command.viewModel.env.map(item => item.name);
 
       $scope.command.env = {};
 
-      $scope.command.viewModel.env.forEach((item) => {
+      $scope.command.viewModel.env.forEach(item => {
         if (item.name) {
           $scope.command.env[item.name] = item.value;
         }
 
-        item.checkUnique = allNames.filter((name) => item.name !== name);
+        item.checkUnique = allNames.filter(name => item.name !== name);
       });
     };
     $scope.$watch(() => JSON.stringify($scope.command.viewModel.env), this.synchronize);

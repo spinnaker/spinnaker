@@ -19,5 +19,4 @@ class RenderIfFeatureComponent implements IComponentOptions {
 }
 
 export const RENDER_IF_FEATURE = 'spinnaker.core.renderIfFeature.directive';
-module(RENDER_IF_FEATURE, [])
-  .component('renderIfFeature', new RenderIfFeatureComponent());
+module(RENDER_IF_FEATURE, []).component('renderIfFeature', new RenderIfFeatureComponent());

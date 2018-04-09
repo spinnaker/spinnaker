@@ -7,8 +7,17 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { BindAll } from 'lodash-decorators';
 
 import {
-  UUIDGenerator, Application, EntityTagWriter, HelpField, IEntityRef, IEntityTag,
-  ReactInjector, TaskMonitor, TaskMonitorBuilder, SubmitButton, Markdown
+  UUIDGenerator,
+  Application,
+  EntityTagWriter,
+  HelpField,
+  IEntityRef,
+  IEntityTag,
+  ReactInjector,
+  TaskMonitor,
+  TaskMonitorBuilder,
+  SubmitButton,
+  Markdown,
 } from 'core';
 
 import { ReactModal } from 'core/presentation';
@@ -82,7 +91,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     this.state = {
       taskMonitor: null,
       initialValues: {
-        message: tag.value && tag.value.message || '',
+        message: (tag.value && tag.value.message) || '',
         ownerIndex,
       },
       isSubmitting: false,
@@ -100,7 +109,9 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
   private validate(values: IEntityTagEditorValues): Partial<FormikErrors<IEntityTagEditorValues>> {
     const errors: Partial<FormikErrors<IEntityTagEditorValues>> = {};
-    if (!values.message) { errors.message = 'Please enter a message'; }
+    if (!values.message) {
+      errors.message = 'Please enter a message';
+    }
     return errors;
   }
 
@@ -167,7 +178,9 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
           render={(props: FormikProps<IEntityTagEditorValues>) => (
             <Form className="form-horizontal">
               <Modal.Header>
-                <h3>{isNew ? 'Create' : 'Update'} {tag.value.type}</h3>
+                <h3>
+                  {isNew ? 'Create' : 'Update'} {tag.value.type}
+                </h3>
                 {closeButton}
               </Modal.Header>
               <Modal.Body className="entity-tag-editor-modal">
@@ -182,7 +195,12 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                             <textarea className="form-control input-sm" {...field} rows={5} required={true} />
                           )}
                         />
-                        <div className="small text-right"> <div>Markdown is okay <HelpField id="markdown.examples"/></div> </div>
+                        <div className="small text-right">
+                          {' '}
+                          <div>
+                            Markdown is okay <HelpField id="markdown.examples" />
+                          </div>{' '}
+                        </div>
                       </div>
                     </div>
                     {props.values.message && (
@@ -191,49 +209,45 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
                           <strong>Preview</strong>
                         </div>
                         <div className="col-md-9">
-                          <Markdown message={props.values.message}/>
+                          <Markdown message={props.values.message} />
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {ownerOptions && ownerOptions.length && (
-                  <div className="row">
-                    <div className="col-md-10 col-md-offset-1">
-                      <div className="form-group">
-                        <div className="col-md-3 sm-label-right">
-                          <b>Applies to</b>
-                        </div>
-                        <div className="col-md-9">
-                          { ownerOptions.map((option, index) => (
-                            <div key={option.label} className="radio">
-                              <label>
-                                <Field
-                                  name="ownerIndex"
-                                  type="radio"
-                                  value={index}
-                                  checked={index === Number(props.values.ownerIndex)}
-                                />
-                                <span className="marked">
-                                  <Markdown message={option.label}/>
-                                </span>
-                              </label>
-                            </div>
-                          )) }
+                {ownerOptions &&
+                  ownerOptions.length && (
+                    <div className="row">
+                      <div className="col-md-10 col-md-offset-1">
+                        <div className="form-group">
+                          <div className="col-md-3 sm-label-right">
+                            <b>Applies to</b>
+                          </div>
+                          <div className="col-md-9">
+                            {ownerOptions.map((option, index) => (
+                              <div key={option.label} className="radio">
+                                <label>
+                                  <Field
+                                    name="ownerIndex"
+                                    type="radio"
+                                    value={index}
+                                    checked={index === Number(props.values.ownerIndex)}
+                                  />
+                                  <span className="marked">
+                                    <Markdown message={option.label} />
+                                  </span>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </Modal.Body>
               <Modal.Footer>
-                <button
-                  className="btn btn-default"
-                  disabled={isSubmitting}
-                  onClick={this.close}
-                  type="button"
-                >
+                <button className="btn btn-default" disabled={isSubmitting} onClick={this.close} type="button">
                   Cancel
                 </button>
                 <SubmitButton

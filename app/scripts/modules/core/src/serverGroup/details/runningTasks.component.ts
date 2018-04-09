@@ -58,4 +58,7 @@ class ServerGroupRunningTasksComponent implements IComponentOptions {
 }
 
 export const RUNNING_TASKS_DETAILS_COMPONENT = 'spinnaker.core.serverGroup.details.runningTasks.component';
-module(RUNNING_TASKS_DETAILS_COMPONENT, []).component('serverGroupRunningTasksDetails', new ServerGroupRunningTasksComponent());
+module(RUNNING_TASKS_DETAILS_COMPONENT, []).component(
+  'serverGroupRunningTasksDetails',
+  new ServerGroupRunningTasksComponent(),
+);

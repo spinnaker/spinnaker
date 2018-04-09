@@ -16,9 +16,8 @@ export interface IMarkdownProps {
  * Extra props are passed through to the rendered tag
  */
 export class Markdown extends React.Component<IMarkdownProps> {
-
   public static defaultProps: Partial<IMarkdownProps> = {
-    tag: 'div'
+    tag: 'div',
   };
 
   private parser: Parser = new Parser();

@@ -14,28 +14,41 @@ import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSel
 
 import './rollups.less';
 
-module.exports = angular.module('spinnaker.core.cluster.allClusters.controller', [
-  CLUSTER_FILTER_SERVICE,
-  CLUSTER_FILTER_MODEL,
-  require('../cluster/filter/multiselect.model').name,
-  CLUSTER_FILTER,
-  require('../account/account.module').name,
-  PROVIDER_SELECTION_SERVICE,
-  SKIN_SELECTION_SERVICE,
-  SERVER_GROUP_COMMAND_BUILDER_SERVICE,
-  FILTER_TAGS_COMPONENT,
-  require('../utils/waypoints/waypointContainer.directive').name,
-  INSIGHT_NGMODULE.name,
-  require('angular-ui-bootstrap'),
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService,
-                                          clusterFilterModel, MultiselectModel, insightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry,
-                                          skinSelectionService) {
-
+module.exports = angular
+  .module('spinnaker.core.cluster.allClusters.controller', [
+    CLUSTER_FILTER_SERVICE,
+    CLUSTER_FILTER_MODEL,
+    require('../cluster/filter/multiselect.model').name,
+    CLUSTER_FILTER,
+    require('../account/account.module').name,
+    PROVIDER_SELECTION_SERVICE,
+    SKIN_SELECTION_SERVICE,
+    SERVER_GROUP_COMMAND_BUILDER_SERVICE,
+    FILTER_TAGS_COMPONENT,
+    require('../utils/waypoints/waypointContainer.directive').name,
+    INSIGHT_NGMODULE.name,
+    require('angular-ui-bootstrap'),
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('AllClustersCtrl', function(
+    $scope,
+    app,
+    $uibModal,
+    $timeout,
+    providerSelectionService,
+    clusterFilterService,
+    clusterFilterModel,
+    MultiselectModel,
+    insightFilterStateModel,
+    serverGroupCommandBuilder,
+    cloudProviderRegistry,
+    skinSelectionService,
+  ) {
     this.$onInit = () => {
       insightFilterStateModel.filtersHidden = true; // hidden to prevent filter flashing for on-demand apps
-      const groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() => clusterGroupsUpdated());
+      const groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() =>
+        clusterGroupsUpdated(),
+      );
       this.application = app;
       clusterFilterModel.activate();
       this.initialized = false;
@@ -46,13 +59,16 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
 
       this.createLabel = 'Create Server Group';
 
-      app.getDataSource('serverGroups').ready().then(
-        () => {
-          insightFilterStateModel.filtersHidden = false;
-          updateClusterGroups();
-        },
-        () => this.clustersLoadError()
-      );
+      app
+        .getDataSource('serverGroups')
+        .ready()
+        .then(
+          () => {
+            insightFilterStateModel.filtersHidden = false;
+            updateClusterGroups();
+          },
+          () => this.clustersLoadError(),
+        );
 
       app.setActiveState(app.serverGroups);
       app.serverGroups.onRefresh($scope, updateClusterGroups);
@@ -71,7 +87,9 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
       clusterFilterService.updateClusterGroups(app);
       clusterGroupsUpdated();
       // Timeout because the updateClusterGroups method is debounced by 25ms
-      $timeout(() => { this.initialized = true; }, 50);
+      $timeout(() => {
+        this.initialized = true;
+      }, 50);
     };
 
     let clusterGroupsUpdated = () => {
@@ -106,7 +124,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
               serverGroup: () => null,
               serverGroupCommand: () => serverGroupCommandBuilder.buildNewServerGroupCommand(app, selectedProvider),
               provider: () => selectedProvider,
-            }
+            },
           });
         });
       });
@@ -118,5 +136,4 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
       this.loadError = true;
       this.initialized = true;
     };
-
   });

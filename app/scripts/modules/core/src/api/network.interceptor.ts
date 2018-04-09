@@ -1,6 +1,14 @@
 import {
-  IDeferred, IHttpInterceptor, IHttpPromiseCallbackArg, IHttpProvider, IPromise, IQService, IRequestConfig,
-  ITimeoutService, IWindowService, module
+  IDeferred,
+  IHttpInterceptor,
+  IHttpPromiseCallbackArg,
+  IHttpProvider,
+  IPromise,
+  IQService,
+  IRequestConfig,
+  ITimeoutService,
+  IWindowService,
+  module,
 } from 'angular';
 import { Dictionary } from 'lodash';
 import { BindAll } from 'lodash-decorators';
@@ -13,15 +21,16 @@ import { BindAll } from 'lodash-decorators';
 
 @BindAll()
 export class NetworkInterceptor implements IHttpInterceptor {
-
   private networkAvailable: IDeferred<void>;
   private retryQueue: Dictionary<number> = {};
   private MAX_RETRIES = 4;
 
-  constructor(private $q: IQService,
-              private $window: IWindowService,
-              private $timeout: ITimeoutService,
-              private $injector: any) {
+  constructor(
+    private $q: IQService,
+    private $window: IWindowService,
+    private $timeout: ITimeoutService,
+    private $injector: any,
+  ) {
     'ngInject';
     this.$window.addEventListener('offline', this.handleOffline);
     this.$window.addEventListener('online', this.handleOnline);
@@ -58,16 +67,15 @@ export class NetworkInterceptor implements IHttpInterceptor {
       this.retryQueue[config.url] = retryCount + 1;
       return this.networkAvailable.promise.then(() => {
         return this.$timeout(() => {
-          return this.$q.resolve(this.$injector.get('$http')(config))
-            .then((result: any) => {
-              this.removeFromQueue(config);
-              return result;
-            });
-          }, (retryCount + 1 + Math.random()) * 1000);
+          return this.$q.resolve(this.$injector.get('$http')(config)).then((result: any) => {
+            this.removeFromQueue(config);
+            return result;
+          });
+        }, (retryCount + 1 + Math.random()) * 1000);
       });
     }
     return this.$q.reject(response).finally(() => this.removeFromQueue(config));
-  }
+  };
 }
 
 export const NETWORK_INTERCEPTOR = 'spinnaker.core.network.interceptor';

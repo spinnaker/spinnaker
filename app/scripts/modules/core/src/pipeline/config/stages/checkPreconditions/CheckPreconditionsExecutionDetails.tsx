@@ -12,12 +12,14 @@ export function CheckPreconditionsExecutionDetails(props: IExecutionDetailsSecti
       <div className="row">
         <div className="col-md-12">
           <dl className="dl-horizontal">
-            {Object.keys(context).filter((key) => key !== 'expression' && context[key] !== null).map((key) => (
-              <div key={key}>
-                <dt>{robotToHuman(key)}</dt>
-                <dd>{JSON.stringify(context[key])}</dd>
-              </div>
-            ))}
+            {Object.keys(context)
+              .filter(key => key !== 'expression' && context[key] !== null)
+              .map(key => (
+                <div key={key}>
+                  <dt>{robotToHuman(key)}</dt>
+                  <dd>{JSON.stringify(context[key])}</dd>
+                </div>
+              ))}
             <div>
               <dt>Fail Pipeline</dt>
               <dd>{String(!!props.stage.context.failPipeline)}</dd>
@@ -28,7 +30,7 @@ export function CheckPreconditionsExecutionDetails(props: IExecutionDetailsSecti
       <StageFailureMessage stage={props.stage} message={props.stage.failureMessage} />
     </ExecutionDetailsSection>
   );
-};
+}
 
 export namespace CheckPreconditionsExecutionDetails {
   export const title = 'checkPreconditions';

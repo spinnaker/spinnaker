@@ -36,24 +36,23 @@ export class ExecutionBuildLink extends React.Component<IExecutionBuildLinkProps
     const { trigger } = this.props.execution;
     return (
       <span>
-        { trigger.parentExecution && trigger.parentExecution.id && (
-          <a
-            className="execution-build-number clickable"
-            onClick={this.handleParentPipelineClick}
-          >
-            {trigger.parentExecution.name}
-          </a>
-        )}
-        { this.props.execution.buildInfo && this.props.execution.buildInfo.number && (
-          <a
-            className="execution-build-number clickable"
-            onClick={this.handleBuildInfoClick}
-            href={this.props.execution.buildInfo.url}
-            target="_blank"
-          >
-            <span className="build-label">Build</span> #{this.props.execution.buildInfo.number}
-          </a>
-        )}
+        {trigger.parentExecution &&
+          trigger.parentExecution.id && (
+            <a className="execution-build-number clickable" onClick={this.handleParentPipelineClick}>
+              {trigger.parentExecution.name}
+            </a>
+          )}
+        {this.props.execution.buildInfo &&
+          this.props.execution.buildInfo.number && (
+            <a
+              className="execution-build-number clickable"
+              onClick={this.handleBuildInfoClick}
+              href={this.props.execution.buildInfo.url}
+              target="_blank"
+            >
+              <span className="build-label">Build</span> #{this.props.execution.buildInfo.number}
+            </a>
+          )}
       </span>
     );
   }

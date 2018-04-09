@@ -1,48 +1,44 @@
 'use strict';
 
 describe('dcosServerGroupNetworkController', function() {
-
   var controller;
   var scope;
 
+  beforeEach(window.module(require('./network.controller.js').name));
+
   beforeEach(
-    window.module(
-      require('./network.controller.js').name
-    )
+    window.inject(function($rootScope, $controller) {
+      scope = $rootScope.$new();
+
+      scope.command = {
+        serviceEndpoints: [],
+      };
+
+      controller = $controller('dcosServerGroupNetworkController', {
+        $scope: scope,
+      });
+    }),
   );
 
-  beforeEach(window.inject(function ($rootScope, $controller) {
-    scope = $rootScope.$new();
-
-    scope.command = {
-        serviceEndpoints: [],
-    };
-
-    controller = $controller('dcosServerGroupNetworkController', {
-      $scope: scope,
-    });
-  }));
-
-  describe('Service Endpoints', function () {
-
+  describe('Service Endpoints', function() {
     beforeEach(function() {
       scope.command.serviceEndpoints = [];
     });
 
-    it('Service Endpoints spec 1', function () {
+    it('Service Endpoints spec 1', function() {
       controller.addServiceEndpoint();
 
       expect(scope.command.serviceEndpoints.length).toEqual(1);
     });
 
-    it('Service Endpoints spec 2', function () {
+    it('Service Endpoints spec 2', function() {
       controller.addServiceEndpoint();
       controller.removeServiceEndpoint(0);
 
       expect(scope.command.serviceEndpoints.length).toEqual(0);
     });
 
-    it('Service Endpoints spec 3', function () {
+    it('Service Endpoints spec 3', function() {
       controller.addServiceEndpoint();
       controller.addServiceEndpoint();
       controller.addServiceEndpoint();

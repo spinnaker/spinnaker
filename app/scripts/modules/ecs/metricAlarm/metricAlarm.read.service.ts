@@ -9,14 +9,13 @@ export class MetricAlarmReader {
   }
 
   public listMetricAlarms(): ng.IPromise<MetricAlarmDescriptor[]> {
-    return this.API.all('ecs').all('cloudMetrics').all('alarms').getList();
+    return this.API.all('ecs')
+      .all('cloudMetrics')
+      .all('alarms')
+      .getList();
   }
-
 }
-
 
 export const METRIC_ALARM_READ_SERVICE = 'spinnaker.ecs.metricAlarm.read.service';
 
-module(METRIC_ALARM_READ_SERVICE, [
-  API_SERVICE
-]).service('metricAlarmReader', MetricAlarmReader);
+module(METRIC_ALARM_READ_SERVICE, [API_SERVICE]).service('metricAlarmReader', MetricAlarmReader);

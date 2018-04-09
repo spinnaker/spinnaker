@@ -1,47 +1,45 @@
 'use strict';
 
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 
-describe('Directives: regionSelectField', function () {
-
+describe('Directives: regionSelectField', function() {
   const angular = require('angular');
 
   require('./regionSelectField.directive.html');
 
   beforeEach(function() {
-    window.module(
-      require('./regionSelectField.directive.js').name,
-      CACHE_INITIALIZER_SERVICE,
-      function($provide) {
-        $provide.decorator('cacheInitializer', function() {
-          return {
-            initialize: angular.noop
-          };
-        });
-      }
-    );
+    window.module(require('./regionSelectField.directive.js').name, CACHE_INITIALIZER_SERVICE, function($provide) {
+      $provide.decorator('cacheInitializer', function() {
+        return {
+          initialize: angular.noop,
+        };
+      });
+    });
   });
 
-  beforeEach(window.inject(function ($rootScope, $compile) {
-    this.scope = $rootScope.$new();
-    this.compile = $compile;
-  }));
+  beforeEach(
+    window.inject(function($rootScope, $compile) {
+      this.scope = $rootScope.$new();
+      this.compile = $compile;
+    }),
+  );
 
   it('updates values when regions change', function() {
     var scope = this.scope;
 
-    scope.regions = [{name: 'us-east-1'}];
+    scope.regions = [{ name: 'us-east-1' }];
 
-    scope.model = { regionField: 'us-east-1', accountField: 'a'};
+    scope.model = { regionField: 'us-east-1', accountField: 'a' };
 
-    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
+    var html =
+      '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
 
     var elem = this.compile(html)(scope);
     scope.$digest();
 
     expect(elem.find('option').length).toBe(2);
 
-    scope.regions = [{name: 'us-east-1'}, {name: 'us-west-1'}];
+    scope.regions = [{ name: 'us-east-1' }, { name: 'us-west-1' }];
     scope.$digest();
 
     var options = elem.find('option');
@@ -53,20 +51,20 @@ describe('Directives: regionSelectField', function () {
     });
   });
 
-  it('selects correct initial value', function () {
+  it('selects correct initial value', function() {
     var scope = this.scope;
 
-    scope.regions = [{name: 'us-east-1'}, {name: 'us-west-1'}];
+    scope.regions = [{ name: 'us-east-1' }, { name: 'us-west-1' }];
 
-    scope.model = { regionField: 'us-west-1', accountField: 'a'};
+    scope.model = { regionField: 'us-west-1', accountField: 'a' };
 
-    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
+    var html =
+      '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
 
     var elem = this.compile(html)(scope);
     scope.$digest();
 
     var options = elem.find('option');
     expect(options[2].selected).toBe(true);
-
   });
 });

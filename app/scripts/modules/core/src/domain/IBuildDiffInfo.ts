@@ -1,7 +1,7 @@
 import { IJenkinsInfo } from './IJenkinsInfo';
 
 export interface IBuildDiffInfo {
-  ancestor: string,
+  ancestor: string;
   jenkins?: IJenkinsInfo;
-  target: string,
+  target: string;
 }

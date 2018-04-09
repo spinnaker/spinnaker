@@ -1,9 +1,8 @@
 import { module } from 'angular';
 
-
 class CopyStageCardComponent implements ng.IComponentOptions {
   public bindings: any = {
-    stageWrapper: '<'
+    stageWrapper: '<',
   };
   public template = `
     <div class="row">

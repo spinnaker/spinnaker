@@ -8,24 +8,36 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   RECENT_HISTORY_SERVICE,
-  SETTINGS
+  SETTINGS,
 } from '@spinnaker/core';
 
 import { AMAZON_INSTANCE_WRITE_SERVICE } from 'amazon/instance/amazon.instance.write.service';
 
-module.exports = angular.module('spinnaker.amazon.instance.details.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  AMAZON_INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  require('../../vpc/vpcTag.directive.js').name,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal,
-                                                  amazonInstanceWriter, confirmationModalService, recentHistoryService,
-                                                  cloudProviderRegistry, instanceReader, instance, app, $q, overrides) {
+module.exports = angular
+  .module('spinnaker.amazon.instance.details.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    AMAZON_INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    require('../../vpc/vpcTag.directive.js').name,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('awsInstanceDetailsCtrl', function(
+    $scope,
+    $state,
+    $uibModal,
+    amazonInstanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+    $q,
+    overrides,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
 
@@ -44,15 +56,13 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(
-        function(metric) {
-          return metric.type !== 'Amazon' || metric.state !== 'Unknown';
-        }
-      );
+      var displayableMetrics = instance.health.filter(function(metric) {
+        return metric.type !== 'Amazon' || metric.state !== 'Unknown';
+      });
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function (metric) {
-          var detailsMatch = latest.health.filter(function (latestHealth) {
+        displayableMetrics.forEach(function(metric) {
+          var detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -74,8 +84,8 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.data.some(function (serverGroup) {
-          return serverGroup.instances.some(function (possibleInstance) {
+        app.serverGroups.data.some(function(serverGroup) {
+          return serverGroup.instances.some(function(possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -91,50 +101,37 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another app
-          app.loadBalancers.data.some(function (loadBalancer) {
-            return loadBalancer.instances.some(function (possibleInstance) {
-              if (possibleInstance.id === instance.instanceId) {
-                instanceSummary = possibleInstance;
-                loadBalancers = [loadBalancer.name];
-                account = loadBalancer.account;
-                region = loadBalancer.region;
-                vpcId = loadBalancer.vpcId;
-                return true;
-              }
-            }) ||
-            loadBalancer.targetGroups.some(function (targetGroup) {
-              return targetGroup.instances.some(function (possibleInstance) {
+          app.loadBalancers.data.some(function(loadBalancer) {
+            return (
+              loadBalancer.instances.some(function(possibleInstance) {
                 if (possibleInstance.id === instance.instanceId) {
                   instanceSummary = possibleInstance;
-                  targetGroups = [targetGroup.name];
+                  loadBalancers = [loadBalancer.name];
                   account = loadBalancer.account;
                   region = loadBalancer.region;
                   vpcId = loadBalancer.vpcId;
                   return true;
                 }
-              });
-            });
-          });
-          if (!instanceSummary) {
-            // perhaps it is in a disabled server group via a load balancer
-            app.loadBalancers.data.some(function(loadBalancer) {
-              return loadBalancer.serverGroups.some(function(serverGroup) {
-                if (!serverGroup.isDisabled) {
-                  return false;
-                }
-                return serverGroup.instances.some(function(possibleInstance) {
+              }) ||
+              loadBalancer.targetGroups.some(function(targetGroup) {
+                return targetGroup.instances.some(function(possibleInstance) {
                   if (possibleInstance.id === instance.instanceId) {
                     instanceSummary = possibleInstance;
-                    loadBalancers = [loadBalancer.name];
+                    targetGroups = [targetGroup.name];
                     account = loadBalancer.account;
                     region = loadBalancer.region;
                     vpcId = loadBalancer.vpcId;
                     return true;
                   }
                 });
-              }) ||
-              loadBalancer.targetGroups.some(function(targetGroup) {
-                targetGroup.serverGroups.some(function(serverGroup) {
+              })
+            );
+          });
+          if (!instanceSummary) {
+            // perhaps it is in a disabled server group via a load balancer
+            app.loadBalancers.data.some(function(loadBalancer) {
+              return (
+                loadBalancer.serverGroups.some(function(serverGroup) {
                   if (!serverGroup.isDisabled) {
                     return false;
                   }
@@ -148,8 +145,25 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
                       return true;
                     }
                   });
-                });
-              });
+                }) ||
+                loadBalancer.targetGroups.some(function(targetGroup) {
+                  targetGroup.serverGroups.some(function(serverGroup) {
+                    if (!serverGroup.isDisabled) {
+                      return false;
+                    }
+                    return serverGroup.instances.some(function(possibleInstance) {
+                      if (possibleInstance.id === instance.instanceId) {
+                        instanceSummary = possibleInstance;
+                        loadBalancers = [loadBalancer.name];
+                        account = loadBalancer.account;
+                        region = loadBalancer.region;
+                        vpcId = loadBalancer.vpcId;
+                        return true;
+                      }
+                    });
+                  });
+                })
+              );
             });
           }
         }
@@ -159,30 +173,31 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         extraData.account = account;
         extraData.region = region;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(
-          (details) => {
-            if ($scope.$$destroyed) {
-              return;
+        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
+          if ($scope.$$destroyed) {
+            return;
+          }
+          $scope.state.loading = false;
+          extractHealthMetrics(instanceSummary, details);
+          $scope.instance = _.defaults(details, instanceSummary);
+          $scope.instance.account = account;
+          $scope.instance.region = region;
+          $scope.instance.vpcId = vpcId;
+          $scope.instance.loadBalancers = loadBalancers;
+          $scope.instance.targetGroups = targetGroups;
+          if ($scope.instance.networkInterfaces) {
+            var permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(
+              f => f.attachment.deleteOnTermination === false,
+            );
+            if (permanentNetworkInterfaces.length) {
+              $scope.instance.permanentIps = permanentNetworkInterfaces.map(f => f.privateIpAddress);
             }
-            $scope.state.loading = false;
-            extractHealthMetrics(instanceSummary, details);
-            $scope.instance = _.defaults(details, instanceSummary);
-            $scope.instance.account = account;
-            $scope.instance.region = region;
-            $scope.instance.vpcId = vpcId;
-            $scope.instance.loadBalancers = loadBalancers;
-            $scope.instance.targetGroups = targetGroups;
-            if($scope.instance.networkInterfaces) {
-              var permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(f => f.attachment.deleteOnTermination === false);
-              if (permanentNetworkInterfaces.length) {
-                $scope.instance.permanentIps = permanentNetworkInterfaces.map(f => f.privateIpAddress);
-              }
-            }
-            $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
-            if (overrides.instanceDetailsLoaded) {
-              overrides.instanceDetailsLoaded();
-            }
-          }, autoClose);
+          }
+          $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
+          if (overrides.instanceDetailsLoaded) {
+            overrides.instanceDetailsLoaded();
+          }
+        }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -204,7 +219,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         recentHistoryService.removeLastItem('instances');
       } else {
         $state.params.allowModalToStayOpen = true;
-        $state.go('^', null, {location: 'replace'});
+        $state.go('^', null, { location: 'replace' });
       }
     }
 
@@ -217,7 +232,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
     this.canRegisterWithLoadBalancer = function() {
       var instance = $scope.instance,
-          healthMetrics = instance.health || [];
+        healthMetrics = instance.health || [];
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
@@ -239,7 +254,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
     this.canRegisterWithTargetGroup = function() {
       var instance = $scope.instance,
-          healthMetrics = instance.health || [];
+        healthMetrics = instance.health || [];
       if (!instance.targetGroups || !instance.targetGroups.length) {
         return false;
       }
@@ -268,13 +283,13 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.terminateInstance(instance, app);
       };
 
@@ -284,7 +299,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         account: instance.account,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -295,13 +310,13 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
@@ -311,7 +326,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         account: instance.account,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -320,7 +335,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Rebooting ' + instance.instanceId
+        title: 'Rebooting ' + instance.instanceId,
       };
 
       var submitMethod = (params = {}) => {
@@ -337,7 +352,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         account: instance.account,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -347,10 +362,10 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames
+        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
@@ -359,7 +374,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -369,10 +384,10 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames
+        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
@@ -382,7 +397,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -392,10 +407,10 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.instanceId + ' with ' + targetGroupNames
+        title: 'Registering ' + instance.instanceId + ' with ' + targetGroupNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.registerInstanceWithTargetGroup(instance, app);
       };
 
@@ -404,7 +419,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -414,10 +429,10 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.instanceId + ' from ' + targetGroupNames
+        title: 'Deregistering ' + instance.instanceId + ' from ' + targetGroupNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.deregisterInstanceFromTargetGroup(instance, app);
       };
 
@@ -427,7 +442,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -436,10 +451,10 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Enabling ' + instance.instanceId + ' in discovery'
+        title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -448,7 +463,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -457,10 +472,10 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + instance.instanceId + ' in discovery'
+        title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return amazonInstanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -470,22 +485,21 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
         provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance,
-          healthMetrics = instance.health || [];
-      return (healthMetrics.some(function (health) {
+        healthMetrics = instance.health || [];
+      return healthMetrics.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+    let initialize = app.isStandalone
+      ? retrieveInstance()
+      : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -495,8 +509,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       if (!$scope.$$destroyed && !app.isStandalone) {
         app.serverGroups.onRefresh($scope, retrieveInstance);
       }
-     });
+    });
 
     $scope.account = instance.account;
-  }
-);
+  });

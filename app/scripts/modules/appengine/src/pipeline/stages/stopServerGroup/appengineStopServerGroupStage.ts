@@ -11,15 +11,19 @@ class AppengineStopServerGroupStageCtrl extends AppengineStageCtrl {
     'ngInject';
     super($scope, accountService);
 
-    super.setAccounts().then(() => { super.setStageRegion(); });
+    super.setAccounts().then(() => {
+      super.setStageRegion();
+    });
 
     super.setStageCloudProvider();
     super.setTargets();
     super.setStageCredentials();
 
-    if ($scope.stage.isNew &&
-        $scope.application.attributes.platformHealthOnlyShowOverride &&
-        $scope.application.attributes.platformHealthOnly) {
+    if (
+      $scope.stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       $scope.stage.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
   }

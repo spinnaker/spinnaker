@@ -1,8 +1,19 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchResult, DefaultSearchResultTab,
-  HeaderCell, TableBody, TableHeader, TableRow, ISearchColumn, ISearchResultSet, SearchResultType,
+  AccountCell,
+  BasicCell,
+  HrefCell,
+  searchResultTypeRegistry,
+  ISearchResult,
+  DefaultSearchResultTab,
+  HeaderCell,
+  TableBody,
+  TableHeader,
+  TableRow,
+  ISearchColumn,
+  ISearchResultSet,
+  SearchResultType,
 } from 'core/search';
 
 export interface IApplicationSearchResult extends ISearchResult {
@@ -39,9 +50,9 @@ class ApplicationSearchResultType extends SearchResultType<IApplicationSearchRes
 
   public HeaderComponent = () => (
     <TableHeader>
-      <HeaderCell col={this.cols.APPLICATION}/>
-      <HeaderCell col={this.cols.ACCOUNT}/>
-      <HeaderCell col={this.cols.EMAIL}/>
+      <HeaderCell col={this.cols.APPLICATION} />
+      <HeaderCell col={this.cols.ACCOUNT} />
+      <HeaderCell col={this.cols.EMAIL} />
     </TableHeader>
   );
 
@@ -55,9 +66,9 @@ class ApplicationSearchResultType extends SearchResultType<IApplicationSearchRes
       <TableBody>
         {results.map(item => (
           <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={this.cols.APPLICATION}/>
-            <AccountCell item={item} col={this.cols.ACCOUNT}/>
-            <BasicCell item={item} col={this.cols.EMAIL}/>
+            <HrefCell item={item} col={this.cols.APPLICATION} />
+            <AccountCell item={item} col={this.cols.ACCOUNT} />
+            <BasicCell item={item} col={this.cols.EMAIL} />
           </TableRow>
         ))}
       </TableBody>

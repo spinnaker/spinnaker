@@ -20,7 +20,6 @@ module.exports = angular
     },
     templateUrl: require('./applicationLinks.component.html'),
     controller: function($uibModal) {
-
       let initialize = () => {
         if (this.application.notFound) {
           return;
@@ -51,8 +50,8 @@ module.exports = angular
         this.configChanged();
       };
 
-      this.addLink = (section) => {
-        section.links.push({title: '', path: ''});
+      this.addLink = section => {
+        section.links.push({ title: '', path: '' });
         this.configChanged();
       };
 
@@ -62,12 +61,12 @@ module.exports = angular
       };
 
       this.addSection = () => {
-        let section = {title: '', links: []};
+        let section = { title: '', links: [] };
         this.sections.push(section);
         this.addLink(section);
       };
 
-      this.removeSection = (index) => {
+      this.removeSection = index => {
         this.sections.splice(index, 1);
         this.configChanged();
       };
@@ -78,17 +77,20 @@ module.exports = angular
       };
 
       this.editJson = () => {
-        $uibModal.open({
-          templateUrl: require('./editLinks.modal.html'),
-          controller: 'EditLinksModalCtrl as vm',
-          size: 'lg modal-fullscreen',
-          resolve: {
-            sections: () => this.sections,
-          }
-        }).result.then(newSections => {
-          this.sections = newSections;
-          this.configChanged();
-        }).catch(() => {});
+        $uibModal
+          .open({
+            templateUrl: require('./editLinks.modal.html'),
+            controller: 'EditLinksModalCtrl as vm',
+            size: 'lg modal-fullscreen',
+            resolve: {
+              sections: () => this.sections,
+            },
+          })
+          .result.then(newSections => {
+            this.sections = newSections;
+            this.configChanged();
+          })
+          .catch(() => {});
       };
 
       this.sortOptions = {
@@ -98,5 +100,5 @@ module.exports = angular
       };
 
       this.$onInit = initialize;
-    }
+    },
   });

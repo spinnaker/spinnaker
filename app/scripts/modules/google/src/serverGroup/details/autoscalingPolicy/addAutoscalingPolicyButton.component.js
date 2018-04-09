@@ -14,7 +14,6 @@ module.exports = angular
     },
     template: '<a href ng-click="$ctrl.addAutoscalingPolicy()">Create new scaling policy</a>',
     controller: function($uibModal) {
-
       this.addAutoscalingPolicy = () => {
         $uibModal.open({
           templateUrl: require('./modal/upsertAutoscalingPolicy.modal.html'),
@@ -25,8 +24,8 @@ module.exports = angular
             policy: () => undefined,
             serverGroup: () => this.serverGroup,
             application: () => this.application,
-          }
+          },
         });
       };
-    }
+    },
   });

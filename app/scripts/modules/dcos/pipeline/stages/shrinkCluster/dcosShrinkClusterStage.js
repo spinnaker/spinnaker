@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.pipeline.stage.shrinkClusterStage', [
-])
+module.exports = angular
+  .module('spinnaker.dcos.pipeline.stage.shrinkClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
@@ -11,22 +11,23 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.shrinkClusterStag
       templateUrl: require('./shrinkClusterStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('dcosShrinkClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('dcosShrinkClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('dcos').then(function (accounts) {
+    accountService.listAccounts('dcos').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

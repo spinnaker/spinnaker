@@ -52,9 +52,11 @@ export class GceSecurityGroupHelpTextService {
   private indexServerGroupsByTag(): ng.IPromise<void> {
     return this.application.ready().then(() => {
       this.application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
-        if (has(serverGroup, 'providerMetadata.tags.length') &&
-            serverGroup.account === this.account &&
-            get(serverGroup, 'providerMetadata.networkName') === this.network) {
+        if (
+          has(serverGroup, 'providerMetadata.tags.length') &&
+          serverGroup.account === this.account &&
+          get(serverGroup, 'providerMetadata.networkName') === this.network
+        ) {
           serverGroup.providerMetadata.tags.forEach((tag: string) => {
             if (!this.serverGroupsIndexedByTag.get(tag)) {
               this.serverGroupsIndexedByTag.set(tag, new Set<string>([serverGroup.name]));
@@ -69,5 +71,7 @@ export class GceSecurityGroupHelpTextService {
 }
 
 export const GCE_SECURITY_GROUP_HELP_TEXT_SERVICE = 'spinnaker.gce.securityGroupHelpText.service';
-module(GCE_SECURITY_GROUP_HELP_TEXT_SERVICE, [])
-  .service('gceSecurityGroupHelpTextService', GceSecurityGroupHelpTextService);
+module(GCE_SECURITY_GROUP_HELP_TEXT_SERVICE, []).service(
+  'gceSecurityGroupHelpTextService',
+  GceSecurityGroupHelpTextService,
+);

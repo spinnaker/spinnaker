@@ -17,10 +17,10 @@ export class NumberListController implements IController {
   public synchronize(): void {
     const model: number[] | string = this.model; // typescript union type woes
     if (model instanceof Array) {
-      (<number[]> model).length = 0;
+      (<number[]>model).length = 0;
       this.backingModel.forEach(num => {
         if (num !== null) {
-          (<number[]> model).push(num);
+          (<number[]>model).push(num);
         }
       });
       model.sort((a, b) => a - b);
@@ -75,7 +75,7 @@ export class NumberListController implements IController {
     if (!this.constraints) {
       this.constraints = {
         min: Number.NEGATIVE_INFINITY,
-        max: Number.POSITIVE_INFINITY
+        max: Number.POSITIVE_INFINITY,
       };
     }
     if (isNaN(this.constraints.min)) {
@@ -141,5 +141,4 @@ class NumberListComponent implements IComponentOptions {
 }
 
 export const NUMBER_LIST_COMPONENT = 'spinnaker.core.forms.numberList';
-module(NUMBER_LIST_COMPONENT, [])
-  .component('numberList', new NumberListComponent());
+module(NUMBER_LIST_COMPONENT, []).component('numberList', new NumberListComponent());

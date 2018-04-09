@@ -1,26 +1,23 @@
 'use strict';
 
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+import { TASK_EXECUTOR } from 'core/task/taskExecutor';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.projects.write.service', [
-    TASK_EXECUTOR,
-  ])
+  .module('spinnaker.core.projects.write.service', [TASK_EXECUTOR])
   .factory('projectWriter', function($q, taskExecutor) {
-
     function upsertProject(project) {
       let descriptor = project.id ? 'Update' : 'Create';
       return taskExecutor.executeTask({
         job: [
           {
             type: 'upsertProject',
-            project: project
-          }
+            project: project,
+          },
         ],
         project: project,
-        description: descriptor + ' project: ' + project.name
+        description: descriptor + ' project: ' + project.name,
       });
     }
 
@@ -32,10 +29,10 @@ module.exports = angular
             project: {
               id: project.id,
             },
-          }
+          },
         ],
         project: project,
-        description: 'Delete project: ' + project.name
+        description: 'Delete project: ' + project.name,
       });
     }
 

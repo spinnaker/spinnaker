@@ -27,39 +27,39 @@ export interface IInfrastructureCacheConfig {
 
 export const INFRASTRUCTURE_CACHE_CONFIG: IInfrastructureCacheConfig = {
   networks: {
-    version: 2
+    version: 2,
   },
   vpcs: {
-    version: 2
+    version: 2,
   },
   subnets: {
-    version: 2
+    version: 2,
   },
   applications: {
-    maxAge: moment.duration(30, 'days').asMilliseconds() // it gets refreshed every time the user goes to the application list, anyway
+    maxAge: moment.duration(30, 'days').asMilliseconds(), // it gets refreshed every time the user goes to the application list, anyway
   },
   loadBalancers: {
-    maxAge: moment.duration(1, 'hour').asMilliseconds()
+    maxAge: moment.duration(1, 'hour').asMilliseconds(),
   },
   securityGroups: {
-    version: 2 // increment to force refresh of cache on next page load - can be added to any cache
+    version: 2, // increment to force refresh of cache on next page load - can be added to any cache
   },
   instanceTypes: {
     maxAge: moment.duration(7, 'days').asMilliseconds(),
-    version: 2
+    version: 2,
   },
   healthChecks: {
-    version: 2
+    version: 2,
   },
   certificates: {
-    version: 2
+    version: 2,
   },
   backendServices: {
-    version: 2
+    version: 2,
   },
   addresses: {
-    version: 2
+    version: 2,
   },
   credentials: {},
-  buildMasters: {}
+  buildMasters: {},
 };

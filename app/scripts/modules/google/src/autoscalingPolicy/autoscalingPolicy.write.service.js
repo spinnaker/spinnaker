@@ -5,11 +5,8 @@ const angular = require('angular');
 import { TASK_EXECUTOR } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.serverGroup.details.scalingPolicy.write.service', [
-    TASK_EXECUTOR,
-  ])
+  .module('spinnaker.gce.serverGroup.details.scalingPolicy.write.service', [TASK_EXECUTOR])
   .factory('gceAutoscalingPolicyWriter', function(taskExecutor) {
-
     function upsertAutoscalingPolicy(application, serverGroup, policy, params = {}) {
       let job = {
         type: 'upsertScalingPolicy',
@@ -17,14 +14,14 @@ module.exports = angular
         credentials: serverGroup.account,
         region: serverGroup.region,
         serverGroupName: serverGroup.name,
-        autoscalingPolicy: policy
+        autoscalingPolicy: policy,
       };
       angular.extend(job, params);
 
       return taskExecutor.executeTask({
         application,
         description: 'Upsert scaling policy ' + serverGroup.name,
-        job: [job]
+        job: [job],
       });
     }
 
@@ -38,9 +35,9 @@ module.exports = angular
             cloudProvider: serverGroup.type,
             credentials: serverGroup.account,
             region: serverGroup.region,
-            serverGroupName: serverGroup.name
-          }
-        ]
+            serverGroupName: serverGroup.name,
+          },
+        ],
       });
     }
 
@@ -74,10 +71,10 @@ module.exports = angular
             region: serverGroup.region,
             serverGroupName: serverGroup.name,
             deleteAutoHealingPolicy: true,
-          }
-        ]
+          },
+        ],
       });
     }
 
-    return {upsertAutoscalingPolicy, deleteAutoscalingPolicy, upsertAutoHealingPolicy, deleteAutoHealingPolicy};
+    return { upsertAutoscalingPolicy, deleteAutoscalingPolicy, upsertAutoHealingPolicy, deleteAutoHealingPolicy };
   });

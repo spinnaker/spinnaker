@@ -10,7 +10,7 @@ import {
   ILoadBalancer,
   ILoadBalancerDeleteCommand,
   LOAD_BALANCER_WRITE_SERVICE,
-  LoadBalancerWriter
+  LoadBalancerWriter,
 } from '@spinnaker/core';
 
 import { IAppengineLoadBalancer } from 'appengine/domain';
@@ -27,16 +27,19 @@ class AppengineLoadBalancerDetailsController implements IController {
   public loadBalancer: IAppengineLoadBalancer;
   public dispatchRules: string[] = [];
 
-  constructor(private $uibModal: IModalService,
-              private $state: StateService,
-              private $scope: IScope,
-              loadBalancer: ILoadBalancerFromStateParams,
-              private app: Application,
-              private loadBalancerWriter: LoadBalancerWriter,
-              private confirmationModalService: ConfirmationModalService) {
+  constructor(
+    private $uibModal: IModalService,
+    private $state: StateService,
+    private $scope: IScope,
+    loadBalancer: ILoadBalancerFromStateParams,
+    private app: Application,
+    private loadBalancerWriter: LoadBalancerWriter,
+    private confirmationModalService: ConfirmationModalService,
+  ) {
     'ngInject';
     this.loadBalancerFromParams = loadBalancer;
-    this.app.getDataSource('loadBalancers')
+    this.app
+      .getDataSource('loadBalancers')
       .ready()
       .then(() => this.extractLoadBalancer());
   }
@@ -51,7 +54,7 @@ class AppengineLoadBalancerDetailsController implements IController {
         loadBalancer: () => cloneDeep(this.loadBalancer),
         isNew: () => false,
         forPipelineConfig: () => false,
-      }
+      },
     });
   }
 
@@ -86,8 +89,7 @@ class AppengineLoadBalancerDetailsController implements IController {
 
   private extractLoadBalancer(): void {
     this.loadBalancer = this.app.getDataSource('loadBalancers').data.find((test: ILoadBalancer) => {
-      return test.name === this.loadBalancerFromParams.name &&
-        test.account === this.loadBalancerFromParams.accountId;
+      return test.name === this.loadBalancerFromParams.name && test.account === this.loadBalancerFromParams.accountId;
     }) as IAppengineLoadBalancer;
 
     if (this.loadBalancer) {
@@ -154,7 +156,7 @@ class AppengineLoadBalancerDetailsController implements IController {
 }
 
 export const APPENGINE_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.appengine.loadBalancerDetails.controller';
-module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [
-  LOAD_BALANCER_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-]).controller('appengineLoadBalancerDetailsCtrl', AppengineLoadBalancerDetailsController);
+module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [LOAD_BALANCER_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
+  'appengineLoadBalancerDetailsCtrl',
+  AppengineLoadBalancerDetailsController,
+);

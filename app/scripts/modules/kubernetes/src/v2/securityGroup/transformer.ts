@@ -13,5 +13,7 @@ class KubernetesV2SecurityGroupTransformer {
 }
 
 export const KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER = 'spinnaker.kubernetes.v2.securityGroupTransformer';
-module(KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER, [])
-  .service('kubernetesV2SecurityGroupTransformer', KubernetesV2SecurityGroupTransformer);
+module(KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER, []).service(
+  'kubernetesV2SecurityGroupTransformer',
+  KubernetesV2SecurityGroupTransformer,
+);

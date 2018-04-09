@@ -4,21 +4,18 @@ const angular = require('angular');
 
 import './multiTaskMonitor.component.less';
 
-module.exports = angular
-  .module('spinnaker.core.task.monitor.multiTaskMonitor', [
-  ])
-  .component('multiTaskMonitor', {
-    bindings: {
-      monitors: '=',
-      title: '=',
-      closeModal: '&'
-    },
-    controller: function () {
-      this.isVisible = () => this.monitors.some(monitor => monitor.submitting || monitor.error);
-      this.hasErrors = () => this.monitors.some(monitor => monitor.error);
-      this.clearErrors = () => this.monitors.forEach(monitor => monitor.error = null);
-    },
-    template: `
+module.exports = angular.module('spinnaker.core.task.monitor.multiTaskMonitor', []).component('multiTaskMonitor', {
+  bindings: {
+    monitors: '=',
+    title: '=',
+    closeModal: '&',
+  },
+  controller: function() {
+    this.isVisible = () => this.monitors.some(monitor => monitor.submitting || monitor.error);
+    this.hasErrors = () => this.monitors.some(monitor => monitor.error);
+    this.clearErrors = () => this.monitors.forEach(monitor => (monitor.error = null));
+  },
+  template: `
       <div modal-page class="overlay overlay-modal" modal-overlay ng-if="$ctrl.isVisible()">
         <div class="modal-header">
           <h3>{{$ctrl.title}}</h3>
@@ -42,5 +39,5 @@ module.exports = angular
           <button class="btn btn-default" ng-click="$ctrl.closeModal()">Cancel</button>
         </div>
       </div>
-`
-  });
+`,
+});

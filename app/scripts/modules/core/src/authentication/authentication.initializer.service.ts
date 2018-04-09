@@ -14,28 +14,30 @@ interface IAuthResponse {
 }
 
 export class AuthenticationInitializer {
-
   private userLoggedOut = false;
   private visibilityWatch: Subscription = null;
 
-  constructor(private $location: ng.ILocationService,
-              private $rootScope: IDeckRootScope,
-              private $http: ng.IHttpService,
-              private $uibModal: IModalService,
-              private $uibModalStack: IModalStackService,
-              private redirectService: RedirectService,
-              private authenticationService: AuthenticationService) {
+  constructor(
+    private $location: ng.ILocationService,
+    private $rootScope: IDeckRootScope,
+    private $http: ng.IHttpService,
+    private $uibModal: IModalService,
+    private $uibModalStack: IModalStackService,
+    private redirectService: RedirectService,
+    private authenticationService: AuthenticationService,
+  ) {
     'ngInject';
   }
 
   private checkForReauthentication(): void {
-    this.$http.get(SETTINGS.authEndpoint)
+    this.$http
+      .get(SETTINGS.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
           this.authenticationService.setAuthenticatedUser({
             name: response.data.username,
             authenticated: false,
-            roles: response.data.roles
+            roles: response.data.roles,
           });
           this.$uibModalStack.dismissAll();
           this.visibilityWatch.unsubscribe();
@@ -49,19 +51,18 @@ export class AuthenticationInitializer {
     this.userLoggedOut = true;
     this.openLoggedOutModal();
 
-    this.visibilityWatch = Observable.fromEvent(document, 'visibilitychange')
-      .subscribe(() => {
-        if (document.visibilityState === 'visible') {
-          this.checkForReauthentication();
-        }
-      });
+    this.visibilityWatch = Observable.fromEvent(document, 'visibilitychange').subscribe(() => {
+      if (document.visibilityState === 'visible') {
+        this.checkForReauthentication();
+      }
+    });
   }
 
   private openLoggedOutModal(): void {
     this.$uibModal.open({
       templateUrl: require('./loggedOut.modal.html'),
       controller: 'LoggedOutModalCtrl as ctrl',
-      size: 'squared'
+      size: 'squared',
     });
   }
 
@@ -72,13 +73,14 @@ export class AuthenticationInitializer {
 
   public authenticateUser() {
     this.$rootScope.authenticating = true;
-    this.$http.get(SETTINGS.authEndpoint)
+    this.$http
+      .get(SETTINGS.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
           this.authenticationService.setAuthenticatedUser({
             name: response.data.username,
             authenticated: false,
-            roles: response.data.roles
+            roles: response.data.roles,
           });
           this.$rootScope.authenticating = false;
         } else {
@@ -90,13 +92,14 @@ export class AuthenticationInitializer {
 
   public reauthenticateUser(): void {
     if (!this.userLoggedOut) {
-      this.$http.get(SETTINGS.authEndpoint)
+      this.$http
+        .get(SETTINGS.authEndpoint)
         .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
           if (response.data.username) {
             this.authenticationService.setAuthenticatedUser({
               name: response.data.username,
               authenticated: false,
-              roles: response.data.roles
+              roles: response.data.roles,
             });
             this.$rootScope.authenticating = false;
           } else {
@@ -114,7 +117,8 @@ export class AuthenticationInitializer {
         transformResponse: (response: string) => response,
       };
 
-      this.$http.get(`${SETTINGS.gateUrl}/auth/logout`, config)
+      this.$http
+        .get(`${SETTINGS.gateUrl}/auth/logout`, config)
         .then(() => this.loggedOutSequence(), () => this.loggedOutSequence());
     }
   }
@@ -131,6 +135,5 @@ module(AUTHENTICATION_INITIALIZER_SERVICE, [
   require('angular-ui-bootstrap'),
   REDIRECT_SERVICE,
   AUTHENTICATION_SERVICE,
-  require('./loggedOut.modal.controller').name
-])
-  .service('authenticationInitializer', AuthenticationInitializer);
+  require('./loggedOut.modal.controller').name,
+]).service('authenticationInitializer', AuthenticationInitializer);

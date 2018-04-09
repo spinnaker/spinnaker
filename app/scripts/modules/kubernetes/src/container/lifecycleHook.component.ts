@@ -107,5 +107,7 @@ class KubernetesLifecycleHookConfigurer implements IComponentOptions {
 }
 
 export const KUBERNETES_LIFECYCLE_HOOK_CONFIGURER = 'spinnaker.kubernetes.lifecycleHookConfigurer.component';
-module(KUBERNETES_LIFECYCLE_HOOK_CONFIGURER, [])
-  .component('kubernetesLifecycleHookConfigurer', new KubernetesLifecycleHookConfigurer());
+module(KUBERNETES_LIFECYCLE_HOOK_CONFIGURER, []).component(
+  'kubernetesLifecycleHookConfigurer',
+  new KubernetesLifecycleHookConfigurer(),
+);

@@ -1,22 +1,19 @@
 import { mock } from 'angular';
 import { RETRY_SERVICE, RetryService } from './retry.service';
 
-describe('Service: Retry', function () {
-
+describe('Service: Retry', function() {
   let retryService: RetryService;
   let $q: ng.IQService;
   let $timeout: ng.ITimeoutService;
 
   beforeEach(mock.module(RETRY_SERVICE));
   beforeEach(
-    mock.inject(
-      function (_retryService_: RetryService,
-                _$q_: ng.IQService,
-                _$timeout_: ng.ITimeoutService) {
-        retryService = _retryService_;
-        $q = _$q_;
-        $timeout = _$timeout_;
-      }));
+    mock.inject(function(_retryService_: RetryService, _$q_: ng.IQService, _$timeout_: ng.ITimeoutService) {
+      retryService = _retryService_;
+      $q = _$q_;
+      $timeout = _$timeout_;
+    }),
+  );
 
   describe('retryService.buildRetrySequence', () => {
     it('should only call callback once if result passes stop condition', () => {
@@ -27,11 +24,10 @@ describe('Service: Retry', function () {
       };
       const stopCondition = (val: any) => val;
 
-      retryService.buildRetrySequence<boolean>(callback, stopCondition, 100, 0)
-        .then((result: boolean) => {
-          expect(result).toEqual(true);
-          expect(callCount).toEqual(1);
-        });
+      retryService.buildRetrySequence<boolean>(callback, stopCondition, 100, 0).then((result: boolean) => {
+        expect(result).toEqual(true);
+        expect(callCount).toEqual(1);
+      });
 
       $timeout.flush();
     });
@@ -41,11 +37,10 @@ describe('Service: Retry', function () {
       const callback = () => $q.resolve(++callCount);
       const stopCondition = (val: any) => val === 8;
 
-      retryService.buildRetrySequence<number>(callback, stopCondition, 100, 0)
-        .then((result: number) => {
-          expect(result).toEqual(8);
-          expect(callCount).toEqual(8);
-        });
+      retryService.buildRetrySequence<number>(callback, stopCondition, 100, 0).then((result: number) => {
+        expect(result).toEqual(8);
+        expect(callCount).toEqual(8);
+      });
 
       $timeout.flush();
     });
@@ -59,11 +54,10 @@ describe('Service: Retry', function () {
       };
       const stopCondition = (result: any[]) => result.length > 0;
 
-      retryService.buildRetrySequence<any[]>(callback, stopCondition, 100, 0)
-        .then((result: any[]) => {
-          expect(result).toEqual([]);
-          expect(callCount).toEqual(101);
-        });
+      retryService.buildRetrySequence<any[]>(callback, stopCondition, 100, 0).then((result: any[]) => {
+        expect(result).toEqual([]);
+        expect(callCount).toEqual(101);
+      });
 
       $timeout.flush();
     });
@@ -82,8 +76,7 @@ describe('Service: Retry', function () {
         return callCount > 1 ? $q.resolve([]) : $q.reject('something failed');
       };
       const stopCondition = (result: any[]) => result === [];
-      retryService.buildRetrySequence(callback, stopCondition, 1, 0)
-        .then((result: any[]) => {
+      retryService.buildRetrySequence(callback, stopCondition, 1, 0).then((result: any[]) => {
         expect(result).toEqual([]);
         expect(callCount).toEqual(2);
       });

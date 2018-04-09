@@ -4,19 +4,39 @@ import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 import { PAGER_DUTY_TAG_COMPONENT, PagerDutyTagComponentController } from './pagerDutyTag.component';
 
 describe('PagerDutyTagComponent', () => {
-
   let $componentController: IComponentControllerService,
-      $ctrl: PagerDutyTagComponentController,
-      pagerDutyReader: PagerDutyReader;
+    $ctrl: PagerDutyTagComponentController,
+    pagerDutyReader: PagerDutyReader;
 
   const services: IPagerDutyService[] = [
-    { name: 'name1', integration_key: 'integrationKey1', id: '1', policy: 'ABCDEF', lastIncidentTimestamp: '1970', status: 'active' },
-    { name: 'name2', integration_key: 'integrationKey2', id: '2', policy: 'ABCDEG', lastIncidentTimestamp: '1970', status: 'active' },
-    { name: 'name3', integration_key: 'integrationKey3', id: '3', policy: 'ABCDEH', lastIncidentTimestamp: '1970', status: 'active' }
+    {
+      name: 'name1',
+      integration_key: 'integrationKey1',
+      id: '1',
+      policy: 'ABCDEF',
+      lastIncidentTimestamp: '1970',
+      status: 'active',
+    },
+    {
+      name: 'name2',
+      integration_key: 'integrationKey2',
+      id: '2',
+      policy: 'ABCDEG',
+      lastIncidentTimestamp: '1970',
+      status: 'active',
+    },
+    {
+      name: 'name3',
+      integration_key: 'integrationKey3',
+      id: '3',
+      policy: 'ABCDEH',
+      lastIncidentTimestamp: '1970',
+      status: 'active',
+    },
   ];
 
   const initialize = (apiKey: string) => {
-    $ctrl = <PagerDutyTagComponentController> $componentController(
+    $ctrl = <PagerDutyTagComponentController>$componentController(
       'pagerDutyTag',
       { $scope: null, pagerDutyReader },
       { apiKey: apiKey },
@@ -26,12 +46,13 @@ describe('PagerDutyTagComponent', () => {
 
   beforeEach(mock.module(PAGER_DUTY_TAG_COMPONENT));
 
-  beforeEach(mock.inject((_$componentController_: IComponentControllerService,
-                          _pagerDutyReader_: PagerDutyReader) => {
-    $componentController = _$componentController_;
-    pagerDutyReader = _pagerDutyReader_;
-    spyOn(pagerDutyReader, 'listServices').and.returnValue(Observable.of(services));
-  }));
+  beforeEach(
+    mock.inject((_$componentController_: IComponentControllerService, _pagerDutyReader_: PagerDutyReader) => {
+      $componentController = _$componentController_;
+      pagerDutyReader = _pagerDutyReader_;
+      spyOn(pagerDutyReader, 'listServices').and.returnValue(Observable.of(services));
+    }),
+  );
 
   it('should set notFound flag when service is not found for api key', () => {
     initialize('invalidKey');

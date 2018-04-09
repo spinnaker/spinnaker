@@ -4,7 +4,6 @@ import { AbstractBaseCacheService } from './abstractBaseCache.service';
 import { DECK_CACHE_SERVICE, DeckCacheService, ICache, ICacheConfig } from './deckCache.service';
 
 export class InfrastructureCacheService extends AbstractBaseCacheService {
-
   private static NAMESPACE = 'infrastructure';
 
   constructor(deckCacheFactory: DeckCacheService) {
@@ -32,5 +31,4 @@ export class InfrastructureCacheService extends AbstractBaseCacheService {
 }
 
 export const INFRASTRUCTURE_CACHE_SERVICE = 'spinnaker.core.cache.infrastructure';
-module(INFRASTRUCTURE_CACHE_SERVICE, [DECK_CACHE_SERVICE])
-  .service('infrastructureCaches', InfrastructureCacheService);
+module(INFRASTRUCTURE_CACHE_SERVICE, [DECK_CACHE_SERVICE]).service('infrastructureCaches', InfrastructureCacheService);

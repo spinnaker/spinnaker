@@ -10,11 +10,12 @@ import { BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@s
   Without this stage, programmatically-created pipelines with Docker bake stages would not render
   execution details.
  */
-module.exports = angular.module('spinnaker.docker.pipeline.stage.bakeStage', [
-  PIPELINE_CONFIG_PROVIDER,
-  require('./bakeExecutionDetails.controller.js').name,
-  BAKERY_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.docker.pipeline.stage.bakeStage', [
+    PIPELINE_CONFIG_PROVIDER,
+    require('./bakeExecutionDetails.controller.js').name,
+    BAKERY_SERVICE,
+  ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'bake',
@@ -24,18 +25,15 @@ module.exports = angular.module('spinnaker.docker.pipeline.stage.bakeStage', [
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
       executionLabelComponent: BakeExecutionLabel,
-      extraLabelLines: (stage) => {
+      extraLabelLines: stage => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
-      validators: [
-        { type: 'requiredField', fieldName: 'package', },
-      ],
+      validators: [{ type: 'requiredField', fieldName: 'package' }],
       restartable: true,
     });
   })
   .controller('dockerBakeStageCtrl', function($scope, bakeryService, $q, authenticationService) {
-
     var stage = $scope.stage;
 
     stage.region = 'global';
@@ -50,21 +48,23 @@ module.exports = angular.module('spinnaker.docker.pipeline.stage.bakeStage', [
 
     function initialize() {
       $scope.viewState.providerSelected = true;
-      $q.all({
-        baseOsOptions: bakeryService.getBaseOsOptions('docker'),
-        baseLabelOptions: bakeryService.getBaseLabelOptions(),
-      }).then(function(results) {
-        $scope.baseOsOptions = results.baseOsOptions.baseImages;
-        $scope.baseLabelOptions = results.baseLabelOptions;
+      $q
+        .all({
+          baseOsOptions: bakeryService.getBaseOsOptions('docker'),
+          baseLabelOptions: bakeryService.getBaseLabelOptions(),
+        })
+        .then(function(results) {
+          $scope.baseOsOptions = results.baseOsOptions.baseImages;
+          $scope.baseLabelOptions = results.baseLabelOptions;
 
-        if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
-          $scope.stage.baseOs = $scope.baseOsOptions[0].id;
-        }
-        if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
-          $scope.stage.baseLabel = $scope.baseLabelOptions[0];
-        }
-        $scope.viewState.loading = false;
-      });
+          if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
+            $scope.stage.baseOs = $scope.baseOsOptions[0].id;
+          }
+          if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
+            $scope.stage.baseLabel = $scope.baseLabelOptions[0];
+          }
+          $scope.viewState.loading = false;
+        });
     }
 
     function deleteEmptyProperties() {

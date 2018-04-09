@@ -2,7 +2,6 @@ import { PAGER_DUTY_READ_SERVICE, PagerDutyReader, IPagerDutyService } from './p
 import { module, IComponentController, IComponentOptions } from 'angular';
 
 export class PagerDutyTagComponentController implements IComponentController {
-
   public apiKey: any;
 
   public servicesLoaded = false;
@@ -46,7 +45,7 @@ const pagerDutyTagComponent: IComponentOptions = {
         Unable to locate PagerDuty key ({{ $ctrl.apiKey }})
       </span>
     </span>
-  `
+  `,
 };
 
 export const PAGER_DUTY_TAG_COMPONENT = 'spinnaker.core.pagerDuty.pagerDutyTag.component';

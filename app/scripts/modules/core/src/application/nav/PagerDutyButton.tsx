@@ -11,7 +11,6 @@ export interface IPagerDutyButtonProps {
 
 @BindAll()
 export class PagerDutyButton extends React.Component<IPagerDutyButtonProps> {
-
   private pageApplicationOwner(): void {
     ReactInjector.pagerDutyWriter.pageApplicationOwnerModal(this.props.app);
   }
@@ -22,11 +21,8 @@ export class PagerDutyButton extends React.Component<IPagerDutyButtonProps> {
     }
     return (
       <Tooltip value="Page application owner">
-        <button
-          className="btn btn-xs page-button btn-page-owner"
-          onClick={this.pageApplicationOwner}
-        >
-          <i className="fa fa-phone"/>
+        <button className="btn btn-xs page-button btn-page-owner" onClick={this.pageApplicationOwner}>
+          <i className="fa fa-phone" />
         </button>
       </Tooltip>
     );

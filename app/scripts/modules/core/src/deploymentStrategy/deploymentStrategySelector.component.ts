@@ -19,7 +19,9 @@ export class DeploymentStrategySelectorController implements IController {
   public onStrategyChange: Function;
 
   public $onInit() {
-    this.strategies = DeploymentStrategyRegistry.listStrategies(this.command.selectedProvider || this.command.cloudProvider);
+    this.strategies = DeploymentStrategyRegistry.listStrategies(
+      this.command.selectedProvider || this.command.cloudProvider,
+    );
     this.selectStrategy();
   }
 
@@ -79,7 +81,7 @@ const deploymentStrategySelector: IComponentOptions = {
         <div ng-include src="$ctrl.additionalFieldsTemplateUrl"></div>
       </div>
     </div>
-  `
+  `,
 };
 
 export const DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT = 'spinnaker.core.deploymentStrategy.deploymentStrategySelector';

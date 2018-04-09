@@ -6,7 +6,6 @@ import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedI
 import { ITask } from 'core/domain';
 
 export class TaskReader {
-
   private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
   public constructor(private API: Api) {
@@ -14,7 +13,8 @@ export class TaskReader {
   }
 
   public getTasks(applicationName: string, statuses: string[] = []): ng.IPromise<ITask[]> {
-    return this.API.one('applications', applicationName).all('tasks')
+    return this.API.one('applications', applicationName)
+      .all('tasks')
       .getList({ statuses: statuses.join(',') })
       .then((tasks: ITask[]) => {
         tasks.forEach(task => this.setTaskProperties(task));
@@ -27,7 +27,8 @@ export class TaskReader {
   }
 
   public getTask(taskId: string): ng.IPromise<ITask> {
-    return this.API.one('tasks', taskId).get()
+    return this.API.one('tasks', taskId)
+      .get()
       .then((task: ITask) => {
         OrchestratedItemTransformer.defineProperties(task);
         if (task.steps && task.steps.length) {
@@ -45,8 +46,12 @@ export class TaskReader {
       .catch((error: any) => $log.warn('There was an issue retrieving taskId: ', taskId, error));
   }
 
-  public waitUntilTaskMatches(task: ITask, closure: (task: ITask) => boolean, failureClosure?: (task: ITask) => boolean,
-                              interval = 1000): ng.IPromise<ITask> {
+  public waitUntilTaskMatches(
+    task: ITask,
+    closure: (task: ITask) => boolean,
+    failureClosure?: (task: ITask) => boolean,
+    interval = 1000,
+  ): ng.IPromise<ITask> {
     const deferred = $q.defer<ITask>();
     if (!task) {
       deferred.reject(null);
@@ -56,10 +61,9 @@ export class TaskReader {
       deferred.reject(task);
     } else {
       task.poller = $timeout(() => {
-        this.getTask(task.id).then((updated) => {
+        this.getTask(task.id).then(updated => {
           this.updateTask(task, updated);
-          this.waitUntilTaskMatches(task, closure, failureClosure, interval)
-            .then(deferred.resolve, deferred.reject);
+          this.waitUntilTaskMatches(task, closure, failureClosure, interval).then(deferred.resolve, deferred.reject);
         });
       }, interval);
     }
@@ -67,7 +71,7 @@ export class TaskReader {
   }
 
   public waitUntilTaskCompletes(task: ITask, interval = 1000): ng.IPromise<ITask> {
-    return this.waitUntilTaskMatches(task, (t) => t.isCompleted, (t) => t.isFailed, interval);
+    return this.waitUntilTaskMatches(task, t => t.isCompleted, t => t.isFailed, interval);
   }
 
   /**
@@ -96,6 +100,4 @@ export class TaskReader {
 
 export const TASK_READ_SERVICE = 'spinnaker.core.task.read.service';
 
-module(TASK_READ_SERVICE, [
-  API_SERVICE,
-]).service('taskReader', TaskReader);
+module(TASK_READ_SERVICE, [API_SERVICE]).service('taskReader', TaskReader);

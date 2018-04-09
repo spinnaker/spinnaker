@@ -10,7 +10,7 @@ import './editNotification.less';
 
 module.exports = angular
   .module('spinnaker.core.notification.modal.editNotification.modal.controller', [])
-  .controller('EditNotificationController', function ($scope, $uibModalInstance, notification, level, stageType) {
+  .controller('EditNotificationController', function($scope, $uibModalInstance, notification, level, stageType) {
     var vm = this;
 
     vm.notification = angular.copy(notification);
@@ -19,38 +19,26 @@ module.exports = angular
     $scope.level = level;
     $scope.stageType = stageType;
 
-    if(level === 'application' || level === 'pipeline') {
-      vm.whenOptions = [
-        'pipeline.starting',
-        'pipeline.complete',
-        'pipeline.failed'
-      ];
+    if (level === 'application' || level === 'pipeline') {
+      vm.whenOptions = ['pipeline.starting', 'pipeline.complete', 'pipeline.failed'];
     } else if (stageType === 'manualJudgment') {
-      vm.whenOptions = [
-        'manualJudgment',
-        'manualJudgmentContinue',
-        'manualJudgmentStop'
-      ];
+      vm.whenOptions = ['manualJudgment', 'manualJudgmentContinue', 'manualJudgmentStop'];
     } else {
-      vm.whenOptions = [
-        'stage.starting',
-        'stage.complete',
-        'stage.failed'
-      ];
+      vm.whenOptions = ['stage.starting', 'stage.complete', 'stage.failed'];
     }
 
     vm.updateSelectedWhen = function() {
       var selected = false;
       _.each(vm.whenOptions, function(option) {
-        if($scope.selectedWhenOptions[option] === true) {
+        if ($scope.selectedWhenOptions[option] === true) {
           selected = true;
         }
       });
       vm.hasSelectedWhen = selected;
     };
 
-    if(vm.notification !== undefined) {
-      _.each(vm.whenOptions, function (option) {
+    if (vm.notification !== undefined) {
+      _.each(vm.whenOptions, function(option) {
         if (vm.notification.when.includes(option)) {
           $scope.selectedWhenOptions[option] = true;
         }
@@ -65,7 +53,7 @@ module.exports = angular
     vm.submit = function() {
       vm.notification.when = [];
       _.each(vm.whenOptions, function(option) {
-        if($scope.selectedWhenOptions[option] === true) {
+        if ($scope.selectedWhenOptions[option] === true) {
           vm.notification.when.push(option);
         }
       });
@@ -80,11 +68,15 @@ module.exports = angular
       return $scope.stageType;
     };
 
-    $scope.$watch('selectedWhenOptions', function (a, b) {
-      if(a !== b) {
-        vm.updateSelectedWhen();
-      }
-    }, true);
+    $scope.$watch(
+      'selectedWhenOptions',
+      function(a, b) {
+        if (a !== b) {
+          vm.updateSelectedWhen();
+        }
+      },
+      true,
+    );
 
     return vm;
   });

@@ -40,35 +40,35 @@ module(TITUS_MODULE, [
   require('./pipeline/stages/disableCluster/titusDisableClusterStage.js').name,
   require('./pipeline/stages/shrinkCluster/titusShrinkClusterStage.js').name,
   require('./pipeline/stages/scaleDownCluster/titusScaleDownClusterStage.js').name,
-  TITUS_MIGRATION_CONFIG_COMPONENT
+  TITUS_MIGRATION_CONFIG_COMPONENT,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
   cloudProviderRegistryProvider.registerProvider('titus', {
-      name: 'Titus',
-      logo: {
-        path: require('./logo/titus.logo.png')
-      },
-      serverGroup: {
-        transformer: 'titusServerGroupTransformer',
-        detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
-        detailsController: 'titusServerGroupDetailsCtrl',
-        cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
-        cloneServerGroupController: 'titusCloneServerGroupCtrl',
-        commandBuilder: 'titusServerGroupCommandBuilder',
-        configurationService: 'titusServerGroupConfigurationService',
-        skipUpstreamStageCheck: true,
-      },
-      securityGroup: {
-        reader: 'titusSecurityGroupReader',
-        useProvider: 'aws'
-      },
-      loadBalancer: {
-        LoadBalancersTag: TitusLoadBalancersTag,
-        useProvider: 'aws'
-      },
-      instance: {
-        detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
-        detailsController: 'titusInstanceDetailsCtrl'
-      },
+    name: 'Titus',
+    logo: {
+      path: require('./logo/titus.logo.png'),
+    },
+    serverGroup: {
+      transformer: 'titusServerGroupTransformer',
+      detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
+      detailsController: 'titusServerGroupDetailsCtrl',
+      cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
+      cloneServerGroupController: 'titusCloneServerGroupCtrl',
+      commandBuilder: 'titusServerGroupCommandBuilder',
+      configurationService: 'titusServerGroupConfigurationService',
+      skipUpstreamStageCheck: true,
+    },
+    securityGroup: {
+      reader: 'titusSecurityGroupReader',
+      useProvider: 'aws',
+    },
+    loadBalancer: {
+      LoadBalancersTag: TitusLoadBalancersTag,
+      useProvider: 'aws',
+    },
+    instance: {
+      detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
+      detailsController: 'titusInstanceDetailsCtrl',
+    },
   });
 });
 

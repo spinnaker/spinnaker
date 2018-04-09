@@ -109,6 +109,6 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
           </span>
         ))}
       </div>
-    )
+    );
   }
 }

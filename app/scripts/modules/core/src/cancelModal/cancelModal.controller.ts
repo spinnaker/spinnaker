@@ -10,12 +10,11 @@ export interface ICancelModalScope extends IScope {
 }
 
 export class CancelModalCtrl implements IController {
-
   constructor(public $scope: ICancelModalScope, private $uibModalInstance: IModalServiceInstance, private params: any) {
     this.$scope.params = params;
 
     this.$scope.state = {
-      submitting: false
+      submitting: false,
     };
   }
 
@@ -30,14 +29,14 @@ export class CancelModalCtrl implements IController {
   public confirm(): void {
     if (!this.formDisabled()) {
       this.$scope.state.submitting = true;
-      this.params.submitMethod(this.params.reason, this.params.force).then(this.$uibModalInstance.close, this.showError);
+      this.params
+        .submitMethod(this.params.reason, this.params.force)
+        .then(this.$uibModalInstance.close, this.showError);
     }
-  };
+  }
 
   public cancel = () => this.$uibModalInstance.dismiss();
 }
 
 export const CANCEL_MODAL_CONTROLLER = 'spinnaker.core.cancelModal.controller';
-module(CANCEL_MODAL_CONTROLLER, [
-  require('angular-ui-bootstrap')
-]).controller('cancelModalCtrl', CancelModalCtrl);
+module(CANCEL_MODAL_CONTROLLER, [require('angular-ui-bootstrap')]).controller('cancelModalCtrl', CancelModalCtrl);

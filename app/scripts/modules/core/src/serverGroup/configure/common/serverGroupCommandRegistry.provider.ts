@@ -13,7 +13,6 @@ export interface IServerGroupCommandConfigurer {
 }
 
 export class ServerGroupCommandRegistry implements ng.IServiceProvider {
-
   private providers: Map<string, any> = new Map<string, any>();
 
   public $get(): ServerGroupCommandRegistry {
@@ -21,7 +20,6 @@ export class ServerGroupCommandRegistry implements ng.IServiceProvider {
   }
 
   public getCommandOverrides(provider: string): IServerGroupCommandConfigurer[] {
-
     let result: IServerGroupCommandConfigurer[] = [];
     if (this.providers.has(provider)) {
       result = cloneDeep(this.providers.get(provider));
@@ -39,5 +37,4 @@ export class ServerGroupCommandRegistry implements ng.IServiceProvider {
 }
 
 export const SERVER_GROUP_COMMAND_REGISTRY_PROVIDER = 'spinnaker.core.serverGroup.configure.command.registry';
-module(SERVER_GROUP_COMMAND_REGISTRY_PROVIDER, [])
-  .provider('serverGroupCommandRegistry', ServerGroupCommandRegistry);
+module(SERVER_GROUP_COMMAND_REGISTRY_PROVIDER, []).provider('serverGroupCommandRegistry', ServerGroupCommandRegistry);

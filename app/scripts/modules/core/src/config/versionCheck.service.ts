@@ -14,11 +14,13 @@ class VersionCheckService {
   private newVersionSeenCount = 0;
   private scheduler: any;
 
-  constructor(private $http: ng.IHttpService,
-              private notifierService: any,
-              private schedulerFactory: SchedulerFactory,
-              private $log: ng.ILogService,
-              private $filter: any) {
+  constructor(
+    private $http: ng.IHttpService,
+    private notifierService: any,
+    private schedulerFactory: SchedulerFactory,
+    private $log: ng.ILogService,
+    private $filter: any,
+  ) {
     'ngInject';
   }
 
@@ -27,7 +29,7 @@ class VersionCheckService {
       'Deck version',
       this.currentVersion.version,
       'created',
-      this.$filter('timestamp')(this.currentVersion.created)
+      this.$filter('timestamp')(this.currentVersion.created),
     );
     this.scheduler = this.schedulerFactory.createScheduler();
     this.scheduler.subscribe(() => this.checkVersion());
@@ -35,7 +37,10 @@ class VersionCheckService {
 
   private checkVersion(): void {
     const url = `/version.json?_=${Date.now()}`;
-    this.$http.get(url).then((resp) => this.versionRetrieved(resp)).catch(() => {});
+    this.$http
+      .get(url)
+      .then(resp => this.versionRetrieved(resp))
+      .catch(() => {});
   }
 
   private versionRetrieved(response: any): void {
@@ -50,7 +55,7 @@ class VersionCheckService {
           key: 'newVersion',
           position: 'bottom',
           body: `A new version of Spinnaker is available
-              <a role="button" class="action" onclick="document.location.reload(true)">Refresh</a>`
+              <a role="button" class="action" onclick="document.location.reload(true)">Refresh</a>`,
         });
         this.scheduler.unsubscribe();
       }
@@ -59,10 +64,8 @@ class VersionCheckService {
 }
 
 export const VERSION_CHECK_SERVICE = 'spinnaker.core.config.versionCheck.service';
-module(VERSION_CHECK_SERVICE, [
-  NOTIFIER_SERVICE,
-  SCHEDULER_FACTORY,
-]).service('versionCheckService', VersionCheckService)
+module(VERSION_CHECK_SERVICE, [NOTIFIER_SERVICE, SCHEDULER_FACTORY])
+  .service('versionCheckService', VersionCheckService)
   .run((versionCheckService: VersionCheckService) => {
     if (SETTINGS.checkForUpdates) {
       versionCheckService.initialize();

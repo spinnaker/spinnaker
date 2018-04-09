@@ -5,7 +5,7 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.advancedSettings.selector.directive', [
     require('ui-select'),
-    require('../securityGroups/tagManager.service.js').name
+    require('../securityGroups/tagManager.service.js').name,
   ])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
     return {
@@ -24,12 +24,12 @@ module.exports = angular
       this.command.tags.push({});
     };
 
-    this.removeTag = (index) => {
+    this.removeTag = index => {
       this.command.tags.splice(index, 1);
       gceTagManager.updateSelectedTags();
     };
 
-    this.setDisks = (disks) => {
+    this.setDisks = disks => {
       this.command.disks = disks;
     };
 

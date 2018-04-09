@@ -2,6 +2,7 @@ import { DeploymentStrategyRegistry } from 'core/deploymentStrategy/deploymentSt
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Highlander',
-  description: 'Destroys <i>all</i> previous server groups in the cluster as soon as new server group passes health checks',
+  description:
+    'Destroys <i>all</i> previous server groups in the cluster as soon as new server group passes health checks',
   key: 'highlander',
 });

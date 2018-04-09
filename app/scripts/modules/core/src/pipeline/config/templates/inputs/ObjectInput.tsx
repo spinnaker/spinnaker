@@ -1,12 +1,17 @@
 import { module } from 'angular';
 import * as React from 'react';
-import { IVariableInputBuilder, VariableInputService, IVariable, IVariableProps, IVariableState } from './variableInput.service';
+import {
+  IVariableInputBuilder,
+  VariableInputService,
+  IVariable,
+  IVariableProps,
+  IVariableState,
+} from './variableInput.service';
 import { BindAll } from 'lodash-decorators';
 import { VariableError } from '../VariableError';
 
 @BindAll()
 class ObjectInput extends React.Component<IVariableProps, IVariableState> {
-
   public render() {
     return (
       <div>
@@ -17,7 +22,7 @@ class ObjectInput extends React.Component<IVariableProps, IVariableState> {
           onChange={this.extractValue}
           required={true}
         />
-        {!this.props.variable.hideErrors && <VariableError errors={this.props.variable.errors}/>}
+        {!this.props.variable.hideErrors && <VariableError errors={this.props.variable.errors} />}
       </div>
     );
   }
@@ -28,16 +33,16 @@ class ObjectInput extends React.Component<IVariableProps, IVariableState> {
 }
 
 export class ObjectInputBuilder implements IVariableInputBuilder {
-
   public handles(type: string): boolean {
     return type === 'object';
   }
 
   public getInput(variable: IVariable, onChange: (variable: IVariable) => void) {
-    return <ObjectInput variable={variable} onChange={onChange}/>
+    return <ObjectInput variable={variable} onChange={onChange} />;
   }
 }
 
 export const OBJECT_INPUT = 'spinnaker.core.pipelineTemplate.objectInput';
-module(OBJECT_INPUT, [])
-  .run((variableInputService: VariableInputService) => variableInputService.addInput(new ObjectInputBuilder()));
+module(OBJECT_INPUT, []).run((variableInputService: VariableInputService) =>
+  variableInputService.addInput(new ObjectInputBuilder()),
+);

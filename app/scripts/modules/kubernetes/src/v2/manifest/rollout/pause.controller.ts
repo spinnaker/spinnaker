@@ -1,4 +1,4 @@
-import { copy, IController, module } from 'angular'
+import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import {
@@ -7,7 +7,7 @@ import {
   ManifestWriter,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 
@@ -22,14 +22,16 @@ class KubernetesManifestPauseRolloutController implements IController {
   public taskMonitor: TaskMonitor;
   public command: IPauseRolloutCommand;
   public verification = {
-    verified: false
+    verified: false,
   };
 
-  constructor(coordinates: IManifestCoordinates,
-              taskMonitorBuilder: TaskMonitorBuilder,
-              private $uibModalInstance: IModalServiceInstance,
-              private manifestWriter: ManifestWriter,
-              private application: Application) {
+  constructor(
+    coordinates: IManifestCoordinates,
+    taskMonitorBuilder: TaskMonitorBuilder,
+    private $uibModalInstance: IModalServiceInstance,
+    private manifestWriter: ManifestWriter,
+    private application: Application,
+  ) {
     'ngInject';
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -52,7 +54,7 @@ class KubernetesManifestPauseRolloutController implements IController {
 
   public cancel(): void {
     this.$uibModalInstance.dismiss();
-  };
+  }
 
   public pauseRollout(): void {
     this.taskMonitor.submit(() => {
@@ -66,8 +68,7 @@ class KubernetesManifestPauseRolloutController implements IController {
 
 export const KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL = 'spinnaker.kubernetes.v2.manifest.pauseRollout.controller';
 
-module(KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL, [
-  TASK_MONITOR_BUILDER,
-  MANIFEST_WRITER,
-])
-  .controller('kubernetesV2ManifestPauseRolloutCtrl', KubernetesManifestPauseRolloutController);
+module(KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL, [TASK_MONITOR_BUILDER, MANIFEST_WRITER]).controller(
+  'kubernetesV2ManifestPauseRolloutCtrl',
+  KubernetesManifestPauseRolloutController,
+);

@@ -27,7 +27,10 @@ export interface IGroupedNotificationListState {
  * A clickable link shows/hides the entities (server groups) affected
  */
 @BindAll()
-export class GroupedNotificationList extends React.Component<IGroupedNotificationListProps, IGroupedNotificationListState> {
+export class GroupedNotificationList extends React.Component<
+  IGroupedNotificationListProps,
+  IGroupedNotificationListState
+> {
   public static defaultProps: Partial<IGroupedNotificationListProps> = {
     notifications: [],
   };
@@ -36,7 +39,7 @@ export class GroupedNotificationList extends React.Component<IGroupedNotificatio
     super(props);
     this.state = {
       collapsed: true,
-      alertsByMessage: this.getAlertsByMessage(props.notifications)
+      alertsByMessage: this.getAlertsByMessage(props.notifications),
     };
   }
 
@@ -90,7 +93,10 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
       <div>
         <a className="clickable" onClick={this.toggleCollapsed}>
           <strong>
-            <span> {this.state.collapsed ? 'Show' : 'Hide'} {notifications.length} server groups</span>
+            <span>
+              {' '}
+              {this.state.collapsed ? 'Show' : 'Hide'} {notifications.length} server groups
+            </span>
           </strong>
         </a>
 
@@ -98,7 +104,7 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
           {!this.state.collapsed && notifications.map(this.renderServerGroupName)}
         </div>
       </div>
-    )
+    );
   }
 
   private toggleCollapsed(): void {
@@ -109,14 +115,18 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
     const { entityTags } = notification;
     const { entityRef: { region, entityId } } = entityTags;
     const alertKey = `${region}+${entityId}`;
-    return <EntityName key={alertKey} tag={entityTags}/>;
+    return <EntityName key={alertKey} tag={entityTags} />;
   }
 
   public render() {
     const { alertsForMessage: { notifications, title, message, tagline } } = this.props;
     return (
       <div className="notification-message">
-        {title && <div className="notification-title"><Markdown message={title} /></div>}
+        {title && (
+          <div className="notification-title">
+            <Markdown message={title} />
+          </div>
+        )}
         {this.renderServerGroupNames(notifications)}
         <Markdown message={message} />
         <Markdown className="small" message={tagline} />

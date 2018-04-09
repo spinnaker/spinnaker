@@ -5,23 +5,17 @@ import { IFilterProps, Filter } from './Filter';
 import { IFilterType } from './SearchFilterTypeRegistry';
 
 describe('<Filter/>', () => {
-
   let component: ReactWrapper<IFilterProps, any>;
 
   function getNewFilterType(): IFilterType {
     return {
       key: 'region',
-      name: 'Region'
+      name: 'Region',
     };
   }
 
   function getNewTagComponent(filterType: IFilterType, isActive: boolean): ReactWrapper<IFilterProps, any> {
-    return mount(
-      <Filter
-        filterType={filterType}
-        isActive={isActive}
-      />
-    );
+    return mount(<Filter filterType={filterType} isActive={isActive} />);
   }
 
   it('should display a filter', () => {

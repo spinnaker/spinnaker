@@ -1,7 +1,7 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { Application, IManifest, IServerGroupManager, IServerGroupManagerStateParams, } from '@spinnaker/core';
+import { Application, IManifest, IServerGroupManager, IServerGroupManagerStateParams } from '@spinnaker/core';
 import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
 import { KubernetesManifestService } from '../../manifest/manifest.service';
 
@@ -10,24 +10,30 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   public state = { loading: true };
   public manifest: IManifest;
 
-  constructor(serverGroupManager: IServerGroupManagerStateParams,
-              private $scope: IScope,
-              private $uibModal: IModalService,
-              private kubernetesManifestService: KubernetesManifestService,
-              public app: Application) {
+  constructor(
+    serverGroupManager: IServerGroupManagerStateParams,
+    private $scope: IScope,
+    private $uibModal: IModalService,
+    private kubernetesManifestService: KubernetesManifestService,
+    public app: Application,
+  ) {
     'ngInject';
 
-    this.kubernetesManifestService.makeManifestRefresher(this.app, this.$scope, {
-      account: serverGroupManager.accountId,
-      location: serverGroupManager.region,
-      name: serverGroupManager.serverGroupManager,
-    }, this);
+    this.kubernetesManifestService.makeManifestRefresher(
+      this.app,
+      this.$scope,
+      {
+        account: serverGroupManager.accountId,
+        location: serverGroupManager.region,
+        name: serverGroupManager.serverGroupManager,
+      },
+      this,
+    );
 
-    this.app.ready()
-      .then(() => {
-        this.extractServerGroupManager(serverGroupManager);
-        this.state.loading = false;
-      });
+    this.app.ready().then(() => {
+      this.extractServerGroupManager(serverGroupManager);
+      this.state.loading = false;
+    });
   }
 
   public pauseRolloutServerGroupManager(): void {
@@ -39,10 +45,10 @@ class KubernetesServerGroupManagerDetailsController implements IController {
         coordinates: {
           name: this.serverGroupManager.name,
           namespace: this.serverGroupManager.namespace,
-          account: this.serverGroupManager.account
+          account: this.serverGroupManager.account,
         },
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
@@ -55,15 +61,17 @@ class KubernetesServerGroupManagerDetailsController implements IController {
         coordinates: {
           name: this.serverGroupManager.name,
           namespace: this.serverGroupManager.namespace,
-          account: this.serverGroupManager.account
+          account: this.serverGroupManager.account,
         },
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
   public canUndoRolloutServerGroupManager(): boolean {
-    return this.serverGroupManager && this.serverGroupManager.serverGroups && this.serverGroupManager.serverGroups.length > 0;
+    return (
+      this.serverGroupManager && this.serverGroupManager.serverGroups && this.serverGroupManager.serverGroups.length > 0
+    );
   }
 
   public undoRolloutServerGroupManager(): void {
@@ -75,16 +83,17 @@ class KubernetesServerGroupManagerDetailsController implements IController {
         coordinates: {
           name: this.serverGroupManager.name,
           namespace: this.serverGroupManager.namespace,
-          account: this.serverGroupManager.account
+          account: this.serverGroupManager.account,
         },
-        revisions: () => this.serverGroupManager.serverGroups.map((sg) => {
-          return {
-            name: sg.name,
-            revision: sg.moniker.sequence,
-          };
-        }),
-        application: this.app
-      }
+        revisions: () =>
+          this.serverGroupManager.serverGroups.map(sg => {
+            return {
+              name: sg.name,
+              revision: sg.moniker.sequence,
+            };
+          }),
+        application: this.app,
+      },
     });
   }
 
@@ -97,11 +106,11 @@ class KubernetesServerGroupManagerDetailsController implements IController {
         coordinates: {
           name: this.serverGroupManager.name,
           namespace: this.serverGroupManager.namespace,
-          account: this.serverGroupManager.account
+          account: this.serverGroupManager.account,
         },
         currentReplicas: this.serverGroupManager.manifest.spec.replicas,
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
@@ -114,8 +123,8 @@ class KubernetesServerGroupManagerDetailsController implements IController {
       resolve: {
         sourceManifest: this.serverGroupManager.manifest,
         sourceMoniker: this.serverGroupManager.moniker,
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
@@ -128,11 +137,11 @@ class KubernetesServerGroupManagerDetailsController implements IController {
         coordinates: {
           name: this.serverGroupManager.name,
           namespace: this.serverGroupManager.namespace,
-          account: this.serverGroupManager.account
+          account: this.serverGroupManager.account,
         },
         application: this.app,
         manifestController: (): string => null,
-      }
+      },
     });
   }
 
@@ -150,14 +159,22 @@ class KubernetesServerGroupManagerDetailsController implements IController {
   }
 
   private extractServerGroupManager(stateParams: IServerGroupManagerStateParams): void {
-    this.serverGroupManager = this.transformServerGroupManager(this.app.getDataSource('serverGroupManagers').data.find((manager: IServerGroupManager) =>
-      manager.name === stateParams.serverGroupManager
-        && manager.region === stateParams.region
-        && manager.account === stateParams.accountId
-    ));
+    this.serverGroupManager = this.transformServerGroupManager(
+      this.app
+        .getDataSource('serverGroupManagers')
+        .data.find(
+          (manager: IServerGroupManager) =>
+            manager.name === stateParams.serverGroupManager &&
+            manager.region === stateParams.region &&
+            manager.account === stateParams.accountId,
+        ),
+    );
   }
 }
 
-export const KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL = 'spinnaker.kubernetes.v2.serverGroupManager.details.controller';
-module(KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL, [])
-  .controller('kubernetesV2ServerGroupManagerDetailsCtrl', KubernetesServerGroupManagerDetailsController)
+export const KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL =
+  'spinnaker.kubernetes.v2.serverGroupManager.details.controller';
+module(KUBERNETES_V2_SERVER_GROUP_MANAGER_DETAILS_CTRL, []).controller(
+  'kubernetesV2ServerGroupManagerDetailsCtrl',
+  KubernetesServerGroupManagerDetailsController,
+);

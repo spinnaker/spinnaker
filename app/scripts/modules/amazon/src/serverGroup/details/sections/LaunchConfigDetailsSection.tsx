@@ -10,7 +10,10 @@ export interface ILaunchConfigDetailsSectionState {
   image: any;
 }
 
-export class LaunchConfigDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, ILaunchConfigDetailsSectionState> {
+export class LaunchConfigDetailsSection extends React.Component<
+  IAmazonServerGroupDetailsSectionProps,
+  ILaunchConfigDetailsSectionState
+> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -21,7 +24,7 @@ export class LaunchConfigDetailsSection extends React.Component<IAmazonServerGro
     const image = serverGroup.image ? serverGroup.image : undefined;
     if (serverGroup.image && serverGroup.image.description) {
       const tags: string[] = serverGroup.image.description.split(', ');
-      tags.forEach((tag) => {
+      tags.forEach(tag => {
         const keyVal = tag.split('=');
         if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
           serverGroup.image.baseImage = keyVal[1];
@@ -77,7 +80,11 @@ export class LaunchConfigDetailsSection extends React.Component<IAmazonServerGro
             {launchConfig.ramdiskId && <dd>{launchConfig.ramdiskId}</dd>}
 
             <dt>User Data</dt>
-            {launchConfig.userData && <dd><ShowUserData serverGroupName={name} userData={launchConfig.userData} /></dd>}
+            {launchConfig.userData && (
+              <dd>
+                <ShowUserData serverGroupName={name} userData={launchConfig.userData} />
+              </dd>
+            )}
             {!launchConfig.userData && <dd>[none]</dd>}
           </dl>
         </CollapsibleSection>

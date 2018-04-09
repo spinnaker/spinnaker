@@ -21,12 +21,15 @@ export interface ICloneServerGroupExecutionDetailsState {
   deployResults: IDeployResult[];
 }
 
-export class CloneServerGroupExecutionDetails extends React.Component<IExecutionDetailsSectionProps, ICloneServerGroupExecutionDetailsState> {
+export class CloneServerGroupExecutionDetails extends React.Component<
+  IExecutionDetailsSectionProps,
+  ICloneServerGroupExecutionDetailsState
+> {
   public static title = 'cloneServerGroupConfig';
 
   constructor(props: IExecutionDetailsSectionProps) {
     super(props);
-    this.state = { deployResults: [] }
+    this.state = { deployResults: [] };
   }
 
   private addDeployedArtifacts(props: IExecutionDetailsSectionProps): void {
@@ -34,7 +37,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<IExecution
     if (tasks.length === 0) {
       return;
     }
-    const resultObjects: { [key: string]: {[key: string]: string[]} } = tasks[0].resultObjects;
+    const resultObjects: { [key: string]: { [key: string]: string[] } } = tasks[0].resultObjects;
     if (!resultObjects || Object.keys(resultObjects).length === 0) {
       return;
     }
@@ -44,7 +47,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<IExecution
     let deployResults: IDeployResult[] = [];
     const deployedArtifacts = find(resultObjects, 'serverGroupNames');
     if (deployedArtifacts) {
-      const deployedServerGroups = (deployedArtifacts['serverGroupNames'] || []).filter((a) => a.includes(':'));
+      const deployedServerGroups = (deployedArtifacts['serverGroupNames'] || []).filter(a => a.includes(':'));
       deployResults = deployedServerGroups.map((serverGroupNameAndRegion: string) => {
         const [region, serverGroupName] = serverGroupNameAndRegion.split(':');
         const result: IDeployResult = {
@@ -83,7 +86,9 @@ export class CloneServerGroupExecutionDetails extends React.Component<IExecution
           <div className="col-md-9">
             <dl className="dl-narrow dl-horizontal">
               <dt>Account</dt>
-              <dd><AccountTag account={stage.context.credentials}/></dd>
+              <dd>
+                <AccountTag account={stage.context.credentials} />
+              </dd>
               <dt>Region</dt>
               <dd>{stage.context.region}</dd>
               <dt>Cluster</dt>
@@ -91,7 +96,12 @@ export class CloneServerGroupExecutionDetails extends React.Component<IExecution
               <dt>Server Group</dt>
               <dd>{stage.context.source && stage.context.source.serverGroupName}</dd>
               {specifiedCapacity && <dt>Capacity</dt>}
-              {specifiedCapacity && <dd>Min: {stage.context.capacity.min} / Desired: {stage.context.capacity.desired} / Max: {stage.context.capacity.max}</dd>}
+              {specifiedCapacity && (
+                <dd>
+                  Min: {stage.context.capacity.min} / Desired: {stage.context.capacity.desired} / Max:{' '}
+                  {stage.context.capacity.max}
+                </dd>
+              )}
             </dl>
           </div>
         </div>
@@ -99,16 +109,16 @@ export class CloneServerGroupExecutionDetails extends React.Component<IExecution
 
         {deployResults.length > 0 && (
           <div className="row">
-          <div className="col-md-12">
-            <div className="well alert alert-info">
-              <strong>Deployed: </strong>
-              {(deployResults || []).map((result) => <DeployedServerGroup key={result.href} result={result} />)}
+            <div className="col-md-12">
+              <div className="well alert alert-info">
+                <strong>Deployed: </strong>
+                {(deployResults || []).map(result => <DeployedServerGroup key={result.href} result={result} />)}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </ExecutionDetailsSection>
-    )
+    );
   }
 }
 
@@ -116,10 +126,10 @@ const DeployedServerGroup = (props: { result: IDeployResult }): JSX.Element => {
   const deployClicked = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.stopPropagation();
     ReactInjector.clusterFilterService.overrideFiltersForUrl(props.result);
-  }
+  };
   return (
-    <a onClick={deployClicked} href={props.result.href} >
+    <a onClick={deployClicked} href={props.result.href}>
       {props.result.serverGroup}
     </a>
   );
-}
+};

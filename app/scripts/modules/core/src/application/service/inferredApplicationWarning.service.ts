@@ -4,7 +4,6 @@ import { Application } from 'core/application/application.model';
 import { NOTIFIER_SERVICE, NotifierService } from 'core/widgets/notifier/notifier.service';
 
 export class InferredApplicationWarningService {
-
   private viewedApplications: string[] = [];
 
   constructor(private notifierService: NotifierService) {
@@ -37,12 +36,13 @@ export class InferredApplicationWarningService {
     this.notifierService.publish({
       key: 'inferredApplicationWarning',
       position: 'bottom',
-      body: `The application <b>${appName}</b> has not been <a href="#/applications/${appName}/config">configured</a>.`
+      body: `The application <b>${appName}</b> has not been <a href="#/applications/${appName}/config">configured</a>.`,
     });
   }
 }
 
 export const INFERRED_APPLICATION_WARNING_SERVICE = 'spinnaker.core.application.inferredApplicationWarning.service';
-module(INFERRED_APPLICATION_WARNING_SERVICE, [
-  NOTIFIER_SERVICE
-]).service('inferredApplicationWarningService', InferredApplicationWarningService);
+module(INFERRED_APPLICATION_WARNING_SERVICE, [NOTIFIER_SERVICE]).service(
+  'inferredApplicationWarningService',
+  InferredApplicationWarningService,
+);

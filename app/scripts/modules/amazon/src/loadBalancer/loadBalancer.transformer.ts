@@ -1,15 +1,7 @@
 import { IPromise, module } from 'angular';
 import { chain, filter, flatten, map } from 'lodash';
 
-import {
-  Application,
-  IHealth,
-  IServerGroup,
-  IInstance,
-  IVpc,
-  NAMING_SERVICE,
-  NamingService
-} from '@spinnaker/core';
+import { Application, IHealth, IServerGroup, IInstance, IVpc, NAMING_SERVICE, NamingService } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import {
@@ -23,27 +15,31 @@ import {
   IClassicLoadBalancerSourceData,
   IAmazonApplicationLoadBalancerUpsertCommand,
   IAmazonClassicLoadBalancerUpsertCommand,
-  ITargetGroup
+  ITargetGroup,
 } from 'amazon/domain';
 import { VPC_READ_SERVICE, VpcReader } from 'amazon/vpc/vpc.read.service';
 
 export class AwsLoadBalancerTransformer {
-  public constructor(private vpcReader: VpcReader, private namingService: NamingService) { 'ngInject'; }
+  public constructor(private vpcReader: VpcReader, private namingService: NamingService) {
+    'ngInject';
+  }
 
   private updateHealthCounts(serverGroup: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {
     const instances = serverGroup.instances;
-    let serverGroups: IServerGroup[]  = [serverGroup] as IServerGroup[];
+    let serverGroups: IServerGroup[] = [serverGroup] as IServerGroup[];
     if ((serverGroup as ITargetGroup | IAmazonLoadBalancer).serverGroups) {
       const container = serverGroup as ITargetGroup;
       serverGroups = container.serverGroups;
     }
     serverGroup.instanceCounts = {
-      up: instances.filter((instance) => instance.health[0].state === 'InService').length,
-      down: instances.filter((instance) => instance.health[0].state === 'OutOfService').length,
+      up: instances.filter(instance => instance.health[0].state === 'InService').length,
+      down: instances.filter(instance => instance.health[0].state === 'OutOfService').length,
       outOfService: serverGroups.reduce((acc, sg): number => {
-        return sg.instances.filter((instance): boolean => {
-          return instance.healthState === 'OutOfService';
-        }).length + acc;
+        return (
+          sg.instances.filter((instance): boolean => {
+            return instance.healthState === 'OutOfService';
+          }).length + acc
+        );
       }, 0),
       starting: undefined,
       succeeded: undefined,
@@ -55,7 +51,7 @@ export class AwsLoadBalancerTransformer {
   private transformInstance(instance: IInstance, provider: string, account: string, region: string): void {
     // instance in this case should be some form if instance source data, but force to 'any' type to fix
     // instnace health in load balancers until we can actually shape this bit properly
-    const health: IHealth = (instance.health as any) || {} as IHealth;
+    const health: IHealth = (instance.health as any) || ({} as IHealth);
     if (health.state === 'healthy') {
       // Target groups use 'healthy' instead of 'InService' and a lot of deck expects InService
       // to surface health in the UI; just set it as InService since we don't really care the
@@ -65,20 +61,27 @@ export class AwsLoadBalancerTransformer {
     instance.provider = provider;
     instance.account = account;
     instance.region = region;
-    instance.healthState = health.state ? health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
+    instance.healthState = health.state ? (health.state === 'InService' ? 'Up' : 'Down') : 'OutOfService';
     instance.health = [health];
   }
 
-  private addVpcNameToContainer(container: IAmazonLoadBalancer | ITargetGroup): (vpcs: IVpc[]) => IAmazonLoadBalancer | ITargetGroup {
+  private addVpcNameToContainer(
+    container: IAmazonLoadBalancer | ITargetGroup,
+  ): (vpcs: IVpc[]) => IAmazonLoadBalancer | ITargetGroup {
     return (vpcs: IVpc[]) => {
-      const match = vpcs.find((test) => test.id === container.vpcId);
+      const match = vpcs.find(test => test.id === container.vpcId);
       container.vpcName = match ? match.name : '';
       return container;
     };
   }
 
-  private normalizeServerGroups(serverGroups: IServerGroup[], container: IAmazonLoadBalancer | ITargetGroup, containerType: string, healthType: string): void {
-    serverGroups.forEach((serverGroup) => {
+  private normalizeServerGroups(
+    serverGroups: IServerGroup[],
+    container: IAmazonLoadBalancer | ITargetGroup,
+    containerType: string,
+    healthType: string,
+  ): void {
+    serverGroups.forEach(serverGroup => {
       serverGroup.account = container.account;
       serverGroup.region = container.region;
       if (serverGroup.detachedInstances) {
@@ -90,7 +93,7 @@ export class AwsLoadBalancerTransformer {
         serverGroup.detachedInstances = [];
       }
 
-      serverGroup.instances.forEach((instance) => {
+      serverGroup.instances.forEach(instance => {
         this.transformInstance(instance, container.type, container.account, container.region);
         (instance as any)[containerType] = [container.name];
         (instance.health as any).type = healthType;
@@ -104,11 +107,19 @@ export class AwsLoadBalancerTransformer {
 
     const activeServerGroups = filter(targetGroup.serverGroups, { isDisabled: false });
     targetGroup.provider = targetGroup.type;
-    targetGroup.instances = chain(activeServerGroups).map('instances').flatten<IInstance>().value();
-    targetGroup.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
+    targetGroup.instances = chain(activeServerGroups)
+      .map('instances')
+      .flatten<IInstance>()
+      .value();
+    targetGroup.detachedInstances = chain(activeServerGroups)
+      .map('detachedInstances')
+      .flatten<IInstance>()
+      .value();
     this.updateHealthCounts(targetGroup);
 
-    return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup);
+    return this.vpcReader
+      .listVpcs()
+      .then((vpcs: IVpc[]) => this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup);
   }
 
   public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): IPromise<IAmazonLoadBalancer> {
@@ -117,19 +128,29 @@ export class AwsLoadBalancerTransformer {
     let serverGroups = loadBalancer.serverGroups;
     if ((loadBalancer as IAmazonApplicationLoadBalancer).targetGroups) {
       const appLoadBalancer = loadBalancer as IAmazonApplicationLoadBalancer;
-      appLoadBalancer.targetGroups.forEach((targetGroup) => this.normalizeTargetGroup(targetGroup));
+      appLoadBalancer.targetGroups.forEach(targetGroup => this.normalizeTargetGroup(targetGroup));
       serverGroups = flatten<IAmazonServerGroup>(map(appLoadBalancer.targetGroups, 'serverGroups'));
     }
 
     const activeServerGroups = filter(serverGroups, { isDisabled: false });
     loadBalancer.provider = loadBalancer.type;
-    loadBalancer.instances = chain(activeServerGroups).map('instances').flatten<IInstance>().value();
-    loadBalancer.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
+    loadBalancer.instances = chain(activeServerGroups)
+      .map('instances')
+      .flatten<IInstance>()
+      .value();
+    loadBalancer.detachedInstances = chain(activeServerGroups)
+      .map('detachedInstances')
+      .flatten<IInstance>()
+      .value();
     this.updateHealthCounts(loadBalancer);
-    return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs) as IAmazonLoadBalancer);
+    return this.vpcReader
+      .listVpcs()
+      .then((vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs) as IAmazonLoadBalancer);
   }
 
-  public convertClassicLoadBalancerForEditing(loadBalancer: IAmazonClassicLoadBalancer): IAmazonClassicLoadBalancerUpsertCommand {
+  public convertClassicLoadBalancerForEditing(
+    loadBalancer: IAmazonClassicLoadBalancer,
+  ): IAmazonClassicLoadBalancerUpsertCommand {
     const toEdit: IAmazonClassicLoadBalancerUpsertCommand = {
       availabilityZones: undefined,
       isInternal: loadBalancer.isInternal,
@@ -173,7 +194,7 @@ export class AwsLoadBalancerTransformer {
             externalPort: listener.loadBalancerPort,
             sslCertificateId: listener.sslcertificateId,
             sslCertificateName: listener.sslcertificateId,
-            sslCertificateType: listener.sslCertificateType
+            sslCertificateType: listener.sslCertificateType,
           };
         });
       }
@@ -205,7 +226,9 @@ export class AwsLoadBalancerTransformer {
     return toEdit;
   }
 
-  public convertApplicationLoadBalancerForEditing(loadBalancer: IAmazonApplicationLoadBalancer): IAmazonApplicationLoadBalancerUpsertCommand {
+  public convertApplicationLoadBalancerForEditing(
+    loadBalancer: IAmazonApplicationLoadBalancer,
+  ): IAmazonApplicationLoadBalancerUpsertCommand {
     const applicationName = this.namingService.parseLoadBalancerName(loadBalancer.name).application;
 
     // Since we build up toEdit as we go, much easier to declare as any, then cast at return time.
@@ -232,30 +255,30 @@ export class AwsLoadBalancerTransformer {
 
       // Convert listeners
       if (elb.listeners) {
-        toEdit.listeners = elb.listeners.map((listener) => {
+        toEdit.listeners = elb.listeners.map(listener => {
           const certificates: IALBListenerCertificate[] = [];
           if (listener.certificates) {
-            listener.certificates.forEach((cert) => {
+            listener.certificates.forEach(cert => {
               const certArnParts = cert.certificateArn.split(':');
               const certParts = certArnParts[5].split('/');
               certificates.push({
                 certificateArn: cert.certificateArn,
                 type: certArnParts[2],
-                name: certParts[1]
+                name: certParts[1],
               });
             });
           }
 
-          (listener.defaultActions || []).forEach((action) => {
+          (listener.defaultActions || []).forEach(action => {
             if (action.targetGroupName) {
               action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
             }
           });
 
           // Remove the default rule because it already exists in defaultActions
-          listener.rules = (listener.rules || []).filter((l) => !l.default);
-          listener.rules.forEach((rule) => {
-            (rule.actions || []).forEach((action) => {
+          listener.rules = (listener.rules || []).filter(l => !l.default);
+          listener.rules.forEach(rule => {
+            (rule.actions || []).forEach(action => {
               if (action.targetGroupName) {
                 action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
               }
@@ -272,7 +295,7 @@ export class AwsLoadBalancerTransformer {
             defaultActions: listener.defaultActions,
             certificates: certificates,
             rules: listener.rules || [],
-            sslPolicy: listener.sslPolicy
+            sslPolicy: listener.sslPolicy,
           };
         });
       }
@@ -297,7 +320,7 @@ export class AwsLoadBalancerTransformer {
               stickinessEnabled: targetGroup.attributes['stickiness.enabled'] === 'true',
               stickinessType: targetGroup.attributes['stickiness.type'],
               stickinessDuration: Number(targetGroup.attributes['stickiness.lb_cookie.duration_seconds']),
-            }
+            },
           };
         });
       }
@@ -307,8 +330,8 @@ export class AwsLoadBalancerTransformer {
 
   public constructNewClassicLoadBalancerTemplate(application: Application): IAmazonClassicLoadBalancerUpsertCommand {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
-        defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
-        defaultSubnetType = AWSProviderSettings.defaults.subnetType;
+      defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
+      defaultSubnetType = AWSProviderSettings.defaults.subnetType;
     return {
       availabilityZones: undefined,
       name: undefined,
@@ -336,17 +359,19 @@ export class AwsLoadBalancerTransformer {
           externalPort: 80,
           externalProtocol: 'HTTP',
           internalPort: 7001,
-          internalProtocol: 'HTTP'
-        }
-      ]
+          internalProtocol: 'HTTP',
+        },
+      ],
     };
   }
 
-  public constructNewApplicationLoadBalancerTemplate(application: Application): IAmazonApplicationLoadBalancerUpsertCommand {
+  public constructNewApplicationLoadBalancerTemplate(
+    application: Application,
+  ): IAmazonApplicationLoadBalancerUpsertCommand {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
-        defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
-        defaultSubnetType = AWSProviderSettings.defaults.subnetType,
-        defaultTargetGroupName = `targetgroup`;
+      defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
+      defaultSubnetType = AWSProviderSettings.defaults.subnetType,
+      defaultTargetGroupName = `targetgroup`;
     return {
       name: undefined,
       availabilityZones: undefined,
@@ -376,9 +401,9 @@ export class AwsLoadBalancerTransformer {
             deregistrationDelay: 600,
             stickinessEnabled: false,
             stickinessType: 'lb_cookie',
-            stickinessDuration: 8400
-          }
-        }
+            stickinessDuration: 8400,
+          },
+        },
       ],
       regionZones: [],
       securityGroups: [],
@@ -390,19 +415,18 @@ export class AwsLoadBalancerTransformer {
           defaultActions: [
             {
               type: 'forward',
-              targetGroupName: defaultTargetGroupName
-            }
+              targetGroupName: defaultTargetGroupName,
+            },
           ],
           rules: [],
-        }
-      ]
+        },
+      ],
     };
   }
 }
 
 export const AWS_LOAD_BALANCER_TRANSFORMER = 'spinnaker.amazon.loadBalancer.transformer';
-module(AWS_LOAD_BALANCER_TRANSFORMER, [
-  VPC_READ_SERVICE,
-  NAMING_SERVICE
-])
-  .service('awsLoadBalancerTransformer', AwsLoadBalancerTransformer);
+module(AWS_LOAD_BALANCER_TRANSFORMER, [VPC_READ_SERVICE, NAMING_SERVICE]).service(
+  'awsLoadBalancerTransformer',
+  AwsLoadBalancerTransformer,
+);

@@ -11,7 +11,12 @@ import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedI
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 
 export class ExecutionsTransformerService {
-  private hiddenStageTypes = ['initialization', 'pipelineInitialization', 'waitForRequisiteCompletion', 'determineTargetServerGroup'];
+  private hiddenStageTypes = [
+    'initialization',
+    'pipelineInitialization',
+    'waitForRequisiteCompletion',
+    'determineTargetServerGroup',
+  ];
 
   constructor(private pipelineConfig: PipelineConfigProvider) {
     'ngInject';
@@ -19,7 +24,7 @@ export class ExecutionsTransformerService {
 
   private addDeploymentTargets(execution: IExecution): void {
     const targets: string[] = [];
-    execution.stages.forEach((stage) => {
+    execution.stages.forEach(stage => {
       const stageConfig = this.pipelineConfig.getStageConfig(stage);
       if (stageConfig && stageConfig.accountExtractor) {
         targets.push(stageConfig.accountExtractor(stage));
@@ -44,12 +49,12 @@ export class ExecutionsTransformerService {
   private flattenStages(stages: IExecutionStage[], stage: IExecutionStage | IExecutionStageSummary): IExecutionStage[] {
     const stageSummary = stage as IExecutionStageSummary;
     if (stageSummary.groupStages) {
-      stageSummary.groupStages.forEach((s) => this.flattenStages(stages, s));
+      stageSummary.groupStages.forEach(s => this.flattenStages(stages, s));
       return stages;
     }
     if (stage.before && stage.before.length) {
       stage.before.sort((a, b) => this.siblingStageSorter(a, b));
-      stage.before.forEach((beforeStage) => this.flattenStages(stages, beforeStage));
+      stage.before.forEach(beforeStage => this.flattenStages(stages, beforeStage));
     }
     if ((stage as IExecutionStageSummary).masterStage) {
       stages.push((stage as IExecutionStageSummary).masterStage);
@@ -58,22 +63,22 @@ export class ExecutionsTransformerService {
     }
     if (stage.after && stage.after.length) {
       stage.after.sort((a, b) => this.siblingStageSorter(a, b));
-      stage.after.forEach((afterStage) => this.flattenStages(stages, afterStage));
+      stage.after.forEach(afterStage => this.flattenStages(stages, afterStage));
     }
     return stages;
   }
 
   private flattenAndFilter(stage: IExecutionStage | IExecutionStageSummary): IExecutionStage[] {
-    return this.flattenStages([], stage)
-      .filter(s => s.isFailed ||
-        (!this.hiddenStageTypes.includes(s.type) && s.initializationStage !== true));
+    return this.flattenStages([], stage).filter(
+      s => s.isFailed || (!this.hiddenStageTypes.includes(s.type) && s.initializationStage !== true),
+    );
   }
 
   private getCurrentStages(execution: IExecution) {
-    const currentStages = execution.stageSummaries.filter((stage) => stage.isRunning);
+    const currentStages = execution.stageSummaries.filter(stage => stage.isRunning);
     // if there are no running stages, find the first enqueued stage
     if (!currentStages.length) {
-      const enqueued = execution.stageSummaries.find((stage) => stage.hasNotStarted);
+      const enqueued = execution.stageSummaries.find(stage => stage.hasNotStarted);
       if (enqueued) {
         currentStages.push(enqueued);
       }
@@ -83,9 +88,7 @@ export class ExecutionsTransformerService {
 
   // TODO: remove if we ever figure out why quickPatchAsgStage never has a startTime
   private setMasterStageStartTime(stages: IExecutionStage[], stage: IExecutionStageSummary): void {
-    const allStartTimes = stages
-      .filter((child) => child.startTime)
-      .map((child) => child.startTime);
+    const allStartTimes = stages.filter(child => child.startTime).map(child => child.startTime);
     if (allStartTimes.length) {
       stage.startTime = Math.min(...allStartTimes);
     }
@@ -93,12 +96,14 @@ export class ExecutionsTransformerService {
 
   private getCurrentStage<T extends IOrchestratedItem>(stages: T[]) {
     const lastStage = stages[stages.length - 1];
-    const lastNotStartedStage = findLast<T>(stages, (childStage) => childStage.hasNotStarted);
-    const lastFailedStage = findLast<T>(stages, (childStage) => childStage.isFailed);
-    const lastRunningStage = findLast<T>(stages, (childStage) => childStage.isRunning);
-    const lastCanceledStage = findLast<T>(stages, (childStage) => childStage.isCanceled);
-    const lastStoppedStage = findLast<T>(stages, (childStage) => childStage.isStopped);
-    return lastRunningStage || lastFailedStage || lastStoppedStage || lastCanceledStage || lastNotStartedStage || lastStage;
+    const lastNotStartedStage = findLast<T>(stages, childStage => childStage.hasNotStarted);
+    const lastFailedStage = findLast<T>(stages, childStage => childStage.isFailed);
+    const lastRunningStage = findLast<T>(stages, childStage => childStage.isRunning);
+    const lastCanceledStage = findLast<T>(stages, childStage => childStage.isCanceled);
+    const lastStoppedStage = findLast<T>(stages, childStage => childStage.isStopped);
+    return (
+      lastRunningStage || lastFailedStage || lastStoppedStage || lastCanceledStage || lastNotStartedStage || lastStage
+    );
   }
 
   private cleanupLockStages(stages: IExecutionStage[]): IExecutionStage[] {
@@ -112,7 +117,7 @@ export class ExecutionsTransformerService {
           foundType = true;
         }
         return true;
-      })
+      });
     };
 
     return retainFirstOfType('releaseLock', retainFirstOfType('acquireLock', stages).reverse()).reverse();
@@ -131,7 +136,9 @@ export class ExecutionsTransformerService {
       stage.status = currentStage.status;
 
       // if a stage is running, ignore the endTime of the parent stage
-      if (!currentStage.endTime) { delete stage.endTime; }
+      if (!currentStage.endTime) {
+        delete stage.endTime;
+      }
 
       const lastEndingStage = maxBy<IExecutionStage>(stages, 'endTime');
       // if the current stage has an end time (i.e. it failed or completed), use the maximum end time
@@ -149,22 +156,22 @@ export class ExecutionsTransformerService {
     const stages = execution.stages;
     let allPhasesResolved = true;
     // remove any invalid requisiteStageRefIds, set requisiteStageRefIds to empty for synthetic stages
-    stages.forEach((stage) => {
+    stages.forEach(stage => {
       if (has(stage, 'context.requisiteIds')) {
         stage.context.requisiteIds = uniq(stage.context.requisiteIds);
       }
       stage.requisiteStageRefIds = uniq(stage.requisiteStageRefIds || []);
-      stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter((parentId) => find(stages, { refId: parentId }));
+      stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter(parentId => find(stages, { refId: parentId }));
     });
 
-    stages.forEach((stage) => {
+    stages.forEach(stage => {
       let phaseResolvable = true;
       let phase = 0;
       // if there are no dependencies or it's a synthetic stage, set it to 0
       if (stage.phase === undefined && !stage.requisiteStageRefIds.length) {
         stage.phase = phase;
       } else {
-        stage.requisiteStageRefIds.forEach((parentId) => {
+        stage.requisiteStageRefIds.forEach(parentId => {
           const parent = find(stages, { refId: parentId });
           if (!parent || parent.phase === undefined) {
             phaseResolvable = false;
@@ -216,14 +223,15 @@ export class ExecutionsTransformerService {
     if (has(execution, 'trigger.buildInfo.lastBuild.number')) {
       execution.buildInfo = execution.trigger.buildInfo.lastBuild;
     }
-    const deployStage = execution.stages.find((stage) => stage.type === 'deploy');
+    const deployStage = execution.stages.find(stage => stage.type === 'deploy');
     // TODO - remove 'deploymentDetails || ...' once we've finalized the migration away from per-stage deploymentDetails
-    const deploymentDetails = get<any>(deployStage, 'context.deploymentDetails') || get<any>(execution, 'context.deploymentDetails');
+    const deploymentDetails =
+      get<any>(deployStage, 'context.deploymentDetails') || get<any>(execution, 'context.deploymentDetails');
     if (deploymentDetails && deploymentDetails.length && deploymentDetails[0].jenkins) {
       const jenkins = deploymentDetails[0].jenkins;
       execution.buildInfo = {
         number: jenkins.number,
-        url: deploymentDetails[0].buildInfoUrl || `${jenkins.host}job/${jenkins.name}/${jenkins.number}`
+        url: deploymentDetails[0].buildInfoUrl || `${jenkins.host}job/${jenkins.name}/${jenkins.number}`,
       };
     }
   }
@@ -231,8 +239,10 @@ export class ExecutionsTransformerService {
   private transformStageSummary(summary: IExecutionStageSummary, index: number): void {
     summary.index = index;
     summary.stages = this.flattenAndFilter(summary);
-    summary.stages.forEach((stage) => delete stage.stages);
-    summary.masterStageIndex = summary.stages.includes(summary.masterStage) ? summary.stages.indexOf(summary.masterStage) : 0;
+    summary.stages.forEach(stage => delete stage.stages);
+    summary.masterStageIndex = summary.stages.includes(summary.masterStage)
+      ? summary.stages.indexOf(summary.masterStage)
+      : 0;
     this.filterStages(summary);
     this.setFirstActiveStage(summary);
     this.setExecutionWindow(summary);
@@ -248,7 +258,7 @@ export class ExecutionsTransformerService {
   private filterStages(summary: IExecutionStageSummary): void {
     const stageConfig = this.pipelineConfig.getStageConfig(summary.masterStage);
     if (stageConfig && stageConfig.stageFilter) {
-      summary.stages = summary.stages.filter((s) => stageConfig.stageFilter(s));
+      summary.stages = summary.stages.filter(s => stageConfig.stageFilter(s));
     }
   }
 
@@ -274,7 +284,7 @@ export class ExecutionsTransformerService {
       execution.isStrategy = execution.trigger.isPipeline === false && execution.trigger.type === 'pipeline';
     }
     this.applyPhasesAndLink(execution);
-    this.pipelineConfig.getExecutionTransformers().forEach((transformer) => {
+    this.pipelineConfig.getExecutionTransformers().forEach(transformer => {
       transformer.transform(application, execution);
     });
 
@@ -290,7 +300,7 @@ export class ExecutionsTransformerService {
     });
 
     // Handle synthetic stages
-    execution.stages.forEach((stage) => {
+    execution.stages.forEach(stage => {
       const parent = find(execution.stages, { id: stage.parentStageId });
       if (parent) {
         if (stage.syntheticStageOwner === 'STAGE_BEFORE') {
@@ -311,9 +321,13 @@ export class ExecutionsTransformerService {
   private calculateRunningTime(stage: IExecutionStageSummary): () => number {
     return () => {
       // Find the earliest startTime and latest endTime
-      stage.groupStages.forEach((subStage) => {
-        if (subStage.startTime && subStage.startTime < stage.startTime) { stage.startTime = subStage.startTime; }
-        if (subStage.endTime && subStage.endTime > stage.endTime) { stage.endTime = subStage.endTime; }
+      stage.groupStages.forEach(subStage => {
+        if (subStage.startTime && subStage.startTime < stage.startTime) {
+          stage.startTime = subStage.startTime;
+        }
+        if (subStage.endTime && subStage.endTime > stage.endTime) {
+          stage.endTime = subStage.endTime;
+        }
       });
 
       if (!stage.startTime) {
@@ -326,7 +340,7 @@ export class ExecutionsTransformerService {
 
   public processStageSummaries(execution: IExecution): void {
     let stageSummaries: IExecutionStageSummary[] = [];
-    execution.stages.forEach((stage) => {
+    execution.stages.forEach(stage => {
       if (!stage.syntheticStageOwner && !this.hiddenStageTypes.includes(stage.type)) {
         // HACK: Orca sometimes (always?) incorrectly reports a parent stage as running when a child stage has stopped
         if (stage.status === 'RUNNING' && stage.after.some(s => s.status === 'STOPPED')) {
@@ -345,7 +359,8 @@ export class ExecutionsTransformerService {
           masterStage: stage,
           name: stage.name,
           refId: stage.refId,
-          requisiteStageRefIds: stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*' ? [] : stage.requisiteStageRefIds || [],
+          requisiteStageRefIds:
+            stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*' ? [] : stage.requisiteStageRefIds || [],
           stages: [],
           startTime: stage.startTime,
           status: stage.status,
@@ -355,58 +370,63 @@ export class ExecutionsTransformerService {
       }
     });
 
-    const idToGroupIdMap: { [key: string]: (number | string) }  = {};
-    stageSummaries = stageSummaries.reduce((groupedStages, stage) => {
-
-      // Since everything should already be sorted, if the stage is not in a group, just push it on and continue
-      if (!stage.group) {
-        groupedStages.push(stage);
-        return groupedStages;
-      }
-
-      // The stage is in a group
-      let groupedStage = groupedStages.find((s) => s.type === 'group' && s.name === stage.group);
-      if (!groupedStage) {
-        // Create a new grouped stage
-        groupedStage = {
-          activeStageType: undefined,
-          after: undefined,
-          before: stage.before,
-          cloudProvider: stage.cloudProvider, // what if the group has two different cloud providers?
-          comments: '',
-          endTime: stage.endTime,
-          groupStages: [],
-          id: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
-          index: undefined,
-          masterStage: undefined,
-          name: stage.group,
-          refId: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
-          requisiteStageRefIds: stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*' ? [] : stage.requisiteStageRefIds || [], // TODO: No idea what to do with refids...
-          stages: [],
-          startTime: stage.startTime,
-          status: undefined,
-          type: 'group',
-        } as IExecutionStageSummary;
-        groupedStages.push(groupedStage);
-      }
-      OrchestratedItemTransformer.defineProperties(stage);
-
-      // Update the runningTimeInMs function to account for the group
-      Object.defineProperties(groupedStage, {
-        runningTime: {
-          get: () => duration(this.calculateRunningTime(groupedStage)()).humanize(),
-          configurable: true,
-        },
-        runningTimeInMs: {
-          get: this.calculateRunningTime(groupedStage),
-          configurable: true,
+    const idToGroupIdMap: { [key: string]: number | string } = {};
+    stageSummaries = stageSummaries.reduce(
+      (groupedStages, stage) => {
+        // Since everything should already be sorted, if the stage is not in a group, just push it on and continue
+        if (!stage.group) {
+          groupedStages.push(stage);
+          return groupedStages;
         }
-      });
 
-      idToGroupIdMap[stage.refId] = groupedStage.refId;
-      groupedStage.groupStages.push(stage);
-      return groupedStages;
-    }, [] as IExecutionStageSummary[]);
+        // The stage is in a group
+        let groupedStage = groupedStages.find(s => s.type === 'group' && s.name === stage.group);
+        if (!groupedStage) {
+          // Create a new grouped stage
+          groupedStage = {
+            activeStageType: undefined,
+            after: undefined,
+            before: stage.before,
+            cloudProvider: stage.cloudProvider, // what if the group has two different cloud providers?
+            comments: '',
+            endTime: stage.endTime,
+            groupStages: [],
+            id: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
+            index: undefined,
+            masterStage: undefined,
+            name: stage.group,
+            refId: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
+            requisiteStageRefIds:
+              stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*'
+                ? []
+                : stage.requisiteStageRefIds || [], // TODO: No idea what to do with refids...
+            stages: [],
+            startTime: stage.startTime,
+            status: undefined,
+            type: 'group',
+          } as IExecutionStageSummary;
+          groupedStages.push(groupedStage);
+        }
+        OrchestratedItemTransformer.defineProperties(stage);
+
+        // Update the runningTimeInMs function to account for the group
+        Object.defineProperties(groupedStage, {
+          runningTime: {
+            get: () => duration(this.calculateRunningTime(groupedStage)()).humanize(),
+            configurable: true,
+          },
+          runningTimeInMs: {
+            get: this.calculateRunningTime(groupedStage),
+            configurable: true,
+          },
+        });
+
+        idToGroupIdMap[stage.refId] = groupedStage.refId;
+        groupedStage.groupStages.push(stage);
+        return groupedStages;
+      },
+      [] as IExecutionStageSummary[],
+    );
 
     stageSummaries.forEach((summary, index) => {
       // this shouldn't be necessary, but we had a few group stages slip in, so this handles it gracefully-ish
@@ -418,12 +438,14 @@ export class ExecutionsTransformerService {
           // If there's only one stage, get rid of the group.
           const onlyStage = summary.groupStages[0];
           stageSummaries[index] = onlyStage;
-          delete idToGroupIdMap[onlyStage.refId]
+          delete idToGroupIdMap[onlyStage.refId];
         } else if (summary.groupStages.length > 1) {
           const subComments: string[] = [];
           // Find the earliest startTime and latest endTime
-          summary.groupStages.forEach((subStage) => {
-            if (subStage.comments) { subComments.push(subStage.comments); }
+          summary.groupStages.forEach(subStage => {
+            if (subStage.comments) {
+              subComments.push(subStage.comments);
+            }
           });
 
           // Assuming the last stage in the group has the "output" stages
@@ -440,7 +462,7 @@ export class ExecutionsTransformerService {
       }
 
       // Make sure the requisite ids that were pointing at stages within a group are now pointing at the group
-      summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map((id) => idToGroupIdMap[id] || id));
+      summary.requisiteStageRefIds = uniq(summary.requisiteStageRefIds.map(id => idToGroupIdMap[id] || id));
     });
 
     stageSummaries.forEach((summary, index) => this.transformStageSummary(summary, index));
@@ -453,7 +475,7 @@ export class ExecutionsTransformerService {
 }
 
 export const EXECUTIONS_TRANSFORMER_SERVICE = 'spinnaker.core.pipeline.executionTransformer.service';
-module(EXECUTIONS_TRANSFORMER_SERVICE, [
-  PIPELINE_CONFIG_PROVIDER,
-]).service('executionsTransformer', (pipelineConfig: PipelineConfigProvider) =>
-                                      new ExecutionsTransformerService(pipelineConfig));
+module(EXECUTIONS_TRANSFORMER_SERVICE, [PIPELINE_CONFIG_PROVIDER]).service(
+  'executionsTransformer',
+  (pipelineConfig: PipelineConfigProvider) => new ExecutionsTransformerService(pipelineConfig),
+);

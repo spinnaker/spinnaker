@@ -1,30 +1,28 @@
 import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
-describe('Controller: cfServerGroupDetailsCtrl', function () {
+describe('Controller: cfServerGroupDetailsCtrl', function() {
   var controller;
   var scope;
 
-  beforeEach(
-    window.module(
-      require('./serverGroupDetails.cf.controller').name,
-      APPLICATION_MODEL_BUILDER
-    )
-  );
+  beforeEach(window.module(require('./serverGroupDetails.cf.controller').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, applicationModelBuilder) {
+    window.inject(function($rootScope, $controller, applicationModelBuilder) {
       scope = $rootScope.$new();
-      let app = applicationModelBuilder.createApplication('app', {key: 'serverGroups', lazy: true}, {key: 'loadBalancers', lazy: true});
+      let app = applicationModelBuilder.createApplication(
+        'app',
+        { key: 'serverGroups', lazy: true },
+        { key: 'loadBalancers', lazy: true },
+      );
       controller = $controller('cfServerGroupDetailsCtrl', {
         $scope: scope,
         app: app,
-        serverGroup: {}
+        serverGroup: {},
       });
-    })
+    }),
   );
 
-  it('should instantiate the controller', function () {
+  it('should instantiate the controller', function() {
     expect(controller).toBeDefined();
   });
 });
-

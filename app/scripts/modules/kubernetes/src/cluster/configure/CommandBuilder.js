@@ -7,17 +7,16 @@ import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
-module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.service', [
-  ACCOUNT_SERVICE
-])
-  .factory('kubernetesClusterCommandBuilder', function (accountService) {
+module.exports = angular
+  .module('spinnaker.kubernetes.clusterCommandBuilder.service', [ACCOUNT_SERVICE])
+  .factory('kubernetesClusterCommandBuilder', function(accountService) {
     function attemptToSetValidAccount(application, defaultAccount, command) {
       return accountService.listAccounts('kubernetes', 'v1').then(function(kubernetesAccounts) {
         var kubernetesAccountNames = _.map(kubernetesAccounts, 'name');
         var firstKubernetesAccount = null;
 
         if (application.accounts.length) {
-          firstKubernetesAccount = _.find(application.accounts, function (applicationAccount) {
+          firstKubernetesAccount = _.find(application.accounts, function(applicationAccount) {
             return kubernetesAccountNames.includes(applicationAccount);
           });
         } else if (kubernetesAccountNames.length) {
@@ -26,8 +25,9 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
 
         var defaultAccountIsValid = defaultAccount && kubernetesAccountNames.includes(defaultAccount);
 
-        command.account =
-          defaultAccountIsValid ? defaultAccount : (firstKubernetesAccount ? firstKubernetesAccount : 'my-account-name');
+        command.account = defaultAccountIsValid
+          ? defaultAccount
+          : firstKubernetesAccount ? firstKubernetesAccount : 'my-account-name';
       });
     }
 
@@ -75,10 +75,10 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
             type: 'RollingUpdate',
             rollingUpdate: {
               maxUnavailable: 1,
-              maxSurge: 1
-            }
-          }
-        }
+              maxSurge: 1,
+            },
+          },
+        },
       };
 
       applyHealthProviders(application, command);
@@ -100,11 +100,11 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       command.buildImageId = buildImageId;
       command.strategy = '';
 
-      command.containers.forEach((container) => {
+      command.containers.forEach(container => {
         container.imageDescription.imageId = buildImageId(container.imageDescription);
       });
 
-      command.initContainers.forEach((container) => {
+      command.initContainers.forEach(container => {
         container.imageDescription.imageId = buildImageId(container.imageDescription);
       });
 
@@ -122,7 +122,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       }
 
       if (!_.has(command, 'scalingPolicy.cpuUtilization.target')) {
-        command.scalingPolicy = { cpuUtilization: { target: 40, }, };
+        command.scalingPolicy = { cpuUtilization: { target: 40 } };
       }
 
       applyHealthProviders(application, command);
@@ -160,9 +160,9 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
 
     function reconcileUpstreamImages(containers, upstreamImages) {
       let result = [];
-      containers.forEach((container) => {
+      containers.forEach(container => {
         if (container.imageDescription.fromContext) {
-          let matchingImage = upstreamImages.find((image) => container.imageDescription.stageId === image.stageId);
+          let matchingImage = upstreamImages.find(image => container.imageDescription.stageId === image.stageId);
           if (matchingImage) {
             container.imageDescription.cluster = matchingImage.cluster;
             container.imageDescription.pattern = matchingImage.pattern;
@@ -170,10 +170,12 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
             result.push(container);
           }
         } else if (container.imageDescription.fromTrigger) {
-          let matchingImage = upstreamImages.find((image) => {
-            return container.imageDescription.registry === image.registry
-              && container.imageDescription.repository === image.repository
-              && container.imageDescription.tag === image.tag;
+          let matchingImage = upstreamImages.find(image => {
+            return (
+              container.imageDescription.registry === image.registry &&
+              container.imageDescription.repository === image.repository &&
+              container.imageDescription.tag === image.tag
+            );
           });
           if (matchingImage) {
             result.push(container);
@@ -200,7 +202,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
           cluster: current.cluster,
           pattern: current.imageNamePattern,
           repository: current.name,
-          stageId: current.refId
+          stageId: current.refId,
         });
       } else if (current.type === 'bake') {
         result.push({
@@ -208,11 +210,11 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
           fromBake: true,
           repository: current.ami_name,
           organization: current.organization,
-          stageId: current.refId
+          stageId: current.refId,
         });
       }
       current.requisiteStageRefIds.forEach(function(id) {
-        let next = all.find((stage) => stage.refId === id);
+        let next = all.find(stage => stage.refId === id);
         if (next) {
           result = result.concat(findContextImages(next, all, visited));
         }
@@ -222,18 +224,20 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
     }
 
     function findTriggerImages(triggers) {
-      return triggers.filter((trigger) => {
-        return trigger.type === 'docker';
-      }).map((trigger) => {
-        return {
-          fromTrigger: true,
-          repository: trigger.repository,
-          account: trigger.account,
-          organization: trigger.organization,
-          registry: trigger.registry,
-          tag: trigger.tag,
-        };
-      });
+      return triggers
+        .filter(trigger => {
+          return trigger.type === 'docker';
+        })
+        .map(trigger => {
+          return {
+            fromTrigger: true,
+            repository: trigger.repository,
+            account: trigger.account,
+            organization: trigger.organization,
+            registry: trigger.registry,
+            tag: trigger.tag,
+          };
+        });
     }
 
     function buildNewClusterCommandForPipeline(current, pipeline) {
@@ -247,7 +251,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
           submitButtonLabel: 'Done',
           requiresTemplateSelection: true,
           useAutoscaler: false,
-        }
+        },
       };
     }
 
@@ -256,7 +260,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       let contextImages = findContextImages(current, pipeline.stages) || [];
       contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
       command.containers = reconcileUpstreamImages(command.containers, contextImages);
-      command.containers.map((container) => {
+      command.containers.map(container => {
         container.imageDescription.imageId = buildImageId(container.imageDescription);
       });
       command.groupByRegistry = groupByRegistry;
@@ -271,7 +275,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       };
 
       if (!_.has(command, 'scalingPolicy.cpuUtilization.target')) {
-        command.scalingPolicy = { cpuUtilization: { target: 40, }, };
+        command.scalingPolicy = { cpuUtilization: { target: 40 } };
       }
 
       return command;

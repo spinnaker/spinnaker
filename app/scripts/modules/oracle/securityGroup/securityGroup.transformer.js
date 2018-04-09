@@ -2,22 +2,17 @@
 
 const angular = require('angular');
 
-import {
-  NETWORK_READ_SERVICE
-} from '@spinnaker/core';
+import { NETWORK_READ_SERVICE } from '@spinnaker/core';
 
 import _ from 'lodash';
 
-module.exports = angular.module('spinnaker.oraclebmcs.securityGroup.transformer', [
-  NETWORK_READ_SERVICE
-])
-  .factory('oraclebmcsSecurityGroupTransformer', function (networkReader) {
-
+module.exports = angular
+  .module('spinnaker.oraclebmcs.securityGroup.transformer', [NETWORK_READ_SERVICE])
+  .factory('oraclebmcsSecurityGroupTransformer', function(networkReader) {
     const provider = 'oraclebmcs';
 
     function normalizeSecurityGroup(securityGroup) {
-      return networkReader.listNetworksByProvider(provider)
-        .then(_.partial(addVcnNameToSecurityGroup, securityGroup));
+      return networkReader.listNetworksByProvider(provider).then(_.partial(addVcnNameToSecurityGroup, securityGroup));
     }
 
     function addVcnNameToSecurityGroup(securityGroup, vcns) {
@@ -26,6 +21,6 @@ module.exports = angular.module('spinnaker.oraclebmcs.securityGroup.transformer'
     }
 
     return {
-      normalizeSecurityGroup: normalizeSecurityGroup
+      normalizeSecurityGroup: normalizeSecurityGroup,
     };
   });

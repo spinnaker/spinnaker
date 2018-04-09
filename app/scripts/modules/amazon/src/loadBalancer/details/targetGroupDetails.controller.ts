@@ -20,22 +20,27 @@ export class AwsTargetGroupDetailsController implements IController {
   public targetGroup: ITargetGroup;
   public loadBalancer: ILoadBalancer;
 
-  constructor(private $scope: IScope,
-              private $q: IQService,
-              private $state: StateService,
-              targetGroup: ITargetGroupFromStateParams,
-              private app: Application) {
+  constructor(
+    private $scope: IScope,
+    private $q: IQService,
+    private $state: StateService,
+    targetGroup: ITargetGroupFromStateParams,
+    private app: Application,
+  ) {
     'ngInject';
     this.application = app;
     this.targetGroupFromParams = targetGroup;
 
-    this.app.ready().then(() => this.extractTargetGroup()).then(() => {
-      // If the user navigates away from the view before the initial extractTargetGroup call completes,
-      // do not bother subscribing to the refresh
-      if (!$scope.$$destroyed) {
-        app.getDataSource('loadBalancers').onRefresh($scope, () => this.extractTargetGroup());
-      }
-    });
+    this.app
+      .ready()
+      .then(() => this.extractTargetGroup())
+      .then(() => {
+        // If the user navigates away from the view before the initial extractTargetGroup call completes,
+        // do not bother subscribing to the refresh
+        if (!$scope.$$destroyed) {
+          app.getDataSource('loadBalancers').onRefresh($scope, () => this.extractTargetGroup());
+        }
+      });
   }
 
   public autoClose(): void {
@@ -57,7 +62,7 @@ export class AwsTargetGroupDetailsController implements IController {
       return this.$q.when(null);
     }
 
-    const targetGroup = appLoadBalancer.targetGroups.find((tg) => tg.name === name);
+    const targetGroup = appLoadBalancer.targetGroups.find(tg => tg.name === name);
     if (!targetGroup) {
       this.autoClose();
       return this.$q.when(null);
@@ -75,8 +80,8 @@ export class AwsTargetGroupDetailsController implements IController {
   }
 }
 
-
 export const AWS_TARGET_GROUP_DETAILS_CTRL = 'spinnaker.amazon.loadBalancer.details.targetGroupDetails.controller';
-module(AWS_TARGET_GROUP_DETAILS_CTRL, [
-  require('@uirouter/angularjs').default,
-]).controller('awsTargetGroupDetailsCtrl', AwsTargetGroupDetailsController);
+module(AWS_TARGET_GROUP_DETAILS_CTRL, [require('@uirouter/angularjs').default]).controller(
+  'awsTargetGroupDetailsCtrl',
+  AwsTargetGroupDetailsController,
+);

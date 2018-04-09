@@ -3,16 +3,15 @@ import { ICompileProvider, IHttpProvider, ILocationProvider, ILogProvider } from
 import { bootstrapModule } from './bootstrap.module';
 import { SETTINGS } from 'core/config';
 
-bootstrapModule
-  .config(($logProvider: ILogProvider) => {
-    'ngInject';
-    $logProvider.debugEnabled(SETTINGS.debugEnabled);
-  });
+bootstrapModule.config(($logProvider: ILogProvider) => {
+  'ngInject';
+  $logProvider.debugEnabled(SETTINGS.debugEnabled);
+});
 
 bootstrapModule.config(($httpProvider: IHttpProvider) => {
   'ngInject';
   $httpProvider.defaults.headers.patch = {
-    'Content-Type': 'application/json;charset=utf-8'
+    'Content-Type': 'application/json;charset=utf-8',
   };
 });
 

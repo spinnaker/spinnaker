@@ -5,9 +5,7 @@ import { IArtifact } from 'core/domain/IArtifact';
 import { PipelineConfigProvider } from 'core/pipeline';
 
 export const DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.docker';
-module(DOCKER_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(DOCKER_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'Docker',
     isDefault: false,
@@ -38,4 +36,3 @@ module(DOCKER_ARTIFACT, [
 `,
   });
 });
-

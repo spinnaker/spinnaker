@@ -6,8 +6,9 @@ import { NAMING_SERVICE, NamingService } from 'core/naming';
 import { IOwnerOption } from './EntityTagEditor';
 
 export class ClusterTargetBuilder {
-
-  constructor(private namingService: NamingService) { 'ngInject'; }
+  constructor(private namingService: NamingService) {
+    'ngInject';
+  }
 
   public buildClusterTargets(serverGroup: IServerGroup): IOwnerOption[] {
     const clusterName = this.namingService.getClusterNameFromServerGroupName(serverGroup.name);
@@ -45,6 +46,4 @@ export class ClusterTargetBuilder {
 }
 
 export const CLUSTER_TARGET_BUILDER = 'spinnaker.core.entityTag.clusterTargetBuilder';
-module(CLUSTER_TARGET_BUILDER, [
-  NAMING_SERVICE,
-]).service('clusterTargetBuilder', ClusterTargetBuilder);
+module(CLUSTER_TARGET_BUILDER, [NAMING_SERVICE]).service('clusterTargetBuilder', ClusterTargetBuilder);

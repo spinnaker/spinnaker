@@ -26,7 +26,7 @@ const template = `
 class SpinnakerController implements IController {
   public spinnakerHeaderTemplate: string;
   public feature: IFeatures;
-  constructor (overrideRegistry: OverrideRegistry) {
+  constructor(overrideRegistry: OverrideRegistry) {
     'ngInject';
     react2angular(SpinnakerHeader);
     this.spinnakerHeaderTemplate = overrideRegistry.getTemplate('spinnakerHeader', require('./spinnakerHeader.html'));

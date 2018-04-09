@@ -23,7 +23,7 @@ export interface IPipelineGraphNode {
   children: IPipelineGraphNode[];
   color?: string;
   height?: number; // Added after the fact in PipelineGraphDirective
-  id: (string | number);
+  id: string | number;
   index?: number;
   leaf?: boolean;
   name: string;
@@ -77,7 +77,7 @@ export class PipelineGraphService {
         labelComponent: stage.labelComponent,
         masterStage: stage.masterStage,
         name: stage.name,
-        parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
+        parentIds: Object.assign([], stage.requisiteStageRefIds || []),
         parentLinks: [],
         parents: [],
         stage: stage,
@@ -96,21 +96,21 @@ export class PipelineGraphService {
     const nodes: IPipelineGraphNode[] = [];
     const configWarnings = pipelineValidations.pipeline;
     const configNode: IPipelineGraphNode = {
-          childLinks: [],
-          children: [],
-          hasWarnings: !!configWarnings.length,
-          id: -1,
-          isActive: viewState.section === 'triggers',
-          isHighlighted: false,
-          name: 'Configuration',
-          parentIds: [],
-          parentLinks: [],
-          parents: [],
-          phase: 0,
-          root: true,
-          section: 'triggers',
-          warnings: configWarnings.length ? { messages: configWarnings } : null,
-        };
+      childLinks: [],
+      children: [],
+      hasWarnings: !!configWarnings.length,
+      id: -1,
+      isActive: viewState.section === 'triggers',
+      isHighlighted: false,
+      name: 'Configuration',
+      parentIds: [],
+      parentLinks: [],
+      parents: [],
+      phase: 0,
+      root: true,
+      section: 'triggers',
+      warnings: configWarnings.length ? { messages: configWarnings } : null,
+    };
     nodes.push(configNode);
 
     pipeline.stages.forEach(function(stage: IExecutionStageSummary, idx: number) {
@@ -124,7 +124,7 @@ export class PipelineGraphService {
         isActive: viewState.stageIndex === idx && viewState.section === 'stage',
         isHighlighted: false,
         name: stage.name || '[new stage]',
-        parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
+        parentIds: Object.assign([], stage.requisiteStageRefIds || []),
         parentLinks: [],
         parents: [],
         root: false,

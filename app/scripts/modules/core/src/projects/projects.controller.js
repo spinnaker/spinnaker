@@ -1,24 +1,33 @@
 'use strict';
 const angular = require('angular');
 
-import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
+import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { VIEW_STATE_CACHE_SERVICE } from 'core/cache/viewStateCache.service';
 
-module.exports = angular.module('spinnaker.projects.controller', [
-  require('@uirouter/angularjs').default,
-  require('./service/project.write.service.js').name,
-  require('./service/project.read.service.js').name,
-  ACCOUNT_SERVICE,
-  ANY_FIELD_FILTER,
-  VIEW_STATE_CACHE_SERVICE,
-  require('../presentation/sortToggle/sorttoggle.directive.js').name,
-  require('../insight/insightmenu.directive.js').name,
-])
-  .controller('ProjectsCtrl', function($scope, $uibModal, $log, $filter,
-                                           $state, projectWriter, projectReader, viewStateCache) {
-
-    var projectsViewStateCache = viewStateCache.get('projects') || viewStateCache.createCache('projects', { version: 1 });
+module.exports = angular
+  .module('spinnaker.projects.controller', [
+    require('@uirouter/angularjs').default,
+    require('./service/project.write.service.js').name,
+    require('./service/project.read.service.js').name,
+    ACCOUNT_SERVICE,
+    ANY_FIELD_FILTER,
+    VIEW_STATE_CACHE_SERVICE,
+    require('../presentation/sortToggle/sorttoggle.directive.js').name,
+    require('../insight/insightmenu.directive.js').name,
+  ])
+  .controller('ProjectsCtrl', function(
+    $scope,
+    $uibModal,
+    $log,
+    $filter,
+    $state,
+    projectWriter,
+    projectReader,
+    viewStateCache,
+  ) {
+    var projectsViewStateCache =
+      viewStateCache.get('projects') || viewStateCache.createCache('projects', { version: 1 });
 
     function cacheViewState() {
       projectsViewStateCache.put('#global', $scope.viewState);
@@ -26,9 +35,9 @@ module.exports = angular.module('spinnaker.projects.controller', [
 
     function initializeViewState() {
       $scope.viewState = projectsViewStateCache.get('#global') || {
-          sortModel: { key: 'name' },
-          projectFilter: '',
-        };
+        sortModel: { key: 'name' },
+        projectFilter: '',
+      };
     }
 
     $scope.projectsLoaded = false;
@@ -39,30 +48,36 @@ module.exports = angular.module('spinnaker.projects.controller', [
       {
         displayName: 'Create Project',
         action: function() {
-          $uibModal.open({
-            scope: $scope,
-            templateUrl: require('./configure/configureProject.modal.html'),
-            controller: 'ConfigureProjectModalCtrl',
-            controllerAs: 'ctrl',
-            size: 'lg',
-            resolve: {
-              projectConfig: () => { return {}; },
-            }
-          }).result.then(routeToProject).catch(() => {});
-        }
-      }
+          $uibModal
+            .open({
+              scope: $scope,
+              templateUrl: require('./configure/configureProject.modal.html'),
+              controller: 'ConfigureProjectModalCtrl',
+              controllerAs: 'ctrl',
+              size: 'lg',
+              resolve: {
+                projectConfig: () => {
+                  return {};
+                },
+              },
+            })
+            .result.then(routeToProject)
+            .catch(() => {});
+        },
+      },
     ];
 
     function routeToProject(project) {
-      $state.go(
-        'home.project.dashboard', {
-          project: project.name,
-        }
-      );
+      $state.go('home.project.dashboard', {
+        project: project.name,
+      });
     }
 
     this.filterProjects = function filterProjects() {
-      var filtered = $filter('anyFieldFilter')($scope.projects, {name: $scope.viewState.projectFilter, email: $scope.viewState.projectFilter}),
+      var filtered = $filter('anyFieldFilter')($scope.projects, {
+          name: $scope.viewState.projectFilter,
+          email: $scope.viewState.projectFilter,
+        }),
         sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
       $scope.filteredProjects = sorted;
       this.resetPaginator();
@@ -89,7 +104,7 @@ module.exports = angular.module('spinnaker.projects.controller', [
       $scope.pagination = {
         currentPage: 1,
         itemsPerPage: 12,
-        maxSize: 12
+        maxSize: 12,
       };
     };
 
@@ -104,6 +119,4 @@ module.exports = angular.module('spinnaker.projects.controller', [
     $scope.$watch('viewState', cacheViewState, true);
 
     initializeViewState();
-
-  }
-);
+  });

@@ -7,7 +7,6 @@ export interface IVariableValidator {
 }
 
 export class VariableValidatorService {
-
   private validators = new Set<IVariableValidator>();
 
   public addValidator(validator: IVariableValidator): void {
@@ -26,5 +25,4 @@ export class VariableValidatorService {
 }
 
 export const VARIABLE_VALIDATOR_SERVICE = 'spinnaker.core.variableValidator.service';
-module(VARIABLE_VALIDATOR_SERVICE, [])
-  .service('variableValidatorService', VariableValidatorService);
+module(VARIABLE_VALIDATOR_SERVICE, []).service('variableValidatorService', VariableValidatorService);

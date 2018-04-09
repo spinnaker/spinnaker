@@ -4,7 +4,8 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.application.platformHealthOverrideCheckbox.directive', [])
+module.exports = angular
+  .module('spinnaker.application.platformHealthOverrideCheckbox.directive', [])
   .directive('platformHealthOverride', function() {
     return {
       restrict: 'E',
@@ -17,9 +18,11 @@ module.exports = angular.module('spinnaker.application.platformHealthOverrideChe
       controller: 'PlatformHealthOverrideCtrl as platformHealthOverrideCtrl',
     };
   })
-  .directive('initPlatformHealth', function () {
-    return function (scope, element) {
-      angular.element(element).attr('checked', _.isEqual(scope.command.interestingHealthProviderNames, [scope.platformHealthType]));
+  .directive('initPlatformHealth', function() {
+    return function(scope, element) {
+      angular
+        .element(element)
+        .attr('checked', _.isEqual(scope.command.interestingHealthProviderNames, [scope.platformHealthType]));
     };
   })
   .controller('PlatformHealthOverrideCtrl', function($scope) {

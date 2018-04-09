@@ -9,8 +9,7 @@ class KubernetesShowManifestYaml implements IController {
   public linkName: string;
   private title: string;
 
-  constructor(private $rootScope: IRootScopeService,
-              private $uibModal: IModalService) {
+  constructor(private $rootScope: IRootScopeService, private $uibModal: IModalService) {
     'ngInject';
     this.text = dump(copy(this.manifest));
     this.title = this.manifest.metadata.name;
@@ -22,7 +21,7 @@ class KubernetesShowManifestYaml implements IController {
     scope.manifestData = this.text;
     this.$uibModal.open({
       templateUrl: require('./showManifestYaml.html'),
-      scope: scope
+      scope: scope,
     });
   }
 }
@@ -37,5 +36,7 @@ class KubernetesShowManifestYamlComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_SHOW_MANIFEST_YAML = 'spinnaker.kubernetes.v2.manifest.showYaml';
-module(KUBERNETES_SHOW_MANIFEST_YAML, [])
-  .component('kubernetesShowManifestYaml', new KubernetesShowManifestYamlComponent());
+module(KUBERNETES_SHOW_MANIFEST_YAML, []).component(
+  'kubernetesShowManifestYaml',
+  new KubernetesShowManifestYamlComponent(),
+);

@@ -129,7 +129,7 @@ module(AMAZON_MODULE, [
       targetGroupDetailsTemplateUrl: require('./loadBalancer/details/targetGroupDetails.html'),
       targetGroupDetailsController: 'awsTargetGroupDetailsCtrl',
       ClusterContainer: AmazonLoadBalancerClusterContainer,
-      LoadBalancersTag: AmazonLoadBalancersTag
+      LoadBalancersTag: AmazonLoadBalancersTag,
     },
     securityGroup: {
       transformer: 'awsSecurityGroupTransformer',

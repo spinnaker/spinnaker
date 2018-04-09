@@ -25,7 +25,7 @@ export class DataSourceNotifications extends React.Component<IDataSourceNotifica
   public getDataSourceAnalyticsLabel(): string {
     const { tabName, application, tags } = this.props;
     const alertsStr = tags.map(tag => tag.alerts.map((alert: IEntityTag) => alert.name).join(','));
-    return [ tabName, application.name, alertsStr ].join(':');
+    return [tabName, application.name, alertsStr].join(':');
   }
 
   public render() {
@@ -45,8 +45,10 @@ export class DataSourceNotifications extends React.Component<IDataSourceNotifica
   }
 }
 
-
 export const DATA_SOURCE_NOTIFICATIONS = 'spinnaker.core.entityTag.alerts.datasourcenotifications';
 const ngmodule = module(DATA_SOURCE_NOTIFICATIONS, []);
 
-ngmodule.component('dataSourceNotifications', react2angular(DataSourceNotifications, [ 'tags', 'application', 'tabName' ]));
+ngmodule.component(
+  'dataSourceNotifications',
+  react2angular(DataSourceNotifications, ['tags', 'application', 'tabName']),
+);

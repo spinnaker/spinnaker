@@ -5,11 +5,9 @@ import _ from 'lodash';
 
 import { NETWORK_READ_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.subnet.renderer', [
-  NETWORK_READ_SERVICE,
-])
-  .factory('gceSubnetRenderer', function ($q, networkReader) {
-
+module.exports = angular
+  .module('spinnaker.gce.subnet.renderer', [NETWORK_READ_SERVICE])
+  .factory('gceSubnetRenderer', function($q, networkReader) {
     var gceNetworks;
 
     networkReader.listNetworksByProvider('gce').then(function(networks) {

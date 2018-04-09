@@ -3,43 +3,35 @@
 describe('Controller: modifyScalingProcesses', function() {
   const angular = require('angular');
 
+  beforeEach(window.module(require('./modifyScalingProcesses.controller.js').name));
+
   beforeEach(
-    window.module(
-      require('./modifyScalingProcesses.controller.js').name
-    )
+    window.inject(function($controller, $rootScope) {
+      this.$uibModalInstance = { close: angular.noop };
+      this.taskMonitorBuilder = { buildTaskMonitor: angular.noop };
+      this.taskExecutor = { executeTask: angular.noop };
+      this.$scope = $rootScope.$new();
+
+      this.initializeController = function(serverGroup, processes) {
+        this.processes = processes;
+
+        this.controller = $controller('ModifyScalingProcessesCtrl', {
+          $scope: this.$scope,
+          serverGroup: serverGroup,
+          processes: this.processes,
+          application: { serverGroups: { refresh: angular.noop } },
+          taskMonitorBuilder: this.taskMonitorBuilder,
+          taskExecutor: this.taskExecutor,
+          $uibModalInstance: this.$uibModalInstance,
+        });
+      };
+    }),
   );
 
-  beforeEach(window.inject(function($controller, $rootScope) {
-    this.$uibModalInstance = { close: angular.noop };
-    this.taskMonitorBuilder = { buildTaskMonitor: angular.noop };
-    this.taskExecutor = { executeTask: angular.noop };
-    this.$scope = $rootScope.$new();
-
-    this.initializeController = function(serverGroup, processes) {
-      this.processes = processes;
-
-
-
-      this.controller = $controller('ModifyScalingProcessesCtrl', {
-        $scope: this.$scope,
-        serverGroup: serverGroup,
-        processes: this.processes,
-        application: { serverGroups: { refresh: angular.noop } },
-        taskMonitorBuilder: this.taskMonitorBuilder,
-        taskExecutor: this.taskExecutor,
-        $uibModalInstance: this.$uibModalInstance
-      });
-    };
-  }));
-
   describe('isDirty', function() {
-
     beforeEach(function() {
-      this.serverGroup = {name: 'the-asg'};
-      this.processes = [
-        { name: 'Launch', enabled: true },
-        { name: 'Terminate', enabled: true }
-      ];
+      this.serverGroup = { name: 'the-asg' };
+      this.processes = [{ name: 'Launch', enabled: true }, { name: 'Terminate', enabled: true }];
     });
     it('starts as not dirty', function() {
       this.initializeController(this.serverGroup, this.processes);
@@ -66,15 +58,17 @@ describe('Controller: modifyScalingProcesses', function() {
 
   describe('form submission', function() {
     beforeEach(function() {
-      this.serverGroup = {name: 'the-asg', region: 'us-east-1', account: 'test'};
+      this.serverGroup = { name: 'the-asg', region: 'us-east-1', account: 'test' };
       this.processes = [
         { name: 'Launch', enabled: true },
         { name: 'Terminate', enabled: true },
-        { name: 'AddToLoadBalancer', enabled: false }
+        { name: 'AddToLoadBalancer', enabled: false },
       ];
       this.taskMonitor = { submit: angular.noop };
       spyOn(this.taskMonitorBuilder, 'buildTaskMonitor').and.returnValue(this.taskMonitor);
-      spyOn(this.taskMonitor, 'submit').and.callFake(function(method) { method(); });
+      spyOn(this.taskMonitor, 'submit').and.callFake(function(method) {
+        method();
+      });
       spyOn(this.taskExecutor, 'executeTask');
     });
 
@@ -114,5 +108,4 @@ describe('Controller: modifyScalingProcesses', function() {
       expect(job[1].processes).toEqual(['Launch']);
     });
   });
-
 });

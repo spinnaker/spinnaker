@@ -18,7 +18,8 @@ module.exports = angular
     SUBMIT_BUTTON_COMPONENT,
     V2_MODAL_WIZARD_SERVICE,
     V2_MODAL_WIZARD_COMPONENT,
-  ]).run(function($rootScope, $uibModalStack) {
+  ])
+  .run(function($rootScope, $uibModalStack) {
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       if (!fromParams.allowModalToStayOpen) {
         $uibModalStack.dismissAll();

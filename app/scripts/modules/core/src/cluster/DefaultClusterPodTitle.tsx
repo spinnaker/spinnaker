@@ -8,7 +8,6 @@ import { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
 
 @BindAll()
 export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProps> {
-
   public render(): React.ReactElement<DefaultClusterPodTitle> {
     const { grouping, application, parentHeading } = this.props;
 
@@ -20,7 +19,7 @@ export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProp
 
         <div className="pod-center horizontal space-between center flex-1">
           <div>
-            <span className="glyphicon glyphicon-th"/>
+            <span className="glyphicon glyphicon-th" />
             {' ' + grouping.heading}
           </div>
 
@@ -36,9 +35,8 @@ export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProp
           />
         </div>
 
-        <HealthCounts container={grouping.cluster.instanceCounts}/>
-
+        <HealthCounts container={grouping.cluster.instanceCounts} />
       </div>
-    )
+    );
   }
 }

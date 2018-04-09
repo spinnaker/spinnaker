@@ -25,12 +25,14 @@ export class CollapsibleSection extends React.Component<ICollapsibleSectionProps
     super(props);
 
     const headingIsString = typeof props.heading === 'string' || props.heading instanceof String;
-    const cacheKey = props.cacheKey || (headingIsString ? props.heading as string : undefined);
+    const cacheKey = props.cacheKey || (headingIsString ? (props.heading as string) : undefined);
     this.state = {
       cacheKey,
       headingIsString,
-      expanded: ReactInjector.collapsibleSectionStateCache.isSet(cacheKey) ? ReactInjector.collapsibleSectionStateCache.isExpanded(cacheKey) : props.defaultExpanded,
-    }
+      expanded: ReactInjector.collapsibleSectionStateCache.isSet(cacheKey)
+        ? ReactInjector.collapsibleSectionStateCache.isExpanded(cacheKey)
+        : props.defaultExpanded,
+    };
   }
 
   public toggle(): void {
@@ -52,16 +54,11 @@ export class CollapsibleSection extends React.Component<ICollapsibleSectionProps
       <div className={`collapsible-${prefix}section`}>
         <a className={`clickable section-${prefix}heading`} onClick={this.toggle}>
           <h4 className={`collapsible-${prefix}heading`}>
-            <span className={`glyphicon glyphicon-chevron-${icon}`}/>{' '}
-            {Heading}
-            {helpKey && <HelpField id={helpKey} placement="right"/>}
+            <span className={`glyphicon glyphicon-chevron-${icon}`} /> {Heading}
+            {helpKey && <HelpField id={helpKey} placement="right" />}
           </h4>
         </a>
-        {expanded && (
-          <div className={`content-body ${bodyClassName ? bodyClassName : ''}`}>
-            {children}
-          </div>
-        )}
+        {expanded && <div className={`content-body ${bodyClassName ? bodyClassName : ''}`}>{children}</div>}
       </div>
     );
   }

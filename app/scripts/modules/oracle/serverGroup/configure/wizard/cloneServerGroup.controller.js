@@ -2,23 +2,25 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.cloneServerGroup', [
-  require('@uirouter/angularjs').default
-])
-  .controller('oraclebmcsCloneServerGroupCtrl', function ($scope, $uibModalInstance, $q,
-                                                          application,
-                                                          taskMonitorBuilder,
-                                                          serverGroupWriter,
-                                                          serverGroupCommand,
-                                                          oraclebmcsServerGroupConfigurationService,
-                                                          v2modalWizardService,
-                                                          title) {
-
+module.exports = angular
+  .module('spinnaker.oraclebmcs.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
+  .controller('oraclebmcsCloneServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    application,
+    taskMonitorBuilder,
+    serverGroupWriter,
+    serverGroupCommand,
+    oraclebmcsServerGroupConfigurationService,
+    v2modalWizardService,
+    title,
+  ) {
     $scope.title = title;
 
     $scope.state = {
       loaded: false,
-      requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection
+      requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
     $scope.command = serverGroupCommand;
@@ -43,44 +45,42 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.clon
     };
 
     if (!$scope.command.viewState.disableStrategySelection) {
-      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+      this.templateSelectionText.notCopied.push(
+        'the deployment strategy (if any) used to deploy the most recent server group',
+      );
     }
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
-      modalInstance: $uibModalInstance
+      modalInstance: $uibModalInstance,
     });
 
     function configureCommand() {
-      oraclebmcsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+      oraclebmcsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
         $scope.state.loaded = true;
       });
     }
 
-    this.isValid = function () {
-      return $scope.command &&
-        $scope.form.$valid &&
-        v2modalWizardService.isComplete();
+    this.isValid = function() {
+      return $scope.command && $scope.form.$valid && v2modalWizardService.isComplete();
     };
 
-    this.showSubmitButton = function () {
+    this.showSubmitButton = function() {
       return v2modalWizardService.allPagesVisited();
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 
-    this.submit = function () {
+    this.submit = function() {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
-      $scope.taskMonitor.submit(
-        function () {
-          return serverGroupWriter.cloneServerGroup($scope.command, application);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        return serverGroupWriter.cloneServerGroup($scope.command, application);
+      });
     };
 
     configureCommand();

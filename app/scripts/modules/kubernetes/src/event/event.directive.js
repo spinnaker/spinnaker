@@ -4,16 +4,18 @@ const angular = require('angular');
 
 import { ServerGroupTemplates } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.kubernetes.event.event.directive', [])
-  .directive('kubernetesEvent', function () {
+module.exports = angular
+  .module('spinnaker.kubernetes.event.event.directive', [])
+  .directive('kubernetesEvent', function() {
     return {
       restrict: 'E',
       templateUrl: require('./event.directive.html'),
       scope: {
         event: '=',
-      }
+      },
     };
-  }).controller('kubernetesEventController', function ($scope, $uibModal) {
+  })
+  .controller('kubernetesEventController', function($scope, $uibModal) {
     if ($scope.event.message) {
       this.displayMessage = $scope.event.message.substring(0, 40);
     }
@@ -29,7 +31,7 @@ module.exports = angular.module('spinnaker.kubernetes.event.event.directive', []
       $scope.userData = $scope.event.message;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
   });

@@ -2,19 +2,18 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.configure.volumes', [
-])
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.configure.volumes', [])
   .controller('dcosServerGroupVolumesController', function($scope) {
-
     this.volumeModes = [
-        {
-            mode: 'RW',
-            description: 'Read And Write',
-        },
-        {
-            mode: 'RO',
-            description: 'Read Only',
-        }
+      {
+        mode: 'RW',
+        description: 'Read And Write',
+      },
+      {
+        mode: 'RO',
+        description: 'Read Only',
+      },
     ];
 
     this.isVolumesValid = function(volumes) {
@@ -29,7 +28,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.volumes', 
       $scope.command.persistentVolumes.push({
         containerPath: null,
         persistent: {
-            size: null
+          size: null,
         },
         mode: this.volumeModes[0].mode,
       });
@@ -66,8 +65,8 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.volumes', 
           name: null,
           provider: 'dvdi',
           options: {
-            'dvdi/driver': 'rexray'
-          }
+            'dvdi/driver': 'rexray',
+          },
         },
         mode: this.volumeModes[0].mode,
       });

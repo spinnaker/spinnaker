@@ -2,10 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.configure.healthChecks', [
-])
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.configure.healthChecks', [])
   .controller('dcosServerGroupHealthChecksController', function($scope) {
-
     var HTTP_PROTOCOL = 'HTTP';
     var HTTPS_PROTOCOL = 'HTTPS';
     var TCP_PROTOCOL = 'TCP';
@@ -14,8 +13,15 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.healthChec
     var MESOS_HTTPS_PROTOCOL = 'MESOS_HTTPS';
     var MESOS_TCP_PROTOCOL = 'MESOS_TCP';
 
-    this.healthCheckProtocols = [HTTP_PROTOCOL, HTTPS_PROTOCOL, TCP_PROTOCOL, COMMAND_PROTOCOL,
-                                 MESOS_HTTP_PROTOCOL, MESOS_HTTPS_PROTOCOL, MESOS_TCP_PROTOCOL];
+    this.healthCheckProtocols = [
+      HTTP_PROTOCOL,
+      HTTPS_PROTOCOL,
+      TCP_PROTOCOL,
+      COMMAND_PROTOCOL,
+      MESOS_HTTP_PROTOCOL,
+      MESOS_HTTPS_PROTOCOL,
+      MESOS_TCP_PROTOCOL,
+    ];
     this.healthCheckPortTypes = ['Port Index', 'Port Number'];
 
     this.isHealthChecksValid = function(healthChecks) {
@@ -23,14 +29,18 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.healthChec
     };
 
     if (this.isHealthChecksValid($scope.command.healthChecks)) {
-      $scope.command.healthChecks.forEach((hc) => {
+      $scope.command.healthChecks.forEach(hc => {
         hc.portType = hc.port ? this.healthCheckPortTypes[1] : this.healthCheckPortTypes[0];
       });
     }
 
     this.isHttpProtocol = function(healthCheck) {
-      return healthCheck.protocol === HTTP_PROTOCOL || healthCheck.protocol === HTTPS_PROTOCOL ||
-             healthCheck.protocol === MESOS_HTTP_PROTOCOL || healthCheck.protocol === MESOS_HTTPS_PROTOCOL;
+      return (
+        healthCheck.protocol === HTTP_PROTOCOL ||
+        healthCheck.protocol === HTTPS_PROTOCOL ||
+        healthCheck.protocol === MESOS_HTTP_PROTOCOL ||
+        healthCheck.protocol === MESOS_HTTPS_PROTOCOL
+      );
     };
 
     this.isCommandProtocol = function(healthCheck) {

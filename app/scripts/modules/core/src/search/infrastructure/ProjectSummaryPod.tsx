@@ -45,7 +45,7 @@ export class ProjectSummaryPod extends React.Component<IProjectSummaryPodProps> 
             {showRemoveButton && (
               <span className="small clickable remove-result-link" onClick={this.handleRemoveClicked}>
                 <Tooltip value="remove from history" placement="left" delayShow={300}>
-                  <span className="glyphicon glyphicon-remove"/>
+                  <span className="glyphicon glyphicon-remove" />
                 </Tooltip>
               </span>
             )}

@@ -77,5 +77,7 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_BASIC_SETTINGS = 'spinnaker.kubernetes.v2.kubernetes.manifest.basicSettings.component';
-module(KUBERNETES_MANIFEST_BASIC_SETTINGS, [])
-  .component('kubernetesManifestBasicSettings', new KubernetesManifestBasicSettingsComponent());
+module(KUBERNETES_MANIFEST_BASIC_SETTINGS, []).component(
+  'kubernetesManifestBasicSettings',
+  new KubernetesManifestBasicSettingsComponent(),
+);

@@ -6,12 +6,9 @@ import _ from 'lodash';
 import { TASK_READ_SERVICE } from 'core';
 import { TASKS_MONITOR_DIRECTIVE } from './taskMonitor.directive';
 
-module.exports = angular.module('spinnaker.tasks.monitor.service', [
-  TASKS_MONITOR_DIRECTIVE,
-  TASK_READ_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.tasks.monitor.service', [TASKS_MONITOR_DIRECTIVE, TASK_READ_SERVICE])
   .factory('taskMonitorService', function($log, taskReader, $timeout) {
-
     function buildTaskMonitor(params) {
       var monitor = {
         submitting: false,
@@ -34,10 +31,10 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
 
       monitor.modalInstance.result.then(monitor.onModalClose, monitor.onModalClose);
 
-      monitor.closeModal = function () {
+      monitor.closeModal = function() {
         try {
           monitor.modalInstance.dismiss();
-        } catch(e) {
+        } catch (e) {
           // modal was already closed
         }
       };
@@ -61,13 +58,12 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         $log.warn('Error with task:', monitor.task);
       };
 
-      monitor.handleTaskSuccess = function (task) {
+      monitor.handleTaskSuccess = function(task) {
         monitor.task = task;
         if (_.has(monitor, 'application.runningOrchestrations.refresh')) {
           monitor.application.runningOrchestrations.refresh();
         }
-        taskReader.waitUntilTaskCompletes(task, monitor.monitorInterval)
-          .then(monitor.onTaskComplete, monitor.setError);
+        taskReader.waitUntilTaskCompletes(task, monitor.monitorInterval).then(monitor.onTaskComplete, monitor.setError);
       };
 
       monitor.submit = function(method) {
@@ -76,7 +72,7 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         submit().then(monitor.handleTaskSuccess, monitor.setError);
       };
 
-      monitor.callPreconfiguredSubmit = (params) => {
+      monitor.callPreconfiguredSubmit = params => {
         monitor.startSubmit();
         monitor.submitMethod(params).then(monitor.handleTaskSuccess, monitor.setError);
       };
@@ -85,6 +81,6 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
     }
 
     return {
-      buildTaskMonitor: buildTaskMonitor
+      buildTaskMonitor: buildTaskMonitor,
     };
   });

@@ -42,7 +42,9 @@ class SubnetSelectFieldController implements IController {
     }
     const classicWhitelist = AWSProviderSettings.classicLaunchWhitelist;
     if (classicWhitelist) {
-      this.hideClassic = classicWhitelist.every(e => e.region !== this.region || e.credentials !== this.component.credentials);
+      this.hideClassic = classicWhitelist.every(
+        e => e.region !== this.region || e.credentials !== this.component.credentials,
+      );
     }
   }
 
@@ -72,7 +74,7 @@ class SubnetSelectFieldComponent implements IComponentOptions {
     helpKey: '@',
     readOnly: '<',
     application: '<',
-    hideClassic: '<'
+    hideClassic: '<',
   };
   public controller: any = SubnetSelectFieldController;
   public templateUrl: string = require('./subnetSelectField.component.html');
@@ -108,6 +110,6 @@ export class SubnetSelectFieldWrapperComponent implements IComponentOptions {
 }
 
 export const SUBNET_SELECT_FIELD_COMPONENT = 'spinnaker.amazon.subnet.subnetSelectField.component';
-module(SUBNET_SELECT_FIELD_COMPONENT, [
-]).component('subnetSelectField', new SubnetSelectFieldComponent())
+module(SUBNET_SELECT_FIELD_COMPONENT, [])
+  .component('subnetSelectField', new SubnetSelectFieldComponent())
   .component('subnetSelectFieldWrapper', new SubnetSelectFieldWrapperComponent());

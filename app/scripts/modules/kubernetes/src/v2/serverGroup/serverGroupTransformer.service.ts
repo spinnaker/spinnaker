@@ -12,5 +12,7 @@ export class KubernetesV2ServerGroupTransformer {
 
 export const KUBERNETES_V2_SERVER_GROUP_TRANSFORMER = 'spinnaker.kubernetes.v2.serverGroup.transformer.service';
 
-module(KUBERNETES_V2_SERVER_GROUP_TRANSFORMER, [
-]).service('kubernetesV2ServerGroupTransformer', KubernetesV2ServerGroupTransformer);
+module(KUBERNETES_V2_SERVER_GROUP_TRANSFORMER, []).service(
+  'kubernetesV2ServerGroupTransformer',
+  KubernetesV2ServerGroupTransformer,
+);

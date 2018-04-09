@@ -2,21 +2,21 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.forms.validateOnSubmit.directive', [])
+module.exports = angular
+  .module('spinnaker.core.forms.validateOnSubmit.directive', [])
   .directive('validateOnSubmit', function() {
     return {
       restrict: 'A',
       require: 'form',
       link: function(scope, element, attrs, formCtrl) {
-
-        element.on('submit', function () {
+        element.on('submit', function() {
           // Set controls to dirty so that validation formatting is applied
           var queue = [];
           var invalidCtrl = formCtrl;
           while (invalidCtrl) {
             invalidCtrl.$setDirty();
 
-            angular.forEach(invalidCtrl.$error, function (invalidSubCtrls) {
+            angular.forEach(invalidCtrl.$error, function(invalidSubCtrls) {
               if (angular.isArray(invalidSubCtrls)) {
                 // Add controls from sub-form
                 queue.push.apply(queue, invalidSubCtrls);
@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.core.forms.validateOnSubmit.directive
             firstInvalid.focus();
 
             if (firstInvalid.hasChildNodes()) {
-              angular.forEach(firstInvalid.childNodes, function (child) {
+              angular.forEach(firstInvalid.childNodes, function(child) {
                 if (child.classList && child.classList.contains('ui-select-focusser')) {
                   child.focus();
                 }
@@ -44,6 +44,6 @@ module.exports = angular.module('spinnaker.core.forms.validateOnSubmit.directive
             }
           }
         });
-      }
+      },
     };
   });

@@ -2,8 +2,9 @@
 
 var feedbackUrl = process.env.FEEDBACK_URL;
 var gateHost = process.env.API_HOST || 'http://localhost:8084';
-var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}');
-var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
+var bakeryDetailUrl =
+  process.env.BAKERY_DETAIL_URL || gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
+var authEndpoint = process.env.AUTH_ENDPOINT || gateHost + '/auth/user';
 var authEnabled = process.env.AUTH_ENABLED === 'false' ? false : true;
 var netflixMode = process.env.NETFLIX_MODE === 'true' ? true : false;
 var chaosEnabled = netflixMode || process.env.CHAOS_ENABLED === 'true' ? true : false;
@@ -37,7 +38,7 @@ window.spinnakerSettings = {
     azure: {
       defaults: {
         account: 'azure-test',
-        region: 'westus'
+        region: 'westus',
       },
     },
     aws: {
@@ -81,13 +82,13 @@ window.spinnakerSettings = {
       defaults: {
         account: 'DEFAULT',
         region: 'us-phoenix-1',
-        bakeryRegions: ['us-phoenix-1']
-      }
+        bakeryRegions: ['us-phoenix-1'],
+      },
     },
     openstack: {
       defaults: {
         account: 'test',
-        region: 'us-west-1'
+        region: 'us-west-1',
       },
     },
     kubernetes: {
@@ -102,7 +103,7 @@ window.spinnakerSettings = {
     },
     dcos: {
       defaults: {
-        account: 'my-dcos-account'
+        account: 'my-dcos-account',
       },
     },
     appengine: {
@@ -110,7 +111,7 @@ window.spinnakerSettings = {
         account: 'my-appengine-account',
         containerImageUrlDeployments: false,
       },
-    }
+    },
   },
   whatsNew: {
     gistId: '32526cd608db3d811b38',
@@ -122,18 +123,18 @@ window.spinnakerSettings = {
     },
     hipchat: {
       enabled: true,
-      botName: 'Skynet T-800'
+      botName: 'Skynet T-800',
     },
     sms: {
       enabled: true,
     },
     slack: {
       enabled: true,
-      botName: 'spinnakerbot'
-    }
+      botName: 'spinnakerbot',
+    },
   },
   pagerDuty: {
-    required: false
+    required: false,
   },
   authEnabled: authEnabled,
   authTtl: 600000,

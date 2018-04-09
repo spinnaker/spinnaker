@@ -27,8 +27,9 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
 
   private updateSchedule(): INextRunTagState {
     if (this.props.pipeline) {
-      const crons = (this.props.pipeline.triggers || [])
-        .filter((t: ICronTrigger) => t.type === 'cron' && t.enabled && t.cronExpression) as ICronTrigger[];
+      const crons = (this.props.pipeline.triggers || []).filter(
+        (t: ICronTrigger) => t.type === 'cron' && t.enabled && t.cronExpression,
+      ) as ICronTrigger[];
       const nextTimes: number[] = [];
       crons.forEach(cron => {
         const parts = cron.cronExpression.split(' ');
@@ -47,19 +48,24 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
         const schedule = later.parse.cron(parts.join(' '), true);
         const nextRun = later.schedule(schedule).next(1);
         if (nextRun) {
-          nextTimes.push(later.schedule(schedule).next(1).getTime());
+          nextTimes.push(
+            later
+              .schedule(schedule)
+              .next(1)
+              .getTime(),
+          );
         }
       });
       if (nextTimes.length) {
         return {
           hasNextScheduled: true,
-          nextScheduled: Math.min(...nextTimes)
+          nextScheduled: Math.min(...nextTimes),
         };
       }
     }
     return {
       hasNextScheduled: false,
-      nextScheduled: 0
+      nextScheduled: 0,
     };
   }
 
@@ -73,7 +79,7 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
     return (
       <span style={{ visibility: visible ? 'visible' : 'hidden' }} className="next-run-tag">
         <Popover value={`Next run: ${timestamp(this.state.nextScheduled)} (${nextDuration})`} placement="left">
-          <span className="glyphicon glyphicon-time" onMouseEnter={this.handleMouseEnter}/>
+          <span className="glyphicon glyphicon-time" onMouseEnter={this.handleMouseEnter} />
         </Popover>
       </span>
     );

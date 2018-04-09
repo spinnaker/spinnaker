@@ -1,12 +1,11 @@
 'use strict';
 
-import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
+import { INSTANCE_READ_SERVICE } from 'core/instance/instance.read.service';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.instance.details.console.controller', [
-  INSTANCE_READ_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.core.instance.details.console.controller', [INSTANCE_READ_SERVICE])
   .controller('ConsoleOutputCtrl', function($scope, $uibModalInstance, instanceReader, instance) {
     const instanceId = instance.instanceId || instance.id;
     $scope.vm = {
@@ -22,7 +21,7 @@ module.exports = angular.module('spinnaker.core.instance.details.console.control
       function(exception) {
         $scope.vm.exception = exception;
         $scope.vm.loading = false;
-      }
+      },
     );
 
     $scope.close = $uibModalInstance.dismiss;
@@ -31,5 +30,4 @@ module.exports = angular.module('spinnaker.core.instance.details.console.control
       const console = document.getElementById('console-output');
       console.scrollTop = console.scrollHeight;
     };
-
   });

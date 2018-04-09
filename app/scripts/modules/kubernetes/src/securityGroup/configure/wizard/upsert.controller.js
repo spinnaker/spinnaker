@@ -8,24 +8,36 @@ import {
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.controller', [
-  require('@uirouter/angularjs').default,
-  LOAD_BALANCER_READ_SERVICE,
-  SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER,
-  ACCOUNT_SERVICE,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-  require('../../../namespace/selectField.directive.js').name,
-  require('../../transformer.js').name,
-])
-  .controller('kubernetesUpsertSecurityGroupController', function($q, $scope, $uibModalInstance, $state,
-                                                                  application, securityGroup,
-                                                                  accountService, kubernetesSecurityGroupTransformer, securityGroupReader, loadBalancerReader,
-                                                                  v2modalWizardService, securityGroupWriter, taskMonitorBuilder) {
+module.exports = angular
+  .module('spinnaker.securityGroup.kubernetes.create.controller', [
+    require('@uirouter/angularjs').default,
+    LOAD_BALANCER_READ_SERVICE,
+    SECURITY_GROUP_READER,
+    SECURITY_GROUP_WRITER,
+    ACCOUNT_SERVICE,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    require('../../../namespace/selectField.directive.js').name,
+    require('../../transformer.js').name,
+  ])
+  .controller('kubernetesUpsertSecurityGroupController', function(
+    $q,
+    $scope,
+    $uibModalInstance,
+    $state,
+    application,
+    securityGroup,
+    accountService,
+    kubernetesSecurityGroupTransformer,
+    securityGroupReader,
+    loadBalancerReader,
+    v2modalWizardService,
+    securityGroupWriter,
+    taskMonitorBuilder,
+  ) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;
@@ -41,7 +53,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
     $scope.state = {
       accountsLoaded: false,
       securityGroupNamesLoaded: false,
-      submitting: false
+      submitting: false,
     };
 
     function onApplicationRefresh() {
@@ -89,29 +101,32 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
 
     function initializeEditMode() {
       $scope.state.accountsLoaded = true;
-      return loadBalancerReader.listLoadBalancers('kubernetes')
-        .then(loadBalancers => $scope.loadBalancers = getLoadBalancerNames(loadBalancers));
+      return loadBalancerReader
+        .listLoadBalancers('kubernetes')
+        .then(loadBalancers => ($scope.loadBalancers = getLoadBalancerNames(loadBalancers)));
     }
 
     function initializeCreateMode() {
-      return $q.all({
-        accounts: accountService.listAccounts('kubernetes'),
-        loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
-      }).then(function(backingData) {
-        $scope.accounts = backingData.accounts;
-        $scope.state.accountsLoaded = true;
+      return $q
+        .all({
+          accounts: accountService.listAccounts('kubernetes'),
+          loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
+        })
+        .then(function(backingData) {
+          $scope.accounts = backingData.accounts;
+          $scope.state.accountsLoaded = true;
 
-        var accountNames = _.map($scope.accounts, 'name');
-        if (accountNames.length && !accountNames.includes($scope.securityGroup.account)) {
-          $scope.securityGroup.account = accountNames[0];
-        }
+          var accountNames = _.map($scope.accounts, 'name');
+          if (accountNames.length && !accountNames.includes($scope.securityGroup.account)) {
+            $scope.securityGroup.account = accountNames[0];
+          }
 
-        ctrl.accountUpdated();
-      });
+          ctrl.accountUpdated();
+        });
     }
 
     function initializeSecurityGroupNames() {
-      securityGroupReader.loadSecurityGroups('kubernetes').then(function (securityGroups) {
+      securityGroupReader.loadSecurityGroups('kubernetes').then(function(securityGroups) {
         for (var account in securityGroups) {
           if (!allSecurityGroupNames[account]) {
             allSecurityGroupNames[account] = {};
@@ -160,49 +175,47 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.contr
 
     this.getName = function() {
       var securityGroup = $scope.securityGroup;
-      var securityGroupName = [application.name, (securityGroup.stack || ''), (securityGroup.detail || '')].join('-');
+      var securityGroupName = [application.name, securityGroup.stack || '', securityGroup.detail || ''].join('-');
       return _.trimEnd(securityGroupName, '-');
     };
 
     this.accountUpdated = function() {
-      accountService.getAccountDetails($scope.securityGroup.account)
-        .then(function(accountDetails) {
-          $scope.namespaces = accountDetails.namespaces;
-          ctrl.namespaceUpdated();
-        });
+      accountService.getAccountDetails($scope.securityGroup.account).then(function(accountDetails) {
+        $scope.namespaces = accountDetails.namespaces;
+        ctrl.namespaceUpdated();
+      });
     };
 
     this.namespaceUpdated = function() {
       updateSecurityGroupNames();
-      loadBalancerReader.listLoadBalancers('kubernetes')
-        .then(loadBalancers => $scope.loadBalancers = getLoadBalancerNames(loadBalancers));
+      loadBalancerReader
+        .listLoadBalancers('kubernetes')
+        .then(loadBalancers => ($scope.loadBalancers = getLoadBalancerNames(loadBalancers)));
       ctrl.updateName();
     };
 
-    this.submit = function () {
+    this.submit = function() {
       var descriptor = $scope.isNew ? 'Create' : 'Update';
 
       this.updateName();
-      $scope.taskMonitor.submit(
-        function() {
-          let params = {
-            cloudProvider: 'kubernetes',
-            region: $scope.securityGroup.namespace,
-          };
+      $scope.taskMonitor.submit(function() {
+        let params = {
+          cloudProvider: 'kubernetes',
+          region: $scope.securityGroup.namespace,
+        };
 
-          // Change TLS hosts from string to array for Clouddriver (if it isn't already an array)
-          for (let idx in $scope.securityGroup.tls) {
-            if (!Array.isArray($scope.securityGroup.tls[idx].hosts)) {
-              $scope.securityGroup.tls[idx].hosts = [$scope.securityGroup.tls[idx].hosts];
-            }
+        // Change TLS hosts from string to array for Clouddriver (if it isn't already an array)
+        for (let idx in $scope.securityGroup.tls) {
+          if (!Array.isArray($scope.securityGroup.tls[idx].hosts)) {
+            $scope.securityGroup.tls[idx].hosts = [$scope.securityGroup.tls[idx].hosts];
           }
-
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, params);
         }
-      );
+
+        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, params);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

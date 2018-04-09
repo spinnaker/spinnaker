@@ -20,10 +20,14 @@ export interface IWizardPageState {
   label: string;
 }
 
-export type IWizardPageValidate = (values: { [key: string]: any } ) => { [key: string]: string };
-export type IWrappedWizardPage = (React.ComponentClass<IWizardPageProps> | React.SFC<IWizardPageProps>) & { LABEL: string };
+export type IWizardPageValidate = (values: { [key: string]: any }) => { [key: string]: string };
+export type IWrappedWizardPage = (React.ComponentClass<IWizardPageProps> | React.SFC<IWizardPageProps>) & {
+  LABEL: string;
+};
 
-export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage): React.ComponentClass<P & IWizardPageProps> & { label: string } {
+export function wizardPage<P = {}>(
+  WrappedComponent: IWrappedWizardPage,
+): React.ComponentClass<P & IWizardPageProps> & { label: string } {
   @BindAll()
   class WizardPage extends React.Component<P & IWizardPageProps, IWizardPageState> {
     public static defaultProps: Partial<IWizardPageProps> = {
@@ -50,7 +54,9 @@ export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage): React.
     }
 
     private handleRef(element: any) {
-      if (element) { this.element = element; }
+      if (element) {
+        this.element = element;
+      }
     }
 
     private handleWrappedRef(wrappedComponent: any) {
@@ -82,4 +88,4 @@ export function wizardPage<P = {}>(WrappedComponent: IWrappedWizardPage): React.
     }
   }
   return WizardPage as any;
-};
+}

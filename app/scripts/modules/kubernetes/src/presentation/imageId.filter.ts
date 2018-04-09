@@ -36,6 +36,4 @@ export function imageIdFilter() {
 }
 
 export const KUBERNETES_IMAGE_ID_FILTER = 'spinnaker.kubernetes.presentation.imageId.filter';
-module(KUBERNETES_IMAGE_ID_FILTER, [])
-  .filter('kubernetesImageId', imageIdFilter);
-
+module(KUBERNETES_IMAGE_ID_FILTER, []).filter('kubernetesImageId', imageIdFilter);

@@ -4,12 +4,19 @@ const angular = require('angular');
 
 import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.resize.controller', [
-  TASK_MONITOR_BUILDER,
-  require('./resizeCapacity.component.js').name,
-  require('oracle/common/footer.component.js').name,
-])
-  .controller('oraclebmcsResizeServerGroupCtrl', function ($scope, $uibModalInstance, taskMonitorBuilder, application, serverGroup) {
+module.exports = angular
+  .module('spinnaker.oraclebmcs.serverGroup.details.resize.controller', [
+    TASK_MONITOR_BUILDER,
+    require('./resizeCapacity.component.js').name,
+    require('oracle/common/footer.component.js').name,
+  ])
+  .controller('oraclebmcsResizeServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+  ) {
     $scope.serverGroup = serverGroup;
     $scope.application = application;
     $scope.verification = {};
@@ -24,7 +31,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.resize
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       if (!$scope.verification.verified) {
         return false;
       }
@@ -37,7 +44,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.resize
       modalInstance: $uibModalInstance,
     });
 
-    this.resize = function () {
+    this.resize = function() {
       this.submitting = true;
       if (!this.isValid()) {
         return;
@@ -46,7 +53,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.resize
       $scope.taskMonitor.submit($scope.formMethods.submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

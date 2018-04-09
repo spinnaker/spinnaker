@@ -11,36 +11,51 @@ import { SESSION_AFFINITY_FILTER } from './backendService/sessionAffinity.filter
 
 import { DELETE_MODAL_CONTROLLER } from './deleteModal/deleteModal.controller';
 
-module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
-  require('@uirouter/angularjs').default,
-  ACCOUNT_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  require('google/common/xpnNaming.gce.service.js').name,
-  require('./hostAndPathRules/hostAndPathRulesButton.component.js').name,
-  require('./loadBalancerType/loadBalancerType.component.js').name,
-  GCE_HTTP_LOAD_BALANCER_UTILS,
-  require('./healthCheck/healthCheck.component.js').name,
-  GCE_BACKEND_SERVICE_DETAILS_COMPONENT,
-  DELETE_MODAL_CONTROLLER,
-  SESSION_AFFINITY_FILTER,
-  GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
-])
-  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app,
-                                                      accountService, gceHttpLoadBalancerUtils,
-                                                      loadBalancerWriter, loadBalancerReader,
-                                                      $q, loadBalancerTypeToWizardMap, gceXpnNamingService) {
-
-    let application = this.application = app;
+module.exports = angular
+  .module('spinnaker.loadBalancer.gce.details.controller', [
+    require('@uirouter/angularjs').default,
+    ACCOUNT_SERVICE,
+    LOAD_BALANCER_WRITE_SERVICE,
+    LOAD_BALANCER_READ_SERVICE,
+    require('google/common/xpnNaming.gce.service.js').name,
+    require('./hostAndPathRules/hostAndPathRulesButton.component.js').name,
+    require('./loadBalancerType/loadBalancerType.component.js').name,
+    GCE_HTTP_LOAD_BALANCER_UTILS,
+    require('./healthCheck/healthCheck.component.js').name,
+    GCE_BACKEND_SERVICE_DETAILS_COMPONENT,
+    DELETE_MODAL_CONTROLLER,
+    SESSION_AFFINITY_FILTER,
+    GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
+  ])
+  .controller('gceLoadBalancerDetailsCtrl', function(
+    $scope,
+    $state,
+    $uibModal,
+    loadBalancer,
+    app,
+    accountService,
+    gceHttpLoadBalancerUtils,
+    loadBalancerWriter,
+    loadBalancerReader,
+    $q,
+    loadBalancerTypeToWizardMap,
+    gceXpnNamingService,
+  ) {
+    let application = (this.application = app);
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     function extractLoadBalancer() {
-      $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
+      $scope.loadBalancer = application.loadBalancers.data.filter(function(test) {
         var testVpc = test.vpcId || null;
-        return test.name === loadBalancer.name && (test.region === loadBalancer.region || test.region === 'global') && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
+        return (
+          test.name === loadBalancer.name &&
+          (test.region === loadBalancer.region || test.region === 'global') &&
+          test.account === loadBalancer.accountId &&
+          testVpc === loadBalancer.vpcId
+        );
       })[0];
 
       if ($scope.loadBalancer) {
@@ -83,11 +98,15 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
 
             $scope.loadBalancer.project = accountDetails.project;
             $scope.loadBalancer.logsLink =
-              'https://console.developers.google.com/project/' + accountDetails.project + '/logs?advancedFilter=resource.type=(' + resourceTypes + ')%0A\"' + $scope.loadBalancer.name + '\"';
+              'https://console.developers.google.com/project/' +
+              accountDetails.project +
+              '/logs?advancedFilter=resource.type=(' +
+              resourceTypes +
+              ')%0A"' +
+              $scope.loadBalancer.name +
+              '"';
           });
-        },
-          autoClose
-        );
+        }, autoClose);
       }
       if (!$scope.loadBalancer) {
         autoClose();
@@ -95,35 +114,42 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
       return $q.when(null);
     }
 
-    function createDetailsLoader () {
+    function createDetailsLoader() {
       if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
-        var detailsPromises = $scope.loadBalancer.listeners.map((listener) => {
-          return loadBalancerReader
-            .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, listener.name);
+        var detailsPromises = $scope.loadBalancer.listeners.map(listener => {
+          return loadBalancerReader.getLoadBalancerDetails(
+            $scope.loadBalancer.provider,
+            loadBalancer.accountId,
+            $scope.loadBalancer.region,
+            listener.name,
+          );
         });
 
-        return $q.all(detailsPromises)
-          .then((loadBalancers) => {
-            loadBalancers = _.flatten(loadBalancers);
-            var representativeLb = loadBalancers[0];
-            representativeLb.dns = loadBalancers.map((loadBalancer) => {
-              var protocol;
-              if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
-                protocol = 'https:';
-              } else {
-                protocol = 'http:';
-              }
-              return {dnsname: loadBalancer.dnsname, protocol: protocol};
-            });
-            representativeLb.dns = _.uniqBy(representativeLb.dns, 'dnsname');
-            representativeLb.listenerDescriptions = _.flatten(loadBalancers.map((lb) => lb.listenerDescriptions));
-            return [representativeLb];
+        return $q.all(detailsPromises).then(loadBalancers => {
+          loadBalancers = _.flatten(loadBalancers);
+          var representativeLb = loadBalancers[0];
+          representativeLb.dns = loadBalancers.map(loadBalancer => {
+            var protocol;
+            if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
+              protocol = 'https:';
+            } else {
+              protocol = 'http:';
+            }
+            return { dnsname: loadBalancer.dnsname, protocol: protocol };
           });
-
+          representativeLb.dns = _.uniqBy(representativeLb.dns, 'dnsname');
+          representativeLb.listenerDescriptions = _.flatten(loadBalancers.map(lb => lb.listenerDescriptions));
+          return [representativeLb];
+        });
       } else {
         return loadBalancerReader
-          .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, $scope.loadBalancer.name)
-          .then((loadBalancerDetails) => {
+          .getLoadBalancerDetails(
+            $scope.loadBalancer.provider,
+            loadBalancer.accountId,
+            $scope.loadBalancer.region,
+            $scope.loadBalancer.name,
+          )
+          .then(loadBalancerDetails => {
             var loadBalancer = loadBalancerDetails[0];
             var protocol;
             if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
@@ -131,13 +157,13 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             } else {
               protocol = 'http:';
             }
-            loadBalancer.dns = {dnsname: loadBalancer.dnsname, protocol: protocol};
+            loadBalancer.dns = { dnsname: loadBalancer.dnsname, protocol: protocol };
             return loadBalancerDetails;
           });
       }
     }
 
-    function getBackendServices (loadBalancer) {
+    function getBackendServices(loadBalancer) {
       var backendServices = [loadBalancer.defaultService];
 
       if (loadBalancer.hostRules.length) {
@@ -157,16 +183,19 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
-    app.loadBalancers.ready().then(extractLoadBalancer).then(() => {
-      // If the user navigates away from the view before the initial extractLoadBalancer call completes,
-      // do not bother subscribing to the refresh
-      if (!$scope.$$destroyed) {
-        app.loadBalancers.onRefresh($scope, extractLoadBalancer);
-      }
-    });
+    app.loadBalancers
+      .ready()
+      .then(extractLoadBalancer)
+      .then(() => {
+        // If the user navigates away from the view before the initial extractLoadBalancer call completes,
+        // do not bother subscribing to the refresh
+        if (!$scope.$$destroyed) {
+          app.loadBalancers.onRefresh($scope, extractLoadBalancer);
+        }
+      });
 
     this.editLoadBalancer = function editLoadBalancer() {
       let wizard = loadBalancerTypeToWizardMap[$scope.loadBalancer.loadBalancerType];
@@ -176,10 +205,16 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
         controller: `${wizard.controller} as ctrl`,
         size: 'lg',
         resolve: {
-          application: function() { return application; },
-          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
-          isNew: function() { return false; }
-        }
+          application: function() {
+            return application;
+          },
+          loadBalancer: function() {
+            return angular.copy($scope.loadBalancer);
+          },
+          isNew: function() {
+            return false;
+          },
+        },
       });
     };
 
@@ -196,7 +231,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
       }
     };
 
-    this.isHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
+    this.isHttpLoadBalancer = lb => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
 
     this.getNetworkId = function getNetworkId(loadBalancer) {
       return gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, loadBalancer.network);
@@ -205,5 +240,4 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     this.getSubnetId = function getSubnetId(loadBalancer) {
       return gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, loadBalancer.subnet);
     };
-  }
-);
+  });

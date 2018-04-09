@@ -2,10 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.autoscalingPolicy.basicSettings.component', [])
+module.exports = angular
+  .module('spinnaker.deck.gce.autoscalingPolicy.basicSettings.component', [])
   .component('gceAutoscalingPolicyBasicSettings', {
     bindings: {
-      policy: '='
+      policy: '=',
     },
-    templateUrl: require('./basicSettings.component.html')
+    templateUrl: require('./basicSettings.component.html'),
   });

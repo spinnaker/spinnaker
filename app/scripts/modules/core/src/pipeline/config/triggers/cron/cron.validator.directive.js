@@ -2,15 +2,13 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validator.directive', [
-  require('./cron.validator.service.js').name,
-])
-.directive('cronValidator', function($q, cronValidationService) {
+module.exports = angular
+  .module('spinnaker.core.pipeline.trigger.cron.validator.directive', [require('./cron.validator.service.js').name])
+  .directive('cronValidator', function($q, cronValidationService) {
     return {
       restrict: 'A',
       require: 'ngModel',
       link: function(scope, elem, attr, ctrl) {
-
         let validationMessages = scope.$eval(attr.cronValidationMessages) || {};
 
         function handleError(result, deferred) {
@@ -47,10 +45,10 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validator.
             },
             function(result) {
               handleError(result, deferred);
-            }
+            },
           );
           return deferred.promise;
         };
-      }
+      },
     };
   });

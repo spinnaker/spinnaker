@@ -4,19 +4,16 @@ import { StateService } from '@uirouter/core';
 import { ClusterFilterModel } from './clusterFilter.model';
 
 describe('Multiselect Model', () => {
-
   let MultiselectModel: any, clusterFilterModel: ClusterFilterModel, $state: StateService;
 
-  beforeEach(mock.module(
-    require('./multiselect.model').name
-  ));
+  beforeEach(mock.module(require('./multiselect.model').name));
 
   beforeEach(
     mock.inject((_MultiselectModel_: any, _$state_: StateService, _clusterFilterModel_: ClusterFilterModel) => {
       MultiselectModel = _MultiselectModel_;
       clusterFilterModel = _clusterFilterModel_;
       $state = _$state_;
-    })
+    }),
   );
 
   describe('navigation management', () => {
@@ -28,7 +25,7 @@ describe('Multiselect Model', () => {
       currentParams = {};
 
       spyOn($state, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
-      spyOn($state, 'go').and.callFake((newState: any) => result = newState);
+      spyOn($state, 'go').and.callFake((newState: any) => (result = newState));
       spyOnProperty($state, 'params', 'get').and.callFake(() => currentParams);
       spyOnProperty($state, '$current', 'get').and.callFake(() => {
         if (currentStates.length) {
@@ -42,8 +39,12 @@ describe('Multiselect Model', () => {
       describe('instance selection', () => {
         let instanceGroup: any;
         beforeEach(() => {
-          instanceGroup = MultiselectModel.getOrCreateInstanceGroup(
-            { name: 'a', account: 'prod', region: 'us-east-1', type: 'aws' });
+          instanceGroup = MultiselectModel.getOrCreateInstanceGroup({
+            name: 'a',
+            account: 'prod',
+            region: 'us-east-1',
+            type: 'aws',
+          });
         });
 
         it('navigates to multipleInstances child view when not already there and instances are selected', () => {
@@ -126,7 +127,7 @@ describe('Multiselect Model', () => {
           account: 'prod',
           region: 'us-east-1',
           type: 'aws',
-          category: 'serverGroup'
+          category: 'serverGroup',
         };
       });
 
@@ -177,7 +178,7 @@ describe('Multiselect Model', () => {
           account: 'prod',
           region: 'us-east-1',
           type: 'aws',
-          category: 'serverGroup'
+          category: 'serverGroup',
         };
 
         expect(MultiselectModel.serverGroups.length).toBe(0);
@@ -198,7 +199,7 @@ describe('Multiselect Model', () => {
           name: 'asg-v001',
           account: 'prod',
           region: 'us-east-1',
-          type: 'aws'
+          type: 'aws',
         };
         original = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
       });
@@ -234,7 +235,7 @@ describe('Multiselect Model', () => {
 
       it('includes instance id if present in state params', () => {
         currentParams = { provider: 'aws', instanceId: 'i-123' };
-        serverGroup.instances = [ { id: 'i-123', provider: 'aws' } ];
+        serverGroup.instances = [{ id: 'i-123', provider: 'aws' }];
         serverGroup.name = 'asg-v002';
         const test = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
         expect(test.instanceIds).toEqual(['i-123']);
@@ -248,7 +249,7 @@ describe('Multiselect Model', () => {
           name: 'asg-v001',
           account: 'prod',
           region: 'us-east-1',
-          type: 'aws'
+          type: 'aws',
         };
 
         instanceGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
@@ -290,7 +291,7 @@ describe('Multiselect Model', () => {
           name: 'asg-v001',
           account: 'prod',
           region: 'us-east-1',
-          type: 'aws'
+          type: 'aws',
         };
 
         instanceGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
@@ -331,7 +332,7 @@ describe('Multiselect Model', () => {
           name: 'asg-v001',
           account: 'prod',
           region: 'us-east-1',
-          type: 'aws'
+          type: 'aws',
         };
 
         const instanceId = 'i-1234';
@@ -343,6 +344,5 @@ describe('Multiselect Model', () => {
         expect(MultiselectModel.instanceIsSelected(serverGroup, instanceId + 'a')).toBe(false);
       });
     });
-
   });
 });

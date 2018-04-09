@@ -11,7 +11,7 @@ export interface IInstanceDetailsProps extends IOverridableProps {
   $stateParams: {
     provider: string;
     instanceId: string;
-  },
+  };
   app: Application;
 }
 export interface IInstanceDetailsState {
@@ -39,14 +39,14 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
       })
       .takeUntil(this.destroy$)
       .subscribe((accountId: string) => {
-        this.setState({ accountId, loading: false })
+        this.setState({ accountId, loading: false });
       });
 
     this.props$.next(this.props);
   }
 
   public componentWillReceiveProps(nextProps: IInstanceDetailsProps) {
-    this.props$.next(nextProps)
+    this.props$.next(nextProps);
   }
 
   public componentWillUnmount() {
@@ -56,7 +56,7 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
   public render() {
     const { accountId, loading } = this.state;
     if (loading) {
-      return <Spinner/>;
+      return <Spinner />;
     }
 
     return <InstanceDetailsCmp {...this.props} accountId={accountId} />;
@@ -66,9 +66,6 @@ export class InstanceDetails extends React.Component<IInstanceDetailsProps, IIns
 @Overridable('instance.details')
 export class InstanceDetailsCmp extends React.Component<IInstanceDetailsProps> {
   public render() {
-    return (
-      <h3>Instance Details</h3>
-    );
+    return <h3>Instance Details</h3>;
   }
 }
-

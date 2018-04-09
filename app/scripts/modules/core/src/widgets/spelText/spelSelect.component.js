@@ -2,10 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.widgets.spelSelect.component', [])
-  .component('spelSelect', {
-    template:`
+module.exports = angular.module('spinnaker.widgets.spelSelect.component', []).component('spelSelect', {
+  template: `
       <div class="navbar-form" style="padding: 0 ;">
         <div class="button-input" ng-class="{select: $ctrl.selectActive, text: $ctrl.textActive, focus: $ctrl.isGlowing}">
           <span class="btn-group btn-group-xs" role="group">
@@ -46,40 +44,40 @@ module.exports = angular
         </div>
       </div>
       `,
-    bindings: {
-      model: '=',
-    },
-    transclude: true,
-    controller: function() {
-      let ctrl = this;
-      let select = 'select';
-      let textType = 'text';
+  bindings: {
+    model: '=',
+  },
+  transclude: true,
+  controller: function() {
+    let ctrl = this;
+    let select = 'select';
+    let textType = 'text';
 
-      let setState = (inputType) => {
-        if(inputType == textType) {
-          ctrl.expressionActive = true;
-          ctrl.selectActive = false;
-        } else {
-          ctrl.selectActive = true;
-          ctrl.expressionActive = false;
-        }
-      };
+    let setState = inputType => {
+      if (inputType == textType) {
+        ctrl.expressionActive = true;
+        ctrl.selectActive = false;
+      } else {
+        ctrl.selectActive = true;
+        ctrl.expressionActive = false;
+      }
+    };
 
-      ctrl.$onInit = () => {
-        ctrl.inputType = ctrl.model && ctrl.model.includes('${') ? textType : select;
-        setState(ctrl.inputType);
-      };
+    ctrl.$onInit = () => {
+      ctrl.inputType = ctrl.model && ctrl.model.includes('${') ? textType : select;
+      setState(ctrl.inputType);
+    };
 
-      ctrl.toggleSelect = () => {
-        setState(select);
-      };
+    ctrl.toggleSelect = () => {
+      setState(select);
+    };
 
-      ctrl.toggleText = () => {
-        setState(textType);
-      };
+    ctrl.toggleText = () => {
+      setState(textType);
+    };
 
-      ctrl.glow = (isGlowing) => {
-        ctrl.isGlowing = isGlowing;
-      };
-    }
-  });
+    ctrl.glow = isGlowing => {
+      ctrl.isGlowing = isGlowing;
+    };
+  },
+});

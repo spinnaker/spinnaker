@@ -3,7 +3,7 @@ import { IClusterMatch } from './clusterMatches.component';
 import { AccountTag } from 'core/account';
 
 export interface IClusterMatchesProps {
-  matches: IClusterMatch[]
+  matches: IClusterMatch[];
 }
 
 export class ClusterMatches extends React.Component<IClusterMatchesProps> {
@@ -17,7 +17,7 @@ export class ClusterMatches extends React.Component<IClusterMatchesProps> {
       <ul className="nostyle">
         {matches.map((match: IClusterMatch, index: number) => (
           <li key={index}>
-            <AccountTag account={match.account}/>
+            <AccountTag account={match.account} />
             <span className="break-word">{match.name}</span>
             {match.regions && match.regions.length && <i> in {match.regions.join(', ')}</i>}
           </li>

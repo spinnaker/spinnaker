@@ -17,4 +17,3 @@ export interface IManifestStatus {
   message?: string;
   stable: boolean;
 }
-

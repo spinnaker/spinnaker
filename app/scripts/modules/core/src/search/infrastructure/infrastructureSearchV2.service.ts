@@ -13,7 +13,8 @@ import { searchResultTypeRegistry } from '../searchResult/searchResultType.regis
 import { ISearchResult, SEARCH_SERVICE } from '../search.service';
 
 export class InfrastructureSearchServiceV2 {
-  private EMPTY_RESULTS: ISearchResultSet[] = searchResultTypeRegistry.getAll()
+  private EMPTY_RESULTS: ISearchResultSet[] = searchResultTypeRegistry
+    .getAll()
     .map(type => ({ type, results: [], status: SearchStatus.FINISHED }));
 
   constructor(private urlBuilderService: UrlBuilderService) {
@@ -34,17 +35,17 @@ export class InfrastructureSearchServiceV2 {
 
     /** Add the href and displayName attributes */
     const addComputedAttributes = (result: ISearchResult, type: SearchResultType): ISearchResult => {
-      return ({
+      return {
         ...result,
         href: this.urlBuilderService.buildFromMetadata(result),
         displayName: type.displayFormatter(result),
-      });
+      };
     };
 
     const makeResultSet = (searchResults: ISearchResults<any>, type: SearchResultType): ISearchResultSet => {
       // Add URLs to each search result
       const results = searchResults.results.map(result => addComputedAttributes(result, type));
-      return { type, results , status: SearchStatus.FINISHED };
+      return { type, results, status: SearchStatus.FINISHED };
     };
 
     const emitErrorResultSet = (error: any, type: SearchResultType): Observable<ISearchResultSet> => {
@@ -53,9 +54,10 @@ export class InfrastructureSearchServiceV2 {
 
     return Observable.from(types)
       .mergeMap(type => {
-        return type.search(params, otherResults$)
+        return type
+          .search(params, otherResults$)
           .map((searchResults: ISearchResults<any>) => makeResultSet(searchResults, type))
-          .catch((error: any) => emitErrorResultSet(error, type))
+          .catch((error: any) => emitErrorResultSet(error, type));
       })
       .do((result: ISearchResultSet<any>) => otherResults$.next(result))
       .finally(() => otherResults$.complete());
@@ -63,7 +65,7 @@ export class InfrastructureSearchServiceV2 {
 }
 
 export const INFRASTRUCTURE_SEARCH_SERVICE_V2 = 'spinnaker.core.infrastructure.search.service.v2';
-module(INFRASTRUCTURE_SEARCH_SERVICE_V2, [
-  SEARCH_SERVICE,
-  URL_BUILDER_SERVICE
-]).service('infrastructureSearchServiceV2', InfrastructureSearchServiceV2);
+module(INFRASTRUCTURE_SEARCH_SERVICE_V2, [SEARCH_SERVICE, URL_BUILDER_SERVICE]).service(
+  'infrastructureSearchServiceV2',
+  InfrastructureSearchServiceV2,
+);

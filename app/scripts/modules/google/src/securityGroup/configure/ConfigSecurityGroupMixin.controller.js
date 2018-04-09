@@ -9,7 +9,7 @@ import {
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
 import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from '../securityGroupHelpText.service';
@@ -27,23 +27,22 @@ module.exports = angular
     SECURITY_GROUP_WRITER,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
   ])
-  .controller('gceConfigSecurityGroupMixin', function ($scope,
-                                                       $state,
-                                                       $uibModalInstance,
-                                                       taskMonitorBuilder,
-                                                       application,
-                                                       securityGroup,
-                                                       securityGroupReader,
-                                                       securityGroupWriter,
-                                                       accountService,
-                                                       v2modalWizardService,
-                                                       cacheInitializer,
-                                                       networkReader,
-                                                       gceSecurityGroupHelpTextService,
-                                                       mode) {
-
-
-
+  .controller('gceConfigSecurityGroupMixin', function(
+    $scope,
+    $state,
+    $uibModalInstance,
+    taskMonitorBuilder,
+    application,
+    securityGroup,
+    securityGroupReader,
+    securityGroupWriter,
+    accountService,
+    v2modalWizardService,
+    cacheInitializer,
+    networkReader,
+    gceSecurityGroupHelpTextService,
+    mode,
+  ) {
     var ctrl = this;
 
     $scope.isNew = true;
@@ -63,7 +62,6 @@ module.exports = angular
 
     $scope.wizard = v2modalWizardService;
 
-
     ctrl.getTagHelpText = function(tag, tagType) {
       return gceSecurityGroupHelpTextService.getHelpTextForTag(tag, tagType);
     };
@@ -73,7 +71,11 @@ module.exports = angular
     };
 
     ctrl.registerHelpTextService = function() {
-      gceSecurityGroupHelpTextService.register(application, $scope.securityGroup.credentials || $scope.securityGroup.accountName, securityGroup.network);
+      gceSecurityGroupHelpTextService.register(
+        application,
+        $scope.securityGroup.credentials || $scope.securityGroup.accountName,
+        securityGroup.network,
+      );
     };
 
     ctrl.initializeTargetOptions = function() {
@@ -164,41 +166,37 @@ module.exports = angular
     ctrl.onTargetChange();
     ctrl.registerHelpTextService();
 
-    ctrl.upsert = function () {
-      $scope.taskMonitor.submit(
-        function() {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
-        }
-      );
+    ctrl.upsert = function() {
+      $scope.taskMonitor.submit(function() {
+        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
+      });
     };
 
-    ctrl.mixinUpsert = function (descriptor) {
-      $scope.taskMonitor.submit(
-        function() {
-          var allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
-            var rule = {
-              ipProtocol: ipIngressRule.type,
-            };
+    ctrl.mixinUpsert = function(descriptor) {
+      $scope.taskMonitor.submit(function() {
+        var allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
+          var rule = {
+            ipProtocol: ipIngressRule.type,
+          };
 
-            if (ipIngressRule.startPort && ipIngressRule.endPort) {
-              rule.portRanges = [ipIngressRule.startPort + '-' + ipIngressRule.endPort];
-            }
+          if (ipIngressRule.startPort && ipIngressRule.endPort) {
+            rule.portRanges = [ipIngressRule.startPort + '-' + ipIngressRule.endPort];
+          }
 
-            return rule;
-          });
+          return rule;
+        });
 
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, {
-            cloudProvider: 'gce',
-            securityGroupName: $scope.securityGroup.name,
-            sourceRanges: _.uniq(_.map($scope.securityGroup.sourceRanges, 'value')),
-            targetTags: $scope.securityGroup.targetTags,
-            sourceTags: $scope.securityGroup.sourceTags,
-            allowed: allowed,
-            region: 'global',
-            network: $scope.securityGroup.network,
-          });
-        }
-      );
+        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, {
+          cloudProvider: 'gce',
+          securityGroupName: $scope.securityGroup.name,
+          sourceRanges: _.uniq(_.map($scope.securityGroup.sourceRanges, 'value')),
+          targetTags: $scope.securityGroup.targetTags,
+          sourceTags: $scope.securityGroup.sourceTags,
+          allowed: allowed,
+          region: 'global',
+          network: $scope.securityGroup.network,
+        });
+      });
     };
 
     ctrl.accountUpdated = function() {
@@ -217,11 +215,11 @@ module.exports = angular
     };
 
     ctrl.initializeSecurityGroups = function() {
-      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+      return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
 
         var existingGroups;
-        if(account) {
+        if (account) {
           existingGroups = securityGroups[account].gce.global;
         } else {
           existingGroups = securityGroups;
@@ -239,9 +237,9 @@ module.exports = angular
       networkReader.listNetworksByProvider('gce').then(function(gceNetworks) {
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
         $scope.securityGroup.backingData.networks = _(gceNetworks)
-            .filter(n => n.account === account && !n.id.includes('/') )
-            .map(n => n.id)
-            .value();
+          .filter(n => n.account === account && !n.id.includes('/'))
+          .map(n => n.id)
+          .value();
       });
     };
 
@@ -263,11 +261,11 @@ module.exports = angular
     ctrl.namePattern = {
       test: function(name) {
         return ctrl.getCurrentNamePattern().test(name);
-      }
+      },
     };
 
     ctrl.addSourceCIDR = function(sourceRanges) {
-      sourceRanges.push({value: '0.0.0.0/0'});
+      sourceRanges.push({ value: '0.0.0.0/0' });
     };
 
     ctrl.removeSourceCIDR = function(sourceRanges, index) {
@@ -293,9 +291,11 @@ module.exports = angular
     };
 
     ctrl.isValid = function() {
-      return ($scope.state.target === 'specifyTags' ? $scope.securityGroup.targetTags.length > 0 : true) &&
-          $scope.securityGroup.ipIngress.length > 0 &&
-          ($scope.securityGroup.sourceTags.length > 0 || $scope.securityGroup.sourceRanges.length > 0);
+      return (
+        ($scope.state.target === 'specifyTags' ? $scope.securityGroup.targetTags.length > 0 : true) &&
+        $scope.securityGroup.ipIngress.length > 0 &&
+        ($scope.securityGroup.sourceTags.length > 0 || $scope.securityGroup.sourceRanges.length > 0)
+      );
     };
 
     ctrl.addTargetTag = function() {
@@ -313,6 +313,4 @@ module.exports = angular
     ctrl.removeSourceTag = function(index) {
       $scope.securityGroup.sourceTags.splice(index, 1);
     };
-
   });
-

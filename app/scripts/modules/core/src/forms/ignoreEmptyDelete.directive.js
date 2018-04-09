@@ -3,9 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.utils.ignoreEmptyDelete.directive', [
-    require('ui-select'),
-  ])
+  .module('spinnaker.core.utils.ignoreEmptyDelete.directive', [require('ui-select')])
   .config(function($provide) {
     $provide.decorator('uiSelectMultipleDirective', function($delegate) {
       // because we hacked the multiple select directive CSS so drastically,
@@ -17,7 +15,7 @@ module.exports = angular
       // Still, it's better than nothing.
       let directive = $delegate[0];
       let originalLink = directive.link;
-      directive.compile = function () {
+      directive.compile = function() {
         return function(scope, elem, attrs, ctrls) {
           originalLink.apply(this, arguments);
           let $select = ctrls[0];

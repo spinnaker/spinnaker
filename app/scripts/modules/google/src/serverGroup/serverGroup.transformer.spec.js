@@ -2,11 +2,7 @@
 
 describe('gceServerGroupTransformer', () => {
   let transformer, $q, $scope;
-  beforeEach(
-    window.module(
-      require('./serverGroup.transformer.js').name
-    )
-  );
+  beforeEach(window.module(require('./serverGroup.transformer.js').name));
 
   beforeEach(() => {
     window.inject((_$q_, $rootScope, _gceServerGroupTransformer_) => {
@@ -24,30 +20,35 @@ describe('gceServerGroupTransformer', () => {
           return {
             ready: () => $q.resolve(),
             data: [
-              {name: 'network-load-balancer', account: 'my-google-account'},
-              {name: 'internal-load-balancer', account: 'my-google-account'},
-              {name: 'url-map-name', provider: 'gce', account: 'my-google-account', region: 'global', loadBalancerType: 'HTTP',
-               listeners: [{name: 'http-load-balancer-listener'}, {name: 'https-load-balancer-listener'}]}
-            ]
+              { name: 'network-load-balancer', account: 'my-google-account' },
+              { name: 'internal-load-balancer', account: 'my-google-account' },
+              {
+                name: 'url-map-name',
+                provider: 'gce',
+                account: 'my-google-account',
+                region: 'global',
+                loadBalancerType: 'HTTP',
+                listeners: [{ name: 'http-load-balancer-listener' }, { name: 'https-load-balancer-listener' }],
+              },
+            ],
           };
-        }
+        },
       };
     });
 
-    it('should map listener names to url map names', function () {
+    it('should map listener names to url map names', function() {
       let serverGroup = {
         account: 'my-google-account',
         loadBalancers: [
           'network-load-balancer',
           'internal-load-balancer',
           'http-load-balancer-listener',
-          'https-load-balancer-listener'
-        ]
+          'https-load-balancer-listener',
+        ],
       };
 
       let normalizedServerGroup;
-      transformer.normalizeServerGroup(serverGroup, app)
-        .then(normalized => normalizedServerGroup = normalized);
+      transformer.normalizeServerGroup(serverGroup, app).then(normalized => (normalizedServerGroup = normalized));
       $scope.$digest();
       expect(normalizedServerGroup.loadBalancers.length).toBe(3);
       expect(normalizedServerGroup.loadBalancers.includes('url-map-name')).toEqual(true);

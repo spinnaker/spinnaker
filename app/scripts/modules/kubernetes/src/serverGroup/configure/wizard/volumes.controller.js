@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volumes', [
-])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.kubernetes.volumes', [])
   .controller('kubernetesServerGroupVolumesController', function($scope) {
     this.volumeTypes = ['CONFIGMAP', 'EMPTYDIR', 'HOSTPATH', 'PERSISTENTVOLUMECLAIM', 'SECRET', 'AWSELASTICBLOCKSTORE'];
     this.mediumTypes = ['DEFAULT', 'MEMORY'];
@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
     this.defaultPersistentVolumeClaim = function() {
       return {
         claimName: '',
-        readOnly: true
+        readOnly: true,
       };
     };
 
@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
       return {
         volumeId: '',
         fsType: '',
-        partition: 0
+        partition: 0,
       };
     };
 
@@ -88,7 +88,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.volu
 
     this.prepVolumes = function() {
       $scope.command.volumeSources = $scope.command.volumeSources || [];
-      $scope.command.volumeSources.map((source) => {
+      $scope.command.volumeSources.map(source => {
         if (!source.hostPath) {
           source.hostPath = this.defaultHostPath();
         }

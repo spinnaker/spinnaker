@@ -14,13 +14,16 @@ class GceDiskConfigurerController implements IComponentController {
   // From component bindings.
   public command: any;
   public disks: IGceDisk[];
-  private updateDisks: (arg: {disks: IGceDisk[]}) => void;
+  private updateDisks: (arg: { disks: IGceDisk[] }) => void;
 
   public $onInit(): void {
     this.setLocalSSDCount();
     this.setPersistentDisks();
 
-    if (this.getLocalSSDDisks().length && !get(this.command, 'viewState.instanceTypeDetails.storage.localSSDSupported')) {
+    if (
+      this.getLocalSSDDisks().length &&
+      !get(this.command, 'viewState.instanceTypeDetails.storage.localSSDSupported')
+    ) {
       this.updateDisks({ disks: this.sortDisks(this.getPersistentDisks()) });
     }
   }
@@ -172,5 +175,4 @@ class GceDiskConfigurer implements IComponentOptions {
 }
 
 export const GCE_DISK_CONFIGURER = 'spinnaker.gce.diskConfigurer.component';
-module(GCE_DISK_CONFIGURER, [])
-  .component('gceDiskConfigurer', new GceDiskConfigurer());
+module(GCE_DISK_CONFIGURER, []).component('gceDiskConfigurer', new GceDiskConfigurer());

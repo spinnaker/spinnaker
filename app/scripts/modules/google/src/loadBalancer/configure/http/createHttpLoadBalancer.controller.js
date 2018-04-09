@@ -9,26 +9,39 @@ import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, Listener
 
 import './httpLoadBalancerWizard.component.less';
 
-module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.controller', [
-  require('angular-ui-bootstrap'),
-  require('@uirouter/angularjs').default,
-  require('./backendService/backendService.component.js').name,
-  require('./basicSettings/basicSettings.component.js').name,
-  GCE_CACHE_REFRESH,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-  require('./commandBuilder.service.js').name,
-  require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js').name,
-  require('./healthCheck/healthCheck.component.js').name,
-  require('./hostRule/hostRule.component.js').name,
-  require('./httpLoadBalancer.write.service.js').name,
-  require('./listeners/listener.component.js').name,
-  require('./transformer.service.js').name,
-])
-  .controller('gceCreateHttpLoadBalancerCtrl', function ($scope, $uibModal, $uibModalInstance, application, taskMonitorBuilder,
-                                                         loadBalancer, isNew, loadBalancerWriter, taskExecutor,
-                                                         gceHttpLoadBalancerWriter, $state, wizardSubFormValidation,
-                                                         gceHttpLoadBalancerCommandBuilder, gceHttpLoadBalancerTransformer) {
+module.exports = angular
+  .module('spinnaker.deck.gce.loadBalancer.createHttp.controller', [
+    require('angular-ui-bootstrap'),
+    require('@uirouter/angularjs').default,
+    require('./backendService/backendService.component.js').name,
+    require('./basicSettings/basicSettings.component.js').name,
+    GCE_CACHE_REFRESH,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    require('./commandBuilder.service.js').name,
+    require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js').name,
+    require('./healthCheck/healthCheck.component.js').name,
+    require('./hostRule/hostRule.component.js').name,
+    require('./httpLoadBalancer.write.service.js').name,
+    require('./listeners/listener.component.js').name,
+    require('./transformer.service.js').name,
+  ])
+  .controller('gceCreateHttpLoadBalancerCtrl', function(
+    $scope,
+    $uibModal,
+    $uibModalInstance,
+    application,
+    taskMonitorBuilder,
+    loadBalancer,
+    isNew,
+    loadBalancerWriter,
+    taskExecutor,
+    gceHttpLoadBalancerWriter,
+    $state,
+    wizardSubFormValidation,
+    gceHttpLoadBalancerCommandBuilder,
+    gceHttpLoadBalancerTransformer,
+  ) {
     this.application = application;
     this.isNew = isNew;
     this.modalDescriptor = this.isNew
@@ -36,22 +49,22 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
       : `Edit ${loadBalancer.name}:global:${loadBalancer.account}`;
 
     this.pages = {
-      'location': require('./basicSettings/basicSettings.html'),
-      'listeners': require('./listeners/listeners.html'),
-      'defaultService': require('./defaultService/defaultService.html'),
-      'backendServices': require('./backendService/backendServices.html'),
-      'healthChecks': require('./healthCheck/healthChecks.html'),
-      'hostRules': require('./hostRule/hostRules.html'),
+      location: require('./basicSettings/basicSettings.html'),
+      listeners: require('./listeners/listeners.html'),
+      defaultService: require('./defaultService/defaultService.html'),
+      backendServices: require('./backendService/backendServices.html'),
+      healthChecks: require('./healthCheck/healthChecks.html'),
+      hostRules: require('./hostRule/hostRules.html'),
     };
 
     let keyToTemplateMap = {
-      'backendServices': BackendServiceTemplate,
-      'healthChecks': HealthCheckTemplate,
-      'hostRules': HostRuleTemplate,
-      'listeners': ListenerTemplate,
+      backendServices: BackendServiceTemplate,
+      healthChecks: HealthCheckTemplate,
+      hostRules: HostRuleTemplate,
+      listeners: ListenerTemplate,
     };
 
-    this.add = (key) => {
+    this.add = key => {
       this.command.loadBalancer[key].push(new keyToTemplateMap[key]());
     };
 
@@ -97,32 +110,33 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
       let serializedCommands = gceHttpLoadBalancerTransformer.serialize(this.command, loadBalancer);
       let descriptor = this.isNew ? 'Create' : 'Update';
 
-      this.taskMonitor.submit(() => gceHttpLoadBalancerWriter.upsertLoadBalancers(serializedCommands, application, descriptor));
+      this.taskMonitor.submit(() =>
+        gceHttpLoadBalancerWriter.upsertLoadBalancers(serializedCommands, application, descriptor),
+      );
     };
 
-    gceHttpLoadBalancerCommandBuilder.buildCommand({ isNew, originalLoadBalancer: loadBalancer})
-      .then((command) => {
-        this.command = command;
+    gceHttpLoadBalancerCommandBuilder.buildCommand({ isNew, originalLoadBalancer: loadBalancer }).then(command => {
+      this.command = command;
 
-        wizardSubFormValidation
-          .config({scope: $scope, form: 'form'})
-          .register({page: 'location', subForm: 'location'})
-          .register({
-            page: 'listeners',
-            subForm: 'listeners',
-            validators: [
-              {
-                watchString: 'ctrl.command.loadBalancer.listeners',
-                validator: (listeners) => listeners.length > 0,
-                collection: true
-              }
-            ]
-          })
-          .register({page: 'default-service', subForm: 'defaultService'})
-          .register({page: 'health-checks', subForm: 'healthChecks'})
-          .register({page: 'backend-services', subForm: 'backendServices'})
-          .register({page: 'host-rules', subForm: 'hostRules'});
-      });
+      wizardSubFormValidation
+        .config({ scope: $scope, form: 'form' })
+        .register({ page: 'location', subForm: 'location' })
+        .register({
+          page: 'listeners',
+          subForm: 'listeners',
+          validators: [
+            {
+              watchString: 'ctrl.command.loadBalancer.listeners',
+              validator: listeners => listeners.length > 0,
+              collection: true,
+            },
+          ],
+        })
+        .register({ page: 'default-service', subForm: 'defaultService' })
+        .register({ page: 'health-checks', subForm: 'healthChecks' })
+        .register({ page: 'backend-services', subForm: 'backendServices' })
+        .register({ page: 'host-rules', subForm: 'hostRules' });
+    });
 
     this.cancel = $uibModalInstance.dismiss;
   });

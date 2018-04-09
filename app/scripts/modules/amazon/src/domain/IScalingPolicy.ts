@@ -22,14 +22,42 @@ export type ScalingPolicyAdjustmentType = 'ChangeInCapacity' | 'ExactCapacity' |
 
 export type MetricAggregationType = 'Minimum' | 'Maximum' | 'Average';
 
-export type AlarmComparisonOperator = 'GreaterThanOrEqualToThreshold' | 'GreaterThanThreshold' | 'LessThanThreshold' | 'LessThanOrEqualToThreshold';
+export type AlarmComparisonOperator =
+  | 'GreaterThanOrEqualToThreshold'
+  | 'GreaterThanThreshold'
+  | 'LessThanThreshold'
+  | 'LessThanOrEqualToThreshold';
 
 export type AlarmStatisticType = 'SampleCount' | 'Average' | 'Sum' | 'Minimum' | 'Maximum';
 
-export type StandardUnitType = 'Seconds' | 'Microseconds' | 'Milliseconds' | 'Bytes' | 'Kilobytes' | 'Megabytes' |
-  'Gigabytes' | 'Terabytes' | 'Bits' | 'Kilobits' | 'Megabits' | 'Gigabits' | 'Terabits' | 'Percent' | 'Count' |
-  'BytesSecond' | 'KilobytesSecond' | 'MegabytesSecond' | 'GigabytesSecond' | 'TerabytesSecond' | 'BitsSecond' |
-  'KilobitsSecond' | 'MegabitsSecond' | 'GigabitsSecond' | 'TerabitsSecond' | 'CountSecond' | 'None';
+export type StandardUnitType =
+  | 'Seconds'
+  | 'Microseconds'
+  | 'Milliseconds'
+  | 'Bytes'
+  | 'Kilobytes'
+  | 'Megabytes'
+  | 'Gigabytes'
+  | 'Terabytes'
+  | 'Bits'
+  | 'Kilobits'
+  | 'Megabits'
+  | 'Gigabits'
+  | 'Terabits'
+  | 'Percent'
+  | 'Count'
+  | 'BytesSecond'
+  | 'KilobytesSecond'
+  | 'MegabytesSecond'
+  | 'GigabytesSecond'
+  | 'TerabytesSecond'
+  | 'BitsSecond'
+  | 'KilobitsSecond'
+  | 'MegabitsSecond'
+  | 'GigabitsSecond'
+  | 'TerabitsSecond'
+  | 'CountSecond'
+  | 'None';
 
 export interface IStepAdjustment {
   metricIntervalLowerBound?: number;

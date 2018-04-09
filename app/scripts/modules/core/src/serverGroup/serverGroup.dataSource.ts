@@ -1,5 +1,8 @@
 import { module, IQService } from 'angular';
-import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from '../application/service/applicationDataSource.registry';
+import {
+  APPLICATION_DATA_SOURCE_REGISTRY,
+  ApplicationDataSourceRegistry,
+} from '../application/service/applicationDataSource.registry';
 import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from '../entityTag/entityTags.read.service';
 import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
@@ -10,24 +13,30 @@ import { IServerGroup } from 'core/domain';
 export const SERVER_GROUP_DATA_SOURCE = 'spinnaker.core.serverGroup.dataSource';
 
 module(SERVER_GROUP_DATA_SOURCE, [
-    APPLICATION_DATA_SOURCE_REGISTRY,
-    ENTITY_TAGS_READ_SERVICE,
-    CLUSTER_SERVICE,
-    JSON_UTILITY_SERVICE,
-  ])
-  .run(($q: IQService,
-        applicationDataSourceRegistry: ApplicationDataSourceRegistry,
-        clusterService: ClusterService,
-        entityTagsReader: EntityTagsReader,
-        jsonUtilityService: JsonUtilityService) => {
-
+  APPLICATION_DATA_SOURCE_REGISTRY,
+  ENTITY_TAGS_READ_SERVICE,
+  CLUSTER_SERVICE,
+  JSON_UTILITY_SERVICE,
+]).run(
+  (
+    $q: IQService,
+    applicationDataSourceRegistry: ApplicationDataSourceRegistry,
+    clusterService: ClusterService,
+    entityTagsReader: EntityTagsReader,
+    jsonUtilityService: JsonUtilityService,
+  ) => {
     const loadServerGroups = (application: Application) => {
       return clusterService.loadServerGroups(application);
     };
 
     const addServerGroups = (application: Application, serverGroups: IServerGroup[]) => {
-      serverGroups.forEach(serverGroup => serverGroup.stringVal =
-        jsonUtilityService.makeSortedStringFromAngularObject(serverGroup, ['executions', 'runningTasks']));
+      serverGroups.forEach(
+        serverGroup =>
+          (serverGroup.stringVal = jsonUtilityService.makeSortedStringFromAngularObject(serverGroup, [
+            'executions',
+            'runningTasks',
+          ])),
+      );
       application.clusters = clusterService.createServerGroupClusters(serverGroups);
       const data = clusterService.addServerGroupsToApplication(application, serverGroups);
       clusterService.addTasksToServerGroups(application);
@@ -53,6 +62,7 @@ module(SERVER_GROUP_DATA_SOURCE, [
       providerField: 'type',
       credentialsField: 'account',
       regionField: 'region',
-      description: 'Collections of server groups or jobs'
+      description: 'Collections of server groups or jobs',
     });
-  });
+  },
+);

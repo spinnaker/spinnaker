@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notification.details.filter', [])
+module.exports = angular
+  .module('spinnaker.core.notification.details.filter', [])
   .filter('notificationWhen', function() {
     return function(input, level, stageType) {
       if (stageType === 'manualJudgment') {
@@ -16,7 +17,9 @@ module.exports = angular.module('spinnaker.core.notification.details.filter', []
 
         return filteredInput;
       } else {
-        input = input.replace('.', ' ').replace('pipeline', ( level === 'application' ? 'Any ' : 'This ' ) + 'pipeline is');
+        input = input
+          .replace('.', ' ')
+          .replace('pipeline', (level === 'application' ? 'Any ' : 'This ') + 'pipeline is');
         input = input.replace('.', ' ').replace('stage', 'This stage is ');
 
         if (input.includes('failed')) {
@@ -27,11 +30,13 @@ module.exports = angular.module('spinnaker.core.notification.details.filter', []
         return input;
       }
     };
-  }).filter('notificationType', function() {
+  })
+  .filter('notificationType', function() {
     return function(input) {
       return input.charAt(0).toUpperCase() + input.slice(1);
     };
-  }).filter('notificationDetails', function() {
+  })
+  .filter('notificationDetails', function() {
     return function(input) {
       if (input.type !== 'email') {
         return input.address;

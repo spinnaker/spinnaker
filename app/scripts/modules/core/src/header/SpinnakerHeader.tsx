@@ -16,11 +16,10 @@ export interface ISpinnakerHeaderState {
 @UIRouterContext
 @BindAll()
 export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> {
-
   constructor(props: {}) {
     super(props);
     this.state = {
-      navExpanded: !this.isDevicePhoneOrSmaller()
+      navExpanded: !this.isDevicePhoneOrSmaller(),
     };
   }
 
@@ -32,7 +31,7 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
 
   public toggleNavItems(): void {
     this.setState({
-      navExpanded: !this.state.navExpanded
+      navExpanded: !this.state.navExpanded,
     });
   }
 
@@ -40,20 +39,18 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
     const { UserMenu, WhatsNew } = NgReact;
 
     return (
-      <nav
-        className="container spinnaker-header"
-        role="navigation"
-        aria-label="Main Menu"
-      >
+      <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
         <div className="navbar-header horizontal middle">
-          <a className="navbar-brand flex-1" href="#">SPINNAKER</a>
+          <a className="navbar-brand flex-1" href="#">
+            SPINNAKER
+          </a>
           <button type="button" className="navbar-toggle" onClick={this.toggleNavItems}>
             <span className="icon-bar" />
             <span className="icon-bar" />
             <span className="icon-bar" />
           </button>
         </div>
-        {this.state.navExpanded &&
+        {this.state.navExpanded && (
           <div className="nav-container nav-items">
             <ul className="nav nav-items flex-1 page-nav">
               <li key="navHome">
@@ -86,7 +83,7 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
               <HelpMenu />
             </ul>
           </div>
-        }
+        )}
       </nav>
     );
   }

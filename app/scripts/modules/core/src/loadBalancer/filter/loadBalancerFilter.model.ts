@@ -9,14 +9,18 @@ import { UrlParser } from 'core/navigation/urlParser';
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'account', param: 'acct', type: 'trueKeyObject' },
   { model: 'availabilityZone', param: 'zone', type: 'trueKeyObject', filterLabel: 'availability zone' },
-  { model: 'detail', param: 'detail', type: 'trueKeyObject', },
+  { model: 'detail', param: 'detail', type: 'trueKeyObject' },
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'providerType', type: 'trueKeyObject', filterLabel: 'provider' },
   { model: 'region', param: 'reg', type: 'trueKeyObject' },
   { model: 'showInstances', displayOption: true, type: 'boolean' },
   { model: 'showServerGroups', param: 'hideServerGroups', displayOption: true, type: 'inverse-boolean' },
-  { model: 'stack', param: 'stack', type: 'trueKeyObject', },
-  { model: 'status', type: 'trueKeyObject', filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' } },
+  { model: 'stack', param: 'stack', type: 'trueKeyObject' },
+  {
+    model: 'status',
+    type: 'trueKeyObject',
+    filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' },
+  },
 ];
 
 export interface ILoadBalancerFilterModel extends IFilterModel {
@@ -24,7 +28,6 @@ export interface ILoadBalancerFilterModel extends IFilterModel {
 }
 
 export class LoadBalancerFilterModel {
-
   private mostRecentParams: any;
   public asFilterModel: ILoadBalancerFilterModel;
 
@@ -51,7 +54,7 @@ export class LoadBalancerFilterModel {
     return this.isLoadBalancerStateOrChild(toState.name);
   }
 
-  private movingFromLoadBalancerState (toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration) {
+  private movingFromLoadBalancerState(toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration) {
     return this.isLoadBalancerStateOrChild(fromState.name) && !this.isLoadBalancerStateOrChild(toState.name);
   }
 
@@ -60,8 +63,10 @@ export class LoadBalancerFilterModel {
   }
 
   private fromLoadBalancersState(fromState: Ng1StateDeclaration) {
-    return fromState.name.indexOf('home.applications.application.insight') === 0 &&
-      !fromState.name.includes('home.applications.application.insight.loadBalancers');
+    return (
+      fromState.name.indexOf('home.applications.application.insight') === 0 &&
+      !fromState.name.includes('home.applications.application.insight.loadBalancers')
+    );
   }
 
   private bindEvents(): void {
@@ -80,31 +85,41 @@ export class LoadBalancerFilterModel {
       }
     });
 
-    this.$rootScope.$on('$stateChangeStart', (_event: IAngularEvent, toState: Ng1StateDeclaration, _toParams: StateParams, fromState: Ng1StateDeclaration, fromParams: StateParams) => {
-      if (this.movingFromLoadBalancerState(toState, fromState)) {
-        this.asFilterModel.saveState(fromState, fromParams, this.mostRecentParams);
-      }
-    });
-
-    this.$rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
-      if (this.isLoadBalancerStateOrChild(toState.name) && this.isLoadBalancerStateOrChild(fromState.name)) {
-        this.asFilterModel.applyParamsToUrl();
-        return;
-      }
-      if (this.movingToLoadBalancerState(toState)) {
-        if (this.shouldRouteToSavedState(toParams, fromState)) {
-          this.asFilterModel.restoreState(toParams);
+    this.$rootScope.$on(
+      '$stateChangeStart',
+      (
+        _event: IAngularEvent,
+        toState: Ng1StateDeclaration,
+        _toParams: StateParams,
+        fromState: Ng1StateDeclaration,
+        fromParams: StateParams,
+      ) => {
+        if (this.movingFromLoadBalancerState(toState, fromState)) {
+          this.asFilterModel.saveState(fromState, fromParams, this.mostRecentParams);
         }
+      },
+    );
 
-        if (this.fromLoadBalancersState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
-          this.asFilterModel.clearFilters();
+    this.$rootScope.$on(
+      '$stateChangeSuccess',
+      (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+        if (this.isLoadBalancerStateOrChild(toState.name) && this.isLoadBalancerStateOrChild(fromState.name)) {
+          this.asFilterModel.applyParamsToUrl();
+          return;
         }
-      }
-    });
+        if (this.movingToLoadBalancerState(toState)) {
+          if (this.shouldRouteToSavedState(toParams, fromState)) {
+            this.asFilterModel.restoreState(toParams);
+          }
+
+          if (this.fromLoadBalancersState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
+            this.asFilterModel.clearFilters();
+          }
+        }
+      },
+    );
   }
 }
 
 export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
-module(LOAD_BALANCER_FILTER_MODEL, [
-  FILTER_MODEL_SERVICE,
-]).service('loadBalancerFilterModel', LoadBalancerFilterModel);
+module(LOAD_BALANCER_FILTER_MODEL, [FILTER_MODEL_SERVICE]).service('loadBalancerFilterModel', LoadBalancerFilterModel);

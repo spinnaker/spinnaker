@@ -4,12 +4,14 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.docker.pipeline.stage.bake.executionDetails.controller', [
-  require('@uirouter/angularjs').default,
-])
-  .controller('dockerBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
-                                                          $interpolate) {
-
+module.exports = angular
+  .module('spinnaker.docker.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
+  .controller('dockerBakeExecutionDetailsCtrl', function(
+    $scope,
+    $stateParams,
+    executionDetailsSectionService,
+    $interpolate,
+  ) {
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -23,5 +25,4 @@ module.exports = angular.module('spinnaker.docker.pipeline.stage.bake.executionD
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

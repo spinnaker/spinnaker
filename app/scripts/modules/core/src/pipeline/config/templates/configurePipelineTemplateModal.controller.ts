@@ -9,8 +9,11 @@ import { ReactInjector } from 'core/reactShims';
 
 import {
   PIPELINE_TEMPLATE_SERVICE,
-  IVariableMetadata, IPipelineTemplateConfig, IPipelineTemplatePlanResponse, IPipelineTemplate,
-  IPipelineTemplatePlanError
+  IVariableMetadata,
+  IPipelineTemplateConfig,
+  IPipelineTemplatePlanResponse,
+  IPipelineTemplate,
+  IPipelineTemplatePlanError,
 } from './pipelineTemplate.service';
 import { IVariable } from './inputs/variableInput.service';
 
@@ -29,7 +32,6 @@ export interface IState {
 
 @BindAll()
 export class ConfigurePipelineTemplateModalController implements IController {
-
   public pipelineName: string;
   public variableMetadataGroups: IVariableMetadataGroup[];
   public variables: IVariable[];
@@ -37,9 +39,15 @@ export class ConfigurePipelineTemplateModalController implements IController {
   private template: IPipelineTemplate;
   private source: string;
 
-  constructor(private $scope: IScope, private $uibModalInstance: IModalInstanceService,
-              private application: Application, public pipelineTemplateConfig: IPipelineTemplateConfig,
-              public isNew: boolean, private pipelineId: string, private executionId: string) {
+  constructor(
+    private $scope: IScope,
+    private $uibModalInstance: IModalInstanceService,
+    private application: Application,
+    public pipelineTemplateConfig: IPipelineTemplateConfig,
+    public isNew: boolean,
+    private pipelineId: string,
+    private executionId: string,
+  ) {
     'ngInject';
   }
 
@@ -58,7 +66,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
           this.state.noVariables = true;
         }
       })
-      .then(() => this.state.loading = false)
+      .then(() => (this.state.loading = false))
       .catch(() => {
         Object.assign(this.state, { loading: false, error: false, planErrors: null, loadingError: true });
       });
@@ -74,7 +82,8 @@ export class ConfigurePipelineTemplateModalController implements IController {
 
   public submit(): IPromise<void> {
     const config = this.buildConfig();
-    return ReactInjector.pipelineTemplateService.getPipelinePlan(config)
+    return ReactInjector.pipelineTemplateService
+      .getPipelinePlan(config)
       .then(plan => {
         this.$uibModalInstance.close({ plan, config });
       })
@@ -88,29 +97,29 @@ export class ConfigurePipelineTemplateModalController implements IController {
   }
 
   public buildConfig(): IPipelineTemplateConfig {
-    return Object.assign(
-      this.pipelineTemplateConfig || {},
-      {
-        type: 'templatedPipeline',
-        name: this.pipelineName,
-        application: this.application.name,
-        config: {
-          schema: '1',
-          pipeline: {
-            name: this.pipelineName,
-            application: this.application.name,
-            pipelineConfigId: this.pipelineId,
-            template: { source: this.source },
-            variables: this.transformVariablesForPipelinePlan(),
-          }
-        }
-      }
-    );
+    return Object.assign(this.pipelineTemplateConfig || {}, {
+      type: 'templatedPipeline',
+      name: this.pipelineName,
+      application: this.application.name,
+      config: {
+        schema: '1',
+        pipeline: {
+          name: this.pipelineName,
+          application: this.application.name,
+          pipelineConfigId: this.pipelineId,
+          template: { source: this.source },
+          variables: this.transformVariablesForPipelinePlan(),
+        },
+      },
+    });
   }
 
   private loadTemplate(): IPromise<void> {
-    return ReactInjector.pipelineTemplateService.getPipelineTemplateFromSourceUrl(this.source, this.executionId, this.pipelineId)
-      .then(template => { this.template = template });
+    return ReactInjector.pipelineTemplateService
+      .getPipelineTemplateFromSourceUrl(this.source, this.executionId, this.pipelineId)
+      .then(template => {
+        this.template = template;
+      });
   }
 
   private transformVariablesForPipelinePlan(): { [key: string]: any } {
@@ -173,7 +182,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
         hideErrors: true,
       };
     });
-    this.variables.forEach(v => v.errors = ReactInjector.variableValidatorService.validate(v));
+    this.variables.forEach(v => (v.errors = ReactInjector.variableValidatorService.validate(v)));
   }
 
   private getInitialVariableValue(variable: IVariableMetadata): any {
@@ -186,11 +195,13 @@ export class ConfigurePipelineTemplateModalController implements IController {
     } else if (variable.type === 'object' && has(variable, 'defaultValue')) {
       return dump(variable.defaultValue);
     } else {
-      return (variable.type === 'list' && !variable.defaultValue) ? [''] : variable.defaultValue;
+      return variable.type === 'list' && !variable.defaultValue ? [''] : variable.defaultValue;
     }
   }
 }
 
 export const CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL = 'spinnaker.core.pipeline.configureTemplate.modal.controller';
-module(CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, [PIPELINE_TEMPLATE_SERVICE])
-  .controller('ConfigurePipelineTemplateModalCtrl', ConfigurePipelineTemplateModalController);
+module(CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, [PIPELINE_TEMPLATE_SERVICE]).controller(
+  'ConfigurePipelineTemplateModalCtrl',
+  ConfigurePipelineTemplateModalController,
+);

@@ -23,10 +23,12 @@ export class TravisTrigger implements IController {
   public fiatEnabled: boolean;
   public serviceAccounts: string[];
 
-  constructor($scope: IScope,
-              public trigger: IBuildTrigger,
-              private igorService: IgorService,
-              serviceAccountService: ServiceAccountService) {
+  constructor(
+    $scope: IScope,
+    public trigger: IBuildTrigger,
+    private igorService: IgorService,
+    serviceAccountService: ServiceAccountService,
+  ) {
     'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     serviceAccountService.getServiceAccounts().then(accounts => {
@@ -45,12 +47,12 @@ export class TravisTrigger implements IController {
   public refreshMasters(): void {
     this.viewState.mastersRefreshing = true;
     this.initializeMasters();
-  };
+  }
 
   public refreshJobs(): void {
     this.viewState.jobsRefreshing = true;
     this.updateJobsList();
-  };
+  }
 
   public shouldFilter(): boolean {
     return this.jobs && this.jobs.length >= this.filterThreshold;
@@ -87,37 +89,40 @@ module(TRAVIS_TRIGGER, [
   IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerTrigger({
-    label: 'Travis',
-    description: 'Listens to a Travis job',
-    key: 'travis',
-    controller: 'TravisTriggerCtrl',
-    controllerAs: '$ctrl',
-    templateUrl: require('./travisTrigger.html'),
-    manualExecutionHandler: 'travisTriggerExecutionHandler',
-    validators: [
-      {
-        type: 'requiredField',
-        fieldName: 'job',
-        message: '<strong>Job</strong> is a required field on Travis triggers.',
-      },
-      {
-        type: 'serviceAccountAccess',
-        message: `You do not have access to the service account configured in this pipeline's Travis trigger.
+])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+    pipelineConfigProvider.registerTrigger({
+      label: 'Travis',
+      description: 'Listens to a Travis job',
+      key: 'travis',
+      controller: 'TravisTriggerCtrl',
+      controllerAs: '$ctrl',
+      templateUrl: require('./travisTrigger.html'),
+      manualExecutionHandler: 'travisTriggerExecutionHandler',
+      validators: [
+        {
+          type: 'requiredField',
+          fieldName: 'job',
+          message: '<strong>Job</strong> is a required field on Travis triggers.',
+        },
+        {
+          type: 'serviceAccountAccess',
+          message: `You do not have access to the service account configured in this pipeline's Travis trigger.
                     You will not be able to save your edits to this pipeline.`,
-        preventSave: true,
-      }
-    ],
-  });
-}).factory('travisTriggerExecutionHandler', ($q: IQService) => {
-  // must provide two fields:
-  //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
-  //   selectorTemplate: provides the HTML to show extra fields
-  return {
-    formatLabel: (trigger: IBuildTrigger) => {
-      return $q.when(`(Travis) ${trigger.master}: ${trigger.job}`);
-    },
-    selectorTemplate: require('./selectorTemplate.html'),
-  };
-}).controller('TravisTriggerCtrl', TravisTrigger);
+          preventSave: true,
+        },
+      ],
+    });
+  })
+  .factory('travisTriggerExecutionHandler', ($q: IQService) => {
+    // must provide two fields:
+    //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
+    //   selectorTemplate: provides the HTML to show extra fields
+    return {
+      formatLabel: (trigger: IBuildTrigger) => {
+        return $q.when(`(Travis) ${trigger.master}: ${trigger.job}`);
+      },
+      selectorTemplate: require('./selectorTemplate.html'),
+    };
+  })
+  .controller('TravisTriggerCtrl', TravisTrigger);

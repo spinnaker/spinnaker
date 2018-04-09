@@ -4,13 +4,12 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.dcos.serverGroup.paramsMixin', [])
-  .factory('dcosServerGroupParamsMixin', function () {
-
+  .factory('dcosServerGroupParamsMixin', function() {
     function destroyServerGroup(serverGroup) {
       return {
         dcosCluster: serverGroup.dcosCluster,
         group: serverGroup.group,
-        interestingHealthProviderNames: ['DcosService']
+        interestingHealthProviderNames: ['DcosService'],
       };
     }
 
@@ -18,7 +17,7 @@ module.exports = angular
       return {
         dcosCluster: serverGroup.dcosCluster,
         group: serverGroup.group,
-        interestingHealthProviderNames: ['DcosService']
+        interestingHealthProviderNames: ['DcosService'],
       };
     }
 
@@ -26,7 +25,7 @@ module.exports = angular
       return {
         dcosCluster: serverGroup.dcosCluster,
         group: serverGroup.group,
-        interestingHealthProviderNames: ['DcosService']
+        interestingHealthProviderNames: ['DcosService'],
       };
     }
 

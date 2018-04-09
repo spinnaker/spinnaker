@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableAsgStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.openstack.pipeline.stage.disableAsgStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -16,24 +15,25 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableAsgSt
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('openstackDisableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('openstackDisableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function (accounts) {
+    accountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -53,5 +53,4 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableAsgSt
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-
   });

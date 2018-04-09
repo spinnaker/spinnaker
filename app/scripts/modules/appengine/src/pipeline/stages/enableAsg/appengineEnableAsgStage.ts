@@ -11,18 +11,19 @@ class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
     'ngInject';
     super($scope, accountService);
 
-    super.setAccounts()
-      .then(() => {
-        super.setStageRegion();
-      });
+    super.setAccounts().then(() => {
+      super.setStageRegion();
+    });
 
     super.setStageCloudProvider();
     super.setTargets();
     super.setStageCredentials();
 
-    if ($scope.stage.isNew &&
-        $scope.application.attributes.platformHealthOnlyShowOverride &&
-        $scope.application.attributes.platformHealthOnly) {
+    if (
+      $scope.stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       $scope.stage.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
   }
@@ -30,10 +31,7 @@ class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_ENABLE_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.enableAsgStage';
 
-module(APPENGINE_ENABLE_ASG_STAGE, [
-  ACCOUNT_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
-])
+module(APPENGINE_ENABLE_ASG_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
@@ -45,6 +43,7 @@ module(APPENGINE_ENABLE_ASG_STAGE, [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
-      ]
+      ],
     });
-  }).controller('appengineEnableAsgStageCtrl', AppengineEnableAsgStageCtrl);
+  })
+  .controller('appengineEnableAsgStageCtrl', AppengineEnableAsgStageCtrl);

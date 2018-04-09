@@ -8,26 +8,38 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
-  RECENT_HISTORY_SERVICE
+  RECENT_HISTORY_SERVICE,
 } from '@spinnaker/core';
 
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
-module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  require('google/common/xpnNaming.gce.service.js').name,
-  INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-  GCE_HTTP_LOAD_BALANCER_UTILS,
-])
-  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, instanceWriter, confirmationModalService,
-                                                  recentHistoryService, cloudProviderRegistry, instanceReader, instance,
-                                                  app, $q, gceHttpLoadBalancerUtils, gceXpnNamingService) {
-
+module.exports = angular
+  .module('spinnaker.instance.detail.gce.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    require('google/common/xpnNaming.gce.service.js').name,
+    INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+    GCE_HTTP_LOAD_BALANCER_UTILS,
+  ])
+  .controller('gceInstanceDetailsCtrl', function(
+    $scope,
+    $state,
+    $uibModal,
+    instanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+    $q,
+    gceHttpLoadBalancerUtils,
+    gceXpnNamingService,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
 
@@ -45,15 +57,14 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(
-        function(metric) {
-          return metric.type !== 'Google' || metric.state !== 'Unknown';
-        });
+      var displayableMetrics = instance.health.filter(function(metric) {
+        return metric.type !== 'Google' || metric.state !== 'Unknown';
+      });
 
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function (metric) {
-          var detailsMatch = latest.health.filter(function (latestHealth) {
+        displayableMetrics.forEach(function(metric) {
+          var detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -74,8 +85,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.data.some(function (serverGroup) {
-          return serverGroup.instances.some(function (possibleInstance) {
+        app.serverGroups.data.some(function(serverGroup) {
+          return serverGroup.instances.some(function(possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -88,8 +99,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another application
-          app.loadBalancers.data.some(function (loadBalancer) {
-            return loadBalancer.instances.some(function (possibleInstance) {
+          app.loadBalancers.data.some(function(loadBalancer) {
+            return loadBalancer.instances.some(function(possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = [loadBalancer.name];
@@ -102,12 +113,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           });
           if (!instanceSummary) {
             // perhaps it is in a disabled server group via a load balancer
-            app.loadBalancers.data.some(function (loadBalancer) {
-              return loadBalancer.serverGroups.some(function (serverGroup) {
+            app.loadBalancers.data.some(function(loadBalancer) {
+              return loadBalancer.serverGroups.some(function(serverGroup) {
                 if (!serverGroup.isDisabled) {
                   return false;
                 }
-                return serverGroup.instances.some(function (possibleInstance) {
+                return serverGroup.instances.some(function(possibleInstance) {
                   if (possibleInstance.id === instance.instanceId) {
                     instanceSummary = possibleInstance;
                     loadBalancers = [loadBalancer.name];
@@ -138,7 +149,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
             $scope.instance.loadBalancers = gceHttpLoadBalancerUtils.normalizeLoadBalancerNamesForAccount(
               loadBalancers,
               account,
-              app.getDataSource('loadBalancers').data);
+              app.getDataSource('loadBalancers').data,
+            );
           }
 
           $scope.instance.internalDnsName = $scope.instance.instanceId;
@@ -152,20 +164,30 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
           var projectId = gceXpnNamingService.deriveProjectId($scope.instance);
           $scope.instance.logsLink =
-            'https://console.developers.google.com/project/' + projectId + '/logs?service=gce_instance&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
+            'https://console.developers.google.com/project/' +
+            projectId +
+            '/logs?service=gce_instance&minLogLevel=0&filters=text:' +
+            $scope.instance.instanceId;
 
           $scope.instance.network = getNetwork(projectId);
           $scope.instance.subnet = getSubnet(projectId);
 
           $scope.instance.sshLink =
-            $scope.instance.selfLink.replace(/www.googleapis.com\/compute\/(alpha|beta|v1)/, 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
+            $scope.instance.selfLink.replace(
+              /www.googleapis.com\/compute\/(alpha|beta|v1)/,
+              'cloudssh.developers.google.com',
+            ) + '?authuser=0&hl=en_US';
 
-          $scope.instance.gcloudSSHCommand = 'gcloud compute ssh --project ' + projectId + ' --zone ' + $scope.instance.placement.availabilityZone + ' ' + instance.instanceId;
+          $scope.instance.gcloudSSHCommand =
+            'gcloud compute ssh --project ' +
+            projectId +
+            ' --zone ' +
+            $scope.instance.placement.availabilityZone +
+            ' ' +
+            instance.instanceId;
 
           augmentTagsWithHelp();
-        },
-          autoClose
-        );
+        }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -181,25 +203,39 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     function augmentTagsWithHelp() {
       if (_.has($scope, 'instance.tags.items') && _.has($scope, 'instance.securityGroups')) {
-        let securityGroups = _.chain($scope.instance.securityGroups).map(securityGroup => {
-          return _.find(app.securityGroups.data, { accountName: $scope.instance.account, region: 'global', id: securityGroup.groupId });
-        }).compact().value();
+        let securityGroups = _.chain($scope.instance.securityGroups)
+          .map(securityGroup => {
+            return _.find(app.securityGroups.data, {
+              accountName: $scope.instance.account,
+              region: 'global',
+              id: securityGroup.groupId,
+            });
+          })
+          .compact()
+          .value();
 
         let helpMap = {};
 
         $scope.instance.tags.items.forEach(tag => {
-          let securityGroupsMatches = _.filter(securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
+          let securityGroupsMatches = _.filter(securityGroups, securityGroup =>
+            _.includes(securityGroup.targetTags, tag),
+          );
           let securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
 
           if (!_.isEmpty(securityGroupMatchNames)) {
             let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
 
-            helpMap[tag] = 'This tag associates this instance with security ' + groupOrGroups + ' <em>' + securityGroupMatchNames.join(', ') + '</em>.';
+            helpMap[tag] =
+              'This tag associates this instance with security ' +
+              groupOrGroups +
+              ' <em>' +
+              securityGroupMatchNames.join(', ') +
+              '</em>.';
           }
         });
 
@@ -219,16 +255,15 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canRegisterWithLoadBalancer = function() {
       var instance = $scope.instance;
-      var instanceLoadBalancerDoesNotSupportRegister = !app.loadBalancers || _.chain(app.loadBalancers.data)
-        .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
-        .map('name')
-        .intersection(instance.loadBalancers || [])
-        .value()
-        .length;
+      var instanceLoadBalancerDoesNotSupportRegister =
+        !app.loadBalancers ||
+        _.chain(app.loadBalancers.data)
+          .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
+          .map('name')
+          .intersection(instance.loadBalancers || [])
+          .value().length;
 
-      if (!instance.loadBalancers ||
-          !instance.loadBalancers.length ||
-          instanceLoadBalancerDoesNotSupportRegister) {
+      if (!instance.loadBalancers || !instance.loadBalancers.length || instanceLoadBalancerDoesNotSupportRegister) {
         return false;
       }
       var outOfService = instance.health.some(function(health) {
@@ -242,16 +277,15 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canDeregisterFromLoadBalancer = function() {
       var instance = $scope.instance;
-      var instanceLoadBalancerDoesNotSupportDeregister = !app.loadBalancers || _.chain(app.loadBalancers.data)
-        .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
-        .map('name')
-        .intersection(instance.loadBalancers || [])
-        .value()
-        .length;
+      var instanceLoadBalancerDoesNotSupportDeregister =
+        !app.loadBalancers ||
+        _.chain(app.loadBalancers.data)
+          .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
+          .map('name')
+          .intersection(instance.loadBalancers || [])
+          .value().length;
 
-      if (!instance.loadBalancers ||
-          !instance.loadBalancers.length ||
-          instanceLoadBalancerDoesNotSupportDeregister) {
+      if (!instance.loadBalancers || !instance.loadBalancers.length || instanceLoadBalancerDoesNotSupportDeregister) {
         return false;
       }
       var hasLoadBalancerHealth = instance.health.some(function(health) {
@@ -269,10 +303,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     };
 
     this.showInstanceActionsDivider = function() {
-      return this.canRegisterWithDiscovery() ||
+      return (
+        this.canRegisterWithDiscovery() ||
         this.hasHealthState('Discovery', 'Up') ||
         this.canRegisterWithLoadBalancer() ||
-        this.canDeregisterFromLoadBalancer();
+        this.canDeregisterFromLoadBalancer()
+      );
     };
 
     this.terminateInstance = function terminateInstance() {
@@ -282,14 +318,14 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
-        let params = {cloudProvider: 'gce'};
+      var submitMethod = function() {
+        let params = { cloudProvider: 'gce' };
 
         if (instance.serverGroup) {
           params.managedInstanceGroupName = instance.serverGroup;
@@ -304,7 +340,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         account: instance.account,
         provider: 'gce',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -315,13 +351,13 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app, {
           serverGroupName: instance.serverGroup,
           instanceIds: [instance.instanceId],
@@ -335,7 +371,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         account: instance.account,
         provider: 'gce',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -344,10 +380,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Rebooting ' + instance.instanceId
+        title: 'Rebooting ' + instance.instanceId,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.rebootInstance(instance, app, {
           // We can't really reliably do anything other than ignore health here.
           interestingHealthProviderNames: [],
@@ -360,7 +396,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         account: instance.account,
         provider: 'gce',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -370,10 +406,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames
+        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
@@ -382,7 +418,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -392,10 +428,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames
+        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
@@ -405,7 +441,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         provider: 'gce',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -414,10 +450,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Enabling ' + instance.instanceId + ' in discovery'
+        title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -426,7 +462,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -435,10 +471,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + instance.instanceId + ' in discovery'
+        title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -448,21 +484,20 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         provider: 'gce',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance;
-      return (instance.health.some(function (health) {
+      return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+    let initialize = app.isStandalone
+      ? retrieveInstance()
+      : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -475,6 +510,4 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     });
 
     $scope.account = instance.account;
-
-  }
-);
+  });

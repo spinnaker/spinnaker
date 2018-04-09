@@ -5,31 +5,34 @@ import { MANUAL_JUDGMENT_SERVICE, ManualJudgmentService } from './manualJudgment
 import { ExecutionService } from 'core/pipeline/service/execution.service';
 
 describe('Service: manualJudgment', () => {
-
   let $scope: IScope,
-      service: ManualJudgmentService,
-      $http: IHttpBackendService,
-      $q: IQService,
-      executionService: ExecutionService;
+    service: ManualJudgmentService,
+    $http: IHttpBackendService,
+    $q: IQService,
+    executionService: ExecutionService;
 
   beforeEach(mock.module(MANUAL_JUDGMENT_SERVICE));
 
-  beforeEach(mock.inject(($rootScope: IRootScopeService,
-                          manualJudgmentService: ManualJudgmentService,
-                          $httpBackend: IHttpBackendService,
-                          _$q_: IQService,
-                          _executionService_: ExecutionService) => {
-    $scope = $rootScope.$new();
-    service = manualJudgmentService;
-    $http = $httpBackend;
-    $q = _$q_;
-    executionService = _executionService_;
-  }));
+  beforeEach(
+    mock.inject(
+      (
+        $rootScope: IRootScopeService,
+        manualJudgmentService: ManualJudgmentService,
+        $httpBackend: IHttpBackendService,
+        _$q_: IQService,
+        _executionService_: ExecutionService,
+      ) => {
+        $scope = $rootScope.$new();
+        service = manualJudgmentService;
+        $http = $httpBackend;
+        $q = _$q_;
+        executionService = _executionService_;
+      },
+    ),
+  );
 
   describe('provideJudgment', () => {
-    let execution: any,
-        stage: any,
-        requestUrl: string;
+    let execution: any, stage: any, requestUrl: string;
     beforeEach(() => {
       execution = { id: 'ex-id' };
       stage = { id: 'stage-id' };
@@ -43,7 +46,7 @@ describe('Service: manualJudgment', () => {
       $http.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
 
-      service.provideJudgment(execution, stage, 'continue').then(() => succeeded = true);
+      service.provideJudgment(execution, stage, 'continue').then(() => (succeeded = true));
 
       $http.flush();
       expect(succeeded).toBe(false);
@@ -58,12 +61,12 @@ describe('Service: manualJudgment', () => {
     it('should fail when waitUntilExecutionMatches fails', () => {
       const deferred: IDeferred<boolean> = $q.defer();
       let succeeded = false,
-          failed = false;
+        failed = false;
 
       $http.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
 
-      service.provideJudgment(execution, stage, 'continue').then(() => succeeded = true, () => failed = true);
+      service.provideJudgment(execution, stage, 'continue').then(() => (succeeded = true), () => (failed = true));
 
       $http.flush();
       expect(succeeded).toBe(false);
@@ -79,16 +82,15 @@ describe('Service: manualJudgment', () => {
 
     it('should fail when patch call fails', () => {
       let succeeded = false,
-          failed = false;
+        failed = false;
 
       $http.expectPATCH(requestUrl).respond(503, '');
 
-      service.provideJudgment(execution, stage, 'continue').then(() => succeeded = true, () => failed = true);
+      service.provideJudgment(execution, stage, 'continue').then(() => (succeeded = true), () => (failed = true));
 
       $http.flush();
       expect(succeeded).toBe(false);
       expect(failed).toBe(true);
     });
-
   });
 });

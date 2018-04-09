@@ -10,5 +10,5 @@ export interface IRunningTasksTagProps {
 export const runningTasksTagBindings: Record<keyof IRunningTasksTagProps, string> = {
   application: '=',
   tasks: '=',
-  executions: '='
+  executions: '=',
 };

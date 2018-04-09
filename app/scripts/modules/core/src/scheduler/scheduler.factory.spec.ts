@@ -8,9 +8,7 @@ describe('scheduler', function() {
 
   beforeEach(function() {
     const pollSchedule = 25;
-    mock.module(
-      SCHEDULER_FACTORY
-    );
+    mock.module(SCHEDULER_FACTORY);
 
     this.pollSchedule = pollSchedule;
 
@@ -37,7 +35,7 @@ describe('scheduler', function() {
       expect(this.test.call.calls.count() - pre).toBe(numSubscribers);
     });
 
-    it('does not fire next repeatedly when scheduleImmediate is called within the interval window', function () {
+    it('does not fire next repeatedly when scheduleImmediate is called within the interval window', function() {
       spyOn(this.test, 'call');
       this.scheduler.subscribe(this.test.call);
       this.scheduler.scheduleImmediate();

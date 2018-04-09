@@ -78,12 +78,11 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
 
   public componentDidMount() {
     const shouldShowEvents = ['mouseenter', 'mouseover'];
-    const showHideMouseEvents$ = this.mouseEvents$
-      .map((event: React.MouseEvent<any>) => {
-        const shouldOpen = shouldShowEvents.includes(event.type);
-        const eventDelay = shouldOpen ? this.props.delayShow : this.props.delayHide;
-        return { shouldOpen, eventDelay, animation: true };
-      });
+    const showHideMouseEvents$ = this.mouseEvents$.map((event: React.MouseEvent<any>) => {
+      const shouldOpen = shouldShowEvents.includes(event.type);
+      const eventDelay = shouldOpen ? this.props.delayShow : this.props.delayHide;
+      return { shouldOpen, eventDelay, animation: true };
+    });
 
     const hideProgramatically$ = this.hidePopoverEvents$.map(() => {
       return { shouldOpen: false, eventDelay: 0, animation: false };
@@ -141,19 +140,26 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     const { Component, template, placement, container, hOffsetPercent, id, title, className } = this.props;
     const { popoverIsOpen, animation, placementOverride } = this.state;
 
-    const popoverContent: JSX.Element = Component ?
-      <Component {...this.props} hidePopover={() => this.hidePopoverEvents$.next()}/> :
-      template;
+    const popoverContent: JSX.Element = Component ? (
+      <Component {...this.props} hidePopover={() => this.hidePopoverEvents$.next()} />
+    ) : (
+      template
+    );
 
     return (
       <g onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent} ref={this.refCallback}>
         {this.props.children}
-        <Overlay show={popoverIsOpen} animation={animation} placement={placementOverride || placement} target={this.target as any} container={container}>
+        <Overlay
+          show={popoverIsOpen}
+          animation={animation}
+          placement={placementOverride || placement}
+          target={this.target as any}
+          container={container}
+        >
           <PopoverOffset
             ref={this.rendererRefCallback}
             onMouseOver={this.handleMouseEvent}
             onMouseLeave={this.handleMouseEvent}
-
             offsetPercent={hOffsetPercent}
             id={id}
             title={title}
@@ -169,11 +175,11 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
 
 interface IPopoverOffsetProps extends PopoverProps {
   /** offsetPercent: a percent string between 0 and 99, e.g.: `50%`, `12%` or `90%` */
-  offsetPercent: string,
+  offsetPercent: string;
 }
 
 interface IPopoverOffsetState {
-  offset: number,
+  offset: number;
 }
 
 /** Renders a Popover component, offset to the left or right */
@@ -192,15 +198,15 @@ class PopoverOffset extends React.Component<IPopoverOffsetProps, IPopoverOffsetS
     const { offsetPercent } = props;
     const parsePercent = (str: string) => {
       const match = /(\d+(?:\.\d+)?)%/.exec(str);
-      return match ? parseFloat(match[1]) / 100 : .5;
+      return match ? parseFloat(match[1]) / 100 : 0.5;
     };
 
     const desiredPercent = parsePercent(offsetPercent);
     const currentPercent = parsePercent(props.arrowOffsetLeft as string);
-    const deltaPercent = (desiredPercent - currentPercent);
+    const deltaPercent = desiredPercent - currentPercent;
 
     const width = ReactDOM.findDOMNode(this).clientWidth;
-    const offset = 0 - (width * deltaPercent);
+    const offset = 0 - width * deltaPercent;
 
     return { offset: offset };
   }
@@ -212,10 +218,9 @@ class PopoverOffset extends React.Component<IPopoverOffsetProps, IPopoverOffsetS
     if (offset) {
       const { style } = this.props;
       const offsetStyle = Object.assign({}, style, { left: style.left + offset });
-      return <Popover {...rest} style={offsetStyle} arrowOffsetLeft={offsetPercent} />
+      return <Popover {...rest} style={offsetStyle} arrowOffsetLeft={offsetPercent} />;
     } else {
-      return <Popover {...rest} />
+      return <Popover {...rest} />;
     }
   }
 }
-

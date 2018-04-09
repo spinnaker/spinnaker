@@ -4,8 +4,20 @@ import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { IServerGroup, IInstanceCounts } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import {
-  AccountCell, BasicCell, HrefCell, HealthCountsCell, searchResultTypeRegistry, ISearchColumn, DefaultSearchResultTab,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, SearchResultType, ISearchResultSet,
+  AccountCell,
+  BasicCell,
+  HrefCell,
+  HealthCountsCell,
+  searchResultTypeRegistry,
+  ISearchColumn,
+  DefaultSearchResultTab,
+  ISearchResult,
+  HeaderCell,
+  TableBody,
+  TableHeader,
+  TableRow,
+  SearchResultType,
+  ISearchResultSet,
 } from 'core/search';
 
 import './serverGroup.less';
@@ -39,7 +51,9 @@ interface IServerGroupTuple {
 
 const makeServerGroupTuples = (sgToFetch: IServerGroupSearchResult[], fetched: IServerGroup[]): IServerGroupTuple[] => {
   const findFetchedValue = (toFetch: IServerGroupSearchResult) =>
-    fetched.find(sg => sg.name === toFetch.serverGroup && sg.account === toFetch.account && sg.region === toFetch.region);
+    fetched.find(
+      sg => sg.name === toFetch.serverGroup && sg.account === toFetch.account && sg.region === toFetch.region,
+    );
   return sgToFetch.map(toFetch => ({ toFetch, fetched: findFetchedValue(toFetch) }));
 };
 
@@ -60,7 +74,9 @@ const fetchServerGroups = (toFetch: IServerGroupSearchResult[]): Observable<ISer
  * This component waits until it is rendered, then starts fetching instance counts.
  * It mutates the input search results and then passes the data to the nested component.
  */
-const AddHealthCounts = (RawComponent: React.ComponentType<IServerGroupDataProps>): React.ComponentType<IServerGroupDataProps> => {
+const AddHealthCounts = (
+  RawComponent: React.ComponentType<IServerGroupDataProps>,
+): React.ComponentType<IServerGroupDataProps> => {
   return class FetchHealthCounts extends React.Component<IServerGroupDataProps, IServerGroupDataState> {
     public state = { serverGroups: [] } as any;
     private results$ = new BehaviorSubject<IServerGroupSearchResult[]>([]);
@@ -77,19 +93,22 @@ const AddHealthCounts = (RawComponent: React.ComponentType<IServerGroupDataProps
       const processBatch = (batch: IServerGroupSearchResult[]): Observable<IServerGroupTuple[]> =>
         fetchServerGroups(batch).catch(() => failedFetch(batch));
 
-      this.results$.mergeMap((searchResults: IServerGroupSearchResult[]) => {
-        return Observable.from(searchResults)
-          .filter(result => result.instanceCounts === undefined)
-          // Serially fetch instance counts in batches of 25
-          .bufferCount(25)
-          .concatMap(processBatch);
-      })
-      .takeUntil(this.stop$)
-      .subscribe((tuples: IServerGroupTuple[]) => {
-        tuples.forEach(result => result.toFetch.instanceCounts = result.fetched.instanceCounts);
-        const resultSet = { ...this.props.resultSet, results: this.results$.value.slice() };
-        this.setState({ resultSet });
-      });
+      this.results$
+        .mergeMap((searchResults: IServerGroupSearchResult[]) => {
+          return (
+            Observable.from(searchResults)
+              .filter(result => result.instanceCounts === undefined)
+              // Serially fetch instance counts in batches of 25
+              .bufferCount(25)
+              .concatMap(processBatch)
+          );
+        })
+        .takeUntil(this.stop$)
+        .subscribe((tuples: IServerGroupTuple[]) => {
+          tuples.forEach(result => (result.toFetch.instanceCounts = result.fetched.instanceCounts));
+          const resultSet = { ...this.props.resultSet, results: this.results$.value.slice() };
+          this.setState({ resultSet });
+        });
     }
 
     private applyServerGroups(resultSet: ISearchResultSet<IServerGroupSearchResult>) {
@@ -100,7 +119,7 @@ const AddHealthCounts = (RawComponent: React.ComponentType<IServerGroupDataProps
 
       const serverGroups = resultSet.results.slice().sort(itemSortFn);
       this.results$.next(serverGroups);
-      this.setState({ resultSet: { ...resultSet, results: serverGroups } })
+      this.setState({ resultSet: { ...resultSet, results: serverGroups } });
     }
 
     public componentDidMount() {
@@ -117,9 +136,9 @@ const AddHealthCounts = (RawComponent: React.ComponentType<IServerGroupDataProps
     }
 
     public render() {
-      return <RawComponent resultSet={this.props.resultSet} />
+      return <RawComponent resultSet={this.props.resultSet} />;
     }
-  }
+  };
 };
 
 class ServerGroupSearchResultType extends SearchResultType<IServerGroupSearchResult> {
@@ -140,17 +159,16 @@ class ServerGroupSearchResultType extends SearchResultType<IServerGroupSearchRes
 
   public HeaderComponent = () => (
     <TableHeader>
-      <HeaderCell col={this.cols.SERVERGROUP}/>
-      <HeaderCell col={this.cols.ACCOUNT}/>
-      <HeaderCell col={this.cols.REGION}/>
-      <HeaderCell col={this.cols.EMAIL}/>
-      <HeaderCell col={this.cols.HEALTH}/>
+      <HeaderCell col={this.cols.SERVERGROUP} />
+      <HeaderCell col={this.cols.ACCOUNT} />
+      <HeaderCell col={this.cols.REGION} />
+      <HeaderCell col={this.cols.EMAIL} />
+      <HeaderCell col={this.cols.HEALTH} />
     </TableHeader>
   );
 
   private RawDataComponent = ({ resultSet }: { resultSet: ISearchResultSet<IServerGroupSearchResult> }) => {
-    const itemKeyFn = (item: IServerGroupSearchResult) =>
-      [item.serverGroup, item.account, item.region].join('|');
+    const itemKeyFn = (item: IServerGroupSearchResult) => [item.serverGroup, item.account, item.region].join('|');
 
     const results = resultSet.results.slice();
 

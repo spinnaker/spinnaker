@@ -10,26 +10,37 @@ import {
   NAMING_SERVICE,
   NETWORK_READ_SERVICE,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
-  require('@uirouter/angularjs').default,
-  LOAD_BALANCER_WRITE_SERVICE,
-  ACCOUNT_SERVICE,
-  require('../loadBalancer.transformer.js').name,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-  INFRASTRUCTURE_CACHE_SERVICE,
-  NAMING_SERVICE,
-  NETWORK_READ_SERVICE,
-])
-  .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
-                                                      accountService, azureLoadBalancerTransformer,
-                                                      infrastructureCaches, networkReader,
-                                                      v2modalWizardService, loadBalancerWriter, taskMonitorBuilder,
-                                                      namingService, application, loadBalancer, isNew) {
-
+module.exports = angular
+  .module('spinnaker.azure.loadBalancer.create.controller', [
+    require('@uirouter/angularjs').default,
+    LOAD_BALANCER_WRITE_SERVICE,
+    ACCOUNT_SERVICE,
+    require('../loadBalancer.transformer.js').name,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    INFRASTRUCTURE_CACHE_SERVICE,
+    NAMING_SERVICE,
+    NETWORK_READ_SERVICE,
+  ])
+  .controller('azureCreateLoadBalancerCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    accountService,
+    azureLoadBalancerTransformer,
+    infrastructureCaches,
+    networkReader,
+    v2modalWizardService,
+    loadBalancerWriter,
+    taskMonitorBuilder,
+    namingService,
+    application,
+    loadBalancer,
+    isNew,
+  ) {
     var ctrl = this;
 
     $scope.pages = {
@@ -70,7 +81,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
@@ -79,7 +89,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     });
 
     function initializeCreateMode() {
-      accountService.listAccounts('azure').then(function (accounts) {
+      accountService.listAccounts('azure').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
         ctrl.accountUpdated();
@@ -106,25 +116,31 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials,
-          region = $scope.loadBalancer.region;
+        region = $scope.loadBalancer.region;
 
       const accountLoadBalancersByRegion = {};
-      application.getDataSource('loadBalancers').refresh(true).then(() => {
-        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-          if (loadBalancer.account === account) {
-            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-          }
-        });
+      application
+        .getDataSource('loadBalancers')
+        .refresh(true)
+        .then(() => {
+          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+            if (loadBalancer.account === account) {
+              accountLoadBalancersByRegion[loadBalancer.region] =
+                accountLoadBalancersByRegion[loadBalancer.region] || [];
+              accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+            }
+          });
 
-        $scope.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
-      });
+          $scope.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
+        });
     }
 
     initializeController();
 
-    this.requiresHealthCheckPath = function () {
-      return $scope.loadBalancer.probes[0].probeProtocol && $scope.loadBalancer.probes[0].probeProtocol.indexOf('HTTP') === 0;
+    this.requiresHealthCheckPath = function() {
+      return (
+        $scope.loadBalancer.probes[0].probeProtocol && $scope.loadBalancer.probes[0].probeProtocol.indexOf('HTTP') === 0
+      );
     };
 
     this.updateName = function() {
@@ -133,7 +149,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
     this.getName = function() {
       var elb = $scope.loadBalancer;
-      var elbName = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
+      var elbName = [application.name, elb.stack || '', elb.detail || ''].join('-');
       return _.trimEnd(elbName, '-');
     };
 
@@ -152,16 +168,16 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
 
     this.vnetUpdated = function() {
       var account = $scope.loadBalancer.credentials,
-          region = $scope.loadBalancer.region;
+        region = $scope.loadBalancer.region;
       $scope.loadBalancer.selectedVnet = null;
       $scope.loadBalancer.vnet = null;
       $scope.loadBalancer.vnetResourceGroup = null;
-      ctrl.selectedVnets = [ ];
+      ctrl.selectedVnets = [];
       infrastructureCaches.clearCache('networks');
 
       networkReader.listNetworks().then(function(vnets) {
         if (vnets.azure) {
-          vnets.azure.forEach((vnet) => {
+          vnets.azure.forEach(vnet => {
             if (vnet.account === account && vnet.region === region) {
               ctrl.selectedVnets.push(vnet);
             }
@@ -175,7 +191,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     this.subnetUpdated = function() {
       $scope.loadBalancer.selectedSubnet = null;
       $scope.loadBalancer.subnet = null;
-      ctrl.selectedSubnets = [ ];
+      ctrl.selectedSubnets = [];
     };
 
     this.selectedVnetChanged = function(item) {
@@ -183,7 +199,7 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
       $scope.loadBalancer.vnetResourceGroup = item.resourceGroup;
       $scope.loadBalancer.selectedSubnet = null;
       $scope.loadBalancer.subnet = null;
-      ctrl.selectedSubnets = [ ];
+      ctrl.selectedSubnets = [];
       if (item.subnets) {
         item.subnets.map(function(subnet) {
           var addSubnet = true;
@@ -206,53 +222,54 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
     };
 
     this.addListener = function() {
-      $scope.loadBalancer.loadBalancingRules.push({protocol: 'HTTP'});
+      $scope.loadBalancer.loadBalancingRules.push({ protocol: 'HTTP' });
     };
 
-    this.submit = function () {
+    this.submit = function() {
       var descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.taskMonitor.submit(
-        function() {
-          let params = { cloudProvider: 'azure', appName: application.name, clusterName: $scope.loadBalancer.clusterName,
-            resourceGroupName: $scope.loadBalancer.clusterName,
-            loadBalancerName: $scope.loadBalancer.name
-          };
+      $scope.taskMonitor.submit(function() {
+        let params = {
+          cloudProvider: 'azure',
+          appName: application.name,
+          clusterName: $scope.loadBalancer.clusterName,
+          resourceGroupName: $scope.loadBalancer.clusterName,
+          loadBalancerName: $scope.loadBalancer.name,
+        };
 
-          if($scope.loadBalancer.selectedVnet) {
-            $scope.loadBalancer.vnet = $scope.loadBalancer.selectedVnet.name;
-            $scope.loadBalancer.vnetResourceGroup = $scope.loadBalancer.selectedVnet.resourceGroup;
-          }
-
-          if($scope.loadBalancer.selectedSubnet) {
-            $scope.loadBalancer.subnet = $scope.loadBalancer.selectedSubnet.name;
-          }
-
-          var name = $scope.loadBalancer.clusterName || $scope.loadBalancer.name;
-          var probeName = name + '-probe';
-          var ruleNameBase = name + '-rule';
-          $scope.loadBalancer.type = 'upsertLoadBalancer';
-          if (!$scope.loadBalancer.vnet && !$scope.loadBalancer.subnetType) {
-            $scope.loadBalancer.securityGroups = null;
-          }
-
-          $scope.loadBalancer.probes[0].probeName = probeName;
-
-          $scope.loadBalancer.loadBalancingRules.forEach((rule, index) => {
-            rule.ruleName = ruleNameBase + index;
-            rule.probeName = probeName;
-          });
-
-          if ($scope.loadBalancer.probes[0].probeProtocol === 'TCP') {
-            $scope.loadBalancer.probes[0].probePath = undefined;
-          }
-
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+        if ($scope.loadBalancer.selectedVnet) {
+          $scope.loadBalancer.vnet = $scope.loadBalancer.selectedVnet.name;
+          $scope.loadBalancer.vnetResourceGroup = $scope.loadBalancer.selectedVnet.resourceGroup;
         }
-      );
+
+        if ($scope.loadBalancer.selectedSubnet) {
+          $scope.loadBalancer.subnet = $scope.loadBalancer.selectedSubnet.name;
+        }
+
+        var name = $scope.loadBalancer.clusterName || $scope.loadBalancer.name;
+        var probeName = name + '-probe';
+        var ruleNameBase = name + '-rule';
+        $scope.loadBalancer.type = 'upsertLoadBalancer';
+        if (!$scope.loadBalancer.vnet && !$scope.loadBalancer.subnetType) {
+          $scope.loadBalancer.securityGroups = null;
+        }
+
+        $scope.loadBalancer.probes[0].probeName = probeName;
+
+        $scope.loadBalancer.loadBalancingRules.forEach((rule, index) => {
+          rule.ruleName = ruleNameBase + index;
+          rule.probeName = probeName;
+        });
+
+        if ($scope.loadBalancer.probes[0].probeProtocol === 'TCP') {
+          $scope.loadBalancer.probes[0].probePath = undefined;
+        }
+
+        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

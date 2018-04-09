@@ -5,12 +5,17 @@ import { get, set } from 'lodash';
 
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize.controller', [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-])
-  .controller('kubernetesResizeServerGroupController', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorBuilder,
-                                                                application, serverGroup, kubernetesAutoscalerWriter) {
+module.exports = angular
+  .module('spinnaker.kubernetes.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .controller('kubernetesResizeServerGroupController', function(
+    $scope,
+    $uibModalInstance,
+    serverGroupWriter,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+    kubernetesAutoscalerWriter,
+  ) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = { desired: serverGroup.replicas };
     let hasAutoscaler = !!$scope.serverGroup.autoscalerStatus;
@@ -38,11 +43,9 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       var command = $scope.command;
-      return $scope.verification.verified
-        && command.capacity !== null
-        && command.capacity.desired !== null;
+      return $scope.verification.verified && command.capacity !== null && command.capacity.desired !== null;
     };
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -51,7 +54,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
       modalInstance: $uibModalInstance,
     });
 
-    this.resize = function () {
+    this.resize = function() {
       if (!this.isValid()) {
         return;
       }
@@ -88,7 +91,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

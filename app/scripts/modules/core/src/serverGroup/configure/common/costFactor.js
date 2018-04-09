@@ -2,20 +2,21 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.serverGroup.configure.common.costFactor', [])
+module.exports = angular
+  .module('spinnaker.core.serverGroup.configure.common.costFactor', [])
   .directive('costFactor', function() {
     return {
       restrict: 'E',
       scope: {
         factor: '=',
-        range: '='
+        range: '=',
       },
       templateUrl: require('./costFactor.html'),
       link: function(scope) {
         function getUsage(factor) {
           return {
             used: new Array(factor + 1).join('$'),
-            unused: new Array(5 - factor).join('$')
+            unused: new Array(5 - factor).join('$'),
           };
         }
         function applyFactors() {
@@ -30,7 +31,6 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.cos
         }
         applyFactors();
         scope.$watch('range', applyFactors);
-
-      }
+      },
     };
   });

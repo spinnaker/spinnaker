@@ -4,10 +4,10 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.gce.common.xpnNaming.service', [])
-  .factory('gceXpnNamingService', function () {
-
-    let deriveProjectId = (resourceWithSelfLink) => {
+module.exports = angular
+  .module('spinnaker.gce.common.xpnNaming.service', [])
+  .factory('gceXpnNamingService', function() {
+    let deriveProjectId = resourceWithSelfLink => {
       let pathSegments = resourceWithSelfLink.selfLink.split('/');
       return pathSegments[pathSegments.indexOf('projects') + 1];
     };

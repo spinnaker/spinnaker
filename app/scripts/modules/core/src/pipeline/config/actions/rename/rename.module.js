@@ -4,14 +4,18 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
 
-module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename', [
-  PIPELINE_CONFIG_SERVICE,
-])
-  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, $uibModalInstance, $log,
-                                                  pipelineConfigService) {
-
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.actions.rename', [PIPELINE_CONFIG_SERVICE])
+  .controller('RenamePipelineModalCtrl', function(
+    $scope,
+    application,
+    pipeline,
+    $uibModalInstance,
+    $log,
+    pipelineConfigService,
+  ) {
     this.cancel = $uibModalInstance.dismiss;
 
     var currentName = pipeline.name;
@@ -21,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
     $scope.pipeline = pipeline;
     $scope.existingNames = _.without(_.map(application.pipelineConfigs.data, 'name'), currentName);
     $scope.command = {
-      newName: currentName
+      newName: currentName,
     };
 
     this.renamePipeline = function() {
@@ -38,7 +42,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.actions.rename',
           $scope.viewState.saving = false;
           $scope.viewState.saveError = true;
           $scope.viewState.errorMessage = response.message || 'No message provided';
-        }
+        },
       );
     };
   });

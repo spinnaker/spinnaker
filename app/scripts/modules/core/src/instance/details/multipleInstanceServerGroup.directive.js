@@ -5,18 +5,16 @@ const angular = require('angular');
 import './multipleInstanceServerGroup.directive.less';
 
 module.exports = angular
-  .module('spinnaker.core.instance.details.multipleInstanceServerGroup.directive', [
-
-  ])
-  .directive('multipleInstanceServerGroup', function () {
+  .module('spinnaker.core.instance.details.multipleInstanceServerGroup.directive', [])
+  .directive('multipleInstanceServerGroup', function() {
     return {
       restrict: 'E',
       scope: {},
       bindToController: {
-        instanceGroup: '='
+        instanceGroup: '=',
       },
       controller: angular.noop,
       controllerAs: 'vm',
-      templateUrl: require('./multipleInstanceServerGroup.directive.html')
+      templateUrl: require('./multipleInstanceServerGroup.directive.html'),
     };
   });

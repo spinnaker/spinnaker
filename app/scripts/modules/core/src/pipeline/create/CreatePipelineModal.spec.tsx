@@ -6,7 +6,7 @@ import { CreatePipelineModal, ICreatePipelineModalProps } from './CreatePipeline
 import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 import {
   PIPELINE_TEMPLATE_SERVICE,
-  PipelineTemplateService
+  PipelineTemplateService,
 } from 'core/pipeline/config/templates/pipelineTemplate.service';
 import { ReactInjector, REACT_MODULE } from 'core/reactShims';
 import { Application } from 'core/application/application.model';
@@ -23,48 +23,43 @@ describe('CreatePipelineModal', () => {
   let pipelineConfigService: PipelineConfigService;
   let pipelineTemplateService: PipelineTemplateService;
 
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PIPELINE_CONFIG_SERVICE, PIPELINE_TEMPLATE_SERVICE, REACT_MODULE));
+
   beforeEach(
-    mock.module(
-      APPLICATION_MODEL_BUILDER,
-      PIPELINE_CONFIG_SERVICE,
-      PIPELINE_TEMPLATE_SERVICE,
-      REACT_MODULE
-    )
-  );
+    mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+      pipelineConfigService = ReactInjector.pipelineConfigService;
+      pipelineTemplateService = ReactInjector.pipelineTemplateService;
+      $q = _$q_;
+      $scope = $rootScope.$new();
+      initializeComponent = (configs = []) => {
+        application = applicationModelBuilder.createApplication(
+          'app',
+          {
+            key: 'pipelineConfigs',
+            lazy: true,
+            loader: () => $q.when(null),
+            onLoad: () => $q.when(null),
+          },
+          {
+            key: 'strategyConfigs',
+            lazy: true,
+            loader: () => $q.when(null),
+            onLoad: () => $q.when(null),
+          },
+        );
+        application.pipelineConfigs.data = configs;
 
-  beforeEach(mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
-    pipelineConfigService = ReactInjector.pipelineConfigService;
-    pipelineTemplateService = ReactInjector.pipelineTemplateService;
-    $q = _$q_;
-    $scope = $rootScope.$new();
-    initializeComponent = (configs = []) => {
-      application = applicationModelBuilder.createApplication(
-        'app',
-        {
-          key: 'pipelineConfigs',
-          lazy: true,
-          loader: () => $q.when(null),
-          onLoad: () => $q.when(null),
-        },
-        {
-          key: 'strategyConfigs',
-          lazy: true,
-          loader: () => $q.when(null),
-          onLoad: () => $q.when(null),
-        }
-      );
-      application.pipelineConfigs.data = configs;
+        const props: ICreatePipelineModalProps = {
+          application,
+          show: true,
+          showCallback: (): void => null,
+          pipelineSavedCallback: (): void => null,
+        };
 
-      const props: ICreatePipelineModalProps = {
-        application,
-        show: true,
-        showCallback: (): void => null,
-        pipelineSavedCallback: (): void => null,
+        component = shallow(<CreatePipelineModal {...props} />).instance() as CreatePipelineModal;
       };
-
-      component = shallow(<CreatePipelineModal {...props}/>).instance() as CreatePipelineModal;
-    };
-  }));
+    }),
+  );
 
   describe('config instantiation', () => {
     it('provides a default value when no configs exist', () => {
@@ -85,7 +80,7 @@ describe('CreatePipelineModal', () => {
     });
 
     it('initializes command with the default config', () => {
-      initializeComponent([ { name: 'some pipeline' } ]);
+      initializeComponent([{ name: 'some pipeline' }]);
       expect(component.state.configs.length).toBe(2);
       expect(component.state.configs[0].name).toBe('None');
       expect(component.state.configs[1].name).toBe('some pipeline');
@@ -100,7 +95,7 @@ describe('CreatePipelineModal', () => {
   });
 
   describe('template initialization', () => {
-    beforeEach(() => SETTINGS.feature.pipelineTemplates = true);
+    beforeEach(() => (SETTINGS.feature.pipelineTemplates = true));
     afterEach(SETTINGS.resetToOriginal);
 
     it('loads pipeline templates', () => {
@@ -113,7 +108,7 @@ describe('CreatePipelineModal', () => {
           {
             id: 'templateB',
             scopes: ['myApp'],
-          }
+          },
         ] as any;
         return $q.resolve(templates);
       });
@@ -175,9 +170,7 @@ describe('CreatePipelineModal', () => {
       let submitted: IPipeline = null;
 
       spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
-        application.pipelineConfigs.data = [
-          { name: 'new pipeline', id: '1234-5678' }
-        ];
+        application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
         return $q.when(null);
       });
       spyOn(pipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
@@ -198,10 +191,10 @@ describe('CreatePipelineModal', () => {
 
     it('uses copy of plain version of pipeline', () => {
       let submitted: IPipeline = null;
-      const  toCopy = {
+      const toCopy = {
         application: 'the_app',
         name: 'old_name',
-        triggers: [{ name: 'the_trigger', enabled: true, type: 'git' }]
+        triggers: [{ name: 'the_trigger', enabled: true, type: 'git' }],
       };
       initializeComponent([toCopy]);
 

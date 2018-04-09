@@ -1,25 +1,21 @@
 'use strict';
 
-describe('Directives: whatsNew', function () {
-
+describe('Directives: whatsNew', function() {
   require('./whatsNew.directive.html');
 
-  beforeEach(
-    window.module(
-      require('./whatsNew.directive').name,
-      require('angular-ui-bootstrap')
-    )
-  );
+  beforeEach(window.module(require('./whatsNew.directive').name, require('angular-ui-bootstrap')));
 
-  beforeEach(window.inject(function ($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $uibModal) {
-    this.scope = $rootScope.$new();
-    this.compile = $compile;
-    this.whatsNewReader = whatsNewReader;
-    this.viewStateCache = viewStateCache;
-    this.$filter = $filter;
-    this.$q = $q;
-    this.$uibModal = $uibModal;
-  }));
+  beforeEach(
+    window.inject(function($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $uibModal) {
+      this.scope = $rootScope.$new();
+      this.compile = $compile;
+      this.whatsNewReader = whatsNewReader;
+      this.viewStateCache = viewStateCache;
+      this.$filter = $filter;
+      this.$q = $q;
+      this.$uibModal = $uibModal;
+    }),
+  );
 
   function createWhatsNew(compile, scope) {
     var domNode;
@@ -37,15 +33,16 @@ describe('Directives: whatsNew', function () {
   }
 
   describe('with content', function() {
-
     beforeEach(function() {
       var lastUpdated = new Date().getTime();
       var expectedDate = this.$filter('timestamp')(lastUpdated);
 
-      spyOn(this.whatsNewReader, 'getWhatsNewContents').and.returnValue(this.$q.when({
-        contents: 'stuff',
-        lastUpdated: lastUpdated,
-      }));
+      spyOn(this.whatsNewReader, 'getWhatsNewContents').and.returnValue(
+        this.$q.when({
+          contents: 'stuff',
+          lastUpdated: lastUpdated,
+        }),
+      );
 
       this.lastUpdated = lastUpdated;
       this.expectedDate = expectedDate;
@@ -67,7 +64,7 @@ describe('Directives: whatsNew', function () {
           return {
             updateLastViewed: 'something else',
           };
-        }
+        },
       };
 
       domNode = createWhatsNew(this.compile, this.scope);
@@ -84,7 +81,7 @@ describe('Directives: whatsNew', function () {
           return {
             updateLastViewed: lastUpdated,
           };
-        }
+        },
       };
 
       domNode = createWhatsNew(this.compile, this.scope);
@@ -104,7 +101,7 @@ describe('Directives: whatsNew', function () {
         },
         put: function(id, val) {
           writtenToCache = val;
-        }
+        },
       };
       spyOn(this.$uibModal, 'open').and.returnValue({});
 
@@ -133,7 +130,5 @@ describe('Directives: whatsNew', function () {
 
       expect(domNode.find('ul').length).toBe(0);
     });
-
   });
-
 });

@@ -8,16 +8,17 @@ import { UpsertTargetTrackingController } from './upsertTargetTracking.controlle
 import { ScalingPolicyWriter } from '../scalingPolicy.write.service';
 
 class TargetTrackingSummaryController implements IComponentController {
-
   public policy: ITargetTrackingPolicy;
   public serverGroup: IServerGroup;
   public application: Application;
   public config: ITargetTrackingConfiguration;
   public popoverTemplate = require('./targetTrackingPopover.html');
 
-  constructor(private $uibModal: IModalService,
-              private scalingPolicyWriter: ScalingPolicyWriter,
-              private confirmationModalService: ConfirmationModalService) {
+  constructor(
+    private $uibModal: IModalService,
+    private scalingPolicyWriter: ScalingPolicyWriter,
+    private confirmationModalService: ConfirmationModalService,
+  ) {
     'ngInject';
   }
 
@@ -35,7 +36,7 @@ class TargetTrackingSummaryController implements IComponentController {
         policy: () => this.policy,
         serverGroup: () => this.serverGroup,
         application: () => this.application,
-      }
+      },
     });
   }
 
@@ -51,16 +52,16 @@ class TargetTrackingSummaryController implements IComponentController {
       account: this.serverGroup.account,
       provider: 'aws',
       taskMonitorConfig: taskMonitor,
-      submitMethod: () => this.scalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy)
+      submitMethod: () => this.scalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy),
     });
-  };
+  }
 }
 
 const component: IComponentOptions = {
   bindings: {
     policy: '<',
     serverGroup: '<',
-    application: '<'
+    application: '<',
   },
   controller: TargetTrackingSummaryController,
   template: `
@@ -89,7 +90,7 @@ const component: IComponentOptions = {
         </button>
       </div>
     </div>
-  `
+  `,
 };
 
 export const TARGET_TRACKING_SUMMARY_COMPONENT = 'spinnaker.amazon.scalingPolicy.targetTracking.summary.component';

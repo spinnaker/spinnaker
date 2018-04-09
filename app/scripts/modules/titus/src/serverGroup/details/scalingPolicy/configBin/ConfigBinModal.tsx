@@ -42,12 +42,11 @@ export interface IExpressionModel extends IClusterConfigExpression {
 
 @BindAll()
 export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfigBinModalState> {
-
   public static defaultProps: Partial<IConfigBinModalProps> = {
     config: {
       expressions: [],
-      email: null
-    }
+      email: null,
+    },
   };
 
   private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
@@ -67,7 +66,10 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     // only want to touch expressions in this account; will retain others to add back on save
     const allExpressions = props.config.expressions;
 
-    const [ editableExpressions, nonEditableExpressions ] = partition(allExpressions, e => e.account === props.awsAccountId);
+    const [editableExpressions, nonEditableExpressions] = partition(
+      allExpressions,
+      e => e.account === props.awsAccountId,
+    );
 
     const customExpressions: IClusterConfigExpression[] = [];
     const cannedExpressions: IExpressionModel[] = [];
@@ -98,7 +100,9 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
   private asConfigExpression(model: IExpressionModel): IClusterConfigExpression {
     const expression = cloneDeep(model);
     if (!model.isCustom) {
-      expression.atlasUri = `http://atlas-main.${model.region}.${model.env}.netflix.net/api/v1/graph?q=name,${model.metric},:eq,nf.cluster,${this.props.clusterName},:eq,:and,:sum,(,nf.asg,),:by`;
+      expression.atlasUri = `http://atlas-main.${model.region}.${model.env}.netflix.net/api/v1/graph?q=name,${
+        model.metric
+      },:eq,nf.cluster,${this.props.clusterName},:eq,:and,:sum,(,nf.asg,),:by`;
     }
     expression.comment = 'Created via Spinnaker';
     // might consider leaving these fields and using that to drive the custom/not-custom behavior
@@ -121,13 +125,13 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     uri = uri.replace('http://atlas-main.', '').replace(',:eq,:and,:sum,(,nf.asg,),:by', '');
     const parts = uri.split('/');
     // should now have [ us-east-1.prod.netflix.net, api, v1, (graph...) ]
-    const [ region, env ] = parts[0].split('.');
+    const [region, env] = parts[0].split('.');
     if (!region || !env || parts.length !== 4) {
       model.isCustom = true;
       return model;
     }
     // graph?q=name,cgroup.cpu.processingTime,:eq,nf.cluster,cbmigrate-titus-autoscale2,:eq,:and,:sum,(,nf.asg,),:by
-    const [ , metric, , , cluster ] = parts[3].split(',');
+    const [, metric, , , cluster] = parts[3].split(',');
     if (!cluster || !metric || cluster !== this.props.clusterName) {
       model.isCustom = true;
       return model;
@@ -148,8 +152,9 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     const { config, clusterName, application } = this.props;
     const { cannedExpressions, nonEditableExpressions, customExpressions } = this.state;
     const command = cloneDeep(config);
-    command.expressions = nonEditableExpressions
-      .concat(cannedExpressions.concat(customExpressions).map(e => this.asConfigExpression(e)));
+    command.expressions = nonEditableExpressions.concat(
+      cannedExpressions.concat(customExpressions).map(e => this.asConfigExpression(e)),
+    );
 
     const submitMethod = () => {
       const promise = ReactInjector.taskExecutor.executeTask({
@@ -160,8 +165,8 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
             type: 'upsertConfigBin',
             cluster: clusterName,
             config: command,
-          }
-        ]
+          },
+        ],
       });
       const done = () => this.setState({ saving: false });
       promise.then(done, done);
@@ -180,15 +185,17 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
   }
 
   private getExpressionTemplate(): IExpressionModel {
-   return {
+    return {
       account: this.props.awsAccountId,
       env: this.props.env,
       atlasUri: null,
       metricName: null,
-      dimensions: [{
-        name: 'AutoScalingGroupName',
-        value: '$(nf.asg)'
-      }],
+      dimensions: [
+        {
+          name: 'AutoScalingGroupName',
+          value: '$(nf.asg)',
+        },
+      ],
     };
   }
 
@@ -197,7 +204,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     newExpression.atlasUri = '';
     newExpression.metricName = '';
     newExpression.isCustom = true;
-    this.setState({ customExpressions: this.state.customExpressions.concat([newExpression]) })
+    this.setState({ customExpressions: this.state.customExpressions.concat([newExpression]) });
   }
 
   private removeCustomExpression(metric: IClusterConfigExpression): void {
@@ -228,21 +235,27 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     const { TaskMonitorWrapper } = NgReact;
     return (
       <Modal show={true} onHide={this.close}>
-
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
 
         <Modal.Header closeButton={true}>
           <h3>Edit Metrics</h3>
         </Modal.Header>
         <Modal.Body>
-          <p>Metrics must be forwarded from Atlas to Cloudwatch in order to use them in scaling policies. Metrics can be
-            forwarded via
-            the <a href="http://insight-docs.prod.netflix.net/atlas/autoscaling/#sending-custom-metrics" target="_blank">
+          <p>
+            Metrics must be forwarded from Atlas to Cloudwatch in order to use them in scaling policies. Metrics can be
+            forwarded via the{' '}
+            <a href="http://insight-docs.prod.netflix.net/atlas/autoscaling/#sending-custom-metrics" target="_blank">
               Atlas Java Client
-            </a>, or via ConfigBin, which can be configured <a href="https://configbin.prod.netflix.net/app/cloudwatch-forwarding/type/clusters/LATEST" target="_blank">here</a>.
+            </a>, or via ConfigBin, which can be configured{' '}
+            <a href="https://configbin.prod.netflix.net/app/cloudwatch-forwarding/type/clusters/LATEST" target="_blank">
+              here
+            </a>.
           </p>
-          <p>Additional information on metrics below can be found
-            in <a href="http://insight-docs.prod.netflix.net/glossary/cgroup-system/" target="_blank">the documentation</a>.
+          <p>
+            Additional information on metrics below can be found in{' '}
+            <a href="http://insight-docs.prod.netflix.net/glossary/cgroup-system/" target="_blank">
+              the documentation
+            </a>.
           </p>
           <div>
             {metricOptions.map(group => {
@@ -254,18 +267,14 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
                     return (
                       <div key={o.name} className="checkbox">
                         <label>
-                          <input
-                            type="checkbox"
-                            checked={enabled}
-                            value={o.name}
-                            onChange={this.optionToggled}
-                          />
-                          {o.name} <HelpField content={o.description}/>
+                          <input type="checkbox" checked={enabled} value={o.name} onChange={this.optionToggled} />
+                          {o.name} <HelpField content={o.description} />
                         </label>
                       </div>
                     );
                   })}
-                </div>)
+                </div>
+              );
             })}
           </div>
           <h4 style={{ marginTop: '20px' }}>Custom Metrics</h4>
@@ -278,24 +287,18 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
                 metricUpdated={this.metricUpdated}
                 metricRemoved={this.removeCustomExpression}
               />
-            )
+            );
           })}
           <button className="add-new btn btn-block btn-sm" onClick={this.addCustomExpression}>
-            <span className="glyphicon glyphicon-plus-sign"/>
+            <span className="glyphicon glyphicon-plus-sign" />
             Add custom expression
           </button>
         </Modal.Body>
         <Modal.Footer>
-          <button
-            className="btn btn-default"
-            onClick={this.close}
-          >
+          <button className="btn btn-default" onClick={this.close}>
             Cancel
           </button>
-          <button
-            className="btn btn-primary"
-            onClick={this.save}
-          >
+          <button className="btn btn-primary" onClick={this.save}>
             Update
           </button>
         </Modal.Footer>

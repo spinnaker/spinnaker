@@ -4,35 +4,39 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage..scaleDownClusterStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage..scaleDownClusterStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'scaleDownCluster',
       cloudProvider: 'gce',
       templateUrl: require('./scaleDownClusterStage.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        {
+          type: 'requiredField',
+          fieldName: 'remainingFullSizeServerGroups',
+          fieldLabel: 'Keep [X] full size Server Groups',
+        },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
       strategy: true,
     });
-  }).controller('gceScaleDownClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('gceScaleDownClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function (accounts) {
+    accountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -67,4 +71,3 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..scaleDownClusterS
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });
-

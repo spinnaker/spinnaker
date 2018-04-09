@@ -17,13 +17,15 @@ export interface IManualJudgmentExecutionLabelProps {
 export class ManualJudgmentExecutionLabel extends React.Component<IManualJudgmentExecutionLabelProps> {
   public render() {
     if (!this.props.executionMarker) {
-      return (<ExecutionBarLabel {...this.props}/>);
+      return <ExecutionBarLabel {...this.props} />;
     }
     const stage = this.props.stage;
     if (stage.isRunning) {
       const template = (
         <div>
-          <div><b>{stage.name}</b></div>
+          <div>
+            <b>{stage.name}</b>
+          </div>
           <ManualJudgmentApproval
             stage={stage.masterStage}
             application={this.props.application}
@@ -31,17 +33,13 @@ export class ManualJudgmentExecutionLabel extends React.Component<IManualJudgmen
           />
         </div>
       );
-      return (
-        <HoverablePopover template={template}>
-          {this.props.children}
-        </HoverablePopover>
-      );
+      return <HoverablePopover template={template}>{this.props.children}</HoverablePopover>;
     }
     const tooltip = <Tooltip id={stage.id}>{stage.name}</Tooltip>;
     return (
       <OverlayTrigger placement="top" overlay={tooltip}>
         <span>{this.props.children}</span>
       </OverlayTrigger>
-    )
+    );
   }
 }

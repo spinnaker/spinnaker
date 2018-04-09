@@ -1,5 +1,12 @@
 import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
-import { ILoadBalancer, ILoadBalancerDeleteCommand, ILoadBalancerUpsertCommand, IInstance, IInstanceCounts, ISubnet } from '@spinnaker/core';
+import {
+  ILoadBalancer,
+  ILoadBalancerDeleteCommand,
+  ILoadBalancerUpsertCommand,
+  IInstance,
+  IInstanceCounts,
+  ISubnet,
+} from '@spinnaker/core';
 import { IAmazonServerGroup } from './IAmazonServerGroup';
 
 export type ClassicListenerProtocol = 'HTTP' | 'HTTPS' | 'TCP' | 'SSL';
@@ -35,7 +42,6 @@ export interface IAmazonClassicLoadBalancer extends IAmazonLoadBalancer {
   healthyThreshold: number;
   listeners: IClassicListener[];
   unhealthyThreshold: number;
-
 }
 
 export interface IAmazonApplicationLoadBalancer extends IAmazonLoadBalancer {
@@ -185,7 +191,6 @@ export interface IAmazonClassicLoadBalancerUpsertCommand extends IAmazonLoadBala
   listeners: IClassicListenerDescription[];
   unhealthyThreshold?: number;
 }
-
 
 export interface IAmazonApplicationLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
   listeners: IALBListenerDescription[];

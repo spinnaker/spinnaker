@@ -7,12 +7,12 @@ import {
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
   TASK_MONITOR_BUILDER,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 
 import {
   GCE_HTTP_LOAD_BALANCER_UTILS,
-  GceHttpLoadBalancerUtils
+  GceHttpLoadBalancerUtils,
 } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 class Verification {
@@ -35,18 +35,19 @@ class DeleteLoadBalancerModalController implements IController {
   public params: Params = new Params();
   public taskMonitor: any;
 
-  constructor (private application: Application,
-               private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils,
-               private gceHttpLoadBalancerWriter: any,
-               private loadBalancer: any,
-               private loadBalancerWriter: LoadBalancerWriter,
-               private taskMonitorBuilder: TaskMonitorBuilder,
-               private $uibModalInstance: IModalInstanceService) {
+  constructor(
+    private application: Application,
+    private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils,
+    private gceHttpLoadBalancerWriter: any,
+    private loadBalancer: any,
+    private loadBalancerWriter: LoadBalancerWriter,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    private $uibModalInstance: IModalInstanceService,
+  ) {
     'ngInject';
   }
 
-  public $onInit (): void {
-
+  public $onInit(): void {
     const taskMonitorConfig = {
       application: this.application,
       title: 'Deleting ' + this.loadBalancer.name,
@@ -56,19 +57,19 @@ class DeleteLoadBalancerModalController implements IController {
     this.taskMonitor = this.taskMonitorBuilder.buildTaskMonitor(taskMonitorConfig);
   }
 
-  public isValid (): boolean {
+  public isValid(): boolean {
     return this.verification.verified;
   }
 
-  public submit (): void {
+  public submit(): void {
     this.taskMonitor.submit(this.getSubmitMethod());
   }
 
-  public cancel (): void {
+  public cancel(): void {
     this.$uibModalInstance.dismiss();
   }
 
-  public hasHealthChecks (): boolean {
+  public hasHealthChecks(): boolean {
     if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return true;
     } else {
@@ -76,7 +77,7 @@ class DeleteLoadBalancerModalController implements IController {
     }
   }
 
-  private getSubmitMethod (): {(): IPromise<any>} {
+  private getSubmitMethod(): { (): IPromise<any> } {
     if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return () => {
         return this.gceHttpLoadBalancerWriter.deleteLoadBalancers(this.loadBalancer, this.application, this.params);
@@ -100,10 +101,9 @@ class DeleteLoadBalancerModalController implements IController {
 
 export const DELETE_MODAL_CONTROLLER = 'spinnaker.gce.loadBalancer.deleteModal.controller';
 module(DELETE_MODAL_CONTROLLER, [
-    require('angular-ui-bootstrap'),
-    TASK_MONITOR_BUILDER,
-    LOAD_BALANCER_WRITE_SERVICE,
-    require('../../configure/http/httpLoadBalancer.write.service.js').name,
-    GCE_HTTP_LOAD_BALANCER_UTILS,
-  ])
-  .controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);
+  require('angular-ui-bootstrap'),
+  TASK_MONITOR_BUILDER,
+  LOAD_BALANCER_WRITE_SERVICE,
+  require('../../configure/http/httpLoadBalancer.write.service.js').name,
+  GCE_HTTP_LOAD_BALANCER_UTILS,
+]).controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);

@@ -5,25 +5,21 @@ import { Key } from 'core/widgets/Keys';
 import { DeleteType, ITag, ITagProps, Tag } from './Tag';
 
 describe('<Tag/>', () => {
-
   let component: ReactWrapper<ITagProps, any>;
 
   function getNewTag(): ITag {
     return {
       key: 'key',
-      text: 'some_text'
+      text: 'some_text',
     };
   }
 
-  function getNewTagComponent(tag: ITag,
-                              onDelete: (t: ITag, deleteType: DeleteType) => void,
-                              onKeyUp: (t: ITag, key: Key) => void): ReactWrapper<ITagProps, any> {
-    return mount(
-      <Tag
-        tag={tag}
-        onDelete={onDelete}
-        onKeyUp={onKeyUp}
-      />);
+  function getNewTagComponent(
+    tag: ITag,
+    onDelete: (t: ITag, deleteType: DeleteType) => void,
+    onKeyUp: (t: ITag, key: Key) => void,
+  ): ReactWrapper<ITagProps, any> {
+    return mount(<Tag tag={tag} onDelete={onDelete} onKeyUp={onKeyUp} />);
   }
 
   it('should display a tag', () => {
@@ -35,7 +31,6 @@ describe('<Tag/>', () => {
   });
 
   describe('tag callback event handling', () => {
-
     let tag: ITag;
     beforeEach(() => {
       tag = getNewTag();
@@ -43,7 +38,6 @@ describe('<Tag/>', () => {
 
     describe('handle key up event', () => {
       it('should call the keyUp handler with the left arrow key', (done: Function) => {
-
         function handleKeyUp(t: ITag, key: Key): void {
           expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);
@@ -55,8 +49,7 @@ describe('<Tag/>', () => {
       });
 
       it('should call the keyUp handler with the right arrow key', (done: Function) => {
-
-       function handleKeyUp(t: ITag, key: Key): void {
+        function handleKeyUp(t: ITag, key: Key): void {
           expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);
           expect(key).toBe(Key.RIGHT_ARROW);
@@ -69,7 +62,6 @@ describe('<Tag/>', () => {
 
     describe('handle remove click event', () => {
       it('should call the delete handler with the deletion type of backspace when the backspace key is pressed', (done: Function) => {
-
         function handleDelete(t: ITag, deleteType: DeleteType) {
           expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);
@@ -81,7 +73,6 @@ describe('<Tag/>', () => {
       });
 
       it('should call the delete handler with the deletion type of backspace when the delete key is pressed', (done: Function) => {
-
         function handleDelete(t: ITag, deleteType: DeleteType) {
           expect(t.key).toBe(tag.key);
           expect(t.text).toBe(tag.text);

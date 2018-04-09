@@ -3,10 +3,10 @@ import { StateDeclaration } from '@uirouter/angularjs';
 import { Subject } from 'rxjs';
 
 export interface IStateChange {
-  to: StateDeclaration,
-  from: StateDeclaration,
-  toParams: object,
-  fromParams: object
+  to: StateDeclaration;
+  from: StateDeclaration;
+  toParams: object;
+  fromParams: object;
 }
 
 export class StateEvents {
@@ -14,7 +14,13 @@ export class StateEvents {
 
   constructor(private $rootScope: IRootScopeService) {
     'ngInject';
-    const onChangeSuccess = (_event: IAngularEvent, to: StateDeclaration, toParams: object, from: StateDeclaration, fromParams: object) => {
+    const onChangeSuccess = (
+      _event: IAngularEvent,
+      to: StateDeclaration,
+      toParams: object,
+      from: StateDeclaration,
+      fromParams: object,
+    ) => {
       this.stateChangeSuccess.next({ to, toParams, from, fromParams });
     };
     this.$rootScope.$on('$stateChangeSuccess', onChangeSuccess);
@@ -23,5 +29,4 @@ export class StateEvents {
 
 export const STATE_EVENTS = 'spinnaker.core.state.events';
 
-module(STATE_EVENTS, [])
-  .service('stateEvents', StateEvents);
+module(STATE_EVENTS, []).service('stateEvents', StateEvents);

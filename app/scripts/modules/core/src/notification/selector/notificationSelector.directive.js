@@ -2,29 +2,28 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notification.selector.directive', [
-])
+module.exports = angular
+  .module('spinnaker.core.notification.selector.directive', [])
   .directive('notificationSelector', function() {
     return {
       restrict: 'E',
       bindToController: {
         notification: '=',
-        level: '='
+        level: '=',
       },
       scope: {},
       templateUrl: require('./notificationSelector.html'),
       controller: 'NotificationSelectorCtrl',
-      controllerAs: 'vm'
+      controllerAs: 'vm',
     };
   })
   .controller('NotificationSelectorCtrl', function(notificationTypeService) {
-
     this.notificationTypes = notificationTypeService.listNotificationTypes();
 
     this.originalType = this.notification.type;
     this.originalAddress = this.notification.address;
 
-    this.updateNotificationType = function () {
+    this.updateNotificationType = function() {
       if (this.notification.type === this.originalType) {
         this.notification.address = this.originalAddress;
       } else {
@@ -42,5 +41,4 @@ module.exports = angular.module('spinnaker.core.notification.selector.directive'
     }
 
     this.updateNotificationType();
-
   });

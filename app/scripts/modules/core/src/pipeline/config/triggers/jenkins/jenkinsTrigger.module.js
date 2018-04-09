@@ -1,20 +1,20 @@
 'use strict';
 
 const angular = require('angular');
-import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
-import {IGOR_SERVICE, BuildServiceType} from 'core/ci/igor.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-import {SETTINGS} from 'core/config/settings';
+import { SERVICE_ACCOUNT_SERVICE } from 'core/serviceAccount/serviceAccount.service.ts';
+import { IGOR_SERVICE, BuildServiceType } from 'core/ci/igor.service';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { SETTINGS } from 'core/config/settings';
 
-module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
-  require('./jenkinsTriggerOptions.directive.js').name,
-  require('../trigger.directive.js').name,
-  IGOR_SERVICE,
-  SERVICE_ACCOUNT_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.trigger.jenkins', [
+    require('./jenkinsTriggerOptions.directive.js').name,
+    require('../trigger.directive.js').name,
+    IGOR_SERVICE,
+    SERVICE_ACCOUNT_SERVICE,
+    PIPELINE_CONFIG_PROVIDER,
+  ])
   .config(function(pipelineConfigProvider) {
-
     pipelineConfigProvider.registerTrigger({
       label: 'Jenkins',
       description: 'Listens to a Jenkins job',
@@ -34,23 +34,22 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
           message: `You do not have access to the service account configured in this pipeline's Jenkins trigger.
                     You will not be able to save your edits to this pipeline.`,
           preventSave: true,
-        }
+        },
       ],
     });
   })
-  .factory('jenkinsTriggerExecutionHandler', function ($q) {
+  .factory('jenkinsTriggerExecutionHandler', function($q) {
     // must provide two fields:
     //   formatLabel (promise): used to supply the label for selecting a trigger when there are multiple triggers
     //   selectorTemplate: provides the HTML to show extra fields
     return {
-      formatLabel: (trigger) => {
+      formatLabel: trigger => {
         return $q.when(`(Jenkins) ${trigger.master}: ${trigger.job}`);
       },
       selectorTemplate: require('./selectorTemplate.html'),
     };
   })
   .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, serviceAccountService) {
-
     $scope.trigger = trigger;
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     serviceAccountService.getServiceAccounts().then(accounts => {
@@ -65,7 +64,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
     };
 
     function initializeMasters() {
-      igorService.listMasters(BuildServiceType.Jenkins).then(function (masters) {
+      igorService.listMasters(BuildServiceType.Jenkins).then(function(masters) {
         $scope.masters = masters;
         $scope.viewState.mastersLoaded = true;
         $scope.viewState.mastersRefreshing = false;
@@ -100,5 +99,4 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
     initializeMasters();
 
     $scope.$watch('trigger.master', updateJobsList);
-
   });

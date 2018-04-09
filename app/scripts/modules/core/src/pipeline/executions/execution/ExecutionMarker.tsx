@@ -33,12 +33,14 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     super(props);
 
     this.state = {
-      duration: duration(props.stage.runningTimeInMs)
+      duration: duration(props.stage.runningTimeInMs),
     };
   }
 
   public componentDidMount() {
-    this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setState({ duration: duration(time) }));
+    this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) =>
+      this.setState({ duration: duration(time) }),
+    );
   }
 
   public componentWillReceiveProps(nextProps: IExecutionMarkerProps) {
@@ -65,8 +67,8 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
       `execution-marker-${stage.status.toLowerCase()}`,
       active ? 'active' : '',
       previousStageActive ? 'after-active' : '',
-      stage.isRunning ? 'glowing' : ''
-      ].join(' ');
+      stage.isRunning ? 'glowing' : '',
+    ].join(' ');
 
     const TooltipComponent = stage.labelComponent;
     const MarkerIcon = stage.markerIcon;
@@ -76,9 +78,10 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
         style={{ width: width, backgroundColor: stage.color }}
         onClick={this.handleStageClick}
       >
-        <MarkerIcon stage={stage}/>
+        <MarkerIcon stage={stage} />
         <span className="duration">{this.state.duration}</span>
-      </div>);
+      </div>
+    );
     if (stage.useCustomTooltip) {
       return (
         <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
@@ -89,6 +92,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     return (
       <ExecutionBarLabel application={application} execution={execution} stage={stage} executionMarker={true}>
         {stageContents}
-      </ExecutionBarLabel>);
+      </ExecutionBarLabel>
+    );
   }
 }

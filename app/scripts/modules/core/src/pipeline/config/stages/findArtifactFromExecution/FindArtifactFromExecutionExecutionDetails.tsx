@@ -14,19 +14,19 @@ export function FindArtifactFromExecutionExecutionDetails(props: IExecutionDetai
           <dl className="dl-narrow dl-horizontal">
             <dt>Match Artifact</dt>
             <dd>{jsonUtilityService.makeSortedStringFromObject(stage.context.expectedArtifact.matchArtifact)}</dd>
-            { stage.context.expectedArtifact.useDefaultArtifact &&
-            <dt>Default Artifact</dt> }
-            { stage.context.expectedArtifact.useDefaultArtifact &&
-            <dd>{jsonUtilityService.makeSortedStringFromObject(stage.context.expectedArtifact.defaultArtifact)}</dd> }
+            {stage.context.expectedArtifact.useDefaultArtifact && <dt>Default Artifact</dt>}
+            {stage.context.expectedArtifact.useDefaultArtifact && (
+              <dd>{jsonUtilityService.makeSortedStringFromObject(stage.context.expectedArtifact.defaultArtifact)}</dd>
+            )}
           </dl>
         </div>
       </div>
 
-      <StageFailureMessage stage={stage} message={stage.outputs.exception}/>
-      <StageExecutionLogs stage={stage}/>
+      <StageFailureMessage stage={stage} message={stage.outputs.exception} />
+      <StageExecutionLogs stage={stage} />
     </ExecutionDetailsSection>
   );
-};
+}
 
 export namespace FindArtifactFromExecutionExecutionDetails {
   export const title = 'findArtifactFromExecutionConfig';

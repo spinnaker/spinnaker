@@ -4,12 +4,14 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage.bake.executionDetails.controller', [
-  require('@uirouter/angularjs').default,
-])
-  .controller('gceBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
-                                                       $interpolate) {
-
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
+  .controller('gceBakeExecutionDetailsCtrl', function(
+    $scope,
+    $stateParams,
+    executionDetailsSectionService,
+    $interpolate,
+  ) {
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -24,5 +26,4 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage.bake.executionDeta
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

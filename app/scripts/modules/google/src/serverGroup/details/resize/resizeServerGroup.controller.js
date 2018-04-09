@@ -4,14 +4,20 @@ const angular = require('angular');
 
 import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.google.serverGroup.details.resize.controller', [
-  TASK_MONITOR_BUILDER,
-  require('./resizeCapacity.component.js').name,
-  require('./resizeAutoscalingPolicy.component.js').name,
-  require('../../../common/footer.directive.js').name,
-])
-  .controller('gceResizeServerGroupCtrl', function($scope, $uibModalInstance, taskMonitorBuilder,
-                                                   application, serverGroup) {
+module.exports = angular
+  .module('spinnaker.google.serverGroup.details.resize.controller', [
+    TASK_MONITOR_BUILDER,
+    require('./resizeCapacity.component.js').name,
+    require('./resizeAutoscalingPolicy.component.js').name,
+    require('../../../common/footer.directive.js').name,
+  ])
+  .controller('gceResizeServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+  ) {
     $scope.serverGroup = serverGroup;
     $scope.application = application;
     $scope.verification = {};
@@ -26,7 +32,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       if (!$scope.verification.verified) {
         return false;
       }
@@ -39,7 +45,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
       modalInstance: $uibModalInstance,
     });
 
-    this.resize = function () {
+    this.resize = function() {
       this.submitting = true;
       if (!this.isValid()) {
         return;
@@ -48,7 +54,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
       $scope.taskMonitor.submit($scope.formMethods.submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

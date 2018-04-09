@@ -9,7 +9,7 @@ export class HttpLoadBalancerTemplate {
   public hostRules: HostRuleTemplate[] = [];
   public listeners: ListenerTemplate[] = [];
 
-  constructor (public credentials: string | null) {}
+  constructor(public credentials: string | null) {}
 }
 
 export class BackendServiceTemplate {

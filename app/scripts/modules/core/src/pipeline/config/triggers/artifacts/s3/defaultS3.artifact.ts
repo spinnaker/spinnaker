@@ -6,9 +6,7 @@ import { PipelineConfigProvider } from 'core/pipeline';
 import { isNil } from 'lodash';
 
 export const DEFAULT_S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultS3';
-module(DEFAULT_S3_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(DEFAULT_S3_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'S3',
     description: 'A S3 object.',
@@ -55,4 +53,3 @@ module(DEFAULT_S3_ARTIFACT, [
 `,
   });
 });
-

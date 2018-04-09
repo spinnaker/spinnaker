@@ -11,7 +11,12 @@ export class TravisExecutionLabel extends React.Component<{ stage: IExecutionSta
         <span className="tests-pass-count">{result.totalCount - result.failCount - result.skipCount}</span>
         {' / '}
         <span className="tests-fail-count">{result.failCount}</span>
-        {result.skipCount > 0 && (<span><span> / </span><span className="tests-skip-count">{result.skipCount}</span></span>)}
+        {result.skipCount > 0 && (
+          <span>
+            <span> / </span>
+            <span className="tests-skip-count">{result.skipCount}</span>
+          </span>
+        )}
         {' )'}
       </div>
     ));
@@ -19,9 +24,7 @@ export class TravisExecutionLabel extends React.Component<{ stage: IExecutionSta
     return (
       <span className="stage-label">
         <span>{this.props.stage.name}</span>
-        { buildInfo.number && (
-          <div>Build #{buildInfo.number}</div>
-        )}
+        {buildInfo.number && <div>Build #{buildInfo.number}</div>}
         {testResults}
       </span>
     );

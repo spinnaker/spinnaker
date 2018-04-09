@@ -6,15 +6,14 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.cf.serverGroup.transformer', [])
-  .factory('cfServerGroupTransformer', function ($q) {
-
+  .factory('cfServerGroupTransformer', function($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
-      var command = _.defaults({backingData: [], viewState: []}, base);
+      var command = _.defaults({ backingData: [], viewState: [] }, base);
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }

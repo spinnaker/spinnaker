@@ -32,26 +32,32 @@ export const getFallbackResults = (): ISearchResults<ISearchResult> => {
 };
 
 export class SearchService {
-  static get DEFAULT_PAGE_SIZE(): number { return 500; };
+  static get DEFAULT_PAGE_SIZE(): number {
+    return 500;
+  }
 
-  constructor(private $log: ILogService, private API: Api) { 'ngInject'; }
+  constructor(private $log: ILogService, private API: Api) {
+    'ngInject';
+  }
 
-  public search<T extends ISearchResult>(searchParams: ISearchParams, cache: ICache = null): IPromise<ISearchResults<T>> {
+  public search<T extends ISearchResult>(
+    searchParams: ISearchParams,
+    cache: ICache = null,
+  ): IPromise<ISearchResults<T>> {
     const defaultParams: ISearchParams = {
       pageSize: SearchService.DEFAULT_PAGE_SIZE,
     };
 
     const params = Object.assign(searchParams, defaultParams);
 
-    const requestBuilder = this.API
-      .one('search')
-      .withParams(params);
+    const requestBuilder = this.API.one('search').withParams(params);
 
     if (cache) {
       requestBuilder.useCache(cache);
     }
 
-    return requestBuilder.get()
+    return requestBuilder
+      .get()
       .then((response: ISearchResults<T>[]) => {
         return response[0] || getFallbackResults();
       })
@@ -63,5 +69,4 @@ export class SearchService {
 }
 
 export const SEARCH_SERVICE = 'spinnaker.core.search.service';
-module(SEARCH_SERVICE, [API_SERVICE])
-  .service('searchService', SearchService);
+module(SEARCH_SERVICE, [API_SERVICE]).service('searchService', SearchService);

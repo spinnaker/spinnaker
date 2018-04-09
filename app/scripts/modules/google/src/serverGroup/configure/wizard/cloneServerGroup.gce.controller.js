@@ -5,20 +5,33 @@ import _ from 'lodash';
 
 import { INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
-  require('@uirouter/angularjs').default,
-  require('google/instance/custom/customInstanceBuilder.gce.service.js').name,
-  INSTANCE_TYPE_SERVICE,
-  require('./hiddenMetadataKeys.value.js').name,
-  require('./securityGroups/tagManager.service.js').name
-])
-  .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state, $log,
-                                                  serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
-                                                  gceServerGroupConfigurationService,
-                                                  serverGroupCommand, application, title,
-                                                  gceCustomInstanceBuilderService, instanceTypeService,
-                                                  wizardSubFormValidation, gceServerGroupHiddenMetadataKeys,
-                                                  gceTagManager) {
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
+    require('@uirouter/angularjs').default,
+    require('google/instance/custom/customInstanceBuilder.gce.service.js').name,
+    INSTANCE_TYPE_SERVICE,
+    require('./hiddenMetadataKeys.value.js').name,
+    require('./securityGroups/tagManager.service.js').name,
+  ])
+  .controller('gceCloneServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    $state,
+    $log,
+    serverGroupWriter,
+    v2modalWizardService,
+    taskMonitorBuilder,
+    gceServerGroupConfigurationService,
+    serverGroupCommand,
+    application,
+    title,
+    gceCustomInstanceBuilderService,
+    instanceTypeService,
+    wizardSubFormValidation,
+    gceServerGroupHiddenMetadataKeys,
+    gceTagManager,
+  ) {
     $scope.pages = {
       templateSelection: require('./templateSelection/templateSelection.html'),
       basicSettings: require('./location/basicSettings.html'),
@@ -55,7 +68,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     };
 
     if (!$scope.command.viewState.disableStrategySelection) {
-      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+      this.templateSelectionText.notCopied.push(
+        'the deployment strategy (if any) used to deploy the most recent server group',
+      );
     }
 
     function onApplicationRefresh() {
@@ -63,7 +78,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       if ($scope.$$destroyed) {
         return;
       }
-      let cloneStage = $scope.taskMonitor.task.execution.stages.find((stage) => stage.type === 'cloneServerGroup');
+      let cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
         let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
@@ -74,13 +89,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
             provider: 'gce',
           };
           var transitionTo = '^.^.^.clusters.serverGroup';
-          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+          if ($state.includes('**.clusters.serverGroup')) {
+            // clone via details, all view
             transitionTo = '^.serverGroup';
           }
-          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+          if ($state.includes('**.clusters.cluster.serverGroup')) {
+            // clone or create with details open
             transitionTo = '^.^.serverGroup';
           }
-          if ($state.includes('**.clusters')) { // create new, no details open
+          if ($state.includes('**.clusters')) {
+            // create new, no details open
             transitionTo = '.serverGroup';
           }
           $state.go(transitionTo, newStateParams);
@@ -101,26 +119,29 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     });
 
     function configureCommand() {
-      gceServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
-        var mode = serverGroupCommand.viewState.mode;
-        if (mode === 'clone' || mode === 'create') {
-          if (!serverGroupCommand.backingData.packageImages || !serverGroupCommand.backingData.packageImages.length) {
-            serverGroupCommand.viewState.useAllImageSelection = true;
+      gceServerGroupConfigurationService
+        .configureCommand(application, serverGroupCommand)
+        .then(function() {
+          var mode = serverGroupCommand.viewState.mode;
+          if (mode === 'clone' || mode === 'create') {
+            if (!serverGroupCommand.backingData.packageImages || !serverGroupCommand.backingData.packageImages.length) {
+              serverGroupCommand.viewState.useAllImageSelection = true;
+            }
           }
-        }
-        $scope.state.loaded = true;
-        initializeSelectOptions();
-        initializeWatches();
-        wizardSubFormValidation
-          .config({ scope: $scope, form: 'form'})
-          .register({ page: 'location', subForm: 'basicSettings' })
-          .register({ page: 'capacity', subForm: 'capacitySubForm' })
-          .register({ page: 'zones', subForm: 'zonesSubForm' })
-          .register({ page: 'load-balancers', subForm: 'loadBalancerSubForm' })
-          .register({ page: 'autohealing-policy', subForm: 'autoHealingPolicySubForm' });
-      }).catch(e => {
-        $log.error('Error generating server group command: ', e);
-      });
+          $scope.state.loaded = true;
+          initializeSelectOptions();
+          initializeWatches();
+          wizardSubFormValidation
+            .config({ scope: $scope, form: 'form' })
+            .register({ page: 'location', subForm: 'basicSettings' })
+            .register({ page: 'capacity', subForm: 'capacitySubForm' })
+            .register({ page: 'zones', subForm: 'zonesSubForm' })
+            .register({ page: 'load-balancers', subForm: 'loadBalancerSubForm' })
+            .register({ page: 'autohealing-policy', subForm: 'autoHealingPolicySubForm' });
+        })
+        .catch(e => {
+          $log.error('Error generating server group command: ', e);
+        });
     }
 
     function initializeWatches() {
@@ -130,10 +151,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.$watch('command.network', createResultProcessor($scope.command.networkChanged));
       $scope.$watch('command.zone', createResultProcessor($scope.command.zoneChanged));
       $scope.$watch('command.viewState.instanceTypeDetails', updateStorageSettingsFromInstanceType());
-      $scope.$watch('command.viewState.customInstance', () => {
-        $scope.command.customInstanceChanged();
-        setInstanceTypeFromCustomChoices();
-      }, true);
+      $scope.$watch(
+        'command.viewState.customInstance',
+        () => {
+          $scope.command.customInstanceChanged();
+          setInstanceTypeFromCustomChoices();
+        },
+        true,
+      );
     }
 
     function initializeSelectOptions() {
@@ -173,22 +198,25 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
 
       let customInstanceChoices = [
-          _.get(c, 'viewState.customInstance.vCpuCount'),
-          _.get(c, 'viewState.customInstance.memory'),
-        ];
+        _.get(c, 'viewState.customInstance.vCpuCount'),
+        _.get(c, 'viewState.customInstance.memory'),
+      ];
 
-      if (_.every([...customInstanceChoices,
-                   gceCustomInstanceBuilderService
-                     .customInstanceChoicesAreValid(...customInstanceChoices, location, locationToInstanceTypesMap)])) {
+      if (
+        _.every([
+          ...customInstanceChoices,
+          gceCustomInstanceBuilderService.customInstanceChoicesAreValid(
+            ...customInstanceChoices,
+            location,
+            locationToInstanceTypesMap,
+          ),
+        ])
+      ) {
+        c.instanceType = gceCustomInstanceBuilderService.generateInstanceTypeString(...customInstanceChoices);
 
-        c.instanceType = gceCustomInstanceBuilderService
-          .generateInstanceTypeString(...customInstanceChoices);
-
-        instanceTypeService
-          .getInstanceTypeDetails(c.selectedProvider, 'buildCustom')
-          .then((instanceTypeDetails) => {
-            c.viewState.instanceTypeDetails = instanceTypeDetails;
-          });
+        instanceTypeService.getInstanceTypeDetails(c.selectedProvider, 'buildCustom').then(instanceTypeDetails => {
+          c.viewState.instanceTypeDetails = instanceTypeDetails;
+        });
       }
     }
 
@@ -205,20 +233,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       };
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       const selectedZones = $scope.command.selectZones && _.get($scope, 'command.distributionPolicy.zones.length') >= 1;
-      return $scope.command &&
+      return (
+        $scope.command &&
         ($scope.command.viewState.disableImageSelection || $scope.command.image) &&
-        ($scope.command.application) &&
-        ($scope.command.credentials) && ($scope.command.instanceType) &&
-        ($scope.command.region) && ($scope.command.regional || $scope.command.zone) &&
-        ($scope.command.capacity.desired !== null) &&
+        $scope.command.application &&
+        $scope.command.credentials &&
+        $scope.command.instanceType &&
+        $scope.command.region &&
+        ($scope.command.regional || $scope.command.zone) &&
+        $scope.command.capacity.desired !== null &&
         (!$scope.command.selectZones || selectedZones) &&
         $scope.form.$valid &&
-        v2modalWizardService.isComplete();
+        v2modalWizardService.isComplete()
+      );
     };
 
-    this.showSubmitButton = function () {
+    this.showSubmitButton = function() {
       return v2modalWizardService.allPagesVisited();
     };
 
@@ -226,29 +258,33 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       let metadata = {};
 
       if (_.get(loadBalancerNames, 'length') > 0) {
-        metadata = loadBalancerNames.reduce((metadata, name) => {
-          let loadBalancerDetails = loadBalancerIndex[name];
+        metadata = loadBalancerNames.reduce(
+          (metadata, name) => {
+            let loadBalancerDetails = loadBalancerIndex[name];
 
-          if (loadBalancerDetails.loadBalancerType === 'HTTP') {
-            metadata['global-load-balancer-names'] =
-              metadata['global-load-balancer-names']
-                .concat(loadBalancerDetails.listeners.map(listener => listener.name));
-          } else if (loadBalancerDetails.loadBalancerType === 'SSL') {
-            metadata['global-load-balancer-names'].push(name);
-          } else if (loadBalancerDetails.loadBalancerType === 'TCP') {
-            metadata['global-load-balancer-names'].push(name);
-          } else {
-            metadata['load-balancer-names'].push(name);
-          }
-          return metadata;
-        }, { 'load-balancer-names' : [], 'global-load-balancer-names': [] });
+            if (loadBalancerDetails.loadBalancerType === 'HTTP') {
+              metadata['global-load-balancer-names'] = metadata['global-load-balancer-names'].concat(
+                loadBalancerDetails.listeners.map(listener => listener.name),
+              );
+            } else if (loadBalancerDetails.loadBalancerType === 'SSL') {
+              metadata['global-load-balancer-names'].push(name);
+            } else if (loadBalancerDetails.loadBalancerType === 'TCP') {
+              metadata['global-load-balancer-names'].push(name);
+            } else {
+              metadata['load-balancer-names'].push(name);
+            }
+            return metadata;
+          },
+          { 'load-balancer-names': [], 'global-load-balancer-names': [] },
+        );
       }
 
       if (_.isObject(backendServices) && Object.keys(backendServices).length > 0) {
         metadata['backend-service-names'] = _.reduce(
           backendServices,
           (accumulatedBackends, backends) => accumulatedBackends.concat(backends),
-          []);
+          [],
+        );
       }
 
       for (let key in metadata) {
@@ -262,44 +298,48 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       return metadata;
     }
 
-    function collectLoadBalancerNamesForCommand (loadBalancerIndex, loadBalancerMetadata) {
+    function collectLoadBalancerNamesForCommand(loadBalancerIndex, loadBalancerMetadata) {
       let loadBalancerNames = [];
       if (loadBalancerMetadata['load-balancer-names']) {
         loadBalancerNames = loadBalancerNames.concat(loadBalancerMetadata['load-balancer-names'].split(','));
       }
 
       let selectedSslLoadBalancerNames = _.chain(loadBalancerIndex)
-        .filter({loadBalancerType: 'SSL'})
+        .filter({ loadBalancerType: 'SSL' })
         .map('name')
         .intersection(
           loadBalancerMetadata['global-load-balancer-names']
             ? loadBalancerMetadata['global-load-balancer-names'].split(',')
-            : [])
+            : [],
+        )
         .value();
 
       let selectedTcpLoadBalancerNames = _.chain(loadBalancerIndex)
-        .filter({loadBalancerType: 'TCP'})
+        .filter({ loadBalancerType: 'TCP' })
         .map('name')
         .intersection(
           loadBalancerMetadata['global-load-balancer-names']
             ? loadBalancerMetadata['global-load-balancer-names'].split(',')
-            : [])
+            : [],
+        )
         .value();
 
       return loadBalancerNames.concat(selectedSslLoadBalancerNames).concat(selectedTcpLoadBalancerNames);
     }
 
-    this.submit = function () {
+    this.submit = function() {
       // We use this list of load balancer names when 'Enabling' a server group.
       var loadBalancerMetadata = buildLoadBalancerMetadata(
         $scope.command.loadBalancers,
         $scope.command.backingData.filtered.loadBalancerIndex,
-        $scope.command.backendServices);
+        $scope.command.backendServices,
+      );
 
       var origLoadBalancers = $scope.command.loadBalancers;
       $scope.command.loadBalancers = collectLoadBalancerNamesForCommand(
         $scope.command.backingData.filtered.loadBalancerIndex,
-        loadBalancerMetadata);
+        loadBalancerMetadata,
+      );
 
       if ($scope.command.minCpuPlatform === '(Automatic)') {
         $scope.command.minCpuPlatform = '';
@@ -330,20 +370,18 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
-      $scope.taskMonitor.submit(
-        function() {
-          var promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
+      $scope.taskMonitor.submit(function() {
+        var promise = serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
 
-          // Copy back the original objects so the wizard can still be used if the command needs to be resubmitted.
-          $scope.command.instanceMetadata = _.omit($scope.command.instanceMetadata, gceServerGroupHiddenMetadataKeys);
+        // Copy back the original objects so the wizard can still be used if the command needs to be resubmitted.
+        $scope.command.instanceMetadata = _.omit($scope.command.instanceMetadata, gceServerGroupHiddenMetadataKeys);
 
-          $scope.command.tags = origTags;
-          $scope.command.loadBalancers = origLoadBalancers;
-          $scope.command.securityGroups = gceTagManager.inferSecurityGroupIdsFromTags($scope.command.tags);
+        $scope.command.tags = origTags;
+        $scope.command.loadBalancers = origLoadBalancers;
+        $scope.command.securityGroups = gceTagManager.inferSecurityGroupIdsFromTags($scope.command.tags);
 
-          return promise;
-        }
-      );
+        return promise;
+      });
     };
 
     this.onHealthCheckRefresh = function() {
@@ -354,15 +392,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.command.autoHealingPolicy = autoHealingPolicy;
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 
     this.specialInstanceProfiles = new Set(['custom', 'buildCustom']);
 
     // This function is called from within React, and without $apply, Angular does not know when it has been called.
-    $scope.command.setCustomInstanceViewState = (customInstanceChoices) => {
-      $scope.$apply(() => $scope.command.viewState.customInstance = customInstanceChoices);
+    $scope.command.setCustomInstanceViewState = customInstanceChoices => {
+      $scope.$apply(() => ($scope.command.viewState.customInstance = customInstanceChoices));
     };
 
     if (!$scope.state.requiresTemplateSelection) {

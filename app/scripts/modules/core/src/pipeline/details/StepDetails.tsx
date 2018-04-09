@@ -72,8 +72,12 @@ export class StepDetails extends React.Component<IStepDetailsProps, IStepDetails
             </h5>
           )}
         </div>
-        {sourceUrl && <StepExecutionDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} configSections={configSections} />}
-        {executionDetailsSections && <StepExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />}
+        {sourceUrl && (
+          <StepExecutionDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} configSections={configSections} />
+        )}
+        {executionDetailsSections && (
+          <StepExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />
+        )}
       </div>
     );
   }

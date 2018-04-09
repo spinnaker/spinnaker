@@ -50,10 +50,10 @@ export interface IPipelineTemplateConfig extends Partial<IPipeline> {
       pipelineConfigId?: string;
       template: {
         source: string;
-      }
+      };
       variables?: { [key: string]: any };
-    }
-  }
+    };
+  };
 }
 
 export interface IPipelineTemplatePlanResponse {
@@ -68,19 +68,25 @@ export interface IPipelineTemplatePlanError {
   location: string;
   cause: string;
   suggestion: string;
-  details: {[key: string]: string};
+  details: { [key: string]: string };
   nestedErrors: IPipelineTemplatePlanError[];
 }
 
 @BindAll()
 export class PipelineTemplateService {
-
   constructor(private API: Api, private $q: IQService) {
     'ngInject';
   }
 
-  public getPipelineTemplateFromSourceUrl(source: string, executionId?: String, pipelineConfigId?: string): IPromise<IPipelineTemplate> {
-    return this.API.one('pipelineTemplates').one('resolve').withParams({ source, executionId, pipelineConfigId }).get()
+  public getPipelineTemplateFromSourceUrl(
+    source: string,
+    executionId?: String,
+    pipelineConfigId?: string,
+  ): IPromise<IPipelineTemplate> {
+    return this.API.one('pipelineTemplates')
+      .one('resolve')
+      .withParams({ source, executionId, pipelineConfigId })
+      .get()
       .then((template: IPipelineTemplate) => {
         template.selfLink = source;
         return template;
@@ -88,22 +94,27 @@ export class PipelineTemplateService {
   }
 
   public getPipelinePlan(config: IPipelineTemplateConfig, executionId?: String): IPromise<IPipeline> {
-    return this.API.one('pipelines').one('start').post(Object.assign({}, config, { plan: true, executionId }));
+    return this.API.one('pipelines')
+      .one('start')
+      .post(Object.assign({}, config, { plan: true, executionId }));
   }
 
   public getPipelineTemplatesByScope(scope: string): IPromise<IPipelineTemplate[]> {
-    return this.API.one('pipelineTemplates').withParams({ scope }).get();
+    return this.API.one('pipelineTemplates')
+      .withParams({ scope })
+      .get();
   }
 
   public getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
-    return this.$q.all(scopes.map(this.getPipelineTemplatesByScope)).then((templates) => flatten(templates))
+    return this.$q
+      .all(scopes.map(this.getPipelineTemplatesByScope))
+      .then(templates => flatten(templates))
       .then(templates => {
-        templates.forEach(template => template.selfLink = `spinnaker://${template.id}`);
+        templates.forEach(template => (template.selfLink = `spinnaker://${template.id}`));
         return templates;
       });
   }
 }
 
 export const PIPELINE_TEMPLATE_SERVICE = 'spinnaker.core.pipelineTemplate.service';
-module(PIPELINE_TEMPLATE_SERVICE, [API_SERVICE])
-  .service('pipelineTemplateService', PipelineTemplateService);
+module(PIPELINE_TEMPLATE_SERVICE, [API_SERVICE]).service('pipelineTemplateService', PipelineTemplateService);

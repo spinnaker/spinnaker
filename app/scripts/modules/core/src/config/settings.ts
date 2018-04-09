@@ -51,7 +51,7 @@ export interface IDockerInsightSettings {
 export interface ISpinnakerSettings {
   [key: string]: any;
 
-  analytics: { ga?: string; };
+  analytics: { ga?: string };
   authEnabled: boolean;
   authEndpoint: string;
   authTtl: number;
@@ -72,9 +72,9 @@ export interface ISpinnakerSettings {
   };
   executionWindow?: {
     atlas?: {
-      regions: { label: string, baseUrl: string }[];
+      regions: { label: string; baseUrl: string }[];
       url: string;
-    }
+    };
   };
   feature: IFeatures;
   gateUrl: string;

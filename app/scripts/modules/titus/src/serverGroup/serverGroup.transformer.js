@@ -6,15 +6,14 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.titus.serverGroup.transformer', [])
-  .factory('titusServerGroupTransformer', function ($q) {
-
+  .factory('titusServerGroupTransformer', function($q) {
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup); // no-op
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
-      var command = _.defaults({backingData: [], viewState: []}, base);
+      var command = _.defaults({ backingData: [], viewState: [] }, base);
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }
@@ -35,21 +34,25 @@ module.exports = angular
 
     function constructNewStepScalingPolicyTemplate(serverGroup) {
       return {
-        alarms: [{
-          namespace: 'NFLX/EPIC',
-          metricName: 'CPUUtilization',
-          threshold: 50,
-          statistic: 'Average',
-          comparisonOperator: 'GreaterThanThreshold',
-          evaluationPeriods: 1,
-          dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name}],
-          period: 60,
-        }],
+        alarms: [
+          {
+            namespace: 'NFLX/EPIC',
+            metricName: 'CPUUtilization',
+            threshold: 50,
+            statistic: 'Average',
+            comparisonOperator: 'GreaterThanThreshold',
+            evaluationPeriods: 1,
+            dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name }],
+            period: 60,
+          },
+        ],
         adjustmentType: 'ChangeInCapacity',
-        stepAdjustments: [{
-          scalingAdjustment: 1,
-          metricIntervalLowerBound: 0,
-        }],
+        stepAdjustments: [
+          {
+            scalingAdjustment: 1,
+            metricIntervalLowerBound: 0,
+          },
+        ],
         cooldown: 300,
       };
     }
@@ -67,7 +70,7 @@ module.exports = angular
           },
           scaleInCooldown: 300,
           scaleOutCooldown: 300,
-        }
+        },
       };
     }
 
@@ -77,5 +80,4 @@ module.exports = angular
       constructNewStepScalingPolicyTemplate,
       constructNewTargetTrackingPolicyTemplate,
     };
-
   });

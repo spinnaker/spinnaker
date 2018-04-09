@@ -15,13 +15,14 @@ export interface IConfigSectionFooterViewState {
 }
 
 export class ConfigSectionFooterController implements IController {
-
   public viewState: IConfigSectionFooterViewState;
   public application: Application;
   public config: any;
   public configField: string;
 
-  public constructor(private applicationWriter: ApplicationWriter) { 'ngInject'; }
+  public constructor(private applicationWriter: ApplicationWriter) {
+    'ngInject';
+  }
 
   public revert(): void {
     copy(this.viewState.originalConfig, this.config);
@@ -71,7 +72,7 @@ class ConfigSectionFooterComponent implements IComponentOptions {
 
 export const CONFIG_SECTION_FOOTER = 'spinnaker.core.application.config.section.footer.component';
 
-module(CONFIG_SECTION_FOOTER, [
-  APPLICATION_WRITE_SERVICE,
-])
-.component('configSectionFooter', new ConfigSectionFooterComponent());
+module(CONFIG_SECTION_FOOTER, [APPLICATION_WRITE_SERVICE]).component(
+  'configSectionFooter',
+  new ConfigSectionFooterComponent(),
+);

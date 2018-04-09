@@ -9,11 +9,10 @@ import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/n
 import { NgReact } from 'core/reactShims';
 import {
   INFERRED_APPLICATION_WARNING_SERVICE,
-  InferredApplicationWarningService
+  InferredApplicationWarningService,
 } from './service/inferredApplicationWarning.service';
 
 export class ApplicationStateProvider implements IServiceProvider {
-
   private childStates: INestedState[] = [];
   private detailStates: INestedState[] = [];
   private insightStates: INestedState[] = [];
@@ -21,8 +20,9 @@ export class ApplicationStateProvider implements IServiceProvider {
     name: 'insight',
     abstract: true,
     views: {
-      'insight': {
-        component: NgReact.InsightLayout, $type: 'react'
+      insight: {
+        component: NgReact.InsightLayout,
+        $type: 'react',
       },
     },
     children: this.insightStates,
@@ -81,33 +81,42 @@ export class ApplicationStateProvider implements IServiceProvider {
       abstract: true,
       url: `${relativeUrl}/:application`,
       resolve: {
-        app: ['$stateParams', 'applicationReader', 'inferredApplicationWarningService', 'applicationModelBuilder',
-          ($stateParams: StateParams,
-           applicationReader: ApplicationReader,
-           inferredApplicationWarningService: InferredApplicationWarningService,
-           applicationModelBuilder: ApplicationModelBuilder) => {
-            return applicationReader.getApplication($stateParams.application)
+        app: [
+          '$stateParams',
+          'applicationReader',
+          'inferredApplicationWarningService',
+          'applicationModelBuilder',
+          (
+            $stateParams: StateParams,
+            applicationReader: ApplicationReader,
+            inferredApplicationWarningService: InferredApplicationWarningService,
+            applicationModelBuilder: ApplicationModelBuilder,
+          ) => {
+            return applicationReader
+              .getApplication($stateParams.application)
               .then((app: Application): Application => {
                 inferredApplicationWarningService.checkIfInferredAndWarn(app);
                 return app || applicationModelBuilder.createNotFoundApplication($stateParams.application);
               })
               .catch(() => applicationModelBuilder.createNotFoundApplication($stateParams.application));
-          }]
+          },
+        ],
       },
       data: {
         pageTitleMain: {
-          field: 'application'
+          field: 'application',
         },
         history: {
           type: 'applications',
-          keyParams: ['application']
+          keyParams: ['application'],
         },
       },
       children: this.childStates,
     };
     applicationConfig.views = {};
     applicationConfig.views[mainView] = {
-      component: ApplicationComponent, $type: 'react'
+      component: ApplicationComponent,
+      $type: 'react',
     };
     parentState.children.push(applicationConfig);
     this.stateConfigProvider.setStates();
@@ -119,7 +128,7 @@ export class ApplicationStateProvider implements IServiceProvider {
 }
 
 export const APPLICATION_STATE_PROVIDER = 'spinnaker.core.application.state.provider';
-module(APPLICATION_STATE_PROVIDER, [
-  INFERRED_APPLICATION_WARNING_SERVICE,
-  STATE_CONFIG_PROVIDER,
-]).provider('applicationState', ApplicationStateProvider);
+module(APPLICATION_STATE_PROVIDER, [INFERRED_APPLICATION_WARNING_SERVICE, STATE_CONFIG_PROVIDER]).provider(
+  'applicationState',
+  ApplicationStateProvider,
+);

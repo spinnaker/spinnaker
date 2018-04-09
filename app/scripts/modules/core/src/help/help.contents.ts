@@ -5,6 +5,7 @@ export interface IHelpContents {
 }
 
 export const HELP_CONTENTS = 'spinnaker.core.help.contents';
+// prettier-ignore
 module(HELP_CONTENTS, [])
   .constant('helpContents', {
     'core.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',

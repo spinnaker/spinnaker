@@ -10,16 +10,23 @@ export class PagerDutyWriter {
   }
 
   public pageApplicationOwnerModal(app: Application): void {
-    ReactInjector.modalService.open({
-      templateUrl: require('./pageApplicationOwner.html'),
-      controller: 'PageModalCtrl as ctrl',
-      resolve: {
-        application: () => app
-      }
-    }).result.catch(() => {});
+    ReactInjector.modalService
+      .open({
+        templateUrl: require('./pageApplicationOwner.html'),
+        controller: 'PageModalCtrl as ctrl',
+        resolve: {
+          application: () => app,
+        },
+      })
+      .result.catch(() => {});
   }
 
-  public sendPage(applications: Application[], keys: string[], reason: string, details?: {[key: string]: any}): IPromise<any> {
+  public sendPage(
+    applications: Application[],
+    keys: string[],
+    reason: string,
+    details?: { [key: string]: any },
+  ): IPromise<any> {
     const job = {
       type: 'pageApplicationOwner',
       message: reason,
@@ -27,7 +34,7 @@ export class PagerDutyWriter {
     } as IJob;
 
     if (applications && applications.length > 0) {
-      job.applications = applications.map((app) => app.name);
+      job.applications = applications.map(app => app.name);
     }
 
     if (keys && keys.length > 0) {
@@ -35,8 +42,8 @@ export class PagerDutyWriter {
     }
 
     const task = {
-      job: [ job ],
-      description: 'Send Page'
+      job: [job],
+      description: 'Send Page',
     } as ITaskCommand;
 
     // If only one application was passed in, assign ownership

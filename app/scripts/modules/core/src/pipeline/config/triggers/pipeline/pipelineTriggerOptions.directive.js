@@ -1,14 +1,12 @@
 'use strict';
 
-import {EXECUTION_SERVICE} from 'core/pipeline/service/execution.service';
+import { EXECUTION_SERVICE } from 'core/pipeline/service/execution.service';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.triggers.pipeline.options.directive', [
-    EXECUTION_SERVICE
-  ])
-  .directive('pipelineTriggerOptions', function () {
+  .module('spinnaker.core.pipeline.config.triggers.pipeline.options.directive', [EXECUTION_SERVICE])
+  .directive('pipelineTriggerOptions', function() {
     return {
       restrict: 'E',
       templateUrl: require('./pipelineTriggerOptions.directive.html'),
@@ -17,16 +15,17 @@ module.exports = angular
       },
       controller: 'PipelineTriggerOptionsCtrl',
       controllerAs: 'vm',
-      scope: {}
+      scope: {},
     };
   })
-  .controller('PipelineTriggerOptionsCtrl', function ($scope, executionService, executionsTransformer) {
-    let executionLoadSuccess = (executions) => {
+  .controller('PipelineTriggerOptionsCtrl', function($scope, executionService, executionsTransformer) {
+    let executionLoadSuccess = executions => {
       this.executions = executions;
       if (this.executions.length) {
         this.executions.forEach(execution => executionsTransformer.addBuildInfo(execution));
         // default to what is supplied by the trigger if possible; otherwise, use the latest
-        let defaultSelection = this.executions.find(e => e.id === this.command.trigger.parentPipelineId) || this.executions[0];
+        let defaultSelection =
+          this.executions.find(e => e.id === this.command.trigger.parentPipelineId) || this.executions[0];
         this.viewState.selectedExecution = defaultSelection;
         this.updateSelectedExecution(defaultSelection);
       }
@@ -62,17 +61,17 @@ module.exports = angular
         return;
       }
       this.viewState.executionsLoading = true;
-      executionService.getExecutionsForConfigIds([this.command.trigger.pipeline], { limit: 20 })
+      executionService
+        .getExecutionsForConfigIds([this.command.trigger.pipeline], { limit: 20 })
         .then(executionLoadSuccess, executionLoadFailure);
     };
 
     this.$onInit = () => initialize();
 
-    this.updateSelectedExecution = (item) => {
+    this.updateSelectedExecution = item => {
       this.command.extraFields.parentPipelineId = item.id;
       this.command.extraFields.parentPipelineApplication = item.application;
     };
 
     $scope.$watch(() => this.command.trigger, initialize);
-
   });

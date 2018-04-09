@@ -1,4 +1,4 @@
-import { copy, IController, module } from 'angular'
+import { copy, IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import {
@@ -7,7 +7,7 @@ import {
   ManifestWriter,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 import { IManifestCoordinates } from '../IManifestCoordinates';
 import { KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM } from './deleteOptionsForm.component';
@@ -29,15 +29,17 @@ class KubernetesManifestDeleteController implements IController {
   public taskMonitor: TaskMonitor;
   public command: IDeleteCommand;
   public verification = {
-    verified: false
+    verified: false,
   };
 
-  constructor(coordinates: IManifestCoordinates,
-              taskMonitorBuilder: TaskMonitorBuilder,
-              private $uibModalInstance: IModalServiceInstance,
-              private manifestWriter: ManifestWriter,
-              private application: Application,
-              public manifestController: string) {
+  constructor(
+    coordinates: IManifestCoordinates,
+    taskMonitorBuilder: TaskMonitorBuilder,
+    private $uibModalInstance: IModalServiceInstance,
+    private manifestWriter: ManifestWriter,
+    private application: Application,
+    public manifestController: string,
+  ) {
     'ngInject';
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -52,8 +54,8 @@ class KubernetesManifestDeleteController implements IController {
       account: coordinates.account,
       reason: null,
       options: {
-        cascading: true
-      }
+        cascading: true,
+      },
     };
   }
 
@@ -63,7 +65,7 @@ class KubernetesManifestDeleteController implements IController {
 
   public cancel(): void {
     this.$uibModalInstance.dismiss();
-  };
+  }
 
   public delete(): void {
     this.taskMonitor.submit(() => {
@@ -84,5 +86,4 @@ module(KUBERNETES_MANIFEST_DELETE_CTRL, [
   TASK_MONITOR_BUILDER,
   MANIFEST_WRITER,
   KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM,
-])
-  .controller('kubernetesV2ManifestDeleteCtrl', KubernetesManifestDeleteController);
+]).controller('kubernetesV2ManifestDeleteCtrl', KubernetesManifestDeleteController);

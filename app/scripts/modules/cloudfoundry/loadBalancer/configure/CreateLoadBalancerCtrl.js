@@ -6,33 +6,42 @@ import {
   ACCOUNT_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
-  require('@uirouter/angularjs').default,
-  LOAD_BALANCER_WRITE_SERVICE,
-  ACCOUNT_SERVICE,
-  require('../loadBalancer.transformer.js').name,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-])
-  .controller('cfCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
-                                                   application, loadBalancer, isNew,
-                                                   accountService, cfLoadBalancerTransformer,
-                                                   v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
-
+module.exports = angular
+  .module('spinnaker.loadBalancer.cf.create.controller', [
+    require('@uirouter/angularjs').default,
+    LOAD_BALANCER_WRITE_SERVICE,
+    ACCOUNT_SERVICE,
+    require('../loadBalancer.transformer.js').name,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+  ])
+  .controller('cfCreateLoadBalancerCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    application,
+    loadBalancer,
+    isNew,
+    accountService,
+    cfLoadBalancerTransformer,
+    v2modalWizardService,
+    loadBalancerWriter,
+    taskMonitorBuilder,
+  ) {
     var ctrl = this;
 
     $scope.isNew = isNew;
 
     $scope.pages = {
-      location: require('./createLoadBalancerProperties.html')
+      location: require('./createLoadBalancerProperties.html'),
     };
 
     $scope.state = {
       accountsLoaded: false,
-      submitting: false
+      submitting: false,
     };
 
     function onApplicationRefresh() {
@@ -66,11 +75,10 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       onTaskComplete: onTaskComplete,
     });
 
-    function initializeEditMode() {
-    }
+    function initializeEditMode() {}
 
     function initializeCreateMode() {
-      accountService.listAccounts('cf').then(function (accounts) {
+      accountService.listAccounts('cf').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -87,16 +95,20 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       var account = $scope.loadBalancer.credentials;
 
       const accountLoadBalancersByRegion = {};
-      application.getDataSource('loadBalancers').refresh(true).then(() => {
-        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-          if (loadBalancer.account === account) {
-            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-          }
-        });
+      application
+        .getDataSource('loadBalancers')
+        .refresh(true)
+        .then(() => {
+          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+            if (loadBalancer.account === account) {
+              accountLoadBalancersByRegion[loadBalancer.region] =
+                accountLoadBalancersByRegion[loadBalancer.region] || [];
+              accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+            }
+          });
 
-        $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
-      });
+          $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
+        });
     }
 
     // initialize controller
@@ -117,7 +129,7 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
 
     this.getName = function() {
       var loadBalancer = $scope.loadBalancer;
-      var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
+      var loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
@@ -133,22 +145,20 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
       ctrl.updateName();
     };
 
-    this.submit = function () {
+    this.submit = function() {
       var descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.taskMonitor.submit(
-        function() {
-          let params = {
-            cloudProvider: 'cf',
-            loadBalancerName: $scope.loadBalancer.name,
-          };
+      $scope.taskMonitor.submit(function() {
+        let params = {
+          cloudProvider: 'cf',
+          loadBalancerName: $scope.loadBalancer.name,
+        };
 
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
-        }
-      );
+        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

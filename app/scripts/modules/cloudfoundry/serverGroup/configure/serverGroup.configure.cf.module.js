@@ -17,5 +17,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf', [
   require('./serverGroupEnvsSelector.directive.js').name,
   require('./serverGroupArtifactSettingsSelector.directive.js').name,
   require('./serverGroupAdvancedSelector.directive.js').name,
-
 ]);

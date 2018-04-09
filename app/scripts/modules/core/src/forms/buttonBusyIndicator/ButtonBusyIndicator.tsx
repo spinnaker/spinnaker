@@ -1,2 +1,1 @@
-export interface IButtonBusyIndicatorProps {
-}
+export interface IButtonBusyIndicatorProps {}

@@ -2,8 +2,12 @@ import { IComponentController, IComponentOptions, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import {
-  AccountService, Application, ConfirmationModalService, IServerGroup,
-  ITaskMonitorConfig, TaskExecutor
+  AccountService,
+  Application,
+  ConfirmationModalService,
+  IServerGroup,
+  ITaskMonitorConfig,
+  TaskExecutor,
 } from '@spinnaker/core';
 
 import { ITargetTrackingConfiguration, ITargetTrackingPolicy } from '@spinnaker/amazon';
@@ -21,7 +25,6 @@ interface ITitusPolicy extends ITargetTrackingPolicy {
 }
 
 class TargetTrackingSummaryController implements IComponentController {
-
   public policy: ITitusPolicy;
   public serverGroup: IServerGroup;
   public alarmServerGroup: IAlarmRenderingServerGroup;
@@ -29,10 +32,12 @@ class TargetTrackingSummaryController implements IComponentController {
   public config: ITargetTrackingConfiguration;
   public popoverTemplate = require('./targetTrackingPopover.html');
 
-  constructor(private $uibModal: IModalService,
-              private confirmationModalService: ConfirmationModalService,
-              private taskExecutor: TaskExecutor,
-              private accountService: AccountService) {
+  constructor(
+    private $uibModal: IModalService,
+    private confirmationModalService: ConfirmationModalService,
+    private taskExecutor: TaskExecutor,
+    private accountService: AccountService,
+  ) {
     'ngInject';
   }
 
@@ -50,18 +55,20 @@ class TargetTrackingSummaryController implements IComponentController {
   }
 
   public editPolicy(): void {
-    this.$uibModal.open({
-      templateUrl: require('./upsertTargetTracking.modal.html'),
-      controller: UpsertTargetTrackingController,
-      controllerAs: '$ctrl',
-      size: 'lg',
-      resolve: {
-        policy: () => this.policy,
-        alarmServerGroup: () => this.alarmServerGroup,
-        serverGroup: () => this.serverGroup,
-        application: () => this.application,
-      }
-    }).result.catch(() => {});
+    this.$uibModal
+      .open({
+        templateUrl: require('./upsertTargetTracking.modal.html'),
+        controller: UpsertTargetTrackingController,
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          policy: () => this.policy,
+          alarmServerGroup: () => this.alarmServerGroup,
+          serverGroup: () => this.serverGroup,
+          application: () => this.application,
+        },
+      })
+      .result.catch(() => {});
   }
 
   public deletePolicy(): void {
@@ -77,29 +84,30 @@ class TargetTrackingSummaryController implements IComponentController {
       account: this.serverGroup.account,
       provider: 'titus',
       taskMonitorConfig: taskMonitor,
-      submitMethod: () => this.taskExecutor.executeTask({
-        application,
-        description: 'Delete scaling policy ' + policy.id,
-        job: [
-          {
-            type: 'deleteScalingPolicy',
-            cloudProvider: 'titus',
-            credentials: serverGroup.account,
-            region: serverGroup.region,
-            scalingPolicyID: policy.id,
-            serverGroupName: serverGroup.name,
-          }
-        ]
-      })
+      submitMethod: () =>
+        this.taskExecutor.executeTask({
+          application,
+          description: 'Delete scaling policy ' + policy.id,
+          job: [
+            {
+              type: 'deleteScalingPolicy',
+              cloudProvider: 'titus',
+              credentials: serverGroup.account,
+              region: serverGroup.region,
+              scalingPolicyID: policy.id,
+              serverGroupName: serverGroup.name,
+            },
+          ],
+        }),
     });
-  };
+  }
 }
 
 const component: IComponentOptions = {
   bindings: {
     policy: '<',
     serverGroup: '<',
-    application: '<'
+    application: '<',
   },
   controller: TargetTrackingSummaryController,
   template: `
@@ -129,7 +137,7 @@ const component: IComponentOptions = {
         </button>
       </div>
     </div>
-  `
+  `,
 };
 
 export const TARGET_TRACKING_SUMMARY_COMPONENT = 'spinnaker.titus.scalingPolicy.targetTracking.summary.component';

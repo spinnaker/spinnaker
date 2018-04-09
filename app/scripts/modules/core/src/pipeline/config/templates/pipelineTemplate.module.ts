@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { BOOLEAN_INPUT } from './inputs/BooleanInput';
-import { CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL } from './configurePipelineTemplateModal.controller'
+import { CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL } from './configurePipelineTemplateModal.controller';
 import { LIST_INPUT } from './inputs/ListInput';
 import { LIST_VALIDATOR } from './validators/list.validator';
 import { NUMBER_INPUT } from './inputs/NumberInput';

@@ -42,7 +42,6 @@ interface IClusterFilter {
 }
 
 class UrlBuilderUtils {
-
   private static forEachSorted(obj: any, iterator: Function, context: any = undefined): void {
     const keys: string[] = Object.keys(obj).sort();
     keys.forEach((key: string) => {
@@ -60,7 +59,6 @@ class UrlBuilderUtils {
   }
 
   public static buildUrl(url: string, params: IParams = {}): string {
-
     if (!params) {
       return url;
     }
@@ -100,15 +98,13 @@ class UrlBuilderUtils {
 }
 
 class ApplicationsUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
-
     let result: string;
     if (input.project) {
       result = $state.href(
         'home.project.application.insight.clusters',
         { application: input.application, project: input.project },
-        { inherit: false }
+        { inherit: false },
       );
     } else {
       result = $state.href(
@@ -116,7 +112,7 @@ class ApplicationsUrlBuilder implements IUrlBuilder {
         {
           application: input.application,
         },
-        { inherit: false }
+        { inherit: false },
       );
     }
 
@@ -125,11 +121,9 @@ class ApplicationsUrlBuilder implements IUrlBuilder {
 }
 
 class ClustersUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
-
     const filters: IClusterFilter = {
-      acct: input.account
+      acct: input.account,
     };
     if (input.cluster) {
       filters.q = `cluster:${input.cluster}`;
@@ -146,12 +140,13 @@ class ClustersUrlBuilder implements IUrlBuilder {
 
     let href: string;
     if (input.project) {
-      href = $state.href('home.project.application.insight.clusters',
+      href = $state.href(
+        'home.project.application.insight.clusters',
         {
           application: input.application,
           project: input.project,
         },
-        { inherit: false }
+        { inherit: false },
       );
     } else {
       href = $state.href(
@@ -159,7 +154,7 @@ class ClustersUrlBuilder implements IUrlBuilder {
         {
           application: input.application,
         },
-        { inherit: false }
+        { inherit: false },
       );
     }
 
@@ -168,19 +163,15 @@ class ClustersUrlBuilder implements IUrlBuilder {
 }
 
 class InstancesUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
-
     let result: string;
     if (!input.application) {
-      result = $state.href('home.instanceDetails',
-        {
-          account: input.account,
-          region: input.region,
-          instanceId: input.instanceId,
-          provider: input.provider,
-        }
-      );
+      result = $state.href('home.instanceDetails', {
+        account: input.account,
+        region: input.region,
+        instanceId: input.instanceId,
+        provider: input.provider,
+      });
     } else {
       const href: string = $state.href(
         'home.applications.application.insight.clusters.instanceDetails',
@@ -189,7 +180,7 @@ class InstancesUrlBuilder implements IUrlBuilder {
           instanceId: input.instanceId,
           provider: input.provider,
         },
-        { inherit: false }
+        { inherit: false },
       );
       result = UrlBuilderUtils.buildUrl(href, { q: input.serverGroup, acct: input.account, reg: input.region });
     }
@@ -199,20 +190,18 @@ class InstancesUrlBuilder implements IUrlBuilder {
 }
 
 class LoadBalancersUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
-
     const href: string = $state.href(
       'home.applications.application.insight.loadBalancers.loadBalancerDetails',
       {
         application: input.application,
         name: input.loadBalancer,
-        region: input.region ||  input.namespace,
+        region: input.region || input.namespace,
         accountId: input.account,
         vpcId: input.vpcId,
         provider: input.provider,
       },
-      { inherit: false }
+      { inherit: false },
     );
 
     return UrlBuilderUtils.buildUrl(href, { q: input.loadBalancer, reg: input.region, acct: input.account });
@@ -220,32 +209,26 @@ class LoadBalancersUrlBuilder implements IUrlBuilder {
 }
 
 class ProjectsUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
     return $state.href('home.project.dashboard', { project: input.name }, { inherit: false });
   }
 }
 
 class SecurityGroupsUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
-    const href: string = $state.href(
-      'home.securityGroupDetails',
-      {
-        accountId: input.account,
-        region: input.region,
-        name: input.name,
-        vpcId: input.vpcId,
-        provider: input.provider,
-      }
-    );
+    const href: string = $state.href('home.securityGroupDetails', {
+      accountId: input.account,
+      region: input.region,
+      name: input.name,
+      vpcId: input.vpcId,
+      provider: input.provider,
+    });
 
     return UrlBuilderUtils.buildUrl(href);
   }
 }
 
 class ServerGroupsUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
     const baseName: string = input.project ? 'project' : 'applications';
     const href: string = $state.href(
@@ -258,7 +241,7 @@ class ServerGroupsUrlBuilder implements IUrlBuilder {
         provider: input.provider,
         project: input.project,
       },
-      { inherit: false }
+      { inherit: false },
     );
 
     return UrlBuilderUtils.buildUrl(href, { q: input.serverGroup, acct: input.account, reg: input.region });
@@ -266,34 +249,31 @@ class ServerGroupsUrlBuilder implements IUrlBuilder {
 }
 
 class TaskUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
     return $state.href(
       'home.applications.application.tasks.taskDetails',
       {
         application: input.application,
-        taskId: input.taskId
+        taskId: input.taskId,
       },
-      { inherit: false }
+      { inherit: false },
     );
   }
 }
 
 class TasksUrlBuilder implements IUrlBuilder {
-
   public build(input: IUrlBuilderInput, $state: StateService) {
     return $state.href(
       'home.applications.application.tasks',
       {
         application: input.application,
       },
-      { inherit: false }
+      { inherit: false },
     );
   }
 }
 
 export class UrlBuilderService {
-
   private createCloneTask(task: ITask): string | boolean {
     const regionAndName: any = task.getValueFor('deploy.server.groups');
     const account: string = task.getValueFor('deploy.account.name');
@@ -302,7 +282,6 @@ export class UrlBuilderService {
     if (!regionAndName || !Object.keys(regionAndName)[0]) {
       result = false;
     } else {
-
       const regions: string[] = Object.keys(regionAndName);
       const region: string = regions[0];
       const asgName: string = regionAndName[region][0];
@@ -311,17 +290,15 @@ export class UrlBuilderService {
       } else if (!asgName.match(NamingService.VERSION_PATTERN)) {
         result = false;
       } else {
-        result = this.$state.href(
-          'home.applications.application.insight.clusters.serverGroup',
-          {
-            application: asgName.split('-')[0],
-            cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
-            account,
-            accountId: account,
-            region: regions,
-            serverGroup: asgName,
-            q: asgName
-          });
+        result = this.$state.href('home.applications.application.insight.clusters.serverGroup', {
+          application: asgName.split('-')[0],
+          cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
+          account,
+          accountId: account,
+          region: regions,
+          serverGroup: asgName,
+          q: asgName,
+        });
       }
     }
 
@@ -338,16 +315,14 @@ export class UrlBuilderService {
     } else if (!asgName.match(NamingService.VERSION_PATTERN)) {
       result = '/';
     } else {
-      result = this.$state.href(
-        'home.applications.application.insight.clusters.serverGroup',
-        {
-          application: asgName.split('-')[0],
-          cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
-          account,
-          accountId: account,
-          region: task.getValueFor('regions')[0],
-          serverGroup: asgName,
-        });
+      result = this.$state.href('home.applications.application.insight.clusters.serverGroup', {
+        application: asgName.split('-')[0],
+        cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
+        account,
+        accountId: account,
+        region: task.getValueFor('regions')[0],
+        serverGroup: asgName,
+      });
     }
 
     return result;
@@ -358,7 +333,6 @@ export class UrlBuilderService {
   }
 
   public buildFromMetadata(input: IUrlBuilderInput) {
-
     const builder: IUrlBuilder = urlBuilderRegistry.getBuilder(input.type);
     let result: string;
     if (builder) {
@@ -371,7 +345,6 @@ export class UrlBuilderService {
   }
 
   public buildFromTask(task: ITask): string | boolean {
-
     const description: string = task.name || '';
     function contains(str: string): boolean {
       return description.includes(str);
@@ -416,5 +389,4 @@ urlBuilderRegistry.register('task', new TaskUrlBuilder());
 urlBuilderRegistry.register('tasks', new TasksUrlBuilder());
 
 export const URL_BUILDER_SERVICE = 'spinnaker.core.navigation.urlBuilder.service';
-module(URL_BUILDER_SERVICE, [require('@uirouter/angularjs').default])
-  .service('urlBuilderService', UrlBuilderService);
+module(URL_BUILDER_SERVICE, [require('@uirouter/angularjs').default]).service('urlBuilderService', UrlBuilderService);

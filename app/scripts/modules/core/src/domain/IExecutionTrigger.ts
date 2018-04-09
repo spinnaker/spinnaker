@@ -5,7 +5,7 @@ import { IExpectedArtifact } from './IExpectedArtifact';
 export interface IExecutionTrigger {
   buildInfo?: any;
   isPipeline?: boolean;
-  parameters?: { [key: string]: string; };
+  parameters?: { [key: string]: string };
   parentExecution?: IExecution;
   parentPipelineApplication?: string;
   parentPipelineId?: string;

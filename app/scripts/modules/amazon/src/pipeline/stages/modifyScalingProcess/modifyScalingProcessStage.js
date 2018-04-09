@@ -3,8 +3,8 @@
 const angular = require('angular');
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.modifyScalingProcessStage', [
-])
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.modifyScalingProcessStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Modify Scaling Process',
@@ -17,24 +17,25 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.modifyScalingPr
       executionConfigSections: ['modifyScalingProcessesConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'action', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'processes', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'action' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'processes' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
       cloudProvider: 'aws',
       strategy: true,
     });
-  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService) {
+  })
+  .controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService) {
     $scope.stage = stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(function (accounts) {
+    accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -44,15 +45,22 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.modifyScalingPr
     $scope.actions = [
       {
         label: 'Suspend',
-        val: 'suspend'
+        val: 'suspend',
       },
       {
         label: 'Resume',
-        val: 'resume'
-      }
+        val: 'resume',
+      },
     ];
     $scope.processes = [
-      'Launch', 'Terminate', 'AddToLoadBalancer', 'AlarmNotification', 'AZRebalance', 'HealthCheck', 'ReplaceUnhealthy', 'ScheduledActions'
+      'Launch',
+      'Terminate',
+      'AddToLoadBalancer',
+      'AlarmNotification',
+      'AZRebalance',
+      'HealthCheck',
+      'ReplaceUnhealthy',
+      'ScheduledActions',
     ];
 
     stage.processes = stage.processes || [];
@@ -82,4 +90,3 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.modifyScalingPr
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

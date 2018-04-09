@@ -14,7 +14,7 @@ import {
   SERVER_GROUP_WRITER,
   ServerGroupReader,
   ServerGroupWarningMessageService,
-  ServerGroupWriter
+  ServerGroupWriter,
 } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
@@ -36,7 +36,7 @@ class AppengineServerGroupDetailsController implements IController {
   public state = { loading: true };
   public serverGroup: IAppengineServerGroup;
 
-  private static buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
+  private static buildExpectedAllocationsTable(expectedAllocations: { [key: string]: number }): string {
     const tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
       return `
         <tr>
@@ -59,17 +59,19 @@ class AppengineServerGroupDetailsController implements IController {
       </table>`;
   }
 
-  constructor(private $state: any,
-              private $scope: IPrivateScope,
-              private $uibModal: IModalService,
-              serverGroup: IServerGroupFromStateParams,
-              public app: Application,
-              private serverGroupReader: ServerGroupReader,
-              private serverGroupWriter: ServerGroupWriter,
-              private serverGroupWarningMessageService: ServerGroupWarningMessageService,
-              private confirmationModalService: ConfirmationModalService,
-              private appengineServerGroupWriter: AppengineServerGroupWriter,
-              private appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder) {
+  constructor(
+    private $state: any,
+    private $scope: IPrivateScope,
+    private $uibModal: IModalService,
+    serverGroup: IServerGroupFromStateParams,
+    public app: Application,
+    private serverGroupReader: ServerGroupReader,
+    private serverGroupWriter: ServerGroupWriter,
+    private serverGroupWarningMessageService: ServerGroupWarningMessageService,
+    private confirmationModalService: ConfirmationModalService,
+    private appengineServerGroupWriter: AppengineServerGroupWriter,
+    private appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder,
+  ) {
     'ngInject';
 
     this.app
@@ -128,7 +130,7 @@ class AppengineServerGroupDetailsController implements IController {
     const stateParams = {
       name: this.serverGroup.name,
       accountId: this.serverGroup.account,
-      region: this.serverGroup.region
+      region: this.serverGroup.region,
     };
 
     const confirmationModalParams = {
@@ -155,7 +157,7 @@ class AppengineServerGroupDetailsController implements IController {
     }
 
     this.confirmationModalService.confirm(confirmationModalParams);
-  };
+  }
 
   public enableServerGroup(): void {
     const taskMonitor: ITaskMonitorConfig = {
@@ -163,7 +165,8 @@ class AppengineServerGroupDetailsController implements IController {
       title: 'Enabling ' + this.serverGroup.name,
     };
 
-    const submitMethod = (params: any) => this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, Object.assign(params));
+    const submitMethod = (params: any) =>
+      this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, Object.assign(params));
 
     const modalBody = `
       <div class="well well-sm">
@@ -205,7 +208,8 @@ class AppengineServerGroupDetailsController implements IController {
       title: 'Disabling ' + this.serverGroup.name,
     };
 
-    const submitMethod = (params: any) => this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app.name, params);
+    const submitMethod = (params: any) =>
+      this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app.name, params);
 
     const expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
     const modalBody = `
@@ -316,8 +320,9 @@ class AppengineServerGroupDetailsController implements IController {
         title: () => 'Clone ' + this.serverGroup.name,
         application: () => this.app,
         serverGroup: () => this.serverGroup,
-        serverGroupCommand: () => this.appengineServerGroupCommandBuilder.buildServerGroupCommandFromExisting(this.app, this.serverGroup),
-      }
+        serverGroupCommand: () =>
+          this.appengineServerGroupCommandBuilder.buildServerGroupCommandFromExisting(this.app, this.serverGroup),
+      },
     });
   }
 
@@ -381,7 +386,10 @@ class AppengineServerGroupDetailsController implements IController {
     return template;
   }
 
-  private expectedAllocationsAfterDisableOperation(serverGroup: IServerGroup, app: Application): {[key: string]: number} {
+  private expectedAllocationsAfterDisableOperation(
+    serverGroup: IServerGroup,
+    app: Application,
+  ): { [key: string]: number } {
     const loadBalancer = app.getDataSource('loadBalancers').data.find((toCheck: IAppengineLoadBalancer): boolean => {
       const allocations = get(toCheck, 'split.allocations', {});
       const enabledServerGroups = Object.keys(allocations);
@@ -393,10 +401,7 @@ class AppengineServerGroupDetailsController implements IController {
       delete allocations[serverGroup.name];
       const denominator = reduce(allocations, (partialSum: number, allocation: number) => partialSum + allocation, 0);
       const precision = loadBalancer.split.shardBy === 'COOKIE' ? 1000 : 100;
-      allocations = mapValues(
-        allocations,
-        (allocation) => Math.round(allocation / denominator * precision) / precision
-      );
+      allocations = mapValues(allocations, allocation => Math.round(allocation / denominator * precision) / precision);
       return allocations;
     } else {
       return null;
@@ -417,13 +422,15 @@ class AppengineServerGroupDetailsController implements IController {
       .getServerGroup(this.app.name, fromParams.accountId, fromParams.region, fromParams.name)
       .then((serverGroupDetails: IServerGroup) => {
         let fromApp = this.app.getDataSource('serverGroups').data.find((toCheck: IServerGroup) => {
-          return toCheck.name === fromParams.name &&
+          return (
+            toCheck.name === fromParams.name &&
             toCheck.account === fromParams.accountId &&
-            toCheck.region === fromParams.region;
+            toCheck.region === fromParams.region
+          );
         });
 
         if (!fromApp) {
-          this.app.getDataSource('loadBalancers').data.some((loadBalancer) => {
+          this.app.getDataSource('loadBalancers').data.some(loadBalancer => {
             if (loadBalancer.account === fromParams.accountId) {
               return loadBalancer.serverGroups.some((toCheck: IServerGroup) => {
                 let result = false;
@@ -446,10 +453,9 @@ class AppengineServerGroupDetailsController implements IController {
 export const APPENGINE_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.appengine.serverGroup.details.controller';
 
 module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
-    APPENGINE_SERVER_GROUP_WRITER,
-    CONFIRMATION_MODAL_SERVICE,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-    SERVER_GROUP_READER,
-    SERVER_GROUP_WRITER,
-  ])
-  .controller('appengineServerGroupDetailsCtrl', AppengineServerGroupDetailsController);
+  APPENGINE_SERVER_GROUP_WRITER,
+  CONFIRMATION_MODAL_SERVICE,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WRITER,
+]).controller('appengineServerGroupDetailsCtrl', AppengineServerGroupDetailsController);

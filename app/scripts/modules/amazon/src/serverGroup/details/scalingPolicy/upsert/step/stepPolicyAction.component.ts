@@ -9,12 +9,11 @@ const stepPolicyActionComponent = {
     boundsChanged: '&',
   },
   templateUrl: require('./stepPolicyAction.component.html'),
-  controller: function () {
+  controller: function() {
     this.operatorChanged = () => {
       this.command.adjustmentType = this.viewState.operator === 'Set to' ? 'ExactCapacity' : 'ChangeInCapacity';
-      this.adjustmentTypeOptions = this.viewState.operator === 'Set to' ?
-        ['instances'] :
-        ['instances', 'percent of group'];
+      this.adjustmentTypeOptions =
+        this.viewState.operator === 'Set to' ? ['instances'] : ['instances', 'percent of group'];
     };
 
     this.availableActions = ['Add', 'Remove', 'Set to'];
@@ -40,7 +39,7 @@ const stepPolicyActionComponent = {
       this.operatorChanged();
       this.adjustmentTypeChanged();
     };
-  }
+  },
 };
 
 export const STEP_POLICY_ACTION = 'spinnaker.amazon.scalingPolicy.stepPolicy.action';

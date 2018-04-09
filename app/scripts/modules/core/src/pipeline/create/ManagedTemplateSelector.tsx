@@ -11,7 +11,6 @@ export interface IManagedTemplateSelectorProps {
 
 @BindAll()
 export class ManagedTemplateSelector extends React.Component<IManagedTemplateSelectorProps> {
-
   public render() {
     const selected = this.props.selectedTemplate;
     return (
@@ -46,9 +45,9 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
     return (
       <div>
         <h5 style={{ marginBottom: '0' }}>{template.metadata.name}</h5>
-        {template.selfLink && (<p className="small">{template.selfLink}</p>)}
-        {template.metadata.owner && (<p className="small">{template.metadata.owner}</p>)}
-        {template.metadata.description && (<p className="small">{template.metadata.description}</p>)}
+        {template.selfLink && <p className="small">{template.selfLink}</p>}
+        {template.metadata.owner && <p className="small">{template.metadata.owner}</p>}
+        {template.metadata.description && <p className="small">{template.metadata.description}</p>}
       </div>
     );
   }

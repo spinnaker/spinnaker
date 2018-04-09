@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.pipeline.stage.scaleDownClusterStage', [])
+module.exports = angular
+  .module('spinnaker.dcos.pipeline.stage.scaleDownClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'scaleDownCluster',
@@ -10,23 +11,28 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.scaleDownClusterS
       templateUrl: require('./scaleDownClusterStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        {
+          type: 'requiredField',
+          fieldName: 'remainingFullSizeServerGroups',
+          fieldLabel: 'Keep [X] full size Server Groups',
+        },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
       strategy: true,
     });
-  }).controller('dcosScaleDownClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('dcosScaleDownClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('dcos').then(function (accounts) {
+    accountService.listAccounts('dcos').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -61,4 +67,3 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.scaleDownClusterS
     }
     stage.preferLargerOverNewer = stage.preferLargerOverNewer.toString();
   });
-

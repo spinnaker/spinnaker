@@ -4,10 +4,10 @@ const resizeCapacityComponent: IComponentOptions = {
   bindings: {
     command: '=',
     currentSize: '=',
-    serverGroup: '='
+    serverGroup: '=',
   },
   templateUrl: require('./resizeCapacity.component.html'),
-  controller: () => {}
+  controller: () => {},
 };
 
 export const AWS_RESIZE_CAPACITY_COMPONENT = 'spinnaker.amazon.serverGroup.resize';

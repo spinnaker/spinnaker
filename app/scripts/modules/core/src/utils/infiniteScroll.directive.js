@@ -37,7 +37,7 @@ module.exports = angular
             }
           });
         }
-        $rootScope.$on('refreshStart', function () {
+        $rootScope.$on('refreshStart', function() {
           elem.animate({ scrollTop: '0' });
         });
         handler = function() {
@@ -61,7 +61,7 @@ module.exports = angular
         scope.$on('$destroy', function() {
           return $window.off('scroll', handler);
         });
-        return $timeout((function() {
+        return $timeout(function() {
           if (attrs.infiniteScrollImmediateCheck) {
             if (scope.$eval(attrs.infiniteScrollImmediateCheck)) {
               return handler();
@@ -69,8 +69,7 @@ module.exports = angular
           } else {
             return handler();
           }
-        }), 0);
-      }
+        }, 0);
+      },
     };
-  }
-);
+  });

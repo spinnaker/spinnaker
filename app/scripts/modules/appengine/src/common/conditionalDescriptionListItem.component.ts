@@ -5,7 +5,9 @@ class AppengineConditionalDescriptionListItemCtrl implements IController {
   public key: string;
   public component: any;
 
-  constructor(private $filter: IFilterService) { 'ngInject'; }
+  constructor(private $filter: IFilterService) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     if (!this.label) {
@@ -29,5 +31,7 @@ class AppengineConditionalDescriptionListItem implements IComponentOptions {
 
 export const APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM = 'spinnaker.appengine.conditionalDescriptionListItem';
 
-module(APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM, [])
-  .component('appengineConditionalDtDd', new AppengineConditionalDescriptionListItem());
+module(APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM, []).component(
+  'appengineConditionalDtDd',
+  new AppengineConditionalDescriptionListItem(),
+);

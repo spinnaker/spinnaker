@@ -1,9 +1,6 @@
 import { module } from 'angular';
 
-import {
-  APPLICATION_NAME_VALIDATOR,
-  IApplicationNameValidator, ApplicationNameValidator
-} from '@spinnaker/core';
+import { APPLICATION_NAME_VALIDATOR, IApplicationNameValidator, ApplicationNameValidator } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
 
 class AmazonApplicationNameValidator implements IApplicationNameValidator {
@@ -15,12 +12,14 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
   }
 
   private validateClassicLock(warnings: string[]): void {
-  const lockoutDate = AWSProviderSettings.classicLaunchLockout;
-  if (lockoutDate && lockoutDate < new Date().getTime()) {
-    warnings.push('New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
-      'load balancers, or security groups in EC2 Classic.');
+    const lockoutDate = AWSProviderSettings.classicLaunchLockout;
+    if (lockoutDate && lockoutDate < new Date().getTime()) {
+      warnings.push(
+        'New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
+          'load balancers, or security groups in EC2 Classic.',
+      );
+    }
   }
-}
 
   private validateLoadBalancerCharacters(name: string, warnings: string[]) {
     if (name.includes('.') || name.includes('_')) {
@@ -65,7 +64,7 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
 
   public validate(name = '') {
     const warnings: string[] = [],
-          errors: string[] = [];
+      errors: string[] = [];
 
     if (name.length) {
       this.validateClassicLock(warnings);
@@ -83,9 +82,7 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
 
 export const AMAZON_APPLICATION_NAME_VALIDATOR = 'spinnaker.amazon.validation.application.name';
 
-module(AMAZON_APPLICATION_NAME_VALIDATOR, [
-  APPLICATION_NAME_VALIDATOR,
-])
+module(AMAZON_APPLICATION_NAME_VALIDATOR, [APPLICATION_NAME_VALIDATOR])
   .service('awsApplicationNameValidator', AmazonApplicationNameValidator)
   .run((applicationNameValidator: ApplicationNameValidator, awsApplicationNameValidator: IApplicationNameValidator) => {
     applicationNameValidator.registerValidator('aws', awsApplicationNameValidator);

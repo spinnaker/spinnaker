@@ -1,7 +1,7 @@
 import { mock } from 'angular';
 import {
   ServerGroupWarningMessageService,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
 } from './serverGroupWarningMessage.service';
 import { ApplicationModelBuilder, APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
 import { IServerGroup } from 'core/domain';
@@ -10,18 +10,24 @@ import { IConfirmationModalParams } from 'core/confirmationModal/confirmationMod
 
 describe('serverGroupWarningMessageService', () => {
   let service: ServerGroupWarningMessageService,
-      applicationModelBuilder: ApplicationModelBuilder,
-      app: Application,
-      serverGroup: IServerGroup;
+    applicationModelBuilder: ApplicationModelBuilder,
+    app: Application,
+    serverGroup: IServerGroup;
 
   beforeEach(mock.module(SERVER_GROUP_WARNING_MESSAGE_SERVICE, APPLICATION_MODEL_BUILDER));
 
-  beforeEach(mock.inject((serverGroupWarningMessageService: ServerGroupWarningMessageService,
-                          _applicationModelBuilder_: ApplicationModelBuilder) => {
-    service = serverGroupWarningMessageService;
-    applicationModelBuilder = _applicationModelBuilder_;
-    app = applicationModelBuilder.createApplication('app');
-  }));
+  beforeEach(
+    mock.inject(
+      (
+        serverGroupWarningMessageService: ServerGroupWarningMessageService,
+        _applicationModelBuilder_: ApplicationModelBuilder,
+      ) => {
+        service = serverGroupWarningMessageService;
+        applicationModelBuilder = _applicationModelBuilder_;
+        app = applicationModelBuilder.createApplication('app');
+      },
+    ),
+  );
 
   describe('addDestroyWarningMessage', () => {
     it('leaves parameters unchanged when additional server groups exist in cluster', () => {
@@ -33,10 +39,10 @@ describe('serverGroupWarningMessageService', () => {
         instances: [],
         name: 'foo-v000',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
 
-        app.clusters = [
+      app.clusters = [
         {
           name: 'foo',
           account: 'test',
@@ -44,9 +50,18 @@ describe('serverGroupWarningMessageService', () => {
           category: '',
           serverGroups: [
             serverGroup,
-            { account: 'test', cloudProvider: 'aws', cluster: 'foo', instanceCounts: { up: 0, down: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0, starting: 0 }, instances: [], name: 'foo-v001', region: 'us-east-1', type: 'a' },
-          ]
-        }
+            {
+              account: 'test',
+              cloudProvider: 'aws',
+              cluster: 'foo',
+              instanceCounts: { up: 0, down: 0, succeeded: 0, failed: 0, unknown: 0, outOfService: 0, starting: 0 },
+              instances: [],
+              name: 'foo-v001',
+              region: 'us-east-1',
+              type: 'a',
+            },
+          ],
+        },
       ];
       const params: IConfirmationModalParams = {};
       service.addDestroyWarningMessage(app, serverGroup, params);
@@ -62,7 +77,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [],
         name: 'foo-v000',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
 
       app.clusters = [
@@ -71,8 +86,8 @@ describe('serverGroupWarningMessageService', () => {
           account: 'test',
           cloudProvider: '',
           category: '',
-          serverGroups: [serverGroup]
-        }
+          serverGroups: [serverGroup],
+        },
       ];
       const params: IConfirmationModalParams = {};
       service.addDestroyWarningMessage(app, serverGroup, params);
@@ -94,7 +109,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [],
         name: 'foo-v000',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
 
       app.clusters = [
@@ -103,8 +118,8 @@ describe('serverGroupWarningMessageService', () => {
           account: 'test',
           cloudProvider: '',
           category: '',
-          serverGroups: [serverGroup]
-        }
+          serverGroups: [serverGroup],
+        },
       ];
       const params: IConfirmationModalParams = {};
       service.addDisableWarningMessage(app, serverGroup, params);
@@ -120,7 +135,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [{ id: 'a', launchTime: 1, zone: 'b', health: null }],
         name: 'foo-v000',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
       const down: IServerGroup = {
         account: 'test',
@@ -130,7 +145,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [{ id: 'a', launchTime: 1, zone: 'b', health: null }],
         name: 'foo-v001',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
 
       app.clusters = [
@@ -139,8 +154,8 @@ describe('serverGroupWarningMessageService', () => {
           account: 'test',
           cloudProvider: '',
           category: '',
-          serverGroups: [serverGroup, down]
-        }
+          serverGroups: [serverGroup, down],
+        },
       ];
       const params: IConfirmationModalParams = { account: 'prod' };
       service.addDisableWarningMessage(app, serverGroup, params);
@@ -150,7 +165,7 @@ describe('serverGroupWarningMessageService', () => {
       expect(params.account).toBeUndefined();
     });
 
-    it('adds warning if it\'s the last active ASG', () => {
+    it("adds warning if it's the last active ASG", () => {
       serverGroup = {
         account: 'test',
         cloudProvider: 'aws',
@@ -159,7 +174,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [{ id: 'a', launchTime: 1, zone: 'b', health: null }],
         name: 'foo-v000',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
 
       app.clusters = [
@@ -168,8 +183,8 @@ describe('serverGroupWarningMessageService', () => {
           account: 'test',
           cloudProvider: '',
           category: '',
-          serverGroups: [serverGroup]
-        }
+          serverGroups: [serverGroup],
+        },
       ];
       const params: IConfirmationModalParams = { account: 'prod' };
       service.addDisableWarningMessage(app, serverGroup, params);
@@ -188,7 +203,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [{ id: 'a', launchTime: 1, zone: 'b', health: null }],
         name: 'foo-v000',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
       const omitted: IServerGroup = {
         account: 'test',
@@ -198,7 +213,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [],
         name: 'foo-v001',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
 
       const included: IServerGroup = {
@@ -209,7 +224,7 @@ describe('serverGroupWarningMessageService', () => {
         instances: [{ id: 'b', launchTime: 1, zone: 'b', health: null }],
         name: 'foo-v002',
         region: 'us-east-1',
-        type: 'a'
+        type: 'a',
       };
 
       app.clusters = [
@@ -218,8 +233,8 @@ describe('serverGroupWarningMessageService', () => {
           account: 'test',
           cloudProvider: '',
           category: '',
-          serverGroups: [serverGroup, omitted, included]
-        }
+          serverGroups: [serverGroup, omitted, included],
+        },
       ];
       const params: IConfirmationModalParams = { account: 'prod' };
       service.addDisableWarningMessage(app, serverGroup, params);

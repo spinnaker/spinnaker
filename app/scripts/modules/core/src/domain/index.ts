@@ -1,5 +1,5 @@
-export * from './IArtifact'
-export * from './IArtifactKindConfig'
+export * from './IArtifact';
+export * from './IArtifactKindConfig';
 
 export * from './IBuild';
 export * from './IBuildDiffInfo';
@@ -15,7 +15,7 @@ export * from './IEntityTags';
 export * from './IExecution';
 export * from './IExecutionStage';
 export * from './IExecutionTrigger';
-export * from './IExpectedArtifact'
+export * from './IExpectedArtifact';
 
 export * from './IHealth';
 
@@ -45,7 +45,7 @@ export * from './IStage';
 export * from './IStageContext';
 export * from './IStageOrTriggerTypeConfig';
 export * from './IStageTypeConfig';
-export * from './IStrategy'
+export * from './IStrategy';
 export * from './ISubnet';
 
 export * from './ITaggedEntity';

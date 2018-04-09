@@ -5,11 +5,12 @@ import _ from 'lodash';
 
 import { NETWORK_READ_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.network.networkSelectField.directive', [
-  NETWORK_READ_SERVICE,
-  require('../common/selectField.component.js').name
-])
-  .directive('networkSelectField', function (networkReader) {
+module.exports = angular
+  .module('spinnaker.openstack.network.networkSelectField.directive', [
+    NETWORK_READ_SERVICE,
+    require('../common/selectField.component.js').name,
+  ])
+  .directive('networkSelectField', function(networkReader) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
         readOnly: '=',
         allowNoSelection: '=',
         noOptionsMessage: '@',
-        noSelectionMessage: '@'
+        noSelectionMessage: '@',
       },
       link: function(scope) {
         _.defaults(scope, {
@@ -37,8 +38,12 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
             return networkReader.listNetworksByProvider('openstack').then(function(networks) {
               scope.options = _.chain(networks)
                 .filter(scope.filter || {})
-                .map(function(a) { return {label: a.name, value: a.id}; })
-                .sortBy(function(o) { return o.label; })
+                .map(function(a) {
+                  return { label: a.name, value: a.id };
+                })
+                .sortBy(function(o) {
+                  return o.label;
+                })
                 .value();
 
               return scope.options;
@@ -47,16 +52,16 @@ module.exports = angular.module('spinnaker.openstack.network.networkSelectField.
 
           onValueChanged: function(newValue) {
             scope.model = newValue;
-            if( scope.onChange ) {
-              scope.onChange({network: newValue});
+            if (scope.onChange) {
+              scope.onChange({ network: newValue });
             }
-          }
+          },
         });
 
         scope.$watch('filter', function() {
           scope.$broadcast('onValueChanged');
           scope.updateOptions();
         });
-      }
+      },
     };
-});
+  });

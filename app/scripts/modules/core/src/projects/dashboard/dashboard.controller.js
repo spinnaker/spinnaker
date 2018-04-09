@@ -10,20 +10,28 @@ import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component
 
 import './dashboard.less';
 
-module.exports = angular.module('spinnaker.core.projects.dashboard.controller', [
-  require('./cluster/projectCluster.directive.js').name,
-  PROJECT_PIPELINE_COMPONENT,
-  require('../service/project.read.service.js').name,
-  EXECUTION_SERVICE,
-  SCHEDULER_FACTORY,
-  RECENT_HISTORY_SERVICE,
-  require('./regionFilter/regionFilter.component.js').name,
-  require('./regionFilter/regionFilter.service.js').name,
-])
-  .controller('ProjectDashboardCtrl', function ($scope, $rootScope, projectConfiguration,
-                                                executionService, projectReader, regionFilterService,
-                                                schedulerFactory, recentHistoryService, $q) {
-
+module.exports = angular
+  .module('spinnaker.core.projects.dashboard.controller', [
+    require('./cluster/projectCluster.directive.js').name,
+    PROJECT_PIPELINE_COMPONENT,
+    require('../service/project.read.service.js').name,
+    EXECUTION_SERVICE,
+    SCHEDULER_FACTORY,
+    RECENT_HISTORY_SERVICE,
+    require('./regionFilter/regionFilter.component.js').name,
+    require('./regionFilter/regionFilter.service.js').name,
+  ])
+  .controller('ProjectDashboardCtrl', function(
+    $scope,
+    $rootScope,
+    projectConfiguration,
+    executionService,
+    projectReader,
+    regionFilterService,
+    schedulerFactory,
+    recentHistoryService,
+    $q,
+  ) {
     this.project = projectConfiguration;
 
     // These templates are almost identical, but it doesn't look like you can pass in a directive easily as a tooltip so
@@ -35,12 +43,11 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
       recentHistoryService.removeLastItem('projects');
       return;
     } else {
-      recentHistoryService.addExtraDataToLatest('projects',
-        {
-          config: {
-            applications: projectConfiguration.config.applications
-          }
-        });
+      recentHistoryService.addExtraDataToLatest('projects', {
+        config: {
+          applications: projectConfiguration.config.applications,
+        },
+      });
     }
 
     this.state = {
@@ -54,7 +61,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
         initializing: true,
         refreshing: false,
         loaded: false,
-        error: false
+        error: false,
       },
     };
 
@@ -70,44 +77,50 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
         clustersPromise = projectReader.getProjectClusters(projectConfiguration.name);
       } else if (clusterCount === 0) {
         clustersPromise = $q.when([]);
-      } else { // shouldn't hide error if clusterCount is somehow undefined.
+      } else {
+        // shouldn't hide error if clusterCount is somehow undefined.
         clustersPromise = $q.reject(null);
       }
 
-      return clustersPromise.then((clusters) => {
-        this.clusters = clusters;
-        this.allRegions = getAllRegions(clusters);
-        state.initializing = false;
-        state.loaded = true;
-        state.refreshing = false;
-        state.lastRefresh = new Date().getTime();
-      }).catch(() => {
-        state.initializing = false;
-        state.refreshing = false;
-        state.error = true;
-      });
+      return clustersPromise
+        .then(clusters => {
+          this.clusters = clusters;
+          this.allRegions = getAllRegions(clusters);
+          state.initializing = false;
+          state.loaded = true;
+          state.refreshing = false;
+          state.lastRefresh = new Date().getTime();
+        })
+        .catch(() => {
+          state.initializing = false;
+          state.refreshing = false;
+          state.error = true;
+        });
     };
 
     let getExecutions = () => {
       let state = this.state.executions;
       state.error = false;
       state.refreshing = true;
-      return executionService.getProjectExecutions(projectConfiguration.name).then((executions) => {
-        this.executions = executions;
-        state.initializing = false;
-        state.loaded = true;
-        state.refreshing = false;
-        state.lastRefresh = new Date().getTime();
-        regionFilterService.activate();
-        regionFilterService.runCallbacks();
-      }).catch(() => {
-        state.initializing = false;
-        state.refreshing = false;
-        state.error = true;
-      });
+      return executionService
+        .getProjectExecutions(projectConfiguration.name)
+        .then(executions => {
+          this.executions = executions;
+          state.initializing = false;
+          state.loaded = true;
+          state.refreshing = false;
+          state.lastRefresh = new Date().getTime();
+          regionFilterService.activate();
+          regionFilterService.runCallbacks();
+        })
+        .catch(() => {
+          state.initializing = false;
+          state.refreshing = false;
+          state.error = true;
+        });
     };
 
-    let getAllRegions = (clusters) => {
+    let getAllRegions = clusters => {
       return _.chain(clusters)
         .map('applications')
         .flatten()
@@ -119,7 +132,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
     };
 
     let clusterScheduler = schedulerFactory.createScheduler(),
-        executionScheduler = schedulerFactory.createScheduler();
+      executionScheduler = schedulerFactory.createScheduler();
 
     let clusterLoader = clusterScheduler.subscribe(getClusters);
 
@@ -139,8 +152,11 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
     this.refreshClusters();
     this.refreshExecutions();
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
-      regionFilterService.activate();
-      regionFilterService.runCallbacks();
-    }));
+    $scope.$on(
+      '$destroy',
+      $rootScope.$on('$locationChangeSuccess', () => {
+        regionFilterService.activate();
+        regionFilterService.runCallbacks();
+      }),
+    );
   });

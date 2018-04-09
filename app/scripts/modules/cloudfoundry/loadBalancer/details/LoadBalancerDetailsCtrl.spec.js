@@ -1,6 +1,6 @@
 import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
-describe('Controller: LoadBalancerDetailsCtrl', function () {
+describe('Controller: LoadBalancerDetailsCtrl', function() {
   var controller;
   var $scope;
   var $state;
@@ -9,37 +9,27 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
     region: 'us-west-1',
     account: 'test',
     accountId: 'test',
-    vpcId: '1'
+    vpcId: '1',
   };
 
+  beforeEach(window.module(require('./LoadBalancerDetailsCtrl').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    window.module(
-      require('./LoadBalancerDetailsCtrl').name,
-      APPLICATION_MODEL_BUILDER
-    )
+    window.inject(function($controller, $rootScope, _$state_, applicationModelBuilder) {
+      $scope = $rootScope.$new();
+      $state = _$state_;
+      let app = applicationModelBuilder.createApplication('app', { key: 'loadBalancers', lazy: true });
+      app.loadBalancers.data.push(loadBalancer);
+      controller = $controller('cfLoadBalancerDetailsCtrl', {
+        $scope: $scope,
+        loadBalancer: loadBalancer,
+        app: app,
+        $state: $state,
+      });
+    }),
   );
 
-  beforeEach(
-    window.inject(
-      function($controller, $rootScope, _$state_, applicationModelBuilder) {
-        $scope = $rootScope.$new();
-        $state = _$state_;
-        let app = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true});
-        app.loadBalancers.data.push(loadBalancer);
-        controller = $controller('cfLoadBalancerDetailsCtrl', {
-          $scope: $scope,
-          loadBalancer: loadBalancer,
-          app: app,
-          $state: $state
-        });
-      }
-    )
-  );
-
-
-  it('should have an instantiated controller', function () {
+  it('should have an instantiated controller', function() {
     expect(controller).toBeDefined();
   });
-
 });

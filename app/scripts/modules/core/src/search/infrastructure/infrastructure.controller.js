@@ -18,23 +18,34 @@ import { RECENTLY_VIEWED_ITEMS_COMPONENT } from '../infrastructure/recentlyViewe
 
 import { SearchService } from '../search.service';
 
-module.exports = angular.module('spinnaker.search.infrastructure.controller', [
-  INFRASTRUCTURE_SEARCH_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  SEARCH_RESULT_COMPONENT,
-  PAGE_TITLE_SERVICE,
-  PROJECT_SUMMARY_POD_COMPONENT,
-  SEARCH_RANK_FILTER,
-  CLUSTER_FILTER_SERVICE,
-  CACHE_INITIALIZER_SERVICE,
-  OVERRIDE_REGISTRY,
-  RECENTLY_VIEWED_ITEMS_COMPONENT,
-  SPINNER_COMPONENT
-])
-  .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
-                                             cacheInitializer, overrideRegistry,
-                                             pageTitleService, recentHistoryService, $uibModal, $state, clusterFilterService) {
-
+module.exports = angular
+  .module('spinnaker.search.infrastructure.controller', [
+    INFRASTRUCTURE_SEARCH_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    SEARCH_RESULT_COMPONENT,
+    PAGE_TITLE_SERVICE,
+    PROJECT_SUMMARY_POD_COMPONENT,
+    SEARCH_RANK_FILTER,
+    CLUSTER_FILTER_SERVICE,
+    CACHE_INITIALIZER_SERVICE,
+    OVERRIDE_REGISTRY,
+    RECENTLY_VIEWED_ITEMS_COMPONENT,
+    SPINNER_COMPONENT,
+  ])
+  .controller('InfrastructureCtrl', function(
+    $scope,
+    infrastructureSearchService,
+    $stateParams,
+    $location,
+    searchService,
+    cacheInitializer,
+    overrideRegistry,
+    pageTitleService,
+    recentHistoryService,
+    $uibModal,
+    $state,
+    clusterFilterService,
+  ) {
     var search = infrastructureSearchService.getSearcher();
 
     $scope.categories = [];
@@ -81,60 +92,66 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
           autoNavigate = false;
         }
         $scope.categories = resultSets
-          .filter((resultSet) => resultSet.type.id !== 'projects' && resultSet.results.length)
+          .filter(resultSet => resultSet.type.id !== 'projects' && resultSet.results.length)
           .sort((a, b) => a.type.id - b.type.id);
-        $scope.projects = resultSets.filter((resultSet) => resultSet.type.id === 'projects' && resultSet.results.length);
-        $scope.moreResults = _.sumBy(resultSets, function(resultSet) {
-          return resultSet.results.length;
-        }) === $scope.pageSize;
+        $scope.projects = resultSets.filter(resultSet => resultSet.type.id === 'projects' && resultSet.results.length);
+        $scope.moreResults =
+          _.sumBy(resultSets, function(resultSet) {
+            return resultSet.results.length;
+          }) === $scope.pageSize;
         updateLocation();
-        pageTitleService.handleRoutingSuccess(
-          {
-            pageTitleMain: {
-              label: query ? ' search results for "' + query + '"' : 'Infrastructure'
-            }
-          }
-        );
+        pageTitleService.handleRoutingSuccess({
+          pageTitleMain: {
+            label: query ? ' search results for "' + query + '"' : 'Infrastructure',
+          },
+        });
         $scope.viewState.searching = false;
       });
     });
 
     this.createProject = () => {
-      $uibModal.open({
-        scope: $scope,
-        templateUrl: require('../../projects/configure/configureProject.modal.html'),
-        controller: 'ConfigureProjectModalCtrl',
-        controllerAs: 'ctrl',
-        size: 'lg',
-        resolve: {
-          projectConfig: () => { return {}; },
-        }
-      }).result.then(routeToProject).catch(() => {});
+      $uibModal
+        .open({
+          scope: $scope,
+          templateUrl: require('../../projects/configure/configureProject.modal.html'),
+          controller: 'ConfigureProjectModalCtrl',
+          controllerAs: 'ctrl',
+          size: 'lg',
+          resolve: {
+            projectConfig: () => {
+              return {};
+            },
+          },
+        })
+        .result.then(routeToProject)
+        .catch(() => {});
     };
 
     function routeToProject(project) {
-      $state.go(
-        'home.project.dashboard', {
-          project: project.name,
-        }
-      );
+      $state.go('home.project.dashboard', {
+        project: project.name,
+      });
     }
 
     this.createApplication = () => {
-      $uibModal.open({
-        scope: $scope,
-        templateUrl: overrideRegistry.getTemplate('createApplicationModal', require('../../application/modal/newapplication.html')),
-        controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
-        controllerAs: 'newAppModal'
-      }).result.then(routeToApplication).catch(() => {});
+      $uibModal
+        .open({
+          scope: $scope,
+          templateUrl: overrideRegistry.getTemplate(
+            'createApplicationModal',
+            require('../../application/modal/newapplication.html'),
+          ),
+          controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
+          controllerAs: 'newAppModal',
+        })
+        .result.then(routeToApplication)
+        .catch(() => {});
     };
 
     function routeToApplication(app) {
-      $state.go(
-        'home.applications.application.insight.clusters', {
-          application: app.name,
-        }
-      );
+      $state.go('home.applications.application.insight.clusters', {
+        application: app.name,
+      });
     }
 
     let refreshMenuItem = {
@@ -142,7 +159,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       disableAutoClose: true,
     };
 
-    refreshMenuItem.action = (status) => {
+    refreshMenuItem.action = status => {
       let originalDisplayName = refreshMenuItem.displayName;
       refreshMenuItem.displayName = '<span class="fa fa-sync-alt fa-spin"></span> Refreshing...';
       cacheInitializer.refreshCaches().then(() => {
@@ -154,11 +171,11 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     this.menuActions = [
       {
         displayName: 'Create Application',
-        action: this.createApplication
+        action: this.createApplication,
       },
       {
         displayName: 'Create Project',
-        action: this.createProject
+        action: this.createProject,
       },
       refreshMenuItem,
     ];
@@ -172,8 +189,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     this.showRecentResults = () =>
       !$scope.viewState.searching &&
       !$scope.projects.length &&
-      $scope.categories.every((category) => !category.results.length);
-
+      $scope.categories.every(category => !category.results.length);
   })
   .directive('infrastructureSearchV1', function() {
     return {

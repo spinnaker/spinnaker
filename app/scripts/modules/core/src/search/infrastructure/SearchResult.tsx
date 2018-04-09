@@ -17,7 +17,7 @@ export class SearchResult extends React.Component<ISearchResultProps> {
     return (
       <span className="search-result">
         {account && <AccountTag account={account} />}
-        <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(displayName) }}/>
+        <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(displayName) }} />
       </span>
     );
   }

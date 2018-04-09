@@ -1,8 +1,19 @@
 import * as React from 'react';
 
 import {
-  AccountCell, BasicCell, HrefCell, searchResultTypeRegistry, ISearchColumn, DefaultSearchResultTab,
-  ISearchResult, HeaderCell, TableBody, TableHeader, TableRow, SearchResultType, ISearchResultSet,
+  AccountCell,
+  BasicCell,
+  HrefCell,
+  searchResultTypeRegistry,
+  ISearchColumn,
+  DefaultSearchResultTab,
+  ISearchResult,
+  HeaderCell,
+  TableBody,
+  TableHeader,
+  TableRow,
+  SearchResultType,
+  ISearchResultSet,
 } from 'core/search';
 
 export interface ILoadBalancerSearchResult extends ISearchResult {
@@ -38,16 +49,15 @@ class LoadBalancersSearchResultType extends SearchResultType<ILoadBalancerSearch
 
   public HeaderComponent = () => (
     <TableHeader>
-      <HeaderCell col={this.cols.LOADBALANCER}/>
-      <HeaderCell col={this.cols.ACCOUNT}/>
-      <HeaderCell col={this.cols.REGION}/>
-      <HeaderCell col={this.cols.TYPE}/>
+      <HeaderCell col={this.cols.LOADBALANCER} />
+      <HeaderCell col={this.cols.ACCOUNT} />
+      <HeaderCell col={this.cols.REGION} />
+      <HeaderCell col={this.cols.TYPE} />
     </TableHeader>
   );
 
   public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<ILoadBalancerSearchResult> }) => {
-    const itemKeyFn = (item: ILoadBalancerSearchResult) =>
-      [item.loadBalancer, item.account, item.region].join('|');
+    const itemKeyFn = (item: ILoadBalancerSearchResult) => [item.loadBalancer, item.account, item.region].join('|');
     const itemSortFn = (a: ILoadBalancerSearchResult, b: ILoadBalancerSearchResult) => {
       const order: number = a.loadBalancer.localeCompare(b.loadBalancer);
       return order !== 0 ? order : a.region.localeCompare(b.region);
@@ -57,14 +67,17 @@ class LoadBalancersSearchResultType extends SearchResultType<ILoadBalancerSearch
 
     return (
       <TableBody>
-        {results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={this.cols.LOADBALANCER} />
-            <AccountCell item={item} col={this.cols.ACCOUNT} />
-            <BasicCell item={item} col={this.cols.REGION} />
-            <BasicCell item={item} col={this.cols.TYPE} />
-          </TableRow>
-        ))}
+        {results
+          .slice()
+          .sort(itemSortFn)
+          .map(item => (
+            <TableRow key={itemKeyFn(item)}>
+              <HrefCell item={item} col={this.cols.LOADBALANCER} />
+              <AccountCell item={item} col={this.cols.ACCOUNT} />
+              <BasicCell item={item} col={this.cols.REGION} />
+              <BasicCell item={item} col={this.cols.TYPE} />
+            </TableRow>
+          ))}
       </TableBody>
     );
   };

@@ -15,7 +15,9 @@ class EntitySourceCtrl implements IController {
   public comments: string;
   private loadingExecution = false;
 
-  constructor(private executionService: ExecutionService) { 'ngInject'; }
+  constructor(private executionService: ExecutionService) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.executionType = 'Task';
@@ -30,17 +32,17 @@ class EntitySourceCtrl implements IController {
     if (this.metadata && this.metadata.value.executionType === 'pipeline') {
       this.executionType = 'Pipeline';
       this.loadingExecution = true;
-      this.executionService.getExecution(this.metadata.value.executionId).then(
-        (execution: IExecution) => this.execution = execution
-      ).catch(() => this.executionNotFound = true)
-      .finally(() => this.loadingExecution = false);
+      this.executionService
+        .getExecution(this.metadata.value.executionId)
+        .then((execution: IExecution) => (this.execution = execution))
+        .catch(() => (this.executionNotFound = true))
+        .finally(() => (this.loadingExecution = false));
     }
   }
 
   public $onChanges(): void {
     this.$onInit();
   }
-
 }
 
 export class EntitySourceComponent implements ng.IComponentOptions {
@@ -72,6 +74,4 @@ export class EntitySourceComponent implements ng.IComponentOptions {
 }
 
 export const ENTITY_SOURCE_COMPONENT = 'spinnaker.core.entityTag.entitySource.component';
-module(ENTITY_SOURCE_COMPONENT, [
-  EXECUTION_SERVICE
-]).component('entitySource', new EntitySourceComponent());
+module(ENTITY_SOURCE_COMPONENT, [EXECUTION_SERVICE]).component('entitySource', new EntitySourceComponent());

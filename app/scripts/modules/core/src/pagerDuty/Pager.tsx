@@ -32,17 +32,22 @@ export interface IUserDisplay {
 }
 
 export type UserList = { [level: number]: IUserDisplay[] };
-export type OnCallsByService = { users?: UserList, applications: IApplicationSummary[], last: moment.Moment, service: IPagerDutyService, searchString: string };
+export type OnCallsByService = {
+  users?: UserList;
+  applications: IApplicationSummary[];
+  last: moment.Moment;
+  service: IPagerDutyService;
+  searchString: string;
+};
 
-export interface IPagerProps {
-}
+export interface IPagerProps {}
 
 export interface IPagerState {
   accountName: string;
   app: string;
   hideNoApps: boolean;
   filterString: string;
-  initialKeys: string[],
+  initialKeys: string[];
   selectedKeys: Map<string, IPagerDutyService>;
   sortBy: string;
   sortDirection: SortDirectionType;
@@ -51,23 +56,31 @@ export interface IPagerState {
 
 const paddingStyle = { paddingTop: '15px', paddingBottom: '15px' };
 
-const ServicePill = (props: { service: IPagerDutyService, changeCallback: (service: IPagerDutyService, value: boolean) => void }) => {
+const ServicePill = (props: {
+  service: IPagerDutyService;
+  changeCallback: (service: IPagerDutyService, value: boolean) => void;
+}) => {
   const onClick = () => props.changeCallback(props.service, false);
-  return <div className="pill info">{props.service.name}<i className="fa fa-times-circle clickable" onClick={onClick}/></div>
-}
+  return (
+    <div className="pill info">
+      {props.service.name}
+      <i className="fa fa-times-circle clickable" onClick={onClick} />
+    </div>
+  );
+};
 
-const SortIndicator = (props: { direction: SortDirectionType, sorted: boolean }) => {
+const SortIndicator = (props: { direction: SortDirectionType; sorted: boolean }) => {
   if (props.sorted) {
-    return props.direction === 'ASC' ? <span className="fa fa-caret-down"/> : <span className="fa fa-caret-up"/>;
+    return props.direction === 'ASC' ? <span className="fa fa-caret-down" /> : <span className="fa fa-caret-up" />;
   }
-  return <span className="fa fa-caret-down disabled"/>;
-}
+  return <span className="fa fa-caret-down disabled" />;
+};
 
 @BindAll()
 export class Pager extends React.Component<IPagerProps, IPagerState> {
   private cache = new CellMeasurerCache({
     defaultHeight: 50,
-    fixedWidth: true
+    fixedWidth: true,
   });
   private allData: OnCallsByService[] = [];
   private searchApi = new SearchApi();
@@ -77,7 +90,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
 
     const { $stateParams } = ReactInjector;
     this.state = {
-      accountName: SETTINGS.pagerDuty && SETTINGS.pagerDuty.accountName || '',
+      accountName: (SETTINGS.pagerDuty && SETTINGS.pagerDuty.accountName) || '',
       app: $stateParams.app || '',
       filterString: $stateParams.q || '',
       hideNoApps: $stateParams.hideNoApps || false,
@@ -95,7 +108,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     Observable.forkJoin(
       Observable.fromPromise(applicationReader.listApplications()),
       pagerDutyReader.listOnCalls(),
-      pagerDutyReader.listServices()
+      pagerDutyReader.listServices(),
     ).subscribe((results: [IApplicationSummary[], { [id: string]: IOnCall[] }, IPagerDutyService[]]) => {
       const sortedData = this.getOnCallsByService(results[0], results[1], results[2]);
       Object.assign(this.allData, sortedData);
@@ -109,15 +122,18 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       return a.service.name.localeCompare(b.service.name);
     }
     if (sortBy === 'last') {
-      if (!a.last.isValid()) { return 1; }
-      if (!b.last.isValid()) { return -1; }
-      return a.last.isBefore(b.last) ? 1 :
-        a.last.isAfter(b.last) ? -1 : 0;
+      if (!a.last.isValid()) {
+        return 1;
+      }
+      if (!b.last.isValid()) {
+        return -1;
+      }
+      return a.last.isBefore(b.last) ? 1 : a.last.isAfter(b.last) ? -1 : 0;
     }
     return 0;
   }
 
-  public sort(info: {sortBy: string, sortDirection: SortDirectionType}): void {
+  public sort(info: { sortBy: string; sortDirection: SortDirectionType }): void {
     const { sortBy, sortDirection } = info;
     const { sortedData } = this.state;
 
@@ -139,10 +155,17 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   }
 
   @Debounce(25)
-  private runFilter(app: string, keys: string[], filterString: string, sortBy: string, sortDirection: SortDirectionType, hideNoApps: boolean) {
+  private runFilter(
+    app: string,
+    keys: string[],
+    filterString: string,
+    sortBy: string,
+    sortDirection: SortDirectionType,
+    hideNoApps: boolean,
+  ) {
     const selectedKeys: Map<string, IPagerDutyService> = new Map();
     if (app) {
-      const foundService = this.allData.find((data) => data.applications.find((a) => a.name === app) !== undefined);
+      const foundService = this.allData.find(data => data.applications.find(a => a.name === app) !== undefined);
       if (foundService) {
         selectedKeys.set(foundService.service.integration_key, foundService.service);
         this.setState({ sortedData: [foundService], selectedKeys });
@@ -155,17 +178,24 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     }
 
     if (keys && keys.length > 0) {
-      const selectedServices = this.allData.filter((data) => keys.includes(data.service.integration_key));
-      selectedServices.forEach((s) => selectedKeys.set(s.service.integration_key, s.service));
+      const selectedServices = this.allData.filter(data => keys.includes(data.service.integration_key));
+      selectedServices.forEach(s => selectedKeys.set(s.service.integration_key, s.service));
       this.setState({ selectedKeys });
     }
 
-    ReactInjector.$state.go('.', { app, q: filterString, by: sortBy, direction: sortDirection, hide_no_apps: hideNoApps, selectedKeys });
+    ReactInjector.$state.go('.', {
+      app,
+      q: filterString,
+      by: sortBy,
+      direction: sortDirection,
+      hide_no_apps: hideNoApps,
+      selectedKeys,
+    });
 
     this.searchApi.search(filterString).then((results: string[]) => {
-      let data = results.map((serviceId) => this.allData.find((service) => service.service.id === serviceId));
+      let data = results.map(serviceId => this.allData.find(service => service.service.id === serviceId));
       if (hideNoApps) {
-        data = data.filter((s) => s.applications.length);
+        data = data.filter(s => s.applications.length);
       }
       this.sortList(data, sortBy, sortDirection);
       this.cache.clearAll();
@@ -176,44 +206,62 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
 
   public componentWillUpdate(_nextProps: IPagerProps, nextState: IPagerState): void {
     if (nextState.filterString !== this.state.filterString || nextState.hideNoApps !== this.state.hideNoApps) {
-      this.runFilter(nextState.app, nextState.initialKeys, nextState.filterString, nextState.sortBy, nextState.sortDirection, nextState.hideNoApps);
+      this.runFilter(
+        nextState.app,
+        nextState.initialKeys,
+        nextState.filterString,
+        nextState.sortBy,
+        nextState.sortDirection,
+        nextState.hideNoApps,
+      );
     } else {
       this.sort({ sortBy: nextState.sortBy, sortDirection: nextState.sortDirection });
     }
   }
 
-  private getOnCallsByService(applications: IApplicationSummary[], onCalls: { [id: string]: IOnCall[] }, services: IPagerDutyService[]): OnCallsByService[] {
-    return services.map((service) => {
-      // connect the users attached to the service by way of escalation policy
-      let users: UserList;
-      const searchTokens: string[] = [service.name];
-      const levels = onCalls[service.policy];
-      if (levels) {
-        users = groupBy(levels.map((level) => {
-          return level.user ? { name: level.user.summary, url: level.user.html_url, level: level.escalation_level } : undefined
-        })
-          .filter((a => a)), 'level');
-          searchTokens.push(...levels.map((level) => level.user ? level.user.summary : undefined).filter(n => n));
-      }
+  private getOnCallsByService(
+    applications: IApplicationSummary[],
+    onCalls: { [id: string]: IOnCall[] },
+    services: IPagerDutyService[],
+  ): OnCallsByService[] {
+    return services
+      .map(service => {
+        // connect the users attached to the service by way of escalation policy
+        let users: UserList;
+        const searchTokens: string[] = [service.name];
+        const levels = onCalls[service.policy];
+        if (levels) {
+          users = groupBy(
+            levels
+              .map(level => {
+                return level.user
+                  ? { name: level.user.summary, url: level.user.html_url, level: level.escalation_level }
+                  : undefined;
+              })
+              .filter(a => a),
+            'level',
+          );
+          searchTokens.push(...levels.map(level => (level.user ? level.user.summary : undefined)).filter(n => n));
+        }
 
+        // Get applications associated with the service key
+        const apiKey = service.integration_key;
+        const associatedApplications = apiKey ? applications.filter(app => app.pdApiKey === apiKey) : [];
+        searchTokens.push(...associatedApplications.map(app => `${app.name},${app.aliases || ''}`));
 
-      // Get applications associated with the service key
-      const apiKey = service.integration_key;
-      const associatedApplications = apiKey ? applications.filter((app) => app.pdApiKey === apiKey) : [];
-      searchTokens.push(...associatedApplications.map((app) => `${app.name},${app.aliases || ''}`));
-
-      const onCallsByService = {
-        users,
-        applications: associatedApplications,
-        service,
-        last: moment((service as any).lastIncidentTimestamp),
-        searchString: searchTokens.join(' ')
-      };
-      if (onCallsByService.service.integration_key) {
-        this.searchApi.indexDocument(onCallsByService.service.id, onCallsByService.searchString);
-      }
-      return onCallsByService;
-    }).filter((a) => a.service.integration_key);
+        const onCallsByService = {
+          users,
+          applications: associatedApplications,
+          service,
+          last: moment((service as any).lastIncidentTimestamp),
+          searchString: searchTokens.join(' '),
+        };
+        if (onCallsByService.service.integration_key) {
+          this.searchApi.indexDocument(onCallsByService.service.id, onCallsByService.searchString);
+        }
+        return onCallsByService;
+      })
+      .filter(a => a.service.integration_key);
     // filter out services without an integration_key
   }
 
@@ -255,7 +303,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
 
   private applicationRenderer(data: TableCellProps): React.ReactNode {
     const apps: IApplicationSummary[] = data.cellData;
-    const appList = apps.map((app) => {
+    const appList = apps.map(app => {
       let displayName = app.name;
       if (app.aliases) {
         displayName = `${displayName} (${app.aliases.replace(/,/g, ', ')})`;
@@ -278,9 +326,11 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         parent={data.parent}
         rowIndex={data.rowIndex}
       >
-        <div style={paddingStyle}><ul className="page-app-list">{appList}</ul></div>
+        <div style={paddingStyle}>
+          <ul className="page-app-list">{appList}</ul>
+        </div>
       </CellMeasurer>
-    )
+    );
   }
 
   private highlight(text: string): string {
@@ -303,31 +353,30 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         rowIndex={data.rowIndex}
       >
         <div style={paddingStyle}>
-        {
-          onCalls ? Object.keys(onCalls).map((level) => {
-            return (
-              <div key={level} className="users">
-                <div className="user-level">{level}</div>
-                <div className="user-names">
-                  {onCalls[Number(level)]
-                    .filter(user => !user.name.includes('ExcludeFromAudit'))
-                    .map((user, index) => (
-                      <a
-                        key={index}
-                        target="_blank"
-                        href={user.url}
-                        dangerouslySetInnerHTML={{ __html: this.highlight(user.name) }}
-                      />
-                    ))
-                  }
-                </div>
-              </div>
-            );
-          }) : 'Nobody'
-        }
+          {onCalls
+            ? Object.keys(onCalls).map(level => {
+                return (
+                  <div key={level} className="users">
+                    <div className="user-level">{level}</div>
+                    <div className="user-names">
+                      {onCalls[Number(level)]
+                        .filter(user => !user.name.includes('ExcludeFromAudit'))
+                        .map((user, index) => (
+                          <a
+                            key={index}
+                            target="_blank"
+                            href={user.url}
+                            dangerouslySetInnerHTML={{ __html: this.highlight(user.name) }}
+                          />
+                        ))}
+                    </div>
+                  </div>
+                );
+              })
+            : 'Nobody'}
         </div>
       </CellMeasurer>
-    )
+    );
   }
 
   private pageRenderer(data: TableCellProps): React.ReactNode {
@@ -339,7 +388,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         const target = event.target;
         this.selectedChanged(service, target.checked);
       }
-    }
+    };
 
     const id = `checkbox-${service.integration_key}`;
     const checked = this.state.selectedKeys.has(service.integration_key);
@@ -347,30 +396,28 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       <div style={paddingStyle}>
         <div className={`page-checkbox ${checked ? 'checked' : ''}`}>
           <input type="checkbox" id={id} name={service.integration_key} checked={checked} onChange={onChange} />
-          <label htmlFor={id}><i className="fa fa-check"/></label>
+          <label htmlFor={id}>
+            <i className="fa fa-check" />
+          </label>
         </div>
       </div>
     );
   }
 
   private pageHeaderRenderer(_data: TableHeaderProps): React.ReactNode {
-    return <span/>;
+    return <span />;
   }
 
   private headerRenderer(data: TableHeaderProps): React.ReactNode {
     const { dataKey, disableSort, label, sortBy, sortDirection } = data;
     const children = [
-      (
-      <span className="table-header" key="label" title={label} >
+      <span className="table-header" key="label" title={label}>
         {label}
-      </span>
-      ),
+      </span>,
     ];
 
     if (!disableSort) {
-      children.push(
-        <SortIndicator key="SortIndicator" direction={sortDirection} sorted={sortBy === dataKey} />,
-      );
+      children.push(<SortIndicator key="SortIndicator" direction={sortDirection} sorted={sortBy === dataKey} />);
     }
 
     return children;
@@ -431,7 +478,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
             <h2 className="header-section">
               <div className="flex-grow">
                 <div className="pager">
-                  <i className="fa fa-bullhorn"/>
+                  <i className="fa fa-bullhorn" />
                   <span className="pager-label">Pager</span>
                 </div>
               </div>
@@ -442,7 +489,12 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         <div className="container main-content on-call scrollable-columns">
           <div className="on-call-filter">
             <span>Filter </span>
-            <input type="text" value={filterString} onChange={this.handleFilterChange} placeholder="Service, application, name" />
+            <input
+              type="text"
+              value={filterString}
+              onChange={this.handleFilterChange}
+              placeholder="Service, application, name"
+            />
             <label className="hide-checkbox">
               <input type="checkbox" checked={hideNoApps} onChange={this.handleHideNoAppsChanged} />
               Hide services with no associated apps
@@ -516,10 +568,13 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         </div>
         <div className="main-footer on-call-footer">
           <div className="selected-policies">
-            <span className="selected-count">{selectedKeys.size} {selectedKeys.size === 1 ? 'policy' : 'policies'} selected </span>
+            <span className="selected-count">
+              {selectedKeys.size} {selectedKeys.size === 1 ? 'policy' : 'policies'} selected{' '}
+            </span>
             <div className="selected-pills">
-              {Array.from(selectedKeys.values()).map((service) =>
-                <ServicePill key={service.integration_key} service={service} changeCallback={this.selectedChanged} />)}
+              {Array.from(selectedKeys.values()).map(service => (
+                <ServicePill key={service.integration_key} service={service} changeCallback={this.selectedChanged} />
+              ))}
             </div>
           </div>
           <div>

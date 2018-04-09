@@ -17,39 +17,57 @@ require('../configure/serverGroup.configure.gce.module.js');
 
 import './serverGroupDetails.less';
 
-module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
-  require('@uirouter/angularjs').default,
-  require('../configure/serverGroupCommandBuilder.service.js').name,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER,
-  CONFIRMATION_MODAL_SERVICE,
-  NETWORK_READ_SERVICE,
-  SERVER_GROUP_WRITER,
-  CLUSTER_TARGET_BUILDER,
-  require('google/common/xpnNaming.gce.service.js').name,
-  require('./resize/resizeServerGroup.controller').name,
-  require('./rollback/rollbackServerGroup.controller').name,
-  require('./autoscalingPolicy/autoscalingPolicy.directive.js').name,
-  require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js').name,
-])
-  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
-                                                     gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
-                                                     serverGroupWarningMessageService, networkReader, clusterTargetBuilder, gceXpnNamingService) {
-
+module.exports = angular
+  .module('spinnaker.serverGroup.details.gce.controller', [
+    require('@uirouter/angularjs').default,
+    require('../configure/serverGroupCommandBuilder.service.js').name,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+    SERVER_GROUP_READER,
+    CONFIRMATION_MODAL_SERVICE,
+    NETWORK_READ_SERVICE,
+    SERVER_GROUP_WRITER,
+    CLUSTER_TARGET_BUILDER,
+    require('google/common/xpnNaming.gce.service.js').name,
+    require('./resize/resizeServerGroup.controller').name,
+    require('./rollback/rollbackServerGroup.controller').name,
+    require('./autoscalingPolicy/autoscalingPolicy.directive.js').name,
+    require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js').name,
+  ])
+  .controller('gceServerGroupDetailsCtrl', function(
+    $scope,
+    $state,
+    $templateCache,
+    $interpolate,
+    app,
+    serverGroup,
+    gceServerGroupCommandBuilder,
+    serverGroupReader,
+    $uibModal,
+    confirmationModalService,
+    serverGroupWriter,
+    serverGroupWarningMessageService,
+    networkReader,
+    clusterTargetBuilder,
+    gceXpnNamingService,
+  ) {
     this.state = {
-      loading: true
+      loading: true,
     };
 
     this.application = app;
 
     let extractServerGroupSummary = () => {
-      var summary = _.find(app.serverGroups.data, (toCheck) => {
-        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
+      var summary = _.find(app.serverGroups.data, toCheck => {
+        return (
+          toCheck.name === serverGroup.name &&
+          toCheck.account === serverGroup.accountId &&
+          toCheck.region === serverGroup.region
+        );
       });
       if (!summary) {
-        app.loadBalancers.data.some((loadBalancer) => {
+        app.loadBalancers.data.some(loadBalancer => {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-            return loadBalancer.serverGroups.some((possibleServerGroup) => {
+            return loadBalancer.serverGroups.some(possibleServerGroup => {
               if (possibleServerGroup.name === serverGroup.name) {
                 summary = possibleServerGroup;
                 return true;
@@ -66,7 +84,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     };
 
     let cancelLoader = () => {
@@ -75,48 +93,57 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     let retrieveServerGroup = () => {
       var summary = extractServerGroupSummary();
-      return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then((details) => {
-        cancelLoader();
+      return serverGroupReader
+        .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+        .then(details => {
+          cancelLoader();
 
-        angular.extend(details, summary);
-        // it's possible the summary was not found because the clusters are still loading
-        details.account = serverGroup.accountId;
+          angular.extend(details, summary);
+          // it's possible the summary was not found because the clusters are still loading
+          details.account = serverGroup.accountId;
 
-        this.serverGroup = details;
+          this.serverGroup = details;
 
-        if (!_.isEmpty(this.serverGroup)) {
-          if (details.securityGroups) {
-            this.securityGroups = _.chain(details.securityGroups).map((id) => {
-              return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
-                _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
-            }).compact().value();
+          if (!_.isEmpty(this.serverGroup)) {
+            if (details.securityGroups) {
+              this.securityGroups = _.chain(details.securityGroups)
+                .map(id => {
+                  return (
+                    _.find(app.securityGroups.data, { accountName: serverGroup.accountId, region: 'global', id: id }) ||
+                    _.find(app.securityGroups.data, { accountName: serverGroup.accountId, region: 'global', name: id })
+                  );
+                })
+                .compact()
+                .value();
+            }
+
+            this.serverGroup.zones.sort();
+
+            var projectId = gceXpnNamingService.deriveProjectId(this.serverGroup.launchConfig.instanceTemplate);
+            this.serverGroup.logsLink =
+              'https://console.developers.google.com/project/' +
+              projectId +
+              '/logs?advancedFilter=resource.type=(gce_instance_group_manager OR gce_instance OR gce_autoscaler)%0A"' +
+              this.serverGroup.name +
+              '"';
+
+            this.serverGroup.network = getNetwork(projectId);
+            retrieveSubnet(projectId);
+            determineAssociatePublicIPAddress();
+
+            findStartupScript();
+            prepareDiskDescriptions();
+            prepareAvailabilityPolicies();
+            prepareAutoHealingPolicy();
+            prepareAuthScopes();
+            prepareCurrentActions();
+            augmentTagsWithHelp();
+            configureEntityTagTargets();
+            processLabels();
+          } else {
+            autoClose();
           }
-
-          this.serverGroup.zones.sort();
-
-          var projectId = gceXpnNamingService.deriveProjectId(this.serverGroup.launchConfig.instanceTemplate);
-          this.serverGroup.logsLink =
-            'https://console.developers.google.com/project/' + projectId + '/logs?advancedFilter=resource.type=(gce_instance_group_manager OR gce_instance OR gce_autoscaler)%0A\"' + this.serverGroup.name + '\"';
-
-          this.serverGroup.network = getNetwork(projectId);
-          retrieveSubnet(projectId);
-          determineAssociatePublicIPAddress();
-
-          findStartupScript();
-          prepareDiskDescriptions();
-          prepareAvailabilityPolicies();
-          prepareAutoHealingPolicy();
-          prepareAuthScopes();
-          prepareCurrentActions();
-          augmentTagsWithHelp();
-          configureEntityTagTargets();
-          processLabels();
-        } else {
-          autoClose();
-        }
-      },
-        autoClose
-      );
+        }, autoClose);
     };
 
     let findStartupScript = () => {
@@ -153,7 +180,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
               bareLabel: diskLabel,
               count: 1,
               countSuffix: '',
-              finalLabel: translateDiskType(disk.initializeParams.diskType) + ': ' + disk.initializeParams.diskSizeGb + 'GB',
+              finalLabel:
+                translateDiskType(disk.initializeParams.diskType) + ': ' + disk.initializeParams.diskSizeGb + 'GB',
               sourceImages: getSourceImage(disk) ? [getSourceImage(disk)] : [],
             });
           }
@@ -241,7 +269,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
         _.forOwn(this.serverGroup.currentActions, (value, key) => {
           if (key !== 'none' && value) {
-            this.serverGroup.currentActionsSummary.push({action: _.startCase(key), count: value});
+            this.serverGroup.currentActionsSummary.push({ action: _.startCase(key), count: value });
           }
         });
 
@@ -251,7 +279,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       }
     };
 
-    let translateDiskType = (diskType) => {
+    let translateDiskType = diskType => {
       if (diskType === 'pd-ssd') {
         return 'Persistent SSD';
       } else if (diskType === 'local-ssd') {
@@ -266,13 +294,20 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         let helpMap = {};
 
         this.serverGroup.launchConfig.instanceTemplate.properties.tags.items.forEach(tag => {
-          let securityGroupsMatches = _.filter(this.securityGroups, securityGroup => _.includes(securityGroup.targetTags, tag));
+          let securityGroupsMatches = _.filter(this.securityGroups, securityGroup =>
+            _.includes(securityGroup.targetTags, tag),
+          );
           let securityGroupMatchNames = _.map(securityGroupsMatches, 'name');
 
           if (!_.isEmpty(securityGroupMatchNames)) {
             let groupOrGroups = securityGroupMatchNames.length > 1 ? 'groups' : 'group';
 
-            helpMap[tag] = 'This tag associates this server group with security ' + groupOrGroups + ' <em>' + securityGroupMatchNames.join(', ') + '</em>.';
+            helpMap[tag] =
+              'This tag associates this server group with security ' +
+              groupOrGroups +
+              ' <em>' +
+              securityGroupMatchNames.join(', ') +
+              '</em>.';
           }
         });
 
@@ -286,13 +321,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       }
     };
 
-    let getNetwork = (projectId) => {
+    let getNetwork = projectId => {
       let networkUrl = _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
       return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, networkUrl);
     };
 
-    let retrieveSubnet = (projectId) => {
-      networkReader.listNetworksByProvider('gce').then((networks) => {
+    let retrieveSubnet = projectId => {
+      networkReader.listNetworksByProvider('gce').then(networks => {
         let autoCreateSubnets = _.chain(networks)
           .filter({ account: this.serverGroup.account, id: this.serverGroup.network })
           .map('autoCreateSubnets')
@@ -302,14 +337,20 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         if (autoCreateSubnets) {
           this.serverGroup.subnet = '(Auto-select)';
         } else {
-          let subnetUrl = _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
+          let subnetUrl = _.get(
+            this.serverGroup,
+            'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork',
+          );
           this.serverGroup.subnet = gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, subnetUrl);
         }
       });
     };
 
     let determineAssociatePublicIPAddress = () => {
-      this.serverGroup.associatePublicIPAddress = _.has(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].accessConfigs');
+      this.serverGroup.associatePublicIPAddress = _.has(
+        this.serverGroup,
+        'launchConfig.instanceTemplate.properties.networkInterfaces[0].accessConfigs',
+      );
     };
 
     retrieveServerGroup().then(() => {
@@ -328,12 +369,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      var submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
       var stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
-        region: serverGroup.region
+        region: serverGroup.region,
       };
 
       var confirmationModalParams = {
@@ -366,10 +407,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.disableServerGroup(serverGroup, app, params);
+      var submitMethod = params => serverGroupWriter.disableServerGroup(serverGroup, app, params);
 
       var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
@@ -399,7 +440,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      var submitMethod = params => serverGroupWriter.enableServerGroup(serverGroup, app, params);
 
       var confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
@@ -426,11 +467,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         resolve: {
           serverGroup: () => this.serverGroup,
           disabledServerGroups: () => {
-            var cluster = _.find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
-            return _.filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
+            var cluster = _.find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
+            return _.filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
           },
-          application: () => app
-        }
+          application: () => app,
+        },
       });
     };
 
@@ -439,23 +480,35 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         templateUrl: require('./resize/resizeServerGroup.html'),
         controller: 'gceResizeServerGroupCtrl as ctrl',
         resolve: {
-          serverGroup: () => { return this.serverGroup; },
-          application: () => { return app; }
-        }
+          serverGroup: () => {
+            return this.serverGroup;
+          },
+          application: () => {
+            return app;
+          },
+        },
       });
     };
 
-    this.cloneServerGroup = (serverGroup) => {
+    this.cloneServerGroup = serverGroup => {
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'gceCloneServerGroupCtrl as ctrl',
         size: 'lg',
         resolve: {
-          title: () => { return 'Clone ' + serverGroup.name; },
-          application: () => { return app; },
-          serverGroup: () => { return serverGroup; },
-          serverGroupCommand: () => { return gceServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup); },
-        }
+          title: () => {
+            return 'Clone ' + serverGroup.name;
+          },
+          application: () => {
+            return app;
+          },
+          serverGroup: () => {
+            return serverGroup;
+          },
+          serverGroupCommand: () => {
+            return gceServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup);
+          },
+        },
       });
     };
 
@@ -465,7 +518,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       $scope.userData = this.serverGroup.startupScript;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
@@ -489,5 +542,4 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     let configureEntityTagTargets = () => {
       this.entityTagTargets = clusterTargetBuilder.buildClusterTargets(this.serverGroup);
     };
-  }
-);
+  });

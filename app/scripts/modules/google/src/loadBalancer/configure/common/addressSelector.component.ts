@@ -43,5 +43,4 @@ class GceAddressSelector implements IComponentOptions {
 }
 
 export const GCE_ADDRESS_SELECTOR = 'spinnaker.gce.addressSelector.component';
-module(GCE_ADDRESS_SELECTOR, [])
-  .component('gceAddressSelector', new GceAddressSelector());
+module(GCE_ADDRESS_SELECTOR, []).component('gceAddressSelector', new GceAddressSelector());

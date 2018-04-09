@@ -6,23 +6,21 @@ import { ApplicationStateProvider, APPLICATION_STATE_PROVIDER } from '../applica
 import { ApplicationConfig } from './ApplicationConfig';
 
 export const APP_CONFIG_STATES = 'spinnaker.core.application.states';
-module(APP_CONFIG_STATES, [
-  APPLICATION_STATE_PROVIDER
-]).config((applicationStateProvider: ApplicationStateProvider) => {
+module(APP_CONFIG_STATES, [APPLICATION_STATE_PROVIDER]).config((applicationStateProvider: ApplicationStateProvider) => {
   const configState: INestedState = {
     name: 'config',
     url: '/config',
     views: {
-      'insight': {
+      insight: {
         component: ApplicationConfig,
         $type: 'react',
-      }
+      },
     },
     data: {
       pageTitleSection: {
-        title: 'Config'
-      }
-    }
+        title: 'Config',
+      },
+    },
   };
 
   applicationStateProvider.addChildState(configState);

@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notification.types.email', [])
+module.exports = angular
+  .module('spinnaker.core.notification.types.email', [])
   .config(function(notificationTypeConfigProvider) {
     notificationTypeConfigProvider.registerNotificationType({
       label: 'Email',

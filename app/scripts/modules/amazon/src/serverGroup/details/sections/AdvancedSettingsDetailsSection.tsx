@@ -14,7 +14,7 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
       resolve: {
         application: () => this.props.app,
         serverGroup: () => this.props.serverGroup,
-      }
+      },
     });
   }
 
@@ -29,10 +29,10 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
           <dl className="horizontal-when-filters-collapsed">
             <dt>Cooldown</dt>
             <dd>{asg.defaultCooldown} seconds</dd>
-            { asg.enabledMetrics.length > 0 && ([
+            {asg.enabledMetrics.length > 0 && [
               <dt key={'t-metrics'}>Enabled Metrics</dt>,
-              <dd key={'d-metrics'}>{asg.enabledMetrics.map(m => m.metric).join(', ')}</dd>
-            ]) }
+              <dd key={'d-metrics'}>{asg.enabledMetrics.map(m => m.metric).join(', ')}</dd>,
+            ]}
             <dt>Health Check Type</dt>
             <dd>{asg.healthCheckType}</dd>
             <dt>Grace Period</dt>
@@ -40,7 +40,9 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
             <dt>Termination Policies</dt>
             <dd>{asg.terminationPolicies.join(', ')}</dd>
           </dl>
-          <a className="clickable" onClick={this.editAdvancedSettings}>Edit Advanced Settings</a>
+          <a className="clickable" onClick={this.editAdvancedSettings}>
+            Edit Advanced Settings
+          </a>
         </CollapsibleSection>
       );
     }

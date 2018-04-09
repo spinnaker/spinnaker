@@ -24,11 +24,10 @@ export interface IFiltersProps {
 
 @BindAll()
 export class Filters extends React.Component<IFiltersProps> {
-
   public static defaultProps: Partial<IFiltersProps> = {
     filterClicked: () => {},
     onKeyUp: () => {},
-    onMouseDown: () => {}
+    onMouseDown: () => {},
   };
 
   private filters: Filter[] = [];
@@ -59,7 +58,6 @@ export class Filters extends React.Component<IFiltersProps> {
   }
 
   private generateFilterElement(filterType: IFilterType): JSX.Element {
-
     const { name, key } = filterType;
     return (
       <Filter
@@ -75,33 +73,25 @@ export class Filters extends React.Component<IFiltersProps> {
   }
 
   private renderFilterLayout(layout: IFiltersLayout): JSX.Element {
-
     const { header, filterTypes } = layout;
     const types = (filterTypes || []).map((type: IFilterType) => this.generateFilterElement(type));
     return (
       <div key={[header, filterTypes.length].join('|')}>
         <div className="filter-list__header">{header}</div>
-        <div role="listbox">
-          {types}
-        </div>
+        <div role="listbox">{types}</div>
       </div>
     );
   }
 
   public render(): React.ReactElement<Filters> {
-
     const { layouts, isOpen } = this.props;
     const className = classNames({
       'filter-list': true,
       'filter-list__open': isOpen,
-      'filter-list__closed': !isOpen
+      'filter-list__closed': !isOpen,
     });
 
     const menuLayouts = (layouts || []).map((layout: IFiltersLayout) => this.renderFilterLayout(layout));
-    return (
-      <div className={className}>
-        {menuLayouts}
-      </div>
-    );
+    return <div className={className}>{menuLayouts}</div>;
   }
 }

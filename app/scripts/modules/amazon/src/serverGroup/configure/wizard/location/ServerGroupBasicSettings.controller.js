@@ -6,30 +6,37 @@ import { Observable, Subject } from 'rxjs';
 import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
 
-module.exports = angular.module('spinnaker.amazon.serverGroup.configure.basicSettings', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  V2_MODAL_WIZARD_SERVICE,
-  IMAGE_READER,
-  NAMING_SERVICE,
-  SUBNET_SELECT_FIELD_COMPONENT,
-])
-  .controller('awsServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
-                                                          v2modalWizardService, imageReader, namingService) {
-
+module.exports = angular
+  .module('spinnaker.amazon.serverGroup.configure.basicSettings', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    V2_MODAL_WIZARD_SERVICE,
+    IMAGE_READER,
+    NAMING_SERVICE,
+    SUBNET_SELECT_FIELD_COMPONENT,
+  ])
+  .controller('awsServerGroupBasicSettingsCtrl', function(
+    $scope,
+    $controller,
+    $uibModalStack,
+    $state,
+    v2modalWizardService,
+    imageReader,
+    namingService,
+  ) {
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
         {
-          message: `<loading-spinner size="'nano'"></loading-spinner> Finding results matching "${q}"...`
-        }
+          message: `<loading-spinner size="'nano'"></loading-spinner> Finding results matching "${q}"...`,
+        },
       ];
       return Observable.fromPromise(
         imageReader.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
-          region: $scope.command.region
-        })
-      ).map(function (result) {
+          region: $scope.command.region,
+        }),
+      ).map(function(result) {
         if (result.length === 0 && q.startsWith('ami-') && q.length === 12) {
           // allow 'advanced' users to continue with just an ami id (backing image may not have been indexed yet)
           let record = {
@@ -37,7 +44,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.configure.basicSet
             amis: {},
             attributes: {
               virtualizationType: '*',
-            }
+            },
           };
 
           // trust that the specific image exists in the selected region
@@ -54,7 +61,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.configure.basicSet
     imageSearchResultsStream
       .debounceTime(250)
       .switchMap(searchImages)
-      .subscribe(function (data) {
+      .subscribe(function(data) {
         $scope.command.backingData.filtered.images = data.map(function(image) {
           if (image.message && !image.imageName) {
             return image;
@@ -77,17 +84,20 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.configure.basicSet
       this.searchImages('');
     };
 
-    this.imageChanged = (image) => {
+    this.imageChanged = image => {
       $scope.command.virtualizationType = image.virtualizationType;
     };
 
-    angular.extend(this, $controller('BasicSettingsMixin', {
-      $scope: $scope,
-      imageReader: imageReader,
-      namingService: namingService,
-      $uibModalStack: $uibModalStack,
-      $state: $state,
-    }));
+    angular.extend(
+      this,
+      $controller('BasicSettingsMixin', {
+        $scope: $scope,
+        imageReader: imageReader,
+        namingService: namingService,
+        $uibModalStack: $uibModalStack,
+        $state: $state,
+      }),
+    );
 
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
@@ -97,5 +107,4 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.configure.basicSet
         v2modalWizardService.markIncomplete('location');
       }
     });
-
   });

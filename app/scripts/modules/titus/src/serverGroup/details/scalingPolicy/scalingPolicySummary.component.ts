@@ -9,7 +9,6 @@ interface ITitusPolicy extends IScalingPolicy {
 }
 
 class ScalingPolicyDetailsSummaryController implements IController {
-
   public templateUrl: string;
   public policy: ITitusPolicy;
   public serverGroup: IServerGroup;
@@ -31,7 +30,7 @@ const component: IComponentOptions = {
     application: '<',
   },
   controller: ScalingPolicyDetailsSummaryController,
-  template: `<div ng-include src="$ctrl.templateUrl"></div>`
+  template: `<div ng-include src="$ctrl.templateUrl"></div>`,
 };
 
 export const SCALING_POLICY_SUMMARY = 'spinnaker.titus.scalingPolicy.details.summary.component';

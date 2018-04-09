@@ -32,7 +32,6 @@ export interface ICategoryDropdownState {
 @UIRouterContext
 @BindAll()
 export class CategoryDropdown extends React.Component<ICategoryDropdownProps, ICategoryDropdownState> {
-
   private runningCountSubscription: Subscription;
   private entityTagsSubscription: Subscription;
 
@@ -56,15 +55,18 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
   private configureSubscriptions(props: ICategoryDropdownProps) {
     const { category, application } = props;
     const withBadges = category.dataSources.filter(ds => ds.badge).map(ds => application.getDataSource(ds.badge));
-    this.runningCountSubscription = merge(...withBadges.map(ds => ds.refresh$))
-      .subscribe(() => {
-        this.setState({ runningCount: withBadges.reduce((acc: number, ds: ApplicationDataSource) => acc + ds.data.length, 0) })
+    this.runningCountSubscription = merge(...withBadges.map(ds => ds.refresh$)).subscribe(() => {
+      this.setState({
+        runningCount: withBadges.reduce((acc: number, ds: ApplicationDataSource) => acc + ds.data.length, 0),
       });
-    this.entityTagsSubscription = merge(...category.dataSources.map(ds => ds.refresh$))
-      .subscribe(() => {
-        const tags = category.dataSources.reduce((acc: IEntityTags[], ds: ApplicationDataSource) => acc.concat(ds.alerts || []), []);
-        this.setState({ tags });
-      })
+    });
+    this.entityTagsSubscription = merge(...category.dataSources.map(ds => ds.refresh$)).subscribe(() => {
+      const tags = category.dataSources.reduce(
+        (acc: IEntityTags[], ds: ApplicationDataSource) => acc.concat(ds.alerts || []),
+        [],
+      );
+      this.setState({ tags });
+    });
   }
 
   private clearSubscriptions(): void {
@@ -96,14 +98,18 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
       <UISrefActive class="active" key={category.key}>
         <UISref to={dataSource.sref}>
           <a className="nav-item top-level horizontal middle">
-            <NavIcon icon={dataSource.icon}/>
+            <NavIcon icon={dataSource.icon} />
             {' ' + dataSource.label}
             {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
-            <DataSourceNotifications tags={dataSource.alerts || []} application={application} tabName={category.label}/>
+            <DataSourceNotifications
+              tags={dataSource.alerts || []}
+              application={application}
+              tabName={category.label}
+            />
           </a>
         </UISref>
       </UISrefActive>
-    )
+    );
   }
 
   private createMenuItem(dataSource: ApplicationDataSource): JSX.Element {
@@ -113,7 +119,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
         <UISrefActive class="active" key={category.key}>
           <UISref to={dataSource.sref}>
             <a className="nav-menu-item horizontal middle">
-              <DataSourceEntry application={application} dataSource={dataSource} hideIcon={true}/>
+              <DataSourceEntry application={application} dataSource={dataSource} hideIcon={true} />
             </a>
           </UISref>
         </UISrefActive>
@@ -147,9 +153,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
           tags={tags}
           closeMenu={this.close}
         />
-        <Dropdown.Menu>
-          {category.dataSources.map(dataSource => this.createMenuItem(dataSource))}
-        </Dropdown.Menu>
+        <Dropdown.Menu>{category.dataSources.map(dataSource => this.createMenuItem(dataSource))}</Dropdown.Menu>
       </Dropdown>
     );
   }

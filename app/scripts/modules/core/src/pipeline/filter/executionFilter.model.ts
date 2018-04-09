@@ -11,9 +11,9 @@ import { FILTER_MODEL_SERVICE } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
-  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
+  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'pipeline', param: 'pipeline', type: 'trueKeyObject', clearValue: {} },
-  { model: 'status', type: 'trueKeyObject', clearValue: {}, },
+  { model: 'status', type: 'trueKeyObject', clearValue: {} },
 ];
 
 export interface IExecutionFilterModel extends IFilterModel {
@@ -34,9 +34,7 @@ export class ExecutionFilterModel {
   // mechanism for now.
   public expandSubject: Subject<boolean> = new Subject<boolean>();
 
-  constructor($rootScope: IRootScopeService,
-              filterModelService: any,
-              viewStateCache: ViewStateCacheService) {
+  constructor($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) {
     'ngInject';
     this.configViewStateCache = viewStateCache.createCache('executionFilters', {
       version: 1,
@@ -55,7 +53,7 @@ export class ExecutionFilterModel {
     // come back to this application's clusters view, we'll get whatever that search was.
     $rootScope.$on('$locationChangeStart', (_event: IAngularEvent, toUrl: string, fromUrl: string) => {
       const [oldBase, oldQuery] = fromUrl.split('?'),
-            [newBase, newQuery] = toUrl.split('?');
+        [newBase, newQuery] = toUrl.split('?');
 
       if (oldBase === newBase) {
         mostRecentParams = newQuery ? UrlParser.parseQueryString(newQuery) : {};
@@ -64,68 +62,86 @@ export class ExecutionFilterModel {
       }
     });
 
-    $rootScope.$on('$stateChangeStart', (_event: IAngularEvent, toState: Ng1StateDeclaration, _toParams: StateParams, fromState: Ng1StateDeclaration, fromParams: StateParams) => {
-      if (this.movingFromExecutionsState(toState, fromState)) {
-        this.asFilterModel.saveState(fromState, fromParams, mostRecentParams);
-      }
-    });
+    $rootScope.$on(
+      '$stateChangeStart',
+      (
+        _event: IAngularEvent,
+        toState: Ng1StateDeclaration,
+        _toParams: StateParams,
+        fromState: Ng1StateDeclaration,
+        fromParams: StateParams,
+      ) => {
+        if (this.movingFromExecutionsState(toState, fromState)) {
+          this.asFilterModel.saveState(fromState, fromParams, mostRecentParams);
+        }
+      },
+    );
 
-    $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
-      if (this.movingToExecutionsState(toState) && this.isExecutionStateOrChild(fromState.name)) {
-        this.asFilterModel.applyParamsToUrl();
-        return;
-      }
-      if (this.movingToExecutionsState(toState)) {
-        if (this.shouldRouteToSavedState(toParams, fromState)) {
-          this.asFilterModel.restoreState(toParams);
+    $rootScope.$on(
+      '$stateChangeSuccess',
+      (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+        if (this.movingToExecutionsState(toState) && this.isExecutionStateOrChild(fromState.name)) {
+          this.asFilterModel.applyParamsToUrl();
+          return;
         }
-        if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
-          this.asFilterModel.clearFilters();
+        if (this.movingToExecutionsState(toState)) {
+          if (this.shouldRouteToSavedState(toParams, fromState)) {
+            this.asFilterModel.restoreState(toParams);
+          }
+          if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
+            this.asFilterModel.clearFilters();
+          }
         }
-      }
-    });
+      },
+    );
 
     // A nice way to avoid watches is to define a property on an object
     Object.defineProperty(this.asFilterModel.sortFilter, 'count', {
       get: () => this.groupCount,
-      set: (count) => {
+      set: count => {
         this.groupCount = count;
         this.cacheConfigViewState();
-      }
+      },
     });
 
     Object.defineProperty(this.asFilterModel.sortFilter, 'groupBy', {
       get: () => this.groupBy,
-      set: (grouping) => {
+      set: grouping => {
         this.groupBy = grouping;
         this.cacheConfigViewState();
-      }
+      },
     });
 
     Object.defineProperty(this.asFilterModel.sortFilter, 'showStageDuration', {
       get: () => this.showStageDuration,
-      set: (newVal) => {
+      set: newVal => {
         this.showStageDuration = newVal;
         this.cacheConfigViewState();
-      }
+      },
     });
 
     this.asFilterModel.activate();
   }
 
-  private getCachedViewState(): { count: number, groupBy: string, showDurations: boolean, showStageDuration: boolean } {
+  private getCachedViewState(): { count: number; groupBy: string; showDurations: boolean; showStageDuration: boolean } {
     const cached = this.configViewStateCache.get('#global') || {},
-        defaults = { count: 2, groupBy: 'name', showDurations: false };
+      defaults = { count: 2, groupBy: 'name', showDurations: false };
     return extend(defaults, cached);
   }
 
   private cacheConfigViewState(): void {
-    this.configViewStateCache.put('#global', { count: this.groupCount, groupBy: this.groupBy, showStageDuration: this.showStageDuration });
+    this.configViewStateCache.put('#global', {
+      count: this.groupCount,
+      groupBy: this.groupBy,
+      showStageDuration: this.showStageDuration,
+    });
   }
 
   private isExecutionState(stateName: string): boolean {
-    return stateName === 'home.applications.application.pipelines.executions' ||
-      stateName === 'home.project.application.pipelines.executions';
+    return (
+      stateName === 'home.applications.application.pipelines.executions' ||
+      stateName === 'home.project.application.pipelines.executions'
+    );
   }
 
   private isChildState(stateName: string): boolean {
@@ -140,7 +156,7 @@ export class ExecutionFilterModel {
     return this.isExecutionStateOrChild(toState.name);
   }
 
-  private movingFromExecutionsState (toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration): boolean {
+  private movingFromExecutionsState(toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration): boolean {
     return this.isExecutionStateOrChild(fromState.name) && !this.isExecutionStateOrChild(toState.name);
   }
 
@@ -154,8 +170,8 @@ export class ExecutionFilterModel {
 }
 
 export const EXECUTION_FILTER_MODEL = 'spinnaker.core.pipeline.filter.executionFilter.model';
-module (EXECUTION_FILTER_MODEL, [
-  FILTER_MODEL_SERVICE,
-  VIEW_STATE_CACHE_SERVICE,
-]).factory('executionFilterModel', ($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) =>
-                                    new ExecutionFilterModel($rootScope, filterModelService, viewStateCache));
+module(EXECUTION_FILTER_MODEL, [FILTER_MODEL_SERVICE, VIEW_STATE_CACHE_SERVICE]).factory(
+  'executionFilterModel',
+  ($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) =>
+    new ExecutionFilterModel($rootScope, filterModelService, viewStateCache),
+);

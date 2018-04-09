@@ -8,29 +8,32 @@ import { Application, InfrastructureCacheService } from '@spinnaker/core';
 import { IGceLoadBalancer } from 'google/domain/loadBalancer';
 
 export class CommonGceLoadBalancerCtrl {
-  constructor (public $scope: IScope,
-               public application: Application,
-               public $uibModalInstance: IModalInstanceService,
-               private $state: StateService,
-               private infrastructureCaches: InfrastructureCacheService) { }
+  constructor(
+    public $scope: IScope,
+    public application: Application,
+    public $uibModalInstance: IModalInstanceService,
+    private $state: StateService,
+    private infrastructureCaches: InfrastructureCacheService,
+  ) {}
 
-  public onTaskComplete (loadBalancer: IGceLoadBalancer): void {
+  public onTaskComplete(loadBalancer: IGceLoadBalancer): void {
     this.infrastructureCaches.clearCache('healthCheck');
     this.application.getDataSource('loadBalancers').refresh();
-    this.application.getDataSource('loadBalancers')
+    this.application
+      .getDataSource('loadBalancers')
       .onNextRefresh(this.$scope, () => this.onApplicationRefresh(loadBalancer));
   }
 
-  public cancel (): void {
+  public cancel(): void {
     this.$uibModalInstance.dismiss();
   }
 
-  public getName (lb: IGceLoadBalancer, application: Application): string {
-    const loadBalancerName = [application.name, (lb.stack || ''), (lb.detail || '')].join('-');
+  public getName(lb: IGceLoadBalancer, application: Application): string {
+    const loadBalancerName = [application.name, lb.stack || '', lb.detail || ''].join('-');
     return trimEnd(loadBalancerName, '-');
   }
 
-  private onApplicationRefresh (loadBalancer: IGceLoadBalancer): void {
+  private onApplicationRefresh(loadBalancer: IGceLoadBalancer): void {
     // If the user has already closed the modal, do not navigate to the new details view
     if (this.$scope.$$destroyed) {
       return;

@@ -2,15 +2,13 @@
 
 const angular = require('angular');
 
-import {
-  StageConstants,
-  ACCOUNT_SERVICE
-} from '@spinnaker/core';
+import { StageConstants, ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgStage', [
-  ACCOUNT_SERVICE,
-  require('core/application/modal/platformHealthOverride.directive.js').name,
-])
+module.exports = angular
+  .module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgStage', [
+    ACCOUNT_SERVICE,
+    require('core/application/modal/platformHealthOverride.directive.js').name,
+  ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
@@ -20,17 +18,18 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgSt
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'action' },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('oraclebmcsResizeAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('oraclebmcsResizeAsgStageCtrl', function($scope, accountService) {
     let ctrl = this;
 
     let provider = 'oraclebmcs';
@@ -42,7 +41,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgSt
       regionsLoaded: false,
     };
 
-    accountService.listAccounts(provider).then(function (accounts) {
+    accountService.listAccounts(provider).then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -53,13 +52,10 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgSt
       { label: 'Scale Up', val: 'scale_up' },
       { label: 'Scale Down', val: 'scale_down' },
       { label: 'Scale to Cluster Size', val: 'scale_to_cluster' },
-      { label: 'Scale to Exact Size', val: 'scale_exact' }
+      { label: 'Scale to Exact Size', val: 'scale_exact' },
     ];
 
-    $scope.resizeTypes = [
-      { label: 'Percentage', val: 'pct' },
-      { label: 'Incremental', val: 'incr' }
-    ];
+    $scope.resizeTypes = [{ label: 'Percentage', val: 'pct' }, { label: 'Incremental', val: 'incr' }];
 
     stage.capacity = stage.capacity || {};
     stage.regions = stage.regions || [];

@@ -27,14 +27,14 @@ const NOTIFICATION_CATEGORIES = [
     label: 'Uncategorized',
     icon: 'fa-exclamation-circle',
     severity: 0,
-  }
+  },
 ];
 
 const BY_NAME: Dictionary<INotificationCategory> = keyBy(NOTIFICATION_CATEGORIES, 'id');
 
 export class NotificationCategories {
   private static defineCategory(id: string, label = id, severity = 0, icon = 'fa-exclamation-circle') {
-    return BY_NAME[id] = { id, label, severity, icon };
+    return (BY_NAME[id] = { id, label, severity, icon });
   }
 
   public static getCategory(categoryName: string): INotificationCategory {
@@ -43,9 +43,8 @@ export class NotificationCategories {
     }
 
     // Temporarily coerce 'blacklist' to 'urgentissues'
-    categoryName = (categoryName === 'blacklist' ? 'urgentissues' : categoryName);
+    categoryName = categoryName === 'blacklist' ? 'urgentissues' : categoryName;
 
     return BY_NAME[categoryName] || NotificationCategories.defineCategory(categoryName);
   }
 }
-

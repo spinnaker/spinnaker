@@ -31,9 +31,9 @@ export abstract class SearchResultType<T extends ISearchResult = ISearchResult> 
   public abstract iconClass: string;
 
   // These components should render the results (Tab, Header, and Data)
-  public TabComponent:    React.ComponentType<ISearchResultTabProps<T>> = DefaultSearchResultTab;
+  public TabComponent: React.ComponentType<ISearchResultTabProps<T>> = DefaultSearchResultTab;
   public HeaderComponent: React.ComponentType<ISearchResultSetProps<T>>;
-  public DataComponent:   React.ComponentType<ISearchResultSetProps<T>>;
+  public DataComponent: React.ComponentType<ISearchResultSetProps<T>>;
 
   // v1 search field
   public hideIfEmpty?: boolean;

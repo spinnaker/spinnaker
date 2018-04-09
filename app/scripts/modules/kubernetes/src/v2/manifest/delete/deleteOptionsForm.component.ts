@@ -44,6 +44,9 @@ class KubernetesDeletManifestOptionsFormComponent implements IComponentOptions {
   `;
 }
 
-export const KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM = 'spinnaker.kubernetes.v2.kubernetes.manifest.delete.options.component';
-module(KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM, [])
-  .component('kubernetesDeleteManifestOptionsForm', new KubernetesDeletManifestOptionsFormComponent());
+export const KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM =
+  'spinnaker.kubernetes.v2.kubernetes.manifest.delete.options.component';
+module(KUBERNETES_DELETE_MANIFEST_OPTIONS_FORM, []).component(
+  'kubernetesDeleteManifestOptionsForm',
+  new KubernetesDeletManifestOptionsFormComponent(),
+);

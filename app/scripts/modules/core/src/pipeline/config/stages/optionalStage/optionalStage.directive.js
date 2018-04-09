@@ -2,19 +2,20 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.optionalStage.directive', [
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.optionalStage.directive', [])
   .directive('optionalStage', function() {
     return {
       restrict: 'E',
       scope: {
-        stage: '='
+        stage: '=',
       },
       templateUrl: require('./optionalStage.directive.html'),
       controller: 'OptionalStageCtrl',
       controllerAs: 'optionalStageCtrl',
     };
-  }).controller('OptionalStageCtrl', function($scope) {
+  })
+  .controller('OptionalStageCtrl', function($scope) {
     this.isOptional = function() {
       return $scope.stage && $scope.stage.stageEnabled;
     };
@@ -24,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.optionalStage.dir
         delete $scope.stage.stageEnabled;
       } else {
         $scope.stage.stageEnabled = {
-          type: 'expression'
+          type: 'expression',
         };
       }
     };

@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.configView', [
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.configView', [])
   .directive('pipelineConfigView', function() {
     return {
       restrict: 'E',
@@ -17,6 +17,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configView', [
       templateUrl: require('./pipelineConfigView.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
-      }
+      },
     };
   });

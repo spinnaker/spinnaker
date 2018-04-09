@@ -20,14 +20,13 @@ interface IInitializers {
 }
 
 export class CacheInitializerService {
-
   private cacheConfig: IInfrastructureCacheConfig = cloneDeep<IInfrastructureCacheConfig>(INFRASTRUCTURE_CACHE_CONFIG);
 
   private initializers: IInitializers = {
     credentials: [() => this.accountService.listAccounts()],
     securityGroups: [() => this.securityGroupReader.getAllSecurityGroups()],
     applications: [() => this.applicationReader.listApplications()],
-    buildMasters: [() => this.igorService.listMasters()]
+    buildMasters: [() => this.igorService.listMasters()],
   };
 
   private setConfigDefaults(key: string, config: ICacheConfig) {
@@ -55,14 +54,12 @@ export class CacheInitializerService {
             if (!this.cacheConfig[key]) {
               this.cacheConfig[key] = providerConfig[key];
             }
-            this.cacheConfig[key].initializers =
-              uniq((this.cacheConfig[key].initializers).concat(providerConfig[key].initializers));
-            this.cacheConfig[key].onReset =
-              uniq((this.cacheConfig[key].onReset).concat(providerConfig[key].onReset));
-            this.cacheConfig[key].version =
-              Math.max(this.cacheConfig[key].version, providerConfig[key].version);
-            this.cacheConfig[key].maxAge =
-              Math.min(this.cacheConfig[key].maxAge, providerConfig[key].maxAge);
+            this.cacheConfig[key].initializers = uniq(
+              this.cacheConfig[key].initializers.concat(providerConfig[key].initializers),
+            );
+            this.cacheConfig[key].onReset = uniq(this.cacheConfig[key].onReset.concat(providerConfig[key].onReset));
+            this.cacheConfig[key].version = Math.max(this.cacheConfig[key].version, providerConfig[key].version);
+            this.cacheConfig[key].maxAge = Math.min(this.cacheConfig[key].maxAge, providerConfig[key].maxAge);
           });
         }
       });
@@ -70,7 +67,6 @@ export class CacheInitializerService {
   }
 
   private initializeCache(key: string): ng.IPromise<any[]> {
-
     this.infrastructureCaches.createCache(key, this.cacheConfig[key]);
     if (this.cacheConfig[key].initializers) {
       const initializer: any = this.cacheConfig[key].initializers;
@@ -85,17 +81,18 @@ export class CacheInitializerService {
     }
   }
 
-  constructor(private $q: ng.IQService,
-              private applicationReader: ApplicationReader,
-              private infrastructureCaches: InfrastructureCacheService,
-              private accountService: AccountService,
-              private securityGroupReader: SecurityGroupReader,
-              private cloudProviderRegistry: CloudProviderRegistry,
-              private igorService: IgorService,
-              private providerServiceDelegate: any) {}
+  constructor(
+    private $q: ng.IQService,
+    private applicationReader: ApplicationReader,
+    private infrastructureCaches: InfrastructureCacheService,
+    private accountService: AccountService,
+    private securityGroupReader: SecurityGroupReader,
+    private cloudProviderRegistry: CloudProviderRegistry,
+    private igorService: IgorService,
+    private providerServiceDelegate: any,
+  ) {}
 
   public initialize(): ng.IPromise<any[]> {
-
     return this.extendConfig().then(() => {
       const all: any[] = [];
       Object.keys(this.cacheConfig).forEach((key: string) => {
@@ -112,7 +109,6 @@ export class CacheInitializerService {
   }
 
   public refreshCaches(): ng.IPromise<any[]> {
-
     const all: ng.IPromise<any[]>[] = [];
     Object.keys(this.cacheConfig).forEach((key: string) => {
       all.push(this.refreshCache(key));
@@ -130,5 +126,4 @@ module(CACHE_INITIALIZER_SERVICE, [
   IGOR_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-])
-  .service('cacheInitializer', CacheInitializerService);
+]).service('cacheInitializer', CacheInitializerService);

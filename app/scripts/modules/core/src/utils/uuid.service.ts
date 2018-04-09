@@ -1,11 +1,9 @@
 export class UUIDGenerator {
-
   private static getRandom(max: number) {
     return Math.random() * max;
   }
 
   public static generateUuid(): string {
-
     // source: https://github.com/daniellmb/angular-uuid-service/blob/master/angular-uuid-service.js
     let uuid = '';
     for (let i = 0; i < 36; i++) {

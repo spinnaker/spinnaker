@@ -56,14 +56,13 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
       pages: [],
       waiting: new Set(),
     };
-
   }
 
   private setCurrentPage(pageState: IWizardPageData): void {
     if (this.stepsElement) {
       this.stepsElement.scrollTop = pageState.element.offsetTop;
     }
-    this.setState({ currentPage:  pageState });
+    this.setState({ currentPage: pageState });
   }
 
   private onHide(): void {
@@ -108,11 +107,13 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   private handleStepsScroll(event: React.UIEvent<HTMLDivElement>): void {
     // Cannot precalculate because sections can shrink/grow.
     // Could optimize by having a callback every time the size changes... but premature
-    const pageTops = this.state.pages.map((pageName) => this.pages[pageName].element.offsetTop);
+    const pageTops = this.state.pages.map(pageName => this.pages[pageName].element.offsetTop);
     const scrollTop = event.currentTarget.scrollTop;
 
-    let reversedCurrentPage = pageTops.reverse().findIndex((pageTop) => scrollTop >= pageTop);
-    if (reversedCurrentPage === undefined) { reversedCurrentPage = pageTops.length - 1; }
+    let reversedCurrentPage = pageTops.reverse().findIndex(pageTop => scrollTop >= pageTop);
+    if (reversedCurrentPage === undefined) {
+      reversedCurrentPage = pageTops.length - 1;
+    }
     const currentPageIndex = pageTops.length - (reversedCurrentPage + 1);
     const currentPage = this.pages[this.state.pages[currentPageIndex]];
 
@@ -120,12 +121,12 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   }
 
   private getFilteredChildren(): React.ReactChild[] {
-    return React.Children.toArray(this.props.children).filter(
-      (child: any): boolean => {
-        if (!child || !child.type || !child.type.label) { return false; }
-        return !this.props.hideSections.has(child.type.label);
+    return React.Children.toArray(this.props.children).filter((child: any): boolean => {
+      if (!child || !child.type || !child.type.label) {
+        return false;
       }
-    );
+      return !this.props.hideSections.has(child.type.label);
+    });
   }
 
   private getVisiblePageNames(): string[] {
@@ -136,7 +137,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     const errors: { [key: string]: string }[] = [];
     const newErrorPages: Set<string> = new Set();
 
-    this.state.pages.forEach((pageName) => {
+    this.state.pages.forEach(pageName => {
       const pageErrors = this.pages[pageName].validate ? this.pages[pageName].validate(values) : {};
       if (Object.keys(pageErrors).length > 0) {
         newErrorPages.add(pageName);
@@ -166,7 +167,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     const { currentPage, dirtyPages, errorPages, formInvalid, pages, waiting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
-    const pagesToShow = pages.filter((page) => !hideSections.has(page) && this.pages[page]);
+    const pagesToShow = pages.filter(page => !hideSections.has(page) && this.pages[page]);
 
     const submitting = taskMonitor && taskMonitor.submitting;
 
@@ -179,19 +180,19 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
           validate={this.validate}
           render={(props: FormikProps<T>) => (
             <Form className="form-horizontal">
-              <ModalClose dismiss={dismiss}/>
-              <Modal.Header>
-                {heading && <h3>{heading}</h3>}
-              </Modal.Header>
+              <ModalClose dismiss={dismiss} />
+              <Modal.Header>{heading && <h3>{heading}</h3>}</Modal.Header>
               <Modal.Body>
                 <div className="row">
                   <div className="col-md-3 hidden-sm hidden-xs">
                     <ul className="steps-indicator wizard-navigation">
-                      {pagesToShow.map((pageName) => (
+                      {pagesToShow.map(pageName => (
                         <WizardStepLabel
                           key={this.pages[pageName].label}
                           current={this.pages[pageName] === currentPage}
-                          dirty={dirtyPages.has(this.pages[pageName].label) || errorPages.has(this.pages[pageName].label)}
+                          dirty={
+                            dirtyPages.has(this.pages[pageName].label) || errorPages.has(this.pages[pageName].label)
+                          }
                           pageState={this.pages[pageName]}
                           onClick={this.setCurrentPage}
                           waiting={waiting.has(pageName)}
@@ -200,21 +201,22 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
                     </ul>
                   </div>
                   <div className="col-md-9 col-sm-12">
-                    <div className="steps" ref={(ele) => this.stepsElement = ele} onScroll={this.handleStepsScroll}>
+                    <div className="steps" ref={ele => (this.stepsElement = ele)} onScroll={this.handleStepsScroll}>
                       {this.getFilteredChildren().map((child: React.ReactElement<any>) => {
-                        return React.cloneElement(child, { ...props, dirtyCallback: this.dirtyCallback, onMount: this.onMount, revalidate: () => this.revalidate(props.values, props.setErrors), setWaiting: this.setWaiting });
+                        return React.cloneElement(child, {
+                          ...props,
+                          dirtyCallback: this.dirtyCallback,
+                          onMount: this.onMount,
+                          revalidate: () => this.revalidate(props.values, props.setErrors),
+                          setWaiting: this.setWaiting,
+                        });
                       })}
                     </div>
                   </div>
                 </div>
               </Modal.Body>
               <Modal.Footer>
-                <button
-                  className="btn btn-default"
-                  disabled={submitting}
-                  onClick={dismiss}
-                  type="button"
-                >
+                <button className="btn btn-default" disabled={submitting} onClick={dismiss} type="button">
                   Cancel
                 </button>
                 <SubmitButton
@@ -232,20 +234,30 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   }
 }
 
-const WizardStepLabel = (props: { current: boolean, dirty: boolean, pageState: IWizardPageData, onClick: (pageState: IWizardPageData) => void, waiting: boolean }): JSX.Element => {
+const WizardStepLabel = (props: {
+  current: boolean;
+  dirty: boolean;
+  pageState: IWizardPageData;
+  onClick: (pageState: IWizardPageData) => void;
+  waiting: boolean;
+}): JSX.Element => {
   const { current, dirty, onClick, pageState, waiting } = props;
   const className = classNames({
     default: !pageState.props.done,
     dirty,
     current,
     done: pageState.props.done,
-    waiting
+    waiting,
   });
-  const handleClick = () => { onClick(pageState); };
+  const handleClick = () => {
+    onClick(pageState);
+  };
 
   return (
     <li className={className}>
-      <a className="clickable" onClick={handleClick}>{pageState.label}</a>
+      <a className="clickable" onClick={handleClick}>
+        {pageState.label}
+      </a>
     </li>
-  )
+  );
 };

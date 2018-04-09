@@ -4,8 +4,9 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce.service', [])
-  .factory('gceCustomInstanceBuilderService', function () {
+module.exports = angular
+  .module('spinnaker.serverGroup.customInstanceBuilder.gce.service', [])
+  .factory('gceCustomInstanceBuilderService', function() {
     function vCpuCountForLocationIsValid(vCpuCount, location, locationToInstanceTypesMap) {
       let max = locationToInstanceTypesMap[location].vCpuMax;
       return vCpuCount <= max;
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
 
     function generateValidVCpuListForLocation(location, locationToInstanceTypesMap) {
       let max = locationToInstanceTypesMap[location].vCpuMax;
-      return [ 1, ..._.range(2, max, 2), max ];
+      return [1, ..._.range(2, max, 2), max];
     }
 
     /*
@@ -31,7 +32,7 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
     * Total memory must be a multiple of 256 MB.
     * */
     function minMemoryForVCpuCount(vCpuCount) {
-      return Math.ceil((0.9 * vCpuCount) * 4) / 4;
+      return Math.ceil(0.9 * vCpuCount * 4) / 4;
     }
 
     function maxMemoryForVCpuCount(vCpuCount) {
@@ -41,7 +42,7 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
     function generateValidMemoryListForVCpuCount(vCpuCount) {
       let min = minMemoryForVCpuCount(vCpuCount);
       let max = maxMemoryForVCpuCount(vCpuCount);
-      return [ ..._.range(min, max, .25), max ];
+      return [..._.range(min, max, 0.25), max];
     }
 
     function memoryIsValid(totalMemory, vCpuCount) {
@@ -60,7 +61,7 @@ module.exports = angular.module('spinnaker.serverGroup.customInstanceBuilder.gce
     }
 
     function parseInstanceTypeString(instanceTypeString) {
-      let [ vCpuCount, memoryInMbs ] = _.chain(instanceTypeString.split('-'))
+      let [vCpuCount, memoryInMbs] = _.chain(instanceTypeString.split('-'))
         .takeRight(2)
         .map(value => Number(value))
         .value();

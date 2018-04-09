@@ -3,9 +3,8 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.azure.serverGroup.configure.wizard.capacity.selector.directive', [
-  ])
-  .directive('azureServerGroupCapacitySelector', function () {
+  .module('spinnaker.azure.serverGroup.configure.wizard.capacity.selector.directive', [])
+  .directive('azureServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',
       templateUrl: require('./capacitySelector.directive.html'),
@@ -16,5 +15,5 @@ module.exports = angular
       controllerAs: 'cap',
       controller: 'azureServerGroupCapacitySelectorCtrl',
     };
-  }).controller('azureServerGroupCapacitySelectorCtrl', function () {
-  });
+  })
+  .controller('azureServerGroupCapacitySelectorCtrl', function() {});

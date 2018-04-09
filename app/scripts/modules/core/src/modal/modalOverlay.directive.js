@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.modal.modalOverlay.directive', [
-])
+module.exports = angular
+  .module('spinnaker.core.modal.modalOverlay.directive', [])
   .directive('modalOverlay', function($timeout) {
     return {
       restrict: 'A',
@@ -17,18 +17,21 @@ module.exports = angular.module('spinnaker.core.modal.modalOverlay.directive', [
           }
 
           $uibModal.height(modalHeight);
-          elem.show().height(modalHeight).css({opacity: 1});
+          elem
+            .show()
+            .height(modalHeight)
+            .css({ opacity: 1 });
 
           let headerHeight = elem.find('.modal-header').outerHeight(),
-              footerHeight = elem.find('.modal-footer').outerHeight();
-          elem.find('.modal-body').css({height: `calc(100% - ${headerHeight + footerHeight}px)`});
+            footerHeight = elem.find('.modal-footer').outerHeight();
+          elem.find('.modal-body').css({ height: `calc(100% - ${headerHeight + footerHeight}px)` });
 
           scope.$on('$destroy', function() {
             elem.hide();
-            elem.height(0).css({opacity: 0, scrollTop: 0});
+            elem.height(0).css({ opacity: 0, scrollTop: 0 });
             $uibModal.height('auto');
           });
         });
-      }
+      },
     };
-});
+  });

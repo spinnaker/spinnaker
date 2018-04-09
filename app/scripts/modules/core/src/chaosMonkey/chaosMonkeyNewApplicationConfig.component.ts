@@ -15,7 +15,7 @@ export class ChaosMonkeyNewApplicationConfigController {
         minTimeBetweenKillsInWorkDays: 1,
         grouping: 'cluster',
         regionsAreIndependent: true,
-        exceptions: []
+        exceptions: [],
       };
     }
   }
@@ -23,7 +23,7 @@ export class ChaosMonkeyNewApplicationConfigController {
 
 class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
   public bindings: any = {
-    applicationConfig: '='
+    applicationConfig: '=',
   };
   public controller: any = ChaosMonkeyNewApplicationConfigController;
   public template = `
@@ -45,6 +45,9 @@ class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
   `;
 }
 
-export const CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.newApplication.config.component';
-module(CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT, [])
-.component('chaosMonkeyNewApplicationConfig', new ChaosMonkeyNewApplicationConfigComponent());
+export const CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT =
+  'spinnaker.core.chaosMonkey.newApplication.config.component';
+module(CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT, []).component(
+  'chaosMonkeyNewApplicationConfig',
+  new ChaosMonkeyNewApplicationConfigComponent(),
+);

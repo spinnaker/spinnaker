@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.amazon.serverGroups.configure.wizard.zoneSelector.directive', [
-])
+module.exports = angular
+  .module('spinnaker.amazon.serverGroups.configure.wizard.zoneSelector.directive', [])
   .directive('availabilityZoneSelector', function() {
     return {
       restrict: 'E',
@@ -12,10 +12,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroups.configure.wizard.
       },
       templateUrl: require('./availabilityZoneSelector.directive.html'),
       controller: function($scope) {
-        $scope.autoBalancingOptions = [
-          { label: 'Enabled', value: true},
-          { label: 'Manual', value: false}
-        ];
+        $scope.autoBalancingOptions = [{ label: 'Enabled', value: true }, { label: 'Manual', value: false }];
       },
     };
-});
+  });

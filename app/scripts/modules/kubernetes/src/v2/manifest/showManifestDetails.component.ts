@@ -12,13 +12,17 @@ class KubernetesShowManifestDetails implements IController {
   public accountId: string;
   public application: Application;
 
-  public constructor(kubernetesManifestService: KubernetesManifestService,
-                     private $scope: IScope) {
-    kubernetesManifestService.makeManifestRefresher(this.application, this.$scope, {
-      account: this.accountId,
-      location: this.manifestContents.metadata.namespace,
-      name: this.manifestFullName(),
-    }, this);
+  public constructor(kubernetesManifestService: KubernetesManifestService, private $scope: IScope) {
+    kubernetesManifestService.makeManifestRefresher(
+      this.application,
+      this.$scope,
+      {
+        account: this.accountId,
+        location: this.manifestContents.metadata.namespace,
+        name: this.manifestFullName(),
+      },
+      this,
+    );
   }
 
   public canOpen(): boolean {
@@ -98,5 +102,7 @@ class KubernetesShowManifestDetailsComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_SHOW_MANIFEST_DETAILS = 'spinnaker.kubernetes.v2.manifest.showDetails';
-module(KUBERNETES_SHOW_MANIFEST_DETAILS, [])
-  .component('kubernetesShowManifestDetails', new KubernetesShowManifestDetailsComponent());
+module(KUBERNETES_SHOW_MANIFEST_DETAILS, []).component(
+  'kubernetesShowManifestDetails',
+  new KubernetesShowManifestDetailsComponent(),
+);

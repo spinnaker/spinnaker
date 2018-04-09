@@ -3,7 +3,6 @@ import { IVariableValidator, VariableValidatorService } from './variableValidato
 import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
 class StringValidator implements IVariableValidator {
-
   public handles(type: string) {
     return type === 'string';
   }
@@ -16,5 +15,6 @@ class StringValidator implements IVariableValidator {
 }
 
 export const STRING_VALIDATOR = 'spinnaker.core.pipelineTemplate.stringValidator';
-module(STRING_VALIDATOR, [])
-  .run((variableValidatorService: VariableValidatorService) => variableValidatorService.addValidator(new StringValidator()));
+module(STRING_VALIDATOR, []).run((variableValidatorService: VariableValidatorService) =>
+  variableValidatorService.addValidator(new StringValidator()),
+);

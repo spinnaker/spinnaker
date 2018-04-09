@@ -11,12 +11,7 @@ interface ICommand {
 }
 
 describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
-
-  let $scope: IScope,
-    igorService: IgorService,
-    $ctrl: IControllerService,
-    $q: IQService,
-    command: ICommand;
+  let $scope: IScope, igorService: IgorService, $ctrl: IControllerService, $q: IQService, command: ICommand;
 
   beforeEach(mock.module(TRAVIS_TRIGGER_OPTIONS_COMPONENT));
 
@@ -24,28 +19,37 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   beforeEach(
     mock.module(($qProvider: IQProvider) => {
       $qProvider.errorOnUnhandledRejections(false);
-  }));
+    }),
+  );
 
-  beforeEach(mock.inject(($rootScope: IRootScopeService, _igorService_: IgorService, $controller: IControllerService, _$q_: IQService) => {
-    $ctrl = $controller;
-    $scope = $rootScope.$new();
-    igorService = _igorService_;
-    $q = _$q_;
+  beforeEach(
+    mock.inject(
+      ($rootScope: IRootScopeService, _igorService_: IgorService, $controller: IControllerService, _$q_: IQService) => {
+        $ctrl = $controller;
+        $scope = $rootScope.$new();
+        igorService = _igorService_;
+        $q = _$q_;
 
-    command = {
-      trigger: <IBuildTrigger>{
-        type: 'travis',
-        master: 'a',
-        job: 'b'
-      }
-    };
-  }));
+        command = {
+          trigger: <IBuildTrigger>{
+            type: 'travis',
+            master: 'a',
+            job: 'b',
+          },
+        };
+      },
+    ),
+  );
 
   const initialize = () => {
-    const ctrl = $ctrl(TravisTriggerOptionsController, {
-      igorService: igorService,
-      $scope: $scope,
-    }, { command: command });
+    const ctrl = $ctrl(
+      TravisTriggerOptionsController,
+      {
+        igorService: igorService,
+        $scope: $scope,
+      },
+      { command: command },
+    );
     ctrl.$onInit();
     return ctrl;
   };
@@ -63,8 +67,17 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     expect(controller.viewState.selectedBuild).toBeUndefined();
   });
 
-  it('sets build to first one available when returned on initialization', function () {
-    const build: IBuild = { number: 1, result: 'SUCCESS', building: null, duration: null, name: null, timestamp: null, url: null, artifacts: null };
+  it('sets build to first one available when returned on initialization', function() {
+    const build: IBuild = {
+      number: 1,
+      result: 'SUCCESS',
+      building: null,
+      duration: null,
+      name: null,
+      timestamp: null,
+      url: null,
+      artifacts: null,
+    };
     spyOn(igorService, 'listBuildsForJob').and.returnValue($q.when([build]));
 
     const controller = initialize();
@@ -77,7 +90,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     expect(command.extraFields.buildNumber).toBe(1);
   });
 
-  it('sets flags when build load fails', function () {
+  it('sets flags when build load fails', function() {
     spyOn(igorService, 'listBuildsForJob').and.returnValue($q.reject('igored'));
 
     const controller = initialize();
@@ -90,7 +103,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     expect(command.extraFields.buildNumber).toBeUndefined();
   });
 
-  it('re-initializes when trigger changes', function () {
+  it('re-initializes when trigger changes', function() {
     const firstBuild: IBuild = <any>{ number: '1', result: 'SUCCESS' },
       secondBuild: IBuild = <any>{ number: '3', result: 'SUCCESS' },
       secondTrigger: IBuildTrigger = <IBuildTrigger>{ type: 'travis', master: 'b', job: 'c' };
@@ -120,5 +133,4 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     expect(controller.viewState.selectedBuild).toBe(secondBuild);
     expect(command.extraFields.buildNumber).toBe('3');
   });
-
 });

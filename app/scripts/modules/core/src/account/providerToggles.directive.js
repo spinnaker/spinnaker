@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.core.account.providerToggle.directive', [ACCOUNT_SERVICE])
@@ -16,7 +16,7 @@ module.exports = angular
             elem.hide();
           }
         });
-      }
+      },
     };
   })
   .directive('ifSingleProvider', function(accountService) {
@@ -30,6 +30,6 @@ module.exports = angular
             elem.hide();
           }
         });
-      }
+      },
     };
   });

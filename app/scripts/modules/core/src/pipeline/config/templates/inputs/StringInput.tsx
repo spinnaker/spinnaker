@@ -1,14 +1,17 @@
 import { module } from 'angular';
 import * as React from 'react';
 import {
-  IVariableInputBuilder, VariableInputService, IVariable, IVariableProps, IVariableState
+  IVariableInputBuilder,
+  VariableInputService,
+  IVariable,
+  IVariableProps,
+  IVariableState,
 } from './variableInput.service';
 import { BindAll } from 'lodash-decorators';
 import { VariableError } from '../VariableError';
 
 @BindAll()
 class StringInput extends React.Component<IVariableProps, IVariableState> {
-
   public render() {
     return (
       <div>
@@ -19,7 +22,7 @@ class StringInput extends React.Component<IVariableProps, IVariableState> {
           onChange={this.extractValue}
           required={true}
         />
-        {!this.props.variable.hideErrors && <VariableError errors={this.props.variable.errors}/>}
+        {!this.props.variable.hideErrors && <VariableError errors={this.props.variable.errors} />}
       </div>
     );
   }
@@ -30,16 +33,16 @@ class StringInput extends React.Component<IVariableProps, IVariableState> {
 }
 
 export class StringInputBuilder implements IVariableInputBuilder {
-
   public handles(type: string): boolean {
     return type === 'string';
   }
 
   public getInput(variable: IVariable, onChange: (variable: IVariable) => void) {
-    return <StringInput variable={variable} onChange={onChange}/>;
+    return <StringInput variable={variable} onChange={onChange} />;
   }
 }
 
 export const STRING_INPUT = 'spinnaker.core.pipelineTemplate.stringInput';
-module(STRING_INPUT, [])
-  .run((variableInputService: VariableInputService) => variableInputService.addInput(new StringInputBuilder()));
+module(STRING_INPUT, []).run((variableInputService: VariableInputService) =>
+  variableInputService.addInput(new StringInputBuilder()),
+);

@@ -14,7 +14,7 @@ export interface IAccountTagState {
 @BindAll()
 export class AccountTag extends React.Component<IAccountTagProps, IAccountTagState> {
   private static cache: {
-    [account: string]: boolean|IPromise<boolean>;
+    [account: string]: boolean | IPromise<boolean>;
   } = {};
 
   public state = { isProdAccount: false };
@@ -35,14 +35,15 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
   private updateAccount(account: string) {
     const { cache } = AccountTag;
     if (!cache.hasOwnProperty(account)) {
-      cache[account] = ReactInjector.accountService.challengeDestructiveActions(account)
-        .then(result => cache[account] = !!result);
+      cache[account] = ReactInjector.accountService
+        .challengeDestructiveActions(account)
+        .then(result => (cache[account] = !!result));
     }
 
     const cachedVal: boolean | IPromise<boolean> = cache[account];
 
     if (typeof cachedVal === 'boolean') {
-      this.setState({ isProdAccount: cachedVal })
+      this.setState({ isProdAccount: cachedVal });
     } else {
       cachedVal.then(isProdAccount => this.mounted && this.setState({ isProdAccount }));
     }
@@ -51,10 +52,6 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
   public render() {
     const { account } = this.props;
     const { isProdAccount } = this.state;
-    return (
-      <span className={`account-tag account-tag-${isProdAccount ? 'prod' : 'notprod'}`}>
-        {account}
-      </span>
-    );
+    return <span className={`account-tag account-tag-${isProdAccount ? 'prod' : 'notprod'}`}>{account}</span>;
   }
 }

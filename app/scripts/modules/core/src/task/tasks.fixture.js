@@ -11,7 +11,7 @@ TasksFixture.initialSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [],
   },
@@ -26,7 +26,7 @@ TasksFixture.initialSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [],
   },
@@ -41,7 +41,7 @@ TasksFixture.initialSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [],
   },
@@ -59,7 +59,7 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [],
   },
@@ -74,7 +74,7 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [],
   },
@@ -89,7 +89,7 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [],
   },
@@ -104,7 +104,7 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [],
   },
@@ -119,12 +119,12 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [
       {
         name: 'forceCacheRefresh',
-      }
+      },
     ],
   },
   {
@@ -138,12 +138,12 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [
       {
         name: 'forceCacheRefresh',
-      }
+      },
     ],
   },
   {
@@ -157,12 +157,12 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [
       {
         name: 'forceCacheRefresh',
-      }
+      },
     ],
   },
   {
@@ -176,12 +176,12 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [
       {
         name: 'forceCacheRefresh',
-      }
+      },
     ],
   },
   {
@@ -195,51 +195,56 @@ TasksFixture.secondSnapshot = [
       {
         key: 'application',
         value: 'Hello world',
-      }
+      },
     ],
     steps: [
       {
         name: 'forceCacheRefresh',
-      }
+      },
     ],
-  }
-
+  },
 ];
 
 TasksFixture.failedKatoTask = {
   id: 3,
   status: {
     completed: true,
-    failed: true
+    failed: true,
   },
-  history: [{
-    phase: 'ORCHESTRATION',
-    status: 'Orchestration failed.'
-  }]
+  history: [
+    {
+      phase: 'ORCHESTRATION',
+      status: 'Orchestration failed.',
+    },
+  ],
 };
 
 TasksFixture.successfulKatoTask = {
   id: 3,
   status: {
     completed: true,
-    failed: false
+    failed: false,
   },
-  history: [{
-    phase: 'ORCHESTRATION',
-    status: 'Orchestration completed.'
-  }]
+  history: [
+    {
+      phase: 'ORCHESTRATION',
+      status: 'Orchestration completed.',
+    },
+  ],
 };
 
 TasksFixture.runningKatoTask = {
   id: 3,
   status: {
     completed: false,
-    failed: false
+    failed: false,
   },
-  history: [{
-    phase: 'ORCHESTRATION',
-    status: 'Initializing Orchestration Task...'
-  }]
+  history: [
+    {
+      phase: 'ORCHESTRATION',
+      status: 'Initializing Orchestration Task...',
+    },
+  ],
 };
 
 module.exports = TasksFixture;

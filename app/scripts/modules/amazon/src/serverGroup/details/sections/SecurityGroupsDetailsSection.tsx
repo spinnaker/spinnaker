@@ -12,7 +12,10 @@ export interface ISecurityGroupsDetailsSectionState {
 }
 
 @BindAll()
-export class SecurityGroupsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, ISecurityGroupsDetailsSectionState> {
+export class SecurityGroupsDetailsSection extends React.Component<
+  IAmazonServerGroupDetailsSectionProps,
+  ISecurityGroupsDetailsSectionState
+> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -23,10 +26,15 @@ export class SecurityGroupsDetailsSection extends React.Component<IAmazonServerG
     let securityGroups: ISecurityGroup[];
     const { app, serverGroup } = props;
     if (props.serverGroup.launchConfig && serverGroup.launchConfig.securityGroups) {
-      securityGroups = chain(serverGroup.launchConfig.securityGroups).map((id: string) => {
-        return find(app.securityGroups.data, { 'accountName': serverGroup.account, 'region': serverGroup.region, 'id': id }) ||
-          find(app.securityGroups.data, { 'accountName': serverGroup.account, 'region': serverGroup.region, 'name': id });
-      }).compact().value();
+      securityGroups = chain(serverGroup.launchConfig.securityGroups)
+        .map((id: string) => {
+          return (
+            find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, id: id }) ||
+            find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, name: id })
+          );
+        })
+        .compact()
+        .value();
     }
 
     return securityGroups;
@@ -39,8 +47,8 @@ export class SecurityGroupsDetailsSection extends React.Component<IAmazonServerG
       resolve: {
         application: () => this.props.app,
         serverGroup: () => this.props.serverGroup,
-        securityGroups: () => this.state.securityGroups
-      }
+        securityGroups: () => this.state.securityGroups,
+      },
     });
   }
 
@@ -55,16 +63,31 @@ export class SecurityGroupsDetailsSection extends React.Component<IAmazonServerG
     return (
       <CollapsibleSection heading="Security Groups">
         <ul>
-          {sortBy(securityGroups, 'name').map((securityGroup) => (
+          {sortBy(securityGroups, 'name').map(securityGroup => (
             <li key={securityGroup.name}>
-              <UISref to="^.securityGroupDetails" params={{ name: securityGroup.name, accountId: securityGroup.accountName, region: serverGroup.region, vpcId: serverGroup.vpcId, provider: serverGroup.type }}>
-                <a>{securityGroup.name} ({securityGroup.id})</a>
+              <UISref
+                to="^.securityGroupDetails"
+                params={{
+                  name: securityGroup.name,
+                  accountId: securityGroup.accountName,
+                  region: serverGroup.region,
+                  vpcId: serverGroup.vpcId,
+                  provider: serverGroup.type,
+                }}
+              >
+                <a>
+                  {securityGroup.name} ({securityGroup.id})
+                </a>
               </UISref>
             </li>
           ))}
         </ul>
-        {serverGroup.vpcId && <a className="clickable" onClick={this.updateSecurityGroups}>Edit Security Groups</a>}
+        {serverGroup.vpcId && (
+          <a className="clickable" onClick={this.updateSecurityGroups}>
+            Edit Security Groups
+          </a>
+        )}
       </CollapsibleSection>
-    )
+    );
   }
 }

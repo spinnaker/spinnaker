@@ -7,7 +7,9 @@ class GceAddAutoHealingPolicyButtonCtrl implements IController {
   public application: Application;
   public serverGroup: IServerGroup;
 
-  constructor(private $uibModal: IModalService) { 'ngInject'; }
+  constructor(private $uibModal: IModalService) {
+    'ngInject';
+  }
 
   public addAutoHealingPolicy(): void {
     this.$uibModal.open({
@@ -18,7 +20,7 @@ class GceAddAutoHealingPolicyButtonCtrl implements IController {
       resolve: {
         serverGroup: () => this.serverGroup,
         application: () => this.application,
-      }
+      },
     });
   }
 }
@@ -33,5 +35,7 @@ class GceAddAutoHealingPolicyButton implements IComponentOptions {
 }
 
 export const GCE_ADD_AUTOHEALING_POLICY_BUTTON = 'spinnaker.gce.addAutoHealingPolicyButton.component';
-module(GCE_ADD_AUTOHEALING_POLICY_BUTTON, [])
-  .component('gceAddAutoHealingPolicyButton', new GceAddAutoHealingPolicyButton());
+module(GCE_ADD_AUTOHEALING_POLICY_BUTTON, []).component(
+  'gceAddAutoHealingPolicyButton',
+  new GceAddAutoHealingPolicyButton(),
+);

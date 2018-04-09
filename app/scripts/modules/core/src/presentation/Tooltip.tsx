@@ -16,7 +16,7 @@ export interface ITooltipProps {
 export class Tooltip extends React.Component<ITooltipProps> {
   public static defaultProps: Partial<ITooltipProps> = {
     placement: 'top',
-    value: ''
+    value: '',
   };
 
   private popover: any; // OverlayTrigger does not expose hide() in it's type definition
@@ -42,7 +42,11 @@ export class Tooltip extends React.Component<ITooltipProps> {
     const { delayShow, id, placement, template, value } = this.props;
     const useId = id || value || 'tooltip';
 
-    let tooltip = <BSTooltip id={useId}><Markdown message={value}/></BSTooltip>;
+    let tooltip = (
+      <BSTooltip id={useId}>
+        <Markdown message={value} />
+      </BSTooltip>
+    );
     if (template) {
       tooltip = <BSTooltip id={useId}>{template}</BSTooltip>;
     }
@@ -51,7 +55,13 @@ export class Tooltip extends React.Component<ITooltipProps> {
     const trigger = hasValue ? ['hover', 'focus'] : [];
 
     return (
-      <OverlayTrigger ref={this.handleRef} delayShow={delayShow} placement={placement} overlay={tooltip} trigger={trigger}>
+      <OverlayTrigger
+        ref={this.handleRef}
+        delayShow={delayShow}
+        placement={placement}
+        overlay={tooltip}
+        trigger={trigger}
+      >
         {this.props.children}
       </OverlayTrigger>
     );

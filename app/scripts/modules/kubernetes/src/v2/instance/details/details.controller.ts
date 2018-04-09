@@ -32,26 +32,34 @@ class KubernetesInstanceDetailsController implements IController {
   public instance: IKubernetesInstance;
   public manifest: IManifest;
 
-  constructor(instance: InstanceFromStateParams,
-              private $uibModal: IModalService,
-              private $q: IQService,
-              private $scope: IScope,
-              private app: Application,
-              private kubernetesManifestService: KubernetesManifestService,
-              private instanceReader: InstanceReader,
-              private recentHistoryService: RecentHistoryService) {
+  constructor(
+    instance: InstanceFromStateParams,
+    private $uibModal: IModalService,
+    private $q: IQService,
+    private $scope: IScope,
+    private app: Application,
+    private kubernetesManifestService: KubernetesManifestService,
+    private instanceReader: InstanceReader,
+    private recentHistoryService: RecentHistoryService,
+  ) {
     'ngInject';
 
-    this.app.ready()
+    this.app
+      .ready()
       .then(() => this.retrieveInstance(instance))
-      .then((instanceDetails) => {
+      .then(instanceDetails => {
         this.instance = instanceDetails;
 
-        this.kubernetesManifestService.makeManifestRefresher(this.app, this.$scope, {
-          account: this.instance.account,
-          location: this.instance.namespace,
-          name: this.instance.name,
-        }, this);
+        this.kubernetesManifestService.makeManifestRefresher(
+          this.app,
+          this.$scope,
+          {
+            account: this.instance.account,
+            location: this.instance.namespace,
+            name: this.instance.name,
+          },
+          this,
+        );
         this.state.loading = false;
       })
       .catch(() => {
@@ -72,7 +80,7 @@ class KubernetesInstanceDetailsController implements IController {
         },
         application: this.app,
         manifestController: (): string => null,
-      }
+      },
     });
   }
 
@@ -85,25 +93,25 @@ class KubernetesInstanceDetailsController implements IController {
       resolve: {
         sourceManifest: this.instance.manifest,
         sourceMoniker: this.instance.moniker,
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
   private retrieveInstance(instance: InstanceFromStateParams): IPromise<IKubernetesInstance> {
     const instanceLocatorPredicate = (dataSource: InstanceManager) => {
-      return dataSource.instances.some((possibleMatch) => possibleMatch.id === instance.instanceId);
+      return dataSource.instances.some(possibleMatch => possibleMatch.id === instance.instanceId);
     };
 
     const dataSources: InstanceManager[] = flattenDeep([
       this.app.getDataSource('serverGroups').data,
       this.app.getDataSource('loadBalancers').data,
-      this.app.getDataSource('loadBalancers').data.map((loadBalancer) => loadBalancer.serverGroups),
+      this.app.getDataSource('loadBalancers').data.map(loadBalancer => loadBalancer.serverGroups),
     ]);
 
     const instanceManager = dataSources.find(instanceLocatorPredicate);
     if (instanceManager) {
-      const recentHistoryExtraData: {[key: string]: string} = {
+      const recentHistoryExtraData: { [key: string]: string } = {
         region: instanceManager.region,
         account: instanceManager.account,
       };

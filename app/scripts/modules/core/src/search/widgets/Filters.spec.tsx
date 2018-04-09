@@ -10,26 +10,25 @@ describe('<Filters/>', () => {
   function getNewFilterType(seed: number): IFilterType {
     return {
       key: `filter-type-${seed}`,
-      name: `Filter Type ${seed}`
+      name: `Filter Type ${seed}`,
     };
   }
 
   function getNewLayout(seed: number): IFiltersLayout {
     return {
       header: `header_${seed}`,
-      filterTypes: [1, 2, 3].map((s: number) => getNewFilterType(s))
+      filterTypes: [1, 2, 3].map((s: number) => getNewFilterType(s)),
     };
   }
 
   function getNewFilters(isOpen: boolean): ReactWrapper<IFiltersProps, any> {
-
     const activeFilter = getNewFilterType(1);
     return mount(
       <Filters
         activeFilter={activeFilter}
         layouts={[1, 2].map((seed: number) => getNewLayout(seed))}
         isOpen={isOpen}
-      />
+      />,
     );
   }
 

@@ -1,13 +1,13 @@
 import { module, IHttpService, IPromise, IQResolveReject, IQService, IRequestConfig } from 'angular';
 import {
   AUTHENTICATION_INITIALIZER_SERVICE,
-  AuthenticationInitializer
+  AuthenticationInitializer,
 } from '../authentication/authentication.initializer.service';
 import { SETTINGS } from 'core/config/settings';
 
 interface DefaultParams {
   timeout: number;
-  headers: {[key: string]: string};
+  headers: { [key: string]: string };
 }
 
 export interface IRequestBuilder {
@@ -25,20 +25,21 @@ export interface IRequestBuilder {
 }
 
 export class Api {
-
   private gateUrl: string;
   private defaultParams: DefaultParams;
 
-  constructor(private $q: IQService,
-              private $http: IHttpService,
-              private authenticationInitializer: AuthenticationInitializer) {
+  constructor(
+    private $q: IQService,
+    private $http: IHttpService,
+    private authenticationInitializer: AuthenticationInitializer,
+  ) {
     'ngInject';
     this.gateUrl = SETTINGS.gateUrl;
     this.defaultParams = {
       timeout: SETTINGS.pollSchedule * 2 + 5000,
       headers: {
-        'X-RateLimit-App': 'deck'
-      }
+        'X-RateLimit-App': 'deck',
+      },
     };
   }
 
@@ -47,8 +48,8 @@ export class Api {
       const contentType = result.headers('content-type');
       if (contentType) {
         const isJson = contentType.includes('application/json');
-        const isZeroLengthHtml = (contentType.includes('text/html') && (result.data === ''));
-        const isZeroLengthText = (contentType.includes('text/plain') && (result.data === ''));
+        const isZeroLengthHtml = contentType.includes('text/html') && result.data === '';
+        const isZeroLengthText = contentType.includes('text/plain') && result.data === '';
         if (!(isJson || isZeroLengthHtml || isZeroLengthText)) {
           this.authenticationInitializer.reauthenticateUser();
           reject(result);
@@ -163,16 +164,16 @@ export class Api {
       getList: this.getFn(config),
       post: this.postFn(config),
       remove: this.removeFn(config),
-      put: this.putFn(config)
+      put: this.putFn(config),
     };
   }
 
   private init(urls: string[]) {
     const config: IRequestConfig = {
       method: '',
-      url: this.gateUrl
+      url: this.gateUrl,
     };
-    urls.forEach((url: string) => config.url = `${config.url}/${url}`);
+    urls.forEach((url: string) => (config.url = `${config.url}/${url}`));
 
     return this.baseReturn(config);
   }
@@ -192,5 +193,4 @@ export class Api {
 
 const API_SERVICE_NAME = 'API';
 export const API_SERVICE = 'spinnaker.core.api.provider';
-module(API_SERVICE, [AUTHENTICATION_INITIALIZER_SERVICE])
-  .service(API_SERVICE_NAME, Api);
+module(API_SERVICE, [AUTHENTICATION_INITIALIZER_SERVICE]).service(API_SERVICE_NAME, Api);

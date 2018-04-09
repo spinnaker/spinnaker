@@ -36,8 +36,9 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
       application = app;
     } else {
       // Load balancer is a part of a different application
-      ReactInjector.applicationReader.getApplication(loadBalancerAppName)
-        .then((loadBalancerApp) => {
+      ReactInjector.applicationReader
+        .getApplication(loadBalancerAppName)
+        .then(loadBalancerApp => {
           this.setState({ application: loadBalancerApp });
         })
         .catch(() => {
@@ -80,13 +81,15 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     const submitMethod = () => ReactInjector.loadBalancerWriter.deleteLoadBalancer(command, app);
 
     ReactInjector.confirmationModalService.confirm({
-      header: `Really delete ${loadBalancerFromParams.name} in ${loadBalancerFromParams.region}: ${loadBalancerFromParams.accountId}?`,
+      header: `Really delete ${loadBalancerFromParams.name} in ${loadBalancerFromParams.region}: ${
+        loadBalancerFromParams.accountId
+      }?`,
       buttonText: `Delete ${loadBalancerFromParams.name}`,
       provider: 'aws',
       account: loadBalancerFromParams.accountId,
       applicationName: app.name,
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod
+      submitMethod: submitMethod,
     });
   }
 
@@ -113,31 +116,48 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
             <span>Load Balancer Actions</span>
           </Dropdown.Toggle>
           <Dropdown.Menu className="dropdown-menu">
-            <li className={!application ? 'disabled' : ''}><a className="clickable" onClick={this.editLoadBalancer}>Edit Load Balancer</a></li>
-            {!loadBalancer.instances.length && <li><a className="clickable" onClick={this.deleteLoadBalancer}>Delete Load Balancer</a></li>}
-            {loadBalancer.instances.length > 0 && (
-              <li className="disabled" uib-tooltip="You must detach all instances before you can delete this load balancer.">
-                <a className="clickable" onClick={this.deleteLoadBalancer}>Delete Load Balancer</a>
+            <li className={!application ? 'disabled' : ''}>
+              <a className="clickable" onClick={this.editLoadBalancer}>
+                Edit Load Balancer
+              </a>
+            </li>
+            {!loadBalancer.instances.length && (
+              <li>
+                <a className="clickable" onClick={this.deleteLoadBalancer}>
+                  Delete Load Balancer
+                </a>
               </li>
             )}
-            {SETTINGS && SETTINGS.feature.entityTags && (
-              <AddEntityTagLinks
-                component={loadBalancer}
-                application={app}
-                entityType="loadBalancer"
-                onUpdate={this.entityTagUpdate}
-              />
+            {loadBalancer.instances.length > 0 && (
+              <li
+                className="disabled"
+                uib-tooltip="You must detach all instances before you can delete this load balancer."
+              >
+                <a className="clickable" onClick={this.deleteLoadBalancer}>
+                  Delete Load Balancer
+                </a>
+              </li>
             )}
+            {SETTINGS &&
+              SETTINGS.feature.entityTags && (
+                <AddEntityTagLinks
+                  component={loadBalancer}
+                  application={app}
+                  entityType="loadBalancer"
+                  onUpdate={this.entityTagUpdate}
+                />
+              )}
           </Dropdown.Menu>
         </Dropdown>
-        {application && showEditModal && (
-          <LoadBalancerModal
-            app={application}
-            loadBalancer={loadBalancer}
-            show={showEditModal}
-            showCallback={this.showEditCallback}
-          />
-        )}
+        {application &&
+          showEditModal && (
+            <LoadBalancerModal
+              app={application}
+              loadBalancer={loadBalancer}
+              show={showEditModal}
+              showCallback={this.showEditCallback}
+            />
+          )}
       </div>
     );
   }

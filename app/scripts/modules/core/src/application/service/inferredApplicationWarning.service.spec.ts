@@ -4,39 +4,37 @@ import Spy = jasmine.Spy;
 
 import {
   INFERRED_APPLICATION_WARNING_SERVICE,
-  InferredApplicationWarningService
+  InferredApplicationWarningService,
 } from './inferredApplicationWarning.service';
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
 import { Application } from '../application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../applicationModel.builder';
 
-
 describe('Service: inferredApplicationWarning', () => {
   let inferredApplicationWarningService: InferredApplicationWarningService,
-      notifierService: NotifierService,
-      applicationModelBuilder: ApplicationModelBuilder;
+    notifierService: NotifierService,
+    applicationModelBuilder: ApplicationModelBuilder;
+
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, INFERRED_APPLICATION_WARNING_SERVICE));
 
   beforeEach(
-    mock.module(
-      APPLICATION_MODEL_BUILDER,
-      INFERRED_APPLICATION_WARNING_SERVICE,
-    )
-  );
-
-  beforeEach(
-    mock.inject((_inferredApplicationWarningService_: InferredApplicationWarningService,
-                 _notifierService_: NotifierService,
-                 _applicationModelBuilder_: ApplicationModelBuilder) => {
-      inferredApplicationWarningService = _inferredApplicationWarningService_;
-      notifierService = _notifierService_;
-      applicationModelBuilder = _applicationModelBuilder_;
-    })
+    mock.inject(
+      (
+        _inferredApplicationWarningService_: InferredApplicationWarningService,
+        _notifierService_: NotifierService,
+        _applicationModelBuilder_: ApplicationModelBuilder,
+      ) => {
+        inferredApplicationWarningService = _inferredApplicationWarningService_;
+        notifierService = _notifierService_;
+        applicationModelBuilder = _applicationModelBuilder_;
+      },
+    ),
   );
 
   describe('checkIfInferredAndWarn', () => {
     let configuredApp: Application, inferredApp: Application;
 
-    beforeEach(function () {
+    beforeEach(function() {
       configuredApp = applicationModelBuilder.createApplication('myConfiguredApp', []);
       configuredApp.attributes.email = 'email@email.email';
 

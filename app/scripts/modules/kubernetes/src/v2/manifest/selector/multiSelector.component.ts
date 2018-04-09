@@ -48,10 +48,10 @@ class KubernetesManifestSelectorCtrl implements IController {
 
   public clearOldSelection(type: string): void {
     if (type === 'name') {
-      delete(this.selector.labelSelectors);
+      delete this.selector.labelSelectors;
       this.selector.manifestName = '';
     } else {
-      delete(this.selector.manifestName);
+      delete this.selector.manifestName;
       this.selector.labelSelectors = { selectors: [] };
     }
   }
@@ -105,6 +105,7 @@ class KubernetesMultiManifestSelectorComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MULTI_MANIFEST_SELECTOR = 'spinnaker.kubernetes.v2.multi.manifest.selector.component';
-module(KUBERNETES_MULTI_MANIFEST_SELECTOR, [
-    KUBERNETES_MANIFEST_LABEL_EDITOR,
-  ]).component('kubernetesMultiManifestSelector', new KubernetesMultiManifestSelectorComponent());
+module(KUBERNETES_MULTI_MANIFEST_SELECTOR, [KUBERNETES_MANIFEST_LABEL_EDITOR]).component(
+  'kubernetesMultiManifestSelector',
+  new KubernetesMultiManifestSelectorComponent(),
+);

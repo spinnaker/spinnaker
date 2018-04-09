@@ -2,13 +2,15 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscaling.process', [])
+module.exports = angular
+  .module('spinnaker.amazon.serverGroup.details.autoscaling.process', [])
   .factory('autoScalingProcessService', function() {
     function listProcesses() {
       return [
         {
           name: 'Launch',
-          description: 'Controls if new instances should be launched into the ASG. If this is disabled, scale-up ' +
+          description:
+            'Controls if new instances should be launched into the ASG. If this is disabled, scale-up ' +
             'events will not produce new instances.',
         },
         {
@@ -25,8 +27,9 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscalin
         },
         {
           name: 'AZRebalance',
-          description: 'Controls whether AWS should attempt to maintain an even distribution of instances across all ' +
-          'healthy Availability Zones configured for the ASG.',
+          description:
+            'Controls whether AWS should attempt to maintain an even distribution of instances across all ' +
+            'healthy Availability Zones configured for the ASG.',
         },
         {
           name: 'HealthCheck',
@@ -50,7 +53,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscalin
       let disabled = serverGroup.asg.suspendedProcesses;
       var allProcesses = listProcesses();
       return allProcesses.map(function(process) {
-        let disabledProcess = _.find(disabled, {processName: process.name});
+        let disabledProcess = _.find(disabled, { processName: process.name });
         let scalingProcess = {
           name: process.name,
           enabled: !disabledProcess,
@@ -67,7 +70,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscalin
     function getDisabledDate(serverGroup) {
       if (serverGroup.isDisabled) {
         let processes = normalizeScalingProcesses(serverGroup);
-        let disabledProcess = processes.find((process) => process.name === 'AddToLoadBalancer' && !process.enabled);
+        let disabledProcess = processes.find(process => process.name === 'AddToLoadBalancer' && !process.enabled);
         if (disabledProcess) {
           return disabledProcess.suspensionDate;
         }

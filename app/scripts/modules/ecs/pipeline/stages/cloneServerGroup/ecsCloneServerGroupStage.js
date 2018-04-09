@@ -5,33 +5,31 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.ecs.pipeline.stage.cloneServerGroupStage', [
-  ACCOUNT_SERVICE,
-  NAMING_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.ecs.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE, NAMING_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'ecs',
       templateUrl: require('./cloneServerGroupStage.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
-      accountExtractor: (stage) => stage.context.credentials,
+      accountExtractor: stage => stage.context.credentials,
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'region', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'region' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('ecsCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
-
+  })
+  .controller('ecsCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('ecs').then((accounts) => {
+    accountService.listAccounts('ecs').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -42,7 +40,11 @@ module.exports = angular.module('spinnaker.ecs.pipeline.stage.cloneServerGroupSt
     stage.cloudProvider = 'ecs';
     stage.cloudProviderType = 'ecs';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Ecs'];
     }
 
@@ -71,7 +73,7 @@ module.exports = angular.module('spinnaker.ecs.pipeline.stage.cloneServerGroupSt
       stage.useSourceCapacity = true;
     }
 
-    this.toggleSuspendedProcess = (process) => {
+    this.toggleSuspendedProcess = process => {
       stage.suspendedProcesses = stage.suspendedProcesses || [];
       var processIndex = stage.suspendedProcesses.indexOf(process);
       if (processIndex === -1) {
@@ -81,9 +83,7 @@ module.exports = angular.module('spinnaker.ecs.pipeline.stage.cloneServerGroupSt
       }
     };
 
-    this.processIsSuspended = (process) => {
+    this.processIsSuspended = process => {
       return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
     };
-
   });
-

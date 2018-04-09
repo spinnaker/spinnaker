@@ -49,7 +49,7 @@ export interface IExecutionState {
 @BindAll()
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
   public static defaultProps: Partial<IExecutionProps> = {
-    dataSourceKey: 'executions'
+    dataSourceKey: 'executions',
   };
 
   private activeRefresher: IScheduler;
@@ -82,7 +82,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       viewState: initialViewState,
       sortFilter: executionFilterModel.asFilterModel.sortFilter,
       restartDetails: restartedStage ? restartedStage.context.restartDetails : null,
-      runningTimeInMs: props.execution.runningTimeInMs
+      runningTimeInMs: props.execution.runningTimeInMs,
     };
   }
 
@@ -94,14 +94,16 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     newViewState.executionId = $stateParams.executionId;
     this.setState({
       viewState: newViewState,
-      showingDetails: this.invalidateShowingDetails()
+      showingDetails: this.invalidateShowingDetails(),
     });
   }
 
   private invalidateShowingDetails(): boolean {
     const { $state, $stateParams } = ReactInjector;
-    return (this.props.standalone === true || (this.props.execution.id === $stateParams.executionId &&
-      $state.includes('**.execution.**')));
+    return (
+      this.props.standalone === true ||
+      (this.props.execution.id === $stateParams.executionId && $state.includes('**.execution.**'))
+    );
   }
 
   public isActive(stageIndex: number): boolean {
@@ -127,48 +129,59 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       header: 'Really delete execution?',
       buttonText: 'Delete',
       body: '<p>This will permanently delete the execution history.</p>',
-      submitMethod: () => executionService.deleteExecution(this.props.application, this.props.execution.id).then( () => {
-        if (this.props.standalone) {
-          ReactInjector.$state.go('^');
-        }
-      })
+      submitMethod: () =>
+        executionService.deleteExecution(this.props.application, this.props.execution.id).then(() => {
+          if (this.props.standalone) {
+            ReactInjector.$state.go('^');
+          }
+        }),
     });
   }
 
   public cancelExecution(): void {
     const { cancelModalService, executionService } = ReactInjector;
-    const hasDeployStage = this.props.execution.stages && this.props.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
+    const hasDeployStage =
+      this.props.execution.stages &&
+      this.props.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
     cancelModalService.confirm({
       header: `Really stop execution of ${this.props.execution.name}?`,
       buttonText: `Stop running ${this.props.execution.name}`,
-      body: hasDeployStage ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.' : null,
-      submitMethod: (reason, force) => executionService.cancelExecution(this.props.application, this.props.execution.id, force, reason)
+      body: hasDeployStage
+        ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.'
+        : null,
+      submitMethod: (reason, force) =>
+        executionService.cancelExecution(this.props.application, this.props.execution.id, force, reason),
     });
   }
 
   public pauseExecution(): void {
     const { confirmationModalService, executionService } = ReactInjector;
     confirmationModalService.confirm({
-        header: 'Really pause execution?',
-        buttonText: 'Pause',
-        body: '<p>This will pause the pipeline for up to 72 hours.</p><p>After 72 hours the pipeline will automatically timeout and fail.</p>',
-        submitMethod: () => executionService.pauseExecution(this.props.application, this.props.execution.id)
+      header: 'Really pause execution?',
+      buttonText: 'Pause',
+      body:
+        '<p>This will pause the pipeline for up to 72 hours.</p><p>After 72 hours the pipeline will automatically timeout and fail.</p>',
+      submitMethod: () => executionService.pauseExecution(this.props.application, this.props.execution.id),
     });
   }
 
   public resumeExecution(): void {
     const { confirmationModalService, executionService } = ReactInjector;
     confirmationModalService.confirm({
-        header: 'Really resume execution?',
-        buttonText: 'Resume',
-        submitMethod: () => executionService.resumeExecution(this.props.application, this.props.execution.id)
+      header: 'Really resume execution?',
+      buttonText: 'Resume',
+      submitMethod: () => executionService.resumeExecution(this.props.application, this.props.execution.id),
     });
   }
 
   public componentDidMount(): void {
     this.mounted = true;
-    this.runningTime = new OrchestratedItemRunningTime(this.props.execution, (time: number) => this.setState({ runningTimeInMs: time }));
-    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() => this.updateViewStateDetails());
+    this.runningTime = new OrchestratedItemRunningTime(this.props.execution, (time: number) =>
+      this.setState({ runningTimeInMs: time }),
+    );
+    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() =>
+      this.updateViewStateDetails(),
+    );
 
     const { execution, application } = this.props;
     const { executionService, schedulerFactory } = ReactInjector;
@@ -181,18 +194,21 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
           return;
         }
         refreshing = true;
-        executionService.getExecution(execution.id).then((updated: IExecution) => {
-          if (this.mounted) {
-            const dataSource = application.getDataSource(this.props.dataSourceKey);
-            // if we are already in the middle of a refresh, leave the running execution alone,
-            // lest we trigger a dataUpdated event and clear the reloadingForFilters flag
-            if (!this.props.application.executions.reloadingForFilters) {
-              executionService.updateExecution(application, updated, dataSource);
+        executionService
+          .getExecution(execution.id)
+          .then((updated: IExecution) => {
+            if (this.mounted) {
+              const dataSource = application.getDataSource(this.props.dataSourceKey);
+              // if we are already in the middle of a refresh, leave the running execution alone,
+              // lest we trigger a dataUpdated event and clear the reloadingForFilters flag
+              if (!this.props.application.executions.reloadingForFilters) {
+                executionService.updateExecution(application, updated, dataSource);
+              }
+              executionService.removeCompletedExecutionsFromRunningData(application);
             }
-            executionService.removeCompletedExecutionsFromRunningData(application);
-          }
-          refreshing = false;
-        }).catch(() => refreshing = false);
+            refreshing = false;
+          })
+          .catch(() => (refreshing = false));
       });
     }
   }
@@ -201,7 +217,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     if (nextProps.execution !== this.props.execution) {
       this.runningTime.checkStatus(nextProps.execution);
       this.setState({
-        showingDetails: this.invalidateShowingDetails()
+        showingDetails: this.invalidateShowingDetails(),
       });
     }
   }
@@ -209,7 +225,9 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   public componentWillUnmount(): void {
     this.mounted = false;
     this.runningTime.reset();
-    if (this.activeRefresher) { this.activeRefresher.unsubscribe(); }
+    if (this.activeRefresher) {
+      this.activeRefresher.unsubscribe();
+    }
     this.stateChangeSuccessSubscription.unsubscribe();
   }
 
@@ -263,13 +281,13 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
 
     const { CopyToClipboard } = NgReact;
-    const accountLabels = this.props.execution.deploymentTargets.map((account) => (
-      <AccountTag key={account} account={account}/>
+    const accountLabels = this.props.execution.deploymentTargets.map(account => (
+      <AccountTag key={account} account={account} />
     ));
 
     const executionMarkerWidth = `${100 / execution.stageSummaries.length}%`;
     const showExecutionName = !title && sortFilter.groupBy !== 'name';
-    const executionMarkers = execution.stageSummaries.map((stage) => (
+    const executionMarkers = execution.stageSummaries.map(stage => (
       <ExecutionMarker
         key={stage.refId}
         application={application}
@@ -283,7 +301,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     ));
 
     const className = classNames({
-      'execution': true,
+      execution: true,
       'show-details': showingDetails,
       'details-hidden': !showingDetails,
       'show-durations': showStageDuration,
@@ -292,14 +310,14 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     return (
       <div className={className} id={`execution-${execution.id}`}>
         <div className={`execution-overview group-by-${sortFilter.groupBy}`}>
-          { title && (
+          {title && (
             <h4 className="execution-name">
               {showAccountLabels && accountLabels}
               {execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
               {title}
             </h4>
           )}
-          { showExecutionName && (
+          {showExecutionName && (
             <h4 className="execution-name">
               {accountLabels}
               {execution.fromTemplate && <i className="from-template fa fa-table" title="Pipeline from template" />}
@@ -315,89 +333,98 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
           <div className="execution-bar">
             <div className="stages">
               {executionMarkers}
-              { !execution.stageSummaries.length && (
+              {!execution.stageSummaries.length && (
                 <div className="text-center">
                   No stages found.
-                  <a
-                    onClick={this.handleSourceNoStagesClick}
-                    target="_blank"
-                    href={pipelinesUrl + execution.id}
-                  >Source
+                  <a onClick={this.handleSourceNoStagesClick} target="_blank" href={pipelinesUrl + execution.id}>
+                    Source
                   </a>
                 </div>
               )}
             </div>
             <div className="execution-summary">
-              Status: <span className={`status execution-status execution-status-${execution.status.toLowerCase()}`}>{execution.status}</span>
-              {execution.cancellationReason && (<Tooltip value={execution.cancellationReason}><span className="glyphicon glyphicon-info-sign"/></Tooltip>)}
-              {execution.canceledBy && (<span> by {execution.canceledBy} &mdash; {timestamp(execution.endTime)}</span>)}
-              {restartDetails && (<span> Restarted by {restartDetails.restartedBy} &mdash; {timestamp(restartDetails.restartTime)}</span>)}
+              Status:{' '}
+              <span className={`status execution-status execution-status-${execution.status.toLowerCase()}`}>
+                {execution.status}
+              </span>
+              {execution.cancellationReason && (
+                <Tooltip value={execution.cancellationReason}>
+                  <span className="glyphicon glyphicon-info-sign" />
+                </Tooltip>
+              )}
+              {execution.canceledBy && (
+                <span>
+                  {' '}
+                  by {execution.canceledBy} &mdash; {timestamp(execution.endTime)}
+                </span>
+              )}
+              {restartDetails && (
+                <span>
+                  {' '}
+                  Restarted by {restartDetails.restartedBy} &mdash; {timestamp(restartDetails.restartTime)}
+                </span>
+              )}
               <span className="pull-right">Duration: {duration(execution.runningTimeInMs)}</span>
             </div>
           </div>
           <div className="execution-actions">
-            { execution.isRunning && (
+            {execution.isRunning && (
               <Tooltip value="Pause execution">
                 <button className="link" onClick={this.handlePauseClick}>
-                  <i className="fa fa-pause"/>
+                  <i className="fa fa-pause" />
                 </button>
               </Tooltip>
             )}
-            { execution.isPaused && (
+            {execution.isPaused && (
               <Tooltip value="Resume execution">
                 <button className="link" onClick={this.handleResumeClick}>
-                  <i className="fa fa-play"/>
+                  <i className="fa fa-play" />
                 </button>
               </Tooltip>
             )}
-            { !execution.isActive && (
+            {!execution.isActive && (
               <span>
                 {this.props.onRerun && (
                   <Tooltip value="Re-run execution with same parameters">
                     <button className="link" onClick={this.handleRerunClick}>
-                      <i className="fa fa-redo"/>
+                      <i className="fa fa-redo" />
                     </button>
                   </Tooltip>
                 )}
                 <Tooltip value="Delete execution">
                   <button className="link" onClick={this.handleDeleteClick}>
-                    <span className="glyphicon glyphicon-trash"/>
+                    <span className="glyphicon glyphicon-trash" />
                   </button>
                 </Tooltip>
               </span>
             )}
-            { execution.isActive && (
+            {execution.isActive && (
               <Tooltip value="Cancel execution">
                 <button className="link" onClick={this.handleCancelClick}>
-                  <i className="far fa-times-circle"/>
+                  <i className="far fa-times-circle" />
                 </button>
               </Tooltip>
             )}
           </div>
         </div>
-        { showingDetails && (
+        {showingDetails && (
           <div className="execution-graph">
-            <PipelineGraph
-              execution={execution}
-              onNodeClick={this.handleNodeClick}
-              viewState={viewState}
-            />
+            <PipelineGraph execution={execution} onNodeClick={this.handleNodeClick} viewState={viewState} />
           </div>
         )}
-        { showingDetails && (
+        {showingDetails && (
           <div className="execution-details-container">
-            <StageExecutionDetails execution={execution} application={application} standalone={standalone}/>
+            <StageExecutionDetails execution={execution} application={application} standalone={standalone} />
             <div className="permalinks">
               <div className="permalinks-content">
-                <a
-                  onClick={this.handleSourceClick}
-                  target="_blank"
-                  href={pipelinesUrl + execution.id}
-                >Source
+                <a onClick={this.handleSourceClick} target="_blank" href={pipelinesUrl + execution.id}>
+                  Source
                 </a>
                 {' | '}
-                <a onClick={this.handlePermalinkClick} href={this.getUrl()}>Permalink</a>
-                <CopyToClipboard text={this.getUrl()} toolTip="Copy permalink to clipboard"/>
+                <a onClick={this.handlePermalinkClick} href={this.getUrl()}>
+                  Permalink
+                </a>
+                <CopyToClipboard text={this.getUrl()} toolTip="Copy permalink to clipboard" />
               </div>
             </div>
           </div>

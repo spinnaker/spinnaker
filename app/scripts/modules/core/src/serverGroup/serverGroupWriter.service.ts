@@ -27,40 +27,40 @@ export interface IServerGroupJob extends IJob {
 }
 
 export class ServerGroupWriter {
-
-  constructor(private namingService: NamingService,
-              private taskExecutor: TaskExecutor,
-              private serverGroupTransformer: any) {
+  constructor(
+    private namingService: NamingService,
+    private taskExecutor: TaskExecutor,
+    private serverGroupTransformer: any,
+  ) {
     'ngInject';
   }
 
-  public cloneServerGroup(command: IServerGroupCommand,
-                          application: Application): ng.IPromise<ITask> {
-
+  public cloneServerGroup(command: IServerGroupCommand, application: Application): ng.IPromise<ITask> {
     let description: string;
     if (command.viewState.mode === 'clone') {
       description = `Create Cloned Server Group from ${command.source.asgName}`;
       command.type = 'cloneServerGroup';
     } else {
       command.type = 'createServerGroup';
-      description =
-        `Create New Server Group in cluster ${this.namingService.getClusterName(
-          application.name,
-          command.stack,
-          command.freeFormDetails)}`;
+      description = `Create New Server Group in cluster ${this.namingService.getClusterName(
+        application.name,
+        command.stack,
+        command.freeFormDetails,
+      )}`;
     }
 
     return this.taskExecutor.executeTask({
       job: [this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)],
       application,
-      description
+      description,
     });
   }
 
-  public destroyServerGroup(serverGroup: IServerGroup,
-                            application: Application,
-                            params: IServerGroupJob = {}): ng.IPromise<ITask> {
-
+  public destroyServerGroup(
+    serverGroup: IServerGroup,
+    application: Application,
+    params: IServerGroupJob = {},
+  ): ng.IPromise<ITask> {
     params.asgName = serverGroup.name;
     params.moniker = serverGroup.moniker;
     params.serverGroupName = serverGroup.name;
@@ -72,14 +72,15 @@ export class ServerGroupWriter {
     return this.taskExecutor.executeTask({
       job: [params],
       application,
-      description: `Destroy Server Group: ${serverGroup.name}`
+      description: `Destroy Server Group: ${serverGroup.name}`,
     });
   }
 
-  public disableServerGroup(serverGroup: IServerGroup,
-                            appName: string,
-                            params: IServerGroupJob = {}): ng.IPromise<ITask> {
-
+  public disableServerGroup(
+    serverGroup: IServerGroup,
+    appName: string,
+    params: IServerGroupJob = {},
+  ): ng.IPromise<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -91,14 +92,15 @@ export class ServerGroupWriter {
     return this.taskExecutor.executeTask({
       job: [params],
       application: appName,
-      description: `Disable Server Group: ${serverGroup.name}`
+      description: `Disable Server Group: ${serverGroup.name}`,
     });
   }
 
-  public enableServerGroup(serverGroup: IServerGroup,
-                           application: Application,
-                           params: IServerGroupJob = {}): ng.IPromise<ITask> {
-
+  public enableServerGroup(
+    serverGroup: IServerGroup,
+    application: Application,
+    params: IServerGroupJob = {},
+  ): ng.IPromise<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -110,14 +112,15 @@ export class ServerGroupWriter {
     return this.taskExecutor.executeTask({
       job: [params],
       application,
-      description: `Enable Server Group: ${serverGroup.name}`
+      description: `Enable Server Group: ${serverGroup.name}`,
     });
   }
 
-  public resizeServerGroup(serverGroup: IServerGroup,
-                           application: Application,
-                           params: IServerGroupJob = {}): ng.IPromise<ITask> {
-
+  public resizeServerGroup(
+    serverGroup: IServerGroup,
+    application: Application,
+    params: IServerGroupJob = {},
+  ): ng.IPromise<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -129,14 +132,17 @@ export class ServerGroupWriter {
     return this.taskExecutor.executeTask({
       job: [params],
       application,
-      description: `Resize Server Group: ${serverGroup.name} to ${params.capacity.min}/${params.capacity.desired}/${params.capacity.max}`
+      description: `Resize Server Group: ${serverGroup.name} to ${params.capacity.min}/${params.capacity.desired}/${
+        params.capacity.max
+      }`,
     });
   }
 
-  public rollbackServerGroup(serverGroup: IServerGroup,
-                             application: Application,
-                             params: IServerGroupJob = {}): ng.IPromise<ITask> {
-
+  public rollbackServerGroup(
+    serverGroup: IServerGroup,
+    application: Application,
+    params: IServerGroupJob = {},
+  ): ng.IPromise<ITask> {
     params.type = 'rollbackServerGroup';
     params.moniker = serverGroup.moniker;
     params.region = serverGroup.region;
@@ -146,14 +152,15 @@ export class ServerGroupWriter {
     return this.taskExecutor.executeTask({
       job: [params],
       application,
-      description: `Rollback Server Group: ${serverGroup.name}`
+      description: `Rollback Server Group: ${serverGroup.name}`,
     });
   }
 
-  public updateSecurityGroups(serverGroup: IServerGroup,
-                              securityGroups: ISecurityGroup[],
-                              application: Application): ng.IPromise<ITask> {
-
+  public updateSecurityGroups(
+    serverGroup: IServerGroup,
+    securityGroups: ISecurityGroup[],
+    application: Application,
+  ): ng.IPromise<ITask> {
     const job: IServerGroupJob = {
       amiName: serverGroup.launchConfig.imageId,
       moniker: serverGroup.moniker,
@@ -162,21 +169,19 @@ export class ServerGroupWriter {
       region: serverGroup.region,
       securityGroups: securityGroups.map((group: ISecurityGroup) => group.id),
       serverGroupName: serverGroup.name,
-      type: 'updateSecurityGroupsForServerGroup'
+      type: 'updateSecurityGroupsForServerGroup',
     };
 
     return this.taskExecutor.executeTask({
       job: [job],
       application,
-      description: `Update security groups for ${serverGroup.name}`
+      description: `Update security groups for ${serverGroup.name}`,
     });
   }
 }
 
 export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';
-module(SERVER_GROUP_WRITER, [
-  NAMING_SERVICE,
-  TASK_EXECUTOR,
-  require('./serverGroup.transformer.js').name
-])
-  .service('serverGroupWriter', ServerGroupWriter);
+module(SERVER_GROUP_WRITER, [NAMING_SERVICE, TASK_EXECUTOR, require('./serverGroup.transformer.js').name]).service(
+  'serverGroupWriter',
+  ServerGroupWriter,
+);

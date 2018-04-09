@@ -5,37 +5,55 @@ import _ from 'lodash';
 
 import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.controller', [
-  require('@uirouter/angularjs').default,
-  SECURITY_GROUP_READER,
-  require('../securityGroup.write.service.js').name,
-  CONFIRMATION_MODAL_SERVICE,
-  require('../clone/cloneSecurityGroup.controller.js').name,
-])
-  .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
-                                                    confirmationModalService, azureSecurityGroupWriter, securityGroupReader,
-                                                    $uibModal) {
-
+module.exports = angular
+  .module('spinnaker.azure.securityGroup.azure.details.controller', [
+    require('@uirouter/angularjs').default,
+    SECURITY_GROUP_READER,
+    require('../securityGroup.write.service.js').name,
+    CONFIRMATION_MODAL_SERVICE,
+    require('../clone/cloneSecurityGroup.controller.js').name,
+  ])
+  .controller('azureSecurityGroupDetailsCtrl', function(
+    $scope,
+    $state,
+    resolvedSecurityGroup,
+    app,
+    confirmationModalService,
+    azureSecurityGroupWriter,
+    securityGroupReader,
+    $uibModal,
+  ) {
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     function extractSecurityGroup() {
-      return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
-        $scope.state.loading = false;
+      return securityGroupReader
+        .getSecurityGroupDetails(
+          application,
+          securityGroup.accountId,
+          securityGroup.provider,
+          securityGroup.region,
+          securityGroup.vpcId,
+          securityGroup.name,
+        )
+        .then(
+          function(details) {
+            $scope.state.loading = false;
 
-        if (!details || _.isEmpty( details)) {
-          fourOhFour();
-        } else {
-          $scope.securityGroup = details;
-        }
-      },
-      function() {
-        fourOhFour();
-      });
+            if (!details || _.isEmpty(details)) {
+              fourOhFour();
+            } else {
+              $scope.securityGroup = details;
+            }
+          },
+          function() {
+            fourOhFour();
+          },
+        );
     }
 
     function fourOhFour() {
@@ -58,11 +76,12 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
           securityGroup: function() {
             return angular.copy($scope.securityGroup);
           },
-          application: function() { return application; }
-        }
+          application: function() {
+            return application;
+          },
+        },
       });
     };
-
 
     this.cloneSecurityGroup = function cloneSecurityGroup() {
       $uibModal.open({
@@ -71,13 +90,15 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
         resolve: {
           securityGroup: function() {
             var securityGroup = angular.copy($scope.securityGroup);
-            if(securityGroup.region) {
+            if (securityGroup.region) {
               securityGroup.regions = [securityGroup.region];
             }
             return securityGroup;
           },
-          application: function() { return application; }
-        }
+          application: function() {
+            return application;
+          },
+        },
       });
     };
 
@@ -87,7 +108,7 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
         title: 'Deleting ' + securityGroup.name,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         $scope.securityGroup.type = 'deleteSecurityGroup';
         return azureSecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: 'azure',
@@ -102,16 +123,14 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
         account: securityGroup.accountId,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     if (app.isStandalone) {
       // we still want the edit to refresh the security group details when the modal closes
       app.securityGroups = {
-        refresh: extractSecurityGroup
+        refresh: extractSecurityGroup,
       };
     }
-
-  }
-);
+  });

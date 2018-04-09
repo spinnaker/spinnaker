@@ -8,12 +8,13 @@ import { Application } from './application.model';
 import { ApplicationDataSource, IDataSourceConfig } from './service/applicationDataSource';
 
 export class ApplicationModelBuilder {
-
-  constructor(private $log: ng.ILogService,
-              private $q: ng.IQService,
-              private $filter: any,
-              private $uiRouter: UIRouter,
-              private schedulerFactory: SchedulerFactory) {
+  constructor(
+    private $log: ng.ILogService,
+    private $q: ng.IQService,
+    private $filter: any,
+    private $uiRouter: UIRouter,
+    private schedulerFactory: SchedulerFactory,
+  ) {
     'ngInject';
   }
 
@@ -47,7 +48,6 @@ export class ApplicationModelBuilder {
     application.dataSources.push(source);
     application[config.key] = source;
   }
-
 }
 
 export const APPLICATION_MODEL_BUILDER = 'spinnaker.core.application.model.builder';
@@ -56,5 +56,4 @@ module(APPLICATION_MODEL_BUILDER, [
   SCHEDULER_FACTORY,
   ROBOT_TO_HUMAN_FILTER,
   require('@uirouter/angularjs').default,
-])
-  .service('applicationModelBuilder', ApplicationModelBuilder);
+]).service('applicationModelBuilder', ApplicationModelBuilder);

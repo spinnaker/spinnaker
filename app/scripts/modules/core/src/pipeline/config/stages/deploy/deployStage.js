@@ -1,18 +1,19 @@
 'use strict';
 
-import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
+import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
+import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
+import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
-  CLOUD_PROVIDER_REGISTRY,
-  SERVER_GROUP_COMMAND_BUILDER_SERVICE,
-  CLUSTER_SERVICE,
-])
-  .config(function (pipelineConfigProvider, cloudProviderRegistryProvider, clusterServiceProvider) {
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.deployStage', [
+    CLOUD_PROVIDER_REGISTRY,
+    SERVER_GROUP_COMMAND_BUILDER_SERVICE,
+    CLUSTER_SERVICE,
+  ])
+  .config(function(pipelineConfigProvider, cloudProviderRegistryProvider, clusterServiceProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
@@ -29,19 +30,30 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
           type: 'stageBeforeType',
           stageTypes: ['bake', 'findAmi', 'findImage', 'findImageFromTags'],
           message: 'You must have a Bake or Find Image stage before any deploy stage.',
-          skipValidation: (pipeline, stage) => (stage.clusters || []).every(cluster =>
-            cloudProviderRegistryProvider.$get().getValue(cluster.provider, 'serverGroup.skipUpstreamStageCheck')
-            || clusterServiceProvider.$get().isDeployingArtifact(cluster)
-          )
+          skipValidation: (pipeline, stage) =>
+            (stage.clusters || []).every(
+              cluster =>
+                cloudProviderRegistryProvider.$get().getValue(cluster.provider, 'serverGroup.skipUpstreamStageCheck') ||
+                clusterServiceProvider.$get().isDeployingArtifact(cluster),
+            ),
         },
       ],
-      accountExtractor: (stage) => (stage.context.clusters || []).map(c => c.account),
-      configAccountExtractor: (stage) => (stage.clusters || []).map(c => c.account),
+      accountExtractor: stage => (stage.context.clusters || []).map(c => c.account),
+      configAccountExtractor: stage => (stage.clusters || []).map(c => c.account),
       strategy: true,
     });
   })
-  .controller('DeployStageCtrl', function ($injector, $scope, $uibModal, stage, namingService, providerSelectionService,
-                                           cloudProviderRegistry, serverGroupCommandBuilder, serverGroupTransformer) {
+  .controller('DeployStageCtrl', function(
+    $injector,
+    $scope,
+    $uibModal,
+    stage,
+    namingService,
+    providerSelectionService,
+    cloudProviderRegistry,
+    serverGroupCommandBuilder,
+    serverGroupTransformer,
+  ) {
     $scope.stage = stage;
 
     function initializeCommand() {
@@ -63,19 +75,19 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     };
 
     this.hasSubnetDeployments = () => {
-      return stage.clusters.some((cluster) => {
+      return stage.clusters.some(cluster => {
         let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
         return cloudProviderRegistry.hasValue(cloudProvider, 'subnet');
       });
     };
 
     this.hasInstanceTypeDeployments = () => {
-      return stage.clusters.some((cluster) => {
+      return stage.clusters.some(cluster => {
         return cluster.instanceType !== undefined;
       });
     };
 
-    this.getSubnet = (cluster) => {
+    this.getSubnet = cluster => {
       let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
       if (cloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
         let subnetRenderer = cloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
@@ -94,56 +106,73 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     };
 
     this.addCluster = function() {
-      providerSelectionService.selectProvider($scope.application, 'serverGroup', providerFilterFn).then(function(selectedProvider) {
-        let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
-        $uibModal.open({
-          templateUrl: config.cloneServerGroupTemplateUrl,
-          controller: `${config.cloneServerGroupController} as ctrl`,
-          size: 'lg',
-          resolve: {
-            title: function () {
-              return 'Configure Deployment Cluster';
-            },
-            application: function () {
-              return $scope.application;
-            },
-            serverGroupCommand: function () {
-              return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider, $scope.stage, $scope.$parent.pipeline);
-            },
-          }
-        }).result.then(function(command) {
-            // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
-            command.provider = selectedProvider;
-            var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-            delete stageCluster.credentials;
-            $scope.stage.clusters.push(stageCluster);
-          }).catch(() => {});
-      });
+      providerSelectionService
+        .selectProvider($scope.application, 'serverGroup', providerFilterFn)
+        .then(function(selectedProvider) {
+          let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
+          $uibModal
+            .open({
+              templateUrl: config.cloneServerGroupTemplateUrl,
+              controller: `${config.cloneServerGroupController} as ctrl`,
+              size: 'lg',
+              resolve: {
+                title: function() {
+                  return 'Configure Deployment Cluster';
+                },
+                application: function() {
+                  return $scope.application;
+                },
+                serverGroupCommand: function() {
+                  return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(
+                    selectedProvider,
+                    $scope.stage,
+                    $scope.$parent.pipeline,
+                  );
+                },
+              },
+            })
+            .result.then(function(command) {
+              // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
+              command.provider = selectedProvider;
+              var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+              delete stageCluster.credentials;
+              $scope.stage.clusters.push(stageCluster);
+            })
+            .catch(() => {});
+        });
     };
 
     this.editCluster = function(cluster, index) {
       cluster.provider = cluster.cloudProvider || cluster.providerType || 'aws';
       let providerConfig = cloudProviderRegistry.getProvider(cluster.provider);
-      return $uibModal.open({
-        templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,
-        controller: `${providerConfig.serverGroup.cloneServerGroupController} as ctrl`,
-        size: 'lg',
-        resolve: {
-          title: function () {
-            return 'Configure Deployment Cluster';
+      return $uibModal
+        .open({
+          templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,
+          controller: `${providerConfig.serverGroup.cloneServerGroupController} as ctrl`,
+          size: 'lg',
+          resolve: {
+            title: function() {
+              return 'Configure Deployment Cluster';
+            },
+            application: function() {
+              return $scope.application;
+            },
+            serverGroupCommand: function() {
+              return serverGroupCommandBuilder.buildServerGroupCommandFromPipeline(
+                $scope.application,
+                cluster,
+                $scope.stage,
+                $scope.$parent.pipeline,
+              );
+            },
           },
-          application: function () {
-            return $scope.application;
-          },
-          serverGroupCommand: function () {
-            return serverGroupCommandBuilder.buildServerGroupCommandFromPipeline($scope.application, cluster, $scope.stage, $scope.$parent.pipeline);
-          },
-        }
-      }).result.then(function(command) {
+        })
+        .result.then(function(command) {
           var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
           delete stageCluster.credentials;
           $scope.stage.clusters[index] = stageCluster;
-        }).catch(() => {});
+        })
+        .catch(() => {});
     };
 
     this.copyCluster = function(index) {
@@ -166,12 +195,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
         const $originalChildren = element.children();
         const $helper = element.clone();
         const $helperChildren = $helper.children();
-        $helperChildren.each((index) => {
+        $helperChildren.each(index => {
           $helperChildren.eq(index).width($originalChildren[index].clientWidth);
         });
         return $helper;
       },
-      handle: '.handle'
+      handle: '.handle',
     };
 
     initializeCommand();
@@ -183,10 +212,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
     }
 
     function providerFilterFn(application, account, provider) {
-      return (
-        !provider.unsupportedStageTypes
-        || provider.unsupportedStageTypes.indexOf('deploy') === -1
-      );
+      return !provider.unsupportedStageTypes || provider.unsupportedStageTypes.indexOf('deploy') === -1;
     }
-
   });

@@ -17,5 +17,4 @@ export class SubmitButtonComponent implements IComponentOptions {
 }
 
 export const SUBMIT_BUTTON_COMPONENT = 'spinnaker.core.modal.buttons.submitButton.component';
-module(SUBMIT_BUTTON_COMPONENT, [])
-  .component('submitButton', new SubmitButtonComponent());
+module(SUBMIT_BUTTON_COMPONENT, []).component('submitButton', new SubmitButtonComponent());

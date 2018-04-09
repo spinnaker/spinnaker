@@ -84,11 +84,7 @@ export class AddEntityTagLinksWrapperComponent implements IComponentOptions {
   `;
 }
 
-
-
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';
-module(ADD_ENTITY_TAG_LINKS_COMPONENT, [
-  ENTITY_TAGS_HELP
-])
+module(ADD_ENTITY_TAG_LINKS_COMPONENT, [ENTITY_TAGS_HELP])
   .component('addEntityTagLinks', new AddEntityTagLinksComponent())
   .component('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent());

@@ -6,7 +6,8 @@ import { StageFailureMessage } from 'core/pipeline/details';
 
 export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
-  const scriptRanAndFailed = stage.isFailed && !stage.failureMessage && get(stage.context, 'buildInfo.result') === 'FAILURE';
+  const scriptRanAndFailed =
+    stage.isFailed && !stage.failureMessage && get(stage.context, 'buildInfo.result') === 'FAILURE';
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
@@ -35,54 +36,47 @@ export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
             <dl>
               {Object.keys(stage.context.propertyFileContents).map((key: string) => {
                 const val = stage.context.propertyFileContents[key];
-                return [
-                  <dt key={key}>{key}</dt>,
-                  <dd key={key + val}>{val}</dd>
-                ];
+                return [<dt key={key}>{key}</dt>, <dd key={key + val}>{val}</dd>];
               })}
             </dl>
           </div>
         </div>
       )}
 
-      {!scriptRanAndFailed && stage.context.buildInfo && stage.context.buildInfo.url && (
-        <div className="row ng-scope">
-          <div className="col-md-12">
-            <div className="well alert alert-info">
-              <a
-                href={`${stage.context.buildInfo.url}consoleText`}
-                target="_blank"
-              >
-                Script Results
-              </a>
+      {!scriptRanAndFailed &&
+        stage.context.buildInfo &&
+        stage.context.buildInfo.url && (
+          <div className="row ng-scope">
+            <div className="col-md-12">
+              <div className="well alert alert-info">
+                <a href={`${stage.context.buildInfo.url}consoleText`} target="_blank">
+                  Script Results
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {scriptRanAndFailed && (
         <div>
           <div className="alert alert-danger">
             Script execution failed.
             <span>Check </span>
-            {stage.context.buildInfo && stage.context.buildInfo.url && (
-              <a
-                href={`${stage.context.buildInfo.url}consoleText`}
-                target="_blank"
-              >
-                the script results
-              </a>
-            )}
+            {stage.context.buildInfo &&
+              stage.context.buildInfo.url && (
+                <a href={`${stage.context.buildInfo.url}consoleText`} target="_blank">
+                  the script results
+                </a>
+              )}
             <span> for details.</span>
           </div>
         </div>
       )}
 
-
       <StageFailureMessage stage={props.stage} message={props.stage.failureMessage} />
     </ExecutionDetailsSection>
   );
-};
+}
 
 export namespace ScriptExecutionDetails {
   export const title = 'scriptConfig';

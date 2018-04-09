@@ -5,10 +5,8 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.cf.pipeline.stage.cloneServerGroupStage', [
-  ACCOUNT_SERVICE,
-  NAMING_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.cf.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE, NAMING_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -18,19 +16,19 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.cloneServerGroupSta
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'region', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'region' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('cfCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
-
+  })
+  .controller('cfCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('cf').then((accounts) => {
+    accountService.listAccounts('cf').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -41,7 +39,11 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.cloneServerGroupSta
     stage.cloudProvider = 'cf';
     stage.cloudProviderType = 'cf';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Cloud Foundry'];
     }
 
@@ -74,4 +76,3 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.cloneServerGroupSta
       stage.disableTraffic = !stage.disableTraffic;
     };
   });
-

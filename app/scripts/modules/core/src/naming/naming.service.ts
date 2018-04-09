@@ -24,7 +24,7 @@ export class NamingService {
       return result;
     }
     const split: string[] = serverGroupName.split('-'),
-          isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
+      isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
 
     result.application = split[0];
 
@@ -109,5 +109,4 @@ export class NamingService {
 
 export const NAMING_SERVICE = 'spinnaker.core.naming.service';
 
-module(NAMING_SERVICE, [])
-  .service('namingService', NamingService);
+module(NAMING_SERVICE, []).service('namingService', NamingService);

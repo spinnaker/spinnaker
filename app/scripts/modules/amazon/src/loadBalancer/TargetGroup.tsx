@@ -21,7 +21,7 @@ export class TargetGroup extends React.Component<ITargetGroupProps> {
   public render(): React.ReactElement<TargetGroup> {
     const { targetGroup, showInstances, showServerGroups, loadBalancer } = this.props;
 
-    const ServerGroups = orderBy(targetGroup.serverGroups, ['isDisabled', 'name'], ['asc', 'desc']).map((serverGroup) => (
+    const ServerGroups = orderBy(targetGroup.serverGroups, ['isDisabled', 'name'], ['asc', 'desc']).map(serverGroup => (
       <LoadBalancerServerGroup
         key={serverGroup.name}
         account={targetGroup.account}
@@ -46,17 +46,18 @@ export class TargetGroup extends React.Component<ITargetGroupProps> {
         <UISrefActive class="active">
           <UISref to=".targetGroupDetails" params={params}>
             <div className={`clickable clickable-row row no-margin-top target-group-header`}>
-              <div className="col-md-8 target-group-title">
-                  {targetGroup.name}
-              </div>
+              <div className="col-md-8 target-group-title">{targetGroup.name}</div>
               <div className="col-md-4 text-right">
-                <HealthCounts container={targetGroup.instanceCounts}/>
+                <HealthCounts container={targetGroup.instanceCounts} />
               </div>
             </div>
           </UISref>
         </UISrefActive>
         {showServerGroups && ServerGroups}
-        {!showServerGroups && showInstances && <LoadBalancerInstances serverGroups={targetGroup.serverGroups} instances={targetGroup.instances} />}
+        {!showServerGroups &&
+          showInstances && (
+            <LoadBalancerInstances serverGroups={targetGroup.serverGroups} instances={targetGroup.instances} />
+          )}
       </div>
     );
   }

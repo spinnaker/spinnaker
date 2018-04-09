@@ -4,11 +4,9 @@ const angular = require('angular');
 
 import { BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage..findImageFromTagsStage', [
-  BAKERY_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
-])
-  .config(function (pipelineConfigProvider) {
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage..findImageFromTagsStage', [BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER])
+  .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'findImageFromTags',
       cloudProvider: 'gce',
@@ -16,9 +14,9 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..findImageFromTags
       executionDetailsUrl: require('./findImageFromTagsExecutionDetails.html'),
       executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
-        { type: 'requiredField', fieldName: 'packageName', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'tags', },
+        { type: 'requiredField', fieldName: 'packageName' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'tags' },
       ],
     });
   })

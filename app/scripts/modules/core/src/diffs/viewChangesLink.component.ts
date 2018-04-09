@@ -16,16 +16,17 @@ export interface IViewChangesConfig {
 }
 
 class ViewChangesModalController {
-
   public previousBuildLink: string;
   public currentBuildLink: string;
 
-  constructor(private $uibModalInstance: IModalInstanceService,
-              public buildInfo: IBuildDiffInfo,
-              public commits: ICommit[],
-              public hasJarChanges: boolean,
-              public jarDiffs: IJarDiff,
-              public nameItem: { name: string }) {
+  constructor(
+    private $uibModalInstance: IModalInstanceService,
+    public buildInfo: IBuildDiffInfo,
+    public commits: ICommit[],
+    public hasJarChanges: boolean,
+    public jarDiffs: IJarDiff,
+    public nameItem: { name: string },
+  ) {
     'ngInject';
 
     if (buildInfo.jenkins) {
@@ -49,7 +50,6 @@ class ViewChangesModalController {
 }
 
 class ViewChangesLinkController implements IController {
-
   public changeConfig: IViewChangesConfig;
   public viewType: string;
   public linkText = 'View Changes';
@@ -64,15 +64,14 @@ class ViewChangesLinkController implements IController {
   private loadingExecution = false;
   private executionLoaded = false;
 
-  constructor(private $uibModal: IModalService,
-              private executionService: ExecutionService) {
+  constructor(private $uibModal: IModalService, private executionService: ExecutionService) {
     'ngInject';
   }
 
   private setJarDiffs(): void {
-    this.hasJarChanges =
-      Object.keys(this.jarDiffs).some((key: string) =>
-        Array.isArray(this.jarDiffs[key]) && this.jarDiffs[key].length > 0);
+    this.hasJarChanges = Object.keys(this.jarDiffs).some(
+      (key: string) => Array.isArray(this.jarDiffs[key]) && this.jarDiffs[key].length > 0,
+    );
   }
 
   private lookForDiffs(stageId: string, executionId: string): void {
@@ -80,25 +79,26 @@ class ViewChangesLinkController implements IController {
       return;
     }
     this.loadingExecution = true;
-    this.executionService.getExecution(executionId).then((details: any) => {
-      const stage: any = details.stages.find((s: any) => s.id === stageId);
-      this.jarDiffs = stage.context.jarDiffs || {};
-      this.commits = stage.context.commits || [];
-      extend(this.changeConfig.buildInfo, stage.context.buildInfo);
-      this.setJarDiffs();
+    this.executionService
+      .getExecution(executionId)
+      .then((details: any) => {
+        const stage: any = details.stages.find((s: any) => s.id === stageId);
+        this.jarDiffs = stage.context.jarDiffs || {};
+        this.commits = stage.context.commits || [];
+        extend(this.changeConfig.buildInfo, stage.context.buildInfo);
+        this.setJarDiffs();
 
-      if (this.hasJarChanges || this.commits.length) {
-        this.changesAvailable = true;
-      }
-      // if the stage is still running, and we haven't found commits or changes, reload it on the next refresh cycle
-      this.executionLoaded = stage.status !== 'RUNNING' || this.changesAvailable;
-
-    }).catch(() => {})
-      .finally(() => this.loadingExecution = false);
+        if (this.hasJarChanges || this.commits.length) {
+          this.changesAvailable = true;
+        }
+        // if the stage is still running, and we haven't found commits or changes, reload it on the next refresh cycle
+        this.executionLoaded = stage.status !== 'RUNNING' || this.changesAvailable;
+      })
+      .catch(() => {})
+      .finally(() => (this.loadingExecution = false));
   }
 
   public $onInit(): void {
-
     if (this.changeConfig.metadata) {
       if (this.changeConfig.metadata.value.executionType === 'pipeline') {
         const value: ICreationMetadata = this.changeConfig.metadata.value;
@@ -131,8 +131,8 @@ class ViewChangesLinkController implements IController {
         commits: () => this.commits,
         hasJarChanges: () => this.hasJarChanges,
         jarDiffs: () => this.jarDiffs,
-        nameItem: () => this.nameItem
-      }
+        nameItem: () => this.nameItem,
+      },
     });
   }
 }
@@ -142,7 +142,7 @@ class ViewChangesLink implements IComponentOptions {
     changeConfig: '<',
     viewType: '@',
     linkText: '@?',
-    nameItem: '<'
+    nameItem: '<',
   };
   public controller: any = ViewChangesLinkController;
   public template = `
@@ -162,15 +162,11 @@ export class ViewChangesLinkWrapper implements IComponentOptions {
     viewType: '<',
     linkText: '<?',
     nameItem: '<',
-  }
+  };
   public tempate = `<view-changes-link change-config="$ctrl.changeConfig" view-type="{{::$ctrl.viewType}}" link-text="{{::$ctrl.linkText}}" name-item="$ctrl.nameItem"></view-changes-link>`;
 }
 
 export const VIEW_CHANGES_LINK = 'spinnaker.diffs.view.changes.link';
-module(VIEW_CHANGES_LINK, [
-  COMMIT_HISTORY_COMPONENT,
-  JAR_DIFF_COMPONENT,
-  EXECUTION_SERVICE
-])
+module(VIEW_CHANGES_LINK, [COMMIT_HISTORY_COMPONENT, JAR_DIFF_COMPONENT, EXECUTION_SERVICE])
   .component('viewChangesLink', new ViewChangesLink())
   .component('viewChangesLinkWrapper', new ViewChangesLinkWrapper());

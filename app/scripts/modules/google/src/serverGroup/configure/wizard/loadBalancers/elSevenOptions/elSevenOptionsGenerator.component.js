@@ -2,8 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.elSevenOptionsGenerator.component', [
-    require('./backendServiceSelector.component.js').name
+module.exports = angular
+  .module('spinnaker.deck.gce.elSevenOptionsGenerator.component', [
+    require('./backendServiceSelector.component.js').name,
   ])
   .directive('gceElSevenOptionsGenerator', function($compile) {
     let template = `<gce-backend-service-selector load-balancer-name="loadBalancerName" command="command">
@@ -13,15 +14,13 @@ module.exports = angular.module('spinnaker.deck.gce.elSevenOptionsGenerator.comp
       restrict: 'E',
       scope: {
         command: '=',
-        loadBalancerName: '@'
+        loadBalancerName: '@',
       },
       link: function(scope, element) {
         let compiledTemplate = $compile(template)(scope);
 
         // Look up DOM to find container for selected load balancer.
-        let listItem = angular
-          .element(element)
-          .closest('.ui-select-match-item');
+        let listItem = angular.element(element).closest('.ui-select-match-item');
 
         // Drop service selector in between load balancers.
         listItem.after(compiledTemplate);
@@ -30,6 +29,6 @@ module.exports = angular.module('spinnaker.deck.gce.elSevenOptionsGenerator.comp
           // Remove selector if load balancer is removed.
           listItem.next().remove();
         });
-      }
+      },
     };
   });

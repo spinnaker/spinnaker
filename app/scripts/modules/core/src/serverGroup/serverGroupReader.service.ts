@@ -4,12 +4,12 @@ import { API_SERVICE, Api } from 'core/api/api.service';
 import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
-
-  constructor(private $log: ILogService, private API: Api) { 'ngInject'; }
+  constructor(private $log: ILogService, private API: Api) {
+    'ngInject';
+  }
 
   public getScalingActivities(serverGroup: IServerGroup): IPromise<any[]> {
-    return this.API
-      .one('applications')
+    return this.API.one('applications')
       .one(serverGroup.app)
       .all('clusters')
       .all(serverGroup.account)
@@ -18,7 +18,7 @@ export class ServerGroupReader {
       .all('scalingActivities')
       .withParams({
         region: serverGroup.region,
-        provider: serverGroup.cloudProvider
+        provider: serverGroup.cloudProvider,
       })
       .getList()
       .catch((error: any): any[] => {
@@ -27,10 +27,12 @@ export class ServerGroupReader {
       });
   }
 
-  public getServerGroup(application: any,
-                        account: string,
-                        region: string,
-                        serverGroupName: string): IPromise<IServerGroup> {
+  public getServerGroup(
+    application: any,
+    account: string,
+    region: string,
+    serverGroupName: string,
+  ): IPromise<IServerGroup> {
     return this.API.one('applications')
       .one(application)
       .all('serverGroups')
@@ -42,5 +44,4 @@ export class ServerGroupReader {
 }
 
 export const SERVER_GROUP_READER = 'spinnaker.core.serverGroup.read.service';
-module(SERVER_GROUP_READER, [API_SERVICE])
-  .service('serverGroupReader', ServerGroupReader);
+module(SERVER_GROUP_READER, [API_SERVICE]).service('serverGroupReader', ServerGroupReader);

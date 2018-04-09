@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
+import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
+import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 
 module.exports = angular
   .module('spinnaker.core.application.config.delete.directive', [
@@ -12,12 +12,14 @@ module.exports = angular
     APPLICATION_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
-
   ])
-  .directive('deleteApplicationSection', function (overrideRegistry) {
+  .directive('deleteApplicationSection', function(overrideRegistry) {
     return {
       restrict: 'E',
-      templateUrl: overrideRegistry.getTemplate('deleteApplicationSectionDirective', require('./deleteApplicationSection.directive.html')),
+      templateUrl: overrideRegistry.getTemplate(
+        'deleteApplicationSectionDirective',
+        require('./deleteApplicationSection.directive.html'),
+      ),
       scope: {},
       bindToController: {
         application: '=',
@@ -26,7 +28,7 @@ module.exports = angular
       controller: 'DeleteApplicationSectionCtrl',
     };
   })
-  .controller('DeleteApplicationSectionCtrl', function ($state, applicationWriter, confirmationModalService) {
+  .controller('DeleteApplicationSectionCtrl', function($state, applicationWriter, confirmationModalService) {
     if (this.application.notFound) {
       return;
     }
@@ -35,7 +37,6 @@ module.exports = angular
     this.hasServerGroups = Boolean(this.serverGroupCount);
 
     this.deleteApplication = () => {
-
       var submitMethod = () => {
         return applicationWriter.deleteApplication(this.application.attributes);
       };
@@ -46,7 +47,7 @@ module.exports = angular
         hasKatoTask: false,
         onTaskComplete: () => {
           $state.go('home.infrastructure');
-        }
+        },
       };
 
       confirmationModalService.confirm({
@@ -54,7 +55,7 @@ module.exports = angular
         buttonText: 'Delete ' + this.application.name,
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
   });

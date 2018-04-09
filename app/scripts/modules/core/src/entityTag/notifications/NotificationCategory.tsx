@@ -32,7 +32,7 @@ export class NotificationCategory extends React.Component<INotificationCategoryP
 
     return (
       <li className={categoryClass} onClick={this.selectCategory} key={category.id}>
-        <i className={`notification-category-icon fa ${category.icon}`}/>
+        <i className={`notification-category-icon fa ${category.icon}`} />
         <span className="notification-category-label flex-grow">{category.label}</span>
         <span className="badge">{notifications.length}</span>
       </li>

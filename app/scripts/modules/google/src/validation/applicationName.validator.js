@@ -5,16 +5,15 @@ const angular = require('angular');
 import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.validation.applicationName', [
-    APPLICATION_NAME_VALIDATOR,
-  ])
-  .factory('gceApplicationNameValidator', function () {
-
+  .module('spinnaker.gce.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
+  .factory('gceApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       let pattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;
       if (!pattern.test(name)) {
-        errors.push('The application name must begin with a letter and must contain only letters or digits. No ' +
-          'special characters are allowed.');
+        errors.push(
+          'The application name must begin with a letter and must contain only letters or digits. No ' +
+            'special characters are allowed.',
+        );
       }
     }
 
@@ -42,8 +41,10 @@ module.exports = angular
             application's name is longer than ${maxLengthForLoadBalancers} characters (currently: ${name.length}
           characters).`);
         } else if (name.length >= maxLengthForLoadBalancers - 2) {
-          warnings.push('With separators ("-"), you will not be able to include a stack and detail field for ' +
-            'Google load balancers.');
+          warnings.push(
+            'With separators ("-"), you will not be able to include a stack and detail field for ' +
+              'Google load balancers.',
+          );
         } else {
           let remaining = maxLengthForLoadBalancers - 2 - name.length;
           warnings.push(`If you plan to include a stack or detail field for Google load balancers, you will only
@@ -57,8 +58,10 @@ module.exports = angular
             application's name is longer than ${maxLengthForServerGroups} characters (currently: ${name.length}
             characters).`);
         } else if (name.length >= maxLengthForServerGroups - 2) {
-          warnings.push('With separators ("-"), you will not be able to include a stack and detail field for ' +
-            'Google server groups.');
+          warnings.push(
+            'With separators ("-"), you will not be able to include a stack and detail field for ' +
+              'Google server groups.',
+          );
         } else {
           let remaining = maxLengthForServerGroups - 2 - name.length;
           warnings.push(`If you plan to include a stack or detail field for Google server groups, you will only
@@ -68,8 +71,10 @@ module.exports = angular
 
       if (name.length > maxResourceNameLength - 12) {
         if (name.length >= maxResourceNameLength - 2) {
-          warnings.push('With separators ("-"), you will not be able to include a stack and detail field for ' +
-            'Google security groups.');
+          warnings.push(
+            'With separators ("-"), you will not be able to include a stack and detail field for ' +
+              'Google security groups.',
+          );
         } else {
           let remaining = maxResourceNameLength - 2 - name.length;
           warnings.push(`If you plan to include a stack or detail field for Google security groups, you will only
@@ -80,7 +85,7 @@ module.exports = angular
 
     function validate(name) {
       let warnings = [],
-          errors = [];
+        errors = [];
 
       if (name && name.length) {
         validateSpecialCharacters(name, errors);
@@ -94,7 +99,7 @@ module.exports = angular
     }
 
     return {
-      validate: validate
+      validate: validate,
     };
   })
   .run(function(applicationNameValidator, gceApplicationNameValidator) {

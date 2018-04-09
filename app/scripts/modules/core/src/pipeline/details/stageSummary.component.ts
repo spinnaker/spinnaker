@@ -16,10 +16,12 @@ export class StageSummaryController implements IController {
   private parser: Parser = new Parser();
   private renderer: HtmlRenderer = new HtmlRenderer();
 
-  constructor(private $scope: IScope,
-              private $stateParams: StateParams,
-              private $state: StateService,
-              private pipelineConfig: PipelineConfigProvider) {
+  constructor(
+    private $scope: IScope,
+    private $stateParams: StateParams,
+    private $state: StateService,
+    private pipelineConfig: PipelineConfigProvider,
+  ) {
     'ngInject';
   }
 
@@ -84,9 +86,13 @@ export class StageSummaryController implements IController {
     if (newStepDetails !== null) {
       const newState = { step: newStepDetails } as any;
       const stage = parseInt(this.$stateParams.stage, 10);
-      if (stage) { newState.stage = stage; }
+      if (stage) {
+        newState.stage = stage;
+      }
       const subStage = parseInt(this.$stateParams.subStage, 10);
-      if (subStage) { newState.subStage = subStage; }
+      if (subStage) {
+        newState.subStage = subStage;
+      }
       this.$state.go('.', newState);
     }
   }
@@ -105,5 +111,4 @@ export class StageSummaryComponent implements IComponentOptions {
 }
 
 export const STAGE_SUMMARY_COMPONENT = 'spinnaker.core.pipeline.stageSummary.component';
-module(STAGE_SUMMARY_COMPONENT, [PIPELINE_CONFIG_PROVIDER])
-  .component('stageSummary', new StageSummaryComponent());
+module(STAGE_SUMMARY_COMPONENT, [PIPELINE_CONFIG_PROVIDER]).component('stageSummary', new StageSummaryComponent());

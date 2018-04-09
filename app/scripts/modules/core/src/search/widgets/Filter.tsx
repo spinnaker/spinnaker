@@ -17,7 +17,7 @@ export class Filter extends React.Component<IFilterProps> {
   public static defaultProps: Partial<IFilterProps> = {
     onClick: () => {},
     onKeyUp: () => {},
-    onMouseDown: () => {}
+    onMouseDown: () => {},
   };
 
   private handleClick(): void {
@@ -37,9 +37,9 @@ export class Filter extends React.Component<IFilterProps> {
   public render(): React.ReactElement<Filter> {
     const { isActive } = this.props;
     const className = classNames({
-      'filter': true,
+      filter: true,
       'filter--focus': isActive,
-      'filter--blur': !isActive
+      'filter--blur': !isActive,
     });
 
     const { key, name } = this.props.filterType;

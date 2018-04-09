@@ -10,7 +10,7 @@ import {
   InstanceReader,
   InstanceWriter,
   RECENT_HISTORY_SERVICE,
-  RecentHistoryService
+  RecentHistoryService,
 } from '@spinnaker/core';
 
 import { IAppengineInstance } from 'appengine/domain';
@@ -31,22 +31,25 @@ class AppengineInstanceDetailsController implements IController {
   public state = { loading: true };
   public instance: IAppengineInstance;
   public instanceIdNotFound: string;
-  public upToolTip = 'An App Engine instance is \'Up\' if a load balancer is directing traffic to its server group.';
+  public upToolTip = "An App Engine instance is 'Up' if a load balancer is directing traffic to its server group.";
   public outOfServiceToolTip = `
     An App Engine instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
 
-  constructor(private $q: IQService,
-              private app: Application,
-              private instanceReader: InstanceReader,
-              private instanceWriter: InstanceWriter,
-              private confirmationModalService: ConfirmationModalService,
-              instance: InstanceFromStateParams,
-              private recentHistoryService: RecentHistoryService) {
+  constructor(
+    private $q: IQService,
+    private app: Application,
+    private instanceReader: InstanceReader,
+    private instanceWriter: InstanceWriter,
+    private confirmationModalService: ConfirmationModalService,
+    instance: InstanceFromStateParams,
+    private recentHistoryService: RecentHistoryService,
+  ) {
     'ngInject';
 
-    this.app.ready()
+    this.app
+      .ready()
       .then(() => this.retrieveInstance(instance))
-      .then((instanceDetails) => {
+      .then(instanceDetails => {
         this.instance = instanceDetails;
         this.state.loading = false;
       })
@@ -69,7 +72,7 @@ class AppengineInstanceDetailsController implements IController {
         if (this.$state.includes('**.instanceDetails', { instanceId: instance.name })) {
           this.$state.go('^');
         }
-      }
+      },
     };
 
     const submitMethod = () => {
@@ -81,25 +84,25 @@ class AppengineInstanceDetailsController implements IController {
       buttonText: 'Terminate ' + shortName,
       account: instance.account,
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod
+      submitMethod: submitMethod,
     });
   }
 
   private retrieveInstance(instance: InstanceFromStateParams): IPromise<IAppengineInstance> {
     const instanceLocatorPredicate = (dataSource: InstanceManager) => {
-      return dataSource.instances.some((possibleMatch) => possibleMatch.id === instance.instanceId);
+      return dataSource.instances.some(possibleMatch => possibleMatch.id === instance.instanceId);
     };
 
     const dataSources: InstanceManager[] = flattenDeep([
       this.app.getDataSource('serverGroups').data,
       this.app.getDataSource('loadBalancers').data,
-      this.app.getDataSource('loadBalancers').data.map((loadBalancer) => loadBalancer.serverGroups),
+      this.app.getDataSource('loadBalancers').data.map(loadBalancer => loadBalancer.serverGroups),
     ]);
 
     const instanceManager = dataSources.find(instanceLocatorPredicate);
 
     if (instanceManager) {
-      const recentHistoryExtraData: {[key: string]: string} = {
+      const recentHistoryExtraData: { [key: string]: string } = {
         region: instanceManager.region,
         account: instanceManager.account,
       };

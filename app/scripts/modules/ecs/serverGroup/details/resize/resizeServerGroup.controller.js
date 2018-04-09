@@ -6,20 +6,26 @@ import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 import { ECS_RESIZE_CAPACITY_COMPONENT } from './resizeCapacity.component';
 
-module.exports = angular.module('spinnaker.ecs.serverGroup.details.resize.controller', [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-  ECS_RESIZE_CAPACITY_COMPONENT,
-])
-  .controller('ecsResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter,
-                                                   taskMonitorBuilder,
-                                                   application, serverGroup) {
+module.exports = angular
+  .module('spinnaker.ecs.serverGroup.details.resize.controller', [
+    SERVER_GROUP_WRITER,
+    TASK_MONITOR_BUILDER,
+    ECS_RESIZE_CAPACITY_COMPONENT,
+  ])
+  .controller('ecsResizeServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    serverGroupWriter,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+  ) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
       min: serverGroup.capacity.min,
       max: serverGroup.capacity.max,
       desired: serverGroup.capacity.desired,
-      newSize: null
+      newSize: null,
     };
 
     $scope.verification = {};
@@ -35,14 +41,14 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.resize.contro
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       var command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
       }
-      return command.advancedMode ?
-        command.min <= command.max && command.desired >= command.min && command.desired <= command.max :
-        command.newSize !== null;
+      return command.advancedMode
+        ? command.min <= command.max && command.desired >= command.min && command.desired <= command.max
+        : command.newSize !== null;
     };
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -51,7 +57,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.resize.contro
       modalInstance: $uibModalInstance,
     });
 
-    this.resize = function () {
+    this.resize = function() {
       if (!this.isValid()) {
         return;
       }
@@ -71,7 +77,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.resize.contro
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

@@ -3,9 +3,8 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.region.clusterSelectField.directive', [
-  ])
-  .directive('clusterSelectField', function () {
+  .module('spinnaker.dcos.region.clusterSelectField.directive', [])
+  .directive('clusterSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('./selectField.directive.html'),

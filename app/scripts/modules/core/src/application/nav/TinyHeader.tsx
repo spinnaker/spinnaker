@@ -12,7 +12,6 @@ export interface ITinyHeaderProps {
 
 @BindAll()
 export class TinyHeader extends React.Component<ITinyHeaderProps> {
-
   private renderCategory(category: IDataSourceCategory): JSX.Element {
     if (category.dataSources.length === 1) {
       return (
@@ -24,17 +23,20 @@ export class TinyHeader extends React.Component<ITinyHeaderProps> {
     return (
       <optgroup label={category.label} key={category.key}>
         {category.dataSources.map(ds => (
-          <option value={ds.key} key={ds.key}>{ds.label}</option>
+          <option value={ds.key} key={ds.key}>
+            {ds.label}
+          </option>
         ))}
       </optgroup>
-    )
+    );
   }
 
   private categoryChanged(event: React.ChangeEvent<HTMLSelectElement>) {
     const { primaryCategories, secondaryCategories } = this.props;
     const { $state } = ReactInjector;
     const key = event.target.value;
-    const categoryMatch = primaryCategories.concat(secondaryCategories)
+    const categoryMatch = primaryCategories
+      .concat(secondaryCategories)
       .find(c => c.dataSources.some(ds => ds.key === key));
     if (!categoryMatch) {
       return;
@@ -51,7 +53,8 @@ export class TinyHeader extends React.Component<ITinyHeaderProps> {
     const { $state } = ReactInjector;
     const appState = this.getApplicationState();
     const { primaryCategories, secondaryCategories } = this.props;
-    const categoryMatch = primaryCategories.concat(secondaryCategories)
+    const categoryMatch = primaryCategories
+      .concat(secondaryCategories)
       .find(c => c.dataSources.some(ds => $state.includes(appState + ds.sref)));
     if (!categoryMatch) {
       return null;

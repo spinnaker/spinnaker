@@ -4,49 +4,51 @@ const angular = require('angular');
 
 import { NAMING_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.service', [
-  require('../../image/image.reader.js').name,
-  NAMING_SERVICE,
-])
-  .factory('azureServerGroupCommandBuilder', function ($q, azureImageReader, namingService) {
-
+module.exports = angular
+  .module('spinnaker.azure.serverGroupCommandBuilder.service', [
+    require('../../image/image.reader.js').name,
+    NAMING_SERVICE,
+  ])
+  .factory('azureServerGroupCommandBuilder', function($q, azureImageReader, namingService) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var imageLoader = azureImageReader.findImages({ provider: 'azure', });
+      var imageLoader = azureImageReader.findImages({ provider: 'azure' });
 
       var defaultCredentials = defaults.account || application.defaultCredentials;
       var defaultRegion = defaults.region || application.defaultRegion;
 
-      return $q.all({
-        images: imageLoader,
-      }).then(function (backingData) {
-        return {
-          application: application.name,
-          credentials: defaultCredentials,
-          region: defaultRegion,
-          images: backingData.images,
-          loadBalancers: [],
-          selectedVnetSubnets: [],
-          strategy: '',
-          sku: {
-            capacity: 1,
-          },
-          selectedProvider: 'azure',
-          viewState: {
-            instanceProfile: 'custom',
-            allImageSelection: null,
-            useAllImageSelection: false,
-            useSimpleCapacity: true,
-            usePreferredZones: true,
-            mode: defaults.mode || 'create',
-            disableStrategySelection: true,
-            loadBalancersConfigured: false,
-            networkSettingsConfigured: false,
-            securityGroupsConfigured: false,
-          },
-        };
-      });
+      return $q
+        .all({
+          images: imageLoader,
+        })
+        .then(function(backingData) {
+          return {
+            application: application.name,
+            credentials: defaultCredentials,
+            region: defaultRegion,
+            images: backingData.images,
+            loadBalancers: [],
+            selectedVnetSubnets: [],
+            strategy: '',
+            sku: {
+              capacity: 1,
+            },
+            selectedProvider: 'azure',
+            viewState: {
+              instanceProfile: 'custom',
+              allImageSelection: null,
+              useAllImageSelection: false,
+              useSimpleCapacity: true,
+              usePreferredZones: true,
+              mode: defaults.mode || 'create',
+              disableStrategySelection: true,
+              loadBalancersConfigured: false,
+              networkSettingsConfigured: false,
+              securityGroupsConfigured: false,
+            },
+          };
+        });
     }
 
     // Only used to prepare view requiring template selecting
@@ -54,7 +56,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
       return $q.when({
         viewState: {
           requiresTemplateSelection: true,
-        }
+        },
       });
     }
 
@@ -82,7 +84,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
         capacity: {
           min: serverGroup.capacity.min,
           max: serverGroup.capacity.max,
-          desired: serverGroup.capacity.desired
+          desired: serverGroup.capacity.desired,
         },
         tags: [],
         selectedProvider: 'azure',
@@ -90,7 +92,7 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
           account: serverGroup.account,
           region: serverGroup.region,
           serverGroupName: serverGroup.name,
-          asgName: serverGroup.name
+          asgName: serverGroup.name,
         },
         viewState: {
           allImageSelection: null,
@@ -107,15 +109,14 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
-
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = pipelineCluster.region;
-      var commandOptions = {account: pipelineCluster.account, region: region};
+      var commandOptions = { account: pipelineCluster.account, region: region };
       var asyncLoader = $q.all({
-        command: buildNewServerGroupCommand(application, commandOptions)
+        command: buildNewServerGroupCommand(application, commandOptions),
       });
 
-      return asyncLoader.then(function (asyncData) {
+      return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
 
         var viewState = {
@@ -137,7 +138,6 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
 
         return extendedCommand;
       });
-
     }
 
     return {
@@ -147,4 +147,3 @@ module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.servi
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
   });
-

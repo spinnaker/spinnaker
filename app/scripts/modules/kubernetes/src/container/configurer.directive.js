@@ -5,10 +5,12 @@ const angular = require('angular');
 import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from './lifecycleHook.component';
 import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from './environmentFrom.component';
 
-module.exports = angular.module('spinnaker.kubernetes.container.configurer.directive', [
-  KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
-  KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
-]).directive('kubernetesContainerConfigurer', function () {
+module.exports = angular
+  .module('spinnaker.kubernetes.container.configurer.directive', [
+    KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
+    KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
+  ])
+  .directive('kubernetesContainerConfigurer', function() {
     return {
       restrict: 'E',
       templateUrl: require('./configurer.directive.html'),
@@ -17,7 +19,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
         index: '=',
         command: '=',
         initContainer: '<',
-      }
+      },
     };
   })
   .controller('kubernetesContainerConfigurerController', function($scope) {
@@ -38,7 +40,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.configurer.direc
     };
 
     this.addMount = function() {
-      $scope.container.volumeMounts.push({ name: '', readOnly: false, mountPath: '/', });
+      $scope.container.volumeMounts.push({ name: '', readOnly: false, mountPath: '/' });
     };
 
     this.removeCommand = function(index) {

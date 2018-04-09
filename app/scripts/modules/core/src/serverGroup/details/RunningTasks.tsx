@@ -17,15 +17,13 @@ export class RunningTasks extends React.Component<IRunningTasksProps> {
   public render() {
     const { application, serverGroup } = this.props;
 
-    if ( serverGroup.runningTasks.length > 0 || serverGroup.runningExecutions.length > 0) {
+    if (serverGroup.runningTasks.length > 0 || serverGroup.runningExecutions.length > 0) {
       return (
         <CollapsibleSection heading="Running Tasks" defaultExpanded={true} bodyClassName="details-running-tasks">
-          {serverGroup.runningTasks.sort((a, b) => a.startTime - b.startTime).map((task) => (
-            <Task key={task.id} task={task} application={application} />
-          ))}
-          {serverGroup.runningExecutions.map((execution) => (
-            <Execution key={execution.id} execution={execution} />
-          ))}
+          {serverGroup.runningTasks
+            .sort((a, b) => a.startTime - b.startTime)
+            .map(task => <Task key={task.id} task={task} application={application} />)}
+          {serverGroup.runningExecutions.map(execution => <Execution key={execution.id} execution={execution} />)}
         </CollapsibleSection>
       );
     }
@@ -34,21 +32,21 @@ export class RunningTasks extends React.Component<IRunningTasksProps> {
   }
 }
 
-const Task = (props: { task: ITask, application: Application }): JSX.Element => (
+const Task = (props: { task: ITask; application: Application }): JSX.Element => (
   <div>
     <strong>{props.task.name}</strong>
     {displayableTasks(props.task.steps).map((step, index) => (
       <div className="flex-container-h baseline margin-between-sm" key={index}>
-        <span className="small"><StatusGlyph item={step}/></span>
+        <span className="small">
+          <StatusGlyph item={step} />
+        </span>
         <div>
           <span>{robotToHuman(step.name)}</span>
           {step.name === 'waitForUpInstances' && (
-            <PlatformHealthOverrideMessage step={step} task={props.task} application={props.application}/>
+            <PlatformHealthOverrideMessage step={step} task={props.task} application={props.application} />
           )}
         </div>
-        <div className="flex-pull-right">
-          {duration(step.runningTimeInMs)}
-        </div>
+        <div className="flex-pull-right">{duration(step.runningTimeInMs)}</div>
       </div>
     ))}
   </div>
@@ -57,13 +55,13 @@ const Task = (props: { task: ITask, application: Application }): JSX.Element => 
 const Execution = (props: { execution: IExecution }): JSX.Element => (
   <div>
     <strong>Pipeline: {props.execution.name}</strong>
-    {props.execution.stages.map((stage) => (
+    {props.execution.stages.map(stage => (
       <div className="flex-container-h baseline margin-between-sm">
-        <span className="small"><StatusGlyph item={stage}/></span>
+        <span className="small">
+          <StatusGlyph item={stage} />
+        </span>
         <span>{robotToHuman(stage.name)}</span>
-        <div className="flex-pull-right">
-          {duration(stage.runningTimeInMs)}
-        </div>
+        <div className="flex-pull-right">{duration(stage.runningTimeInMs)}</div>
       </div>
     ))}
   </div>

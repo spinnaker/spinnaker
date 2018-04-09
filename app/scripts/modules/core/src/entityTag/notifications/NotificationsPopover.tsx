@@ -150,7 +150,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
       account: entity.account,
       applicationName: application.name,
       taskMonitorConfig: taskMonitorConfig,
-      submitMethod: () => entityTagWriter.deleteEntityTag(application, entity, entityTags, entityTag.name)
+      submitMethod: () => entityTagWriter.deleteEntityTag(application, entity, entityTags, entityTag.name),
     });
   }
 
@@ -207,7 +207,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
           title={title}
           className={`no-padding notifications-popover ${severityClass}`}
         >
-          <i className={`notification fa ${icon} ${severityClass}`}/>
+          <i className={`notification fa ${icon} ${severityClass}`} />
         </HoverablePopover>
       </span>
     );
@@ -239,9 +239,7 @@ const NotificationsPopoverContents = (props: INotificationsProps) => {
       />
     );
   } else if (grouped) {
-    return (
-      <GroupedNotificationList notifications={notifications} />
-    );
+    return <GroupedNotificationList notifications={notifications} />;
   } else {
     return (
       <NotificationList

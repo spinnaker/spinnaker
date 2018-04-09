@@ -1,18 +1,12 @@
 import { mock } from 'angular';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
-import {
-  PIPELINE_CONFIG_SERVICE, PipelineConfigService
-} from 'core/pipeline/config/services/pipelineConfig.service';
+import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
 
 describe('pipelineConfigService', () => {
-
-  let service: PipelineConfigService,
-      $http: ng.IHttpBackendService,
-      $scope: ng.IScope,
-      API: Api;
+  let service: PipelineConfigService, $http: ng.IHttpBackendService, $scope: ng.IScope, API: Api;
 
   const buildStage = (base: any): IStage => {
     const stageDefaults: IStage = {
@@ -20,14 +14,14 @@ describe('pipelineConfigService', () => {
       type: 'wait',
       refId: null,
       isNew: false,
-      requisiteStageRefIds: []
+      requisiteStageRefIds: [],
     };
     Object.assign(stageDefaults, base);
 
     return stageDefaults;
   };
 
-  const buildPipeline = (base: any): IPipeline  => {
+  const buildPipeline = (base: any): IPipeline => {
     const defaults: IPipeline = {
       id: null,
       index: 1,
@@ -51,19 +45,23 @@ describe('pipelineConfigService', () => {
     return defaults;
   };
 
-  beforeEach(
-    mock.module(
-      PIPELINE_CONFIG_SERVICE,
-      API_SERVICE
-    )
-  );
+  beforeEach(mock.module(PIPELINE_CONFIG_SERVICE, API_SERVICE));
 
-  beforeEach(mock.inject((pipelineConfigService: PipelineConfigService, $httpBackend: ng.IHttpBackendService, $rootScope: ng.IRootScopeService, _API_: Api) => {
-    service = pipelineConfigService;
-    $http = $httpBackend;
-    $scope = $rootScope.$new();
-    API = _API_;
-  }));
+  beforeEach(
+    mock.inject(
+      (
+        pipelineConfigService: PipelineConfigService,
+        $httpBackend: ng.IHttpBackendService,
+        $rootScope: ng.IRootScopeService,
+        _API_: Api,
+      ) => {
+        service = pipelineConfigService;
+        $http = $httpBackend;
+        $scope = $rootScope.$new();
+        API = _API_;
+      },
+    ),
+  );
 
   describe('savePipeline', () => {
     it('clears isNew flags, stage name if not present', () => {
@@ -71,8 +69,8 @@ describe('pipelineConfigService', () => {
         stages: [
           { name: 'explicit name', type: 'bake', isNew: true },
           { name: null, type: 'bake', isNew: true },
-          { name: '', type: 'bake', isNew: true }
-        ]
+          { name: '', type: 'bake', isNew: true },
+        ],
       });
 
       $http.expectPOST(API.baseUrl + '/pipelines').respond(200, '');
@@ -120,11 +118,13 @@ describe('pipelineConfigService', () => {
 
       const posted: any[] = [];
       $http.expectGET(API.baseUrl + '/applications/app/pipelineConfigs').respond(200, fromServer);
-      $http.whenPOST(API.baseUrl + '/pipelines', (data: string) => {
-        const json: any = JSON.parse(data);
-        posted.push({ index: json.index, name: json.name });
-        return true;
-      }).respond(200, {});
+      $http
+        .whenPOST(API.baseUrl + '/pipelines', (data: string) => {
+          const json: any = JSON.parse(data);
+          posted.push({ index: json.index, name: json.name });
+          return true;
+        })
+        .respond(200, {});
 
       service.getPipelinesForApplication('app');
       $scope.$digest();
@@ -162,11 +162,9 @@ describe('pipelineConfigService', () => {
 
       pipeline = buildPipeline({});
       pipeline.stages = [a, b, c, d];
-
     });
 
     describe('getAvailableUpstreamStages', () => {
-
       it('filters out provided stage', () => {
         expectCandidates(a, [b, c, d]);
         expectCandidates(b, [a, c, d]);
@@ -263,9 +261,7 @@ describe('pipelineConfigService', () => {
         expectDependencies(b, []);
         expectDependencies(c, [a, b]);
         expectDependencies(d, [c, a, b]);
-
       });
     });
   });
 });
-

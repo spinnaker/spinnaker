@@ -3,10 +3,11 @@ import { StateRegistry } from '@uirouter/core';
 import { INestedState } from './state.provider';
 
 export class StateHelper implements ng.IServiceProvider {
-
   private registeredStates: string[] = [];
 
-  constructor(private $stateRegistryProvider: StateRegistry) { 'ngInject'; }
+  constructor(private $stateRegistryProvider: StateRegistry) {
+    'ngInject';
+  }
 
   public setNestedState(state: INestedState, keepOriginalNames = false) {
     const newState: INestedState = copy(state);
@@ -26,7 +27,7 @@ export class StateHelper implements ng.IServiceProvider {
         this.setNestedState(childState, keepOriginalNames);
       });
     }
-  };
+  }
 
   private fixStateName(state: INestedState) {
     if (state.parent) {
@@ -36,16 +37,20 @@ export class StateHelper implements ng.IServiceProvider {
 
   private fixStateViews(state: INestedState) {
     const views = state.views || {},
-        replaced: string[] = [];
-    Object.keys(views).forEach((key) => {
+      replaced: string[] = [];
+    Object.keys(views).forEach(key => {
       const relative: RegExpMatchArray = key.match('../');
       if (relative && relative.length && typeof state.parent === 'string') {
-        const relativePath: string = state.parent.split('.').slice(0, -1 - relative.length).join('.') + '.';
+        const relativePath: string =
+          state.parent
+            .split('.')
+            .slice(0, -1 - relative.length)
+            .join('.') + '.';
         views[key.replace(/(..\/)+/, relativePath)] = views[key];
         replaced.push(key);
       }
     });
-    replaced.forEach((key) => delete views[key]);
+    replaced.forEach(key => delete views[key]);
   }
 
   public $get(): StateHelper {

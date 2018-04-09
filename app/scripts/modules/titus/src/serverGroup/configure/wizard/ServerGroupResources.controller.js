@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.resourcesCtrl', [])
-  .controller('titusInstanceResourcesCtrl', function ($scope, v2modalWizardService) {
-
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.resourcesCtrl', [])
+  .controller('titusInstanceResourcesCtrl', function($scope, v2modalWizardService) {
     v2modalWizardService.markComplete('resources');
 
-    $scope.$watch('form.$valid', function (newVal) {
+    $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
         v2modalWizardService.markClean('resources');
       } else {
@@ -16,8 +16,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.resources
     });
 
     $scope.mountPermOptions = [
-      {label: 'Read and Write', value: 'RW'},
-      {label: 'Read Only', value: 'RO'},
-      {label: 'Write Only', value: 'WO'}
+      { label: 'Read and Write', value: 'RW' },
+      { label: 'Read Only', value: 'RO' },
+      { label: 'Write Only', value: 'WO' },
     ];
   });

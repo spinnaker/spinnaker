@@ -1,12 +1,11 @@
 'use strict';
 
 const angular = require('angular');
-import {Subject} from 'rxjs';
+import { Subject } from 'rxjs';
 
-module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
-  require('./runJobExecutionDetails.controller.js').name
-])
-  .config(function (pipelineConfigProvider) {
+module.exports = angular
+  .module('spinnaker.titus.pipeline.stage.runJobStage', [require('./runJobExecutionDetails.controller.js').name])
+  .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'runJob',
       useBaseProvider: true,
@@ -16,18 +15,18 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
       defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
-        {type: 'requiredField', fieldName: 'cluster.imageId'},
-        {type: 'requiredField', fieldName: 'credentials'},
-        {type: 'requiredField', fieldName: 'cluster.region'},
-        {type: 'requiredField', fieldName: 'cluster.resources.cpu'},
-        {type: 'requiredField', fieldName: 'cluster.resources.gpu'},
-        {type: 'requiredField', fieldName: 'cluster.resources.memory'},
-        {type: 'requiredField', fieldName: 'cluster.resources.disk'},
-        {type: 'requiredField', fieldName: 'cluster.runtimeLimitSecs'}
-      ]
+        { type: 'requiredField', fieldName: 'cluster.imageId' },
+        { type: 'requiredField', fieldName: 'credentials' },
+        { type: 'requiredField', fieldName: 'cluster.region' },
+        { type: 'requiredField', fieldName: 'cluster.resources.cpu' },
+        { type: 'requiredField', fieldName: 'cluster.resources.gpu' },
+        { type: 'requiredField', fieldName: 'cluster.resources.memory' },
+        { type: 'requiredField', fieldName: 'cluster.resources.disk' },
+        { type: 'requiredField', fieldName: 'cluster.runtimeLimitSecs' },
+      ],
     });
-  }).controller('titusRunJobStageCtrl', function ($scope, accountService, $q) {
-
+  })
+  .controller('titusRunJobStageCtrl', function($scope, accountService, $q) {
     let stage = $scope.stage;
     let vm = this;
 
@@ -35,7 +34,8 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       stage.cluster = {};
     }
 
-    $scope.stage.waitForCompletion = ($scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion);
+    $scope.stage.waitForCompletion =
+      $scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion;
 
     this.loaded = false;
     this.removedGroups = [];
@@ -47,7 +47,6 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       this.accountChangedStream.next(null);
       setRegistry();
       this.updateRegions();
-
     };
 
     this.regionChanged = () => {
@@ -66,7 +65,7 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       }
     };
 
-    this.onChange = (changes) => {
+    this.onChange = changes => {
       stage.registry = changes.registry;
     };
 
@@ -79,8 +78,7 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
     function updateImageId() {
       if ($scope.stage.repository && $scope.stage.tag) {
         $scope.stage.cluster.imageId = `${$scope.stage.repository}:${$scope.stage.tag}`;
-      }
-      else {
+      } else {
         delete $scope.stage.cluster.imageId;
       }
     }
@@ -132,7 +130,7 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
       stage.cluster.capacity = {
         min: 1,
         max: 1,
-        desired: 1
+        desired: 1,
       };
     }
 
@@ -144,20 +142,22 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
     stage.cluster.resources.networkMbps = stage.cluster.resources.networkMbps || 128;
 
     stage.deferredInitialization = true;
-    $q.all({
-      credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
-    }).then((backingData) => {
-      backingData.credentials = Object.keys(backingData.credentialsKeyedByAccount);
-      $scope.backingData = backingData;
+    $q
+      .all({
+        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
+      })
+      .then(backingData => {
+        backingData.credentials = Object.keys(backingData.credentialsKeyedByAccount);
+        $scope.backingData = backingData;
 
-      if (!stage.credentials) {
-        stage.credentials = backingData.credentials[0];
-      }
+        if (!stage.credentials) {
+          stage.credentials = backingData.credentials[0];
+        }
 
-      setRegistry();
-      return $q.all([]).then(() => {
-        vm.updateRegions();
-        this.loaded = true;
+        setRegistry();
+        return $q.all([]).then(() => {
+          vm.updateRegions();
+          this.loaded = true;
+        });
       });
-    });
   });

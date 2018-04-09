@@ -2,12 +2,13 @@ import { IPromise, ITimeoutService, module } from 'angular';
 import { StateParams, StateService } from '@uirouter/angularjs';
 
 export class ExecutionDetailsSectionService {
-
   private pendingOnComplete: IPromise<any>;
 
-  public constructor(private $stateParams: StateParams,
-                     private $state: StateService,
-                     private $timeout: ITimeoutService) {
+  public constructor(
+    private $stateParams: StateParams,
+    private $state: StateService,
+    private $timeout: ITimeoutService,
+  ) {
     'ngInject';
   }
 
@@ -35,6 +36,7 @@ export class ExecutionDetailsSectionService {
 }
 
 export const EXECUTION_DETAILS_SECTION_SERVICE = 'spinnaker.executionDetails.section.service';
-module(EXECUTION_DETAILS_SECTION_SERVICE, [
-  require('@uirouter/angularjs').default,
-]).service('executionDetailsSectionService', ExecutionDetailsSectionService);
+module(EXECUTION_DETAILS_SECTION_SERVICE, [require('@uirouter/angularjs').default]).service(
+  'executionDetailsSectionService',
+  ExecutionDetailsSectionService,
+);

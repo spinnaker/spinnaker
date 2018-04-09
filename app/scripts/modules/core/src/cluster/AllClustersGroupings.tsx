@@ -10,7 +10,7 @@ import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
 import { ClusterPod } from 'core/cluster/ClusterPod';
 import { IClusterGroup } from './filter/clusterFilter.service';
-import { Spinner } from 'core/widgets/spinners/Spinner'
+import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ISortFilter } from 'core/filterModel';
 
 export interface IAllClustersGroupingsProps {
@@ -46,19 +46,13 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
 
   public componentDidMount() {
     const onGroupsChanged = (groups: IClusterGroup[]) => {
-      this.setState(
-        { groups: groups.reduce((a, b) => a.concat(b.subgroups), []) },
-        () => this.cellCache.clearAll()
-      );
+      this.setState({ groups: groups.reduce((a, b) => a.concat(b.subgroups), []) }, () => this.cellCache.clearAll());
     };
     this.groupsSubscription = this.clusterFilterService.groupsUpdatedStream.subscribe(onGroupsChanged);
 
     const getSortFilter = () => this.clusterFilterModel.asFilterModel.sortFilter;
     const onFilterChanged = ({ ...sortFilter }: any) => {
-      this.setState(
-        { sortFilter },
-        () => this.cellCache.clearAll()
-      );
+      this.setState({ sortFilter }, () => this.cellCache.clearAll());
     };
     // TODO: Remove $rootScope. Keeping it here so we can use $watch for now.
     //       Eventually, there should be events fired when filters change.
@@ -67,10 +61,16 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     // Automatically scroll server group into view if deep linked
     if ($stateParams.serverGroup) {
       this.clusterFilterService.groupsUpdatedStream.take(1).subscribe(() => {
-        const scrollToRow = this.state.groups
-          .findIndex(group => group.subgroups
-            .some(subgroup => subgroup.serverGroups
-              .some(sg => sg.account === $stateParams.accountId && sg.name === $stateParams.serverGroup && sg.region === $stateParams.region)));
+        const scrollToRow = this.state.groups.findIndex(group =>
+          group.subgroups.some(subgroup =>
+            subgroup.serverGroups.some(
+              sg =>
+                sg.account === $stateParams.accountId &&
+                sg.name === $stateParams.serverGroup &&
+                sg.region === $stateParams.region,
+            ),
+          ),
+        );
         this.setState({ scrollToRow });
       });
     }
@@ -91,12 +91,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     const group = groups[props.index];
     const parent: React.ReactType = props.parent as any; // bad cast, sad @types
     return (
-      <CellMeasurer
-        cache={this.cellCache}
-        key={props.key}
-        rowIndex={props.index}
-        parent={parent}
-      >
+      <CellMeasurer cache={this.cellCache} key={props.key} rowIndex={props.index} parent={parent}>
         <div key={props.index} style={props.style}>
           <ClusterPod
             grouping={group}
@@ -123,7 +118,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
 
     return (
       <AutoSizer>
-        {({ width, height }) =>
+        {({ width, height }) => (
           <List
             className={'rollup'}
             height={height}
@@ -137,9 +132,9 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
             scrollToIndex={this.state.scrollToRow}
             overscanRowCount={3}
             containerStyle={{ overflow: 'visible' }}
-          />}
+          />
+        )}
       </AutoSizer>
     );
   }
 }
-

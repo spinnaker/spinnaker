@@ -7,15 +7,15 @@ import { IServerGroup, ILoadBalancer, ISecurityGroup } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
-
-  constructor(private API: Api,
-              private $q: IQService) {
+  constructor(private API: Api, private $q: IQService) {
     'ngInject';
   }
 
   public getAllEntityTagsForApplication(application: string): IPromise<IEntityTags[]> {
-    return this.API.one('tags').withParams({ application }).getList()
-      .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags))
+    return this.API.one('tags')
+      .withParams({ application })
+      .getList()
+      .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags));
   }
 
   public addTagsToServerGroups(application: Application): void {
@@ -26,12 +26,18 @@ export class EntityTagsReader {
     const serverGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'servergroup');
     const clusterTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'cluster');
     application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
-      serverGroup.entityTags = serverGroupTags.find(t => t.entityRef.entityId === serverGroup.name &&
-        t.entityRef.account === serverGroup.account &&
-        t.entityRef.region === serverGroup.region);
-      serverGroup.clusterEntityTags = clusterTags.filter(t => t.entityRef.entityId === serverGroup.cluster &&
-        (t.entityRef.account === '*' || t.entityRef.account === serverGroup.account) &&
-        (t.entityRef.region === '*' || t.entityRef.region === serverGroup.region));
+      serverGroup.entityTags = serverGroupTags.find(
+        t =>
+          t.entityRef.entityId === serverGroup.name &&
+          t.entityRef.account === serverGroup.account &&
+          t.entityRef.region === serverGroup.region,
+      );
+      serverGroup.clusterEntityTags = clusterTags.filter(
+        t =>
+          t.entityRef.entityId === serverGroup.cluster &&
+          (t.entityRef.account === '*' || t.entityRef.account === serverGroup.account) &&
+          (t.entityRef.region === '*' || t.entityRef.region === serverGroup.region),
+      );
     });
   }
 
@@ -42,9 +48,12 @@ export class EntityTagsReader {
     const allTags = application.getDataSource('entityTags').data;
     const serverGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'loadbalancer');
     application.getDataSource('loadBalancers').data.forEach((loadBalancer: ILoadBalancer) => {
-      loadBalancer.entityTags = serverGroupTags.find(t => t.entityRef.entityId === loadBalancer.name &&
-        t.entityRef.account === loadBalancer.account &&
-        t.entityRef.region === loadBalancer.region);
+      loadBalancer.entityTags = serverGroupTags.find(
+        t =>
+          t.entityRef.entityId === loadBalancer.name &&
+          t.entityRef.account === loadBalancer.account &&
+          t.entityRef.region === loadBalancer.region,
+      );
     });
   }
 
@@ -55,9 +64,12 @@ export class EntityTagsReader {
     const allTags = application.getDataSource('entityTags').data;
     const securityGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'securitygroup');
     application.getDataSource('securityGroups').data.forEach((securityGroup: ISecurityGroup) => {
-      securityGroup.entityTags = securityGroupTags.find(t => t.entityRef.entityId === securityGroup.name &&
-        t.entityRef.account === securityGroup.account &&
-        t.entityRef.region === securityGroup.region);
+      securityGroup.entityTags = securityGroupTags.find(
+        t =>
+          t.entityRef.entityId === securityGroup.name &&
+          t.entityRef.account === securityGroup.account &&
+          t.entityRef.region === securityGroup.region,
+      );
     });
   }
 
@@ -69,7 +81,9 @@ export class EntityTagsReader {
       .withParams({
         entityType: entityType.toLowerCase(),
         entityId: entityId,
-      }).getList().then((entityTagGroups: IEntityTags[]) => {
+      })
+      .getList()
+      .then((entityTagGroups: IEntityTags[]) => {
         return this.flattenTagsAndAddMetadata(entityTagGroups);
       })
       .catch(() => {
@@ -101,6 +115,4 @@ export class EntityTagsReader {
 }
 
 export const ENTITY_TAGS_READ_SERVICE = 'spinnaker.core.entityTag.read.service';
-module(ENTITY_TAGS_READ_SERVICE, [
-  API_SERVICE,
-]).service('entityTagsReader', EntityTagsReader);
+module(ENTITY_TAGS_READ_SERVICE, [API_SERVICE]).service('entityTagsReader', EntityTagsReader);

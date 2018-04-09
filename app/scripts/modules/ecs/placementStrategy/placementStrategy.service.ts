@@ -3,9 +3,8 @@ import { module } from 'angular';
 import { IPlacementStrategy } from './IPlacementStrategy';
 
 export class PlacementStrategyService {
-
   public getPredefinedStrategy(strategyName: string): IPlacementStrategy[] {
-    if ( strategyName === 'AZ Balanced Spread') {
+    if (strategyName === 'AZ Balanced Spread') {
       return this.getAzBalancedSpreadStrategy();
     } else if (strategyName === 'AZ Balanced BinPack') {
       return this.getAzBalancedBinPackStrategy();
@@ -20,32 +19,21 @@ export class PlacementStrategyService {
   }
 
   public getAzBalancedSpreadStrategy(): IPlacementStrategy[] {
-    return [
-      { type: 'spread', field: 'attribute:ecs.availability-zone' },
-      { type: 'spread', field: 'instanceId' }
-    ];
+    return [{ type: 'spread', field: 'attribute:ecs.availability-zone' }, { type: 'spread', field: 'instanceId' }];
   }
 
   public getAzBalancedBinPackStrategy(): IPlacementStrategy[] {
-    return [
-      { type: 'spread', field: 'attribute:ecs.availability-zone' },
-      { type: 'binpack', field: 'memory' }
-    ];
+    return [{ type: 'spread', field: 'attribute:ecs.availability-zone' }, { type: 'binpack', field: 'memory' }];
   }
 
   public getBinPackStrategy(): IPlacementStrategy[] {
-    return [
-      { type: 'binpack', field: 'memory' }
-    ];
+    return [{ type: 'binpack', field: 'memory' }];
   }
 
   public getOneTaskPerHostStrategy(): IPlacementStrategy[] {
-    return [
-      { type: 'spread', field: 'instanceId' }
-    ];
+    return [{ type: 'spread', field: 'instanceId' }];
   }
 }
-
 
 export const PLACEMENT_STRATEGY_SERVICE = 'spinnaker.ecs.placementStrategyService.service';
 

@@ -17,7 +17,7 @@ export class TriggersTag extends React.Component<ITriggersTagProps, ITriggersTag
     super(props);
 
     let triggerCount = 0,
-        activeTriggerCount = 0;
+      activeTriggerCount = 0;
 
     const pipeline = this.props.pipeline;
     if (pipeline && pipeline.triggers && pipeline.triggers.length) {
@@ -28,26 +28,28 @@ export class TriggersTag extends React.Component<ITriggersTagProps, ITriggersTag
     this.state = {
       triggerCount,
       activeTriggerCount,
-    }
+    };
   }
 
   public render(): React.ReactElement<TriggersTag> {
     const triggerCount = this.state.triggerCount,
-          activeTriggerCount = this.state.activeTriggerCount;
+      activeTriggerCount = this.state.activeTriggerCount;
 
     if (triggerCount > 0) {
-      const triggers = triggerCount === 1 ? 'Trigger' : activeTriggerCount === triggerCount ? 'All triggers' : 'Some triggers';
+      const triggers =
+        triggerCount === 1 ? 'Trigger' : activeTriggerCount === triggerCount ? 'All triggers' : 'Some triggers';
       const displayTriggers = `${triggers}: ${activeTriggerCount === 0 ? 'disabled' : 'enabled'}`;
       return (
-        <div className={`triggers-toggle ${activeTriggerCount ? '' : 'disabled'}`} style={{ visibility: this.props.pipeline.disabled ? 'hidden' : 'visible' }}>
+        <div
+          className={`triggers-toggle ${activeTriggerCount ? '' : 'disabled'}`}
+          style={{ visibility: this.props.pipeline.disabled ? 'hidden' : 'visible' }}
+        >
           <span>
-            <span>
-              {displayTriggers}
-            </span>
+            <span>{displayTriggers}</span>
           </span>
         </div>
       );
     }
-    return <div/>;
+    return <div />;
   }
 }

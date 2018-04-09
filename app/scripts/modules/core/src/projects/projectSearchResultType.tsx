@@ -1,8 +1,18 @@
 import * as React from 'react';
 
 import {
-  searchResultTypeRegistry, BasicCell, HrefCell, ISearchResult, HeaderCell, DefaultSearchResultTab,
-  TableBody, TableHeader, TableRow, ISearchColumn, SearchResultType, ISearchResultSet,
+  searchResultTypeRegistry,
+  BasicCell,
+  HrefCell,
+  ISearchResult,
+  HeaderCell,
+  DefaultSearchResultTab,
+  TableBody,
+  TableHeader,
+  TableRow,
+  ISearchColumn,
+  SearchResultType,
+  ISearchResultSet,
 } from 'core/search';
 import { IProjectConfig } from 'core/domain';
 
@@ -39,34 +49,37 @@ class ProjectsSearchResultType extends SearchResultType<IProjectSearchResult> {
 
   public HeaderComponent = () => (
     <TableHeader>
-      <HeaderCell col={this.cols.NAME}/>
-      <HeaderCell col={this.cols.EMAIL}/>
+      <HeaderCell col={this.cols.NAME} />
+      <HeaderCell col={this.cols.EMAIL} />
     </TableHeader>
   );
 
   public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<IProjectSearchResult> }) => {
     const itemKeyFn = (item: IProjectSearchResult) => item.id;
-    const itemSortFn = (a: IProjectSearchResult, b: IProjectSearchResult) =>
-      a.name.localeCompare(b.name);
+    const itemSortFn = (a: IProjectSearchResult, b: IProjectSearchResult) => a.name.localeCompare(b.name);
 
     const results = resultSet.results.slice().sort(itemSortFn);
 
     return (
       <TableBody>
-        {results.slice().sort(itemSortFn).map(item => (
-          <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={this.cols.NAME} />
-            <BasicCell item={item} col={this.cols.EMAIL} />
-          </TableRow>
-        ))}
+        {results
+          .slice()
+          .sort(itemSortFn)
+          .map(item => (
+            <TableRow key={itemKeyFn(item)}>
+              <HrefCell item={item} col={this.cols.NAME} />
+              <BasicCell item={item} col={this.cols.EMAIL} />
+            </TableRow>
+          ))}
       </TableBody>
     );
   };
 
   public displayFormatter(searchResult: IProjectSearchResult) {
-    const applications = searchResult.config && searchResult.config.applications ?
-      ` (${searchResult.config.applications.join(', ')})` :
-      '';
+    const applications =
+      searchResult.config && searchResult.config.applications
+        ? ` (${searchResult.config.applications.join(', ')})`
+        : '';
     const project = searchResult.name || searchResult.project;
     return project + applications;
   }

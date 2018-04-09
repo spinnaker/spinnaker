@@ -9,7 +9,6 @@ export interface IHelpFieldContents {
 }
 
 export class HelpFieldCtrl implements IController {
-
   public content: string;
   public expand: boolean;
   public label: string;
@@ -23,10 +22,12 @@ export class HelpFieldCtrl implements IController {
   private popoverShownStart: number;
   private popoverClose: IPromise<void>;
 
-  constructor(private $timeout: ITimeoutService,
-              private $analytics: any,
-              private helpContents: any,
-              private helpContentsRegistry: HelpContentsRegistry) {
+  constructor(
+    private $timeout: ITimeoutService,
+    private $analytics: any,
+    private helpContents: any,
+    private helpContentsRegistry: HelpContentsRegistry,
+  ) {
     'ngInject';
   }
 
@@ -58,11 +59,9 @@ export class HelpFieldCtrl implements IController {
 
   public hidePopover(defer: boolean): void {
     if (defer) {
-      this.popoverClose = this.$timeout(
-        () => {
-          this.displayPopover = false;
-        },
-        300);
+      this.popoverClose = this.$timeout(() => {
+        this.displayPopover = false;
+      }, 300);
     } else {
       this.displayPopover = false;
     }
@@ -89,7 +88,7 @@ export class HelpFieldComponent implements IComponentOptions {
     content: '@',
     placement: '@',
     expand: '=',
-    label: '@'
+    label: '@',
   };
   public controller = HelpFieldCtrl;
   public template = `
@@ -128,7 +127,7 @@ export class HelpFieldWrapperComponent implements IComponentOptions {
     content: '<',
     placement: '<',
     expand: '<',
-    label: '<'
+    label: '<',
   };
   public template = `<help-field content="{{::$ctrl.content}}"
                                  key="{{::$ctrl.id}}"
@@ -139,9 +138,6 @@ export class HelpFieldWrapperComponent implements IComponentOptions {
 }
 
 export const HELP_FIELD_COMPONENT = 'spinnaker.core.help.helpField.component';
-module(HELP_FIELD_COMPONENT, [
-  HELP_CONTENTS,
-  HELP_CONTENTS_REGISTRY,
-  require('angulartics'),
-]).component('helpField', new HelpFieldComponent())
+module(HELP_FIELD_COMPONENT, [HELP_CONTENTS, HELP_CONTENTS_REGISTRY, require('angulartics')])
+  .component('helpField', new HelpFieldComponent())
   .component('helpFieldWrapper', new HelpFieldWrapperComponent());

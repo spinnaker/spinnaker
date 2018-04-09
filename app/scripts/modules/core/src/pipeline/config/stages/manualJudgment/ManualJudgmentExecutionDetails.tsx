@@ -12,7 +12,10 @@ export interface IManualJudgmentExecutionDetailsState {
   parentDeployStage: IStage;
 }
 
-export class ManualJudgmentExecutionDetails extends React.Component<IExecutionDetailsSectionProps, IManualJudgmentExecutionDetailsState> {
+export class ManualJudgmentExecutionDetails extends React.Component<
+  IExecutionDetailsSectionProps,
+  IManualJudgmentExecutionDetailsState
+> {
   public static title = 'manualJudgment';
 
   constructor(props: IExecutionDetailsSectionProps) {
@@ -32,19 +35,23 @@ export class ManualJudgmentExecutionDetails extends React.Component<IExecutionDe
           {stage.context.lastModifiedBy && (
             <dd>
               <span>{stage.context.lastModifiedBy}</span>
-              {stage.context.propagateAuthenticationContext && <span> (<em>authentication propagated</em>)</span>}
-              <br/>
+              {stage.context.propagateAuthenticationContext && (
+                <span>
+                  {' '}
+                  (<em>authentication propagated</em>)
+                </span>
+              )}
+              <br />
               {timestamp(stage.endTime)}
             </dd>
           )}
 
           {stage.context.judgmentInput && <dt>Input</dt>}
           {stage.context.judgmentInput && <dd>{robotToHuman(stage.context.judgmentInput)}</dd>}
-
         </dl>
-        <ManualJudgmentApproval application={application} execution={execution} stage={stage}/>
+        <ManualJudgmentApproval application={application} execution={execution} stage={stage} />
         {stage.context.judgmentInput && <StageFailureMessage stage={stage} message={stage.failureMessage} />}
       </ExecutionDetailsSection>
-    )
+    );
   }
 }

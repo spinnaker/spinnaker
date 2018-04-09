@@ -12,9 +12,15 @@ module.exports = angular
     SCALING_POLICY_WRITE_SERVICE,
     TASK_MONITOR_BUILDER,
   ])
-  .controller('titusUpsertScalingPolicyCtrl', function ($uibModalInstance, scalingPolicyWriter, taskMonitorBuilder,
-                                                        alarmServerGroup, serverGroup, application, policy) {
-
+  .controller('titusUpsertScalingPolicyCtrl', function(
+    $uibModalInstance,
+    scalingPolicyWriter,
+    taskMonitorBuilder,
+    alarmServerGroup,
+    serverGroup,
+    application,
+    policy,
+  ) {
     this.serverGroup = serverGroup;
     // alarmServerGroup is used to trick the chart rendering into using AWS metrics
     this.alarmServerGroup = alarmServerGroup;
@@ -75,7 +81,6 @@ module.exports = angular
       initializeStepPolicy(command, policy);
 
       this.command = command;
-
     };
 
     function initializeStepPolicy(command, policy) {
@@ -84,7 +89,7 @@ module.exports = angular
         cooldown: policy.cooldown || 300,
         metricAggregationType: 'Average',
       };
-      command.step.stepAdjustments = policy.stepAdjustments.map((adjustment) => {
+      command.step.stepAdjustments = policy.stepAdjustments.map(adjustment => {
         const step = {
           scalingAdjustment: Math.abs(adjustment.scalingAdjustment),
         };
@@ -100,7 +105,7 @@ module.exports = angular
 
     this.boundsChanged = () => {
       const source = this.viewState.comparatorBound === 'min' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound',
-          target = source === 'metricIntervalLowerBound' ? 'metricIntervalUpperBound' : 'metricIntervalLowerBound';
+        target = source === 'metricIntervalLowerBound' ? 'metricIntervalUpperBound' : 'metricIntervalLowerBound';
 
       if (this.command.step) {
         const steps = this.command.step.stepAdjustments;
@@ -125,7 +130,7 @@ module.exports = angular
 
       if (command.step) {
         // adjust metricIntervalLowerBound/UpperBound for each step based on alarm threshold
-        command.step.stepAdjustments.forEach((step) => {
+        command.step.stepAdjustments.forEach(step => {
           if (this.viewState.operator === 'Remove') {
             step.scalingAdjustment = 0 - step.scalingAdjustment;
             delete command.step.estimatedInstanceWarmup;

@@ -7,13 +7,13 @@ import { EXECUTION_WINDOW_ATLAS_GRAPH } from './atlasGraph.component';
 import { EXECUTION_WINDOWS_DAY_PICKER } from './executionWindowDayPicker.component';
 import { DEFAULT_SKIP_WINDOW_TEXT } from './ExecutionWindowActions';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.controller', [
-  require('core/utils/timePicker.service.js').name,
-  EXECUTION_WINDOWS_DAY_PICKER,
-  EXECUTION_WINDOW_ATLAS_GRAPH,
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.executionWindows.controller', [
+    require('core/utils/timePicker.service.js').name,
+    EXECUTION_WINDOWS_DAY_PICKER,
+    EXECUTION_WINDOW_ATLAS_GRAPH,
+  ])
   .controller('ExecutionWindowsCtrl', function($scope, timePickerService) {
-
     this.windowsUpdatedStream = new Subject();
     this.enableCustomSkipWindowText = false;
 
@@ -67,7 +67,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
               startMin: 0,
               startHour: 0,
               endMin: window.endMin,
-              endHour: window.endHour
+              endHour: window.endHour,
             };
           windows.push(buildTimelineWindow(firstWindow, window));
           windows.push(buildTimelineWindow(secondWindow, window));
@@ -143,7 +143,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.
     $scope.hours.forEach(function(hour) {
       $scope.dividers.push({
         label: hour.label,
-        left: (hour.key / 24 * 100) + '%',
+        left: hour.key / 24 * 100 + '%',
       });
     });
 

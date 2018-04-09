@@ -7,16 +7,17 @@ import { IStage } from 'core/domain';
 import { JsonUtilityService } from 'core/utils/json/json.utility.service';
 
 export class EditStageJsonController implements IController {
-
   public stageJSON: string;
   public isInvalid = false;
   public errorMessage: string = null;
 
   private immutableFields = ['$$hashKey', 'refId', 'requisiteStageRefIds'];
 
-  constructor(private $uibModalInstance: IModalServiceInstance,
-              private jsonUtilityService: JsonUtilityService,
-              private stage: IStage) {
+  constructor(
+    private $uibModalInstance: IModalServiceInstance,
+    private jsonUtilityService: JsonUtilityService,
+    private stage: IStage,
+  ) {
     'ngInject';
     const copy = cloneDeepWith<IStage>(stage, (value: any) => {
       if (value && value.$$hashKey) {
@@ -41,10 +42,10 @@ export class EditStageJsonController implements IController {
       this.errorMessage = e.message;
     }
   }
-
 }
 
 export const EDIT_STAGE_JSON_CONTROLLER = 'spinnaker.core.pipeline.config.stages.core.editStageJson.controller';
-module(EDIT_STAGE_JSON_CONTROLLER, [
-  require('angular-ui-bootstrap')
-]).controller('editStageJsonCtrl', EditStageJsonController);
+module(EDIT_STAGE_JSON_CONTROLLER, [require('angular-ui-bootstrap')]).controller(
+  'editStageJsonCtrl',
+  EditStageJsonController,
+);

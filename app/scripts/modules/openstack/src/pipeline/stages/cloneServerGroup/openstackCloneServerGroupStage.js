@@ -5,10 +5,8 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.pipeline.stage.cloneServerGroupStage', [
-  ACCOUNT_SERVICE,
-  NAMING_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.openstack.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE, NAMING_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -18,19 +16,19 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.cloneServerG
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'region', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'region' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('openstackCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
-
+  })
+  .controller('openstackCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then((accounts) => {
+    accountService.listAccounts('openstack').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -41,7 +39,11 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.cloneServerG
     stage.cloudProvider = 'openstack';
     stage.cloudProviderType = 'openstack';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Openstack'];
     }
 
@@ -70,7 +72,7 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.cloneServerG
       stage.useSourceCapacity = true;
     }
 
-    this.toggleSuspendedProcess = (process) => {
+    this.toggleSuspendedProcess = process => {
       stage.suspendedProcesses = stage.suspendedProcesses || [];
       var processIndex = stage.suspendedProcesses.indexOf(process);
       if (processIndex === -1) {
@@ -80,8 +82,7 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.cloneServerG
       }
     };
 
-    this.processIsSuspended = (process) => {
+    this.processIsSuspended = process => {
       return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
     };
   });
-

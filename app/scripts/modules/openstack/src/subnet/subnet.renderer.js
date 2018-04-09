@@ -4,11 +4,9 @@ const angular = require('angular');
 
 import { SUBNET_READ_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.subnet.renderer', [
-  SUBNET_READ_SERVICE,
-])
-  .factory('openstackSubnetRenderer', function (subnetReader) {
-
+module.exports = angular
+  .module('spinnaker.openstack.subnet.renderer', [SUBNET_READ_SERVICE])
+  .factory('openstackSubnetRenderer', function(subnetReader) {
     var subnets;
 
     subnetReader.listSubnetsByProvider('openstack').then(function(list) {

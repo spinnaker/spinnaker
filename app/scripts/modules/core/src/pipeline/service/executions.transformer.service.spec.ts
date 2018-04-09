@@ -6,13 +6,14 @@ import { EXECUTIONS_TRANSFORMER_SERVICE, ExecutionsTransformerService } from './
 import { IExecution } from '../../domain';
 
 describe('executionTransformerService', function() {
-
   let transformer: ExecutionsTransformerService;
   beforeEach(mock.module(EXECUTIONS_TRANSFORMER_SERVICE));
 
-  beforeEach(mock.inject((executionsTransformer: ExecutionsTransformerService) => {
-    transformer = executionsTransformer;
-  }));
+  beforeEach(
+    mock.inject((executionsTransformer: ExecutionsTransformerService) => {
+      transformer = executionsTransformer;
+    }),
+  );
 
   describe('transformExecution', () => {
     it('should flatten stages into summaries', () => {
@@ -26,7 +27,7 @@ describe('executionTransformerService', function() {
           { id: 'f', name: 'f', parentStageId: 'b', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: 'g', name: 'g', parentStageId: 'd', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: 'h', name: 'h', parentStageId: 'd', syntheticStageOwner: 'STAGE_AFTER' },
-        ]
+        ],
       } as IExecution;
 
       transformer.transformExecution({} as Application, execution);
@@ -44,7 +45,7 @@ describe('executionTransformerService', function() {
           { id: 'f', name: 'f', parentStageId: 'b', syntheticStageOwner: 'STAGE_BEFORE', startTime: 1 },
           { id: 'g', name: 'g', parentStageId: 'd', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: 'h', name: 'h', parentStageId: 'd', syntheticStageOwner: 'STAGE_AFTER' },
-        ]
+        ],
       } as IExecution;
 
       transformer.transformExecution({} as Application, execution);
@@ -53,11 +54,7 @@ describe('executionTransformerService', function() {
 
     it('should group stages into summaries when no synthetic stages added', () => {
       const execution = {
-        stages: [
-          { id: '1', name: 'bake' },
-          { id: '2', name: 'deploy' },
-          { id: '3', name: 'wait' },
-        ]
+        stages: [{ id: '1', name: 'bake' }, { id: '2', name: 'deploy' }, { id: '3', name: 'wait' }],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
 
@@ -76,7 +73,7 @@ describe('executionTransformerService', function() {
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: '7', parentStageId: '3', syntheticStageOwner: 'STAGE_BEFORE' },
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER' },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
 
@@ -92,12 +89,26 @@ describe('executionTransformerService', function() {
           { id: '1', name: 'bake', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
           { id: '2', name: 'deploy', status: 'RUNNING', startTime: 7 },
           { id: '3', name: 'wait', status: 'NOT_STARTED' },
-          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 4, endTime: 6 },
-          { id: '5', parentStageId: '1', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 5, endTime: 6 },
+          {
+            id: '4',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: 4,
+            endTime: 6,
+          },
+          {
+            id: '5',
+            parentStageId: '1',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: 5,
+            endTime: 6,
+          },
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED' },
           { id: '7', parentStageId: '3', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED' },
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
 
@@ -118,9 +129,16 @@ describe('executionTransformerService', function() {
       const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
-          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'CANCELED', startTime: 4, endTime: 6 },
+          {
+            id: '4',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'CANCELED',
+            startTime: 4,
+            endTime: 6,
+          },
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].status).toBe('CANCELED');
@@ -130,9 +148,16 @@ describe('executionTransformerService', function() {
       const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
-          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 4, endTime: 6 },
+          {
+            id: '4',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'COMPLETED',
+            startTime: 4,
+            endTime: 6,
+          },
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'NOT_STARTED', startTime: 6 },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].status).toBe('NOT_STARTED');
@@ -142,9 +167,16 @@ describe('executionTransformerService', function() {
       const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
-          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 4, endTime: 6 },
+          {
+            id: '4',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: 4,
+            endTime: 6,
+          },
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'RUNNING', startTime: 6 },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].endTime).toBeUndefined();
@@ -154,10 +186,31 @@ describe('executionTransformerService', function() {
       const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
-          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 4, endTime: 6 },
-          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 4, endTime: 9 },
-          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED', startTime: 6, endTime: 11 },
-        ]
+          {
+            id: '4',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: 4,
+            endTime: 6,
+          },
+          {
+            id: '5',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: 4,
+            endTime: 9,
+          },
+          {
+            id: '6',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_AFTER',
+            status: 'SUCCEEDED',
+            startTime: 6,
+            endTime: 11,
+          },
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].endTime).toBe(11);
@@ -167,11 +220,25 @@ describe('executionTransformerService', function() {
       const execution = {
         stages: [
           { id: '1', name: 'bake', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
-          { id: '2', parentStageId: '1', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED', startTime: 8, endTime: 9 },
-          { id: '3', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 7, endTime: 8 },
+          {
+            id: '2',
+            parentStageId: '1',
+            syntheticStageOwner: 'STAGE_AFTER',
+            status: 'SUCCEEDED',
+            startTime: 8,
+            endTime: 9,
+          },
+          {
+            id: '3',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: 7,
+            endTime: 8,
+          },
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'RUNNING', startTime: 11 },
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
 
@@ -198,10 +265,31 @@ describe('executionTransformerService', function() {
       const execution = {
         stages: [
           { id: '2', name: 'deploy', status: 'SUCCEEDED', startTime: null, endTime: 8 },
-          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: null, endTime: 6 },
-          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED', startTime: 11, endTime: 9 },
-          { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED', startTime: 4, endTime: 11 },
-        ]
+          {
+            id: '4',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: null,
+            endTime: 6,
+          },
+          {
+            id: '5',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_BEFORE',
+            status: 'SUCCEEDED',
+            startTime: 11,
+            endTime: 9,
+          },
+          {
+            id: '6',
+            parentStageId: '2',
+            syntheticStageOwner: 'STAGE_AFTER',
+            status: 'SUCCEEDED',
+            startTime: 4,
+            endTime: 11,
+          },
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].startTime).toBe(4);
@@ -216,7 +304,7 @@ describe('executionTransformerService', function() {
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED' },
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'RUNNING' },
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'RUNNING' },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(1);
@@ -229,7 +317,7 @@ describe('executionTransformerService', function() {
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED' },
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED' },
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'SUCCEEDED' },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(0);
@@ -242,7 +330,7 @@ describe('executionTransformerService', function() {
           { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED' },
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'SUCCEEDED' },
           { id: '6', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'TERMINAL' },
-        ]
+        ],
       } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.stageSummaries[0].firstActiveStage).toBe(2);
@@ -256,15 +344,16 @@ describe('executionTransformerService', function() {
       lastBuild = { number: 4 };
       parentBuild = { number: 5 };
       triggerBuild = { number: 6 };
-      deployStage = { type: 'deploy', context: {
-        deploymentDetails: [
-          { jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' } }
-        ]
-      }};
+      deployStage = {
+        type: 'deploy',
+        context: {
+          deploymentDetails: [{ jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' } }],
+        },
+      };
     });
 
     it('adds buildInfo from deployment details', () => {
-      const execution = { stages: [ deployStage ] } as IExecution;
+      const execution = { stages: [deployStage] } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://jenkinshost/job/jobName/3' });
     });
@@ -282,13 +371,16 @@ describe('executionTransformerService', function() {
     });
 
     it('adds buildInfo from parent pipeline', () => {
-      const execution = { stages: [], trigger: { parentExecution: { trigger: { buildInfo: parentBuild } } } } as IExecution;
+      const execution = {
+        stages: [],
+        trigger: { parentExecution: { trigger: { buildInfo: parentBuild } } },
+      } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(5);
     });
 
     it('prefers deployment buildInfo to all others', () => {
-      const execution = { stages: [ deployStage ], trigger: { buildInfo: triggerBuild } } as IExecution;
+      const execution = { stages: [deployStage], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.buildInfo.lastBuild = lastBuild;
       execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
       transformer.transformExecution({} as Application, execution);
@@ -296,7 +388,7 @@ describe('executionTransformerService', function() {
     });
 
     it('prefers last build info to parent execution or trigger details', () => {
-      const execution = { stages: [ ], trigger: { buildInfo: triggerBuild } } as IExecution;
+      const execution = { stages: [], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.buildInfo.lastBuild = lastBuild;
       execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
       transformer.transformExecution({} as Application, execution);
@@ -304,20 +396,25 @@ describe('executionTransformerService', function() {
     });
 
     it('prefers trigger details to parent execution', () => {
-      const execution = { stages: [ ], trigger: { buildInfo: triggerBuild } } as IExecution;
+      const execution = { stages: [], trigger: { buildInfo: triggerBuild } } as IExecution;
       execution.trigger.parentExecution = { trigger: { buildInfo: parentBuild } } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(6);
     });
 
     it('prefers buildInfoUrl to jenkins details', () => {
-      deployStage = { type: 'deploy', context: {
-        deploymentDetails: [
-          { jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' },
-            buildInfoUrl: 'http://custom/url' }
-        ]
-      }};
-      const execution = { stages: [ deployStage ] } as IExecution;
+      deployStage = {
+        type: 'deploy',
+        context: {
+          deploymentDetails: [
+            {
+              jenkins: { number: 3, host: 'http://jenkinshost/', name: 'jobName' },
+              buildInfoUrl: 'http://custom/url',
+            },
+          ],
+        },
+      };
+      const execution = { stages: [deployStage] } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo).toEqual({ number: 3, url: 'http://custom/url' });
     });

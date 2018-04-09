@@ -4,12 +4,19 @@ const angular = require('angular');
 
 import { SECURITY_GROUP_READER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.securityGroup.configure.openstack.ports', [
-  require('../../transformer.js').name,
-  require('../../../common/validateType.directive.js').name,
-  SECURITY_GROUP_READER
-])
-  .controller('openstackSecurityGroupRulesController', function($scope, openstackSecurityGroupTransformer, infrastructureCaches, securityGroupReader, cacheInitializer) {
+module.exports = angular
+  .module('spinnaker.securityGroup.configure.openstack.ports', [
+    require('../../transformer.js').name,
+    require('../../../common/validateType.directive.js').name,
+    SECURITY_GROUP_READER,
+  ])
+  .controller('openstackSecurityGroupRulesController', function(
+    $scope,
+    openstackSecurityGroupTransformer,
+    infrastructureCaches,
+    securityGroupReader,
+    cacheInitializer,
+  ) {
     this.infiniteScroll = {
       currentItems: 20,
     };
@@ -24,38 +31,37 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
       $scope.loadSecurityGroups(account, $scope.securityGroup.region);
     });
 
-    this.addMoreItems = () => this.infiniteScroll.currentItems += 20;
+    this.addMoreItems = () => (this.infiniteScroll.currentItems += 20);
 
     this.addRule = function() {
       $scope.securityGroup.rules.push(openstackSecurityGroupTransformer.constructNewIngressRule());
     };
 
     this.getSecurityGroupRefreshTime = function() {
-       return infrastructureCaches.get('securityGroups').getStats().ageMax;
+      return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
-
     $scope.initializeSecurityGroups = function() {
-       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
-         $scope.state.securityGroupsLoaded = true;
-         var account = $scope.securityGroup.credentials || $scope.securityGroup.account;
-         var region = $scope.securityGroup.region;
+      return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
+        $scope.state.securityGroupsLoaded = true;
+        var account = $scope.securityGroup.credentials || $scope.securityGroup.account;
+        var region = $scope.securityGroup.region;
 
-         if(account && region) {
-           $scope.availableSecurityGroups = _.filter(securityGroups[account].openstack[region]);
-         } else {
-           $scope.availableSecurityGroups = securityGroups;
-         }
+        if (account && region) {
+          $scope.availableSecurityGroups = _.filter(securityGroups[account].openstack[region]);
+        } else {
+          $scope.availableSecurityGroups = securityGroups;
+        }
 
-         // Add self referencial option at the start of avaibleSecurityGroup Collection
-         // Only do need this on create as an edit has itself in the list already.
-         if ($scope.securityGroup.edit === undefined) {
-           $scope.prependSecurityGroupOption({ id: 'SELF', name: 'This Security Group (Self)' });
-         }
+        // Add self referencial option at the start of avaibleSecurityGroup Collection
+        // Only do need this on create as an edit has itself in the list already.
+        if ($scope.securityGroup.edit === undefined) {
+          $scope.prependSecurityGroupOption({ id: 'SELF', name: 'This Security Group (Self)' });
+        }
 
-         // Add CIDR at the start of avaibleSecurityGroup Collection
-         $scope.prependSecurityGroupOption({ id: 'CIDR', name: 'CIDR' });
-       });
+        // Add CIDR at the start of avaibleSecurityGroup Collection
+        $scope.prependSecurityGroupOption({ id: 'CIDR', name: 'CIDR' });
+      });
     };
 
     $scope.prependSecurityGroupOption = function(option) {
@@ -66,32 +72,36 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
 
     $scope.remoteSecurityGroupSelected = function(indx, remoteSecurityGroupId) {
       var rule = $scope.securityGroup.rules[indx];
-      if(remoteSecurityGroupId === 'CIDR') {
-        if(rule.prevcidr === '') {
+      if (remoteSecurityGroupId === 'CIDR') {
+        if (rule.prevcidr === '') {
           rule.cidr = '0.0.0.0/0';
           rule.prevcidr = '0.0.0.0/0';
-        }
-        else {
+        } else {
           rule.cidr = rule.prevcidr;
         }
-      }
-      else {
+      } else {
         rule.prevcidr = rule.cidr;
         rule.cidr = '';
       }
     };
 
     this.refreshSecurityGroups = function() {
-       $scope.state.refreshingSecurityGroups = true;
-       return cacheInitializer.refreshCache('securityGroups').then(function() {
-         return $scope.initializeSecurityGroups().then(function() {
-           $scope.state.refreshingSecurityGroups = false;
-         }, function() {
-           $scope.state.refreshingSecurityGroups = false;
-         });
-       }, function() {
-         $scope.state.refreshingSecurityGroups = false;
-       });
+      $scope.state.refreshingSecurityGroups = true;
+      return cacheInitializer.refreshCache('securityGroups').then(
+        function() {
+          return $scope.initializeSecurityGroups().then(
+            function() {
+              $scope.state.refreshingSecurityGroups = false;
+            },
+            function() {
+              $scope.state.refreshingSecurityGroups = false;
+            },
+          );
+        },
+        function() {
+          $scope.state.refreshingSecurityGroups = false;
+        },
+      );
     };
 
     this.removeRule = function(i) {
@@ -99,7 +109,7 @@ module.exports = angular.module('spinnaker.securityGroup.configure.openstack.por
     };
 
     $scope.loadSecurityGroups = function(account, region) {
-      if(account !== undefined && region !== undefined) {
+      if (account !== undefined && region !== undefined) {
         $scope.initializeSecurityGroups();
       }
     };

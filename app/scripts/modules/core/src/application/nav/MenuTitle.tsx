@@ -28,21 +28,20 @@ export interface IMenuTitleProps {
  * basically the same LOC to make it a plain old Component and avoid the warning .
  */
 export class MenuTitle extends React.Component<IMenuTitleProps> {
-
   public render() {
     const { category, application, runningCount, tags, isActive, closeMenu } = this.props;
     const defaultDataSource = category.dataSources[0];
     return (
       <UISref to={defaultDataSource.sref}>
         <a className={`nav-item horizontal middle ${isActive ? 'active' : ''}`}>
-            <span className={`horizontal middle ${isActive ? 'active' : ''}`} onClick={closeMenu}>
-              <NavIcon icon={category.icon}/>
-              {' ' + category.label}
-              {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
-              <DataSourceNotifications tags={tags} application={application} tabName={category.label}/>
-            </span>
+          <span className={`horizontal middle ${isActive ? 'active' : ''}`} onClick={closeMenu}>
+            <NavIcon icon={category.icon} />
+            {' ' + category.label}
+            {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
+            <DataSourceNotifications tags={tags} application={application} tabName={category.label} />
+          </span>
         </a>
       </UISref>
     );
   }
-};
+}

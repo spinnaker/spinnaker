@@ -2,10 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.kubernetes.container.ports.component', [])
+module.exports = angular
+  .module('spinnaker.kubernetes.container.ports.component', [])
   .component('kubernetesContainerPorts', {
     bindings: {
-      ports: '='
+      ports: '=',
     },
     templateUrl: require('./ports.component.html'),
     controller: function() {
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.ports.component'
         this.ports = [];
       }
 
-      this.removePort = (index) => {
+      this.removePort = index => {
         this.ports.splice(index, 1);
       };
 
@@ -29,6 +30,5 @@ module.exports = angular.module('spinnaker.kubernetes.container.ports.component'
           hostIp: null,
         });
       };
-    }
+    },
   });
-

@@ -15,7 +15,10 @@ export interface IScalingProcessesDetailsSectionState {
 }
 
 @BindAll()
-export class ScalingProcessesDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, IScalingProcessesDetailsSectionState> {
+export class ScalingProcessesDetailsSection extends React.Component<
+  IAmazonServerGroupDetailsSectionProps,
+  IScalingProcessesDetailsSectionState
+> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -30,19 +33,25 @@ export class ScalingProcessesDetailsSection extends React.Component<IAmazonServe
         serverGroup: () => this.props.serverGroup,
         application: () => this.props.app,
         processes: () => this.state.autoScalingProcesses,
-      }
+      },
     });
   }
 
   private getState(props: IAmazonServerGroupDetailsSectionProps): IScalingProcessesDetailsSectionState {
     const { serverGroup } = props;
 
-    const autoScalingProcesses: IScalingProcess[] = AwsReactInjector.autoScalingProcessService.normalizeScalingProcesses(serverGroup);
+    const autoScalingProcesses: IScalingProcess[] = AwsReactInjector.autoScalingProcessService.normalizeScalingProcesses(
+      serverGroup,
+    );
 
-    const scalingPoliciesDisabled = serverGroup.scalingPolicies.length > 0 && autoScalingProcesses
+    const scalingPoliciesDisabled =
+      serverGroup.scalingPolicies.length > 0 &&
+      autoScalingProcesses
         .filter(p => !p.enabled)
         .some(p => ['Launch', 'Terminate', 'AlarmNotification'].includes(p.name));
-    const scheduledActionsDisabled = serverGroup.scheduledActions.length > 0 && autoScalingProcesses
+    const scheduledActionsDisabled =
+      serverGroup.scheduledActions.length > 0 &&
+      autoScalingProcesses
         .filter(p => !p.enabled)
         .some(p => ['Launch', 'Terminate', 'ScheduledAction'].includes(p.name));
 
@@ -63,12 +72,12 @@ export class ScalingProcessesDetailsSection extends React.Component<IAmazonServe
           <span>
             {scalingPoliciesDisabled && (
               <Tooltip value="Some scaling processes are disabled that may prevent scaling policies from working">
-                <span className="fa fa-exclamation-circle warning-text"/>
+                <span className="fa fa-exclamation-circle warning-text" />
               </Tooltip>
             )}
             {scheduledActionsDisabled && (
               <Tooltip value="Some scaling processes are disabled that may prevent scheduled actions from working">
-                <span className="fa fa-exclamation-circle warning-text"/>
+                <span className="fa fa-exclamation-circle warning-text" />
               </Tooltip>
             )}
             Scaling Processes
@@ -76,11 +85,11 @@ export class ScalingProcessesDetailsSection extends React.Component<IAmazonServe
         )}
       >
         <ul className="scaling-processes">
-          {autoScalingProcesses.map((process) => (
+          {autoScalingProcesses.map(process => (
             <li key={process.name}>
-              <span style={{ visibility: process.enabled ? 'visible' : 'hidden' }} className="fa fa-check small"/>
+              <span style={{ visibility: process.enabled ? 'visible' : 'hidden' }} className="fa fa-check small" />
               <span className={!process.enabled ? 'text-disabled' : ''}>{process.name} </span>
-              <HelpField content={process.description} placement="bottom"/>
+              <HelpField content={process.description} placement="bottom" />
               {process.suspensionDate && (
                 <div className="text-disabled small" style={{ marginLeft: '35px' }}>
                   Suspended {timestamp(process.suspensionDate)}
@@ -89,7 +98,9 @@ export class ScalingProcessesDetailsSection extends React.Component<IAmazonServe
             </li>
           ))}
         </ul>
-        <a className="clickable" onClick={this.toggleScalingProcesses}>Edit Scaling Processes</a>
+        <a className="clickable" onClick={this.toggleScalingProcesses}>
+          Edit Scaling Processes
+        </a>
       </CollapsibleSection>
     );
   }

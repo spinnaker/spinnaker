@@ -26,10 +26,9 @@ export interface IVariableProps {
   onChange: (variable: IVariable) => void;
 }
 
-export interface IVariableState { }
+export interface IVariableState {}
 
 export class VariableInputService {
-
   private inputs = new Set<IVariableInputBuilder>();
 
   public addInput(input: IVariableInputBuilder): void {
@@ -42,5 +41,4 @@ export class VariableInputService {
 }
 
 export const VARIABLE_INPUT_SERVICE = 'spinnaker.core.variableInput.service';
-module(VARIABLE_INPUT_SERVICE, [])
-  .service('variableInputService', VariableInputService);
+module(VARIABLE_INPUT_SERVICE, []).service('variableInputService', VariableInputService);

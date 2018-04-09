@@ -2,35 +2,45 @@
 
 const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
 
-module.exports = angular.module('spinnaker.core.projects.configure.modal.controller', [
-  require('../service/project.write.service.js').name,
-  require('../service/project.read.service.js').name,
-  ACCOUNT_SERVICE,
-  PIPELINE_CONFIG_SERVICE,
-  require('../../modal/wizard/wizardSubFormValidation.service.js').name,
-])
-  .controller('ConfigureProjectModalCtrl', function ($scope, projectConfig, $uibModalInstance, $q,
-                                                     pipelineConfigService, applicationReader, projectWriter,
-                                                     projectReader, accountService, taskMonitorBuilder,
-                                                     v2modalWizardService, wizardSubFormValidation) {
-
+module.exports = angular
+  .module('spinnaker.core.projects.configure.modal.controller', [
+    require('../service/project.write.service.js').name,
+    require('../service/project.read.service.js').name,
+    ACCOUNT_SERVICE,
+    PIPELINE_CONFIG_SERVICE,
+    require('../../modal/wizard/wizardSubFormValidation.service.js').name,
+  ])
+  .controller('ConfigureProjectModalCtrl', function(
+    $scope,
+    projectConfig,
+    $uibModalInstance,
+    $q,
+    pipelineConfigService,
+    applicationReader,
+    projectWriter,
+    projectReader,
+    accountService,
+    taskMonitorBuilder,
+    v2modalWizardService,
+    wizardSubFormValidation,
+  ) {
     if (!projectConfig.name) {
       projectConfig.name = '';
       projectConfig.config = {
         pipelineConfigs: [],
         applications: [],
-        clusters: []
+        clusters: [],
       };
     }
 
-    projectConfig.config.clusters.forEach((cluster) => {
+    projectConfig.config.clusters.forEach(cluster => {
       cluster.useAllApplications = !cluster.applications || !cluster.applications.length;
     });
 
-    this.toggleClusterApplicationOverrides = (cluster) => {
+    this.toggleClusterApplicationOverrides = cluster => {
       cluster.applications = [];
     };
 
@@ -41,41 +51,38 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       pipelines: require('./projectPipelines.modal.html'),
     };
 
-    this.addApplication = (application) => {
+    this.addApplication = application => {
       $scope.viewState.pipelinesLoaded = false;
       let retriever = pipelineConfigService.getPipelinesForApplication(application);
       retriever.then(
-        (pipelines) => {
+        pipelines => {
           $scope.pipelineConfigOptions[application] = pipelines;
         },
-        (exception) => {
+        exception => {
           $scope.viewState.pipelineLoadErrors.push({ application: application, exception: exception });
-        }
+        },
       );
     };
 
     this.applicationRemoved = () => {
       // this will be called *after* ui-select sets the pipeline's fields to null, so just clear those out
       $scope.command.config.pipelineConfigs = $scope.command.config.pipelineConfigs.filter(
-          pipeline => pipeline.application !== null && pipeline.pipelineConfigId !== null
+        pipeline => pipeline.application !== null && pipeline.pipelineConfigId !== null,
       );
-      $scope.command.config.clusters
-        .filter((cluster) => !cluster.useAllApplications)
-        .forEach((cluster) => {
-          cluster.applications = cluster.applications
-            .filter((app) => $scope.command.config.applications.includes(app));
+      $scope.command.config.clusters.filter(cluster => !cluster.useAllApplications).forEach(cluster => {
+        cluster.applications = cluster.applications.filter(app => $scope.command.config.applications.includes(app));
       });
     };
 
-    this.removeCluster = (index) => {
+    this.removeCluster = index => {
       $scope.command.config.clusters.splice(index, 1);
     };
 
     this.addCluster = () => {
-      $scope.command.config.clusters.push({ stack: '*', detail: '*', useAllApplications: true});
+      $scope.command.config.clusters.push({ stack: '*', detail: '*', useAllApplications: true });
     };
 
-    this.removePipeline = (index) => {
+    this.removePipeline = index => {
       $scope.command.config.pipelineConfigs.splice(index, 1);
     };
 
@@ -101,7 +108,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       infiniteScroll: {
         numToAdd: 20,
         currentItems: 20,
-      }
+      },
     };
 
     let configRetriever = [];
@@ -115,11 +122,11 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       config: {
         applications: angular.copy(projectConfig.config.applications || []),
         clusters: angular.copy(projectConfig.config.clusters || []),
-        pipelineConfigs: angular.copy(projectConfig.config.pipelineConfigs || [])
-      }
+        pipelineConfigs: angular.copy(projectConfig.config.pipelineConfigs || []),
+      },
     };
 
-    $scope.command.config.applications.forEach((application) => {
+    $scope.command.config.applications.forEach(application => {
       this.addApplication(application);
       configRetriever.push($scope.pipelineConfigOptions[application]);
     });
@@ -128,12 +135,12 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       $scope.viewState.pipelinesLoaded = true;
     });
 
-    applicationReader.listApplications().then((applications) => {
+    applicationReader.listApplications().then(applications => {
       $scope.applications = applications.map(application => application.name).sort();
       $scope.viewState.applicationsLoaded = true;
     });
 
-    accountService.listAccounts().then((accounts) => {
+    accountService.listAccounts().then(accounts => {
       $scope.accounts = accounts;
     });
 
@@ -146,32 +153,31 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
     this.deleteProject = () => {
       var submitMethod = () => projectWriter.deleteProject($scope.command);
 
-      $scope.taskMonitor.onTaskComplete = () => $uibModalInstance.close({action: 'delete'});
+      $scope.taskMonitor.onTaskComplete = () => $uibModalInstance.close({ action: 'delete' });
       $scope.taskMonitor.title = 'Deleting ' + $scope.command.name;
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    projectReader.listProjects().then((projects) => {
+    projectReader.listProjects().then(projects => {
       $scope.projectNames = projects
         .map(project => project.name.toLowerCase())
         .filter(projectName => projectName !== projectConfig.name.toLowerCase());
       $scope.viewState.projectsLoaded = true;
     });
 
-
     this.updateProject = () => {
       var submitMethod = () => projectWriter.upsertProject($scope.command);
       let descriptor = $scope.command.id ? 'Updating ' : 'Creating ';
 
-      $scope.taskMonitor.onTaskComplete = () => $uibModalInstance.close({action: 'upsert', name: $scope.command.name});
+      $scope.taskMonitor.onTaskComplete = () =>
+        $uibModalInstance.close({ action: 'upsert', name: $scope.command.name });
       $scope.taskMonitor.title = descriptor + $scope.command.name;
 
       $scope.taskMonitor.submit(submitMethod);
     };
 
     this.showSubmitButton = () => {
-      return v2modalWizardService.allPagesVisited()
-        && wizardSubFormValidation.subFormsAreValid();
+      return v2modalWizardService.allPagesVisited() && wizardSubFormValidation.subFormsAreValid();
     };
 
     wizardSubFormValidation
@@ -181,7 +187,5 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       .register({ subForm: 'configSubForm', page: 'config' })
       .register({ subForm: 'applicationsSubForm', page: 'applications' });
 
-
     this.cancel = $uibModalInstance.dismiss;
-
   });

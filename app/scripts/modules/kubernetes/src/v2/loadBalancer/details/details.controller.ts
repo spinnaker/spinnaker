@@ -2,7 +2,7 @@ import { copy, IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
-import { Application, CONFIRMATION_MODAL_SERVICE, ILoadBalancer, LOAD_BALANCER_WRITE_SERVICE, } from '@spinnaker/core';
+import { Application, CONFIRMATION_MODAL_SERVICE, ILoadBalancer, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
 
 import { IKubernetesLoadBalancer } from './IKubernetesLoadBalancer';
 
@@ -17,14 +17,17 @@ class KubernetesLoadBalancerDetailsController implements IController {
   private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IKubernetesLoadBalancer;
 
-  constructor(private $uibModal: IModalService,
-              private $state: StateService,
-              private $scope: IScope,
-              loadBalancer: ILoadBalancerFromStateParams,
-              private app: Application) {
+  constructor(
+    private $uibModal: IModalService,
+    private $state: StateService,
+    private $scope: IScope,
+    loadBalancer: ILoadBalancerFromStateParams,
+    private app: Application,
+  ) {
     'ngInject';
     this.loadBalancerFromParams = loadBalancer;
-    this.app.getDataSource('loadBalancers')
+    this.app
+      .getDataSource('loadBalancers')
       .ready()
       .then(() => this.extractLoadBalancer());
   }
@@ -42,7 +45,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
         },
         application: this.app,
         manifestController: (): string => null,
-      }
+      },
     });
   }
 
@@ -55,15 +58,14 @@ class KubernetesLoadBalancerDetailsController implements IController {
       resolve: {
         sourceManifest: this.loadBalancer.manifest,
         sourceMoniker: this.loadBalancer.moniker,
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
   private extractLoadBalancer(): void {
     const rawLoadBalancer = this.app.getDataSource('loadBalancers').data.find((test: ILoadBalancer) => {
-      return test.name === this.loadBalancerFromParams.name &&
-        test.account === this.loadBalancerFromParams.accountId;
+      return test.name === this.loadBalancerFromParams.name && test.account === this.loadBalancerFromParams.accountId;
     });
 
     if (rawLoadBalancer) {
@@ -91,7 +93,7 @@ class KubernetesLoadBalancerDetailsController implements IController {
 }
 
 export const KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.kubernetes.v2.loadBalancerDetails.controller';
-module(KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL, [
-  LOAD_BALANCER_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-]).controller('kubernetesV2LoadBalancerDetailsCtrl', KubernetesLoadBalancerDetailsController);
+module(KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL, [LOAD_BALANCER_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
+  'kubernetesV2LoadBalancerDetailsCtrl',
+  KubernetesLoadBalancerDetailsController,
+);

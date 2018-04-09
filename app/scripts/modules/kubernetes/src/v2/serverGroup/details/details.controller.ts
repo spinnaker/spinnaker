@@ -9,7 +9,7 @@ import {
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_WRITER,
-  ServerGroupReader
+  ServerGroupReader,
 } from '@spinnaker/core';
 
 import { IKubernetesServerGroup } from './IKubernetesServerGroup';
@@ -26,19 +26,26 @@ class KubernetesServerGroupDetailsController implements IController {
   public serverGroup: IKubernetesServerGroup;
   public manifest: IManifest;
 
-  constructor(serverGroup: IServerGroupFromStateParams,
-              public app: Application,
-              private $uibModal: IModalService,
-              private $scope: IScope,
-              private kubernetesManifestService: KubernetesManifestService,
-              private serverGroupReader: ServerGroupReader) {
+  constructor(
+    serverGroup: IServerGroupFromStateParams,
+    public app: Application,
+    private $uibModal: IModalService,
+    private $scope: IScope,
+    private kubernetesManifestService: KubernetesManifestService,
+    private serverGroupReader: ServerGroupReader,
+  ) {
     'ngInject';
 
-    this.kubernetesManifestService.makeManifestRefresher(this.app, this.$scope, {
-      account: serverGroup.accountId,
-      location: serverGroup.region,
-      name: serverGroup.name,
-    }, this);
+    this.kubernetesManifestService.makeManifestRefresher(
+      this.app,
+      this.$scope,
+      {
+        account: serverGroup.accountId,
+        location: serverGroup.region,
+        name: serverGroup.name,
+      },
+      this,
+    );
 
     this.app
       .ready()
@@ -48,9 +55,12 @@ class KubernetesServerGroupDetailsController implements IController {
 
   private ownerReferences(): [any] {
     const manifest = this.serverGroup.manifest;
-    if (manifest != null && manifest.hasOwnProperty('metadata')
-      && manifest.metadata.hasOwnProperty('ownerReferences')
-      && Array.isArray(manifest.metadata.ownerReferences)) {
+    if (
+      manifest != null &&
+      manifest.hasOwnProperty('metadata') &&
+      manifest.metadata.hasOwnProperty('ownerReferences') &&
+      Array.isArray(manifest.metadata.ownerReferences)
+    ) {
       return manifest.metadata.ownerReferences;
     } else {
       return [] as [any];
@@ -87,11 +97,11 @@ class KubernetesServerGroupDetailsController implements IController {
         coordinates: {
           name: this.serverGroup.name,
           namespace: this.serverGroup.namespace,
-          account: this.serverGroup.account
+          account: this.serverGroup.account,
         },
         currentReplicas: this.serverGroup.manifest.spec.replicas,
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
@@ -108,8 +118,8 @@ class KubernetesServerGroupDetailsController implements IController {
       resolve: {
         sourceManifest: this.serverGroup.manifest,
         sourceMoniker: this.serverGroup.moniker,
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
@@ -122,11 +132,11 @@ class KubernetesServerGroupDetailsController implements IController {
         coordinates: {
           name: this.serverGroup.name,
           namespace: this.serverGroup.namespace,
-          account: this.serverGroup.account
+          account: this.serverGroup.account,
         },
         manifestController: () => this.manifestController(),
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
@@ -157,9 +167,8 @@ class KubernetesServerGroupDetailsController implements IController {
 export const KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.kubernetes.v2.serverGroup.details.controller';
 
 module(KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL, [
-    CONFIRMATION_MODAL_SERVICE,
-    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-    SERVER_GROUP_READER,
-    SERVER_GROUP_WRITER,
-  ])
-  .controller('kubernetesV2ServerGroupDetailsCtrl', KubernetesServerGroupDetailsController);
+  CONFIRMATION_MODAL_SERVICE,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WRITER,
+]).controller('kubernetesV2ServerGroupDetailsCtrl', KubernetesServerGroupDetailsController);

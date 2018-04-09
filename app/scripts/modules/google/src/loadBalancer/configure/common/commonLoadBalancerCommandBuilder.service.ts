@@ -11,7 +11,7 @@ import {
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
   SUBNET_READ_SERVICE,
-  SubnetReader
+  SubnetReader,
 } from '@spinnaker/core';
 
 import { GCE_CERTIFICATE_READER, GceCertificateReader, IGceCertificate } from 'google/certificate/certificate.reader';
@@ -21,21 +21,22 @@ import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthChec
 export class GceCommonLoadBalancerCommandBuilder {
   private dataFetchers: { [key: string]: Function } = {
     existingLoadBalancerNamesByAccount: (): IPromise<_.Dictionary<any>> => {
-      return this.loadBalancerReader.listLoadBalancers('gce')
-        .then((loadBalancerList: ILoadBalancersByAccount[]) => {
-          return _.chain(loadBalancerList)
-            .map('accounts')
-            .flatten()
-            .groupBy('name') // account name
-            .mapValues((regionWrappers) => _.chain(regionWrappers)
+      return this.loadBalancerReader.listLoadBalancers('gce').then((loadBalancerList: ILoadBalancersByAccount[]) => {
+        return _.chain(loadBalancerList)
+          .map('accounts')
+          .flatten()
+          .groupBy('name') // account name
+          .mapValues(regionWrappers =>
+            _.chain(regionWrappers)
               .map('regions')
               .flatten()
               .map('loadBalancers')
               .flatten()
               .map('name') // load balancer name
-              .value())
-            .value();
-        });
+              .value(),
+          )
+          .value();
+      });
     },
     accounts: (): IPromise<IAccount[]> => this.accountService.listAccounts('gce'),
     networks: (): IPromise<INetwork[]> => this.networkReader.listNetworksByProvider('gce'),
@@ -44,13 +45,15 @@ export class GceCommonLoadBalancerCommandBuilder {
     certificates: (): IPromise<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
   };
 
-  constructor(private $q: ng.IQService,
-              private loadBalancerReader: LoadBalancerReader,
-              private accountService: AccountService,
-              private subnetReader: SubnetReader,
-              private gceHealthCheckReader: GceHealthCheckReader,
-              private networkReader: any,
-              private gceCertificateReader: GceCertificateReader) {
+  constructor(
+    private $q: ng.IQService,
+    private loadBalancerReader: LoadBalancerReader,
+    private accountService: AccountService,
+    private subnetReader: SubnetReader,
+    private gceHealthCheckReader: GceHealthCheckReader,
+    private networkReader: any,
+    private gceCertificateReader: GceCertificateReader,
+  ) {
     'ngInject';
   }
 
@@ -65,18 +68,28 @@ export class GceCommonLoadBalancerCommandBuilder {
     return this.$q.all(promises);
   }
 
-  public groupHealthChecksByAccountAndType(healthChecks: IGceHealthCheck[]): {[account: string]: {[healthCheckType: string]: IGceHealthCheck[]}} {
+  public groupHealthChecksByAccountAndType(
+    healthChecks: IGceHealthCheck[],
+  ): { [account: string]: { [healthCheckType: string]: IGceHealthCheck[] } } {
     return _.chain(healthChecks)
       .groupBy('account')
       .mapValues((grouped: IGceHealthCheck[]) => _.groupBy(grouped, 'healthCheckType'))
       .value();
   }
 
-  public groupHealthCheckNamesByAccount(healthChecks: IGceHealthCheck[], namesToOmit: string[]): {[account: string]: string[]} {
+  public groupHealthCheckNamesByAccount(
+    healthChecks: IGceHealthCheck[],
+    namesToOmit: string[],
+  ): { [account: string]: string[] } {
     return _.chain(healthChecks)
       .groupBy('account')
-      .mapValues((grouped: IGceHealthCheck[]) => _.chain(grouped).map('name').difference(namesToOmit).value())
-      .value() as {[account: string]: string[]};
+      .mapValues((grouped: IGceHealthCheck[]) =>
+        _.chain(grouped)
+          .map('name')
+          .difference(namesToOmit)
+          .value(),
+      )
+      .value() as { [account: string]: string[] };
   }
 }
 

@@ -4,14 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { LIST_EXTRACTOR_SERVICE } from 'core/application/listExtractor/listExtractor.service';
 
 module.exports = angular
-  .module('spinnaker.core.accountRegionClusterSelector.directive', [
-    LIST_EXTRACTOR_SERVICE,
-    ACCOUNT_SERVICE,
-  ])
+  .module('spinnaker.core.accountRegionClusterSelector.directive', [LIST_EXTRACTOR_SERVICE, ACCOUNT_SERVICE])
   .directive('accountRegionClusterSelector', function() {
     return {
       restrict: 'E',
@@ -29,7 +26,6 @@ module.exports = angular
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
       controller: function controller(appListExtractorService, accountService) {
-
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
@@ -40,22 +36,24 @@ module.exports = angular
         let regions;
 
         let setRegionList = () => {
-          let accountFilter = (cluster) => cluster ? cluster.account === vm.component.credentials : true;
+          let accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
           let regionList = appListExtractorService.getRegions([vm.application], accountFilter);
           vm.regions = showAllRegions ? regions : regionList.length ? regionList : regions;
           (vm.regions || []).sort();
         };
 
-
         let setClusterList = () => {
           let regionField = this.singleRegion ? vm.component.region : vm.component.regions;
-          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(vm.component.credentials, regionField);
+          let clusterFilter = appListExtractorService.clusterFilterForCredentialsAndRegion(
+            vm.component.credentials,
+            regionField,
+          );
           vm.clusterList = appListExtractorService.getClusters([vm.application], clusterFilter);
         };
 
         vm.regionChanged = () => {
           setClusterList();
-          if (!isTextInputForClusterFiled && ! _.includes(vm.clusterList, vm.component[this.clusterField])) {
+          if (!isTextInputForClusterFiled && !_.includes(vm.clusterList, vm.component[this.clusterField])) {
             vm.component[this.clusterField] = undefined;
           }
         };
@@ -71,14 +69,14 @@ module.exports = angular
           setRegionList();
         };
 
-        vm.clusterSelectInputToggled = (isToggled) => {
+        vm.clusterSelectInputToggled = isToggled => {
           isToggled ? setToggledState() : setUnToggledState();
         };
 
-        vm.clusterChanged = (clusterName) => {
+        vm.clusterChanged = clusterName => {
           const filterByCluster = appListExtractorService.monikerClusterNameFilter(clusterName);
           let clusterMoniker = _.first(_.uniq(appListExtractorService.getMonikers([vm.application], filterByCluster)));
-          if(_.isNil(clusterMoniker)) {
+          if (_.isNil(clusterMoniker)) {
             //remove the moniker from the stage if one doesn't exist.
             vm.component.moniker = undefined;
           } else {
@@ -98,31 +96,33 @@ module.exports = angular
         };
 
         let init = () => {
-          accountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'regions').then((allRegions) => {
-            regions = allRegions;
+          accountService
+            .getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'regions')
+            .then(allRegions => {
+              regions = allRegions;
 
-            // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
-            let regionObjs = _.filter(regions, region => _.isObject(region));
-            if (regionObjs.length) {
-              let oldStyleRegions = _.chain(regionObjs)
-                .map(regionObj => _.keys(regionObj))
-                .flatten()
-                .value();
-              regions = _.chain(regions)
-                .difference(regionObjs)
-                .union(oldStyleRegions)
-                .value();
-            }
-            return regions.sort();
-          })
-          .then((allRegions) => {
-            setRegionList();
-            setClusterList();
-            vm.regions = _.includes(vm.clusterList, vm.component[this.clusterField]) ? vm.regions : allRegions;
-          });
+              // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
+              let regionObjs = _.filter(regions, region => _.isObject(region));
+              if (regionObjs.length) {
+                let oldStyleRegions = _.chain(regionObjs)
+                  .map(regionObj => _.keys(regionObj))
+                  .flatten()
+                  .value();
+                regions = _.chain(regions)
+                  .difference(regionObjs)
+                  .union(oldStyleRegions)
+                  .value();
+              }
+              return regions.sort();
+            })
+            .then(allRegions => {
+              setRegionList();
+              setClusterList();
+              vm.regions = _.includes(vm.clusterList, vm.component[this.clusterField]) ? vm.regions : allRegions;
+            });
         };
 
         init();
-      }
+      },
     };
   });

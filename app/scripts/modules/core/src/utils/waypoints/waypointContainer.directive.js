@@ -4,10 +4,9 @@ import { WAYPOINT_SERVICE } from './waypoint.service';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.utils.waypoints.container.directive', [
-  WAYPOINT_SERVICE,
-])
-  .directive('waypointContainer', function (waypointService) {
+module.exports = angular
+  .module('spinnaker.core.utils.waypoints.container.directive', [WAYPOINT_SERVICE])
+  .directive('waypointContainer', function(waypointService) {
     return {
       restrict: 'A',
       scope: {
@@ -15,10 +14,10 @@ module.exports = angular.module('spinnaker.core.utils.waypoints.container.direct
         offsetHeight: '=waypointOffset',
       },
       link: {
-        post: function (scope, elem) {
+        post: function(scope, elem) {
           var offset = scope.offsetHeight || 0;
           waypointService.registerWaypointContainer(scope, elem, scope.key, offset);
-        }
-      }
+        },
+      },
     };
   });

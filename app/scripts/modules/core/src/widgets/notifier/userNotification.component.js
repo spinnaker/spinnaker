@@ -3,8 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.widgets.notification.userNotification', [
-  ])
+  .module('spinnaker.core.widgets.notification.userNotification', [])
   .component('userNotification', {
     bindings: {
       message: '<',
@@ -18,5 +17,5 @@ module.exports = angular
           <span class="glyphicon glyphicon-remove"></span>
         </a>
       </div>
-      `
+      `,
   });

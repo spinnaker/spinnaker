@@ -1,48 +1,41 @@
 'use strict';
 
-import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
+import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
 
-describe('Service: wizardSubFormValidation', function () {
-
+describe('Service: wizardSubFormValidation', function() {
   const angular = require('angular');
   let wizardSubFormValidation, v2modalWizardService, $rootScope, $compile;
 
-  beforeEach(
-    window.module(
-      require('./wizardSubFormValidation.service.js').name,
-      V2_MODAL_WIZARD_SERVICE
-    )
-  );
+  beforeEach(window.module(require('./wizardSubFormValidation.service.js').name, V2_MODAL_WIZARD_SERVICE));
 
   beforeEach(
-    window.inject(function (_wizardSubFormValidation_,
-                            _v2modalWizardService_, _$rootScope_, _$compile_) {
+    window.inject(function(_wizardSubFormValidation_, _v2modalWizardService_, _$rootScope_, _$compile_) {
       wizardSubFormValidation = _wizardSubFormValidation_;
       v2modalWizardService = _v2modalWizardService_;
       $rootScope = _$rootScope_;
       $compile = _$compile_;
 
       spyOn(v2modalWizardService, 'getPage').and.returnValue(true);
-    })
+    }),
   );
 
-  describe('wizardSubFormValidation.config', function () {
+  describe('wizardSubFormValidation.config', function() {
     let scope, formString;
 
-    beforeEach(function () {
+    beforeEach(function() {
       scope = $rootScope.$new();
       formString = 'myTopLevelForm';
     });
 
-    it('should assign scope and form name string', function () {
-      wizardSubFormValidation.config({scope: scope, form: formString});
+    it('should assign scope and form name string', function() {
+      wizardSubFormValidation.config({ scope: scope, form: formString });
 
       expect(wizardSubFormValidation.scope).toEqual(scope);
       expect(wizardSubFormValidation.form).toEqual(formString);
     });
 
-    it('should hook into $scope destroy event and reset scope and form', function () {
-      wizardSubFormValidation.config({scope: scope, form: formString});
+    it('should hook into $scope destroy event and reset scope and form', function() {
+      wizardSubFormValidation.config({ scope: scope, form: formString });
 
       expect(wizardSubFormValidation.scope).toEqual(scope);
       expect(wizardSubFormValidation.form).toEqual(formString);
@@ -54,46 +47,47 @@ describe('Service: wizardSubFormValidation', function () {
     });
   });
 
-  describe('wizardSubFormValidation.register', function () {
+  describe('wizardSubFormValidation.register', function() {
     let form, scope;
 
-    beforeEach(function () {
+    beforeEach(function() {
       scope = $rootScope.$new();
       let formName = 'myTopLevelForm';
       let subFormName = 'mySubForm';
 
-      wizardSubFormValidation.config({scope: scope, form: formName});
+      wizardSubFormValidation.config({ scope: scope, form: formName });
 
       let element = angular.element(
         `<form name="${formName}">
              <ng-form name="${subFormName}">
                <input name="myInput" required />
              </ng-form>
-           </form>`);
+           </form>`,
+      );
 
       $compile(element)(scope);
 
       form = scope.myTopLevelForm;
     });
 
-    afterEach(function () {
+    afterEach(function() {
       scope.$emit('destroy');
     });
 
-    it('registers page and sub-form; calls v2ModalWizard.markIncomplete on page if sub-form is invalid', function () {
+    it('registers page and sub-form; calls v2ModalWizard.markIncomplete on page if sub-form is invalid', function() {
       spyOn(v2modalWizardService, 'markIncomplete');
 
-      wizardSubFormValidation.register({page: 'myPage', subForm: 'mySubForm'});
+      wizardSubFormValidation.register({ page: 'myPage', subForm: 'mySubForm' });
       form.mySubForm.$setValidity('myInput.required', false);
       scope.$digest();
 
       expect(v2modalWizardService.markIncomplete).toHaveBeenCalledWith('myPage');
     });
 
-    it('registers page and sub-form; calls v2ModalWizard.markComplete on page if sub-form is valid', function () {
+    it('registers page and sub-form; calls v2ModalWizard.markComplete on page if sub-form is valid', function() {
       spyOn(v2modalWizardService, 'markComplete');
 
-      wizardSubFormValidation.register({page: 'myPage', subForm: 'mySubForm'});
+      wizardSubFormValidation.register({ page: 'myPage', subForm: 'mySubForm' });
       form.mySubForm.$setValidity('myInput.required', true);
       scope.$digest();
 

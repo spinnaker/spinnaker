@@ -6,10 +6,7 @@ import { SETTINGS } from 'core/config/settings';
 
 export const AUTHENTICATION_USER_MENU = 'spinnaker.core.authentication.userMenu.directive';
 
-const ngmodule = angular.module(AUTHENTICATION_USER_MENU, [
-  AUTHENTICATION_INITIALIZER_SERVICE,
-  AUTHENTICATION_SERVICE
-]);
+const ngmodule = angular.module(AUTHENTICATION_USER_MENU, [AUTHENTICATION_INITIALIZER_SERVICE, AUTHENTICATION_SERVICE]);
 
 ngmodule.directive('userMenu', function(authenticationService: any, authenticationInitializer: any) {
   return {
@@ -21,7 +18,6 @@ ngmodule.directive('userMenu', function(authenticationService: any, authenticati
       scope.user = authenticationService.getAuthenticatedUser();
       scope.showLogOutDropdown = () => authenticationService.getAuthenticatedUser().authenticated;
       scope.logOut = () => authenticationInitializer.logOut();
-    }
+    },
   };
 });
-

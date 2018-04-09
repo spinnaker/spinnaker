@@ -5,17 +5,24 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.securityGroup.edit.controller', [
-  require('@uirouter/angularjs').default,
-  ACCOUNT_SERVICE,
-  TASK_MONITOR_BUILDER,
-  SECURITY_GROUP_WRITER
-])
-  .controller('awsEditSecurityGroupCtrl', function($scope, $uibModalInstance, $state,
-                                                   accountService,
-                                                   taskMonitorBuilder, application,
-                                                   securityGroup, securityGroupWriter, $controller) {
-
+module.exports = angular
+  .module('spinnaker.amazon.securityGroup.edit.controller', [
+    require('@uirouter/angularjs').default,
+    ACCOUNT_SERVICE,
+    TASK_MONITOR_BUILDER,
+    SECURITY_GROUP_WRITER,
+  ])
+  .controller('awsEditSecurityGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    accountService,
+    taskMonitorBuilder,
+    application,
+    securityGroup,
+    securityGroupWriter,
+    $controller,
+  ) {
     $scope.pages = {
       ingress: require('./createSecurityGroupIngress.html'),
     };
@@ -29,12 +36,15 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.edit.controller'
     $scope.securityGroup.regions = [$scope.securityGroup.region];
     $scope.securityGroup.credentials = $scope.securityGroup.accountName;
 
-    angular.extend(this, $controller('awsConfigSecurityGroupMixin', {
-      $scope: $scope,
-      $uibModalInstance: $uibModalInstance,
-      application: application,
-      securityGroup: securityGroup,
-    }));
+    angular.extend(
+      this,
+      $controller('awsConfigSecurityGroupMixin', {
+        $scope: $scope,
+        $uibModalInstance: $uibModalInstance,
+        application: application,
+        securityGroup: securityGroup,
+      }),
+    );
 
     $scope.state.isNew = false;
 
@@ -47,7 +57,8 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.edit.controller'
 
     securityGroup.securityGroupIngress = _.chain(securityGroup.inboundRules)
       .filter(rule => rule.securityGroup)
-      .map(rule => rule.portRanges.map(portRange => {
+      .map(rule =>
+        rule.portRanges.map(portRange => {
           let vpcId = rule.securityGroup.vpcId === securityGroup.vpcId ? null : rule.securityGroup.vpcId;
           return {
             accountName: rule.securityGroup.accountName || rule.securityGroup.accountId,
@@ -60,7 +71,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.edit.controller'
             endPort: portRange.endPort,
             existing: true,
           };
-        })
+        }),
       )
       .flatten()
       .value();
@@ -68,21 +79,21 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.edit.controller'
     securityGroup.ipIngress = _.chain(securityGroup.inboundRules)
       .filter(function(rule) {
         return rule.range;
-      }).map(function(rule) {
+      })
+      .map(function(rule) {
         return rule.portRanges.map(function(portRange) {
           return {
             cidr: rule.range.ip + rule.range.cidr,
             type: rule.protocol,
             startPort: portRange.startPort,
-            endPort: portRange.endPort
+            endPort: portRange.endPort,
           };
         });
       })
       .flatten()
       .value();
 
-    this.upsert = function () {
-
+    this.upsert = function() {
       let group = $scope.securityGroup;
       let command = {
         credentials: group.accountName,
@@ -91,17 +102,15 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.edit.controller'
         vpcId: group.vpcId,
         region: group.region,
         securityGroupIngress: group.securityGroupIngress,
-        ipIngress: group.ipIngress
+        ipIngress: group.ipIngress,
       };
 
-      $scope.taskMonitor.submit(
-        function() {
-          return securityGroupWriter.upsertSecurityGroup(command, application, 'Update');
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        return securityGroupWriter.upsertSecurityGroup(command, application, 'Update');
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 

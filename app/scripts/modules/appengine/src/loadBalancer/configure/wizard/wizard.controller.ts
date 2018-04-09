@@ -9,13 +9,13 @@ import {
   LoadBalancerWriter,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 
 import {
   AppengineLoadBalancerTransformer,
   AppengineLoadBalancerUpsertDescription,
-  IAppengineTrafficSplitDescription
+  IAppengineTrafficSplitDescription,
 } from 'appengine/loadBalancer/transformer';
 
 import './wizard.less';
@@ -27,30 +27,40 @@ class AppengineLoadBalancerWizardController implements IController {
   public submitButtonLabel: string;
   public taskMonitor: TaskMonitor;
 
-  constructor(public $scope: ng.IScope,
-              private $state: StateService,
-              private $uibModalInstance: IModalServiceInstance,
-              private application: Application,
-              loadBalancer: AppengineLoadBalancerUpsertDescription,
-              public isNew: boolean,
-              private forPipelineConfig: boolean,
-              private appengineLoadBalancerTransformer: AppengineLoadBalancerTransformer,
-              private taskMonitorBuilder: TaskMonitorBuilder,
-              private loadBalancerWriter: LoadBalancerWriter,
-              private wizardSubFormValidation: any) {
+  constructor(
+    public $scope: ng.IScope,
+    private $state: StateService,
+    private $uibModalInstance: IModalServiceInstance,
+    private application: Application,
+    loadBalancer: AppengineLoadBalancerUpsertDescription,
+    public isNew: boolean,
+    private forPipelineConfig: boolean,
+    private appengineLoadBalancerTransformer: AppengineLoadBalancerTransformer,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    private loadBalancerWriter: LoadBalancerWriter,
+    private wizardSubFormValidation: any,
+  ) {
     'ngInject';
     this.submitButtonLabel = this.forPipelineConfig ? 'Done' : 'Update';
 
     if (this.isNew) {
       this.heading = 'Create New Load Balancer';
     } else {
-      this.heading = `Edit ${[loadBalancer.name, loadBalancer.region, loadBalancer.account || loadBalancer.credentials].join(':')}`;
-      this.appengineLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer, application)
-        .then((convertedLoadBalancer) => {
-          this.loadBalancer = this.appengineLoadBalancerTransformer.convertLoadBalancerToUpsertDescription(convertedLoadBalancer);
+      this.heading = `Edit ${[
+        loadBalancer.name,
+        loadBalancer.region,
+        loadBalancer.account || loadBalancer.credentials,
+      ].join(':')}`;
+      this.appengineLoadBalancerTransformer
+        .convertLoadBalancerForEditing(loadBalancer, application)
+        .then(convertedLoadBalancer => {
+          this.loadBalancer = this.appengineLoadBalancerTransformer.convertLoadBalancerToUpsertDescription(
+            convertedLoadBalancer,
+          );
           if (loadBalancer.split && !this.loadBalancer.splitDescription) {
-            this.loadBalancer.splitDescription = AppengineLoadBalancerUpsertDescription
-              .convertTrafficSplitToTrafficSplitDescription(loadBalancer.split);
+            this.loadBalancer.splitDescription = AppengineLoadBalancerUpsertDescription.convertTrafficSplitToTrafficSplitDescription(
+              loadBalancer.split,
+            );
           } else {
             this.loadBalancer.splitDescription = loadBalancer.splitDescription;
           }
@@ -94,7 +104,8 @@ class AppengineLoadBalancerWizardController implements IController {
   }
 
   private initializeFormValidation(): void {
-    this.wizardSubFormValidation.config({ form: 'form', scope: this.$scope })
+    this.wizardSubFormValidation
+      .config({ form: 'form', scope: this.$scope })
       .register({
         page: 'basic-settings',
         subForm: 'basicSettingsForm',
@@ -102,11 +113,16 @@ class AppengineLoadBalancerWizardController implements IController {
           {
             watchString: 'ctrl.loadBalancer.splitDescription',
             validator: (splitDescription: IAppengineTrafficSplitDescription): boolean => {
-              return splitDescription.allocationDescriptions.reduce((sum, description) => sum + description.allocation, 0) === 100;
+              return (
+                splitDescription.allocationDescriptions.reduce(
+                  (sum, description) => sum + description.allocation,
+                  0,
+                ) === 100
+              );
             },
             watchDeep: true,
-          }
-        ]
+          },
+        ],
       })
       .register({ page: 'advanced-settings', subForm: 'advancedSettingsForm' });
   }
@@ -118,7 +134,8 @@ class AppengineLoadBalancerWizardController implements IController {
 
   private onApplicationRefresh(): void {
     // If the user has already closed the modal, do not navigate to the new details view
-    if ((this.$scope as any).$$destroyed) { // $$destroyed is not in the ng.IScope interface
+    if ((this.$scope as any).$$destroyed) {
+      // $$destroyed is not in the ng.IScope interface
       return;
     }
 
@@ -140,8 +157,7 @@ class AppengineLoadBalancerWizardController implements IController {
 
 export const APPENGINE_LOAD_BALANCER_WIZARD_CTRL = 'spinnaker.appengine.loadBalancer.wizard.controller';
 
-module(APPENGINE_LOAD_BALANCER_WIZARD_CTRL, [
-  TASK_MONITOR_BUILDER,
-  LOAD_BALANCER_WRITE_SERVICE,
-]).controller('appengineLoadBalancerWizardCtrl', AppengineLoadBalancerWizardController);
-
+module(APPENGINE_LOAD_BALANCER_WIZARD_CTRL, [TASK_MONITOR_BUILDER, LOAD_BALANCER_WRITE_SERVICE]).controller(
+  'appengineLoadBalancerWizardCtrl',
+  AppengineLoadBalancerWizardController,
+);

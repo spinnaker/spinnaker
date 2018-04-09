@@ -78,6 +78,7 @@ class KubernetesServerGroupContainerDetail implements IComponentOptions {
 }
 
 export const KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL = 'spinnaker.kubernetes.serverGroupContainerDetail.component';
-module(KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL, [])
-  .component('kubernetesServerGroupContainerDetail', new KubernetesServerGroupContainerDetail());
-
+module(KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL, []).component(
+  'kubernetesServerGroupContainerDetail',
+  new KubernetesServerGroupContainerDetail(),
+);

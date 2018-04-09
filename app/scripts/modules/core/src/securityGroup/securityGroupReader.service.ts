@@ -6,9 +6,12 @@ import { NAMING_SERVICE, NamingService, IComponentName } from 'core/naming/namin
 import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, ILoadBalancer, IServerGroup, IServerGroupUsage } from 'core/domain';
-import { SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService } from './securityGroupTransformer.service';
+import {
+  SECURITY_GROUP_TRANSFORMER_SERVICE,
+  SecurityGroupTransformerService,
+} from './securityGroupTransformer.service';
 import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
-import { SETTINGS } from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
 import { SEARCH_SERVICE, SearchService, ISearchResults } from 'core/search/search.service';
 import { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
@@ -84,17 +87,14 @@ export interface ISecurityGroupDetail {
 }
 
 export class SecurityGroupReader {
-
   private static indexSecurityGroups(securityGroups: IReaderSecurityGroup[]): ISecurityGroupsByAccount {
     const securityGroupIndex: ISecurityGroupsByAccount = {};
     securityGroups.forEach((securityGroup: IReaderSecurityGroup) => {
-
       const accountName: string = securityGroup.account;
       securityGroupIndex[accountName] = {};
       const accountIndex = securityGroupIndex[accountName];
       forOwn(securityGroup.securityGroups, (groups: ISecurityGroup[], region: string) => {
-
-        const regionIndex: {[key: string]: ISecurityGroup} = {};
+        const regionIndex: { [key: string]: ISecurityGroup } = {};
         accountIndex[region] = regionIndex;
         groups.forEach((group: ISecurityGroup) => {
           group.accountName = accountName;
@@ -112,14 +112,12 @@ export class SecurityGroupReader {
     if (!securityGroup.usages) {
       securityGroup.usages = {
         loadBalancers: [],
-        serverGroups: []
+        serverGroups: [],
       };
     }
   }
 
-  private resolve(index: any,
-                  container: ISecurityGroup,
-                  securityGroupId: string): any {
+  private resolve(index: any, container: ISecurityGroup, securityGroupId: string): any {
     return this.providerServiceDelegate
       .getDelegate<any>(container.provider || container.type || container.cloudProvider, 'securityGroup.reader')
       .resolveIndexedSecurityGroup(index, container, securityGroupId);
@@ -132,8 +130,11 @@ export class SecurityGroupReader {
       if (loadBalancer.securityGroups) {
         loadBalancer.securityGroups.forEach((securityGroupId: string) => {
           try {
-            const securityGroup: ISecurityGroup =
-              this.resolve(application['securityGroupsIndex'], loadBalancer, securityGroupId);
+            const securityGroup: ISecurityGroup = this.resolve(
+              application['securityGroupsIndex'],
+              loadBalancer,
+              securityGroupId,
+            );
             SecurityGroupReader.attachUsageFields(securityGroup);
             if (!securityGroup.usages.loadBalancers.some(lb => lb.name === loadBalancer.name)) {
               securityGroup.usages.loadBalancers.push({ name: loadBalancer.name });
@@ -150,8 +151,10 @@ export class SecurityGroupReader {
     return { notFoundCaught, securityGroups };
   }
 
-  private addNameBasedSecurityGroups(application: Application,
-                                     nameBasedSecurityGroups: ISecurityGroup[]): ISecurityGroupProcessorResult {
+  private addNameBasedSecurityGroups(
+    application: Application,
+    nameBasedSecurityGroups: ISecurityGroup[],
+  ): ISecurityGroupProcessorResult {
     let notFoundCaught = false;
     const securityGroups: ISecurityGroup[] = [];
     nameBasedSecurityGroups.forEach((securityGroup: ISecurityGroup) => {
@@ -175,7 +178,11 @@ export class SecurityGroupReader {
       if (serverGroup.securityGroups) {
         serverGroup.securityGroups.forEach((securityGroupId: string) => {
           try {
-            const securityGroup: ISecurityGroup = this.resolve(application['securityGroupsIndex'], serverGroup, securityGroupId);
+            const securityGroup: ISecurityGroup = this.resolve(
+              application['securityGroupsIndex'],
+              serverGroup,
+              securityGroupId,
+            );
             SecurityGroupReader.attachUsageFields(securityGroup);
             if (!securityGroup.usages.serverGroups.some((sg: IServerGroupUsage) => sg.name === serverGroup.name)) {
               securityGroup.usages.serverGroups.push({
@@ -196,11 +203,12 @@ export class SecurityGroupReader {
     return { notFoundCaught, securityGroups };
   }
 
-  private clearCacheAndRetryAttachingSecurityGroups(application: Application,
-                                                    nameBasedSecurityGroups: ISecurityGroup[]): IPromise<any[]> {
+  private clearCacheAndRetryAttachingSecurityGroups(
+    application: Application,
+    nameBasedSecurityGroups: ISecurityGroup[],
+  ): IPromise<any[]> {
     this.infrastructureCaches.clearCache('securityGroups');
     return this.loadSecurityGroups().then((refreshedSecurityGroups: ISecurityGroupsByAccount) => {
-
       application['securityGroupsIndex'] = refreshedSecurityGroups;
 
       return this.attachSecurityGroups(application, nameBasedSecurityGroups, false);
@@ -213,16 +221,20 @@ export class SecurityGroupReader {
     securityGroup.detail = nameParts.freeFormDetails;
   }
 
-  private attachSecurityGroups(application: Application,
-                               nameBasedSecurityGroups: ISecurityGroup[],
-                               retryIfNotFound: boolean): IPromise<any[]> {
+  private attachSecurityGroups(
+    application: Application,
+    nameBasedSecurityGroups: ISecurityGroup[],
+    retryIfNotFound: boolean,
+  ): IPromise<any[]> {
     let data: ISecurityGroup[] = [];
     let notFoundCaught = false;
     if (nameBasedSecurityGroups) {
       // reset everything
       application.getDataSource('securityGroups').data = [];
-      const nameBasedGroups: ISecurityGroupProcessorResult =
-        this.addNameBasedSecurityGroups(application, nameBasedSecurityGroups);
+      const nameBasedGroups: ISecurityGroupProcessorResult = this.addNameBasedSecurityGroups(
+        application,
+        nameBasedSecurityGroups,
+      );
       notFoundCaught = nameBasedGroups.notFoundCaught;
       if (!nameBasedGroups.notFoundCaught) {
         data = nameBasedGroups.securityGroups;
@@ -231,17 +243,15 @@ export class SecurityGroupReader {
       // filter down to empty (name-based only) security groups - we will repopulate usages
       data = application
         .getDataSource('securityGroups')
-        .data
-        .filter((group: ISecurityGroup) => !group.usages.serverGroups.length && !group.usages.loadBalancers.length);
+        .data.filter(
+          (group: ISecurityGroup) => !group.usages.serverGroups.length && !group.usages.loadBalancers.length,
+        );
     }
 
     if (!notFoundCaught) {
-
-      const loadBalancerSecurityGroups: ISecurityGroupProcessorResult =
-        this.addLoadBalancerSecurityGroups(application);
+      const loadBalancerSecurityGroups: ISecurityGroupProcessorResult = this.addLoadBalancerSecurityGroups(application);
       notFoundCaught = loadBalancerSecurityGroups.notFoundCaught;
       if (!notFoundCaught) {
-
         data = data.concat(loadBalancerSecurityGroups.securityGroups.filter((sg: any) => !data.includes(sg)));
         const serverGroupSecurityGroups: ISecurityGroupProcessorResult = this.addServerGroupSecurityGroups(application);
         notFoundCaught = serverGroupSecurityGroups.notFoundCaught;
@@ -255,23 +265,25 @@ export class SecurityGroupReader {
     if (notFoundCaught && retryIfNotFound) {
       this.$log.warn('Clearing security group cache and trying again...');
       return this.clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
-
     } else {
       data.forEach((sg: ISecurityGroup) => this.addNamePartsToSecurityGroup(sg));
-      return this.$q.all(data.map((sg: ISecurityGroup) => this.securityGroupTransformer.normalizeSecurityGroup(sg)))
+      return this.$q
+        .all(data.map((sg: ISecurityGroup) => this.securityGroupTransformer.normalizeSecurityGroup(sg)))
         .then(() => data);
     }
   }
 
-  constructor(private $log: ILogService,
-              private $q: IQService,
-              private searchService: SearchService,
-              private namingService: NamingService,
-              private API: Api,
-              private infrastructureCaches: InfrastructureCacheService,
-              private securityGroupTransformer: SecurityGroupTransformerService,
-              private providerServiceDelegate: ProviderServiceDelegate,
-              private entityTagsReader: EntityTagsReader) {
+  constructor(
+    private $log: ILogService,
+    private $q: IQService,
+    private searchService: SearchService,
+    private namingService: NamingService,
+    private API: Api,
+    private infrastructureCaches: InfrastructureCacheService,
+    private securityGroupTransformer: SecurityGroupTransformerService,
+    private providerServiceDelegate: ProviderServiceDelegate,
+    private entityTagsReader: EntityTagsReader,
+  ) {
     'ngInject';
   }
 
@@ -283,17 +295,19 @@ export class SecurityGroupReader {
     if (cached) {
       return this.$q.resolve(cached);
     }
-    return this.API.one('securityGroups').useCache().get()
+    return this.API.one('securityGroups')
+      .useCache()
+      .get()
       .then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
-          Object.keys(groupsByAccount).forEach(account => {
-            Object.keys(groupsByAccount[account]).forEach(provider => {
-              Object.keys(groupsByAccount[account][provider]).forEach(region => {
-                groupsByAccount[account][provider][region].forEach(group => {
-                  delete group.moniker;
-                })
-              })
-            })
+        Object.keys(groupsByAccount).forEach(account => {
+          Object.keys(groupsByAccount[account]).forEach(provider => {
+            Object.keys(groupsByAccount[account][provider]).forEach(region => {
+              groupsByAccount[account][provider][region].forEach(group => {
+                delete group.moniker;
+              });
+            });
           });
+        });
         if (cache) {
           cache.put('allGroups', groupsByAccount);
         }
@@ -301,10 +315,12 @@ export class SecurityGroupReader {
       });
   }
 
-  public getApplicationSecurityGroup(application: Application,
-                                     account: string,
-                                     region: string,
-                                     id: string): IApplicationSecurityGroup {
+  public getApplicationSecurityGroup(
+    application: Application,
+    account: string,
+    region: string,
+    id: string,
+  ): IApplicationSecurityGroup {
     let result: IApplicationSecurityGroup = null;
     if (has(application['securityGroupsIndex'], [account, region, id])) {
       result = application['securityGroupsIndex'][account][region][id];
@@ -313,33 +329,36 @@ export class SecurityGroupReader {
     return result;
   }
 
-  public getApplicationSecurityGroups(application: Application,
-                                      nameBasedSecurityGroups: ISecurityGroup[]): IPromise<any> {
+  public getApplicationSecurityGroups(
+    application: Application,
+    nameBasedSecurityGroups: ISecurityGroup[],
+  ): IPromise<any> {
     return this.loadSecurityGroups()
       .then((allSecurityGroups: ISecurityGroupsByAccount) => {
         application['securityGroupsIndex'] = allSecurityGroups;
       })
-      .then(() => this.$q.all([
-        application.getDataSource('serverGroups').ready(),
-        application.getDataSource('loadBalancers').ready()])
-        .then(() => this.attachSecurityGroups(application, nameBasedSecurityGroups, true)));
+      .then(() =>
+        this.$q
+          .all([application.getDataSource('serverGroups').ready(), application.getDataSource('loadBalancers').ready()])
+          .then(() => this.attachSecurityGroups(application, nameBasedSecurityGroups, true)),
+      );
   }
 
-  public getSecurityGroupDetails(application: Application,
-                                 account: string,
-                                 provider: string,
-                                 region: string,
-                                 vpcId: string,
-                                 id: string): IPromise<ISecurityGroupDetail> {
-    return this.API
-      .one('securityGroups')
+  public getSecurityGroupDetails(
+    application: Application,
+    account: string,
+    provider: string,
+    region: string,
+    vpcId: string,
+    id: string,
+  ): IPromise<ISecurityGroupDetail> {
+    return this.API.one('securityGroups')
       .one(account)
       .one(region)
       .one(id)
       .withParams({ provider, vpcId })
       .get()
       .then((details: ISecurityGroupDetail) => {
-
         if (details && details.inboundRules) {
           details.ipRangeRules = details.inboundRules.filter((rule: ISecurityGroupRule & IIPRangeRule) => rule.range);
           details.securityGroupRules = details.inboundRules.filter((rule: ISecurityGroupRule) => rule.securityGroup);
@@ -350,7 +369,8 @@ export class SecurityGroupReader {
                 application,
                 inboundGroup.accountName,
                 details.region,
-                inboundGroup.id);
+                inboundGroup.id,
+              );
               if (applicationSecurityGroup) {
                 inboundGroup.name = applicationSecurityGroup.name;
               } else {
@@ -362,9 +382,12 @@ export class SecurityGroupReader {
         }
         if (SETTINGS.feature.entityTags && application.isStandalone) {
           return this.entityTagsReader.getEntityTagsForId('securitygroup', details.name).then(tags => {
-              details.entityTags = tags.find(t => t.entityRef.entityId === details.name &&
+            details.entityTags = tags.find(
+              t =>
+                t.entityRef.entityId === details.name &&
                 t.entityRef['account'] === account &&
-                t.entityRef['region'] === region);
+                t.entityRef['region'] === region,
+            );
             return details;
           });
         }
@@ -378,7 +401,7 @@ export class SecurityGroupReader {
       forOwn(groupsByAccount, (groupsByProvider, account) => {
         return forOwn(groupsByProvider, (groupsByRegion, provider) => {
           forOwn(groupsByRegion, (groups: ISecurityGroup[]) => {
-            groups.forEach((group) => {
+            groups.forEach(group => {
               group.provider = provider;
               group.account = account;
             });
@@ -392,21 +415,22 @@ export class SecurityGroupReader {
   }
 
   public loadSecurityGroupsByApplicationName(applicationName: string): IPromise<ISecurityGroup[]> {
-    return this.searchService.search<ISecurityGroupSearchResult>({
-      q: applicationName,
-      type: 'securityGroups',
-      pageSize: 1000
-    }).then((searchResults: ISearchResults<ISecurityGroupSearchResult>) => {
+    return this.searchService
+      .search<ISecurityGroupSearchResult>({
+        q: applicationName,
+        type: 'securityGroups',
+        pageSize: 1000,
+      })
+      .then((searchResults: ISearchResults<ISecurityGroupSearchResult>) => {
+        let result: ISecurityGroup[] = [];
+        if (!searchResults || !searchResults.results) {
+          this.$log.warn('WARNING: Gate security group endpoint appears to be down.');
+        } else {
+          result = filter(searchResults.results, { application: applicationName });
+        }
 
-      let result: ISecurityGroup[] = [];
-      if (!searchResults || !searchResults.results) {
-        this.$log.warn('WARNING: Gate security group endpoint appears to be down.');
-      } else {
-        result = filter(searchResults.results, { application: applicationName });
-      }
-
-      return result;
-    });
+        return result;
+      });
   }
 }
 
@@ -419,5 +443,4 @@ module(SECURITY_GROUP_READER, [
   PROVIDER_SERVICE_DELEGATE,
   API_SERVICE,
   ENTITY_TAGS_READ_SERVICE,
-])
-  .service('securityGroupReader', SecurityGroupReader);
+]).service('securityGroupReader', SecurityGroupReader);

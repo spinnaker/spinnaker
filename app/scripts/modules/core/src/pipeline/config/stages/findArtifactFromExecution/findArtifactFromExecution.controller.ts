@@ -29,9 +29,11 @@ export class FindArtifactFromExecutionCtrl implements IController {
     },
   };
 
-  constructor(private $scope: IScope,
-              private applicationReader: ApplicationReader,
-              private pipelineConfigService: PipelineConfigService) {
+  constructor(
+    private $scope: IScope,
+    private applicationReader: ApplicationReader,
+    private pipelineConfigService: PipelineConfigService,
+  ) {
     'ngInject';
     this.stage = this.$scope.stage as IFindArtifactFromExecutionStage;
     if (this.$scope.stage.isNew) {
@@ -43,25 +45,25 @@ export class FindArtifactFromExecutionCtrl implements IController {
         id: UUIDGenerator.generateUuid(),
         matchArtifact: {
           kind: 'custom',
-        } as IArtifact
+        } as IArtifact,
       } as IExpectedArtifact;
     }
 
     this.loadApplications();
     this.loadPipelines();
-  };
+  }
 
   private loadApplications() {
-    this.applicationReader.listApplications().then((apps) => {
+    this.applicationReader.listApplications().then(apps => {
       this.state.applications = apps.map(a => a.name);
       this.state.applicationsLoaded = true;
-    })
+    });
   }
 
   private loadPipelines() {
     this.state.pipelinesLoaded = false;
     if (this.stage.application) {
-      this.pipelineConfigService.getPipelinesForApplication(this.stage.application).then((ps) => {
+      this.pipelineConfigService.getPipelinesForApplication(this.stage.application).then(ps => {
         this.state.pipelines = ps.filter(p => p.id !== this.$scope.pipeline.id);
         this.state.pipelinesLoaded = true;
       });
@@ -70,9 +72,9 @@ export class FindArtifactFromExecutionCtrl implements IController {
 
   public addMoreApplications() {
     this.state.infiniteScroll.currentItems += this.state.infiniteScroll.numToAdd;
-  };
+  }
 
   public onApplicationSelect() {
     this.loadPipelines();
-  };
+  }
 }

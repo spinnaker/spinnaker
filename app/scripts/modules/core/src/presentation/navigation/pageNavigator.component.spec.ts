@@ -6,22 +6,29 @@ import { INavigationPage } from './pageNavigationState';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 
 describe('Component: Page Navigator', () => {
-
   let $compile: ng.ICompileService,
-      $scope: ng.IScope,
-      $timeout: ng.ITimeoutService,
-      elem: JQuery,
-      scrollToService: ScrollToService;
+    $scope: ng.IScope,
+    $timeout: ng.ITimeoutService,
+    elem: JQuery,
+    scrollToService: ScrollToService;
 
   beforeEach(mock.module(PAGE_NAVIGATOR_COMPONENT));
 
-  beforeEach(mock.inject((_$compile_: ng.ICompileService, $rootScope: ng.IScope,
-                                  _$timeout_: ng.ITimeoutService, _scrollToService_: ScrollToService) => {
-    $compile = _$compile_;
-    $scope = $rootScope.$new();
-    $timeout = _$timeout_;
-    scrollToService = _scrollToService_;
-  }));
+  beforeEach(
+    mock.inject(
+      (
+        _$compile_: ng.ICompileService,
+        $rootScope: ng.IScope,
+        _$timeout_: ng.ITimeoutService,
+        _scrollToService_: ScrollToService,
+      ) => {
+        $compile = _$compile_;
+        $scope = $rootScope.$new();
+        $timeout = _$timeout_;
+        scrollToService = _scrollToService_;
+      },
+    ),
+  );
 
   const initialize = (pages: INavigationPage[]) => {
     $scope['pages'] = pages;
@@ -44,10 +51,7 @@ describe('Component: Page Navigator', () => {
 
   describe('initialization', () => {
     it('renders all pages when no visible flag is set', () => {
-      const pages = [
-        { key: '1', label: 'Page 1' },
-        { key: '2', label: 'Page 2' }
-      ];
+      const pages = [{ key: '1', label: 'Page 1' }, { key: '2', label: 'Page 2' }];
       initialize(pages);
       expect(elem.find('h4').length).toBe(2);
       expect(elem.find('h4:eq(0)')).textMatch('Page 1');
@@ -55,10 +59,7 @@ describe('Component: Page Navigator', () => {
     });
 
     it('renders pages conditionally based on visible flag', () => {
-      const pages = [
-        { key: '1', label: 'Page 1', visible: true },
-        { key: '2', label: 'Page 2', visible: false }
-      ];
+      const pages = [{ key: '1', label: 'Page 1', visible: true }, { key: '2', label: 'Page 2', visible: false }];
       initialize(pages);
       expect(elem.find('h4').length).toBe(1);
       expect(elem.find('h4:eq(0)')).textMatch('Page 1');
@@ -75,10 +76,7 @@ describe('Component: Page Navigator', () => {
       spyOn(scrollToService, 'scrollTo');
     });
     it('scrolls to selected page and adds a highlighted class, removing from previously highlighted ones', () => {
-      const pages = [
-        { key: '1', label: 'Page 1' },
-        { key: '2', label: 'Page 2' }
-      ];
+      const pages = [{ key: '1', label: 'Page 1' }, { key: '2', label: 'Page 2' }];
       initialize(pages);
       $scope.$digest();
       const navigator: JQuery = elem.find('.page-navigation');

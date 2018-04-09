@@ -5,47 +5,56 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuration.service', [
-  ACCOUNT_SERVICE,
-  SECURITY_GROUP_READER,
-  CACHE_INITIALIZER_SERVICE,
-  require('../../image/image.reader.js').name,
-  require('../../instance/cfInstanceTypeService.js').name,
-])
-  .factory('cfServerGroupConfigurationService', function(cfImageReader, accountService, securityGroupReader,
-                                                         cfInstanceTypeService, cacheInitializer, $q) {
-
-
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.cf.configuration.service', [
+    ACCOUNT_SERVICE,
+    SECURITY_GROUP_READER,
+    CACHE_INITIALIZER_SERVICE,
+    require('../../image/image.reader.js').name,
+    require('../../instance/cfInstanceTypeService.js').name,
+  ])
+  .factory('cfServerGroupConfigurationService', function(
+    cfImageReader,
+    accountService,
+    securityGroupReader,
+    cfInstanceTypeService,
+    cacheInitializer,
+    $q,
+  ) {
     function configureCommand(command) {
-      return $q.all({
-        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('cf'),
-        securityGroups: securityGroupReader.getAllSecurityGroups(),
-        instanceTypes: cfInstanceTypeService.getAllTypesByRegion()
-      }).then(function(backingData) {
-        var securityGroupReloader = $q.when(null);
-        backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
-        backingData.filtered = {};
-        command.backingData = backingData;
-        configureImages(command);
+      return $q
+        .all({
+          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('cf'),
+          securityGroups: securityGroupReader.getAllSecurityGroups(),
+          instanceTypes: cfInstanceTypeService.getAllTypesByRegion(),
+        })
+        .then(function(backingData) {
+          var securityGroupReloader = $q.when(null);
+          backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
+          backingData.filtered = {};
+          command.backingData = backingData;
+          configureImages(command);
 
-        if (command.securityGroups && command.securityGroups.length) {
-          // Verify all security groups are accounted for; otherwise, try refreshing security groups cache.
-          var securityGroupIds = _.map(getSecurityGroups(command), 'id');
-          if (_.intersection(command.securityGroups, securityGroupIds).length < command.securityGroups.length) {
-            securityGroupReloader = refreshSecurityGroups(command, true);
+          if (command.securityGroups && command.securityGroups.length) {
+            // Verify all security groups are accounted for; otherwise, try refreshing security groups cache.
+            var securityGroupIds = _.map(getSecurityGroups(command), 'id');
+            if (_.intersection(command.securityGroups, securityGroupIds).length < command.securityGroups.length) {
+              securityGroupReloader = refreshSecurityGroups(command, true);
+            }
           }
-        }
 
-        return $q.all([securityGroupReloader, ]).then(function() {
-          attachEventHandlers(command);
+          return $q.all([securityGroupReloader]).then(function() {
+            attachEventHandlers(command);
+          });
         });
-      });
     }
 
     function configureInstanceTypes(command) {
       var result = { dirty: {} };
       if (command.region) {
-        var filtered = cfInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
+        var filtered = cfInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [
+          command.region,
+        ]);
         if (command.instanceType && !filtered.includes(command.instanceType)) {
           command.instanceType = null;
           result.dirty.instanceType = true;
@@ -62,7 +71,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
     }
 
     function getSecurityGroups(command) {
-      var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { cf: {}};
+      var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { cf: {} };
       newSecurityGroups = _.filter(newSecurityGroups.cf.global, function(securityGroup) {
         return securityGroup.network === command.network;
       });
@@ -78,19 +87,31 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
         var currentGroupNames = command.securityGroups.map(function(groupId) {
-          var match = _.chain(currentOptions).find({id: groupId}).value();
+          var match = _.chain(currentOptions)
+            .find({ id: groupId })
+            .value();
           return match ? match.name : groupId;
         });
 
-        var matchedGroups = command.securityGroups.map(function(groupId) {
-          var securityGroup = _.chain(currentOptions).find({id: groupId}).value() ||
-              _.chain(currentOptions).find({name: groupId}).value();
-          return securityGroup ? securityGroup.name : null;
-        }).map(function(groupName) {
-          return _.chain(newSecurityGroups).find({name: groupName}).value();
-        }).filter(function(group) {
-          return group;
-        });
+        var matchedGroups = command.securityGroups
+          .map(function(groupId) {
+            var securityGroup =
+              _.chain(currentOptions)
+                .find({ id: groupId })
+                .value() ||
+              _.chain(currentOptions)
+                .find({ name: groupId })
+                .value();
+            return securityGroup ? securityGroup.name : null;
+          })
+          .map(function(groupName) {
+            return _.chain(newSecurityGroups)
+              .find({ name: groupName })
+              .value();
+          })
+          .filter(function(group) {
+            return group;
+          });
 
         var matchedGroupNames = _.map(matchedGroups, 'name');
         var removed = _.xor(currentGroupNames, matchedGroupNames);
@@ -137,7 +158,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
     }
 
     function attachEventHandlers(command) {
-
       command.regionChanged = function regionChanged() {
         var result = { dirty: {} };
         if (command.region) {
@@ -155,7 +175,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
-          backingData.filtered.regions = Object.keys(backingData.credentialsKeyedByAccount[command.credentials].regions);
+          backingData.filtered.regions = Object.keys(
+            backingData.credentialsKeyedByAccount[command.credentials].regions,
+          );
           if (!backingData.filtered.regions.includes(command.region)) {
             command.region = null;
             result.dirty.region = true;
@@ -191,6 +213,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.configuratio
       refreshSecurityGroups: refreshSecurityGroups,
       refreshInstanceTypes: refreshInstanceTypes,
     };
-
-
   });

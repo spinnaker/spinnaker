@@ -15,14 +15,20 @@ export function anyFieldFilter() {
     let out: any[] = [];
 
     if (Array.isArray(items)) {
-      items.forEach(function (item) {
+      items.forEach(function(item) {
         let itemMatches = false;
 
         const keys: any[] = Object.keys(props);
         for (let i = 0; i < keys.length; i++) {
           const prop: any = keys[i];
           const text: string = (<any>props)[prop].toLowerCase();
-          if (item[prop] && item[prop].toString().toLowerCase().includes(text)) {
+          if (
+            item[prop] &&
+            item[prop]
+              .toString()
+              .toLowerCase()
+              .includes(text)
+          ) {
             itemMatches = true;
             break;
           }
@@ -42,5 +48,4 @@ export function anyFieldFilter() {
 }
 
 export const ANY_FIELD_FILTER = 'spinnaker.core.presentation.anyFieldFilter';
-module(ANY_FIELD_FILTER, [])
-  .filter('anyFieldFilter', anyFieldFilter);
+module(ANY_FIELD_FILTER, []).filter('anyFieldFilter', anyFieldFilter);

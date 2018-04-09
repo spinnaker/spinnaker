@@ -4,7 +4,8 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableAsgStage', [])
+module.exports = angular
+  .module('spinnaker.dcos.pipeline.stage.disableAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -15,28 +16,28 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableAsgStage',
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('dcosDisableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('dcosDisableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('dcos').then(function (accounts) {
+    accountService.listAccounts('dcos').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
-
 
     $scope.targets = StageConstants.TARGET_LIST;
 
@@ -53,5 +54,4 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableAsgStage',
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-
   });

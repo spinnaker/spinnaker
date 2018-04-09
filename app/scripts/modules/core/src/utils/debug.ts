@@ -28,7 +28,7 @@ export const DebugTiming = (label?: string) => (target: any, propertyKey: string
     const delta = now() - start;
     log(`${label} ${delta} ms`);
     return result;
-  }
+  };
 };
 
 /**
@@ -41,7 +41,11 @@ export const DebugTiming = (label?: string) => (target: any, propertyKey: string
  *   }
  * }
  */
-export const DebugTimingCumulative = (label?: string, logInterval = 5000) => (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+export const DebugTimingCumulative = (label?: string, logInterval = 5000) => (
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor,
+) => {
   const fn = descriptor.value;
   let count = 0;
   label = padStart(label ? label : getMethodName(target, propertyKey), 50);
@@ -51,8 +55,7 @@ export const DebugTimingCumulative = (label?: string, logInterval = 5000) => (ta
     count++;
     const start = now();
     const result = fn.apply(this, arguments);
-    cumulativeTime += (now() - start);
+    cumulativeTime += now() - start;
     return result;
-  }
+  };
 };
-

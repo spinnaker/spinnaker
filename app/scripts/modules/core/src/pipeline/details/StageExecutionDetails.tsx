@@ -32,7 +32,7 @@ export interface IExecutionStateParams {
 
 export class StageExecutionDetails extends React.Component<IStageExecutionDetailsProps, IStageExecutionDetailsState> {
   public static defaultProps: Partial<IStageExecutionDetailsProps> = {
-    standalone: false
+    standalone: false,
   };
 
   private groupsUpdatedSubscription: Subscription;
@@ -54,7 +54,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
       }
       if (summary.type === 'group' && summary.groupStages) {
         summary.groupStages.some((groupStage, subIndex) => {
-          stepIndex = (groupStage.stages || []).findIndex((gs) => gs.id === stageId);
+          stepIndex = (groupStage.stages || []).findIndex(gs => gs.id === stageId);
           if (stepIndex !== -1) {
             step = stepIndex;
             stage = index;
@@ -76,7 +76,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   private getStageParamsFromRefId(refId: string, summaries: IExecutionStageSummary[]): IExecutionStateParams {
     let stage, subStage;
 
-    const stageIndex = summaries.findIndex((summary) => summary.refId === refId);
+    const stageIndex = summaries.findIndex(summary => summary.refId === refId);
     if (stageIndex !== -1) {
       return { stage: stageIndex, refId: null };
     }
@@ -99,8 +99,14 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
     return { refId: null };
   }
 
-  private validateStageExists(summaries: IExecutionStageSummary[], stage: number, subStage: number): { stage: number, subStage: number } {
-    if (isNaN(subStage)) { subStage = undefined; }
+  private validateStageExists(
+    summaries: IExecutionStageSummary[],
+    stage: number,
+    subStage: number,
+  ): { stage: number; subStage: number } {
+    if (isNaN(subStage)) {
+      subStage = undefined;
+    }
     const foundStage = summaries[stage];
     let foundSubStage;
 
@@ -117,7 +123,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
     return { stage, subStage };
   }
 
-  private getCurrentStage(summaries: IExecutionStageSummary[]): { stage: number, subStage: number } {
+  private getCurrentStage(summaries: IExecutionStageSummary[]): { stage: number; subStage: number } {
     const { $state, $stateParams } = ReactInjector;
     if ($stateParams.stageId) {
       const params = this.getStageParamsFromStageId($stateParams.stageId, summaries);
@@ -194,7 +200,9 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   public componentDidMount(): void {
     this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => this.updateStage());
     // Since stages and tasks can get updated without the reference to the execution changing, subscribe to the execution updated stream here too
-    this.groupsUpdatedSubscription = ReactInjector.executionFilterService.groupsUpdatedStream.subscribe(() => this.updateStage());
+    this.groupsUpdatedSubscription = ReactInjector.executionFilterService.groupsUpdatedStream.subscribe(() =>
+      this.updateStage(),
+    );
 
     this.updateStage();
   }
@@ -214,7 +222,13 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
 
     return (
       <div className="execution-details">
-        <StageSummary application={application} execution={execution} config={summaryStageConfig} stage={stage} stageSummary={stageSummary} />
+        <StageSummary
+          application={application}
+          execution={execution}
+          config={summaryStageConfig}
+          stage={stage}
+          stageSummary={stageSummary}
+        />
         <StepDetails application={application} execution={execution} stage={stage} config={detailsStageConfig} />
       </div>
     );

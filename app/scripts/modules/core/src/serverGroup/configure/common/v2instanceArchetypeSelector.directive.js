@@ -2,17 +2,18 @@
 
 import _ from 'lodash';
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
+import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { V2_MODAL_WIZARD_SERVICE } from 'core/modal/wizard/v2modalWizard.service';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector', [
-  require('./costFactor.js').name,
-  require('../../../presentation/isVisible/isVisible.directive.js').name,
-  V2_MODAL_WIZARD_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
+module.exports = angular
+  .module('spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector', [
+    require('./costFactor.js').name,
+    require('../../../presentation/isVisible/isVisible.directive.js').name,
+    V2_MODAL_WIZARD_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
   .directive('v2InstanceArchetypeSelector', function() {
     return {
       restrict: 'E',
@@ -21,12 +22,18 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
       },
       templateUrl: require('./v2instanceArchetype.directive.html'),
       controller: 'v2InstanceArchetypeSelectorCtrl',
-      controllerAs: 'instanceArchetypeCtrl'
+      controllerAs: 'instanceArchetypeCtrl',
     };
   })
-  .controller('v2InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService, infrastructureCaches,
-                                                        serverGroupConfigurationService,
-                                                        v2modalWizardService, $log, cloudProviderRegistry) {
+  .controller('v2InstanceArchetypeSelectorCtrl', function(
+    $scope,
+    instanceTypeService,
+    infrastructureCaches,
+    serverGroupConfigurationService,
+    v2modalWizardService,
+    $log,
+    cloudProviderRegistry,
+  ) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
@@ -42,7 +49,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
       controller.selectInstanceType($scope.command.viewState.instanceProfile);
     });
 
-    this.selectInstanceType = function (type) {
+    this.selectInstanceType = function(type) {
       if ($scope.selectedInstanceProfile && $scope.selectedInstanceProfile.type === type) {
         type = null;
         $scope.selectedInstanceProfile = null;
@@ -53,9 +60,8 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
           $scope.selectedInstanceProfile = profile;
           let current = $scope.command.instanceType;
           if (current && !_.includes(['custom', 'buildCustom'], profile.type)) {
-            let found = profile.families
-              .some((family) => family.instanceTypes.
-                some((instanceType) => instanceType.name === current && !instanceType.unavailable)
+            let found = profile.families.some(family =>
+              family.instanceTypes.some(instanceType => instanceType.name === current && !instanceType.unavailable),
             );
             if (!found) {
               $scope.command.instanceType = null;
@@ -76,9 +82,11 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
     $scope.$watch('command.instanceType', this.updateInstanceType);
 
     this.updateInstanceTypeDetails = () => {
-      instanceTypeService.getInstanceTypeDetails($scope.command.selectedProvider, $scope.command.instanceType).then(function(instanceTypeDetails) {
-        $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
-      });
+      instanceTypeService
+        .getInstanceTypeDetails($scope.command.selectedProvider, $scope.command.instanceType)
+        .then(function(instanceTypeDetails) {
+          $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
+        });
     };
 
     if ($scope.command.region && $scope.command.instanceType && !$scope.command.viewState.instanceProfile) {
@@ -91,10 +99,12 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
 
     this.refreshInstanceTypes = function() {
       controller.refreshing = true;
-      serverGroupConfigurationService.refreshInstanceTypes($scope.command.selectedProvider, $scope.command).then(function() {
-        setInstanceTypeRefreshTime();
-        controller.refreshing = false;
-      });
+      serverGroupConfigurationService
+        .refreshInstanceTypes($scope.command.selectedProvider, $scope.command)
+        .then(function() {
+          setInstanceTypeRefreshTime();
+          controller.refreshing = false;
+        });
     };
 
     // if there are no instance types in the cache, try to reload them
@@ -106,10 +116,9 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
 
     setInstanceTypeRefreshTime();
 
-    this.getInstanceBuilderTemplate = cloudProviderRegistry
-      .getValue
-      .bind(cloudProviderRegistry,
-        $scope.command.cloudProvider,
-        'instance.customInstanceBuilderTemplateUrl');
-
+    this.getInstanceBuilderTemplate = cloudProviderRegistry.getValue.bind(
+      cloudProviderRegistry,
+      $scope.command.cloudProvider,
+      'instance.customInstanceBuilderTemplateUrl',
+    );
   });

@@ -23,7 +23,6 @@ export interface ITargetTrackingPolicyCommand extends IUpsertScalingPolicyComman
 }
 
 export class UpsertTargetTrackingController implements IComponentController {
-
   public predefinedMetrics = ['ASGAverageCPUUtilization', 'ASGAverageNetworkOut', 'ASGAverageNetworkIn'];
   public statistics = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
   public alarmUpdated = new Subject();
@@ -32,19 +31,19 @@ export class UpsertTargetTrackingController implements IComponentController {
   public state: ITargetTrackingState;
   public command: ITargetTrackingPolicyCommand;
 
-  constructor(private $uibModalInstance: IModalServiceInstance,
-              private scalingPolicyWriter: ScalingPolicyWriter,
-              private taskMonitorBuilder: TaskMonitorBuilder,
-              public policy: ITargetTrackingPolicy,
-              public serverGroup: IServerGroup,
-              public application: Application) {
+  constructor(
+    private $uibModalInstance: IModalServiceInstance,
+    private scalingPolicyWriter: ScalingPolicyWriter,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    public policy: ITargetTrackingPolicy,
+    public serverGroup: IServerGroup,
+    public application: Application,
+  ) {
     'ngInject';
   }
 
   public $onInit() {
-    const metricType = this.policy.targetTrackingConfiguration.customizedMetricSpecification ?
-      'custom' :
-      'predefined';
+    const metricType = this.policy.targetTrackingConfiguration.customizedMetricSpecification ? 'custom' : 'predefined';
     this.command = this.buildCommand();
     this.state = {
       metricType,
@@ -88,7 +87,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       application: this.application,
       title: `${action} scaling policy for ${this.serverGroup.name}`,
       modalInstance: this.$uibModalInstance,
-      submitMethod: () => this.scalingPolicyWriter.upsertScalingPolicy(this.application, command)
+      submitMethod: () => this.scalingPolicyWriter.upsertScalingPolicy(this.application, command),
     });
 
     this.taskMonitor.submit();
@@ -107,5 +106,4 @@ export class UpsertTargetTrackingController implements IComponentController {
       targetTrackingConfiguration: Object.assign({}, this.policy.targetTrackingConfiguration),
     };
   }
-
 }

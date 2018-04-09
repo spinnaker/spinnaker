@@ -4,38 +4,40 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.pipeline.stage.destroyAsgStage', [ACCOUNT_SERVICE])
+module.exports = angular
+  .module('spinnaker.azure.pipeline.stage.destroyAsgStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
       cloudProvider: 'azure',
       templateUrl: require('./destroyAsgStage.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('azureDestroyAsgStageCtrl', function($scope, accountService) {
+  })
+  .controller('azureDestroyAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-
-    accountService.listAccounts('azure').then(function (accounts) {
+    accountService.listAccounts('azure').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -43,7 +45,7 @@ module.exports = angular.module('spinnaker.azure.pipeline.stage.destroyAsgStage'
     ctrl.accountUpdated = function() {
       accountService.getAccountDetails(stage.credentials).then(function(details) {
         stage.regions = [details.org];
-//        stage.regions = ['eastus', 'westus'];
+        //        stage.regions = ['eastus', 'westus'];
       });
     };
 
@@ -64,6 +66,4 @@ module.exports = angular.module('spinnaker.azure.pipeline.stage.destroyAsgStage'
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-
   });
-

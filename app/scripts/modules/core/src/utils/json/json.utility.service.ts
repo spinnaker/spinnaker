@@ -30,7 +30,6 @@ export interface IJsonDiff {
 }
 
 export class JsonUtilityService {
-
   private generateDiff(left: string, right: string): [[number, string]] {
     const dmp: any = new DiffMatchPatch();
     const a = dmp.diff_linesToChars_(left, right);
@@ -44,16 +43,18 @@ export class JsonUtilityService {
       return o;
     }
     // sorting based on http://stackoverflow.com/questions/5467129/sort-javascript-object-by-key/29622653#29622653
-    return Object.keys(o).sort().reduce((r: any, k: string) => {
-      if (isPlainObject(o[k])) {
-        r[k] = this.sortObject(o[k]);
-      } else if (isArray(o[k])) {
-        r[k] = o[k].map((o2: any) => this.sortObject(o2));
-      } else {
-        r[k] = o[k];
-      }
-      return r;
-    }, {});
+    return Object.keys(o)
+      .sort()
+      .reduce((r: any, k: string) => {
+        if (isPlainObject(o[k])) {
+          r[k] = this.sortObject(o[k]);
+        } else if (isArray(o[k])) {
+          r[k] = o[k].map((o2: any) => this.sortObject(o2));
+        } else {
+          r[k] = o[k];
+        }
+        return r;
+      }, {});
   }
 
   private makeSortedString(str: string): string {
@@ -89,7 +90,10 @@ export class JsonUtilityService {
     }
     const diffs = this.generateDiff(left, right);
     const diffLines: IDiffDetails[] = [];
-    let additions = 0, removals = 0, unchanged = 0, total = 0;
+    let additions = 0,
+      removals = 0,
+      unchanged = 0,
+      total = 0;
     const changeBlocks: IChangeBlock[] = [];
     diffs.forEach(diff => {
       const lines = diff[1].split('\n');

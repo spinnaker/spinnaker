@@ -1,43 +1,39 @@
 'use strict';
 
 describe('dcosServerGroupEnvironmentVariablesController', function() {
-
   var controller;
   var scope;
 
+  beforeEach(window.module(require('./environmentVariables.controller.js').name));
+
   beforeEach(
-    window.module(
-      require('./environmentVariables.controller.js').name
-    )
+    window.inject(function($rootScope, $controller) {
+      scope = $rootScope.$new();
+
+      scope.command = {};
+      scope.command.secrets = [];
+      scope.command.viewModel = {};
+
+      controller = $controller('dcosServerGroupEnvironmentVariablesController', {
+        $scope: scope,
+      });
+    }),
   );
 
-  beforeEach(window.inject(function ($rootScope, $controller) {
-    scope = $rootScope.$new();
-
-    scope.command = {};
-    scope.command.secrets = [];
-    scope.command.viewModel = {};
-
-    controller = $controller('dcosServerGroupEnvironmentVariablesController', {
-      $scope: scope,
-    });
-  }));
-
-  describe('Environment Variables', function () {
-
+  describe('Environment Variables', function() {
     beforeEach(function() {
       scope.command.env = {};
       scope.command.secrets = [];
       scope.command.viewModel.env = [];
     });
 
-    it('Environment Variables spec 1', function () {
+    it('Environment Variables spec 1', function() {
       controller.addEnvironmentVariable();
 
       expect(scope.command.viewModel.env.length).toEqual(1);
     });
 
-    it('Environment Variables spec 2', function () {
+    it('Environment Variables spec 2', function() {
       var index = 0;
 
       controller.addEnvironmentVariable();
@@ -51,12 +47,12 @@ describe('dcosServerGroupEnvironmentVariablesController', function() {
       controller.synchronize();
 
       expect(scope.command.viewModel.env.length).toEqual(1);
-      expect(scope.command.env['Key']).toEqual({secret: 'secret0'});
+      expect(scope.command.env['Key']).toEqual({ secret: 'secret0' });
 
       expect(Object.keys(scope.command.secrets).length).toEqual(1);
     });
 
-    it('Environment Variables spec 3', function () {
+    it('Environment Variables spec 3', function() {
       var index = 0;
 
       controller.addEnvironmentVariable();
@@ -76,7 +72,7 @@ describe('dcosServerGroupEnvironmentVariablesController', function() {
       expect(Object.keys(scope.command.secrets).length).toEqual(0);
     });
 
-    it('Environment Variables spec 4', function () {
+    it('Environment Variables spec 4', function() {
       var index = 0;
 
       controller.addEnvironmentVariable();
@@ -90,7 +86,7 @@ describe('dcosServerGroupEnvironmentVariablesController', function() {
       expect(scope.command.viewModel.env[index].value).toEqual(scope.command.viewModel.env[index].rawValue);
     });
 
-    it('Environment Variables spec 5', function () {
+    it('Environment Variables spec 5', function() {
       var index = 0;
 
       controller.addEnvironmentVariable();
@@ -106,14 +102,14 @@ describe('dcosServerGroupEnvironmentVariablesController', function() {
       expect(scope.command.secrets['secret' + index].source).toEqual(scope.command.viewModel.env[index].rawValue);
     });
 
-    it('Environment Variables spec 6', function () {
+    it('Environment Variables spec 6', function() {
       controller.addEnvironmentVariable();
       controller.removeEnvironmentVariable(0);
 
       expect(scope.command.viewModel.env.length).toEqual(0);
     });
 
-    it('Environment Variables spec 7', function () {
+    it('Environment Variables spec 7', function() {
       var index = 0;
 
       controller.addEnvironmentVariable();
@@ -134,7 +130,6 @@ describe('dcosServerGroupEnvironmentVariablesController', function() {
 
       expect(scope.command.viewModel.env.length).toEqual(1);
       expect(Object.keys(scope.command.secrets).length).toEqual(0);
-
     });
   });
 });

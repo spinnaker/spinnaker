@@ -4,16 +4,20 @@ const angular = require('angular');
 
 import { API_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.image.reader', [API_SERVICE])
-  .factory('gceImageReader', function ($q, API) {
-
+module.exports = angular
+  .module('spinnaker.gce.image.reader', [API_SERVICE])
+  .factory('gceImageReader', function($q, API) {
     function findImages(params) {
-      return API.all('images/find').getList(params).then(function(results) {
-          return results;
-        },
-        function() {
-          return [];
-        });
+      return API.all('images/find')
+        .getList(params)
+        .then(
+          function(results) {
+            return results;
+          },
+          function() {
+            return [];
+          },
+        );
     }
 
     function getImage(/*amiName, region, credentials*/) {

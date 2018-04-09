@@ -1,7 +1,6 @@
 import { DeckCacheService, ICache, ICacheConfig, ICacheMap, ICacheFactory } from './deckCache.service';
 
 export abstract class AbstractBaseCacheService implements ICacheFactory {
-
   protected caches: ICacheMap = Object.create(null);
 
   constructor(private deckCacheFactory: DeckCacheService) {}

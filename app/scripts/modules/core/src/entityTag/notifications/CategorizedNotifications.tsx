@@ -47,7 +47,10 @@ export interface ICategorizedNotificationsState {
  * +------------------+-----------------------------------+
  */
 @BindAll()
-export class CategorizedNotifications extends React.Component<ICategorizedNotificationsProps, ICategorizedNotificationsState> {
+export class CategorizedNotifications extends React.Component<
+  ICategorizedNotificationsProps,
+  ICategorizedNotificationsState
+> {
   public state: ICategorizedNotificationsState;
 
   constructor(props: ICategorizedNotificationsProps) {
@@ -97,27 +100,28 @@ export class CategorizedNotifications extends React.Component<ICategorizedNotifi
       return null;
     }
 
-    const selectedNotifications: INotification[] = categorizedAlerts.find(tuple => tuple.category === selectedCategory).notifications;
+    const selectedNotifications: INotification[] = categorizedAlerts.find(tuple => tuple.category === selectedCategory)
+      .notifications;
 
     return (
       <div className="flex-container-h">
         <ul className="list-group notification-categories">
-          { categorizedAlerts.map(({ category, notifications }) => (
-              <NotificationCategory
-                isSelected={category === selectedCategory}
-                key={category.id}
-                category={category}
-                notifications={notifications}
-                onCategorySelected={this.handleCategorySelected}
-              />
-            )
-          )}
+          {categorizedAlerts.map(({ category, notifications }) => (
+            <NotificationCategory
+              isSelected={category === selectedCategory}
+              key={category.id}
+              category={category}
+              notifications={notifications}
+              onCategorySelected={this.handleCategorySelected}
+            />
+          ))}
         </ul>
 
-        { this.props.grouped ?
-          <GroupedNotificationList notifications={selectedNotifications} /> :
+        {this.props.grouped ? (
+          <GroupedNotificationList notifications={selectedNotifications} />
+        ) : (
           <NotificationList notifications={selectedNotifications} onEditTag={onEditTag} onDeleteTag={onDeleteTag} />
-        }
+        )}
       </div>
     );
   }

@@ -12,7 +12,9 @@ interface IAppengineServerGroupWriteJob extends IJob {
 }
 
 export class AppengineServerGroupWriter {
-  constructor(private taskExecutor: TaskExecutor) { 'ngInject'; }
+  constructor(private taskExecutor: TaskExecutor) {
+    'ngInject';
+  }
 
   public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
     const job = this.buildJob(serverGroup, application, 'startAppEngineServerGroup');
@@ -38,19 +40,25 @@ export class AppengineServerGroupWriter {
     return this.taskExecutor.executeTask(command);
   }
 
-  private buildJob(serverGroup: IAppengineServerGroup, application: Application, type: string): IAppengineServerGroupWriteJob {
+  private buildJob(
+    serverGroup: IAppengineServerGroup,
+    application: Application,
+    type: string,
+  ): IAppengineServerGroupWriteJob {
     return {
       type,
       region: serverGroup.region,
       serverGroupName: serverGroup.name,
       credentials: serverGroup.account,
       cloudProvider: 'appengine',
-      application: application.name
+      application: application.name,
     };
   }
 }
 
 export const APPENGINE_SERVER_GROUP_WRITER = 'spinnaker.appengine.serverGroup.write.service';
 
-module(APPENGINE_SERVER_GROUP_WRITER, [TASK_EXECUTOR])
-  .service('appengineServerGroupWriter', AppengineServerGroupWriter);
+module(APPENGINE_SERVER_GROUP_WRITER, [TASK_EXECUTOR]).service(
+  'appengineServerGroupWriter',
+  AppengineServerGroupWriter,
+);

@@ -27,8 +27,9 @@ export class LoadBalancers extends React.Component<IServerGroupHeaderProps> {
   public render() {
     const { application, serverGroup } = this.props;
     const hasLoadBalancer = !!get(serverGroup, 'loadBalancers.length') || !!get(serverGroup, 'targetGroups.length');
-    return hasLoadBalancer &&
-      <LoadBalancersTagWrapper key="lbwrapper" application={application} serverGroup={serverGroup}/>;
+    return (
+      hasLoadBalancer && <LoadBalancersTagWrapper key="lbwrapper" application={application} serverGroup={serverGroup} />
+    );
   }
 }
 
@@ -36,14 +37,14 @@ export class MultiSelectCheckbox extends React.Component<IServerGroupHeaderProps
   public render() {
     // ServerGroup.tsx handles multi-select events and state
     const { isMultiSelected, sortFilter: { multiselect } } = this.props;
-    return multiselect && <input type="checkbox" checked={isMultiSelected}/>;
+    return multiselect && <input type="checkbox" checked={isMultiSelected} />;
   }
 }
 
 export class CloudProviderIcon extends React.Component<IServerGroupHeaderProps> {
   public render() {
     const { serverGroup } = this.props;
-    return <CloudProviderLogo provider={serverGroup.type} height="16px" width="16px"/>;
+    return <CloudProviderLogo provider={serverGroup.type} height="16px" width="16px" />;
   }
 }
 
@@ -54,13 +55,21 @@ export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeade
     return (
       <div>
         {!!serverGroupSequence && <span className="server-group-sequence"> {serverGroupSequence}</span>}
-        {(!!serverGroupSequence && (!!jenkins || !!images)) && <span>: </span>}
-        {!!jenkins && <a className="build-link" href={jenkins.href} target="_blank">Build: #{jenkins.number}</a>}
-        {!!docker && <a className="build-link" href={docker.href} target="_blank">{docker.image}:{docker.tag}</a>}
+        {!!serverGroupSequence && (!!jenkins || !!images) && <span>: </span>}
+        {!!jenkins && (
+          <a className="build-link" href={jenkins.href} target="_blank">
+            Build: #{jenkins.number}
+          </a>
+        )}
+        {!!docker && (
+          <a className="build-link" href={docker.href} target="_blank">
+            {docker.image}:{docker.tag}
+          </a>
+        )}
         {!!images && <span>{images}</span>}
       </div>
     );
-  };
+  }
 }
 
 export class Alerts extends React.Component<IServerGroupHeaderProps> {
@@ -77,14 +86,14 @@ export class Alerts extends React.Component<IServerGroupHeaderProps> {
         placement="top"
       />
     );
-  };
+  }
 }
 
 @Overridable('serverGroups.pod.header.health')
 export class Health extends React.Component<IServerGroupHeaderProps> {
   public render() {
     const { serverGroup } = this.props;
-    return <HealthCounts className="no-float" container={serverGroup.instanceCounts}/>;
+    return <HealthCounts className="no-float" container={serverGroup.instanceCounts} />;
   }
 }
 
@@ -94,20 +103,22 @@ export class RunningTasks extends React.Component<IServerGroupHeaderProps> {
     const { RunningTasksTag } = NgReact;
     const hasRunningExecutions = !!serverGroup.runningExecutions.length || !!serverGroup.runningTasks.length;
 
-    return hasRunningExecutions && (
-      <RunningTasksTag
-        application={application}
-        tasks={serverGroup.runningTasks}
-        executions={serverGroup.runningExecutions}
-      />
+    return (
+      hasRunningExecutions && (
+        <RunningTasksTag
+          application={application}
+          tasks={serverGroup.runningTasks}
+          executions={serverGroup.runningExecutions}
+        />
+      )
     );
-  };
+  }
 }
 
 export class ServerGroupManager extends React.Component<IServerGroupHeaderProps> {
   public render() {
     const { application, serverGroup } = this.props;
-    return <ServerGroupManagerTag application={application} serverGroup={serverGroup}/>;
+    return <ServerGroupManagerTag application={application} serverGroup={serverGroup} />;
   }
 }
 
@@ -119,19 +130,19 @@ export class ServerGroupHeader extends React.Component<IServerGroupHeaderProps> 
     return (
       <div className={`flex-container-h baseline server-group-title sticky-header-3`}>
         <div className="flex-container-h baseline section-title">
-          <MultiSelectCheckbox {...props}/>
-          <CloudProviderIcon {...props}/>
-          <SequenceAndBuildAndImages {...props}/>
-          <Alerts {...props}/>
+          <MultiSelectCheckbox {...props} />
+          <CloudProviderIcon {...props} />
+          <SequenceAndBuildAndImages {...props} />
+          <Alerts {...props} />
         </div>
 
         <div className="flex-container-h baseline flex-pull-right">
-          <RunningTasks {...props}/>
-          <LoadBalancers {...props}/>
-          <ServerGroupManager {...props}/>
-          <Health {...props}/>
+          <RunningTasks {...props} />
+          <LoadBalancers {...props} />
+          <ServerGroupManager {...props} />
+          <Health {...props} />
         </div>
       </div>
-    )
+    );
   }
 }

@@ -1,46 +1,48 @@
 'use strict';
 
 describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
-
   var $scope, executionService, executionsTransformer, ctrl, $q, command;
 
-  beforeEach(
-    window.module(
-      require('./pipelineTriggerOptions.directive.js').name
-    )
-  );
+  beforeEach(window.module(require('./pipelineTriggerOptions.directive.js').name));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
   beforeEach(
-    window.module(($qProvider) => {
+    window.module($qProvider => {
       $qProvider.errorOnUnhandledRejections(false);
-  }));
+    }),
+  );
 
-  beforeEach(window.inject(function($rootScope, _executionService_, _executionsTransformer_, $controller, _$q_) {
-    $scope = $rootScope.$new();
-    executionService = _executionService_;
-    executionsTransformer = _executionsTransformer_;
-    $q = _$q_;
+  beforeEach(
+    window.inject(function($rootScope, _executionService_, _executionsTransformer_, $controller, _$q_) {
+      $scope = $rootScope.$new();
+      executionService = _executionService_;
+      executionsTransformer = _executionsTransformer_;
+      $q = _$q_;
 
-    command = {
-      trigger: {
-        type: 'pipeline',
-        application: 'a',
-        pipeline: 'b'
-      }
-    };
+      command = {
+        trigger: {
+          type: 'pipeline',
+          application: 'a',
+          pipeline: 'b',
+        },
+      };
 
-    this.initialize = function() {
-      ctrl = $controller('PipelineTriggerOptionsCtrl', {
-        executionService: executionService,
-        executionsTransformer: executionsTransformer,
-        $scope: $scope,
-      }, { command: command });
-      ctrl.$onInit();
-    };
-  }));
+      this.initialize = function() {
+        ctrl = $controller(
+          'PipelineTriggerOptionsCtrl',
+          {
+            executionService: executionService,
+            executionsTransformer: executionsTransformer,
+            $scope: $scope,
+          },
+          { command: command },
+        );
+        ctrl.$onInit();
+      };
+    }),
+  );
 
-  it('loads executions on initialization, setting state flags', function () {
+  it('loads executions on initialization, setting state flags', function() {
     let executions = [];
     spyOn(executionService, 'getExecutionsForConfigIds').and.returnValue($q.when(executions));
     spyOn(executionsTransformer, 'addBuildInfo');
@@ -54,7 +56,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
     expect(ctrl.viewState.selectedExecution).toBe(null);
   });
 
-  it('sets execution to first one available when returned on initialization', function () {
+  it('sets execution to first one available when returned on initialization', function() {
     let executions = [
       { pipelineConfigId: 'b', buildTime: 3, id: 'b-3', application: 'a' },
       { pipelineConfigId: 'b', buildTime: 1, id: 'b-1', application: 'a' },
@@ -73,7 +75,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
     expect(command.extraFields.parentPipelineApplication).toBe('a');
   });
 
-  it('sets flags when execution load fails', function () {
+  it('sets flags when execution load fails', function() {
     spyOn(executionService, 'getExecutionsForConfigIds').and.returnValue($q.reject('does not matter'));
     spyOn(executionsTransformer, 'addBuildInfo');
 
@@ -88,12 +90,12 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
     expect(command.extraFields.parentPipelineApplication).toBeUndefined();
   });
 
-  it('re-initializes when trigger changes', function () {
+  it('re-initializes when trigger changes', function() {
     let firstExecution = { pipelineConfigId: 'b', buildTime: 1, id: 'b-1', application: 'a' },
-        secondExecution = { pipelineConfigId: 'c', buildTime: 3, id: 'c-3', application: 'b' },
-        secondTrigger = { type: 'pipeline', application: 'b', pipeline: 'c'};
+      secondExecution = { pipelineConfigId: 'c', buildTime: 3, id: 'c-3', application: 'b' },
+      secondTrigger = { type: 'pipeline', application: 'b', pipeline: 'c' };
 
-    spyOn(executionService, 'getExecutionsForConfigIds').and.callFake((configIds) => {
+    spyOn(executionService, 'getExecutionsForConfigIds').and.callFake(configIds => {
       let executions = [];
       if (configIds[0] === 'b') {
         executions = [firstExecution];
@@ -121,5 +123,4 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
     expect(command.extraFields.parentPipelineApplication).toBe('b');
     expect(command.extraFields.parentPipelineId).toBe('c-3');
   });
-
 });

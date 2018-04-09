@@ -8,24 +8,23 @@ import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/applica
 describe('Service: skinService', () => {
   let service: SkinService, appBuilder: ApplicationModelBuilder, scope: IScope, $q: IQService;
 
-  beforeEach((mock.module(
-    SKIN_SERVICE,
-    APPLICATION_MODEL_BUILDER,
-    CLOUD_PROVIDER_REGISTRY,
-    ACCOUNT_SERVICE,
-  )));
+  beforeEach(mock.module(SKIN_SERVICE, APPLICATION_MODEL_BUILDER, CLOUD_PROVIDER_REGISTRY, ACCOUNT_SERVICE));
 
   beforeEach(
-    mock.inject(($rootScope: IRootScopeService,
-                 _$q_: IQService,
-                 skinService: SkinService,
-                 applicationModelBuilder: ApplicationModelBuilder) => {
-      service = skinService;
-      appBuilder = applicationModelBuilder;
-      scope = $rootScope.$new();
-      $q = _$q_;
-    }
-  ));
+    mock.inject(
+      (
+        $rootScope: IRootScopeService,
+        _$q_: IQService,
+        skinService: SkinService,
+        applicationModelBuilder: ApplicationModelBuilder,
+      ) => {
+        service = skinService;
+        appBuilder = applicationModelBuilder;
+        scope = $rootScope.$new();
+        $q = _$q_;
+      },
+    ),
+  );
 
   describe('instance skin disambiguation', () => {
     beforeEach(() => {
@@ -35,7 +34,7 @@ describe('Service: skinService', () => {
           { name: 'v2-k8s-account', cloudProvider: 'kubernetes', skin: 'v2' },
           { name: 'appengine-account', cloudProvider: 'appengine', skin: 'v1' },
           { name: 'gce-account', cloudProvider: 'gce' },
-        ])
+        ]),
       );
     });
 
@@ -61,17 +60,15 @@ describe('Service: skinService', () => {
               name: 'myServerGroup',
               account: 'v2-k8s-account',
               cloudProvider: 'kubernetes',
-              instances: [
-                { id: 'my-instance-id' },
-              ],
+              instances: [{ id: 'my-instance-id' }],
               serverGroups: [],
-            }
-          ]
+            },
+          ],
         },
         {
           key: 'loadBalancers',
           data: [],
-        }
+        },
       ]);
 
       service.getInstanceSkin('kubernetes', 'my-instance-id', app).then(skin => {
@@ -90,11 +87,9 @@ describe('Service: skinService', () => {
               name: 'myLoadBalancer',
               account: 'v2-k8s-account',
               cloudProvider: 'kubernetes',
-              instances: [
-                { id: 'my-instance-id' },
-              ]
-            }
-          ]
+              instances: [{ id: 'my-instance-id' }],
+            },
+          ],
         },
         {
           key: 'serverGroups',
@@ -109,7 +104,7 @@ describe('Service: skinService', () => {
       scope.$digest();
     });
 
-    it('scrapes application load balancers\' server groups to determine skin if possible', () => {
+    it("scrapes application load balancers' server groups to determine skin if possible", () => {
       const app = appBuilder.createApplication('myApp', [
         {
           key: 'loadBalancers',
@@ -119,12 +114,14 @@ describe('Service: skinService', () => {
               account: 'v2-k8s-account',
               cloudProvider: 'kubernetes',
               instances: [],
-              serverGroups: [{
-                isDisabled: true,
-                instances: [{ id: 'my-instance-id' }],
-              }],
-            }
-          ]
+              serverGroups: [
+                {
+                  isDisabled: true,
+                  instances: [{ id: 'my-instance-id' }],
+                },
+              ],
+            },
+          ],
         },
         {
           key: 'serverGroups',

@@ -4,8 +4,9 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.openstack.cacheBackedMultiSelectField.directive', [])
-  .directive('osCacheBackedMultiSelectField', function () {
+module.exports = angular
+  .module('spinnaker.openstack.cacheBackedMultiSelectField.directive', [])
+  .directive('osCacheBackedMultiSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('./cacheBackedMultiSelect.template.html'),
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.openstack.cacheBackedMultiSelectField
         label: '@',
         model: '=',
         onChange: '&',
-        required: '<?'
+        required: '<?',
       },
       link: function(scope) {
         _.defaults(scope, {
@@ -31,7 +32,7 @@ module.exports = angular.module('spinnaker.openstack.cacheBackedMultiSelectField
           onSelectionsChanged: function() {
             // Hack to work around bug in ui-select where selected values re-appear in the drop-down
             scope.state.selectedOptions = _.uniq(scope.state.selectedOptions);
-          }
+          },
         });
 
         function updateOptions() {
@@ -46,14 +47,14 @@ module.exports = angular.module('spinnaker.openstack.cacheBackedMultiSelectField
 
         // carry through any changes from the UI to the provided model
         scope.$watch('state.selectedOptions', function() {
-            // make sure the update is coming from the UI and not from the parent
-            if ( scope.model !== scope.state.selectedOptions ) {
-              scope.model = scope.state.selectedOptions;
-              if ( scope.onChange ) {
-                var args = { selection: scope.model };
-                scope.onChange(args);
-              }
+          // make sure the update is coming from the UI and not from the parent
+          if (scope.model !== scope.state.selectedOptions) {
+            scope.model = scope.state.selectedOptions;
+            if (scope.onChange) {
+              var args = { selection: scope.model };
+              scope.onChange(args);
             }
+          }
         });
 
         // make sure any changes in the model are reflected in the UI
@@ -62,6 +63,6 @@ module.exports = angular.module('spinnaker.openstack.cacheBackedMultiSelectField
         });
 
         updateOptions();
-      }
+      },
     };
-});
+  });

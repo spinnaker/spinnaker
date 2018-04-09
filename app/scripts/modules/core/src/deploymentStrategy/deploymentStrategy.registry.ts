@@ -11,9 +11,8 @@ export interface IDeploymentStrategy {
 }
 
 export class DeploymentStrategyRegistrar {
-
   private strategies: IDeploymentStrategy[] = [];
-  private providerRegistry: {[key: string]: string[]} = {};
+  private providerRegistry: { [key: string]: string[] } = {};
 
   public registerStrategy(strategy: IDeploymentStrategy): void {
     this.strategies.push(strategy);

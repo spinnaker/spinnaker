@@ -23,5 +23,7 @@ class KubernetesLifecycleHookDetails implements ng.IComponentOptions {
 }
 
 export const KUBERNETES_LIFECYCLE_HOOK_DETAILS = 'spinnaker.kubernetes.lifecycleHookDetails.component';
-module(KUBERNETES_LIFECYCLE_HOOK_DETAILS, [])
-  .component('kubernetesLifecycleHookDetails', new KubernetesLifecycleHookDetails());
+module(KUBERNETES_LIFECYCLE_HOOK_DETAILS, []).component(
+  'kubernetesLifecycleHookDetails',
+  new KubernetesLifecycleHookDetails(),
+);

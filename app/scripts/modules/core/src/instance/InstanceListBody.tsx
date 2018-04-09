@@ -23,7 +23,6 @@ export interface IInstanceListBodyState {
 
 @BindAll()
 export class InstanceListBody extends React.Component<IInstanceListBodyProps, IInstanceListBodyState> {
-
   private clusterFilterModel = ReactInjector.clusterFilterModel.asFilterModel;
   private MultiselectModel = ReactInjector.MultiselectModel;
   private $uiRouter = ReactInjector.$uiRouter;
@@ -40,11 +39,9 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
   }
 
   public componentDidMount() {
-    this.MultiselectModel.instancesStream
-      .takeUntil(this.destroy$)
-      .subscribe(() => {
-        this.setState({ selectedInstanceIds: this.getSelectedInstanceIds() });
-      });
+    this.MultiselectModel.instancesStream.takeUntil(this.destroy$).subscribe(() => {
+      this.setState({ selectedInstanceIds: this.getSelectedInstanceIds() });
+    });
 
     this.$uiRouter.globals.params$
       .map(params => params.instanceId + params.multiselect)
@@ -74,12 +71,23 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     if (this.props.serverGroup.stringVal !== nextProps.serverGroup.stringVal) {
       return true;
     }
-    if (this.props.instances.map(i => i.id).sort().join(',') !== nextProps.instances.map(i => i.id).sort().join(',')) {
+    if (
+      this.props.instances
+        .map(i => i.id)
+        .sort()
+        .join(',') !==
+      nextProps.instances
+        .map(i => i.id)
+        .sort()
+        .join(',')
+    ) {
       return true;
     }
-    return this.state.activeInstanceId !== nextState.activeInstanceId ||
+    return (
+      this.state.activeInstanceId !== nextState.activeInstanceId ||
       this.state.selectedInstanceIds.sort().join(',') !== nextState.selectedInstanceIds.sort().join(',') ||
-      this.state.multiselect !== nextState.multiselect;
+      this.state.multiselect !== nextState.multiselect
+    );
   }
 
   private instanceSorter(a1: IInstance, b1: IInstance): number {
@@ -96,28 +104,24 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
       case 'launchTime':
         return a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime;
       case 'availabilityZone':
-        return a.availabilityZone === b.availabilityZone ?
-          a.launchTime === b.launchTime ?
-            a.id.localeCompare(b.id) :
-            a.launchTime - b.launchTime :
-          a.availabilityZone.localeCompare(b.availabilityZone);
+        return a.availabilityZone === b.availabilityZone
+          ? a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime
+          : a.availabilityZone.localeCompare(b.availabilityZone);
       case 'discoveryState':
-        const aHealth = (a.health || []).filter((health) => health.type === 'Discovery'),
-              bHealth = (b.health || []).filter((health) => health.type === 'Discovery');
+        const aHealth = (a.health || []).filter(health => health.type === 'Discovery'),
+          bHealth = (b.health || []).filter(health => health.type === 'Discovery');
         if (aHealth.length && !bHealth.length) {
           return -1;
         }
         if (!aHealth.length && bHealth.length) {
           return 1;
         }
-        return (!aHealth.length && !bHealth.length) || aHealth[0].state === bHealth[0].state ?
-          a.launchTime === b.launchTime ?
-            a.id.localeCompare(b.id) :
-            a.launchTime - b.launchTime :
-          aHealth[0].state.localeCompare(bHealth[0].state);
+        return (!aHealth.length && !bHealth.length) || aHealth[0].state === bHealth[0].state
+          ? a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime
+          : aHealth[0].state.localeCompare(bHealth[0].state);
       case 'loadBalancerSort':
-        const aHealth2 = (a.health || []).filter((health) => health.type === 'LoadBalancer');
-        const bHealth2 = (b.health || []).filter((health) => health.type === 'LoadBalancer');
+        const aHealth2 = (a.health || []).filter(health => health.type === 'LoadBalancer');
+        const bHealth2 = (b.health || []).filter(health => health.type === 'LoadBalancer');
 
         if (aHealth2.length && !bHealth2.length) {
           return -1;
@@ -125,13 +129,11 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
         if (!aHealth2.length && bHealth2.length) {
           return 1;
         }
-        const aHealthStr = aHealth2.map((h) => h.loadBalancers.map(l => l.name + ':' + l.state)).join(','),
-              bHealthStr = bHealth2.map((h) => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
-        return aHealthStr === bHealthStr ?
-          a.launchTime === b.launchTime ?
-            a.id.localeCompare(b.id) :
-            a.launchTime - b.launchTime :
-          aHealthStr.localeCompare(bHealthStr);
+        const aHealthStr = aHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(','),
+          bHealthStr = bHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
+        return aHealthStr === bHealthStr
+          ? a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime
+          : aHealthStr.localeCompare(bHealthStr);
       default:
         return -1;
     }
@@ -146,7 +148,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     let providerStatus = '';
     let loadBalancers: ILoadBalancerHealth[] = [];
 
-    healthMetrics.forEach((health) => {
+    healthMetrics.forEach(health => {
       if (hasLoadBalancers && health.type === 'LoadBalancer') {
         loadBalancers = health.loadBalancers;
       }
@@ -161,39 +163,25 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     const isActive = this.state.activeInstanceId === instance.id;
     const rowClass = classNames({
       clickable: true,
-      active: isActive
+      active: isActive,
     });
 
     return (
       <tr key={instance.id} data-instance-id={instance.id} className={rowClass}>
         {this.$state.params.multiselect && (
           <td className="no-hover">
-            <input
-              type="checkbox"
-              checked={this.state.selectedInstanceIds.includes(instance.id)}
-            />
+            <input type="checkbox" checked={this.state.selectedInstanceIds.includes(instance.id)} />
           </td>
         )}
         <td>
-          <span className={`glyphicon glyphicon-${instance.healthState}-triangle`}/>{instance.id}
+          <span className={`glyphicon glyphicon-${instance.healthState}-triangle`} />
+          {instance.id}
         </td>
-        <td>
-          {timestamp(instance.launchTime)}
-        </td>
-        <td>
-          {instance.availabilityZone}
-        </td>
-        {hasDiscovery && (
-          <td className="text-center small">
-            {discoveryStatus}
-          </td>
-        )}
+        <td>{timestamp(instance.launchTime)}</td>
+        <td>{instance.availabilityZone}</td>
+        {hasDiscovery && <td className="text-center small">{discoveryStatus}</td>}
         {hasLoadBalancers && this.renderLoadBalancerCell(loadBalancers)}
-        {showProviderHealth && (
-          <td className="text-center small">
-            {providerStatus}
-          </td>
-        )}
+        {showProviderHealth && <td className="text-center small">{providerStatus}</td>}
       </tr>
     );
   }
@@ -204,19 +192,18 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
         {loadBalancerHealths.length === 0 && <span>-</span>}
         {loadBalancerHealths.map(h => {
           const tooltip = h.state === 'OutOfService' ? h.description.replace(/"/g, '&quot;') : null;
-          const icon = (h.healthState === 'Up' || h.state === 'InService') ? 'Up' : 'Down';
+          const icon = h.healthState === 'Up' || h.state === 'InService' ? 'Up' : 'Down';
           return (
             <div key={h.name}>
               {tooltip && (
                 <Tooltip value={tooltip} placement="left">
                   <div>
-                    <span className={`glyphicon-${icon}-triangle`}/>{h.name}
+                    <span className={`glyphicon-${icon}-triangle`} />
+                    {h.name}
                   </div>
                 </Tooltip>
               )}
-              {!tooltip && (
-                <span className={`glyphicon-${icon}-triangle`}>{h.name}</span>
-              )}
+              {!tooltip && <span className={`glyphicon-${icon}-triangle`}>{h.name}</span>}
             </div>
           );
         })}
@@ -233,7 +220,6 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     this.MultiselectModel.toggleInstance(this.props.serverGroup, targetRow.getAttribute('data-instance-id'));
     event.stopPropagation();
   }
-
 
   public render() {
     return (

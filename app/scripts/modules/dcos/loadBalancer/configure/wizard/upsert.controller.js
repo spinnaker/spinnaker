@@ -2,33 +2,52 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, LOAD_BALANCER_READ_SERVICE, LOAD_BALANCER_WRITE_SERVICE, V2_MODAL_WIZARD_SERVICE, TASK_MONITOR_BUILDER, SEARCH_SERVICE } from '@spinnaker/core';
-
-module.exports = angular.module('spinnaker.dcos.loadBalancer.create.controller', [
-  LOAD_BALANCER_WRITE_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
+import {
   ACCOUNT_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
+  LOAD_BALANCER_WRITE_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
   SEARCH_SERVICE,
-  require('../../transformer.js').name,
-])
-  .controller('dcosUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
-                                                                 application, loadBalancer, isNew, loadBalancerReader,
-                                                                 accountService, dcosLoadBalancerTransformer,
-                                                                 searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
+} from '@spinnaker/core';
+
+module.exports = angular
+  .module('spinnaker.dcos.loadBalancer.create.controller', [
+    LOAD_BALANCER_WRITE_SERVICE,
+    LOAD_BALANCER_READ_SERVICE,
+    ACCOUNT_SERVICE,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    SEARCH_SERVICE,
+    require('../../transformer.js').name,
+  ])
+  .controller('dcosUpsertLoadBalancerController', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    application,
+    loadBalancer,
+    isNew,
+    loadBalancerReader,
+    accountService,
+    dcosLoadBalancerTransformer,
+    searchService,
+    v2modalWizardService,
+    loadBalancerWriter,
+    taskMonitorBuilder,
+  ) {
     var ctrl = this;
     $scope.isNew = isNew;
 
     $scope.pages = {
       basicSettings: require('./basicSettings.html'),
       resources: require('./resources.html'),
-      ports: require('./ports.html')
+      ports: require('./ports.html'),
     };
 
     $scope.state = {
       accountsLoaded: false,
-      submitting: false
+      submitting: false,
     };
 
     function onApplicationRefresh() {
@@ -67,7 +86,7 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.create.controller',
     }
 
     function initializeCreateMode() {
-      accountService.listAccounts('dcos').then(function (accounts) {
+      accountService.listAccounts('dcos').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -82,18 +101,22 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.create.controller',
 
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials,
-          region = $scope.loadBalancer.region;
+        region = $scope.loadBalancer.region;
 
       const accountLoadBalancersByRegion = {};
-      application.getDataSource('loadBalancers').refresh(true).then(() => {
-        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-          if (loadBalancer.account === account) {
-            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-          }
+      application
+        .getDataSource('loadBalancers')
+        .refresh(true)
+        .then(() => {
+          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+            if (loadBalancer.account === account) {
+              accountLoadBalancersByRegion[loadBalancer.region] =
+                accountLoadBalancersByRegion[loadBalancer.region] || [];
+              accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+            }
+          });
+          $scope.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
         });
-        $scope.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
-      });
     }
 
     // initialize controller
@@ -114,7 +137,7 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.create.controller',
 
     this.getName = function() {
       var loadBalancer = $scope.loadBalancer;
-      var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
+      var loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
@@ -130,24 +153,22 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.create.controller',
       ctrl.updateName();
     };
 
-    this.submit = function () {
+    this.submit = function() {
       var descriptor = isNew ? 'Create' : 'Update';
 
       this.updateName();
-      $scope.taskMonitor.submit(
-        function() {
-          var zones = {};
-          zones[$scope.loadBalancer.region] = [$scope.loadBalancer.region];
-          let params = {
-            cloudProvider: 'dcos',
-            availabilityZones: zones
-          };
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        var zones = {};
+        zones[$scope.loadBalancer.region] = [$scope.loadBalancer.region];
+        let params = {
+          cloudProvider: 'dcos',
+          availabilityZones: zones,
+        };
+        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

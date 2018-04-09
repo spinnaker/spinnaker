@@ -6,7 +6,7 @@ import {
   IStageOrTriggerValidator,
   IValidatorConfig,
   PIPELINE_CONFIG_VALIDATOR,
-  PipelineConfigValidator
+  PipelineConfigValidator,
 } from './pipelineConfig.validator';
 
 export interface IStageOrTriggerBeforeTypeValidationConfig extends IValidatorConfig {
@@ -17,29 +17,31 @@ export interface IStageOrTriggerBeforeTypeValidationConfig extends IValidatorCon
 }
 
 export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidator {
-
   // Stores application pipeline configs so we don't needlessly fetch them every time we validate the pipeline
   private pipelineCache: Map<string, IPipeline[]> = new Map();
 
-  constructor(private $q: ng.IQService, private pipelineConfigService: PipelineConfigService) { 'ngInject'; }
+  constructor(private $q: ng.IQService, private pipelineConfigService: PipelineConfigService) {
+    'ngInject';
+  }
 
   // Exposed for testing
   public clearCache() {
     this.pipelineCache.clear();
   }
 
-  public validate(pipeline: IPipeline,
-                  stage: IStage,
-                  validator: IStageOrTriggerBeforeTypeValidationConfig,
-                  _config: IStageOrTriggerTypeConfig): ng.IPromise<string> {
-
+  public validate(
+    pipeline: IPipeline,
+    stage: IStage,
+    validator: IStageOrTriggerBeforeTypeValidationConfig,
+    _config: IStageOrTriggerTypeConfig,
+  ): ng.IPromise<string> {
     const stageTypes = validator.stageTypes || [validator.stageType];
     const stagesToTest: (IStage | ITrigger)[] = this.pipelineConfigService.getAllUpstreamDependencies(pipeline, stage);
     stagesToTest.push(...pipeline.triggers);
 
     const parentTriggersToCheck = validator.checkParentTriggers ? this.addPipelineTriggers(pipeline, stagesToTest) : [];
     return this.$q.all(parentTriggersToCheck).then(() => {
-      if (stagesToTest.every((test) => !stageTypes.includes(test.type))) {
+      if (stagesToTest.every(test => !stageTypes.includes(test.type))) {
         return validator.message;
       }
       return null;
@@ -51,9 +53,13 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     if (match) {
       stagesToTest.push(...match.triggers);
     }
-  };
+  }
 
-  private addExternalTriggers(trigger: IPipelineTrigger, stagesToTest: (IStage | ITrigger)[], deferred: ng.IDeferred<any>): void {
+  private addExternalTriggers(
+    trigger: IPipelineTrigger,
+    stagesToTest: (IStage | ITrigger)[],
+    deferred: ng.IDeferred<any>,
+  ): void {
     this.pipelineConfigService.getPipelinesForApplication(trigger.application).then(pipelines => {
       this.pipelineCache.set(trigger.application, pipelines);
       this.addTriggers(pipelines, trigger.pipeline, stagesToTest);
@@ -62,7 +68,9 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
   }
 
   private addPipelineTriggers(pipeline: IPipeline, stagesToTest: (IStage | ITrigger)[]) {
-    const pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(t => t.type === 'pipeline') as IPipelineTrigger[];
+    const pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(
+      t => t.type === 'pipeline',
+    ) as IPipelineTrigger[];
     const parentTriggersToCheck: ng.IPromise<any>[] = [];
     pipelineTriggers.forEach(trigger => {
       const deferred: ng.IDeferred<any> = this.$q.defer();
@@ -75,14 +83,17 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     });
     return parentTriggersToCheck;
   }
-
 }
 
-export const STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR = 'spinnaker.core.pipeline.validation.config.stageOrTriggerBeforeType';
-module(STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR, [
-  PIPELINE_CONFIG_SERVICE,
-  PIPELINE_CONFIG_VALIDATOR,
-]).service('stageOrTriggerBeforeTypeValidator', StageOrTriggerBeforeTypeValidator)
-  .run((pipelineConfigValidator: PipelineConfigValidator, stageOrTriggerBeforeTypeValidator: StageOrTriggerBeforeTypeValidator) => {
-    pipelineConfigValidator.registerValidator('stageOrTriggerBeforeType', stageOrTriggerBeforeTypeValidator);
-  });
+export const STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR =
+  'spinnaker.core.pipeline.validation.config.stageOrTriggerBeforeType';
+module(STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR, [PIPELINE_CONFIG_SERVICE, PIPELINE_CONFIG_VALIDATOR])
+  .service('stageOrTriggerBeforeTypeValidator', StageOrTriggerBeforeTypeValidator)
+  .run(
+    (
+      pipelineConfigValidator: PipelineConfigValidator,
+      stageOrTriggerBeforeTypeValidator: StageOrTriggerBeforeTypeValidator,
+    ) => {
+      pipelineConfigValidator.registerValidator('stageOrTriggerBeforeType', stageOrTriggerBeforeTypeValidator);
+    },
+  );

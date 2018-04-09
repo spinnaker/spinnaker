@@ -1,22 +1,18 @@
 'use strict';
 
 describe('dcosServerGroupConfigurationService', function() {
-
   var service;
 
+  beforeEach(window.module(require('./configuration.service.js').name));
+
   beforeEach(
-    window.module(
-      require('./configuration.service.js').name
-    )
+    window.inject(function(_dcosServerGroupConfigurationService_) {
+      service = _dcosServerGroupConfigurationService_;
+    }),
   );
 
-  beforeEach(window.inject(function (_dcosServerGroupConfigurationService_) {
-    service = _dcosServerGroupConfigurationService_;
-  }));
-
-  describe('buildImageId', function () {
-
-    it('buildImageId spec 1', function () {
+  describe('buildImageId', function() {
+    it('buildImageId spec 1', function() {
       var image = {
         fromContext: true,
         cluster: 'dcos-test-test',
@@ -29,7 +25,7 @@ describe('dcosServerGroupConfigurationService', function() {
       expect(result).toEqual(expected);
     });
 
-    it('buildImageId spec 2', function () {
+    it('buildImageId spec 2', function() {
       var image = {
         fromTrigger: true,
         registry: 'test-registry.com',
@@ -42,7 +38,7 @@ describe('dcosServerGroupConfigurationService', function() {
       expect(result).toEqual(expected);
     });
 
-    it('buildImageId spec 3', function () {
+    it('buildImageId spec 3', function() {
       var image = {
         registry: 'test-registry.com',
         repository: 'test-repo',

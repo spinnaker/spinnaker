@@ -11,7 +11,7 @@ export class ServerGroupInsightActions extends React.Component<{ serverGroup: IS
       category: 'Insight Menu (Server Group)',
       action: `${label} clicked`,
       label: `${serverGroup.account}/${serverGroup.region}/${serverGroup.name}`,
-      });
+    });
   }
 
   public render(): JSX.Element {
@@ -22,11 +22,15 @@ export class ServerGroupInsightActions extends React.Component<{ serverGroup: IS
     if (hasInsightActions) {
       return (
         <Dropdown className="dropdown" id="server-group-insight-dropdown" pullRight={true}>
-          <Dropdown.Toggle className="btn btn-sm btn-default dropdown-toggle">
-            Insight
-          </Dropdown.Toggle>
+          <Dropdown.Toggle className="btn btn-sm btn-default dropdown-toggle">Insight</Dropdown.Toggle>
           <Dropdown.Menu className="dropdown-menu">
-            {serverGroup.insightActions.map((action) => <li key={action.label}><a target="_blank" onClick={() => this.onClick(action.label)} href={action.url}>{action.label}</a></li>)}
+            {serverGroup.insightActions.map(action => (
+              <li key={action.label}>
+                <a target="_blank" onClick={() => this.onClick(action.label)} href={action.url}>
+                  {action.label}
+                </a>
+              </li>
+            ))}
           </Dropdown.Menu>
         </Dropdown>
       );

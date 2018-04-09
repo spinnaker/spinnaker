@@ -8,7 +8,9 @@ export interface IGCEProviderSettings extends IProviderSettings {
   };
 }
 
-export const GCEProviderSettings: IGCEProviderSettings = <IGCEProviderSettings>SETTINGS.providers.gce || { defaults: {} };
+export const GCEProviderSettings: IGCEProviderSettings = <IGCEProviderSettings>SETTINGS.providers.gce || {
+  defaults: {},
+};
 if (GCEProviderSettings) {
   GCEProviderSettings.resetToOriginal = SETTINGS.resetProvider('gce');
 }

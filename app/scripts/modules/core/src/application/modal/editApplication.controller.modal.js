@@ -1,10 +1,10 @@
 'use strict';
 
 import _ from 'lodash';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
-import {TASK_READ_SERVICE} from 'core/task/task.read.service';
-import {SETTINGS} from 'core/config/settings';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
+import { TASK_READ_SERVICE } from 'core/task/task.read.service';
+import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
@@ -15,11 +15,19 @@ module.exports = angular
     TASK_READ_SERVICE,
     require('./applicationProviderFields.component.js').name,
   ])
-  .controller('EditApplicationController', function ($scope, $window, $state, $uibModalInstance, application, applicationWriter,
-                                                     accountService, taskReader) {
+  .controller('EditApplicationController', function(
+    $scope,
+    $window,
+    $state,
+    $uibModalInstance,
+    application,
+    applicationWriter,
+    accountService,
+    taskReader,
+  ) {
     var vm = this;
     this.data = {
-      gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab']
+      gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'],
     };
     this.state = {
       submitting: false,
@@ -29,7 +37,7 @@ module.exports = angular
     vm.application = application;
     vm.applicationAttributes = _.cloneDeep(application.attributes);
 
-    accountService.listProviders().then((providers) => vm.data.cloudProviders = providers);
+    accountService.listProviders().then(providers => (vm.data.cloudProviders = providers));
 
     function closeModal() {
       $uibModalInstance.close(vm.applicationAttributes);
@@ -37,23 +45,18 @@ module.exports = angular
 
     function extractErrorMsg(error) {
       var exceptions = _.chain(error.variables)
-        .filter({key: 'exception'})
+        .filter({ key: 'exception' })
         .head()
-        .value()
-        .value
-        .details
-        .errors;
+        .value().value.details.errors;
 
-      angular.copy(exceptions, vm.errorMsgs );
+      angular.copy(exceptions, vm.errorMsgs);
       assignErrorMsgs();
       goIdle();
     }
 
     function assignErrorMsgs() {
       vm.emailErrorMsg = vm.errorMsgs.filter(function(msg) {
-        return msg
-            .toLowerCase()
-            .includes('email');
+        return msg.toLowerCase().includes('email');
       });
     }
 
@@ -65,9 +68,11 @@ module.exports = angular
       vm.state.submitting = true;
     }
 
-    vm.updateCloudProviderHealthWarning = (platformHealthOnlyShowOverrideClicked) => {
-      if (vm.applicationAttributes.platformHealthOnlyShowOverride
-          && (platformHealthOnlyShowOverrideClicked || vm.applicationAttributes.platformHealthOnly)) {
+    vm.updateCloudProviderHealthWarning = platformHealthOnlyShowOverrideClicked => {
+      if (
+        vm.applicationAttributes.platformHealthOnlyShowOverride &&
+        (platformHealthOnlyShowOverrideClicked || vm.applicationAttributes.platformHealthOnly)
+      ) {
         // Show the warning if platformHealthOnlyShowOverride is being disabled, or if both options are enabled and
         // platformHealthOnly is being disabled.
         vm.data.showOverrideWarning = `Note that disabling this setting will not have an effect on any
@@ -85,7 +90,7 @@ module.exports = angular
       vm.state.emailErrorMsg = '';
     };
 
-    vm.submit = function () {
+    vm.submit = function() {
       submitting();
 
       if (vm.applicationAttributes.aliases === '') {
@@ -93,15 +98,16 @@ module.exports = angular
       }
       if (vm.applicationAttributes.aliases) {
         vm.applicationAttributes.aliases = vm.applicationAttributes.aliases
-                                            .split(/\s*,\s*/)
-                                            .filter((s) => s !== '')
-                                            .join(',');
+          .split(/\s*,\s*/)
+          .filter(s => s !== '')
+          .join(',');
       }
 
-      applicationWriter.updateApplication(vm.applicationAttributes)
+      applicationWriter
+        .updateApplication(vm.applicationAttributes)
         .then(
-          (task) => taskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
-          () => vm.errorMsgs.push('Could not update application')
+          task => taskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
+          () => vm.errorMsgs.push('Could not update application'),
         );
     };
 
@@ -115,7 +121,7 @@ module.exports = angular
       return true;
     }
 
-    vm.handlePermissionsChange = (permissions) => {
+    vm.handlePermissionsChange = permissions => {
       vm.state.permissionsInvalid = !permissionsAreValid(permissions);
       vm.applicationAttributes.permissions = permissions;
       delete vm.applicationAttributes.requiredGroupMembership;

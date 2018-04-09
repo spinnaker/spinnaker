@@ -11,29 +11,24 @@ import { HoverablePopover } from 'core/presentation';
 
 describe('<LoadBalancersTag />', () => {
   const lb1 = { name: 'lb1', account: 'prod', region: 'us-east-1', vpcId: 'vpc-1' },
-        lb2 = { name: 'lb2', account: 'prod', region: 'us-east-1' };
+    lb2 = { name: 'lb2', account: 'prod', region: 'us-east-1' };
 
-  let $q: IQService,
-      $scope: IScope,
-      application: Application,
-      component: ReactWrapper<ILoadBalancersTagProps, any>;
+  let $q: IQService, $scope: IScope, application: Application, component: ReactWrapper<ILoadBalancersTagProps, any>;
+
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    mock.module(
-      APPLICATION_MODEL_BUILDER
-    )
+    mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+      $q = _$q_;
+      $scope = $rootScope.$new();
+      application = applicationModelBuilder.createApplication('app', {
+        key: 'loadBalancers',
+        loader: () => $q.when(null),
+        onLoad: () => $q.when(null),
+        loaded: true,
+      });
+    }),
   );
-
-  beforeEach(mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
-    $q = _$q_;
-    $scope = $rootScope.$new();
-    application = applicationModelBuilder.createApplication('app', {
-      key: 'loadBalancers',
-      loader: () => $q.when(null),
-      onLoad: () => $q.when(null),
-      loaded: true,
-    });
-  }));
 
   it('extracts single load balancer from data', () => {
     const serverGroup = {
@@ -44,16 +39,16 @@ describe('<LoadBalancersTag />', () => {
       instances: [],
     } as IServerGroup;
 
-    application.getDataSource('loadBalancers').data = [ lb1, lb2 ];
+    application.getDataSource('loadBalancers').data = [lb1, lb2];
 
     const props: ILoadBalancersTagProps = { application, serverGroup };
-    component = mount(<LoadBalancersTag {...props}/>);
+    component = mount(<LoadBalancersTag {...props} />);
 
     $scope.$digest();
     expect(component.render().find('span.btn-load-balancer').length).toBe(1);
   });
 
-  it('extracts two load balancers from data', (done) => {
+  it('extracts two load balancers from data', done => {
     const serverGroup = {
       account: 'prod',
       region: 'us-east-1',
@@ -62,7 +57,7 @@ describe('<LoadBalancersTag />', () => {
       instances: [],
     } as IServerGroup;
 
-    application.getDataSource('loadBalancers').data = [ lb1, lb2 ];
+    application.getDataSource('loadBalancers').data = [lb1, lb2];
 
     const props: ILoadBalancersTagProps = { application, serverGroup };
     const popoverContainerEl = document.createElement('div');

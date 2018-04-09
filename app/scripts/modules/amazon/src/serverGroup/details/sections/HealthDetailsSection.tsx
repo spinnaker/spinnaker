@@ -14,7 +14,7 @@ export class HealthDetailsSection extends React.Component<IAmazonServerGroupDeta
           <dl className="dl-horizontal dl-flex">
             <dt>Instances</dt>
             <dd>
-              <HealthCounts container={serverGroup.instanceCounts} className="pull-left"/>
+              <HealthCounts container={serverGroup.instanceCounts} className="pull-left" />
             </dd>
           </dl>
         </CollapsibleSection>

@@ -7,7 +7,7 @@ import {
   IStageOrTriggerTypeConfig,
   IStageTypeConfig,
   ITrigger,
-  ITriggerTypeConfig
+  ITriggerTypeConfig,
 } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 
@@ -34,10 +34,12 @@ export interface IValidatorConfig {
 }
 
 export interface IStageOrTriggerValidator {
-  validate(pipeline: IPipeline,
-           stageOrTrigger: IStage | ITrigger,
-           validator: IValidatorConfig,
-           config: IStageOrTriggerTypeConfig): string | IPromise<string>;
+  validate(
+    pipeline: IPipeline,
+    stageOrTrigger: IStage | ITrigger,
+    validator: IValidatorConfig,
+    config: IStageOrTriggerTypeConfig,
+  ): string | IPromise<string>;
 }
 
 export interface ICustomValidator extends IStageOrTriggerValidator, IValidatorConfig {
@@ -45,7 +47,6 @@ export interface ICustomValidator extends IStageOrTriggerValidator, IValidatorCo
 }
 
 export class PipelineConfigValidator implements IServiceProvider {
-
   private validators: Map<string, IStageOrTriggerValidator> = new Map();
   private validationStream: Subject<IPipelineValidationResults> = new Subject();
 
@@ -53,70 +54,77 @@ export class PipelineConfigValidator implements IServiceProvider {
     this.validators.set(type, validator);
   }
 
-  constructor(private $log: ILogService,
-              private $q: IQService,
-              private pipelineConfig: PipelineConfigProvider) {
+  constructor(private $log: ILogService, private $q: IQService, private pipelineConfig: PipelineConfigProvider) {
     'ngInject';
   }
 
   public validatePipeline(pipeline: IPipeline): IPromise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [],
-          triggers: ITrigger[] = pipeline.triggers || [],
-          validations: IPromise<string>[] = [],
-          pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline),
-          stageValidations: Map<IStage, string[]> = new Map();
+      triggers: ITrigger[] = pipeline.triggers || [],
+      validations: IPromise<string>[] = [],
+      pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline),
+      stageValidations: Map<IStage, string[]> = new Map();
     let preventSave = false;
 
     triggers.forEach((trigger, index) => {
       const config: ITriggerTypeConfig = this.pipelineConfig.getTriggerConfig(trigger.type);
       if (config && config.validators) {
-        config.validators.forEach((validator) => {
+        config.validators.forEach(validator => {
           const typedValidator = this.getValidator(validator);
           if (!typedValidator) {
-            this.$log.warn(`No validator of type "${validator.type}" found, ignoring validation on trigger "${(index + 1)}" (${trigger.type})`);
+            this.$log.warn(
+              `No validator of type "${validator.type}" found, ignoring validation on trigger "${index + 1}" (${
+                trigger.type
+              })`,
+            );
           } else {
             validations.push(
-              this.$q.resolve<string>(typedValidator.validate(pipeline, trigger, validator, config))
-                .then(message => {
-                  if (message && !pipelineValidations.includes(message)) {
-                    pipelineValidations.push(message);
-                    if (validator.preventSave) {
-                      preventSave = true;
-                    }
+              this.$q.resolve<string>(typedValidator.validate(pipeline, trigger, validator, config)).then(message => {
+                if (message && !pipelineValidations.includes(message)) {
+                  pipelineValidations.push(message);
+                  if (validator.preventSave) {
+                    preventSave = true;
                   }
-                  return message;
-                })
+                }
+                return message;
+              }),
             );
           }
         });
       }
     });
-    stages.forEach((stage) => {
+    stages.forEach(stage => {
       const config: IStageTypeConfig = this.pipelineConfig.getStageConfig(stage);
       if (config && config.validators) {
-        config.validators.forEach((validator) => {
+        config.validators.forEach(validator => {
           if (validator.skipValidation && validator.skipValidation(pipeline, stage)) {
             return;
           }
           const typedValidator = this.getValidator(validator);
           if (!typedValidator) {
-            this.$log.warn(`No validator of type "${validator.type}" found, ignoring validation on stage "${stage.name}" (${stage.type})`);
+            this.$log.warn(
+              `No validator of type "${validator.type}" found, ignoring validation on stage "${stage.name}" (${
+                stage.type
+              })`,
+            );
           } else {
             validations.push(
-              this.$q.resolve<string>(typedValidator.validate(pipeline, stage, validator, config)).then((message: string) => {
-                if (message) {
-                  if (!stageValidations.has(stage)) {
-                    stageValidations.set(stage, [] as string[]);
-                  }
-                  if (!stageValidations.get(stage).includes(message)) {
-                    stageValidations.get(stage).push(message);
-                    if (validator.preventSave) {
-                      preventSave = true;
+              this.$q
+                .resolve<string>(typedValidator.validate(pipeline, stage, validator, config))
+                .then((message: string) => {
+                  if (message) {
+                    if (!stageValidations.has(stage)) {
+                      stageValidations.set(stage, [] as string[]);
+                    }
+                    if (!stageValidations.get(stage).includes(message)) {
+                      stageValidations.get(stage).push(message);
+                      if (validator.preventSave) {
+                        preventSave = true;
+                      }
                     }
                   }
-                }
-                return message;
-              })
+                  return message;
+                }),
             );
           }
         });
@@ -137,7 +145,7 @@ export class PipelineConfigValidator implements IServiceProvider {
   }
 
   private getValidator(validator: IValidatorConfig): IStageOrTriggerValidator {
-    return validator.type === 'custom' ? validator as ICustomValidator : this.validators.get(validator.type);
+    return validator.type === 'custom' ? (validator as ICustomValidator) : this.validators.get(validator.type);
   }
 
   private getPipelineLevelValidations(pipeline: IPipeline): string[] {
@@ -145,10 +153,10 @@ export class PipelineConfigValidator implements IServiceProvider {
     if ((pipeline.parameterConfig || []).some(p => !p.name)) {
       messages.push('<b>Name</b> is a required field for parameters.');
     }
-    if (pipeline.strategy && !(pipeline.stages.some(stage => stage.type === 'deploy'))) {
+    if (pipeline.strategy && !pipeline.stages.some(stage => stage.type === 'deploy')) {
       messages.push('To be able to create new server groups, a custom strategy should contain a Deploy stage.');
     }
-    if ((pipeline.expectedArtifacts || []).some(a => !a.matchArtifact || a.matchArtifact as any === {})) {
+    if ((pipeline.expectedArtifacts || []).some(a => !a.matchArtifact || (a.matchArtifact as any) === {})) {
       messages.push('Every expected artifact must specify an artifact to match against.');
     }
     return messages;
@@ -166,13 +174,11 @@ export class PipelineConfigValidator implements IServiceProvider {
   public $get() {
     return this;
   }
-
 }
 
 export const PIPELINE_CONFIG_VALIDATOR = 'spinnaker.core.pipeline.config.validator';
-module(PIPELINE_CONFIG_VALIDATOR, [
-  PIPELINE_CONFIG_PROVIDER,
-]).service('pipelineConfigValidator', PipelineConfigValidator)
+module(PIPELINE_CONFIG_VALIDATOR, [PIPELINE_CONFIG_PROVIDER])
+  .service('pipelineConfigValidator', PipelineConfigValidator)
   .run((pipelineConfigValidator: PipelineConfigValidator) => {
     // placeholder - custom validators must implement the ICustomValidator interface
     pipelineConfigValidator.registerValidator('custom', null);

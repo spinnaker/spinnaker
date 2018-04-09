@@ -25,7 +25,7 @@ export interface IPipeline {
 export interface IParameter {
   name: string;
   description: string;
-  'default': string;
+  default: string;
   hasOptions: boolean;
   options: IParameterOption[];
   condition?: IParameterCondition;
@@ -41,7 +41,6 @@ export interface IParameterOption {
   value: string;
 }
 
-
 export interface IPipelineCommand {
   pipeline: IPipeline;
   trigger: ITrigger;
@@ -50,6 +49,6 @@ export interface IPipelineCommand {
     type: string;
     address: string;
     when: string[];
-  }
+  };
   pipelineName: string;
 }

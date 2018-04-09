@@ -2,12 +2,13 @@
 
 import _ from 'lodash';
 
-import {OpenStackProviderSettings} from '../openstack.settings';
+import { OpenStackProviderSettings } from '../openstack.settings';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', [])
-  .factory('openstackLoadBalancerTransformer', function ($q) {
+module.exports = angular
+  .module('spinnaker.openstack.loadBalancer.transformer', [])
+  .factory('openstackLoadBalancerTransformer', function($q) {
     var defaults = {
       provider: 'openstack',
       account: OpenStackProviderSettings.defaults.account,
@@ -23,39 +24,39 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
         expectedCodes: [200],
         delay: 10,
         timeout: 1,
-        maxRetries: 2
+        maxRetries: 2,
       },
       securityGroups: [],
       listeners: [
         {
           internalPort: 80,
           externalProtocol: 'HTTP',
-          externalPort: 80
-        }
-      ]
+          externalPort: 80,
+        },
+      ],
     };
 
     function updateHealthCounts(container) {
       var healths = container.healths;
       container.instanceCounts = {
-        up: healths.filter(function (instance) {
+        up: healths.filter(function(instance) {
           return instance.lbHealthSummaries[0].healthState === 'InService';
         }).length,
-        down: healths.filter(function (instance) {
+        down: healths.filter(function(instance) {
           return instance.lbHealthSummaries[0].healthState === 'OutOfService';
-        }).length
+        }).length,
       };
     }
 
     function updateServerGroupHealthCounts(container) {
       var instances = container.instances;
       container.instanceCounts = {
-        up: instances.filter(function (instance) {
+        up: instances.filter(function(instance) {
           return instance.health[0].state === 'Up';
         }).length,
-        down: instances.filter(function (instance) {
+        down: instances.filter(function(instance) {
           return instance.health[0].state === 'Down';
-        }).length
+        }).length,
       };
     }
 
@@ -65,7 +66,9 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
       instance.account = loadBalancer.account;
       instance.region = loadBalancer.region;
       instance.health.type = 'LoadBalancer';
-      instance.healthState = instance.health.state ? instance.health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
+      instance.healthState = instance.health.state
+        ? instance.health.state === 'InService' ? 'Up' : 'Down'
+        : 'OutOfService';
       instance.health = [instance.health];
       instance.loadBalancers = [loadBalancer.name];
     }
@@ -93,11 +96,13 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
 
       var healthMonitor = _.get(loadBalancer, 'healthChecks[0]') || loadBalancer.healthMonitor || {};
       delete loadBalancer.healthChecks;
-      _.chain(healthMonitor).keys().each(function (k) {
-        if (healthMonitor[k] === null) {
-          delete healthMonitor[k];
-        }
-      });
+      _.chain(healthMonitor)
+        .keys()
+        .each(function(k) {
+          if (healthMonitor[k] === null) {
+            delete healthMonitor[k];
+          }
+        });
 
       loadBalancer.healthMonitor = _.defaults(healthMonitor, defaults.healthMonitor);
 
@@ -117,6 +122,6 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', 
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
-      convertLoadBalancerForEditing: convertLoadBalancerForEditing
+      convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
   });

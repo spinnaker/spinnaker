@@ -9,8 +9,8 @@ import '@fortawesome/fontawesome-free-webfonts/css/fa-solid.css';
 import '@fortawesome/fontawesome-free-webfonts/css/fa-regular.css';
 import '@fortawesome/fontawesome-free-webfonts/css/fontawesome.css';
 import 'react-select/dist/react-select.css';
-import 'react-virtualized/styles.css'
-import 'react-virtualized-select/styles.css'
+import 'react-virtualized/styles.css';
+import 'react-virtualized-select/styles.css';
 import 'ui-select/dist/select.css';
 import '@spinnaker/styleguide/public/styleguide.min.css';
 
@@ -60,7 +60,6 @@ import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
-
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -140,6 +139,5 @@ module(CORE_MODULE, [
   WIDGETS_MODULE,
 
   require('./validation/validation.module').name,
-  STYLEGUIDE_MODULE
+  STYLEGUIDE_MODULE,
 ]);
-

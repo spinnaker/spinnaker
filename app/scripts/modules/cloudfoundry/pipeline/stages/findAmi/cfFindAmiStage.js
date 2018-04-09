@@ -6,10 +6,8 @@ import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
 
 import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
-module.exports = angular.module('spinnaker.cf.pipeline.stage.findAmiStage', [
-  LIST_EXTRACTOR_SERVICE,
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.cf.pipeline.stage.findAmiStage', [LIST_EXTRACTOR_SERVICE, ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'findImage',
@@ -17,11 +15,12 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.findAmiStage', [
       templateUrl: require('./findAmiStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},
-        { type: 'requiredField', fieldName: 'credentials' }
-      ]
+        { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection' },
+        { type: 'requiredField', fieldName: 'credentials' },
+      ],
     });
-  }).controller('cfFindAmiStageCtrl', function($scope, accountService, appListExtractorService) {
+  })
+  .controller('cfFindAmiStageCtrl', function($scope, accountService, appListExtractorService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -40,14 +39,13 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.findAmiStage', [
       setClusterList();
     };
 
-    accountService.listAccounts('cf').then(function (accounts) {
+    accountService.listAccounts('cf').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
       setClusterList();
     });
 
-    ctrl.accountUpdated = function() {
-    };
+    ctrl.accountUpdated = function() {};
 
     ctrl.updateRegions = function() {
       let preferredZoneList = CloudFoundryProviderSettings.preferredZonesByAccount[$scope.stage.credentials];
@@ -60,23 +58,28 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.findAmiStage', [
       ctrl.updateRegions();
     };
 
-    $scope.selectionStrategies = [{
-      label: 'Largest',
-      val: 'LARGEST',
-      description: 'When multiple server groups exist, prefer the server group with the most instances'
-    }, {
-      label: 'Newest',
-      val: 'NEWEST',
-      description: 'When multiple server groups exist, prefer the newest'
-    }, {
-      label: 'Oldest',
-      val: 'OLDEST',
-      description: 'When multiple server groups exist, prefer the oldest'
-    }, {
-      label: 'Fail',
-      val: 'FAIL',
-      description: 'When multiple server groups exist, fail'
-    }];
+    $scope.selectionStrategies = [
+      {
+        label: 'Largest',
+        val: 'LARGEST',
+        description: 'When multiple server groups exist, prefer the server group with the most instances',
+      },
+      {
+        label: 'Newest',
+        val: 'NEWEST',
+        description: 'When multiple server groups exist, prefer the newest',
+      },
+      {
+        label: 'Oldest',
+        val: 'OLDEST',
+        description: 'When multiple server groups exist, prefer the oldest',
+      },
+      {
+        label: 'Fail',
+        val: 'FAIL',
+        description: 'When multiple server groups exist, fail',
+      },
+    ];
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'cf';
@@ -98,4 +101,3 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.findAmiStage', [
     }
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

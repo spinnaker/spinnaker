@@ -1,7 +1,10 @@
 import { IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 
-import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
+import {
+  EXECUTION_DETAILS_SECTION_SERVICE,
+  ExecutionDetailsSectionService,
+} from 'core/pipeline/details/executionDetailsSection.service';
 
 export interface IExecutionDetailsScope extends IScope {
   configSections: string[];
@@ -9,9 +12,11 @@ export interface IExecutionDetailsScope extends IScope {
 }
 
 export class BaseExecutionDetailsCtrl {
-  constructor (public $scope: IExecutionDetailsScope,
-               protected $stateParams: StateParams,
-               protected executionDetailsSectionService: ExecutionDetailsSectionService) {
+  constructor(
+    public $scope: IExecutionDetailsScope,
+    protected $stateParams: StateParams,
+    protected executionDetailsSectionService: ExecutionDetailsSectionService,
+  ) {
     'ngInject';
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
     this.$scope.$watch('configSections', () => this.initialize());

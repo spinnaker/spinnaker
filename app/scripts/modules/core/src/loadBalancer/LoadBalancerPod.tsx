@@ -8,17 +8,17 @@ import { LoadBalancer } from './LoadBalancer';
 import './loadBalancerPod.less';
 
 export interface ILoadBalancerPodProps {
-  grouping: ILoadBalancerGroup,
-  application: Application,
-  parentHeading: string,
-  showServerGroups: boolean,
-  showInstances: boolean
+  grouping: ILoadBalancerGroup;
+  application: Application;
+  parentHeading: string;
+  showServerGroups: boolean;
+  showInstances: boolean;
 }
 
 export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
   public render(): React.ReactElement<LoadBalancerPod> {
     const { grouping, application, parentHeading, showServerGroups, showInstances } = this.props;
-    const subgroups = grouping.subgroups.map((subgroup) => (
+    const subgroups = grouping.subgroups.map(subgroup => (
       <LoadBalancer
         key={subgroup.heading}
         application={application}
@@ -34,18 +34,14 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
         <div className="rollup-summary sticky-header">
           <div className="rollup-title-cell">
             <div className="heading-tag">
-              <AccountTag account={parentHeading}/>
+              <AccountTag account={parentHeading} />
             </div>
             <div className="pod-center horizontal space-between center flex-1">
-              <div>
-                {grouping.heading}
-              </div>
+              <div>{grouping.heading}</div>
             </div>
           </div>
         </div>
-        <div className="rollup-details">
-          {subgroups}
-        </div>
+        <div className="rollup-details">{subgroups}</div>
       </div>
     );
   }

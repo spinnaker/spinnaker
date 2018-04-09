@@ -1,16 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
-import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/pipeline/details/executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE } from 'core/pipeline/details/executionDetailsSection.service';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline.executionDetails.controller', [
-  require('@uirouter/angularjs').default,
-  EXECUTION_DETAILS_SECTION_SERVICE,
-])
-  .controller('pipelineExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
-
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.pipeline.executionDetails.controller', [
+    require('@uirouter/angularjs').default,
+    EXECUTION_DETAILS_SECTION_SERVICE,
+  ])
+  .controller('pipelineExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['pipelineConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline.executio
       $scope.configSections = ['pipelineConfig', 'parameters', 'taskStatus'];
       $scope.parameters = Object.keys($scope.stage.context.pipelineParameters)
         .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-        .map((key) => {
+        .map(key => {
           return { key: key, val: $scope.stage.context.pipelineParameters[key] };
         });
     }
@@ -31,5 +31,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline.executio
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

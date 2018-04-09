@@ -39,11 +39,13 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
   }
 
   public componentDidMount(): void {
-    this.props.detailsGetter(this.props, this.autoClose)
+    this.props
+      .detailsGetter(this.props, this.autoClose)
       .takeUntil(this.destroy$)
       .subscribe(this.updateServerGroup);
     this.serverGroupsRefreshUnsubscribe = this.props.app.serverGroups.onRefresh(null, () => {
-      this.props.detailsGetter(this.props, this.autoClose)
+      this.props
+        .detailsGetter(this.props, this.autoClose)
         .takeUntil(this.destroy$)
         .subscribe(this.updateServerGroup);
     });
@@ -51,7 +53,10 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
 
   public componentWillReceiveProps(nextProps: IServerGroupDetailsProps): void {
     if (nextProps.serverGroup !== this.props.serverGroup) {
-      this.props.detailsGetter(nextProps, this.autoClose).takeUntil(this.destroy$).subscribe(this.updateServerGroup);
+      this.props
+        .detailsGetter(nextProps, this.autoClose)
+        .takeUntil(this.destroy$)
+        .subscribe(this.updateServerGroup);
     }
   }
 
@@ -62,10 +67,7 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
 
   public render() {
     const { Actions, app, sections } = this.props;
-    const {
-      loading,
-      serverGroup,
-    } = this.state;
+    const { loading, serverGroup } = this.state;
 
     const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
     const hasInsightActions = serverGroup && serverGroup.insightActions && serverGroup.insightActions.length > 0;
@@ -73,7 +75,7 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
     const CloseButton = (
       <div className="close-button">
         <UISref to="^">
-          <span className="glyphicon glyphicon-remove"/>
+          <span className="glyphicon glyphicon-remove" />
         </UISref>
       </div>
     );
@@ -87,14 +89,14 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
             <div className="horizontal center middle">
               <Spinner size="small" />
             </div>
-        </div>
+          </div>
         )}
 
         {!loading && (
           <div className="header">
             {CloseButton}
             <div className="header-text horizontal middle">
-              <CloudProviderLogo provider={serverGroup.type} height="36px" width="36px"/>
+              <CloudProviderLogo provider={serverGroup.type} height="36px" width="36px" />
               <h3 className="horizontal middle space-between flex-1">
                 {serverGroup.name}
                 {showEntityTags && (
@@ -107,7 +109,7 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
                     pageLocation="details"
                     onUpdate={() => app.serverGroups.refresh()}
                   />
-              )}
+                )}
               </h3>
             </div>
             <div>
@@ -118,7 +120,10 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
             </div>
           </div>
         )}
-        {serverGroup && serverGroup.isDisabled && <div className="band band-info">Disabled {timestamp(serverGroup.disabledDate)}</div>}
+        {serverGroup &&
+          serverGroup.isDisabled && (
+            <div className="band band-info">Disabled {timestamp(serverGroup.disabledDate)}</div>
+          )}
         {!loading && (
           <div className="content">
             <RunningTasks serverGroup={serverGroup} application={app} />

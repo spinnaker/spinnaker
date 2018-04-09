@@ -4,14 +4,12 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.actions.generate.score.controller', [
-  require('@uirouter/angularjs').default,
-])
-  .controller('GenerateScoreCtrl', function ($scope, $http, $uibModalInstance, canaryId) {
-
+module.exports = angular
+  .module('spinnaker.canary.actions.generate.score.controller', [require('@uirouter/angularjs').default])
+  .controller('GenerateScoreCtrl', function($scope, $http, $uibModalInstance, canaryId) {
     $scope.command = {
       duration: null,
-      durationUnit: 'h'
+      durationUnit: 'h',
     };
 
     $scope.state = 'editing';
@@ -19,7 +17,8 @@ module.exports = angular.module('spinnaker.canary.actions.generate.score.control
     this.generateCanaryScore = function() {
       $scope.state = 'submitting';
       var targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'generateCanaryResult'].join('/');
-      $http.post(targetUrl, $scope.command)
+      $http
+        .post(targetUrl, $scope.command)
         .then(function onSuccess() {
           $scope.state = 'success';
         })
@@ -29,5 +28,4 @@ module.exports = angular.module('spinnaker.canary.actions.generate.score.control
     };
 
     this.cancel = $uibModalInstance.dismiss;
-
   });

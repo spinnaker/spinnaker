@@ -7,15 +7,30 @@ export interface IInstanceConsoleOutput {
 }
 
 export class InstanceReader {
-
-  public constructor(private API: Api) { 'ngInject'; }
-
-  public getInstanceDetails(account: string, region: string, id: string): ng.IPromise<IInstance> {
-    return this.API.one('instances').one(account).one(region).one(id).get();
+  public constructor(private API: Api) {
+    'ngInject';
   }
 
-  public getConsoleOutput(account: string, region: string, id: string, cloudProvider: string): ng.IPromise<IInstanceConsoleOutput> {
-    return this.API.one('instances').all(account).all(region).one(id, 'console').withParams({ provider: cloudProvider }).get();
+  public getInstanceDetails(account: string, region: string, id: string): ng.IPromise<IInstance> {
+    return this.API.one('instances')
+      .one(account)
+      .one(region)
+      .one(id)
+      .get();
+  }
+
+  public getConsoleOutput(
+    account: string,
+    region: string,
+    id: string,
+    cloudProvider: string,
+  ): ng.IPromise<IInstanceConsoleOutput> {
+    return this.API.one('instances')
+      .all(account)
+      .all(region)
+      .one(id, 'console')
+      .withParams({ provider: cloudProvider })
+      .get();
   }
 }
 

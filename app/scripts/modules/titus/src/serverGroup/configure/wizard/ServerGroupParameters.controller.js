@@ -1,12 +1,12 @@
 'use strict';
 
-import {ConstraintOptions} from './constraints';
+import { ConstraintOptions } from './constraints';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.parameters.controller', [])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.parameters.controller', [])
   .controller('titusServerGroupParametersCtrl', function($scope, v2modalWizardService) {
-
     this.updateConstraints = () => {
       this.hardConstraintOptions = ConstraintOptions.filter(o => !$scope.command.softConstraints.includes(o));
       this.softConstraintOptions = ConstraintOptions.filter(o => !$scope.command.hardConstraints.includes(o));
@@ -26,8 +26,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.parameter
     });
 
     $scope.migrationPolicyOptions = [
-      {label: 'System Default', value: 'systemDefault'},
-      {label: 'Self Managed', value: 'selfManaged'}
+      { label: 'System Default', value: 'systemDefault' },
+      { label: 'Self Managed', value: 'selfManaged' },
     ];
-
   });

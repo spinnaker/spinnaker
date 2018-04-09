@@ -43,7 +43,7 @@ export class EntityNotifications extends React.Component<IEntityNotificationsPro
     const { account, region, entityId } = entityTags.entityRef;
     const alertsStr = entityTags.alerts.map((tag: IEntityTag) => tag.name).join(',');
 
-    return [ pageLocation, entityType, account, region, entityId, region, alertsStr ].join(':');
+    return [pageLocation, entityType, account, region, entityId, region, alertsStr].join(':');
   }
 
   private getNoticeAnalyticsLabel(): string {
@@ -53,7 +53,7 @@ export class EntityNotifications extends React.Component<IEntityNotificationsPro
     const { account, region, entityId } = entityTags.entityRef;
     const noticesStr = entityTags.notices.map((tag: IEntityTag) => tag.name).join(',');
 
-    return [ pageLocation, entityType, account, region, entityId, noticesStr ].join(':');
+    return [pageLocation, entityType, account, region, entityId, noticesStr].join(':');
   }
 
   public render() {

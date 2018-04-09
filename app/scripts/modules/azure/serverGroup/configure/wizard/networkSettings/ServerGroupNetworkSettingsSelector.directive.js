@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.serverGroup.configure.networkSettings.directive', [])
+module.exports = angular
+  .module('spinnaker.azure.serverGroup.configure.networkSettings.directive', [])
   .directive('azureServerGroupNetworkSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -12,4 +13,3 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.networkSe
       templateUrl: require('./ServerGroupNetworkSettingsSelector.directive.html'),
     };
   });
-

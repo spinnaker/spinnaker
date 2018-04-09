@@ -1,35 +1,32 @@
 'use strict';
 
-describe('Controller: ConfirmationModal', function () {
+describe('Controller: ConfirmationModal', function() {
   var controller, taskMonitorBuilder, params, $scope, modalInstance;
 
+  beforeEach(window.module(require('./confirmationModal.controller.js').name));
+
   beforeEach(
-    window.module(
-      require('./confirmationModal.controller.js').name
-    )
+    window.inject(function($controller, $rootScope, _taskMonitorBuilder_) {
+      params = null;
+      $scope = $rootScope.$new();
+      taskMonitorBuilder = _taskMonitorBuilder_;
+      modalInstance = {};
+
+      this.initialize = function() {
+        controller = $controller('ConfirmationModalCtrl', {
+          $scope: $scope,
+          taskMonitorBuilder: _taskMonitorBuilder_,
+          params: params,
+          $uibModalInstance: modalInstance,
+        });
+      };
+    }),
   );
 
-  beforeEach(window.inject(function($controller, $rootScope, _taskMonitorBuilder_) {
-    params = null;
-    $scope = $rootScope.$new();
-    taskMonitorBuilder = _taskMonitorBuilder_;
-    modalInstance = {};
-
-    this.initialize = function() {
-      controller = $controller('ConfirmationModalCtrl', {
-        $scope: $scope,
-        taskMonitorBuilder: _taskMonitorBuilder_,
-        params: params,
-        $uibModalInstance: modalInstance,
-      });
-    };
-  }));
-
-  describe('Verification config', function () {
-
-    it('should require verification if verificationLabel and textToVerify passed in', function () {
+  describe('Verification config', function() {
+    it('should require verification if verificationLabel and textToVerify passed in', function() {
       params = {
-        verificationLabel: 'please confirm'
+        verificationLabel: 'please confirm',
       };
       this.initialize();
       expect($scope.verification.required).toBe(false);
@@ -39,9 +36,9 @@ describe('Controller: ConfirmationModal', function () {
       expect($scope.verification.required).toBe(true);
     });
 
-    it('should require verification if account is passed in', function () {
+    it('should require verification if account is passed in', function() {
       params = {
-        account: 'prod'
+        account: 'prod',
       };
       this.initialize();
       $scope.$digest();
@@ -49,10 +46,10 @@ describe('Controller: ConfirmationModal', function () {
     });
   });
 
-  describe('task monitor configuration', function () {
-    it('should configure the task monitor if config supplied, attaching modalInstance', function () {
+  describe('task monitor configuration', function() {
+    it('should configure the task monitor if config supplied, attaching modalInstance', function() {
       params = {
-        taskMonitorConfig: {}
+        taskMonitorConfig: {},
       };
       spyOn(taskMonitorBuilder, 'buildTaskMonitor').and.returnValue('your monitor');
       this.initialize();
@@ -62,8 +59,8 @@ describe('Controller: ConfirmationModal', function () {
     });
   });
 
-  describe('form disabled', function () {
-    it('should be disabled when verification is required and not performed', function () {
+  describe('form disabled', function() {
+    it('should be disabled when verification is required and not performed', function() {
       params = {
         verificationLabel: 'please confirm',
         textToVerify: 'yes',
@@ -76,5 +73,4 @@ describe('Controller: ConfirmationModal', function () {
       expect(controller.formDisabled()).toBe(false);
     });
   });
-
 });

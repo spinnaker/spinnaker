@@ -2,8 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.kubernetes.container.probe.directive', [])
-  .directive('kubernetesContainerProbe', function () {
+module.exports = angular
+  .module('spinnaker.kubernetes.container.probe.directive', [])
+  .directive('kubernetesContainerProbe', function() {
     return {
       restrict: 'E',
       templateUrl: require('./probe.directive.html'),
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.probe.directive'
         command: '=',
         probetype: '=',
         heading: '=',
-      }
+      },
     };
   })
   .controller('kubernetesContainerProbeController', function($scope) {
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.probe.directive'
     this.probetype = $scope.probetype;
 
     function defaultExecAction() {
-      return { commands: [], };
+      return { commands: [] };
     }
 
     function defaultHttpGetAction() {
@@ -37,7 +38,7 @@ module.exports = angular.module('spinnaker.kubernetes.container.probe.directive'
     }
 
     function defaultTcpSocketAction() {
-      return { port: 80, };
+      return { port: 80 };
     }
 
     this.defaultProbe = function() {

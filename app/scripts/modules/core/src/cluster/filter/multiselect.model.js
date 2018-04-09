@@ -1,17 +1,16 @@
 'use strict';
 
-import {Subject} from 'rxjs';
+import { Subject } from 'rxjs';
 
 const angular = require('angular');
-import {CLUSTER_FILTER_MODEL} from './clusterFilter.model';
+import { CLUSTER_FILTER_MODEL } from './clusterFilter.model';
 
 module.exports = angular
   .module('spinnaker.core.cluster.filter.multiselect.model', [
     require('@uirouter/angularjs').default,
     CLUSTER_FILTER_MODEL,
   ])
-  .factory('MultiselectModel', function ($state, clusterFilterModel) {
-
+  .factory('MultiselectModel', function($state, clusterFilterModel) {
     this.instanceGroups = [];
     this.instancesStream = new Subject();
 
@@ -65,7 +64,7 @@ module.exports = angular
     };
 
     this.deselectAllInstances = () => {
-      this.instanceGroups.forEach((instanceGroup) => {
+      this.instanceGroups.forEach(instanceGroup => {
         instanceGroup.instanceIds.length = 0;
         instanceGroup.selectAll = false;
       });
@@ -86,23 +85,25 @@ module.exports = angular
       this.clearAllServerGroups();
     };
 
-    this.getOrCreateInstanceGroup = (serverGroup) => {
+    this.getOrCreateInstanceGroup = serverGroup => {
       let serverGroupName = serverGroup.name,
-          account = serverGroup.account,
-          region = serverGroup.region,
-          cloudProvider = serverGroup.type;
-      let result = this.instanceGroups.find((instanceGroup) => {
-        return instanceGroup.serverGroup === serverGroupName &&
+        account = serverGroup.account,
+        region = serverGroup.region,
+        cloudProvider = serverGroup.type;
+      let result = this.instanceGroups.find(instanceGroup => {
+        return (
+          instanceGroup.serverGroup === serverGroupName &&
           instanceGroup.account === account &&
           instanceGroup.region === region &&
-          instanceGroup.cloudProvider === cloudProvider;
+          instanceGroup.cloudProvider === cloudProvider
+        );
       });
       if (!result) {
         // when creating a new group, include an instance ID if we're deep-linked into the details view
         let params = $state.params;
         let instanceIds = (serverGroup.instances || [])
-          .filter((instance) => instance.provider === params.provider && instance.id === params.instanceId)
-          .map((instance) => instance.id);
+          .filter(instance => instance.provider === params.provider && instance.id === params.instanceId)
+          .map(instance => instance.id);
         result = {
           serverGroup: serverGroupName,
           account: account,
@@ -117,18 +118,18 @@ module.exports = angular
       return result;
     };
 
-    this.makeServerGroupKey = (serverGroup) =>
+    this.makeServerGroupKey = serverGroup =>
       [serverGroup.type, serverGroup.account, serverGroup.region, serverGroup.name, serverGroup.category].join(':');
 
-    this.serverGroupIsSelected = (serverGroup) => {
+    this.serverGroupIsSelected = serverGroup => {
       if (!this.serverGroups.length) {
         return false;
       }
       let key = this.makeServerGroupKey(serverGroup);
-      return this.serverGroups.filter((sg) => sg.key === key).length > 0;
+      return this.serverGroups.filter(sg => sg.key === key).length > 0;
     };
 
-    this.toggleServerGroup = (serverGroup) => {
+    this.toggleServerGroup = serverGroup => {
       if (!clusterFilterModel.sortFilter.multiselect) {
         let params = {
           provider: serverGroup.type,
@@ -149,7 +150,7 @@ module.exports = angular
       }
       this.deselectAllInstances();
       let key = this.makeServerGroupKey(serverGroup),
-          selected = this.serverGroups.find((sg) => sg.key === key);
+        selected = this.serverGroups.find(sg => sg.key === key);
       if (selected) {
         this.serverGroups.splice(this.serverGroups.indexOf(selected), 1);
       } else {
@@ -168,7 +169,7 @@ module.exports = angular
 
     this.toggleInstance = (serverGroup, instanceId) => {
       if (!clusterFilterModel.sortFilter.multiselect) {
-        let params = {provider: serverGroup.type, instanceId: instanceId};
+        let params = { provider: serverGroup.type, instanceId: instanceId };
         if (isClusterChildState()) {
           if ($state.includes('**.instanceDetails', params)) {
             return;

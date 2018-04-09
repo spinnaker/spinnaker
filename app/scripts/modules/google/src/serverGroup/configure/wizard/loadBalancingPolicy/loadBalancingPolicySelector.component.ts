@@ -4,7 +4,6 @@ import './loadBalancingPolicySelector.component.less';
 import { IGceBackendService, INamedPort } from 'google/domain';
 
 class GceLoadBalancingPolicySelectorController implements IController {
-
   public maxPort = 65535;
   public command: any;
   [key: string]: any;
@@ -16,11 +15,11 @@ class GceLoadBalancingPolicySelectorController implements IController {
 
   public setModel(propertyName: string, viewValue: number): void {
     set(this, propertyName, viewValue / 100);
-  };
+  }
 
   public setView(propertyName: string, modelValue: number): void {
     this[propertyName] = this.decimalToPercent(modelValue);
-  };
+  }
 
   public onBalancingModeChange(mode: string): void {
     const keys: string[] = ['maxUtilization', 'maxRatePerInstance', 'maxConnectionsPerInstance'];
@@ -39,7 +38,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
         break;
     }
 
-    toDelete.forEach((key) => delete this.command.loadBalancingPolicy[key]);
+    toDelete.forEach(key => delete this.command.loadBalancingPolicy[key]);
   }
 
   public getBalancingModes(): string[] {
@@ -74,10 +73,9 @@ class GceLoadBalancingPolicySelectorController implements IController {
   }
 
   public $onInit(): void {
-    this.gceBackendServiceReader.listBackendServices('globalBackendService')
-      .then((services: IGceBackendService[]) => {
-        this.globalBackendServices = services;
-      });
+    this.gceBackendServiceReader.listBackendServices('globalBackendService').then((services: IGceBackendService[]) => {
+      this.globalBackendServices = services;
+    });
   }
 
   public $onDestroy(): void {
@@ -107,16 +105,21 @@ class GceLoadBalancingPolicySelectorController implements IController {
         case 'TCP':
         case 'HTTP':
           const lbBackendServices: string[] = get(index[loadBalancer], 'backendServices');
-          const filteredBackendServices = globalBackendServices.filter((service: IGceBackendService) => lbBackendServices.includes(service.name));
-          const portNames =  filteredBackendServices.map((service: IGceBackendService) => service.portName);
+          const filteredBackendServices = globalBackendServices.filter((service: IGceBackendService) =>
+            lbBackendServices.includes(service.name),
+          );
+          const portNames = filteredBackendServices.map((service: IGceBackendService) => service.portName);
           const portNameIntersection = intersection(portNames, inUsePortNames);
-          return portNames.filter(portName =>  !portNameIntersection.includes(portName));
+          return portNames.filter(portName => !portNameIntersection.includes(portName));
         default:
           return [];
       }
     };
 
-    return chain(selected).flatMap((lbName: string) => getThem(this.globalBackendServices, lbName)).uniq().value();
+    return chain(selected)
+      .flatMap((lbName: string) => getThem(this.globalBackendServices, lbName))
+      .uniq()
+      .value();
   }
 
   private decimalToPercent(value: number): number {
@@ -129,7 +132,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
 
 class GceLoadBalancingPolicySelectorComponent implements IComponentOptions {
   public bindings: any = {
-    command: '='
+    command: '=',
   };
   public controller: any = GceLoadBalancingPolicySelectorController;
   public templateUrl: string = require('./loadBalancingPolicySelector.component.html');
@@ -137,5 +140,7 @@ class GceLoadBalancingPolicySelectorComponent implements IComponentOptions {
 
 export const GCE_LOAD_BALANCING_POLICY_SELECTOR = 'spinnaker.gce.loadBalancingPolicy.selector.component';
 
-module(GCE_LOAD_BALANCING_POLICY_SELECTOR, [])
-  .component('gceLoadBalancingPolicySelector', new GceLoadBalancingPolicySelectorComponent());
+module(GCE_LOAD_BALANCING_POLICY_SELECTOR, []).component(
+  'gceLoadBalancingPolicySelector',
+  new GceLoadBalancingPolicySelectorComponent(),
+);

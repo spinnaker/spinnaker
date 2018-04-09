@@ -21,7 +21,7 @@ const footerComponent: IComponentOptions = {
       </button>
     </div>
   `,
-  controller: () => {}
+  controller: () => {},
 };
 
 export const ECS_FOOTER_COMPONENT = 'spinnaker.ecs.footer';

@@ -4,29 +4,29 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.component', [])
+module.exports = angular
+  .module('spinnaker.deck.kubernetes.environmentVariables.component', [])
   .component('kubernetesContainerEnvironmentVariables', {
     bindings: {
-      envVars: '='
+      envVars: '=',
     },
     templateUrl: require('./environmentVariables.component.html'),
-    controller: function () {
+    controller: function() {
       if (!this.envVars) {
         this.envVars = [];
       }
 
-      this.envVarsSourceTypes = this.envVars
-        .map((envVar) => {
-          if (_.get(envVar, 'envSource.configMapSource')) {
-            return 'Config Map';
-          } else if (_.get(envVar, 'envSource.secretSource')) {
-            return 'Secret';
-          } else if (_.get(envVar, 'envSource.fieldRef')) {
-            return 'Field Ref';
-          } else {
-            return 'Explicit';
-          }
-        });
+      this.envVarsSourceTypes = this.envVars.map(envVar => {
+        if (_.get(envVar, 'envSource.configMapSource')) {
+          return 'Config Map';
+        } else if (_.get(envVar, 'envSource.secretSource')) {
+          return 'Secret';
+        } else if (_.get(envVar, 'envSource.fieldRef')) {
+          return 'Field Ref';
+        } else {
+          return 'Explicit';
+        }
+      });
 
       this.removeEnvVar = function(index) {
         this.envVars.splice(index, 1);
@@ -41,10 +41,10 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
       this.sourceTypes = ['Explicit', 'Config Map', 'Secret', 'Field Ref'];
 
       this.updateSourceTypeMap = {
-        'Explicit': (envVar) => {
+        Explicit: envVar => {
           delete envVar.envSource;
         },
-        'Config Map': (envVar) => {
+        'Config Map': envVar => {
           delete envVar.value;
           if (_.has(envVar, 'envSource.secretSource')) {
             delete envVar.envSource.secretSource;
@@ -53,7 +53,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
             delete envVar.envSource.fieldRef;
           }
         },
-        'Secret': (envVar) => {
+        Secret: envVar => {
           delete envVar.value;
           if (_.has(envVar, 'envSource.configMapSource')) {
             delete envVar.envSource.configMapSource;
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
             delete envVar.envSource.fieldRef;
           }
         },
-        'Field Ref': (envVar) => {
+        'Field Ref': envVar => {
           delete envVar.value;
           if (_.has(envVar, 'envSource.configMapSource')) {
             delete envVar.envSource.configMapSource;
@@ -70,13 +70,13 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
           if (_.has(envVar, 'envSource.secretSource')) {
             delete envVar.envSource.secretSource;
           }
-        }
+        },
       };
 
-      this.updateEnvVar = (index) => {
+      this.updateEnvVar = index => {
         let envVar = this.envVars[index];
         let sourceType = this.envVarsSourceTypes[index];
         this.updateSourceTypeMap[sourceType](envVar);
       };
-    }
+    },
   });

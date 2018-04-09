@@ -2,12 +2,10 @@ import { OrchestratedItemTransformer } from './orchestratedItem.transformer';
 
 describe('orchestratedItem transformer', () => {
   describe('failure message extraction', () => {
-
     const getMessage = (obj: any) => {
       OrchestratedItemTransformer.defineProperties(obj);
       return obj.failureMessage;
     };
-
 
     it('returns null when no stage context', () => {
       expect(getMessage({})).toBe(null);
@@ -27,22 +25,20 @@ describe('orchestratedItem transformer', () => {
           'kato.tasks': [
             {
               exception: {
-                message: 'failed!'
-              }
+                message: 'failed!',
+              },
             },
-            {
-
-            }
-          ]
-        }
+            {},
+          ],
+        },
       };
       expect(getMessage(stage)).toBe(null);
     });
 
     it('returns general exception if present', () => {
-      expect(getMessage({ context: { 'exception': { 'details' : { 'errors': ['E1', 'E2'] } } } })).toBe('E1, E2');
-      expect(getMessage({ context: { 'exception': { 'details' : { 'errors': [] } } } })).toBe(null);
-      expect(getMessage({ context: { } })).toBe(null);
+      expect(getMessage({ context: { exception: { details: { errors: ['E1', 'E2'] } } } })).toBe('E1, E2');
+      expect(getMessage({ context: { exception: { details: { errors: [] } } } })).toBe(null);
+      expect(getMessage({ context: {} })).toBe(null);
     });
 
     it('returns general exception even if a kato task is present', () => {
@@ -54,16 +50,16 @@ describe('orchestratedItem transformer', () => {
                 failed: true,
               },
               exception: {
-                message: 'failed!'
-              }
-            }
+                message: 'failed!',
+              },
+            },
           ],
           exception: {
             details: {
-              errors: ['E1', 'E2']
-            }
-          }
-        }
+              errors: ['E1', 'E2'],
+            },
+          },
+        },
       };
       expect(getMessage(stage)).toBe('E1, E2');
     });
@@ -73,34 +69,34 @@ describe('orchestratedItem transformer', () => {
         context: {
           'kato.tasks': [
             {
-              message: 'this one is fine'
+              message: 'this one is fine',
             },
             {
               status: {
                 failed: true,
               },
               exception: {
-                message: 'failed!'
-              }
-            }
-          ]
-        }
+                message: 'failed!',
+              },
+            },
+          ],
+        },
       };
       expect(getMessage(stage)).toBe('failed!');
     });
 
-    it ('extracts exception object from variables', () => {
+    it('extracts exception object from variables', () => {
       const task = {
         variables: [
           {
             key: 'exception',
             value: {
               details: {
-                error: 'From exception object'
-              }
-            }
-          }
-        ]
+                error: 'From exception object',
+              },
+            },
+          },
+        ],
       };
 
       expect(getMessage(task)).toBe('From exception object');
@@ -113,15 +109,12 @@ describe('orchestratedItem transformer', () => {
             key: 'exception',
             value: {
               details: {
-                errors: [
-                  'error 1',
-                  'error 2'
-                ],
-                error: 'From error'
-              }
-            }
-          }
-        ]
+                errors: ['error 1', 'error 2'],
+                error: 'From error',
+              },
+            },
+          },
+        ],
       };
       expect(getMessage(task)).toBe('error 1, error 2');
     });
@@ -131,9 +124,9 @@ describe('orchestratedItem transformer', () => {
         variables: [
           {
             key: 'exception',
-            value: 'i should be an object'
-          }
-        ]
+            value: 'i should be an object',
+          },
+        ],
       };
       expect(getMessage(task)).toBe(null);
     });
@@ -148,14 +141,11 @@ describe('orchestratedItem transformer', () => {
                 status: {
                   failed: true,
                 },
-                history: [
-                  { status: 'i am fine' },
-                  { status: 'i am terrible' }
-                ],
-              }
-            ]
-          }
-        ]
+                history: [{ status: 'i am fine' }, { status: 'i am terrible' }],
+              },
+            ],
+          },
+        ],
       };
       expect(getMessage(task)).toBe('i am terrible');
     });
@@ -171,15 +161,13 @@ describe('orchestratedItem transformer', () => {
                   failed: true,
                 },
                 exception: {
-                  message: 'I am the exception'
+                  message: 'I am the exception',
                 },
-                history: [
-                  { status: 'i am terrible' }
-                ],
-              }
-            ]
-          }
-        ]
+                history: [{ status: 'i am terrible' }],
+              },
+            ],
+          },
+        ],
       };
       expect(getMessage(task)).toBe('I am the exception');
     });
@@ -192,13 +180,11 @@ describe('orchestratedItem transformer', () => {
             value: [
               {
                 exception: 'I am the problem',
-                history: [
-                  { status: 'i am terrible' }
-                ],
-              }
-            ]
-          }
-        ]
+                history: [{ status: 'i am terrible' }],
+              },
+            ],
+          },
+        ],
       };
       expect(getMessage(task)).toBe(null);
     });
@@ -211,10 +197,10 @@ describe('orchestratedItem transformer', () => {
             value: [
               {
                 history: [] as any[],
-              }
-            ]
-          }
-        ]
+              },
+            ],
+          },
+        ],
       };
       expect(getMessage(task)).toBe(null);
     });
@@ -226,21 +212,17 @@ describe('orchestratedItem transformer', () => {
             key: 'kato.tasks',
             value: [
               {
-                history: [
-                  { status: 'i am the first' },
-                ],
+                history: [{ status: 'i am the first' }],
               },
               {
                 status: {
                   failed: true,
                 },
-                history: [
-                  { status: 'i am the second' },
-                ],
-              }
-            ]
-          }
-        ]
+                history: [{ status: 'i am the second' }],
+              },
+            ],
+          },
+        ],
       };
       expect(getMessage(task)).toBe('i am the second');
     });

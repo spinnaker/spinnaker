@@ -22,5 +22,5 @@ declare module 'spel2js' {
 
   export const TemplateParser: {
     parse(template: string): SpelExpression[];
-  }
+  };
 }

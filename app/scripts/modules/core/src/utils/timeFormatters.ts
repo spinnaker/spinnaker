@@ -15,7 +15,7 @@ export function duration(input: any) {
   }
   const thisMoment = moment.utc(parseInt(input, 10));
   const days = Math.floor(moment.duration(input, 'milliseconds').asDays());
-  const format = (days || thisMoment.hours()) ? 'HH:mm:ss' : 'mm:ss';
+  const format = days || thisMoment.hours() ? 'HH:mm:ss' : 'mm:ss';
   let dayLabel = '';
   if (thisMoment.isValid()) {
     if (days > 0) {
@@ -65,7 +65,7 @@ export const fastPropertyTtl = (input: any, seconds: number) => {
 export function timePickerTime(input: any) {
   if (input && !isNaN(input.hours) && !isNaN(input.minutes)) {
     const hours = parseInt(input.hours, 10),
-        minutes = parseInt(input.minutes, 10);
+      minutes = parseInt(input.minutes, 10);
 
     let result = '';
     if (hours < 10) {

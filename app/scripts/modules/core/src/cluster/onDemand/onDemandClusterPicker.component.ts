@@ -13,7 +13,9 @@ class OnDemandClusterPickerController implements IController {
   public totalClusterCount: number;
   public optionTemplate: string = require('./onDemandOptionTemplate.html');
 
-  constructor(private $scope: IScope, private clusterFilterModel: ClusterFilterModel) { 'ngInject'; }
+  constructor(private $scope: IScope, private clusterFilterModel: ClusterFilterModel) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.setAvailableClusters();
@@ -23,8 +25,9 @@ class OnDemandClusterPickerController implements IController {
   private setAvailableClusters(): void {
     this.totalClusterCount = this.application.getDataSource('serverGroups').clusters.length;
     const selectedClusters: string[] = Object.keys(this.clusterFilterModel.asFilterModel.sortFilter.clusters);
-    this.availableClusters = this.application.getDataSource('serverGroups').clusters
-      .filter((cluster: IClusterSummary) => !selectedClusters.includes(this.makeKey(cluster)));
+    this.availableClusters = this.application
+      .getDataSource('serverGroups')
+      .clusters.filter((cluster: IClusterSummary) => !selectedClusters.includes(this.makeKey(cluster)));
   }
 
   public selectCluster(cluster: IClusterSummary): void {
@@ -61,6 +64,7 @@ const onDemandClusterPickerComponent: IComponentOptions = {
 };
 
 export const ON_DEMAND_CLUSTER_PICKER_COMPONENT = 'spinnaker.core.cluster.onDemandClusterPicker.component';
-module(ON_DEMAND_CLUSTER_PICKER_COMPONENT, [
-  CLUSTER_FILTER_MODEL,
-]).component('onDemandClusterPicker', onDemandClusterPickerComponent);
+module(ON_DEMAND_CLUSTER_PICKER_COMPONENT, [CLUSTER_FILTER_MODEL]).component(
+  'onDemandClusterPicker',
+  onDemandClusterPickerComponent,
+);

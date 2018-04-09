@@ -11,21 +11,20 @@ class CustomArtifactController implements IController {
 }
 
 export const CUSTOM_ARTIFACT = 'spinnaker.core.pipeline.trigger.custom.artifact';
-module(CUSTOM_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  pipelineConfigProvider.registerArtifactKind({
-    label: 'Custom',
-    description: 'A custom-defined artifact.',
-    key: 'custom',
-    isDefault: true,
-    isMatch: true,
-    controller(artifact: IArtifact) {
-      'ngInject';
-      this.artifact = artifact;
-    },
-    controllerAs: 'ctrl',
-    template: `
+module(CUSTOM_ARTIFACT, [PIPELINE_CONFIG_PROVIDER])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+    pipelineConfigProvider.registerArtifactKind({
+      label: 'Custom',
+      description: 'A custom-defined artifact.',
+      key: 'custom',
+      isDefault: true,
+      isMatch: true,
+      controller(artifact: IArtifact) {
+        'ngInject';
+        this.artifact = artifact;
+      },
+      controllerAs: 'ctrl',
+      template: `
 <div class="col-md-12">
   <div class="form-group row">
     <label class="col-md-2 sm-label-right">
@@ -74,6 +73,7 @@ module(CUSTOM_ARTIFACT, [
     </div>
   </div>
 </div>
-`
-  });
-}).controller('customArtifactCtrl', CustomArtifactController);
+`,
+    });
+  })
+  .controller('customArtifactCtrl', CustomArtifactController);

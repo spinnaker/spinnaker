@@ -30,7 +30,6 @@ export interface IApplicationHeaderState {
 
 @BindAll()
 export class ApplicationHeader extends React.Component<IApplicationHeaderProps, IApplicationHeaderState> {
-
   private stopListeningToStateChange: Function;
   private stopListeningToAppRefresh: Function;
   private dataSourceAttribute: any;
@@ -38,12 +37,13 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
   constructor(props: IApplicationHeaderProps) {
     super(props);
     this.configureApplicationEventListeners(props.app);
-    this.stopListeningToStateChange = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => this.resetActiveCategory());
-    const categories = this.parseCategories(props);
-    this.state = Object.assign(
-      categories,
-      { activeCategory: this.getActiveCategory(categories.primaryCategories.concat(categories.secondaryCategories)) }
+    this.stopListeningToStateChange = ReactInjector.$uiRouter.transitionService.onSuccess({}, () =>
+      this.resetActiveCategory(),
     );
+    const categories = this.parseCategories(props);
+    this.state = Object.assign(categories, {
+      activeCategory: this.getActiveCategory(categories.primaryCategories.concat(categories.secondaryCategories)),
+    });
   }
 
   public componentWillReceiveProps(nextProps: IApplicationHeaderProps) {
@@ -84,7 +84,9 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
   }
 
   private getActiveCategory(categories: IDataSourceCategory[]) {
-    const active = this.props.app.dataSources.find(ds => ds.activeState && ReactInjector.$state.includes(ds.activeState));
+    const active = this.props.app.dataSources.find(
+      ds => ds.activeState && ReactInjector.$state.includes(ds.activeState),
+    );
     return categories.find(c => c.dataSources.includes(active));
   }
 
@@ -101,7 +103,9 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
       }
     });
 
-    const uncategorized = appSources.filter(ds => allCategories.every(c => c.key !== ds.category) && ds.primary === primary);
+    const uncategorized = appSources.filter(
+      ds => allCategories.every(c => c.key !== ds.category) && ds.primary === primary,
+    );
     uncategorized.forEach(ds => {
       categories.push({
         key: ds.key,
@@ -109,7 +113,7 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
         primary: ds.primary,
         order: navigationCategoryRegistry.getHighestOrder() + 100,
         dataSources: [ds],
-      })
+      });
     });
 
     categories.sort((a, b) => navigationCategoryRegistry.getOrder(a) - navigationCategoryRegistry.getOrder(b));
@@ -127,11 +131,11 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
     const ApplicationTitleAndRefresher = (
       <h2 className="horizontal middle">
         <span className="hidden-xs">
-          <ApplicationIcon app={app}/>
+          <ApplicationIcon app={app} />
         </span>
         <span className="horizontal middle">
           <span className="application-name">{app.name}</span>
-          <ApplicationRefresher app={app}/>
+          <ApplicationRefresher app={app} />
         </span>
       </h2>
     );
@@ -141,19 +145,27 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
         <div className="second-level-navigation-header">
           <div className="container application-header horizontal middle">
             {ApplicationTitleAndRefresher}
-            <TinyHeader {...this.state}/>
+            <TinyHeader {...this.state} />
             <div className="horizontal space-between flex-1">
-              <ApplicationNavSection application={app} categories={primaryCategories} primary={true} activeCategory={activeCategory}/>
+              <ApplicationNavSection
+                application={app}
+                categories={primaryCategories}
+                primary={true}
+                activeCategory={activeCategory}
+              />
               <div className="horizontal middle right">
-                <ApplicationNavSection application={app} categories={secondaryCategories} primary={false} activeCategory={activeCategory}/>
-                <PagerDutyButton app={app}/>
+                <ApplicationNavSection
+                  application={app}
+                  categories={secondaryCategories}
+                  primary={false}
+                  activeCategory={activeCategory}
+                />
+                <PagerDutyButton app={app} />
               </div>
             </div>
           </div>
         </div>
-      {app && !app.notFound && (
-        <ThirdLevelNavigation category={activeCategory} application={app}/>
-      )}
+        {app && !app.notFound && <ThirdLevelNavigation category={activeCategory} application={app} />}
       </div>
     );
   }

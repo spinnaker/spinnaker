@@ -7,12 +7,13 @@ import {
   LOAD_BALANCER_WRITE_SERVICE,
   SECURITY_GROUP_READER,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
 import '../../loadBalancer.less';
 
-module.exports = angular.module('spinnaker.loadBalancer.openstack.create.controller', [
+module.exports = angular
+  .module('spinnaker.loadBalancer.openstack.create.controller', [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_WRITE_SERVICE,
     ACCOUNT_SERVICE,
@@ -23,12 +24,21 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     require('../../../subnet/subnetSelectField.directive.js').name,
     require('../../../network/networkSelectField.directive.js').name,
     require('../../../common/isolateForm.directive.js').name,
-    SECURITY_GROUP_READER
+    SECURITY_GROUP_READER,
   ])
-  .controller('openstackUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
-                                                                application, loadBalancer, isNew,
-                                                                accountService, openstackLoadBalancerTransformer,
-                                                                loadBalancerWriter, taskMonitorBuilder, securityGroupReader) {
+  .controller('openstackUpsertLoadBalancerController', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    application,
+    loadBalancer,
+    isNew,
+    accountService,
+    openstackLoadBalancerTransformer,
+    loadBalancerWriter,
+    taskMonitorBuilder,
+    securityGroupReader,
+  ) {
     var ctrl = this;
     $scope.isNew = isNew;
     $scope.application = application;
@@ -42,7 +52,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
 
     $scope.state = {
       accountsLoaded: false,
-      submitting: false
+      submitting: false,
     };
 
     $scope.subnetFilter = {};
@@ -52,7 +62,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     $scope.methods = [
       { label: 'Round Robin', value: 'ROUND_ROBIN' },
       { label: 'Least Connections', value: 'LEAST_CONNECTIONS' },
-      { label: 'Source IP', value: 'SOURCE_IP' }
+      { label: 'Source IP', value: 'SOURCE_IP' },
     ];
 
     $scope.allSecurityGroups = [];
@@ -103,7 +113,7 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     });
 
     function finishInitialization() {
-      accountService.listAccounts('openstack').then(function (accounts) {
+      accountService.listAccounts('openstack').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -120,18 +130,21 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       var account = $scope.loadBalancer.credentials;
 
       const accountLoadBalancersByRegion = {};
-      application.getDataSource('loadBalancers').refresh(true).then(() => {
-        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-          if (loadBalancer.account === account) {
-            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-          }
+      application
+        .getDataSource('loadBalancers')
+        .refresh(true)
+        .then(() => {
+          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+            if (loadBalancer.account === account) {
+              accountLoadBalancersByRegion[loadBalancer.region] =
+                accountLoadBalancersByRegion[loadBalancer.region] || [];
+              accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+            }
+          });
+
+          $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
         });
-
-        $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
-      });
     }
-
 
     function updateSecurityGroups() {
       var account = _.get($scope, ['loadBalancer', 'account']);
@@ -139,10 +152,9 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       if (!account || !region) {
         $scope.allSecurityGroups = [];
       }
-      securityGroupReader.getAllSecurityGroups()
-        .then(function(securityGroups) {
-          $scope.allSecurityGroups = _.get(securityGroups, [account, 'openstack', region], []);
-        });
+      securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
+        $scope.allSecurityGroups = _.get(securityGroups, [account, 'openstack', region], []);
+      });
     }
 
     // Controller API
@@ -152,13 +164,17 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       }
 
       var loadBalancer = $scope.loadBalancer;
-      var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
+      var loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       loadBalancer.name = _.trimEnd(loadBalancerName, '-');
     };
 
     this.accountUpdated = function() {
       ctrl.updateName();
-      $scope.subnetFilter = {type: 'openstack', account: $scope.loadBalancer.account, region: $scope.loadBalancer.region};
+      $scope.subnetFilter = {
+        type: 'openstack',
+        account: $scope.loadBalancer.account,
+        region: $scope.loadBalancer.region,
+      };
       if ($scope.loadBalancer) {
         $scope.loadBalancer.securityGroups = [];
       }
@@ -169,7 +185,11 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       $scope.loadBalancer.region = regionId;
 
       //updating the filter triggers a refresh of the subnets
-      $scope.subnetFilter = {type: 'openstack', account: $scope.loadBalancer.account, region: $scope.loadBalancer.region};
+      $scope.subnetFilter = {
+        type: 'openstack',
+        account: $scope.loadBalancer.account,
+        region: $scope.loadBalancer.region,
+      };
     };
 
     this.onDistributionChanged = function(distribution) {
@@ -186,12 +206,14 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     };
 
     this.removeStatusCode = function(code) {
-      $scope.loadBalancer.healthMonitor.expectedCodes = $scope.loadBalancer.healthMonitor.expectedCodes.filter(function(c) {
+      $scope.loadBalancer.healthMonitor.expectedCodes = $scope.loadBalancer.healthMonitor.expectedCodes.filter(function(
+        c,
+      ) {
         return c !== code;
       });
     };
 
-    this.prependForwardSlash = (text) => {
+    this.prependForwardSlash = text => {
       return text && text.indexOf('/') !== 0 ? `/${text}` : text;
     };
 
@@ -200,10 +222,10 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
     };
 
     this.addListener = function() {
-      $scope.loadBalancer.listeners.push({externalProtocol: 'HTTP', externalPort: 80, internalPort: 80});
+      $scope.loadBalancer.listeners.push({ externalProtocol: 'HTTP', externalPort: 80, internalPort: 80 });
     };
 
-    this.listenerProtocolChanged = (listener) => {
+    this.listenerProtocolChanged = listener => {
       if (listener.externalProtocol === 'TERMINATED_HTTPS') {
         listener.externalPort = 443;
         listener.internalPort = 443;
@@ -224,24 +246,27 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.create.control
       });
     };
 
-    this.submit = function () {
+    this.submit = function() {
       var descriptor = isNew ? 'Create' : 'Update';
 
       this.updateName();
-      $scope.taskMonitor.submit(
-        function() {
-          let params = {
-            cloudProvider: 'openstack',
-            account: $scope.loadBalancer.accountId || $scope.loadBalancer.account,
-            accountId: $scope.loadBalancer.accountId,
-            securityGroups: $scope.loadBalancer.securityGroups
-          };
-          return loadBalancerWriter.upsertLoadBalancer(_.omit($scope.loadBalancer, 'accountId'), application, descriptor, params);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        let params = {
+          cloudProvider: 'openstack',
+          account: $scope.loadBalancer.accountId || $scope.loadBalancer.account,
+          accountId: $scope.loadBalancer.accountId,
+          securityGroups: $scope.loadBalancer.securityGroups,
+        };
+        return loadBalancerWriter.upsertLoadBalancer(
+          _.omit($scope.loadBalancer, 'accountId'),
+          application,
+          descriptor,
+          params,
+        );
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

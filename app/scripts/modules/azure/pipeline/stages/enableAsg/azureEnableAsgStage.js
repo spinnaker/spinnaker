@@ -4,8 +4,8 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.pipeline.stage.enableAsgStage', [
-])
+module.exports = angular
+  .module('spinnaker.azure.pipeline.stage.enableAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
@@ -15,22 +15,23 @@ module.exports = angular.module('spinnaker.azure.pipeline.stage.enableAsgStage',
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('azureEnableAsgStageCtrl', function($scope, accountService) {
+  })
+  .controller('azureEnableAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('azure').then(function (accounts) {
+    accountService.listAccounts('azure').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -63,4 +64,3 @@ module.exports = angular.module('spinnaker.azure.pipeline.stage.enableAsgStage',
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

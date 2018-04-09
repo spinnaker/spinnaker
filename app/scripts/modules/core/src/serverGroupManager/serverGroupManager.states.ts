@@ -13,8 +13,8 @@ export interface IServerGroupManagerStateParams {
 }
 
 export const SERVER_GROUP_MANAGER_STATES = 'spinnaker.core.serverGroupManager.states';
-module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER])
-  .config((applicationStateProvider: ApplicationStateProvider) => {
+module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER]).config(
+  (applicationStateProvider: ApplicationStateProvider) => {
     const serverGroupManagerDetails: INestedState = {
       name: 'serverGroupManager',
       url: '/serverGroupManagerDetails/:provider/:accountId/:region/:serverGroupManager',
@@ -22,24 +22,25 @@ module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER])
         'detail@../insight': {
           component: ServerGroupManagerDetails,
           $type: 'react',
-        }
+        },
       },
       resolve: {
         accountId: ['$stateParams', ($stateParams: IServerGroupManagerStateParams) => $stateParams.accountId],
-        serverGroupManager: ['$stateParams', ($stateParams: IServerGroupManagerStateParams) => $stateParams]
+        serverGroupManager: ['$stateParams', ($stateParams: IServerGroupManagerStateParams) => $stateParams],
       },
       data: {
         pageTitleDetails: {
           title: 'Server Group Manager Details',
           nameParam: 'serverGroupManager',
           accountParam: 'accountId',
-          regionParam: 'region'
+          regionParam: 'region',
         },
         history: {
           type: 'serverGroupManagers',
         },
-      }
+      },
     };
 
     applicationStateProvider.addInsightDetailState(serverGroupManagerDetails);
-  });
+  },
+);

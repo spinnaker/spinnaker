@@ -54,8 +54,9 @@ export interface IInstanceTypeService {
 }
 
 export class InstanceTypeService {
-
-  public constructor(private providerServiceDelegate: ProviderServiceDelegate) { 'ngInject'; }
+  public constructor(private providerServiceDelegate: ProviderServiceDelegate) {
+    'ngInject';
+  }
 
   public getCategories(cloudProvider: string): IPromise<IInstanceTypeCategory[]> {
     return this.getDelegate(cloudProvider).getCategories();
@@ -65,7 +66,11 @@ export class InstanceTypeService {
     return this.getDelegate(cloudProvider).getAllTypesByRegion();
   }
 
-  public getAvailableTypesForRegions(cloudProvider: string, instanceTypes: string[], regions: string[]): IPromise<string[]> {
+  public getAvailableTypesForRegions(
+    cloudProvider: string,
+    instanceTypes: string[],
+    regions: string[],
+  ): IPromise<string[]> {
     return this.getDelegate(cloudProvider).getAvailableTypesForRegions(instanceTypes, regions);
   }
 
@@ -86,16 +91,21 @@ export class InstanceTypeService {
 
   private getInstanceTypeCategory(cloudProvider: string, instanceType: string): IPromise<IInstanceTypeCategory> {
     return this.getCategories(cloudProvider).then((categories: IInstanceTypeCategory[]) => {
-      return (categories || []).find(c => c.families.some(f => f.instanceTypes.some(i => i.name === instanceType || (i.nameRegex && i.nameRegex.test(instanceType)))));
+      return (categories || []).find(c =>
+        c.families.some(f =>
+          f.instanceTypes.some(i => i.name === instanceType || (i.nameRegex && i.nameRegex.test(instanceType))),
+        ),
+      );
     });
   }
 
   private getDelegate(cloudProvider: string): IInstanceTypeService {
-    return this.providerServiceDelegate.getDelegate<IInstanceTypeService>(cloudProvider, 'instance.instanceTypeService');
+    return this.providerServiceDelegate.getDelegate<IInstanceTypeService>(
+      cloudProvider,
+      'instance.instanceTypeService',
+    );
   }
 }
 
 export const INSTANCE_TYPE_SERVICE = 'spinnaker.core.instanceType.service';
-module(INSTANCE_TYPE_SERVICE, [
-  PROVIDER_SERVICE_DELEGATE,
-]).service('instanceTypeService', InstanceTypeService);
+module(INSTANCE_TYPE_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service('instanceTypeService', InstanceTypeService);

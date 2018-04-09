@@ -8,5 +8,5 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions', 
   require('./preconditionList.directive.js').name,
   require('./preconditionType.service.js').name,
   require('./modal/editPrecondition.controller.modal.js').name,
-  require('./precondition.details.filter.js').name
+  require('./precondition.details.filter.js').name,
 ]);

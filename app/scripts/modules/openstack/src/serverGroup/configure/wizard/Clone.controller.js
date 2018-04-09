@@ -4,24 +4,34 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone', [
-  require('@uirouter/angularjs').default,
-  SERVER_GROUP_WRITER,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-  require('../serverGroupConfiguration.service.js').name,
-])
-  .controller('openstackCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                        serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
-                                                        openstackServerGroupConfigurationService,
-                                                        serverGroupCommand, application, title) {
+module.exports = angular
+  .module('spinnaker.openstack.serverGroup.configure.clone', [
+    require('@uirouter/angularjs').default,
+    SERVER_GROUP_WRITER,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    require('../serverGroupConfiguration.service.js').name,
+  ])
+  .controller('openstackCloneServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    $state,
+    serverGroupWriter,
+    v2modalWizardService,
+    taskMonitorBuilder,
+    openstackServerGroupConfigurationService,
+    serverGroupCommand,
+    application,
+    title,
+  ) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./location/basicSettings.html'),
       instanceSettings: require('./instance/instanceSettings.html'),
       clusterSettings: require('./clusterSettings.html'),
       accessSettings: require('./access/accessSettings.html'),
-      advancedSettings: require('./advanced/advancedSettings.html')
+      advancedSettings: require('./advanced/advancedSettings.html'),
     };
 
     $scope.title = title;
@@ -48,7 +58,9 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
     };
 
     if (!$scope.command.viewState.disableStrategySelection) {
-      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+      this.templateSelectionText.notCopied.push(
+        'the deployment strategy (if any) used to deploy the most recent server group',
+      );
     }
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -80,28 +92,24 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
       }
     }
 
-    this.isValid = function () {
-      return $scope.command &&
-        $scope.command.account !== null &&
-        v2modalWizardService.isComplete();
+    this.isValid = function() {
+      return $scope.command && $scope.command.account !== null && v2modalWizardService.isComplete();
     };
 
-    this.showSubmitButton = function () {
+    this.showSubmitButton = function() {
       return v2modalWizardService.allPagesVisited();
     };
 
-    this.submit = function () {
+    this.submit = function() {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode == 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
-      $scope.taskMonitor.submit(
-        function() {
-          return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 

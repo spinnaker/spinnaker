@@ -6,21 +6,21 @@ describe('cloudProviderRegistry: API', function() {
   let configurer: CloudProviderRegistry;
 
   beforeEach(
-    mock.module(
-      CLOUD_PROVIDER_REGISTRY,
-      function(cloudProviderRegistryProvider: CloudProviderRegistry) {
-        configurer = cloudProviderRegistryProvider;
-      }
-    )
+    mock.module(CLOUD_PROVIDER_REGISTRY, function(cloudProviderRegistryProvider: CloudProviderRegistry) {
+      configurer = cloudProviderRegistryProvider;
+    }),
   );
 
   describe('registration', function() {
-    it('registers providers', mock.inject(function() {
-      expect(configurer.$get().getProvider('aws')).toBeNull();
-      const config = { name: 'a', key: 'a' };
-      configurer.registerProvider('aws', config);
-      expect(configurer.$get().getProvider('aws')).toEqual(config);
-    }));
+    it(
+      'registers providers',
+      mock.inject(function() {
+        expect(configurer.$get().getProvider('aws')).toBeNull();
+        const config = { name: 'a', key: 'a' };
+        configurer.registerProvider('aws', config);
+        expect(configurer.$get().getProvider('aws')).toEqual(config);
+      }),
+    );
   });
 
   describe('property lookup', function() {
@@ -32,7 +32,7 @@ describe('cloudProviderRegistry: API', function() {
           falsy: false,
           nully: null,
           zero: 0,
-        }
+        },
       };
     });
 
@@ -56,22 +56,28 @@ describe('cloudProviderRegistry: API', function() {
       expect(configurer.$get().getValue('aws', 'nested').good).toBe('nice');
     });
 
-    it('returns falsy values', mock.inject(function() {
-      configurer.registerProvider('aws', this.config);
-      expect(configurer.$get().getValue('aws', 'nested.falsy')).toBe(false);
-      expect(configurer.$get().getValue('aws', 'nested.nully')).toBe(null);
-      expect(configurer.$get().getValue('aws', 'nested.zero')).toBe(0);
-    }));
+    it(
+      'returns falsy values',
+      mock.inject(function() {
+        configurer.registerProvider('aws', this.config);
+        expect(configurer.$get().getValue('aws', 'nested.falsy')).toBe(false);
+        expect(configurer.$get().getValue('aws', 'nested.nully')).toBe(null);
+        expect(configurer.$get().getValue('aws', 'nested.zero')).toBe(0);
+      }),
+    );
 
-    it('returns null when provider or property is not found', mock.inject(function() {
-      configurer.registerProvider('aws', this.config);
-      expect(configurer.$get().getValue('gce', 'a')).toBe(null);
-      expect(configurer.$get().getValue('aws', 'b')).toBe(null);
-      expect(configurer.$get().getValue('aws', 'a.b')).toBe(null);
-    }));
+    it(
+      'returns null when provider or property is not found',
+      mock.inject(function() {
+        configurer.registerProvider('aws', this.config);
+        expect(configurer.$get().getValue('gce', 'a')).toBe(null);
+        expect(configurer.$get().getValue('aws', 'b')).toBe(null);
+        expect(configurer.$get().getValue('aws', 'a.b')).toBe(null);
+      }),
+    );
   });
 
-  describe('hasValue', function () {
+  describe('hasValue', function() {
     beforeEach(function() {
       this.config = {
         key: 'a',
@@ -80,7 +86,7 @@ describe('cloudProviderRegistry: API', function() {
           falsy: false,
           nully: null,
           zero: 0,
-        }
+        },
       };
     });
 
@@ -93,7 +99,7 @@ describe('cloudProviderRegistry: API', function() {
       expect(configurer.$get().hasValue('aws', 'nested.zero')).toBe(true);
     });
 
-    it('returns false on null properties, non-existent properties or non-existent providers', function () {
+    it('returns false on null properties, non-existent properties or non-existent providers', function() {
       configurer.registerProvider('aws', this.config);
       expect(configurer.$get().hasValue('aws', 'nested.nully')).toBe(false);
       expect(configurer.$get().hasValue('aws', 'nonexistent')).toBe(false);
@@ -125,7 +131,6 @@ describe('cloudProviderRegistry: API', function() {
       configurer.registerProvider('gce', { name: 'gce', key: 'value' });
 
       expect(configurer.$get().getValue('gce', 'key')).toBe('value');
-    })
+    });
   });
-
 });

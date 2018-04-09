@@ -32,12 +32,13 @@ class ClusterFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(public $scope: IScope,
-              public clusterFilterService: ClusterFilterService,
-              public clusterFilterModel: ClusterFilterModel,
-              public $rootScope: IScope,
-              public clusterDependentFilterHelper: any,
-              public dependentFilterService: any,
+  constructor(
+    public $scope: IScope,
+    public clusterFilterService: ClusterFilterService,
+    public clusterFilterModel: ClusterFilterModel,
+    public $rootScope: IScope,
+    public clusterDependentFilterHelper: any,
+    public dependentFilterService: any,
   ) {
     'ngInject';
   }
@@ -48,7 +49,9 @@ class ClusterFilterCtrl {
 
     this.sortFilter = filterModel.sortFilter;
     this.tags = filterModel.tags;
-    this.groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() => this.tags = filterModel.tags);
+    this.groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(
+      () => (this.tags = filterModel.tags),
+    );
 
     if (app.serverGroups.loaded) {
       this.initialize();
@@ -67,12 +70,24 @@ class ClusterFilterCtrl {
   }
 
   public updateClusterGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, clusterFilterModel, clusterDependentFilterHelper, clusterFilterService, app } = this;
+    const {
+      dependentFilterService,
+      clusterFilterModel,
+      clusterDependentFilterHelper,
+      clusterFilterService,
+      app,
+    } = this;
 
-    const { providerType, instanceType, account, availabilityZone, region } = dependentFilterService.digestDependentFilters({
+    const {
+      providerType,
+      instanceType,
+      account,
+      availabilityZone,
+      region,
+    } = dependentFilterService.digestDependentFilters({
       sortFilter: clusterFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone', 'instanceType'],
-      pool: clusterDependentFilterHelper.poolBuilder(app.serverGroups.data)
+      pool: clusterDependentFilterHelper.poolBuilder(app.serverGroups.data),
     });
 
     this.providerTypeHeadings = providerType;

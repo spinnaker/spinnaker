@@ -3,9 +3,7 @@ import { AUTHENTICATION_SERVICE, AuthenticationService } from './authentication.
 import { SETTINGS } from 'core/config/settings';
 
 export class AuthenticationInterceptor implements ng.IHttpInterceptor {
-
-  constructor(private $q: ng.IQService,
-              private authenticationService: AuthenticationService) {
+  constructor(private $q: ng.IQService, private authenticationService: AuthenticationService) {
     'ngInject';
   }
 
@@ -14,9 +12,7 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
   // functions themselves and invokes them directly without any context (stateless) which means we lose `this` inside
   // the handlers"
   public request = (config: IRequestConfig): IPromise<IRequestConfig> => {
-
     return this.$q((resolve: ng.IQResolveReject<any>) => {
-
       // pass through to authentication endpoint and non-http resources
       if (config.url === SETTINGS.authEndpoint || config.url.indexOf('http') !== 0) {
         resolve(config);
@@ -31,7 +27,7 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
         }
       }
     });
-  }
+  };
 }
 
 export const AUTHENTICATION_INTERCEPTOR_SERVICE = 'spinnaker.authentication.interceptor.service';

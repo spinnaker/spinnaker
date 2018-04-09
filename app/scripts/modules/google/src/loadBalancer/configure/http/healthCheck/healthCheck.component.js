@@ -1,10 +1,11 @@
 'use strict';
 
 const angular = require('angular');
-import {HealthCheckTemplate} from '../templates';
+import { HealthCheckTemplate } from '../templates';
 import * as _ from 'lodash';
 
-module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.component', [])
+module.exports = angular
+  .module('spinnaker.deck.httpLoadBalancer.healthCheck.component', [])
   .component('gceHttpLoadBalancerHealthCheck', {
     bindings: {
       command: '=',
@@ -13,20 +14,20 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
       index: '=',
     },
     templateUrl: require('./healthCheck.component.html'),
-    controller: function () {
+    controller: function() {
       this.max = Number.MAX_SAFE_INTEGER;
       this.backingData = this.command.backingData;
       this.loadBalancer = this.command.loadBalancer;
       let healthChecksByName = this.backingData.healthChecksKeyedByName;
 
-      this.onHealthCheckSelect = (selectedHealthCheck) => {
+      this.onHealthCheckSelect = selectedHealthCheck => {
         assign(selectedHealthCheck);
       };
 
       this.getAllHealthCheckNames = () => {
         return this.command.backingData.healthChecks
-          .filter((hc) => hc.account === this.loadBalancer.credentials)
-          .map((hc) => hc.name);
+          .filter(hc => hc.account === this.loadBalancer.credentials)
+          .map(hc => hc.name);
       };
 
       this.toggleEditExisting = () => {
@@ -38,7 +39,7 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
         }
       };
 
-      let assign = (toAssign) => {
+      let assign = toAssign => {
         this.loadBalancer.healthChecks[this.index] = this.healthCheck = toAssign;
       };
 
@@ -57,5 +58,5 @@ module.exports = angular.module('spinnaker.deck.httpLoadBalancer.healthCheck.com
       }
 
       this.healthCheckType = this.healthCheck.healthCheckType;
-    }
+    },
   });

@@ -34,7 +34,10 @@ type ApplicationLoadBalancerModal = new () => WizardModal<IAmazonApplicationLoad
 const ApplicationLoadBalancerModal = WizardModal as ApplicationLoadBalancerModal;
 
 @BindAll()
-export class CreateApplicationLoadBalancer extends React.Component<ICreateApplicationLoadBalancerProps, ICreateApplicationLoadBalancerState> {
+export class CreateApplicationLoadBalancer extends React.Component<
+  ICreateApplicationLoadBalancerProps,
+  ICreateApplicationLoadBalancerState
+> {
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
   private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
@@ -42,16 +45,16 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
   constructor(props: ICreateApplicationLoadBalancerProps) {
     super(props);
 
-    const loadBalancerCommand = props.loadBalancer ?
-    AwsReactInjector.awsLoadBalancerTransformer.convertApplicationLoadBalancerForEditing(props.loadBalancer) :
-    AwsReactInjector.awsLoadBalancerTransformer.constructNewApplicationLoadBalancerTemplate(props.app);
+    const loadBalancerCommand = props.loadBalancer
+      ? AwsReactInjector.awsLoadBalancerTransformer.convertApplicationLoadBalancerForEditing(props.loadBalancer)
+      : AwsReactInjector.awsLoadBalancerTransformer.constructNewApplicationLoadBalancerTemplate(props.app);
 
     this.state = {
       includeSecurityGroups: !!loadBalancerCommand.vpcId,
       isNew: !props.loadBalancer,
       loadBalancerCommand,
       taskMonitor: null,
-    }
+    };
 
     const deferred = $q.defer();
     const promise = deferred.promise;
@@ -68,8 +71,16 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
     // no idea
   }
 
-  protected certificateIdAsARN(accountId: string, certificateId: string, region: string, certificateType: string): string {
-    if (certificateId && (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)) {
+  protected certificateIdAsARN(
+    accountId: string,
+    certificateId: string,
+    region: string,
+    certificateType: string,
+  ): string {
+    if (
+      certificateId &&
+      (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)
+    ) {
       // If they really want to enter the ARN...
       if (certificateType === 'iam') {
         return `arn:aws:iam::${accountId}:server-certificate/${certificateId}`;
@@ -82,15 +93,19 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
   }
 
   private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): IPromise<void> {
-    return ReactInjector.accountService.getAccountDetails(command.credentials).then((account) => {
-      command.listeners.forEach((listener) => {
+    return ReactInjector.accountService.getAccountDetails(command.credentials).then(account => {
+      command.listeners.forEach(listener => {
         if (listener.protocol === 'HTTP') {
           delete listener.sslPolicy;
           listener.certificates = [];
         }
-        listener.certificates.forEach((certificate) => {
-          certificate.certificateArn = this.certificateIdAsARN(account.accountId, certificate.name,
-          command.region, certificate.type || this.certificateTypes[0]);
+        listener.certificates.forEach(certificate => {
+          certificate.certificateArn = this.certificateIdAsARN(
+            account.accountId,
+            certificate.name,
+            command.region,
+            certificate.type || this.certificateTypes[0],
+          );
         });
       });
     });
@@ -100,24 +115,24 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
     const availabilityZones: { [region: string]: string[] } = {};
     availabilityZones[loadBalancerCommand.region] = loadBalancerCommand.regionZones || [];
     loadBalancerCommand.availabilityZones = availabilityZones;
-  };
+  }
 
   private addAppName(name: string): string {
     return `${this.props.app.name}-${name}`;
   }
 
   private manageTargetGroupNames(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
-    (command.targetGroups || []).forEach((targetGroupDescription) => {
+    (command.targetGroups || []).forEach(targetGroupDescription => {
       targetGroupDescription.name = this.addAppName(targetGroupDescription.name);
     });
-    (command.listeners || []).forEach((listenerDescription) => {
-      listenerDescription.defaultActions.forEach((actionDescription) => {
+    (command.listeners || []).forEach(listenerDescription => {
+      listenerDescription.defaultActions.forEach(actionDescription => {
         if (actionDescription.targetGroupName) {
           actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
         }
       });
-      (listenerDescription.rules || []).forEach((ruleDescription) => {
-        ruleDescription.actions.forEach((actionDescription) => {
+      (listenerDescription.rules || []).forEach(ruleDescription => {
+        ruleDescription.actions.forEach(actionDescription => {
           if (actionDescription.targetGroupName) {
             actionDescription.targetGroupName = this.addAppName(actionDescription.targetGroupName);
           }
@@ -127,12 +142,12 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
   }
 
   private manageRules(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
-    command.listeners.forEach((listener) => {
+    command.listeners.forEach(listener => {
       listener.rules.forEach((rule, index) => {
         // Set the priority in array order, starting with 1
         rule.priority = index + 1;
         // Remove conditions that have no value
-        rule.conditions = rule.conditions.filter((condition) => condition.values[0].length > 0);
+        rule.conditions = rule.conditions.filter(condition => condition.values[0].length > 0);
       });
     });
   }
@@ -163,7 +178,9 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
   }
 
   public componentWillUnmount(): void {
-    if (this.refreshUnsubscribe) { this.refreshUnsubscribe(); }
+    if (this.refreshUnsubscribe) {
+      this.refreshUnsubscribe();
+    }
   }
 
   private onTaskComplete(values: IAmazonApplicationLoadBalancerUpsertCommand): void {
@@ -187,7 +204,7 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
         modalInstance: this.$uibModalInstanceEmulation,
-        onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted)
+        onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted),
       });
 
       taskMonitor.submit(() => {
@@ -211,7 +228,9 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
     const { app, forPipelineConfig, loadBalancer, show } = this.props;
     const { includeSecurityGroups, isNew, loadBalancerCommand, taskMonitor } = this.state;
 
-    if (!show) { return null; }
+    if (!show) {
+      return null;
+    }
 
     const hideSections = new Set<string>();
 
@@ -229,22 +248,27 @@ export class CreateApplicationLoadBalancer extends React.Component<ICreateApplic
     }
 
     return (
-        <ApplicationLoadBalancerModal
-          heading={heading}
-          initialValues={loadBalancerCommand}
-          taskMonitor={taskMonitor}
-          dismiss={this.dismiss}
-          show={show}
-          submit={this.submit}
-          submitButtonLabel={forPipelineConfig ? (isNew ? 'Add' : 'Done') : (isNew ? 'Create' : 'Update')}
-          validate={this.validate}
-          hideSections={hideSections}
-        >
-          <LoadBalancerLocation app={app} isNew={isNew} forPipelineConfig={forPipelineConfig} loadBalancer={loadBalancer} />
-          <SecurityGroups done={true} />
-          <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
-          <ALBListeners done={true} />
-        </ApplicationLoadBalancerModal>
+      <ApplicationLoadBalancerModal
+        heading={heading}
+        initialValues={loadBalancerCommand}
+        taskMonitor={taskMonitor}
+        dismiss={this.dismiss}
+        show={show}
+        submit={this.submit}
+        submitButtonLabel={forPipelineConfig ? (isNew ? 'Add' : 'Done') : isNew ? 'Create' : 'Update'}
+        validate={this.validate}
+        hideSections={hideSections}
+      >
+        <LoadBalancerLocation
+          app={app}
+          isNew={isNew}
+          forPipelineConfig={forPipelineConfig}
+          loadBalancer={loadBalancer}
+        />
+        <SecurityGroups done={true} />
+        <TargetGroups app={app} isNew={isNew} loadBalancer={loadBalancer} done={true} />
+        <ALBListeners done={true} />
+      </ApplicationLoadBalancerModal>
     );
   }
 }

@@ -5,10 +5,7 @@ import { HelpContentsRegistry } from './helpContents.registry';
 import IProvideService = angular.auto.IProvideService;
 
 describe('Component: helpField', () => {
-
-  let helpContentsRegistry: HelpContentsRegistry,
-      $scope: ng.IScope,
-      $compile: ng.ICompileService;
+  let helpContentsRegistry: HelpContentsRegistry, $scope: ng.IScope, $compile: ng.ICompileService;
 
   const executeTest = (htmlString: string, expected: string, attr = 'uib-popover-html') => {
     const helpField: JQuery = $compile(htmlString)($scope);
@@ -23,20 +20,24 @@ describe('Component: helpField', () => {
   };
 
   beforeEach(() => {
-    mock.module(
-      HELP_FIELD_COMPONENT,
-      ($provide: IProvideService) => {
-        $provide.constant('helpContents', { 'aws.serverGroup.stack': 'expected stack help' });
-      });
+    mock.module(HELP_FIELD_COMPONENT, ($provide: IProvideService) => {
+      $provide.constant('helpContents', { 'aws.serverGroup.stack': 'expected stack help' });
+    });
   });
 
-  beforeEach(mock.inject(($rootScope: ng.IRootScopeService,
-                          _$compile_: ng.ICompileService,
-                          _helpContentsRegistry_: HelpContentsRegistry) => {
-    helpContentsRegistry = _helpContentsRegistry_;
-    $compile = _$compile_;
-    $scope = $rootScope.$new();
-  }));
+  beforeEach(
+    mock.inject(
+      (
+        $rootScope: ng.IRootScopeService,
+        _$compile_: ng.ICompileService,
+        _helpContentsRegistry_: HelpContentsRegistry,
+      ) => {
+        helpContentsRegistry = _helpContentsRegistry_;
+        $compile = _$compile_;
+        $scope = $rootScope.$new();
+      },
+    ),
+  );
 
   it('uses provided content if supplied', () => {
     testContent('<help-field content="some content"></help-field>', 'some content');
@@ -60,7 +61,10 @@ describe('Component: helpField', () => {
   });
 
   it('ignores key and fallback if content is defined', () => {
-    testContent('<help-field key="aws.serverGroup.stack" fallback="will be ignored" content="overridden!"></help-field>', 'overridden!');
+    testContent(
+      '<help-field key="aws.serverGroup.stack" fallback="will be ignored" content="overridden!"></help-field>',
+      'overridden!',
+    );
   });
 
   it('defaults position to "auto"', () => {
@@ -70,5 +74,4 @@ describe('Component: helpField', () => {
   it('overrides position to "left"', () => {
     executeTest('<help-field content="some content" placement="left"></help-field>', 'left', 'popover-placement');
   });
-
 });

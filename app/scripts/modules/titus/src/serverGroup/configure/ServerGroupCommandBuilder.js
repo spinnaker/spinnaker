@@ -5,12 +5,9 @@ const angular = require('angular');
 import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
 import { TitusProviderSettings } from '../../titus.settings';
 
-module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.service', [
-  ACCOUNT_SERVICE,
-  NAMING_SERVICE,
-])
-  .factory('titusServerGroupCommandBuilder', function ($q,
-                                                       accountService, namingService) {
+module.exports = angular
+  .module('spinnaker.titus.serverGroupCommandBuilder.service', [ACCOUNT_SERVICE, NAMING_SERVICE])
+  .factory('titusServerGroupCommandBuilder', function($q, accountService, namingService) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
@@ -36,13 +33,13 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
           gpu: 0,
         },
         efs: {
-          mountPerm: 'RW'
+          mountPerm: 'RW',
         },
         strategy: '',
         capacity: {
           min: 1,
           max: 1,
-          desired: 1
+          desired: 1,
         },
         env: {},
         labels: {},
@@ -58,7 +55,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         },
         securityGroups: [],
         imageId: defaults.imageId,
-        migrationPolicy: {'type': 'systemDefault'}
+        migrationPolicy: { type: 'systemDefault' },
       };
 
       return $q.when(command);
@@ -69,7 +66,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
       return $q.when({
         viewState: {
           requiresTemplateSelection: true,
-        }
+        },
       });
     }
 
@@ -91,10 +88,10 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         entryPoint: serverGroup.entryPoint,
         iamProfile: serverGroup.iamProfile || application.name + 'InstanceProfile',
         capacityGroup: serverGroup.capacityGroup,
-        migrationPolicy: serverGroup.migrationPolicy ? serverGroup.migrationPolicy : {'type': 'systemDefault'},
+        migrationPolicy: serverGroup.migrationPolicy ? serverGroup.migrationPolicy : { type: 'systemDefault' },
         securityGroups: serverGroup.securityGroups || [],
-        hardConstraints: (serverGroup.hardConstraints || []),
-        softConstraints: (serverGroup.softConstraints || []),
+        hardConstraints: serverGroup.hardConstraints || [],
+        softConstraints: serverGroup.softConstraints || [],
         inService: serverGroup.disabled ? false : true,
         source: {
           account: serverGroup.account,
@@ -114,7 +111,7 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         capacity: {
           min: serverGroup.capacity.min,
           max: serverGroup.capacity.max,
-          desired: serverGroup.capacity.desired
+          desired: serverGroup.capacity.desired,
         },
         cloudProvider: 'titus',
         selectedProvider: 'titus',
@@ -128,11 +125,11 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         command.efs = {
           mountPoint: serverGroup.efs.mountPoint,
           mountPerm: serverGroup.efs.mountPerm,
-          efsId: serverGroup.efs.efsId
+          efsId: serverGroup.efs.efsId,
         };
       } else {
         command.efs = {
-          mountPerm: 'RW'
+          mountPerm: 'RW',
         };
       }
 
@@ -144,19 +141,18 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
-
       var pipelineCluster = _.cloneDeep(originalCluster);
       var commandOptions = {
         account: pipelineCluster.account,
         imageId: pipelineCluster.imageId,
         region: pipelineCluster.region,
       };
-      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions)});
+      var asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
-      return asyncLoader.then(function (asyncData) {
+      return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
-        command.hardConstraints = (command.hardConstraints || []);
-        command.softConstraints = (command.softConstraints || []);
+        command.hardConstraints = command.hardConstraints || [];
+        command.softConstraints = command.softConstraints || [];
 
         var viewState = {
           disableImageSelection: true,
@@ -175,7 +171,6 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
         var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
         return extendedCommand;
       });
-
     }
 
     return {
@@ -185,4 +180,3 @@ module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.servi
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
   });
-

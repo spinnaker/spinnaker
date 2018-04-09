@@ -5,38 +5,42 @@ import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/applica
 import { APPLICATION_DATA_SOURCE_EDITOR, DataSourceEditorController } from './applicationDataSourceEditor.component';
 
 describe('Component: Application Data Source Editor', () => {
-
   let applicationWriter: any,
-      applicationModelBuilder: ApplicationModelBuilder,
-      application: Application,
-      $componentController: ng.IComponentControllerService,
-      ctrl: DataSourceEditorController,
-      $q: ng.IQService,
-      $scope: ng.IScope;
+    applicationModelBuilder: ApplicationModelBuilder,
+    application: Application,
+    $componentController: ng.IComponentControllerService,
+    ctrl: DataSourceEditorController,
+    $q: ng.IQService,
+    $scope: ng.IScope;
 
   const initialize = () => {
-    ctrl = <DataSourceEditorController> $componentController(
+    ctrl = <DataSourceEditorController>$componentController(
       'applicationDataSourceEditor',
       { $scope: null, applicationWriter: applicationWriter },
-      { application: application }
+      { application: application },
     );
     ctrl.$onInit();
   };
 
-  beforeEach(mock.module(
-    APPLICATION_DATA_SOURCE_EDITOR,
-    APPLICATION_MODEL_BUILDER
-  ));
+  beforeEach(mock.module(APPLICATION_DATA_SOURCE_EDITOR, APPLICATION_MODEL_BUILDER));
 
-  beforeEach(mock.inject(
-    (_applicationWriter_: any, _applicationModelBuilder_: ApplicationModelBuilder,
-     _$componentController_: ng.IComponentControllerService, _$q_: ng.IQService, $rootScope: ng.IRootScopeService) => {
-      applicationWriter = _applicationWriter_;
-      applicationModelBuilder = _applicationModelBuilder_;
-      $componentController = _$componentController_;
-      $q = _$q_;
-      $scope = $rootScope.$new();
-  }));
+  beforeEach(
+    mock.inject(
+      (
+        _applicationWriter_: any,
+        _applicationModelBuilder_: ApplicationModelBuilder,
+        _$componentController_: ng.IComponentControllerService,
+        _$q_: ng.IQService,
+        $rootScope: ng.IRootScopeService,
+      ) => {
+        applicationWriter = _applicationWriter_;
+        applicationModelBuilder = _applicationModelBuilder_;
+        $componentController = _$componentController_;
+        $q = _$q_;
+        $scope = $rootScope.$new();
+      },
+    ),
+  );
 
   beforeEach(() => {
     application = applicationModelBuilder.createApplication(
@@ -44,7 +48,7 @@ describe('Component: Application Data Source Editor', () => {
       {
         key: 'optionalSource',
         optional: true,
-        visible: true
+        visible: true,
       },
       {
         key: 'invisibleSource',
@@ -60,18 +64,17 @@ describe('Component: Application Data Source Editor', () => {
         visible: true,
         optIn: true,
         disabled: true,
-      }
+      },
     );
     application.attributes = { accounts: ['test'] };
   });
 
   describe('model initialization', () => {
-
     it('uses data source configuration if no dataSources attribute present on application', () => {
       initialize();
       expect(ctrl.model).toEqual({
         optionalSource: true,
-        optInSource: false
+        optInSource: false,
       });
     });
 
@@ -140,7 +143,7 @@ describe('Component: Application Data Source Editor', () => {
       expect(applicationWriter.updateApplication.calls.mostRecent().args[0]).toEqual({
         name: 'app',
         accounts: ['test'],
-        dataSources: { enabled: ['optInSource'], disabled: ['optionalSource'] }
+        dataSources: { enabled: ['optInSource'], disabled: ['optionalSource'] },
       });
 
       $scope.$digest();

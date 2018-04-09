@@ -13,7 +13,7 @@ export interface ICommit {
 
 class CommitHistoryComponent implements IComponentOptions {
   public bindings: any = {
-    commits: '<'
+    commits: '<',
   };
   public template = `
   <div ng-if="$ctrl.commits && $ctrl.commits.length">

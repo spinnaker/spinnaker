@@ -4,26 +4,27 @@ import { StateParams, StateService } from '@uirouter/angularjs';
 import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from './executionDetailsSection.service';
 
 describe('executionDetailsSectionService', function() {
-
   let $state: StateService,
-      $stateParams: StateParams,
-      $timeout: ng.ITimeoutService,
-      service: ExecutionDetailsSectionService;
+    $stateParams: StateParams,
+    $timeout: ng.ITimeoutService,
+    service: ExecutionDetailsSectionService;
 
   beforeEach(mock.module(EXECUTION_DETAILS_SECTION_SERVICE));
-  beforeEach(mock.inject((
-    executionDetailsSectionService: ExecutionDetailsSectionService,
-    _$state_: StateService,
-    _$stateParams_: StateParams,
-    _$timeout_: ng.ITimeoutService) => {
-
-      service = executionDetailsSectionService;
-      $state = _$state_;
-      $stateParams = _$stateParams_;
-      $timeout = _$timeout_;
-
-    }
-  ));
+  beforeEach(
+    mock.inject(
+      (
+        executionDetailsSectionService: ExecutionDetailsSectionService,
+        _$state_: StateService,
+        _$stateParams_: StateParams,
+        _$timeout_: ng.ITimeoutService,
+      ) => {
+        service = executionDetailsSectionService;
+        $state = _$state_;
+        $stateParams = _$stateParams_;
+        $timeout = _$timeout_;
+      },
+    ),
+  );
 
   describe('synchronizeSection', () => {
     it('does nothing when state is not in execution details', function() {
@@ -60,7 +61,6 @@ describe('executionDetailsSectionService', function() {
       expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
 
-
     it('uses first section if none present in state params', function() {
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
@@ -75,7 +75,7 @@ describe('executionDetailsSectionService', function() {
 
     it('calls initialization after timeout', function() {
       let completed = false;
-      const init = () => completed = true;
+      const init = () => (completed = true);
 
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
@@ -88,7 +88,7 @@ describe('executionDetailsSectionService', function() {
 
     it('cancels prior initialization on second synchronization call', function() {
       let completed = false;
-      const init = () => completed = true;
+      const init = () => (completed = true);
 
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
@@ -98,7 +98,5 @@ describe('executionDetailsSectionService', function() {
       $timeout.flush();
       expect(completed).toBe(false);
     });
-
   });
-
 });

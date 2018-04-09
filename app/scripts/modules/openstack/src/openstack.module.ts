@@ -46,55 +46,54 @@ module(OPENSTACK_MODULE, [
   require('./pipeline/stages/shrinkCluster/openstackShrinkClusterStage.js').name,
   require('./pipeline/stages/cloneServerGroup/openstackCloneServerGroupStage.js').name,
   require('./subnet/subnet.renderer.js').name,
-])
-  .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-    cloudProviderRegistryProvider.registerProvider('openstack', {
-      name: 'openstack',
-      logo: {
-        path: require('./logo/openstack.logo.png')
-      },
-      cache: {
-        configurer: 'openstackCacheConfigurer',
-      },
-      search: {
-        resultFormatter: 'openstackSearchResultFormatter',
-      },
-      image: {
-        reader: 'openstackImageReader',
-      },
-      instance: {
-        instanceTypeService: 'openstackInstanceTypeService',
-        detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
-        detailsController: 'openstackInstanceDetailsCtrl',
-      },
-      securityGroup: {
-        reader: 'openstackSecurityGroupReader',
-        transformer: 'openstackSecurityGroupTransformer',
-        detailsTemplateUrl: require('./securityGroup/details/details.html'),
-        detailsController: 'openstackSecurityGroupDetailsController',
-        createSecurityGroupTemplateUrl: require('./securityGroup/configure/wizard/createWizard.html'),
-        createSecurityGroupController: 'openstackUpsertSecurityGroupController',
-      },
-      serverGroup: {
-        transformer: 'openstackServerGroupTransformer',
-        cloneServerGroupController: 'openstackCloneServerGroupCtrl',
-        cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
-        commandBuilder: 'openstackServerGroupCommandBuilder',
-        configurationService: 'openstackServerGroupConfigurationService',
-        detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
-        detailsController: 'openstackServerGroupDetailsCtrl',
-      },
-      subnet: {
-        renderer: 'openstackSubnetRenderer',
-      },
-      loadBalancer: {
-        transformer: 'openstackLoadBalancerTransformer',
-        detailsTemplateUrl: require('./loadBalancer/details/details.html'),
-        detailsController: 'openstackLoadBalancerDetailsController',
-        createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/createWizard.html'),
-        createLoadBalancerController: 'openstackUpsertLoadBalancerController',
-      }
-    });
+]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
+  cloudProviderRegistryProvider.registerProvider('openstack', {
+    name: 'openstack',
+    logo: {
+      path: require('./logo/openstack.logo.png'),
+    },
+    cache: {
+      configurer: 'openstackCacheConfigurer',
+    },
+    search: {
+      resultFormatter: 'openstackSearchResultFormatter',
+    },
+    image: {
+      reader: 'openstackImageReader',
+    },
+    instance: {
+      instanceTypeService: 'openstackInstanceTypeService',
+      detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
+      detailsController: 'openstackInstanceDetailsCtrl',
+    },
+    securityGroup: {
+      reader: 'openstackSecurityGroupReader',
+      transformer: 'openstackSecurityGroupTransformer',
+      detailsTemplateUrl: require('./securityGroup/details/details.html'),
+      detailsController: 'openstackSecurityGroupDetailsController',
+      createSecurityGroupTemplateUrl: require('./securityGroup/configure/wizard/createWizard.html'),
+      createSecurityGroupController: 'openstackUpsertSecurityGroupController',
+    },
+    serverGroup: {
+      transformer: 'openstackServerGroupTransformer',
+      cloneServerGroupController: 'openstackCloneServerGroupCtrl',
+      cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
+      commandBuilder: 'openstackServerGroupCommandBuilder',
+      configurationService: 'openstackServerGroupConfigurationService',
+      detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
+      detailsController: 'openstackServerGroupDetailsCtrl',
+    },
+    subnet: {
+      renderer: 'openstackSubnetRenderer',
+    },
+    loadBalancer: {
+      transformer: 'openstackLoadBalancerTransformer',
+      detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+      detailsController: 'openstackLoadBalancerDetailsController',
+      createLoadBalancerTemplateUrl: require('./loadBalancer/configure/wizard/createWizard.html'),
+      createLoadBalancerController: 'openstackUpsertLoadBalancerController',
+    },
   });
+});
 
 DeploymentStrategyRegistry.registerProvider('openstack', ['redblack']);

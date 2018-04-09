@@ -1,7 +1,7 @@
 import { IComponentOptions, IController, module } from 'angular';
 
 import { IExpectedArtifact } from 'core/domain';
-import { IAccount } from 'core/account'
+import { IAccount } from 'core/account';
 import { EXPECTED_ARTIFACT_SERVICE, ExpectedArtifactService } from './expectedArtifact.service';
 
 class ExpectedArtifactSelectorCtrl implements IController {
@@ -12,13 +12,20 @@ class ExpectedArtifactSelectorCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
 
-  constructor (public expectedArtifactService: ExpectedArtifactService) {
+  constructor(public expectedArtifactService: ExpectedArtifactService) {
     'ngInject';
   }
 }
 
 class ExpectedArtifactSelectorComponent implements IComponentOptions {
-  public bindings: any = { command: '=', expectedArtifacts: '<', idField: '@', accountField: '@', accounts: '<', helpFieldKey: '@' };
+  public bindings: any = {
+    command: '=',
+    expectedArtifacts: '<',
+    idField: '@',
+    accountField: '@',
+    accounts: '<',
+    helpFieldKey: '@',
+  };
   public controller: any = ExpectedArtifactSelectorCtrl;
   public controllerAs = 'ctrl';
   public template = `
@@ -54,6 +61,7 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
 }
 
 export const EXPECTED_ARTIFACT_SELECTOR_COMPONENT = 'spinnaker.core.artifacts.expected.selector';
-module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT, [
-  EXPECTED_ARTIFACT_SERVICE,
-]).component('expectedArtifactSelector', new ExpectedArtifactSelectorComponent());
+module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT, [EXPECTED_ARTIFACT_SERVICE]).component(
+  'expectedArtifactSelector',
+  new ExpectedArtifactSelectorComponent(),
+);

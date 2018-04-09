@@ -275,12 +275,14 @@ export class ApplicationDataSource implements IDataSourceConfig {
     }
   }
 
-  constructor(config: IDataSourceConfig,
-              private application: Application,
-              private $q: IQService,
-              private $log: ILogService,
-              private $filter: any,
-              $uiRouter: UIRouter) {
+  constructor(
+    config: IDataSourceConfig,
+    private application: Application,
+    private $q: IQService,
+    private $log: ILogService,
+    private $filter: any,
+    $uiRouter: UIRouter,
+  ) {
     Object.assign(this, config);
 
     if (!config.label && this.$filter) {
@@ -424,7 +426,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
     this.currentLoadCall += 1;
     const loadCall = this.currentLoadCall;
     this.loader(this.application)
-      .then((result) => {
+      .then(result => {
         if (loadCall < this.currentLoadCall) {
           // discard, more recent call has come in
           // TODO: this will all be cleaner with Observables
@@ -448,7 +450,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
         this.refreshQueue.forEach(d => d.resolve());
         this.refreshQueue.length = 0;
       })
-      .catch((rejection) => {
+      .catch(rejection => {
         if (loadCall === this.currentLoadCall) {
           this.$log.warn(`Error retrieving ${this.key}`, rejection);
           this.loading = false;

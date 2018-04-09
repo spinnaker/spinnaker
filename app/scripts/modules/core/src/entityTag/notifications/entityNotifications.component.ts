@@ -7,10 +7,19 @@ import { EntityNotifications } from './EntityNotifications';
 export const ENTITY_NOTIFICATIONS = 'spinnaker.core.entityTag.alerts.entitynotifications';
 const ngmodule = module(ENTITY_NOTIFICATIONS, []);
 
-ngmodule.component('entityNotificationsWrapper', react2angular(EntityNotifications, [
-  'entity', 'application', 'placement', 'hOffsetPercent', 'className', 'pageLocation', 'entityType', 'onUpdate'
-]));
-
+ngmodule.component(
+  'entityNotificationsWrapper',
+  react2angular(EntityNotifications, [
+    'entity',
+    'application',
+    'placement',
+    'hOffsetPercent',
+    'className',
+    'pageLocation',
+    'entityType',
+    'onUpdate',
+  ]),
+);
 
 ngmodule.component('entityNotifications', {
   template: `
@@ -34,5 +43,5 @@ ngmodule.component('entityNotifications', {
     entityType: '@',
     pageLocation: '@',
     onUpdate: '&',
-  }
+  },
 });

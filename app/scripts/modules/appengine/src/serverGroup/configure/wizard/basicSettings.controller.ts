@@ -14,20 +14,25 @@ interface IAppengineBasicSettingsScope extends IScope {
 class AppengineServerGroupBasicSettingsCtrl implements IController {
   public containerImageUrlEnabled = SETTINGS.providers.appengine.defaults.containerImageUrlDeployments;
 
-  constructor(public $scope: IAppengineBasicSettingsScope,
-              $state: StateService,
-              $controller: IControllerService,
-              $uibModalStack: any,
-              namingService: NamingService) {
+  constructor(
+    public $scope: IAppengineBasicSettingsScope,
+    $state: StateService,
+    $controller: IControllerService,
+    $uibModalStack: any,
+    namingService: NamingService,
+  ) {
     'ngInject';
 
-    extend(this, $controller('BasicSettingsMixin', {
-      $scope: $scope,
-      imageReader: null,
-      namingService: namingService,
-      $uibModalStack: $uibModalStack,
-      $state: $state,
-    }));
+    extend(
+      this,
+      $controller('BasicSettingsMixin', {
+        $scope: $scope,
+        imageReader: null,
+        namingService: namingService,
+        $uibModalStack: $uibModalStack,
+        $state: $state,
+      }),
+    );
 
     if (!this.$scope.command.gitCredentialType) {
       this.onAccountChange();
@@ -55,9 +60,9 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
     const artifact = copy(expected.matchArtifact);
     return Object.keys(artifact)
       .filter((k: keyof IArtifact) => artifact[k])
-      .map((k: keyof IArtifact) => (`${k}: ${artifact[k]}`))
+      .map((k: keyof IArtifact) => `${k}: ${artifact[k]}`)
       .join(', ');
-  };
+  }
 
   public toggleResolveViaTrigger(): void {
     this.$scope.command.fromTrigger = !this.$scope.command.fromTrigger;
@@ -113,5 +118,7 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
 
 export const APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL = 'spinnaker.appengine.basicSettings.controller';
 
-module(APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL, [])
-  .controller('appengineServerGroupBasicSettingsCtrl', AppengineServerGroupBasicSettingsCtrl);
+module(APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL, []).controller(
+  'appengineServerGroupBasicSettingsCtrl',
+  AppengineServerGroupBasicSettingsCtrl,
+);

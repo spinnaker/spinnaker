@@ -8,19 +8,21 @@ interface ICacheConfigEntry {
 
 class AppengineCacheConfigurer {
   public credentials: ICacheConfigEntry = {
-    initializers: [(): ng.IPromise<IAccount[]> => this.accountService.listAccounts('appengine')]
+    initializers: [(): ng.IPromise<IAccount[]> => this.accountService.listAccounts('appengine')],
   };
 
   public loadBalancers: ICacheConfigEntry = {
-    initializers: [(): ng.IPromise<ILoadBalancer[]> => this.loadBalancerReader.listLoadBalancers('appengine')]
+    initializers: [(): ng.IPromise<ILoadBalancer[]> => this.loadBalancerReader.listLoadBalancers('appengine')],
   };
 
-  constructor(private accountService: AccountService, private loadBalancerReader: any) { 'ngInject'; }
+  constructor(private accountService: AccountService, private loadBalancerReader: any) {
+    'ngInject';
+  }
 }
 
 export const APPENGINE_CACHE_CONFIGURER = 'spinnaker.appengine.cacheConfigurer.service';
 
-module(APPENGINE_CACHE_CONFIGURER, [
-  ACCOUNT_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-]).service('appengineCacheConfigurer', AppengineCacheConfigurer);
+module(APPENGINE_CACHE_CONFIGURER, [ACCOUNT_SERVICE, LOAD_BALANCER_READ_SERVICE]).service(
+  'appengineCacheConfigurer',
+  AppengineCacheConfigurer,
+);

@@ -4,8 +4,8 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgStage', [
-])
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.aws.resizeAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
@@ -13,22 +13,23 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgSt
       cloudProvider: 'aws',
       templateUrl: require('./resizeAsgStage.html'),
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.',
         },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'action', },
-        { type: 'requiredField', fieldName: 'regions', },
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'action' },
+        { type: 'requiredField', fieldName: 'regions' },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('awsResizeAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('awsResizeAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -38,7 +39,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgSt
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(function (accounts) {
+    accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -52,26 +53,26 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgSt
       },
       {
         label: 'Scale Down',
-        val: 'scale_down'
+        val: 'scale_down',
       },
       {
         label: 'Scale to Cluster Size',
-        val: 'scale_to_cluster'
+        val: 'scale_to_cluster',
       },
       {
         label: 'Scale to Exact Size',
-        val: 'scale_exact'
+        val: 'scale_exact',
       },
     ];
 
     $scope.resizeTypes = [
       {
         label: 'Percentage',
-        val: 'pct'
+        val: 'pct',
       },
       {
         label: 'Incremental',
-        val: 'incr'
+        val: 'incr',
       },
     ];
 
@@ -88,7 +89,11 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgSt
     }
     stage.cloudProvider = 'aws';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Amazon'];
     }
 
@@ -115,6 +120,4 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgSt
         }
       }
     };
-
   });
-

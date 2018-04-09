@@ -13,8 +13,8 @@ export class OrchestratedItemTransformer {
     }
     Object.defineProperties(item, {
       runningTimeInMs: {
-        get: this.calculateRunningTime(item)
-      }
+        get: this.calculateRunningTime(item),
+      },
     });
   }
 
@@ -32,8 +32,9 @@ export class OrchestratedItemTransformer {
       if (!item.variables) {
         return null;
       }
-      const match: IOrchestratedItemVariable = item.variables
-        .find((variable: IOrchestratedItemVariable) => variable.key === key);
+      const match: IOrchestratedItemVariable = item.variables.find(
+        (variable: IOrchestratedItemVariable) => variable.key === key,
+      );
       return match ? match.value : null;
     };
 
@@ -41,42 +42,46 @@ export class OrchestratedItemTransformer {
 
     Object.defineProperties(item, {
       failureMessage: {
-        get: (): string => this.getCustomException(item) || this.getGeneralException(item) || this.getOrchestrationException(item) || null
+        get: (): string =>
+          this.getCustomException(item) ||
+          this.getGeneralException(item) ||
+          this.getOrchestrationException(item) ||
+          null,
       },
       isCompleted: {
-        get: (): boolean => ['SUCCEEDED', 'SKIPPED'].includes(item.status)
+        get: (): boolean => ['SUCCEEDED', 'SKIPPED'].includes(item.status),
       },
       isRunning: {
-        get: (): boolean => item.status === 'RUNNING'
+        get: (): boolean => item.status === 'RUNNING',
       },
       isFailed: {
-        get: (): boolean => ['TERMINAL', 'FAILED_CONTINUE', 'STOPPED'].includes(item.status)
+        get: (): boolean => ['TERMINAL', 'FAILED_CONTINUE', 'STOPPED'].includes(item.status),
       },
       isStopped: {
-        get: (): boolean => item.status === 'STOPPED'
+        get: (): boolean => item.status === 'STOPPED',
       },
       isActive: {
-        get: (): boolean => ['RUNNING', 'SUSPENDED', 'NOT_STARTED', 'PAUSED'].includes(item.status)
+        get: (): boolean => ['RUNNING', 'SUSPENDED', 'NOT_STARTED', 'PAUSED'].includes(item.status),
       },
       hasNotStarted: {
-        get: (): boolean => item.status === 'NOT_STARTED'
+        get: (): boolean => item.status === 'NOT_STARTED',
       },
       isCanceled: {
-        get: (): boolean => item.status === 'CANCELED'
+        get: (): boolean => item.status === 'CANCELED',
       },
       isSuspended: {
-        get: (): boolean => item.status === 'SUSPENDED'
+        get: (): boolean => item.status === 'SUSPENDED',
       },
       isPaused: {
-        get: (): boolean => item.status === 'PAUSED'
+        get: (): boolean => item.status === 'PAUSED',
       },
       status: {
         // Returns either SUCCEEDED, RUNNING, FAILED, CANCELED, or NOT_STARTED
         get: (): string => this.normalizeStatus(item),
-        set: (status) => {
+        set: status => {
           item.originalStatus = status;
           this.normalizeStatus(item);
-        }
+        },
       },
       runningTime: {
         get: () => duration(this.calculateRunningTime(item)()).humanize(),
@@ -85,7 +90,7 @@ export class OrchestratedItemTransformer {
       runningTimeInMs: {
         get: this.calculateRunningTime(item),
         configurable: true,
-      }
+      },
     });
   }
 
@@ -120,13 +125,13 @@ export class OrchestratedItemTransformer {
           typeDisplay = 'task';
           linkUrl = ReactInjector.$state.href('home.applications.application.tasks.taskDetails', {
             application: details.currentLockValueApplication,
-            taskId: details.currentLockValue
+            taskId: details.currentLockValue,
           });
         } else {
           typeDisplay = 'pipeline';
           linkUrl = ReactInjector.$state.href('home.applications.application.pipelines.executionDetails.execution', {
             application: details.currentLockValueApplication,
-            executionId: details.currentLockValue
+            executionId: details.currentLockValue,
           });
         }
 

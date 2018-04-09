@@ -6,12 +6,10 @@ const webpackConfig = {
   mode: 'development',
   module: prodWebpackConfig.module,
   resolve: prodWebpackConfig.resolve,
-  plugins: [
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
-  ]
+  plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true })],
 };
 
-module.exports = function (config) {
+module.exports = function(config) {
   config.set({
     autoWatch: true,
 
@@ -22,12 +20,10 @@ module.exports = function (config) {
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
-    files: [
-      {pattern: './karma-shim.js', watched: false}
-    ],
+    files: [{ pattern: './karma-shim.js', watched: false }],
 
     preprocessors: {
-      './karma-shim.js': ['webpack', 'sourcemap']
+      './karma-shim.js': ['webpack', 'sourcemap'],
     },
 
     webpack: webpackConfig,
@@ -39,12 +35,12 @@ module.exports = function (config) {
     customLaunchers: {
       Chrome_travis_ci: {
         base: 'Chrome',
-        flags: ['--no-sandbox']
+        flags: ['--no-sandbox'],
       },
       ChromeActive: {
         base: 'Chrome',
-        flags: ['--override-plugin-power-saver-for-testing=0']
-      }
+        flags: ['--override-plugin-power-saver-for-testing=0'],
+      },
     },
 
     plugins: [
@@ -61,9 +57,7 @@ module.exports = function (config) {
     // web server port
     port: 8081,
 
-    browsers: [
-      process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive',
-    ],
+    browsers: [process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive'],
 
     colors: true,
 
@@ -76,13 +70,13 @@ module.exports = function (config) {
 
     // put test results in a well known file if 'jenkins' reporter is being used
     junitReporter: {
-     outputFile: 'test-results.xml'
+      outputFile: 'test-results.xml',
     },
 
     client: {
       captureConsole: true,
     },
 
-    browserNoActivityTimeout: 200000
+    browserNoActivityTimeout: 200000,
   });
 };

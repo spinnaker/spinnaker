@@ -43,11 +43,20 @@ export class AwsModalFooter extends React.Component<IAwsModalFooterProps, IAwsMo
     return (
       <ModalFooter>
         <form onSubmit={handleSubmit}>
-          {requireVerification && <UserVerification expectedValue={account} onValidChange={this.handleVerification}/>}
+          {requireVerification && <UserVerification expectedValue={account} onValidChange={this.handleVerification} />}
         </form>
 
-        <button className="btn btn-default" onClick={onCancel}>Cancel</button>
-        <button type="submit" className="btn btn-primary" onClick={onSubmit} disabled={requireVerification && !verified}>Submit</button>
+        <button className="btn btn-default" onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          onClick={onSubmit}
+          disabled={requireVerification && !verified}
+        >
+          Submit
+        </button>
       </ModalFooter>
     );
   }

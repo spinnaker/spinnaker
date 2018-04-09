@@ -25,8 +25,9 @@ export interface IImageReader {
 }
 
 export class ImageReader {
-
-  public constructor(private providerServiceDelegate: ProviderServiceDelegate) { 'ngInject'; }
+  public constructor(private providerServiceDelegate: ProviderServiceDelegate) {
+    'ngInject';
+  }
 
   private getDelegate(cloudProvider: string): IImageReader {
     return this.providerServiceDelegate.getDelegate<IImageReader>(cloudProvider, 'image.reader');
@@ -42,6 +43,4 @@ export class ImageReader {
 }
 
 export const IMAGE_READER = 'spinnaker.core.image.reader';
-module(IMAGE_READER, [
-  PROVIDER_SERVICE_DELEGATE,
-]).service('imageReader', ImageReader);
+module(IMAGE_READER, [PROVIDER_SERVICE_DELEGATE]).service('imageReader', ImageReader);

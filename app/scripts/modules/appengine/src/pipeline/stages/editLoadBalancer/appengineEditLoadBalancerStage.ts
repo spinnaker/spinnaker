@@ -7,41 +7,49 @@ import { CloudProviderRegistry, ILoadBalancer, PipelineConfigProvider } from '@s
 import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 
 class AppengineEditLoadBalancerStageCtrl implements IController {
-  constructor(public $scope: any,
-              private $uibModal: IModalService,
-              private cloudProviderRegistry: CloudProviderRegistry) {
+  constructor(
+    public $scope: any,
+    private $uibModal: IModalService,
+    private cloudProviderRegistry: CloudProviderRegistry,
+  ) {
     'ngInject';
     $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
     $scope.stage.cloudProvider = 'appengine';
   }
 
   public addLoadBalancer(): void {
-    this.$uibModal.open({
-      templateUrl: require('./loadBalancerChoice.modal.html'),
-      controller: `appengineLoadBalancerChoiceModelCtrl as ctrl`,
-      resolve: {
-        application: () => this.$scope.application,
-      }
-    }).result.then((newLoadBalancer: ILoadBalancer) => {
-      this.$scope.stage.loadBalancers.push(newLoadBalancer);
-    }).catch(() => {});
+    this.$uibModal
+      .open({
+        templateUrl: require('./loadBalancerChoice.modal.html'),
+        controller: `appengineLoadBalancerChoiceModelCtrl as ctrl`,
+        resolve: {
+          application: () => this.$scope.application,
+        },
+      })
+      .result.then((newLoadBalancer: ILoadBalancer) => {
+        this.$scope.stage.loadBalancers.push(newLoadBalancer);
+      })
+      .catch(() => {});
   }
 
   public editLoadBalancer(index: number) {
     const config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
-    this.$uibModal.open({
-      templateUrl: config.createLoadBalancerTemplateUrl,
-      controller: `${config.createLoadBalancerController} as ctrl`,
-      size: 'lg',
-      resolve: {
-        application: () => this.$scope.application,
-        loadBalancer: () => cloneDeep(this.$scope.stage.loadBalancers[index]),
-        isNew: () => false,
-        forPipelineConfig: () => true,
-      }
-    }).result.then((updatedLoadBalancer: ILoadBalancer) => {
-      this.$scope.stage.loadBalancers[index] = updatedLoadBalancer;
-    }).catch(() => {});
+    this.$uibModal
+      .open({
+        templateUrl: config.createLoadBalancerTemplateUrl,
+        controller: `${config.createLoadBalancerController} as ctrl`,
+        size: 'lg',
+        resolve: {
+          application: () => this.$scope.application,
+          loadBalancer: () => cloneDeep(this.$scope.stage.loadBalancers[index]),
+          isNew: () => false,
+          forPipelineConfig: () => true,
+        },
+      })
+      .result.then((updatedLoadBalancer: ILoadBalancer) => {
+        this.$scope.stage.loadBalancers[index] = updatedLoadBalancer;
+      })
+      .catch(() => {});
   }
 
   public removeLoadBalancer(index: number): void {
@@ -50,9 +58,8 @@ class AppengineEditLoadBalancerStageCtrl implements IController {
 }
 
 export const APPENGINE_EDIT_LOAD_BALANCER_STAGE = 'spinnaker.appengine.pipeline.stage.editLoadBalancerStage';
-module(APPENGINE_EDIT_LOAD_BALANCER_STAGE, [
-  APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(APPENGINE_EDIT_LOAD_BALANCER_STAGE, [APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       label: 'Edit Load Balancer',
       description: 'Edits a load balancer',

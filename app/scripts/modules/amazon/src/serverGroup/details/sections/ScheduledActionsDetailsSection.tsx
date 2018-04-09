@@ -14,7 +14,10 @@ export interface IScheduledActionsDetailsSectionState {
 }
 
 @BindAll()
-export class ScheduledActionsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, IScheduledActionsDetailsSectionState> {
+export class ScheduledActionsDetailsSection extends React.Component<
+  IAmazonServerGroupDetailsSectionProps,
+  IScheduledActionsDetailsSectionState
+> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -24,8 +27,12 @@ export class ScheduledActionsDetailsSection extends React.Component<IAmazonServe
   private getState(props: IAmazonServerGroupDetailsSectionProps): IScheduledActionsDetailsSectionState {
     const { serverGroup } = props;
 
-    const autoScalingProcesses: IScalingProcess[] = AwsReactInjector.autoScalingProcessService.normalizeScalingProcesses(serverGroup);
-    const scheduledActionsDisabled = serverGroup.scheduledActions.length > 0 && autoScalingProcesses
+    const autoScalingProcesses: IScalingProcess[] = AwsReactInjector.autoScalingProcessService.normalizeScalingProcesses(
+      serverGroup,
+    );
+    const scheduledActionsDisabled =
+      serverGroup.scheduledActions.length > 0 &&
+      autoScalingProcesses
         .filter(p => !p.enabled)
         .some(p => ['Launch', 'Terminate', 'ScheduledAction'].includes(p.name));
 
@@ -39,7 +46,7 @@ export class ScheduledActionsDetailsSection extends React.Component<IAmazonServe
       resolve: {
         application: () => this.props.app,
         serverGroup: () => this.props.serverGroup,
-      }
+      },
     });
   }
 
@@ -58,18 +65,24 @@ export class ScheduledActionsDetailsSection extends React.Component<IAmazonServe
           <span>
             {scheduledActionsDisabled && (
               <Tooltip value="Some scaling processes are disabled that may prevent scheduled actions from working">
-                <span className="fa fa-exclamation-circle warning-text"/>
+                <span className="fa fa-exclamation-circle warning-text" />
               </Tooltip>
             )}
             Scheduled Actions
           </span>
         )}
       >
-        {serverGroup.scheduledActions.map((action, index) => <ScheduledAction key={index} action={action}/> )}
+        {serverGroup.scheduledActions.map((action, index) => <ScheduledAction key={index} action={action} />)}
 
-        {serverGroup.scheduledActions.length > 0 && <p><strong>Note:</strong> Schedules are evaluated in UTC.</p>}
+        {serverGroup.scheduledActions.length > 0 && (
+          <p>
+            <strong>Note:</strong> Schedules are evaluated in UTC.
+          </p>
+        )}
         {serverGroup.scheduledActions.length === 0 && <p>No Scheduled Actions are configured for this server group.</p>}
-        <a className="clickable" onClick={this.editScheduledActions}>Edit Scheduled Actions</a>
+        <a className="clickable" onClick={this.editScheduledActions}>
+          Edit Scheduled Actions
+        </a>
       </CollapsibleSection>
     );
   }

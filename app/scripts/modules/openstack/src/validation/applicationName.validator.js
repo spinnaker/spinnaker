@@ -5,11 +5,8 @@ const angular = require('angular');
 import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.validation.applicationName', [
-    APPLICATION_NAME_VALIDATOR,
-  ])
-  .factory('openstackApplicationNameValidator', function () {
-
+  .module('spinnaker.openstack.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
+  .factory('openstackApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       let pattern = /^[a-zA-Z_0-9.]*$/g;
       if (!pattern.test(name)) {
@@ -35,7 +32,7 @@ module.exports = angular
 
     function validate(name) {
       let warnings = [],
-          errors = [];
+        errors = [];
 
       if (name && name.length) {
         validateSpecialCharacters(name, errors);
@@ -49,7 +46,7 @@ module.exports = angular
     }
 
     return {
-      validate: validate
+      validate: validate,
     };
   })
   .run(function(applicationNameValidator, openstackApplicationNameValidator) {

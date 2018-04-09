@@ -15,13 +15,24 @@ class AppengineLoadBalancerSettingsController implements IController {
   public addAllocation(): void {
     const remainingServerGroups = this.serverGroupsWithoutAllocation();
     if (remainingServerGroups.length) {
-      this.loadBalancer.splitDescription.allocationDescriptions.push({ serverGroupName: remainingServerGroups[0], allocation: 0, locatorType: 'fromExisting' });
-      if (this.loadBalancer.splitDescription.allocationDescriptions.length > 1 && !this.loadBalancer.splitDescription.shardBy) {
+      this.loadBalancer.splitDescription.allocationDescriptions.push({
+        serverGroupName: remainingServerGroups[0],
+        allocation: 0,
+        locatorType: 'fromExisting',
+      });
+      if (
+        this.loadBalancer.splitDescription.allocationDescriptions.length > 1 &&
+        !this.loadBalancer.splitDescription.shardBy
+      ) {
         this.loadBalancer.splitDescription.shardBy = 'IP';
       }
       this.updateServerGroupOptions();
     } else if (this.forPipelineConfig) {
-      this.loadBalancer.splitDescription.allocationDescriptions.push({ allocation: 0, locatorType: 'text', serverGroupName: '' });
+      this.loadBalancer.splitDescription.allocationDescriptions.push({
+        allocation: 0,
+        locatorType: 'text',
+        serverGroupName: '',
+      });
     }
   }
 
@@ -31,8 +42,12 @@ class AppengineLoadBalancerSettingsController implements IController {
   }
 
   public allocationIsInvalid(): boolean {
-    return this.loadBalancer.splitDescription.allocationDescriptions
-        .reduce((sum, allocationDescription) => sum + allocationDescription.allocation, 0) !== 100;
+    return (
+      this.loadBalancer.splitDescription.allocationDescriptions.reduce(
+        (sum, allocationDescription) => sum + allocationDescription.allocation,
+        0,
+      ) !== 100
+    );
   }
 
   public updateServerGroupOptions(): void {
@@ -60,7 +75,9 @@ class AppengineLoadBalancerSettingsController implements IController {
   }
 
   private serverGroupsWithoutAllocation(): string[] {
-    const serverGroupsWithAllocation = this.loadBalancer.splitDescription.allocationDescriptions.map(description => description.serverGroupName);
+    const serverGroupsWithAllocation = this.loadBalancer.splitDescription.allocationDescriptions.map(
+      description => description.serverGroupName,
+    );
     const allServerGroups = this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name);
     return difference(allServerGroups, serverGroupsWithAllocation);
   }
@@ -74,5 +91,7 @@ class AppengineLoadBalancerSettingsComponent implements ng.IComponentOptions {
 
 export const APPENGINE_LOAD_BALANCER_BASIC_SETTINGS = 'spinnaker.appengine.loadBalancerSettings.component';
 
-module(APPENGINE_LOAD_BALANCER_BASIC_SETTINGS, [])
-  .component('appengineLoadBalancerBasicSettings', new AppengineLoadBalancerSettingsComponent());
+module(APPENGINE_LOAD_BALANCER_BASIC_SETTINGS, []).component(
+  'appengineLoadBalancerBasicSettings',
+  new AppengineLoadBalancerSettingsComponent(),
+);

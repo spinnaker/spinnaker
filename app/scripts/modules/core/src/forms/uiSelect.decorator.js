@@ -1,14 +1,13 @@
 'use strict';
 
 module.exports = function($provide) {
-
-  $provide.decorator('uiSelectMultipleDirective', function ($delegate) {
+  $provide.decorator('uiSelectMultipleDirective', function($delegate) {
     var uiSelect = $delegate[0];
 
     const originalLink = uiSelect.link;
 
     uiSelect.compile = function() {
-      return function (scope, element, attrs, ctrls) {
+      return function(scope, element, attrs, ctrls) {
         originalLink.apply(this, arguments);
         let $select = ctrls[0];
         scope.$$listeners['uis:select'] = [];
@@ -30,11 +29,15 @@ module.exports = function($provide) {
   // The GCP nested approach throws an exception when activating the select when there's a nested select option,
   // but it's harmless so we trap it and discard it
 
-  $provide.decorator('uiSelectMinErr', function ($delegate) {
+  $provide.decorator('uiSelectMinErr', function($delegate) {
     return function handledError() {
       var original = $delegate;
       if (arguments.length === 3) {
-        if (arguments[0] === 'choices' && arguments[1] === `Expected multiple .ui-select-choices-row but got '{0}'.` && arguments[2] === 0) {
+        if (
+          arguments[0] === 'choices' &&
+          arguments[1] === `Expected multiple .ui-select-choices-row but got '{0}'.` &&
+          arguments[2] === 0
+        ) {
           throw new Error('IGNORE', 'IGNORE');
         }
       }
@@ -55,5 +58,4 @@ module.exports = function($provide) {
       }
     };
   });
-
 };

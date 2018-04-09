@@ -6,7 +6,7 @@ import { IModule } from 'angular';
 const realModule = angular.module;
 (angular as any).module = function(name: string, requires?: string[], configFn?: Function): IModule {
   if (requires && requires.some(dep => !dep)) {
-    const deps = requires.map(r => typeof r === 'string' ? `'${r}'` : `${r}`).join(', ');
+    const deps = requires.map(r => (typeof r === 'string' ? `'${r}'` : `${r}`)).join(', ');
     throw new Error(`Got falsey dependency whilst registering angular module '${name}': [${deps}]`);
   }
   return realModule(name, requires, configFn);

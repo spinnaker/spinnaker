@@ -2,8 +2,7 @@ import { module } from 'angular';
 import { IStageContext } from 'core/domain';
 
 export function clusterNameFilter(namingService: any): any {
-  return function (input: IStageContext) {
-
+  return function(input: IStageContext) {
     if (!input) {
       return 'n/a';
     }
@@ -12,5 +11,4 @@ export function clusterNameFilter(namingService: any): any {
 }
 
 export const CLUSTER_NAME_FILTER = 'spinnaker.core.pipeline.clusterName.filter';
-module(CLUSTER_NAME_FILTER, [])
-  .filter('clusterName', clusterNameFilter);
+module(CLUSTER_NAME_FILTER, []).filter('clusterName', clusterNameFilter);

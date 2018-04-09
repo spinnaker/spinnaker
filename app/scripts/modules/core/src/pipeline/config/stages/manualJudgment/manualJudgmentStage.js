@@ -9,8 +9,9 @@ import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentStage', [PIPELINE_CONFIG_PROVIDER])
-  .config(function (pipelineConfigProvider) {
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.manualJudgmentStage', [PIPELINE_CONFIG_PROVIDER])
+  .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Manual Judgment',
       description: 'Waits for user approval before continuing',
@@ -32,12 +33,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
     $scope.authEnabled = SETTINGS.authEnabled;
     $scope.stage.notifications = $scope.stage.notifications || [];
     $scope.stage.judgmentInputs = $scope.stage.judgmentInputs || [];
-    $scope.stage.failPipeline = ($scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline);
+    $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
 
-    this.transformToNewStyleIfNecessary = function (notifications) {
+    this.transformToNewStyleIfNecessary = function(notifications) {
       // If there is at least one notification, and sendNotifications is not enabled, this must be the old style; transform it.
       if (notifications.length && !$scope.stage.sendNotifications) {
-        _.each(notifications, function (notification) {
+        _.each(notifications, function(notification) {
           notification.level = 'stage';
           notification.when = ['manualJudgment'];
         });
@@ -48,13 +49,13 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
 
     this.transformToNewStyleIfNecessary($scope.stage.notifications);
 
-    this.editNotification = function (notification) {
+    this.editNotification = function(notification) {
       var modalInstance = $uibModal.open({
         templateUrl: require('../../../../notification/modal/editNotification.html'),
         controller: 'EditNotificationController',
         controllerAs: 'editNotification',
         resolve: {
-          notification: function () {
+          notification: function() {
             return notification;
           },
           level: function() {
@@ -62,35 +63,35 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
           },
           stageType: function() {
             return 'manualJudgment';
-          }
-        }
+          },
+        },
       });
 
-      modalInstance.result.then(function (newNotification) {
-        if (!notification) {
-          $scope.stage.notifications.push(newNotification);
-        } else {
-          $scope.stage.notifications[$scope.stage.notifications.indexOf(notification)] = newNotification;
-        }
-      }).catch(() => {});
-
+      modalInstance.result
+        .then(function(newNotification) {
+          if (!notification) {
+            $scope.stage.notifications.push(newNotification);
+          } else {
+            $scope.stage.notifications[$scope.stage.notifications.indexOf(notification)] = newNotification;
+          }
+        })
+        .catch(() => {});
     };
 
-    this.addNotification = function () {
+    this.addNotification = function() {
       if ($scope.parent && !$scope.parent.notifications) {
         $scope.parent.notifications = [];
       }
       this.editNotification(undefined);
     };
 
-    this.removeNotification = function (notification) {
-      $scope.stage.notifications = $scope.stage.notifications.filter(function (el) {
-          return el !== notification;
-        }
-      );
+    this.removeNotification = function(notification) {
+      $scope.stage.notifications = $scope.stage.notifications.filter(function(el) {
+        return el !== notification;
+      });
     };
 
-    this.manageStateOnToggle = function () {
+    this.manageStateOnToggle = function() {
       if (!$scope.stage.sendNotifications) {
         $scope.stage.notifications.length = 0;
       }
@@ -104,7 +105,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       $scope.stage.judgmentInputs.push(judgmentInput);
     };
 
-    this.removeJudgmentInput = function (idx) {
+    this.removeJudgmentInput = function(idx) {
       $scope.stage.judgmentInputs.splice(idx, 1);
     };
   });

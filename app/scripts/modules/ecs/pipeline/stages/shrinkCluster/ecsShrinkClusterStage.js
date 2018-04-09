@@ -4,34 +4,34 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.ecs.pipeline.stage.ecs.shrinkClusterStage', [
-  PIPELINE_CONFIG_PROVIDER,
-])
+module.exports = angular
+  .module('spinnaker.ecs.pipeline.stage.ecs.shrinkClusterStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'ecs',
       templateUrl: require('./shrinkClusterStage.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('ecsShrinkClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('ecsShrinkClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('ecs').then(function (accounts) {
+    accountService.listAccounts('ecs').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -66,4 +66,3 @@ module.exports = angular.module('spinnaker.ecs.pipeline.stage.ecs.shrinkClusterS
     }
     stage.retainLargerOverNewer = stage.retainLargerOverNewer.toString();
   });
-

@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
 
 module.exports = angular
   .module('spinnaker.core.account.accountSelectField.directive', [ACCOUNT_SERVICE])
@@ -21,35 +21,40 @@ module.exports = angular
         onChange: '&',
         labelColumns: '@',
         readOnly: '=',
-        multiselect: '='
+        multiselect: '=',
       },
     };
   })
   .controller('AccountSelectFieldCtrl', function($scope, $q, accountService) {
     this.mergedAccounts = [];
 
-    let groupAccounts = (accounts) => {
+    let groupAccounts = accounts => {
       if (!accounts || !accounts.length) {
         return;
       }
       let accountsAreObjects = accounts[0].name;
-      let getAccountDetails = this.provider ? accountService.getAllAccountDetailsForProvider(this.provider) : $q.when([]);
+      let getAccountDetails = this.provider
+        ? accountService.getAllAccountDetailsForProvider(this.provider)
+        : $q.when([]);
       if (!this.provider && accountsAreObjects) {
         let providers = _.uniq(_.map(accounts, 'type'));
-        getAccountDetails = $q.all(providers.map((provider) => accountService.getAllAccountDetailsForProvider(provider)))
-          .then((details) => _.flatten(details));
+        getAccountDetails = $q
+          .all(providers.map(provider => accountService.getAllAccountDetailsForProvider(provider)))
+          .then(details => _.flatten(details));
       }
 
-      getAccountDetails.then((details) => {
+      getAccountDetails.then(details => {
         let accountNames = accountsAreObjects ? _.map(accounts, 'name') : accounts;
         this.mergedAccounts = accountNames;
         if (accountNames) {
           this.primaryAccounts = accountNames.sort();
         }
         if (accountNames && accountNames.length && details.length) {
-          this.primaryAccounts = accountNames.filter(function(account) {
-            return details.some((detail) => detail.name === account && detail.primaryAccount);
-          }).sort();
+          this.primaryAccounts = accountNames
+            .filter(function(account) {
+              return details.some(detail => detail.name === account && detail.primaryAccount);
+            })
+            .sort();
           this.secondaryAccounts = _.xor(accountNames, this.primaryAccounts).sort();
           this.mergedAccounts = _.flatten([this.primaryAccounts, this.secondaryAccounts]);
         }
@@ -65,7 +70,7 @@ module.exports = angular
       });
     };
 
-    this.groupBy = (account) => {
+    this.groupBy = account => {
       if (this.secondaryAccounts && this.secondaryAccounts.includes(account)) {
         return '---------------';
       }

@@ -5,10 +5,8 @@ const angular = require('angular');
 import { HELP_CONTENTS } from 'core/help/help.contents';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.overrideTimeout', [
-  HELP_CONTENTS,
-  PIPELINE_CONFIG_PROVIDER,
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.overrideTimeout', [HELP_CONTENTS, PIPELINE_CONFIG_PROVIDER])
   .directive('overrideTimeout', function() {
     return {
       restrict: 'E',
@@ -35,11 +33,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideTimeout',
 
     this.setOverrideValues = function() {
       var stage = $scope.stage,
-          stageConfig = pipelineConfig.getStageConfig(stage),
-          stageDefaults = stageConfig ? stageConfig.defaultTimeoutMs : null;
+        stageConfig = pipelineConfig.getStageConfig(stage),
+        stageDefaults = stageConfig ? stageConfig.defaultTimeoutMs : null;
 
       $scope.vm = {
-        configurable: !!stageDefaults
+        configurable: !!stageDefaults,
       };
 
       $scope.vm.helpContent = helpContents['pipeline.config.timeout'];
@@ -67,5 +65,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.overrideTimeout',
     };
 
     $scope.$watch('stage', this.setOverrideValues, true);
-
   });

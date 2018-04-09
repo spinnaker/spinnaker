@@ -9,7 +9,7 @@ import {
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
@@ -25,23 +25,22 @@ module.exports = angular
     VPC_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
   ])
-  .controller('awsConfigSecurityGroupMixin', function ($scope,
-                                                       $state,
-                                                       $uibModalInstance,
-                                                       taskMonitorBuilder,
-                                                       application,
-                                                       securityGroup,
-                                                       securityGroupReader,
-                                                       securityGroupWriter,
-                                                       accountService,
-                                                       v2modalWizardService,
-                                                       cacheInitializer,
-                                                       infrastructureCaches,
-                                                       namingService,
-                                                       vpcReader) {
-
-
-
+  .controller('awsConfigSecurityGroupMixin', function(
+    $scope,
+    $state,
+    $uibModalInstance,
+    taskMonitorBuilder,
+    application,
+    securityGroup,
+    securityGroupReader,
+    securityGroupWriter,
+    accountService,
+    v2modalWizardService,
+    cacheInitializer,
+    infrastructureCaches,
+    namingService,
+    vpcReader,
+  ) {
     var ctrl = this;
 
     $scope.state = {
@@ -58,7 +57,7 @@ module.exports = angular
     $scope.wizard = v2modalWizardService;
     $scope.hideClassic = false;
 
-    ctrl.addMoreItems = function () {
+    ctrl.addMoreItems = function() {
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
@@ -99,18 +98,16 @@ module.exports = angular
     $scope.securityGroup = securityGroup;
 
     ctrl.initializeAccounts = () => {
-      return accountService.listAccounts('aws').then(function (accounts) {
+      return accountService.listAccounts('aws').then(function(accounts) {
         $scope.accounts = accounts;
         ctrl.accountUpdated();
       });
     };
 
-    ctrl.upsert = function () {
-      $scope.taskMonitor.submit(
-        function () {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
-        }
-      );
+    ctrl.upsert = function() {
+      $scope.taskMonitor.submit(function() {
+        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create');
+      });
     };
 
     function clearSecurityGroups() {
@@ -118,7 +115,7 @@ module.exports = angular
       $scope.existingSecurityGroupNames = [];
     }
 
-    ctrl.accountUpdated = function () {
+    ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount(getAccount()).then(regions => {
         $scope.regions = regions.map(region => region.name);
         clearSecurityGroups();
@@ -129,14 +126,14 @@ module.exports = angular
       });
     };
 
-    ctrl.regionUpdated = function () {
+    ctrl.regionUpdated = function() {
       var account = getAccount(),
         regions = $scope.securityGroup.regions || [];
-      vpcReader.listVpcs().then(function (vpcs) {
+      vpcReader.listVpcs().then(function(vpcs) {
         var vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
         $scope.allVpcs = vpcs;
         var available = [];
-        _.forOwn(vpcsByName, function (vpcsToTest, label) {
+        _.forOwn(vpcsByName, function(vpcsToTest, label) {
           var foundInAllRegions = regions.every(region => {
             return vpcsToTest.some(test => test.region === region && test.account === account);
           });
@@ -149,10 +146,10 @@ module.exports = angular
           }
         });
 
-        $scope.activeVpcs = available.filter(function (vpc) {
+        $scope.activeVpcs = available.filter(function(vpc) {
           return !vpc.deprecated;
         });
-        $scope.deprecatedVpcs = available.filter(function (vpc) {
+        $scope.deprecatedVpcs = available.filter(function(vpc) {
           return vpc.deprecated;
         });
         $scope.vpcs = available;
@@ -161,7 +158,7 @@ module.exports = angular
       });
     };
 
-    this.updateVpcId = (available) => {
+    this.updateVpcId = available => {
       let lockoutDate = AWSProviderSettings.classicLaunchLockout;
       if (!securityGroup.id && lockoutDate) {
         let createTs = Number(_.get(application, 'attributes.createTs', 0));
@@ -175,17 +172,18 @@ module.exports = angular
                 defaultMatch = match.ids[0];
               }
             }
-            securityGroup.vpcId = defaultMatch || ($scope.activeVpcs.length ? $scope.activeVpcs[0].ids[0] : available[0].ids[0]);
+            securityGroup.vpcId =
+              defaultMatch || ($scope.activeVpcs.length ? $scope.activeVpcs[0].ids[0] : available[0].ids[0]);
           }
         }
       }
 
-      const match = (available || []).find((vpc) => vpc.ids.includes($scope.securityGroup.vpcId));
+      const match = (available || []).find(vpc => vpc.ids.includes($scope.securityGroup.vpcId));
       $scope.securityGroup.vpcId = match ? match.ids[0] : null;
       this.vpcUpdated();
     };
 
-    this.vpcUpdated = function () {
+    this.vpcUpdated = function() {
       var account = getAccount(),
         regions = $scope.securityGroup.regions;
       if (account && regions.length) {
@@ -203,11 +201,11 @@ module.exports = angular
       var existingSecurityGroupNames = [];
       var availableSecurityGroups = [];
 
-      regions.forEach(function (region) {
+      regions.forEach(function(region) {
         var regionalVpcId = null;
         if (vpcId) {
-          var baseVpc = _.find($scope.allVpcs, {id: vpcId});
-          regionalVpcId = _.find($scope.allVpcs, {account: account, region: region, name: baseVpc.name}).id;
+          var baseVpc = _.find($scope.allVpcs, { id: vpcId });
+          regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
         }
 
         var regionalGroupNames = _.get(allSecurityGroups, [account, 'aws', region].join('.'), [])
@@ -228,12 +226,10 @@ module.exports = angular
       clearInvalidSecurityGroups();
     }
 
-    ctrl.mixinUpsert = function (descriptor) {
-      $scope.taskMonitor.submit(
-        function () {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
-        }
-      );
+    ctrl.mixinUpsert = function(descriptor) {
+      $scope.taskMonitor.submit(function() {
+        return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
+      });
     };
 
     function clearInvalidSecurityGroups() {
@@ -254,10 +250,10 @@ module.exports = angular
       }
     }
 
-    ctrl.refreshSecurityGroups = function () {
+    ctrl.refreshSecurityGroups = function() {
       $scope.state.refreshingSecurityGroups = true;
-      return cacheInitializer.refreshCache('securityGroups').then(function () {
-        return ctrl.initializeSecurityGroups().then(function () {
+      return cacheInitializer.refreshCache('securityGroups').then(function() {
+        return ctrl.initializeSecurityGroups().then(function() {
           ctrl.vpcUpdated();
           $scope.state.refreshingSecurityGroups = false;
           setSecurityGroupRefreshTime();
@@ -274,8 +270,8 @@ module.exports = angular
     $scope.allSecurityGroupsUpdated = new Subject();
     $scope.coordinatesChanged = new Subject();
 
-    ctrl.initializeSecurityGroups = function () {
-      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+    ctrl.initializeSecurityGroups = function() {
+      return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
         setSecurityGroupRefreshTime();
         $scope.state.securityGroupsLoaded = true;
         allSecurityGroups = securityGroups;
@@ -285,7 +281,7 @@ module.exports = angular
 
         var availableGroups;
         if (account && region) {
-          availableGroups = _.filter(securityGroups[account].aws[region], {vpcId: vpcId});
+          availableGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
         } else {
           availableGroups = securityGroups;
         }
@@ -296,15 +292,15 @@ module.exports = angular
       });
     };
 
-    ctrl.cancel = function () {
+    ctrl.cancel = function() {
       $uibModalInstance.dismiss();
     };
 
-    ctrl.getCurrentNamePattern = function () {
+    ctrl.getCurrentNamePattern = function() {
       return $scope.securityGroup.vpcId ? vpcPattern : classicPattern;
     };
 
-    ctrl.updateName = function () {
+    ctrl.updateName = function() {
       const { securityGroup } = $scope;
       const name = namingService.getClusterName(application.name, securityGroup.stack, securityGroup.detail);
       securityGroup.name = name;
@@ -312,12 +308,12 @@ module.exports = angular
     };
 
     ctrl.namePattern = {
-      test: function (name) {
+      test: function(name) {
         return ctrl.getCurrentNamePattern().test(name);
-      }
+      },
     };
 
-    ctrl.addRule = function (ruleset) {
+    ctrl.addRule = function(ruleset) {
       ruleset.push({
         type: 'tcp',
         startPort: 7001,
@@ -325,11 +321,11 @@ module.exports = angular
       });
     };
 
-    ctrl.removeRule = function (ruleset, index) {
+    ctrl.removeRule = function(ruleset, index) {
       ruleset.splice(index, 1);
     };
 
-    ctrl.dismissRemovedRules = function () {
+    ctrl.dismissRemovedRules = function() {
       $scope.state.removedRules = [];
       v2modalWizardService.markClean('Ingress');
       v2modalWizardService.markComplete('Ingress');
@@ -337,5 +333,4 @@ module.exports = angular
 
     var classicPattern = /^[\x00-\x7F]+$/;
     var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
-
   });

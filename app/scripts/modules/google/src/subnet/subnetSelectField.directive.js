@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.google.subnet.subnetSelectField.directive', [
-])
-  .directive('gceSubnetSelectField', function () {
+module.exports = angular
+  .module('spinnaker.google.subnet.subnetSelectField.directive', [])
+  .directive('gceSubnetSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('./subnetSelectField.directive.html'),
@@ -21,4 +21,4 @@ module.exports = angular.module('spinnaker.google.subnet.subnetSelectField.direc
         helpKey: '@',
       },
     };
-});
+  });

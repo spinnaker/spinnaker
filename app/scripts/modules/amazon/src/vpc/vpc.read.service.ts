@@ -3,7 +3,6 @@ import { module, IQService, IPromise } from 'angular';
 import { IVpc, NETWORK_READ_SERVICE, NetworkReader } from '@spinnaker/core';
 
 export class VpcReader {
-
   private cachedVpcs: IVpc[];
 
   constructor(private $q: IQService, private networkReader: NetworkReader) {

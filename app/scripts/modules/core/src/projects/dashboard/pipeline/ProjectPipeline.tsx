@@ -27,36 +27,50 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
   constructor(props: IProjectPipelineProps) {
     super(props);
     this.state = {
-      hasBuildInfo: this.props.execution.buildInfo || has(this.props.execution, 'trigger.buildInfo') || has(this.props.execution, 'trigger.parentPipelineId'),
+      hasBuildInfo:
+        this.props.execution.buildInfo ||
+        has(this.props.execution, 'trigger.buildInfo') ||
+        has(this.props.execution, 'trigger.parentPipelineId'),
       loaded: true,
-      stageWidth: `${100 / this.props.execution.stageSummaries.length}%`
+      stageWidth: `${100 / this.props.execution.stageSummaries.length}%`,
     };
   }
 
   private handleExecutionTitleClick(): void {
-    ReactInjector.$state.go('^.application.pipelines.executions.execution', { application: this.props.execution.application, executionId: this.props.execution.id });
+    ReactInjector.$state.go('^.application.pipelines.executions.execution', {
+      application: this.props.execution.application,
+      executionId: this.props.execution.id,
+    });
   }
 
   private handleStageClick(stageIndex: number) {
-    ReactInjector.$state.go('^.application.pipelines.executionDetails.execution', { application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex })
+    ReactInjector.$state.go('^.application.pipelines.executionDetails.execution', {
+      application: this.props.execution.application,
+      executionId: this.props.execution.id,
+      stage: stageIndex,
+    });
   }
 
   public render() {
     const execution = this.props.execution,
-          stages = execution.stageSummaries.map((stage) =>
-      <ExecutionMarker key={stage.refId} {...this.props} stage={stage} onClick={this.handleStageClick} width={this.state.stageWidth}/>);
+      stages = execution.stageSummaries.map(stage => (
+        <ExecutionMarker
+          key={stage.refId}
+          {...this.props}
+          stage={stage}
+          onClick={this.handleStageClick}
+          width={this.state.stageWidth}
+        />
+      ));
 
     return (
       <div>
         <h5 className="execution-title">
-          <a onClick={this.handleExecutionTitleClick}>
-            {`${execution.application.toUpperCase()}: ${execution.name}`}
-          </a>
+          <a onClick={this.handleExecutionTitleClick}>{`${execution.application.toUpperCase()}: ${execution.name}`}</a>
         </h5>
-        &nbsp;(<ExecutionBuildLink execution={execution}/>{this.state.hasBuildInfo && (<span>, </span>)}started {timestamp(this.props.execution.startTime)})
-        <div className="execution-bar">
-          {stages}
-        </div>
+        &nbsp;(<ExecutionBuildLink execution={execution} />
+        {this.state.hasBuildInfo && <span>, </span>}started {timestamp(this.props.execution.startTime)})
+        <div className="execution-bar">{stages}</div>
       </div>
     );
   }

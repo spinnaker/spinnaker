@@ -4,8 +4,8 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.pipeline.stage.enableAsgStage', [
-])
+module.exports = angular
+  .module('spinnaker.openstack.pipeline.stage.enableAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
@@ -15,22 +15,23 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.enableAsgSta
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('openstackEnableAsgStageCtrl', function($scope, accountService) {
+  })
+  .controller('openstackEnableAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function (accounts) {
+    accountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -45,7 +46,11 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.enableAsgSta
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'openstack';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Openstack'];
     }
 
@@ -62,4 +67,3 @@ module.exports = angular.module('spinnaker.openstack.pipeline.stage.enableAsgSta
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

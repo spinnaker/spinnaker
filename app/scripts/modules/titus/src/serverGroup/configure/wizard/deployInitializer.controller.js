@@ -5,10 +5,11 @@ import _ from 'lodash';
 
 import { SERVER_GROUP_READER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.deployInitialization.controller', [
-  SERVER_GROUP_READER,
-  require('../ServerGroupCommandBuilder.js').name,
-])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.deployInitialization.controller', [
+    SERVER_GROUP_READER,
+    require('../ServerGroupCommandBuilder.js').name,
+  ])
   .controller('titusDeployInitializerCtrl', function($scope, titusServerGroupCommandBuilder, serverGroupReader) {
     var controller = this;
 
@@ -16,9 +17,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.deployIni
 
     $scope.command.viewState.template = noTemplate;
 
-    $scope.templates = [ noTemplate ];
+    $scope.templates = [noTemplate];
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'titus' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups.data, { type: 'titus' }), function(
+      serverGroup,
+    ) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 
@@ -29,7 +32,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.deployIni
         account: latest.account,
         region: latest.region,
         serverGroupName: latest.name,
-        serverGroup: latest
+        serverGroup: latest,
       });
     });
 
@@ -42,21 +45,27 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.deployIni
     }
 
     function buildEmptyCommand() {
-      return titusServerGroupCommandBuilder.buildNewServerGroupCommand($scope.application, {mode: 'createPipeline'}).then(function(command) {
-        applyCommandToScope(command);
-      });
+      return titusServerGroupCommandBuilder
+        .buildNewServerGroupCommand($scope.application, { mode: 'createPipeline' })
+        .then(function(command) {
+          applyCommandToScope(command);
+        });
     }
 
     function buildCommandFromTemplate(serverGroup) {
-      return serverGroupReader.getServerGroup($scope.application.name, serverGroup.account, serverGroup.region, serverGroup.name).then(function (details) {
-        angular.extend(details, serverGroup);
-        return titusServerGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline').then(function (command) {
-          applyCommandToScope(command);
+      return serverGroupReader
+        .getServerGroup($scope.application.name, serverGroup.account, serverGroup.region, serverGroup.name)
+        .then(function(details) {
+          angular.extend(details, serverGroup);
+          return titusServerGroupCommandBuilder
+            .buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline')
+            .then(function(command) {
+              applyCommandToScope(command);
+            });
         });
-      });
     }
 
-    controller.selectTemplate = function () {
+    controller.selectTemplate = function() {
       var selection = $scope.command.viewState.template;
       if (selection && selection.cluster && selection.serverGroup) {
         return buildCommandFromTemplate(selection.serverGroup);

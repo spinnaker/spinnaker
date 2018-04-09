@@ -2,21 +2,21 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.parameters.parameters', [
-])
-  .directive('parameters', function () {
+module.exports = angular
+  .module('spinnaker.core.pipeline.parameters.parameters', [])
+  .directive('parameters', function() {
     return {
       restrict: 'E',
       scope: {
-        pipeline: '='
+        pipeline: '=',
       },
       controller: 'parametersCtrl',
       controllerAs: 'parametersCtrl',
       templateUrl: require('./parameters.html'),
     };
   })
-  .controller('parametersCtrl', function ($scope) {
-    this.addParameter = function () {
+  .controller('parametersCtrl', function($scope) {
+    this.addParameter = function() {
       if (!$scope.pipeline.parameterConfig) {
         $scope.pipeline.parameterConfig = [];
       }
@@ -29,5 +29,4 @@ module.exports = angular.module('spinnaker.core.pipeline.parameters.parameters',
       delay: 150,
       handle: '.glyphicon-resize-vertical',
     };
-
   });

@@ -4,22 +4,24 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.cf.pipeline.stage.shrinkClusterStage', [ACCOUNT_SERVICE])
+module.exports = angular
+  .module('spinnaker.cf.pipeline.stage.shrinkClusterStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
       cloudProvider: 'cf',
       templateUrl: require('./shrinkClusterStage.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('cfShrinkClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('cfShrinkClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -28,7 +30,7 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.shrinkClusterStage'
       accounts: false,
     };
 
-    accountService.listAccounts('cf').then(function (accounts) {
+    accountService.listAccounts('cf').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -72,4 +74,3 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.shrinkClusterStage'
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

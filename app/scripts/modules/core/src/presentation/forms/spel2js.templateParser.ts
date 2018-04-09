@@ -15,7 +15,7 @@ export function parseSpelExpressions(template: string): SpelExpression[] {
         err.state = state;
         throw err;
       }
-    }
+    };
   });
 
   return spelExpressions;
@@ -49,7 +49,7 @@ class Bracket {
     return ')';
   }
 
-  constructor(public bracket: string, public pos: number) { }
+  constructor(public bracket: string, public pos: number) {}
 
   public compatibleWithCloseBracket(closeBracket: string): boolean {
     if (this.bracket === '{') {
@@ -91,7 +91,6 @@ class Bracket {
  * @since 3.0
  */
 class TemplateAwareExpressionParser {
-
   /**
    * Helper that parses given expression string using the configured parser. The
    * expression string can contain any number of expressions all contained in "${...}"
@@ -127,20 +126,28 @@ class TemplateAwareExpressionParser {
         const afterPrefixIndex = prefixIndex + prefix.length;
         const suffixIndex = this.skipToCorrectEndSuffix(suffix, expressionString, afterPrefixIndex);
         if (suffixIndex === -1) {
-          throw new Error('No ending suffix \'' + suffix + '\' for expression starting at character ' +
-            prefixIndex + ': ' + expressionString.substring(prefixIndex));
+          throw new Error(
+            "No ending suffix '" +
+              suffix +
+              "' for expression starting at character " +
+              prefixIndex +
+              ': ' +
+              expressionString.substring(prefixIndex),
+          );
         }
 
         if (suffixIndex === afterPrefixIndex) {
-          throw new Error('No expression defined within delimiter \'' + prefix + suffix +
-            '\' at character ' + prefixIndex);
+          throw new Error(
+            "No expression defined within delimiter '" + prefix + suffix + "' at character " + prefixIndex,
+          );
         }
 
         const expr = expressionString.substring(prefixIndex + prefix.length, suffixIndex).trim();
 
         if (!expr) {
-          throw new Error('No expression defined within delimiter \'' + prefix + suffix +
-            '\' at character ' + prefixIndex);
+          throw new Error(
+            "No expression defined within delimiter '" + prefix + suffix + "' at character " + prefixIndex,
+          );
         }
 
         expressions.push(spel2js.SpelExpressionEvaluator.compile(expr));
@@ -211,19 +218,32 @@ class TemplateAwareExpressionParser {
         case ']':
         case ')':
           if (!stack.length) {
-            throw new Error('Found closing \'' + ch +
-              '\' at position ' + pos + ' without an opening \'' +
-              Bracket.theOpenBracketFor(ch) + '\'');
+            throw new Error(
+              "Found closing '" +
+                ch +
+                "' at position " +
+                pos +
+                " without an opening '" +
+                Bracket.theOpenBracketFor(ch) +
+                "'",
+            );
           }
 
           const p: Bracket = stack.pop();
           if (!p.compatibleWithCloseBracket(ch)) {
-            throw new Error('Found closing \'' + ch +
-              '\' at position ' + pos + ' but most recent opening is \'' + p.bracket +
-              '\' at position ' + p.pos);
+            throw new Error(
+              "Found closing '" +
+                ch +
+                "' at position " +
+                pos +
+                " but most recent opening is '" +
+                p.bracket +
+                "' at position " +
+                p.pos,
+            );
           }
           break;
-        case '\'':
+        case "'":
         case '"':
           // jump to the end of the literal
           const endLiteral = expressionString.indexOf(ch, pos + 1);
@@ -237,14 +257,13 @@ class TemplateAwareExpressionParser {
     }
     if (stack.length) {
       const p: Bracket = stack.pop();
-      throw new Error('Missing closing \'' +
-        Bracket.theCloseBracketFor(p.bracket) + '\' for \'' + p.bracket + '\' at position ' + p.pos);
+      throw new Error(
+        "Missing closing '" + Bracket.theCloseBracketFor(p.bracket) + "' for '" + p.bracket + "' at position " + p.pos,
+      );
     }
     if (!this.isSuffixHere(expressionString, pos, suffix)) {
       return -1;
     }
     return pos;
   }
-
-
 }

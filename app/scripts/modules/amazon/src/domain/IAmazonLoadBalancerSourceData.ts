@@ -140,9 +140,9 @@ export interface IClassicLoadBalancerSourceData extends IAmazonLoadBalancerSourc
     target: string;
     timeout: number;
     unhealthyThreshold: number;
-  }
+  };
   instances: string[];
-  listenerDescriptions: { listener: IClassicListenerSourceData, policyNames: string[] }[];
+  listenerDescriptions: { listener: IClassicListenerSourceData; policyNames: string[] }[];
   policies: {
     appCookieStickinessPolicies: {
       CookieName: string;
@@ -153,7 +153,7 @@ export interface IClassicLoadBalancerSourceData extends IAmazonLoadBalancerSourc
       PolicyName: string;
     }[];
     otherPolicies: any[];
-  }
+  };
   sourceSecurityGroup: {
     groupName: string;
     ownerAlias: string;

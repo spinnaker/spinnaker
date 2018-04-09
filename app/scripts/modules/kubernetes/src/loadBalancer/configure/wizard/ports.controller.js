@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.configure.kubernetes.ports', [])
+module.exports = angular
+  .module('spinnaker.loadBalancer.configure.kubernetes.ports', [])
   .controller('kubernetesLoadBalancerPortsController', function($scope) {
     this.addPort = function() {
       $scope.loadBalancer.ports.push({});

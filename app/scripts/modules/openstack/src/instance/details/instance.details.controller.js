@@ -9,22 +9,33 @@ import {
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
   RECENT_HISTORY_SERVICE,
-  SETTINGS
+  SETTINGS,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.instance.detail.openstack.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('openstackInstanceDetailsCtrl', function ($scope, $state, $uibModal,
-                                               instanceWriter, confirmationModalService, recentHistoryService,
-                                               cloudProviderRegistry, instanceReader, instance, app, $q, overrides) {
-
+module.exports = angular
+  .module('spinnaker.instance.detail.openstack.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('openstackInstanceDetailsCtrl', function(
+    $scope,
+    $state,
+    $uibModal,
+    instanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+    $q,
+    overrides,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('openstack', 'instance.detailsTemplateUrl');
 
@@ -43,15 +54,13 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(
-        function(metric) {
-          return metric.type !== 'Openstack' || metric.state !== 'Unknown';
-        }
-      );
+      var displayableMetrics = instance.health.filter(function(metric) {
+        return metric.type !== 'Openstack' || metric.state !== 'Unknown';
+      });
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function (metric) {
-          var detailsMatch = latest.health.filter(function (latestHealth) {
+        displayableMetrics.forEach(function(metric) {
+          var detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -73,8 +82,8 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.data.some(function (serverGroup) {
-          return serverGroup.instances.some(function (possibleInstance) {
+        app.serverGroups.data.some(function(serverGroup) {
+          return serverGroup.instances.some(function(possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -88,8 +97,8 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another app
-          app.loadBalancers.data.some(function (loadBalancer) {
-            return loadBalancer.instances.some(function (possibleInstance) {
+          app.loadBalancers.data.some(function(loadBalancer) {
+            return loadBalancer.instances.some(function(possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = [loadBalancer.name];
@@ -127,24 +136,23 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         extraData.account = account;
         extraData.region = region;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(
-          (details) => {
-            if ($scope.$$destroyed) {
-              return;
-            }
-            $scope.state.loading = false;
-            extractHealthMetrics(instanceSummary, details);
-            $scope.instance = _.defaults(details, instanceSummary);
-            $scope.instance.account = account;
-            $scope.instance.region = region;
-            $scope.instance.loadBalancers = loadBalancers;
-            $scope.instance.loadBalancerIds = loadBalancerIds;
+        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(details => {
+          if ($scope.$$destroyed) {
+            return;
+          }
+          $scope.state.loading = false;
+          extractHealthMetrics(instanceSummary, details);
+          $scope.instance = _.defaults(details, instanceSummary);
+          $scope.instance.account = account;
+          $scope.instance.region = region;
+          $scope.instance.loadBalancers = loadBalancers;
+          $scope.instance.loadBalancerIds = loadBalancerIds;
 
-            $scope.baseIpAddress = details.ipv4 || details.ipv6;
-            if (overrides.instanceDetailsLoaded) {
-              overrides.instanceDetailsLoaded();
-            }
-          }, autoClose);
+          $scope.baseIpAddress = details.ipv4 || details.ipv6;
+          if (overrides.instanceDetailsLoaded) {
+            overrides.instanceDetailsLoaded();
+          }
+        }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -160,7 +168,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     this.canDeregisterFromLoadBalancer = function() {
@@ -172,7 +180,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
 
     this.canRegisterWithLoadBalancer = function() {
       var instance = $scope.instance,
-          healthMetrics = instance.health || [];
+        healthMetrics = instance.health || [];
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
@@ -192,13 +200,13 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.terminateInstance(instance, app, {
           cloudProvider: instance.provider,
           serverGroupName: instance.serverGroup,
@@ -210,7 +218,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -219,7 +227,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
 
       var taskMonitor = {
         application: app,
-        title: 'Rebooting ' + instance.instanceId
+        title: 'Rebooting ' + instance.instanceId,
       };
 
       var submitMethod = (params = {}) => {
@@ -237,7 +245,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         buttonText: 'Reboot ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -247,7 +255,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames
+        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
       var submitMethod = (params = {}) => {
@@ -260,7 +268,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -270,7 +278,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames
+        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
       var submitMethod = (params = {}) => {
@@ -283,22 +291,21 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
         buttonText: 'Deregister ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance,
-          healthMetrics = instance.health || [];
-      return (healthMetrics.some(function (health) {
+        healthMetrics = instance.health || [];
+      return healthMetrics.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+    let initialize = app.isStandalone
+      ? retrieveInstance()
+      : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -308,9 +315,7 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
       if (!$scope.$$destroyed && !app.isStandalone) {
         app.serverGroups.onRefresh($scope, retrieveInstance);
       }
-     });
+    });
 
     $scope.account = instance.account;
-
-  }
-);
+  });

@@ -23,7 +23,10 @@ export interface ILoadBalancerServerGroupState {
 }
 
 @BindAll()
-export class LoadBalancerServerGroup extends React.Component<ILoadBalancerServerGroupProps, ILoadBalancerServerGroupState> {
+export class LoadBalancerServerGroup extends React.Component<
+  ILoadBalancerServerGroupProps,
+  ILoadBalancerServerGroupState
+> {
   constructor(props: ILoadBalancerServerGroupProps) {
     super(props);
     this.state = this.getState(props);
@@ -53,26 +56,26 @@ export class LoadBalancerServerGroup extends React.Component<ILoadBalancerServer
       region: serverGroup.region || region,
       accountId: account,
       serverGroup: serverGroup.name,
-      provider: cloudProvider
+      provider: cloudProvider,
     };
 
     return (
       <UISrefActive class="active">
         <UISref to=".serverGroup" params={params}>
-          <div className={className} >
+          <div className={className}>
             <div className="server-group-title container-fluid no-padding">
               <div className="row">
                 <div className="col-md-8">
-                  <CloudProviderLogo provider={cloudProvider} height={'14px'} width={'14px'}/> {serverGroup.name}
+                  <CloudProviderLogo provider={cloudProvider} height={'14px'} width={'14px'} /> {serverGroup.name}
                 </div>
                 <div className="col-md-4 text-right">
-                  <HealthCounts container={serverGroup.instanceCounts}/>
+                  <HealthCounts container={serverGroup.instanceCounts} />
                 </div>
               </div>
             </div>
-            { showInstances && (
+            {showInstances && (
               <div className="instance-list">
-                <Instances instances={this.state.instances}/>
+                <Instances instances={this.state.instances} />
               </div>
             )}
           </div>

@@ -5,9 +5,7 @@ import { IArtifact } from 'core/domain/IArtifact';
 import { PipelineConfigProvider } from 'core/pipeline';
 
 export const DEFAULT_GITHUB_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultGithub';
-module(DEFAULT_GITHUB_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(DEFAULT_GITHUB_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'GitHub',
     description: 'A file stored in git, hosted by GitHub.',
@@ -59,4 +57,3 @@ module(DEFAULT_GITHUB_ARTIFACT, [
 `,
   });
 });
-

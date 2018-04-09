@@ -68,9 +68,9 @@ export interface IServerGroupCommandBackingData {
   packageImages: any[];
   preferredZones: {
     [credentials: string]: {
-      [region: string]: string[]
-    }
-  }
+      [region: string]: string[];
+    };
+  };
   scalingProcesses: string[];
   securityGroups: ISecurityGroupsByAccountSourceData;
 }
@@ -121,41 +121,47 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
 }
 
 export class ServerGroupCommandBuilderService {
-
   private getDelegate(provider: string): any {
     return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
   }
 
-  constructor(private providerServiceDelegate: ProviderServiceDelegate) { 'ngInject'; }
+  constructor(private providerServiceDelegate: ProviderServiceDelegate) {
+    'ngInject';
+  }
 
-  public buildNewServerGroupCommand(application: Application,
-                                    provider: string,
-                                    options: IServerGroupCommandBuilderOptions): any {
+  public buildNewServerGroupCommand(
+    application: Application,
+    provider: string,
+    options: IServerGroupCommandBuilderOptions,
+  ): any {
     return this.getDelegate(provider).buildNewServerGroupCommand(application, options);
   }
 
-  public buildServerGroupCommandFromExisting(application: Application,
-                                             serverGroup: any,
-                                             mode: string): any {
+  public buildServerGroupCommandFromExisting(application: Application, serverGroup: any, mode: string): any {
     return this.getDelegate(serverGroup.type).buildServerGroupCommandFromExisting(application, serverGroup, mode);
   }
 
-  public buildNewServerGroupCommandForPipeline(provider: string,
-                                               currentStage: any,
-                                               pipeline: any): any {
+  public buildNewServerGroupCommandForPipeline(provider: string, currentStage: any, pipeline: any): any {
     return this.getDelegate(provider).buildNewServerGroupCommandForPipeline(currentStage, pipeline);
   }
 
-  public buildServerGroupCommandFromPipeline(application: Application,
-                                             cluster: any,
-                                             currentStage: any,
-                                             pipeline: any): any {
-    return this.getDelegate(cluster.provider).buildServerGroupCommandFromPipeline(application, cluster, currentStage, pipeline);
+  public buildServerGroupCommandFromPipeline(
+    application: Application,
+    cluster: any,
+    currentStage: any,
+    pipeline: any,
+  ): any {
+    return this.getDelegate(cluster.provider).buildServerGroupCommandFromPipeline(
+      application,
+      cluster,
+      currentStage,
+      pipeline,
+    );
   }
 }
 
 export const SERVER_GROUP_COMMAND_BUILDER_SERVICE = 'spinnaker.core.serverGroup.configure.common.service';
-module(SERVER_GROUP_COMMAND_BUILDER_SERVICE, [
-  PROVIDER_SERVICE_DELEGATE,
-])
-  .service('serverGroupCommandBuilder', ServerGroupCommandBuilderService);
+module(SERVER_GROUP_COMMAND_BUILDER_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service(
+  'serverGroupCommandBuilder',
+  ServerGroupCommandBuilderService,
+);

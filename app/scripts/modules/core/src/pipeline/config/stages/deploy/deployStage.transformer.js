@@ -4,9 +4,9 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.transformer', [])
-  .service('deployStageTransformer', function () {
-
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.deploy.transformer', [])
+  .service('deployStageTransformer', function() {
     /**
      * Removes rollingPush, modifyAsgLaunchConfiguration stages, adding them as tasks to the parent deploy stage,
      * then overriding the status and endTime fields for the deploy stage
@@ -14,7 +14,12 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.transforme
     function transformRollingPushes(execution) {
       var stagesToRemove = [];
       execution.stages.forEach(function(stage) {
-        if (stage.type === 'deploy' && stage.context && stage.context.strategy === 'rollingpush' && stage.context.source) {
+        if (
+          stage.type === 'deploy' &&
+          stage.context &&
+          stage.context.strategy === 'rollingpush' &&
+          stage.context.source
+        ) {
           var modifyLaunchConfigurationStage = _.find(execution.stages, {
             type: 'modifyAsgLaunchConfiguration',
             parentStageId: stage.id,

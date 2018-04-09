@@ -8,7 +8,6 @@ export interface ISpinnerProps {
 
 @BindAll()
 export class Spinner extends React.Component<ISpinnerProps> {
-
   public getBarRows(): Array<React.ReactNode> {
     const { size } = this.props;
     let count = 3;
@@ -24,7 +23,7 @@ export class Spinner extends React.Component<ISpinnerProps> {
     const rows = [];
     let i: number;
     for (i = 0; i < count; i++) {
-      rows.push(<div key={i} className="bar" />)
+      rows.push(<div key={i} className="bar" />);
     }
     return rows;
   }
@@ -34,15 +33,15 @@ export class Spinner extends React.Component<ISpinnerProps> {
     const mainClassNames = `load ${size || 'small'}`;
     const messageClassNames = `message color-text-accent ${size === 'medium' ? 'heading-4' : 'heading-2'}`;
 
-    const messageNode = ['medium', 'large'].includes(size) &&
-      <div className={messageClassNames}>{message || 'Loading ...'}</div>;
+    const messageNode = ['medium', 'large'].includes(size) && (
+      <div className={messageClassNames}>{message || 'Loading ...'}</div>
+    );
 
     const bars = ['medium', 'large'].includes(size) ? (
-      <div className="bars">
-        {this.getBarRows()}
-      </div>
-      ) :
-      this.getBarRows();
+      <div className="bars">{this.getBarRows()}</div>
+    ) : (
+      this.getBarRows()
+    );
 
     return (
       <div className={mainClassNames}>

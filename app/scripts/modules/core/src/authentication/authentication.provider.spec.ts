@@ -7,12 +7,12 @@ import { AUTHENTICATION_MODULE } from './authentication.module';
 import { SETTINGS } from 'core/config/settings';
 
 declare const window: any;
-describe('authenticationProvider: application startup', function () {
-  beforeEach(function () {
+describe('authenticationProvider: application startup', function() {
+  beforeEach(function() {
     SETTINGS.authEnabled = true;
   });
 
-  beforeEach(function () {
+  beforeEach(function() {
     window.spinnakerSettings.authEnabled = true;
   });
 
@@ -27,28 +27,29 @@ describe('authenticationProvider: application startup', function () {
 
   beforeEach(
     mock.inject(
-      (_authenticationService_: AuthenticationService,
-       _$timeout_: ng.ITimeoutService,
-       _$httpBackend_: ng.IHttpBackendService,
-       _redirectService_: RedirectService,
-       _$location_: ng.ILocationService,
-       _$rootScope_: IDeckRootScope) => {
-
+      (
+        _authenticationService_: AuthenticationService,
+        _$timeout_: ng.ITimeoutService,
+        _$httpBackend_: ng.IHttpBackendService,
+        _redirectService_: RedirectService,
+        _$location_: ng.ILocationService,
+        _$rootScope_: IDeckRootScope,
+      ) => {
         authenticationService = _authenticationService_;
         $timeout = _$timeout_;
         $http = _$httpBackend_;
 
-
         redirectService = _redirectService_;
         $location = _$location_;
         $rootScope = _$rootScope_;
-      }));
+      },
+    ),
+  );
 
   afterEach(SETTINGS.resetToOriginal);
 
   describe('authenticateUser', () => {
-    it('requests authentication from gate, then sets authentication name field', function () {
-
+    it('requests authentication from gate, then sets authentication name field', function() {
       $http.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
       $timeout.flush();
       $http.flush();
@@ -58,9 +59,9 @@ describe('authenticationProvider: application startup', function () {
       expect(authenticationService.getAuthenticatedUser().authenticated).toBe(true);
     });
 
-    it('requests authentication from gate, then opens modal and redirects on 401', function () {
+    it('requests authentication from gate, then opens modal and redirects on 401', function() {
       let redirectUrl = 'abc';
-      spyOn(redirectService, 'redirect').and.callFake((url: string) => redirectUrl = url);
+      spyOn(redirectService, 'redirect').and.callFake((url: string) => (redirectUrl = url));
       $http.whenGET(SETTINGS.authEndpoint).respond(401, null, { 'X-AUTH-REDIRECT-URL': '/authUp' });
       $rootScope.$digest();
       $http.flush();

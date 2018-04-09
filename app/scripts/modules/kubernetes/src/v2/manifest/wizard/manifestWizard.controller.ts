@@ -7,13 +7,14 @@ import {
   TASK_MONITOR_BUILDER,
   TaskMonitor,
   TaskMonitorBuilder,
-  ManifestWriter
+  ManifestWriter,
 } from '@spinnaker/core';
 
 import {
-  IKubernetesManifestCommand, IKubernetesManifestCommandMetadata,
+  IKubernetesManifestCommand,
+  IKubernetesManifestCommandMetadata,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
-  KubernetesManifestCommandBuilder
+  KubernetesManifestCommandBuilder,
 } from '../manifestCommandBuilder.service';
 
 class KubernetesManifestWizardCtrl implements IController {
@@ -25,21 +26,22 @@ class KubernetesManifestWizardCtrl implements IController {
   public command: IKubernetesManifestCommand;
   public metadata: IKubernetesManifestCommandMetadata;
 
-  constructor(private $uibModalInstance: IModalInstanceService,
-              private application: Application,
-              private manifestWriter: ManifestWriter,
-              private taskMonitorBuilder: TaskMonitorBuilder,
-              private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder) {
+  constructor(
+    private $uibModalInstance: IModalInstanceService,
+    private application: Application,
+    private manifestWriter: ManifestWriter,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder,
+  ) {
     'ngInject';
-    this.kubernetesManifestCommandBuilder.buildNewManifestCommand(application)
-      .then((builtCommand) => {
-        const { command, metadata } = builtCommand;
-        this.command = command;
-        this.metadata = metadata;
+    this.kubernetesManifestCommandBuilder.buildNewManifestCommand(application).then(builtCommand => {
+      const { command, metadata } = builtCommand;
+      this.command = command;
+      this.metadata = metadata;
 
-        this.initialize();
-        this.state.loaded = true;
-      });
+      this.initialize();
+      this.state.loaded = true;
+    });
   }
 
   public cancel(): void {

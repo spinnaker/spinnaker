@@ -2,8 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.kubernetes.namespace.selectField.directive', [])
-  .directive('namespaceSelectField', function () {
+module.exports = angular
+  .module('spinnaker.kubernetes.namespace.selectField.directive', [])
+  .directive('namespaceSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('./selectField.directive.html'),
@@ -15,6 +16,6 @@ module.exports = angular.module('spinnaker.kubernetes.namespace.selectField.dire
         account: '=',
         onChange: '&',
         hideLabel: '=',
-      }
+      },
     };
   });

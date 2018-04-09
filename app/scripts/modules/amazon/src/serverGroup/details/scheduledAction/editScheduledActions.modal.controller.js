@@ -4,14 +4,21 @@ const angular = require('angular');
 
 import { TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.serverGroup.details.scheduledActions.editScheduledActions.modal.controller', [
-  TASK_MONITOR_BUILDER,
-  TASK_EXECUTOR,
-])
-  .controller('EditScheduledActionsCtrl', function($scope, $uibModalInstance, taskMonitorBuilder, taskExecutor,
-                                                   application, serverGroup) {
+module.exports = angular
+  .module('spinnaker.amazon.serverGroup.details.scheduledActions.editScheduledActions.modal.controller', [
+    TASK_MONITOR_BUILDER,
+    TASK_EXECUTOR,
+  ])
+  .controller('EditScheduledActionsCtrl', function(
+    $scope,
+    $uibModalInstance,
+    taskMonitorBuilder,
+    taskExecutor,
+    application,
+    serverGroup,
+  ) {
     $scope.command = {
-      scheduledActions: serverGroup.scheduledActions.map((action) => {
+      scheduledActions: serverGroup.scheduledActions.map(action => {
         return {
           recurrence: action.recurrence,
           minSize: action.minSize,
@@ -27,7 +34,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.scheduledA
       $scope.command.scheduledActions.push({});
     };
 
-    this.removeScheduledAction = (index) => {
+    this.removeScheduledAction = index => {
       $scope.command.scheduledActions.splice(index, 1);
     };
 
@@ -42,17 +49,17 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.scheduledA
       var job = [
         {
           type: 'upsertAsgScheduledActions',
-          asgs: [{asgName: serverGroup.name, region: serverGroup.region}],
+          asgs: [{ asgName: serverGroup.name, region: serverGroup.region }],
           scheduledActions: $scope.command.scheduledActions,
           credentials: serverGroup.account,
-        }
+        },
       ];
 
       var submitMethod = function() {
         return taskExecutor.executeTask({
           job: job,
           application: application,
-          description: 'Update Scheduled Actions for ' + serverGroup.name
+          description: 'Update Scheduled Actions for ' + serverGroup.name,
         });
       };
 

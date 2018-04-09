@@ -16,7 +16,7 @@ module(CHECK_PRECONDITIONS_STAGE, [PIPELINE_CONFIG_PROVIDER])
       controller: 'CheckPreconditionsStageCtrl',
       controllerAs: 'checkPreconditionsStageCtrl',
       templateUrl: require('./checkPreconditionsStage.html'),
-      executionDetailsSections: [ CheckPreconditionsExecutionDetails, ExecutionDetailsTasks ],
+      executionDetailsSections: [CheckPreconditionsExecutionDetails, ExecutionDetailsTasks],
       strategy: true,
     });
   })

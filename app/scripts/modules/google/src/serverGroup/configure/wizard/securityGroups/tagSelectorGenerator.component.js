@@ -2,10 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.tagSelectorGenerator.component', [
-  require('./tagSelector.component.js').name,
-  require('./tagManager.service.js').name
-])
+module.exports = angular
+  .module('spinnaker.deck.gce.tagSelectorGenerator.component', [
+    require('./tagSelector.component.js').name,
+    require('./tagManager.service.js').name,
+  ])
   .directive('gceTagSelectorGenerator', function($compile, gceTagManager) {
     let template = `<gce-tag-selector security-group-id="securityGroupId" command="command">
                     </gce-tag-selector>`;
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagSelectorGenerator.compone
         let securityGroupObject = gceTagManager.securityGroupObjectsKeyedById[securityGroupId];
 
         if (securityGroupObject && securityGroupObject.tagsArray.length < 2) {
-          securityGroupObject.tagsArray.forEach((tagName) => gceTagManager.addTag(tagName));
+          securityGroupObject.tagsArray.forEach(tagName => gceTagManager.addTag(tagName));
           return;
         }
 
@@ -31,6 +32,6 @@ module.exports = angular.module('spinnaker.deck.gce.tagSelectorGenerator.compone
           .element(element)
           .closest('.ui-select-match-item')
           .after(compiledTemplate);
-      }
+      },
     };
   });

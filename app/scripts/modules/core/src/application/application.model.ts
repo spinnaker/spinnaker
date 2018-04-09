@@ -6,7 +6,6 @@ import { ApplicationDataSource } from './service/applicationDataSource';
 import { ICluster } from '../domain/ICluster';
 
 export class Application {
-
   [k: string]: any;
 
   /**
@@ -20,7 +19,7 @@ export class Application {
    */
   public get name(): string {
     return this.applicationName;
-  };
+  }
 
   /**
    * A list of all accounts currently used within the application. Accounts come from either:
@@ -90,7 +89,12 @@ export class Application {
 
   private dataLoader: Subscription;
 
-  constructor(private applicationName: string, private scheduler: any, private $q: IQService, private $log: ILogService) {}
+  constructor(
+    private applicationName: string,
+    private scheduler: any,
+    private $q: IQService,
+    private $log: ILogService,
+  ) {}
 
   /**
    * Returns a data source based on its key. Data sources can be accessed on the application directly via the key,
@@ -111,14 +115,9 @@ export class Application {
   public refresh(forceRefresh?: boolean): IPromise<any> {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
     this.dataSources.filter(ds => !ds.visible).forEach(ds => ds.refresh(forceRefresh));
-    return this.$q.all(
-      this.dataSources
-        .filter(ds => ds.visible)
-        .map(source => source.refresh(forceRefresh)))
-        .then(
-          () => this.applicationLoadSuccess(),
-          (error) => this.applicationLoadError(error)
-        );
+    return this.$q
+      .all(this.dataSources.filter(ds => ds.visible).map(source => source.refresh(forceRefresh)))
+      .then(() => this.applicationLoadSuccess(), error => this.applicationLoadError(error));
   }
 
   /**
@@ -129,9 +128,8 @@ export class Application {
    */
   public ready(): IPromise<any> {
     return this.$q.all(
-      this.dataSources
-        .filter(ds => ds.onLoad !== undefined && ds.visible)
-        .map(dataSource => dataSource.ready()));
+      this.dataSources.filter(ds => ds.onLoad !== undefined && ds.visible).map(dataSource => dataSource.ready()),
+    );
   }
 
   /**
@@ -196,7 +194,7 @@ export class Application {
     let accounts = this.accounts.concat(this.attributes.accounts || []);
     this.dataSources
       .filter(ds => ds.credentialsField !== undefined)
-      .forEach(ds => accounts = accounts.concat(ds.data.map(d => d[ds.credentialsField])));
+      .forEach(ds => (accounts = accounts.concat(ds.data.map(d => d[ds.credentialsField]))));
 
     this.accounts = uniq(accounts);
   }

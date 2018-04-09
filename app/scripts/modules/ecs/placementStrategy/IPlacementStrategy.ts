@@ -1,5 +1,4 @@
 export interface IPlacementStrategy {
-  field: string,
-  type: string
+  field: string;
+  type: string;
 }
-

@@ -5,9 +5,7 @@ import { IArtifact } from 'core/domain/IArtifact';
 import { PipelineConfigProvider } from 'core/pipeline';
 
 export const S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.s3.artifact';
-module(S3_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(S3_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'S3',
     description: 'An S3 object.',
@@ -38,4 +36,3 @@ module(S3_ARTIFACT, [
 `,
   });
 });
-

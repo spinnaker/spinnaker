@@ -23,7 +23,9 @@ export class LoadBalancerInstances extends React.Component<ILoadBalancerInstance
     this.state = this.getState(props);
 
     const { clusterFilterService } = ReactInjector;
-    this.clusterChangeListener = clusterFilterService.groupsUpdatedStream.subscribe(() => this.setState(this.getState(this.props)));
+    this.clusterChangeListener = clusterFilterService.groupsUpdatedStream.subscribe(() =>
+      this.setState(this.getState(this.props)),
+    );
   }
 
   private getState(props: ILoadBalancerInstancesProps): ILoadBalancerInstancesState {
@@ -39,7 +41,7 @@ export class LoadBalancerInstances extends React.Component<ILoadBalancerInstance
   public render(): React.ReactElement<LoadBalancerInstances> {
     return (
       <div className="instance-list">
-        <Instances instances={this.state.instances}/>
+        <Instances instances={this.state.instances} />
       </div>
     );
   }

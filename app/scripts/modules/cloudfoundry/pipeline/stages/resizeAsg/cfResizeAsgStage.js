@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.cf.pipeline.stage.resizeAsgStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.cf.pipeline.stage.resizeAsgStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
@@ -17,13 +16,14 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.resizeAsgStage', [
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.',
         },
-        { type: 'requiredField', fieldName: 'cluster', },
+        { type: 'requiredField', fieldName: 'cluster' },
       ],
     });
-  }).controller('cfResizeAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('cfResizeAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -32,7 +32,7 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.resizeAsgStage', [
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('cf').then(function (accounts) {
+    accountService.listAccounts('cf').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -50,19 +50,19 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.resizeAsgStage', [
     $scope.scaleActions = [
       {
         label: 'Scale to Exact Size',
-        val: 'scale_exact'
+        val: 'scale_exact',
       },
     ];
 
     $scope.resizeTypes = [
       {
         label: 'Percentage',
-        val: 'pct'
+        val: 'pct',
       },
       {
         label: 'Incremental',
-        val: 'incr'
-      }
+        val: 'incr',
+      },
     ];
 
     stage.capacity = stage.capacity || {};
@@ -95,4 +95,3 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.resizeAsgStage', [
       }
     };
   });
-

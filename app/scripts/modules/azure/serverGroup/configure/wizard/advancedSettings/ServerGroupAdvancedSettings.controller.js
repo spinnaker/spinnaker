@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.serverGroup.configure.advancedSetting.controller', [])
+module.exports = angular
+  .module('spinnaker.azure.serverGroup.configure.advancedSetting.controller', [])
   .controller('azureServerGroupAdvancedSettingsCtrl', function($scope, modalWizardService) {
-
     modalWizardService.getWizard().markComplete('advanced');
 
     $scope.$watch('form.$valid', function(newVal) {
@@ -14,5 +14,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.advancedS
         modalWizardService.getWizard().markDirty('advanced');
       }
     });
-
   });

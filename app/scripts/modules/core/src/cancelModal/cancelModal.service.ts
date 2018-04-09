@@ -11,9 +11,8 @@ export interface ICancelModalParams {
 }
 
 export class CancelModalService {
-
   private defaults: Partial<ICancelModalParams> = {
-    cancelButtonText: 'Cancel'
+    cancelButtonText: 'Cancel',
   };
 
   public constructor(private $uibModal: IModalService, private $sce: ng.ISCEService) {}
@@ -30,8 +29,8 @@ export class CancelModalService {
       controller: 'cancelModalCtrl',
       controllerAs: 'ctrl',
       resolve: {
-        params: () => extendedParams
-      }
+        params: () => extendedParams,
+      },
     };
 
     const result = this.$uibModal.open(modalArgs).result;
@@ -43,7 +42,7 @@ export class CancelModalService {
 }
 
 export const CANCEL_MODAL_SERVICE = 'spinnaker.core.cancelModal.service';
-module(CANCEL_MODAL_SERVICE, [
-  require('angular-ui-bootstrap'),
-  CANCEL_MODAL_CONTROLLER,
-]).service('cancelModalService', CancelModalService);
+module(CANCEL_MODAL_SERVICE, [require('angular-ui-bootstrap'), CANCEL_MODAL_CONTROLLER]).service(
+  'cancelModalService',
+  CancelModalService,
+);

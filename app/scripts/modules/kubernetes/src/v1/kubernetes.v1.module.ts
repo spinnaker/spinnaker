@@ -12,7 +12,7 @@ import '../logo/kubernetes.logo.less';
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
 templates.keys().forEach(function(key) {
-    templates(key);
+  templates(key);
 });
 
 export const KUBERNETES_V1_MODULE = 'spinnaker.kubernetes.v1';
@@ -54,63 +54,62 @@ module(KUBERNETES_V1_MODULE, [
   require('../serverGroup/paramsMixin.js').name,
   require('../serverGroup/transformer.js').name,
   require('../validation/applicationName.validator.js').name,
-])
-  .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-    cloudProviderRegistryProvider.registerProvider('kubernetes', {
-      name: 'Kubernetes',
-      skin: 'v1',
-      defaultSkin: true,
-      cache: {
-        configurer: 'kubernetesCacheConfigurer',
-      },
-      search: {
-        resultFormatter: 'kubernetesSearchResultFormatter',
-      },
-      logo: {
-        path: require('../logo/kubernetes.logo.png'),
-      },
-      image: {
-        reader: 'kubernetesImageReader',
-      },
-      instance: {
-        detailsTemplateUrl: require('../instance/details/details.html'),
-        detailsController: 'kubernetesInstanceDetailsController',
-      },
-      loadBalancer: {
-        transformer: 'kubernetesLoadBalancerTransformer',
-        detailsTemplateUrl: require('../loadBalancer/details/details.html'),
-        detailsController: 'kubernetesLoadBalancerDetailsController',
-        createLoadBalancerTemplateUrl: require('../loadBalancer/configure/wizard/createWizard.html'),
-        createLoadBalancerController: 'kubernetesUpsertLoadBalancerController',
-      },
-      securityGroup: {
-        reader: 'kubernetesSecurityGroupReader',
-        transformer: 'kubernetesSecurityGroupTransformer',
-        detailsTemplateUrl: require('../securityGroup/details/details.html'),
-        detailsController: 'kubernetesSecurityGroupDetailsController',
-        createSecurityGroupTemplateUrl: require('../securityGroup/configure/wizard/createWizard.html'),
-        createSecurityGroupController: 'kubernetesUpsertSecurityGroupController',
-      },
-      serverGroup: {
-        skipUpstreamStageCheck: true,
-        transformer: 'kubernetesServerGroupTransformer',
-        detailsTemplateUrl: require('../serverGroup/details/details.html'),
-        detailsController: 'kubernetesServerGroupDetailsController',
-        cloneServerGroupController: 'kubernetesCloneServerGroupController',
-        cloneServerGroupTemplateUrl: require('../serverGroup/configure/wizard/wizard.html'),
-        commandBuilder: 'kubernetesServerGroupCommandBuilder',
-        configurationService: 'kubernetesServerGroupConfigurationService',
-        paramsMixin: 'kubernetesServerGroupParamsMixin',
-      },
-      unsupportedStageTypes: [
-        'scaleManifest',
-        'deployManifest',
-        'deleteManifest',
-        'undoRolloutManifest',
-        'findArtifactsFromResource',
-      ],
-    });
+]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
+  cloudProviderRegistryProvider.registerProvider('kubernetes', {
+    name: 'Kubernetes',
+    skin: 'v1',
+    defaultSkin: true,
+    cache: {
+      configurer: 'kubernetesCacheConfigurer',
+    },
+    search: {
+      resultFormatter: 'kubernetesSearchResultFormatter',
+    },
+    logo: {
+      path: require('../logo/kubernetes.logo.png'),
+    },
+    image: {
+      reader: 'kubernetesImageReader',
+    },
+    instance: {
+      detailsTemplateUrl: require('../instance/details/details.html'),
+      detailsController: 'kubernetesInstanceDetailsController',
+    },
+    loadBalancer: {
+      transformer: 'kubernetesLoadBalancerTransformer',
+      detailsTemplateUrl: require('../loadBalancer/details/details.html'),
+      detailsController: 'kubernetesLoadBalancerDetailsController',
+      createLoadBalancerTemplateUrl: require('../loadBalancer/configure/wizard/createWizard.html'),
+      createLoadBalancerController: 'kubernetesUpsertLoadBalancerController',
+    },
+    securityGroup: {
+      reader: 'kubernetesSecurityGroupReader',
+      transformer: 'kubernetesSecurityGroupTransformer',
+      detailsTemplateUrl: require('../securityGroup/details/details.html'),
+      detailsController: 'kubernetesSecurityGroupDetailsController',
+      createSecurityGroupTemplateUrl: require('../securityGroup/configure/wizard/createWizard.html'),
+      createSecurityGroupController: 'kubernetesUpsertSecurityGroupController',
+    },
+    serverGroup: {
+      skipUpstreamStageCheck: true,
+      transformer: 'kubernetesServerGroupTransformer',
+      detailsTemplateUrl: require('../serverGroup/details/details.html'),
+      detailsController: 'kubernetesServerGroupDetailsController',
+      cloneServerGroupController: 'kubernetesCloneServerGroupController',
+      cloneServerGroupTemplateUrl: require('../serverGroup/configure/wizard/wizard.html'),
+      commandBuilder: 'kubernetesServerGroupCommandBuilder',
+      configurationService: 'kubernetesServerGroupConfigurationService',
+      paramsMixin: 'kubernetesServerGroupParamsMixin',
+    },
+    unsupportedStageTypes: [
+      'scaleManifest',
+      'deployManifest',
+      'deleteManifest',
+      'undoRolloutManifest',
+      'findArtifactsFromResource',
+    ],
   });
+});
 
 const strategies = ['custom', 'redblack'];
 if (KubernetesProviderSettings.defaults.rrb) {

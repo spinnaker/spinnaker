@@ -22,5 +22,7 @@ class AppengineComponentUrlDetailsComponent implements IComponentOptions {
 
 export const APPENGINE_COMPONENT_URL_DETAILS = 'spinnaker.appengine.componentUrlDetails.component';
 
-module(APPENGINE_COMPONENT_URL_DETAILS, [])
-  .component('appengineComponentUrlDetails', new AppengineComponentUrlDetailsComponent());
+module(APPENGINE_COMPONENT_URL_DETAILS, []).component(
+  'appengineComponentUrlDetails',
+  new AppengineComponentUrlDetailsComponent(),
+);

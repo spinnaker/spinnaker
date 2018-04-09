@@ -3,7 +3,10 @@ import { BindAll } from 'lodash-decorators';
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { IStage, IExpectedArtifact, IPipeline } from 'core';
-import { ArtifactReferenceServiceProvider, ARTIFACT_REFERENCE_SERVICE_PROVIDER } from 'core/artifact/ArtifactReferenceService';
+import {
+  ArtifactReferenceServiceProvider,
+  ARTIFACT_REFERENCE_SERVICE_PROVIDER,
+} from 'core/artifact/ArtifactReferenceService';
 
 @BindAll()
 class ProducesArtifactsCtrl implements IController {
@@ -15,9 +18,7 @@ class ProducesArtifactsCtrl implements IController {
   }
 
   public hasExpectedArtifacts(): boolean {
-    return this.stage
-      && this.stage.expectedArtifacts instanceof Array
-      && this.stage.expectedArtifacts.length > 0;
+    return this.stage && this.stage.expectedArtifacts instanceof Array && this.stage.expectedArtifacts.length > 0;
   }
 
   public removeExpectedArtifact(stage: IStage, expectedArtifact: IExpectedArtifact) {
@@ -25,8 +26,7 @@ class ProducesArtifactsCtrl implements IController {
       return;
     }
 
-    stage.expectedArtifacts = stage.expectedArtifacts
-      .filter((a: IExpectedArtifact) => a.id !== expectedArtifact.id);
+    stage.expectedArtifacts = stage.expectedArtifacts.filter((a: IExpectedArtifact) => a.id !== expectedArtifact.id);
 
     this.artifactReferenceService.removeReferenceFromStages(expectedArtifact.id, this.pipeline.stages);
   }
@@ -41,7 +41,7 @@ class ProducesArtifactsCtrl implements IController {
       usePriorExecution: false,
       useDefaultArtifact: false,
       defaultArtifact: this.defaultArtifact(),
-      id: UUIDGenerator.generateUuid()
+      id: UUIDGenerator.generateUuid(),
     };
 
     if (!this.stage.expectedArtifacts) {
@@ -85,5 +85,7 @@ class ProducesArtifactsComponent implements IComponentOptions {
 }
 
 export const PRODUCES_ARTIFACTS = 'spinnaker.core.pipeline.stage.producesArtifacts';
-module(PRODUCES_ARTIFACTS, [ARTIFACT_REFERENCE_SERVICE_PROVIDER])
-  .component('producesArtifacts', new ProducesArtifactsComponent());
+module(PRODUCES_ARTIFACTS, [ARTIFACT_REFERENCE_SERVICE_PROVIDER]).component(
+  'producesArtifacts',
+  new ProducesArtifactsComponent(),
+);

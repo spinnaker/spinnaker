@@ -6,7 +6,7 @@ import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudPr
 
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
 import { ISearchResult, SEARCH_SERVICE } from '../search.service';
-import { SearchResultType, searchResultTypeRegistry, } from '../searchResult';
+import { SearchResultType, searchResultTypeRegistry } from '../searchResult';
 import { SearchStatus } from '../searchResult/SearchResults';
 
 export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {
@@ -32,7 +32,8 @@ export class InfrastructureSearcher {
     this.querySubject
       .switchMap((query: string) => {
         if (!query || query.trim() === '') {
-          const fallbackResults = searchResultTypeRegistry.getAll()
+          const fallbackResults = searchResultTypeRegistry
+            .getAll()
             .map(type => ({ type, results: [], status: SearchStatus.INITIAL } as ISearchResultSet));
           return Observable.of(fallbackResults);
         }
@@ -40,7 +41,7 @@ export class InfrastructureSearcher {
       })
       .subscribe((result: ISearchResultSet[]) => {
         this.deferred.resolve(result);
-      })
+      });
   }
 
   public query(q: string): IPromise<ISearchResultSet[]> {
@@ -65,7 +66,9 @@ export class InfrastructureSearcher {
     let formatter = type.displayFormatter;
 
     if (this.providerServiceDelegate.hasDelegate(entry.provider, 'search.resultFormatter')) {
-      const providerFormatter: IProviderResultFormatter = this.providerServiceDelegate.getDelegate<IProviderResultFormatter>(entry.provider, 'search.resultFormatter');
+      const providerFormatter: IProviderResultFormatter = this.providerServiceDelegate.getDelegate<
+        IProviderResultFormatter
+      >(entry.provider, 'search.resultFormatter');
       if (providerFormatter[category]) {
         formatter = providerFormatter[category];
       }
@@ -75,9 +78,11 @@ export class InfrastructureSearcher {
 }
 
 export class InfrastructureSearchService {
-  constructor(private $q: IQService,
-              private providerServiceDelegate: any,
-              private infrastructureSearchServiceV2: InfrastructureSearchServiceV2) {
+  constructor(
+    private $q: IQService,
+    private providerServiceDelegate: any,
+    private infrastructureSearchServiceV2: InfrastructureSearchServiceV2,
+  ) {
     'ngInject';
   }
 
@@ -87,8 +92,7 @@ export class InfrastructureSearchService {
 }
 
 export const INFRASTRUCTURE_SEARCH_SERVICE = 'spinnaker.infrastructure.search.service';
-module(INFRASTRUCTURE_SEARCH_SERVICE, [
-  SEARCH_SERVICE,
-  URL_BUILDER_SERVICE,
-  PROVIDER_SERVICE_DELEGATE,
-]).service('infrastructureSearchService', InfrastructureSearchService);
+module(INFRASTRUCTURE_SEARCH_SERVICE, [SEARCH_SERVICE, URL_BUILDER_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
+  'infrastructureSearchService',
+  InfrastructureSearchService,
+);

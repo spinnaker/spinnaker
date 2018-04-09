@@ -4,14 +4,14 @@ import {
   APPLICATION_NAME_VALIDATOR,
   ApplicationNameValidator,
   IApplicationNameValidator,
-  IValidationResult
+  IValidationResult,
 } from '@spinnaker/core';
 
 // See https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions#Version
 class AppengineApplicationNameValidator implements IApplicationNameValidator {
   public validate(name = ''): IValidationResult {
     const warnings: string[] = [],
-        errors: string[] = [];
+      errors: string[] = [];
     if (name.length) {
       this.validateSpecialCharacters(name, errors);
       this.validateLength(name, warnings, errors);
@@ -46,6 +46,11 @@ class AppengineApplicationNameValidator implements IApplicationNameValidator {
 export const APPENGINE_APPLICATION_NAME_VALIDATOR = 'spinnaker.appengine.applicationNameValidator.service';
 module(APPENGINE_APPLICATION_NAME_VALIDATOR, [APPLICATION_NAME_VALIDATOR])
   .service('appengineApplicationNameValidator', AppengineApplicationNameValidator)
-  .run((applicationNameValidator: ApplicationNameValidator, appengineApplicationNameValidator: IApplicationNameValidator) => {
-    applicationNameValidator.registerValidator('appengine', appengineApplicationNameValidator);
-  });
+  .run(
+    (
+      applicationNameValidator: ApplicationNameValidator,
+      appengineApplicationNameValidator: IApplicationNameValidator,
+    ) => {
+      applicationNameValidator.registerValidator('appengine', appengineApplicationNameValidator);
+    },
+  );

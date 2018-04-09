@@ -9,17 +9,18 @@ import {
   BAKERY_SERVICE,
   ACCOUNT_SERVICE,
   NETWORK_READ_SERVICE,
-  SUBNET_READ_SERVICE
+  SUBNET_READ_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bakeStage', [
-  require('./bakeExecutionDetails.controller.js').name,
-  PIPELINE_CONFIG_PROVIDER,
-  BAKERY_SERVICE,
-  ACCOUNT_SERVICE,
-  NETWORK_READ_SERVICE,
-  SUBNET_READ_SERVICE
-])
+module.exports = angular
+  .module('spinnaker.oraclebmcs.pipeline.stage.bakeStage', [
+    require('./bakeExecutionDetails.controller.js').name,
+    PIPELINE_CONFIG_PROVIDER,
+    BAKERY_SERVICE,
+    ACCOUNT_SERVICE,
+    NETWORK_READ_SERVICE,
+    SUBNET_READ_SERVICE,
+  ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'bake',
@@ -38,16 +39,29 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bakeStage',
         { type: 'requiredField', fieldName: 'account' },
         { type: 'requiredField', fieldName: 'user' },
         { type: 'requiredField', fieldName: 'cloudProviderType' },
-        { type: 'requiredField', fieldName: 'extended_attributes.subnet_ocid',
-          message: '<b>Subnet ocid</b> is a required field for Bake stages.' },
-        { type: 'requiredField', fieldName: 'extended_attributes.availability_domain',
-          message: '<b>Availability Domain</b> is a required field for Bake stages.' }
+        {
+          type: 'requiredField',
+          fieldName: 'extended_attributes.subnet_ocid',
+          message: '<b>Subnet ocid</b> is a required field for Bake stages.',
+        },
+        {
+          type: 'requiredField',
+          fieldName: 'extended_attributes.availability_domain',
+          message: '<b>Availability Domain</b> is a required field for Bake stages.',
+        },
       ],
-      restartable: true
+      restartable: true,
     });
   })
-  .controller('oraclebmcsBakeStageCtrl', function($scope, bakeryService, accountService, networkReader, subnetReader, $q, authenticationService) {
-
+  .controller('oraclebmcsBakeStageCtrl', function(
+    $scope,
+    bakeryService,
+    accountService,
+    networkReader,
+    subnetReader,
+    $q,
+    authenticationService,
+  ) {
     const provider = 'oraclebmcs';
 
     if (!$scope.stage.cloudProvider) {
@@ -67,58 +81,58 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bakeStage',
     }
 
     function initialize() {
-
       $scope.viewState.providerSelected = true;
 
-      $q.all({
-        baseOsOptions: bakeryService.getBaseOsOptions(provider),
-        regions: bakeryService.getRegions(provider),
-        availabilityDomains: $scope.getZones(provider),
-        networks: $scope.getNetworks(provider),
-        subnets: $scope.getSubNetworks(provider)
-      }).then(results => {
+      $q
+        .all({
+          baseOsOptions: bakeryService.getBaseOsOptions(provider),
+          regions: bakeryService.getRegions(provider),
+          availabilityDomains: $scope.getZones(provider),
+          networks: $scope.getNetworks(provider),
+          subnets: $scope.getSubNetworks(provider),
+        })
+        .then(results => {
+          if (!$scope.account && $scope.application.defaultCredentials.oraclebmcs) {
+            $scope.account = $scope.application.defaultCredentials.oraclebmcs;
+          }
+          if (results.baseOsOptions.baseImages.length > 0) {
+            $scope.baseOsOptions = results.baseOsOptions;
+          }
+          if (results.regions.length > 0) {
+            $scope.regionOptions = results.regions;
+          }
+          if (results.availabilityDomains && Object.keys(results.availabilityDomains).length > 0) {
+            $scope.zoneOptions = results.availabilityDomains;
+          }
+          if (results.networks.length > 0) {
+            $scope.networkOptions = results.networks;
+          }
+          if (results.subnets.length > 0) {
+            $scope.subnetOptions = results.subnets;
+          }
+          if (!$scope.stage.user) {
+            $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+          }
+          if (!$scope.stage.account) {
+            $scope.stage.account = $scope.account;
+            $scope.stage.extended_attributes.access_cfg_file_account = $scope.account;
+          }
+          if (!$scope.stage.baseOs) {
+            $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
+          }
+          if (!$scope.stage.region) {
+            $scope.stage.region = $scope.regionOptions[0];
+          }
+          if (!$scope.stage.upgrade) {
+            $scope.stage.upgrade = true;
+          }
 
-        if (!$scope.account && $scope.application.defaultCredentials.oraclebmcs) {
-          $scope.account = $scope.application.defaultCredentials.oraclebmcs;
-        }
-        if (results.baseOsOptions.baseImages.length > 0) {
-          $scope.baseOsOptions = results.baseOsOptions;
-        }
-        if (results.regions.length > 0) {
-          $scope.regionOptions = results.regions;
-        }
-        if (results.availabilityDomains && Object.keys(results.availabilityDomains).length > 0) {
-          $scope.zoneOptions = results.availabilityDomains;
-        }
-        if (results.networks.length > 0) {
-          $scope.networkOptions = results.networks;
-        }
-        if (results.subnets.length > 0) {
-          $scope.subnetOptions = results.subnets;
-        }
-        if (!$scope.stage.user) {
-          $scope.stage.user = authenticationService.getAuthenticatedUser().name;
-        }
-        if (!$scope.stage.account) {
-          $scope.stage.account = $scope.account;
-          $scope.stage.extended_attributes.access_cfg_file_account = $scope.account;
-        }
-        if (!$scope.stage.baseOs) {
-          $scope.stage.baseOs = $scope.baseOsOptions.baseImages[0].id;
-        }
-        if (!$scope.stage.region) {
-          $scope.stage.region = $scope.regionOptions[0];
-        }
-        if (!$scope.stage.upgrade) {
-          $scope.stage.upgrade = true;
-        }
+          $scope.constrainNetworkOptions();
+          $scope.constrainAvailabilityDomainOptions();
+          $scope.constrainSubnetOptions();
 
-        $scope.constrainNetworkOptions();
-        $scope.constrainAvailabilityDomainOptions();
-        $scope.constrainSubnetOptions();
-
-        $scope.viewState.loading = false;
-      });
+          $scope.viewState.loading = false;
+        });
     }
 
     this.getBaseOsDescription = function(baseOsOption) {
@@ -142,7 +156,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bakeStage',
      */
     $scope.constrainNetworkOptions = function() {
       if ($scope.networkOptions && $scope.account && $scope.stage.region) {
-        $scope.constrainedNetworkOptions = _.filter($scope.networkOptions, (networkOption) => {
+        $scope.constrainedNetworkOptions = _.filter($scope.networkOptions, networkOption => {
           return networkOption.region === $scope.stage.region;
         });
       }
@@ -161,19 +175,20 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bakeStage',
     $scope.constrainAvailabilityDomainOptions = function() {
       let selectedNetwork_ocid = $scope.stage.extended_attributes.network_ocid;
       if ($scope.networkOptions && $scope.account && $scope.stage.region) {
-        let networkSubnets = _.filter($scope.subnetOptions, (subnetOption) => {
-          return subnetOption.region === $scope.stage.region
-            && subnetOption.vcnId === selectedNetwork_ocid;
+        let networkSubnets = _.filter($scope.subnetOptions, subnetOption => {
+          return subnetOption.region === $scope.stage.region && subnetOption.vcnId === selectedNetwork_ocid;
         });
-        let networkAvailabilityDomains = _.map(networkSubnets, (networkSubnet) => {
+        let networkAvailabilityDomains = _.map(networkSubnets, networkSubnet => {
           return networkSubnet.availabilityDomain;
         });
-        $scope.constrainedAvailabilityDomainOptions = _.chain(networkAvailabilityDomains).uniq().sort().value();
+        $scope.constrainedAvailabilityDomainOptions = _.chain(networkAvailabilityDomains)
+          .uniq()
+          .sort()
+          .value();
         // set default
         if ($scope.constrainedAvailabilityDomainOptions && $scope.constrainedAvailabilityDomainOptions.length > 0) {
           $scope.stage.extended_attributes.availability_domain = $scope.constrainedAvailabilityDomainOptions[0];
-        }
-        else {
+        } else {
           delete $scope.stage.extended_attributes.availability_domain;
         }
         return $scope.constrainedAvailabilityDomainOptions;
@@ -185,10 +200,12 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bakeStage',
      */
     $scope.constrainSubnetOptions = function() {
       if ($scope.subnetOptions && $scope.account && $scope.stage.region) {
-        $scope.constrainedSubnetOptions = _.filter($scope.subnetOptions, (subnetOption) => {
-          return subnetOption.region == $scope.stage.region
-            && subnetOption.vcnId == $scope.stage.extended_attributes.network_ocid
-            && subnetOption.availabilityDomain == $scope.stage.extended_attributes.availability_domain;
+        $scope.constrainedSubnetOptions = _.filter($scope.subnetOptions, subnetOption => {
+          return (
+            subnetOption.region == $scope.stage.region &&
+            subnetOption.vcnId == $scope.stage.extended_attributes.network_ocid &&
+            subnetOption.availabilityDomain == $scope.stage.extended_attributes.availability_domain
+          );
         });
       }
       // if an applicable default is available set it; else clear.

@@ -9,7 +9,6 @@ const ARTIFACT_TYPE = 'docker/image';
 const ARTIFACT_NAME = 'example.com/container';
 
 describe('<ArtifactList/>', () => {
-
   let component: ShallowWrapper<IArtifactListProps, IArtifactListState>;
 
   beforeEach(mock.module(REACT_MODULE));
@@ -28,21 +27,25 @@ describe('<ArtifactList/>', () => {
   });
 
   it('renders a list when artifacts are passed in', function() {
-    const artifacts: IArtifact[] = [{
-      id: 'abcd',
-      type: ARTIFACT_TYPE,
-      name: ARTIFACT_NAME,
-    }];
+    const artifacts: IArtifact[] = [
+      {
+        id: 'abcd',
+        type: ARTIFACT_TYPE,
+        name: ARTIFACT_NAME,
+      },
+    ];
     component = shallow(<ArtifactList artifacts={artifacts} />);
     expect(component.find('ul.trigger-details.artifacts').length).toEqual(1);
   });
 
-  it('renders an artifact\'s type and name', function() {
-    const artifacts: IArtifact[] = [{
-      id: 'abcd',
-      type: ARTIFACT_TYPE,
-      name: ARTIFACT_NAME,
-    }];
+  it("renders an artifact's type and name", function() {
+    const artifacts: IArtifact[] = [
+      {
+        id: 'abcd',
+        type: ARTIFACT_TYPE,
+        name: ARTIFACT_NAME,
+      },
+    ];
     component = shallow(<ArtifactList artifacts={artifacts} />);
     const li = component.find('li');
     const dt = li.find('dt');
@@ -58,15 +61,22 @@ describe('<ArtifactList/>', () => {
 
   it('renders an artifact version if present', function() {
     const version = 'v001';
-    const artifacts: IArtifact[] = [{
-      id: 'abcd',
-      type: ARTIFACT_TYPE,
-      name: ARTIFACT_NAME,
-      version: version,
-    }];
+    const artifacts: IArtifact[] = [
+      {
+        id: 'abcd',
+        type: ARTIFACT_TYPE,
+        name: ARTIFACT_NAME,
+        version: version,
+      },
+    ];
     component = shallow(<ArtifactList artifacts={artifacts} />);
     const li = component.find('li');
     expect(li.find('dd').length).toEqual(3);
-    expect(li.find('dd').at(2).text()).toEqual(version);
+    expect(
+      li
+        .find('dd')
+        .at(2)
+        .text(),
+    ).toEqual(version);
   });
 });

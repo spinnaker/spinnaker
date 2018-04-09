@@ -6,7 +6,7 @@ import { SearchResultType } from './searchResultType';
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 
 export interface ISearchResultTabsProps {
-  resultSets: ISearchResultSet[]
+  resultSets: ISearchResultSet[];
   activeSearchResultType: SearchResultType;
 }
 
@@ -25,7 +25,9 @@ export class SearchResultTabs extends React.Component<ISearchResultTabsProps> {
 
           return (
             <UISref key={type.id} to="." params={{ tab: type.id }}>
-              <li><TabComponent resultSet={resultSet} isActive={active} /></li>
+              <li>
+                <TabComponent resultSet={resultSet} isActive={active} />
+              </li>
             </UISref>
           );
         })}

@@ -13,7 +13,7 @@ module.exports = angular
     require('./elSevenOptions/elSevenOptionsGenerator.component.js').name,
     require('../../serverGroupConfiguration.service.js').name,
   ])
-  .directive('gceServerGroupLoadBalancerSelector', function () {
+  .directive('gceServerGroupLoadBalancerSelector', function() {
     return {
       restrict: 'E',
       templateUrl: require('./loadBalancerSelector.directive.html'),
@@ -24,9 +24,12 @@ module.exports = angular
       controllerAs: 'vm',
       controller: 'gceServerGroupLoadBalancerSelectorCtrl',
     };
-  }).controller('gceServerGroupLoadBalancerSelectorCtrl', function (gceHttpLoadBalancerUtils,
-                                                                    gceServerGroupConfigurationService,
-                                                                    infrastructureCaches) {
+  })
+  .controller('gceServerGroupLoadBalancerSelectorCtrl', function(
+    gceHttpLoadBalancerUtils,
+    gceServerGroupConfigurationService,
+    infrastructureCaches,
+  ) {
     this.getLoadBalancerRefreshTime = () => {
       return infrastructureCaches.get('loadBalancers').getStats().ageMax;
     };
@@ -43,11 +46,18 @@ module.exports = angular
         let index = this.command.backingData.filtered.loadBalancerIndex;
         let selected = this.command.loadBalancers;
 
-        return angular.isDefined(selected) && _.some(selected, s => {
-            return index[s].loadBalancerType === 'HTTP' || index[s].loadBalancerType === 'SSL' || index[s].loadBalancerType === 'TCP';
-          });
+        return (
+          angular.isDefined(selected) &&
+          _.some(selected, s => {
+            return (
+              index[s].loadBalancerType === 'HTTP' ||
+              index[s].loadBalancerType === 'SSL' ||
+              index[s].loadBalancerType === 'TCP'
+            );
+          })
+        );
       }
     };
 
-    this.isHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
+    this.isHttpLoadBalancer = lb => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
   });

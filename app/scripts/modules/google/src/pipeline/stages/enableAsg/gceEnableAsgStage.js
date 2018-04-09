@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage..enableAsgStage', [
-  PIPELINE_CONFIG_PROVIDER,
-])
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage..enableAsgStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
@@ -17,19 +16,19 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..enableAsgStage', 
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'regions' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
-      ]
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
+      ],
     });
-  }).controller('gceEnableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('gceEnableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function (accounts) {
+    accountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -39,7 +38,11 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..enableAsgStage', 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Google'];
     }
 
@@ -56,4 +59,3 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..enableAsgStage', 
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

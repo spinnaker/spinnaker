@@ -1,30 +1,24 @@
 'use strict';
 
-describe('azureServerGroupTransformer', function () {
-
+describe('azureServerGroupTransformer', function() {
   var transformer;
 
-  beforeEach(
-    window.module(
-      require('./serverGroup.transformer.js').name
-    )
-  );
+  beforeEach(window.module(require('./serverGroup.transformer.js').name));
 
-  beforeEach(function () {
-    window.inject(function (_azureServerGroupTransformer_) {
+  beforeEach(function() {
+    window.inject(function(_azureServerGroupTransformer_) {
       transformer = _azureServerGroupTransformer_;
     });
   });
 
-  describe('command transforms', function () {
-
-    it('sets name correctly with no stack or detail', function () {
+  describe('command transforms', function() {
+    it('sets name correctly with no stack or detail', function() {
       var base = {
         application: 'myApp',
-        sku:{
+        sku: {
           capacity: 1,
         },
-        selectedImage:{
+        selectedImage: {
           publisher: 'Microsoft',
           offer: 'Windows',
           sku: 'Server2016',
@@ -38,17 +32,16 @@ describe('azureServerGroupTransformer', function () {
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(base);
 
       expect(transformed.name).toBe('myApp');
-
     });
 
-    it('it sets name correctly with only stack', function () {
+    it('it sets name correctly with only stack', function() {
       var command = {
         stack: 's1',
         application: 'theApp',
-        sku:{
+        sku: {
           capacity: 1,
         },
-        selectedImage:{
+        selectedImage: {
           publisher: 'Microsoft',
           offer: 'Windows',
           sku: 'Server2016',
@@ -56,7 +49,7 @@ describe('azureServerGroupTransformer', function () {
         },
         viewState: {
           mode: 'create',
-        }
+        },
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -64,14 +57,14 @@ describe('azureServerGroupTransformer', function () {
       expect(transformed.name).toBe('theApp-s1');
     });
 
-    it('it sets name correctly with only detail', function () {
+    it('it sets name correctly with only detail', function() {
       var command = {
         freeFormDetails: 'd1',
         application: 'theApp',
-        sku:{
+        sku: {
           capacity: 1,
         },
-        selectedImage:{
+        selectedImage: {
           publisher: 'Microsoft',
           offer: 'Windows',
           sku: 'Server2016',
@@ -79,7 +72,7 @@ describe('azureServerGroupTransformer', function () {
         },
         viewState: {
           mode: 'create',
-        }
+        },
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -87,15 +80,15 @@ describe('azureServerGroupTransformer', function () {
       expect(transformed.name).toBe('theApp-d1');
     });
 
-    it('it sets name correctly with both stack and detail', function () {
+    it('it sets name correctly with both stack and detail', function() {
       var command = {
         stack: 's1',
         freeFormDetails: 'd1',
         application: 'theApp',
-        sku:{
+        sku: {
           capacity: 1,
         },
-        selectedImage:{
+        selectedImage: {
           publisher: 'Microsoft',
           offer: 'Windows',
           sku: 'Server2016',
@@ -103,7 +96,7 @@ describe('azureServerGroupTransformer', function () {
         },
         viewState: {
           mode: 'create',
-        }
+        },
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -116,10 +109,10 @@ describe('azureServerGroupTransformer', function () {
         stack: 's1',
         freeFormDetails: 'd1',
         application: 'theApp',
-        sku:{
+        sku: {
           capacity: 1,
         },
-        selectedImage:{
+        selectedImage: {
           publisher: 'Microsoft',
           offer: 'Windows',
           sku: 'Server2016',
@@ -131,10 +124,10 @@ describe('azureServerGroupTransformer', function () {
         osConfig: {
           customData: 'this is custom data',
         },
-        customScriptsSettings:{
+        customScriptsSettings: {
           fileUris: 'file1',
           commandToExecute: 'do_this',
-        }
+        },
       };
 
       var customScript = {
@@ -152,10 +145,10 @@ describe('azureServerGroupTransformer', function () {
         stack: 's1',
         freeFormDetails: 'd1',
         application: 'theApp',
-        sku:{
+        sku: {
           capacity: 1,
         },
-        selectedImage:{
+        selectedImage: {
           publisher: 'Microsoft',
           offer: 'Windows',
           sku: 'Server2016',
@@ -163,7 +156,7 @@ describe('azureServerGroupTransformer', function () {
         },
         viewState: {
           mode: 'create',
-        }
+        },
       };
 
       var transformed = transformer.convertServerGroupCommandToDeployConfiguration(command);
@@ -172,6 +165,5 @@ describe('azureServerGroupTransformer', function () {
       expect(transformed.customScriptsSettings.fileUris).toBeNull();
       expect(transformed.customScriptsSettings.commandToExecute).toBe('');
     });
-
   });
 });

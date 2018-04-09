@@ -17,15 +17,15 @@ export class EntityName extends React.Component<IEntityNameProps> {
 
     return (
       <div className="entityname">
-        <span className="entityref"><strong>{entityRef.entityId}</strong></span>
+        <span className="entityref">
+          <strong>{entityRef.entityId}</strong>
+        </span>
         <span className="account-region">
           {' ( '}
-          {entityRef.account && <AccountTag account={entityRef.account}/>}
-          {' '}
-          <span>{entityRef.region}</span>
+          {entityRef.account && <AccountTag account={entityRef.account} />} <span>{entityRef.region}</span>
           {' ) '}
         </span>
       </div>
     );
-  };
+  }
 }

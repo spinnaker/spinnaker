@@ -21,7 +21,7 @@ export class SearchResultPod extends React.Component<ISearchResultPodProps> {
         <div className="panel category row">
           <div className="summary">
             <span className="category-icon">
-              {podData.config.iconClass && <span className={podData.config.iconClass}/>}
+              {podData.config.iconClass && <span className={podData.config.iconClass} />}
             </span>
             {robotToHuman(category)} ({podData.results.length})
           </div>

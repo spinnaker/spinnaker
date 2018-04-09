@@ -6,23 +6,32 @@ import {
   ACCOUNT_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
-  require('@uirouter/angularjs').default,
-  LOAD_BALANCER_WRITE_SERVICE,
-  ACCOUNT_SERVICE,
-  require('../../loadBalancer.transformer.js').name,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-  require('../../../gceRegionSelectField.directive.js').name,
-])
-  .controller('gceCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
-                                                    accountService, gceLoadBalancerTransformer,
-                                                    application, loadBalancer, isNew,
-                                                    v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
-
+module.exports = angular
+  .module('spinnaker.loadBalancer.gce.create.controller', [
+    require('@uirouter/angularjs').default,
+    LOAD_BALANCER_WRITE_SERVICE,
+    ACCOUNT_SERVICE,
+    require('../../loadBalancer.transformer.js').name,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    require('../../../gceRegionSelectField.directive.js').name,
+  ])
+  .controller('gceCreateLoadBalancerCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    accountService,
+    gceLoadBalancerTransformer,
+    application,
+    loadBalancer,
+    isNew,
+    v2modalWizardService,
+    loadBalancerWriter,
+    taskMonitorBuilder,
+  ) {
     var ctrl = this;
 
     $scope.isNew = isNew;
@@ -36,7 +45,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
 
     $scope.state = {
       accountsLoaded: false,
-      submitting: false
+      submitting: false,
     };
 
     function onApplicationRefresh() {
@@ -70,11 +79,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       onTaskComplete: onTaskComplete,
     });
 
-    function initializeEditMode() {
-    }
+    function initializeEditMode() {}
 
     function initializeCreateMode() {
-      accountService.listAccounts('gce').then(function (accounts) {
+      accountService.listAccounts('gce').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -91,16 +99,20 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       var account = $scope.loadBalancer.credentials;
 
       const accountLoadBalancersByRegion = {};
-      application.getDataSource('loadBalancers').refresh(true).then(() => {
-        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-          if (loadBalancer.account === account) {
-            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-          }
-        });
+      application
+        .getDataSource('loadBalancers')
+        .refresh(true)
+        .then(() => {
+          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+            if (loadBalancer.account === account) {
+              accountLoadBalancersByRegion[loadBalancer.region] =
+                accountLoadBalancersByRegion[loadBalancer.region] || [];
+              accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+            }
+          });
 
-        $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
-      });
+          $scope.existingLoadBalancerNames = _.flatten(_.map(accountLoadBalancersByRegion));
+        });
     }
 
     // initialize controller
@@ -115,11 +127,11 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
 
     // Controller API
 
-    this.requiresHealthCheckPath = function () {
+    this.requiresHealthCheckPath = function() {
       return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
     };
 
-    this.prependForwardSlash = (text) => {
+    this.prependForwardSlash = text => {
       return text && text.indexOf('/') !== 0 ? `/${text}` : text;
     };
 
@@ -129,7 +141,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
 
     this.getName = function() {
       var loadBalancer = $scope.loadBalancer;
-      var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
+      var loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
@@ -167,47 +179,45 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       }
     };
 
-    this.submit = function () {
+    this.submit = function() {
       var descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.taskMonitor.submit(
-        function() {
-          let params = {
-            cloudProvider: 'gce',
-            loadBalancerName: $scope.loadBalancer.name,
-          };
+      $scope.taskMonitor.submit(function() {
+        let params = {
+          cloudProvider: 'gce',
+          loadBalancerName: $scope.loadBalancer.name,
+        };
 
-          if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
-            let listener = $scope.loadBalancer.listeners[0];
+        if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
+          let listener = $scope.loadBalancer.listeners[0];
 
-            if (listener.protocol) {
-              params.ipProtocol = listener.protocol;
-            }
-
-            if (listener.portRange) {
-              params.portRange = listener.portRange;
-            }
-
-            if (listener.healthCheck) {
-              params.healthCheck = {
-                port: $scope.loadBalancer.healthCheckPort,
-                requestPath: $scope.loadBalancer.healthCheckPath,
-                timeoutSec: $scope.loadBalancer.healthTimeout,
-                checkIntervalSec: $scope.loadBalancer.healthInterval,
-                healthyThreshold: $scope.loadBalancer.healthyThreshold,
-                unhealthyThreshold: $scope.loadBalancer.unhealthyThreshold,
-              };
-            } else {
-              params.healthCheck = null;
-            }
+          if (listener.protocol) {
+            params.ipProtocol = listener.protocol;
           }
 
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+          if (listener.portRange) {
+            params.portRange = listener.portRange;
+          }
+
+          if (listener.healthCheck) {
+            params.healthCheck = {
+              port: $scope.loadBalancer.healthCheckPort,
+              requestPath: $scope.loadBalancer.healthCheckPath,
+              timeoutSec: $scope.loadBalancer.healthTimeout,
+              checkIntervalSec: $scope.loadBalancer.healthInterval,
+              healthyThreshold: $scope.loadBalancer.healthyThreshold,
+              unhealthyThreshold: $scope.loadBalancer.unhealthyThreshold,
+            };
+          } else {
+            params.healthCheck = null;
+          }
         }
-      );
+
+        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

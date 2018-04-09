@@ -5,7 +5,9 @@ import { IStage } from 'core/domain';
 
 export const StageExecutionLogs = (props: { stage: IStage }): JSX.Element => {
   const logs = get<string>(props.stage, 'context.execution.logs');
-  if (!logs) { return null; }
+  if (!logs) {
+    return null;
+  }
 
   return (
     <div className="row">
@@ -18,4 +20,4 @@ export const StageExecutionLogs = (props: { stage: IStage }): JSX.Element => {
       </div>
     </div>
   );
-}
+};

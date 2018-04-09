@@ -4,11 +4,9 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.actions.override.result.controller', [
-  require('@uirouter/angularjs').default,
-])
-  .controller('EndCanaryCtrl', function ($scope, $http, $uibModalInstance, canaryId) {
-
+module.exports = angular
+  .module('spinnaker.canary.actions.override.result.controller', [require('@uirouter/angularjs').default])
+  .controller('EndCanaryCtrl', function($scope, $http, $uibModalInstance, canaryId) {
     $scope.command = {
       reason: null,
       result: 'SUCCESS',
@@ -19,7 +17,8 @@ module.exports = angular.module('spinnaker.canary.actions.override.result.contro
     this.endCanary = function() {
       $scope.state = 'submitting';
       var targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'end'].join('/');
-      $http.put(targetUrl, $scope.command)
+      $http
+        .put(targetUrl, $scope.command)
         .then(function onSuccess() {
           $scope.state = 'success';
         })
@@ -29,5 +28,4 @@ module.exports = angular.module('spinnaker.canary.actions.override.result.contro
     };
 
     this.cancel = $uibModalInstance.dismiss;
-
   });

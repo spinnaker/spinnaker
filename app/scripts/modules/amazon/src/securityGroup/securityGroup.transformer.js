@@ -4,11 +4,9 @@ const angular = require('angular');
 
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
-module.exports = angular.module('spinnaker.amazon.securityGroup.transformer', [
-  VPC_READ_SERVICE,
-])
-  .factory('awsSecurityGroupTransformer', function (vpcReader) {
-
+module.exports = angular
+  .module('spinnaker.amazon.securityGroup.transformer', [VPC_READ_SERVICE])
+  .factory('awsSecurityGroupTransformer', function(vpcReader) {
     function normalizeSecurityGroup(securityGroup) {
       return vpcReader.listVpcs().then(addVpcNameToSecurityGroup(securityGroup));
     }

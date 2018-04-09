@@ -3,7 +3,7 @@ import { ILogService } from 'angular';
 import { UIRouter, Transition } from '@uirouter/core';
 import '@uirouter/rx';
 
-import { bootstrapModule } from './bootstrap.module'
+import { bootstrapModule } from './bootstrap.module';
 
 bootstrapModule.run(($uiRouter: UIRouter, $log: ILogService) => {
   'ngInject';

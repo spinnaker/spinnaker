@@ -19,8 +19,9 @@ export type MigrationStrategyType = 'rollingPush' | 'pipeline';
 export interface IMigrationStrategyType {}
 
 export class RollingPushStrategy implements IMigrationStrategyType {
-
-  static get type(): MigrationStrategyType { return 'rollingPush'; }
+  static get type(): MigrationStrategyType {
+    return 'rollingPush';
+  }
 
   public concurrentRelaunches = 1;
   public concurrentRelaunchesAsPercentage = false;
@@ -29,8 +30,9 @@ export class RollingPushStrategy implements IMigrationStrategyType {
 }
 
 export class PipelineStrategy implements IMigrationStrategyType {
-
-  static get type(): MigrationStrategyType { return 'pipeline'; }
+  static get type(): MigrationStrategyType {
+    return 'pipeline';
+  }
 
   public application: string;
   public pipelineId: string;
@@ -73,7 +75,6 @@ export interface ITitusMigrationConfig {
 }
 
 export class TitusMigrationConfigController implements ng.IComponentController {
-
   public application: Application;
   public config: ITitusMigrationConfig;
   public viewState: ITitusMigrationViewState = {
@@ -87,7 +88,9 @@ export class TitusMigrationConfigController implements ng.IComponentController {
   public accounts: any[];
   public regionsByAccount: any = {};
 
-  public constructor(private accountService: any) { 'ngInject'; }
+  public constructor(private accountService: any) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.config = this.application.attributes.titusTaskMigration || {
@@ -116,7 +119,7 @@ export class TitusMigrationConfigController implements ng.IComponentController {
       region: this.regionsByAccount[this.accounts[0]][0],
       stack: null,
       detail: null,
-      strategy: { type: RollingPushStrategy.type, config: new RollingPushStrategy() }
+      strategy: { type: RollingPushStrategy.type, config: new RollingPushStrategy() },
     });
     this.configChanged();
   }
@@ -141,7 +144,7 @@ class TitusMigrationConfigComponent implements ng.IComponentOptions {
 
 export const TITUS_MIGRATION_CONFIG_COMPONENT = 'spinnaker.titus.migration.config.component';
 
-module(TITUS_MIGRATION_CONFIG_COMPONENT, [
-  TITUS_MIGRATION_CONFIGURER_COMPONENT,
-  CONFIG_SECTION_FOOTER,
-]).component('titusMigrationConfig', new TitusMigrationConfigComponent());
+module(TITUS_MIGRATION_CONFIG_COMPONENT, [TITUS_MIGRATION_CONFIGURER_COMPONENT, CONFIG_SECTION_FOOTER]).component(
+  'titusMigrationConfig',
+  new TitusMigrationConfigComponent(),
+);

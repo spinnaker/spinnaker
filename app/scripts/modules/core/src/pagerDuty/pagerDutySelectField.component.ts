@@ -21,10 +21,12 @@ export class PagerDutySelectFieldController implements IComponentController {
       </ol>
       <p><b>Note:</b> it can take up to five minutes for the service to appear in Spinnaker</p>`;
 
-  public required = SETTINGS.pagerDuty && SETTINGS.pagerDuty.required || false;
+  public required = (SETTINGS.pagerDuty && SETTINGS.pagerDuty.required) || false;
   public label = `PagerDuty${this.required ? ' *' : ''}`;
 
-  public constructor(private pagerDutyReader: PagerDutyReader, private schedulerFactory: SchedulerFactory) { 'ngInject'; }
+  public constructor(private pagerDutyReader: PagerDutyReader, private schedulerFactory: SchedulerFactory) {
+    'ngInject';
+  }
 
   public $onInit() {
     this.scheduler = this.schedulerFactory.createScheduler(10000);
@@ -46,7 +48,7 @@ export class PagerDutySelectFieldController implements IComponentController {
 
 const pagerDutySelectField: IComponentOptions = {
   bindings: {
-    component: '='
+    component: '=',
   },
   controller: PagerDutySelectFieldController,
   template: `
@@ -61,9 +63,11 @@ const pagerDutySelectField: IComponentOptions = {
         </ui-select>
     </div>
   </div>
-`
+`,
 };
 
 export const PAGER_DUTY_SELECT_FIELD_COMPONENT = 'spinnaker.core.pagerDuty.pagerDutySelectField.component';
-module(PAGER_DUTY_SELECT_FIELD_COMPONENT, [PAGER_DUTY_READ_SERVICE])
-  .component('pagerDutySelectField', pagerDutySelectField);
+module(PAGER_DUTY_SELECT_FIELD_COMPONENT, [PAGER_DUTY_READ_SERVICE]).component(
+  'pagerDutySelectField',
+  pagerDutySelectField,
+);

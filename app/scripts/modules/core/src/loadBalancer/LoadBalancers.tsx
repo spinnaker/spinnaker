@@ -37,7 +37,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
       groups: [],
       tags: [],
       showServerGroups: !$stateParams.hideServerGroups || true,
-      showInstances: $stateParams.showInstances || false
+      showInstances: $stateParams.showInstances || false,
     };
   }
 
@@ -47,7 +47,9 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
 
     this.groupsUpdatedListener = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
     loadBalancerFilterModel.asFilterModel.activate();
-    this.loadBalancersRefreshUnsubscribe = app.getDataSource('loadBalancers').onRefresh(null, () => this.updateLoadBalancerGroups());
+    this.loadBalancersRefreshUnsubscribe = app
+      .getDataSource('loadBalancers')
+      .onRefresh(null, () => this.updateLoadBalancerGroups());
     app.setActiveState(app.loadBalancers);
     this.updateLoadBalancerGroups();
   }
@@ -62,7 +64,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     this.setState({
       groups: loadBalancerFilterModel.asFilterModel.groups,
       tags: loadBalancerFilterModel.asFilterModel.tags,
-    })
+    });
   }
 
   @Debounce(200)
@@ -85,7 +87,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   private updateUIState(state: ILoadBalancersState): void {
     const params: any = {
       hideServerGroups: undefined,
-      showInstances: undefined
+      showInstances: undefined,
     };
     if (!state.showServerGroups) {
       params.hideServerGroups = true;
@@ -117,21 +119,26 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     const { HelpField } = NgReact;
     const groupings = this.state.initialized ? (
       <div>
-        { this.state.groups.map((group) => (
+        {this.state.groups.map(group => (
           <div key={group.heading} className="rollup">
-            { group.subgroups && group.subgroups.map((subgroup) => (
-              <LoadBalancerPod
-                key={subgroup.heading}
-                grouping={subgroup}
-                application={this.props.app}
-                parentHeading={group.heading}
-                showServerGroups={this.state.showServerGroups}
-                showInstances={this.state.showInstances}
-              />
-            ))}
+            {group.subgroups &&
+              group.subgroups.map(subgroup => (
+                <LoadBalancerPod
+                  key={subgroup.heading}
+                  grouping={subgroup}
+                  application={this.props.app}
+                  parentHeading={group.heading}
+                  showServerGroups={this.state.showServerGroups}
+                  showInstances={this.state.showInstances}
+                />
+              ))}
           </div>
         ))}
-        {this.state.groups.length === 0 && <div><h4 className="text-center">No load balancers match the filters you've selected.</h4></div>}
+        {this.state.groups.length === 0 && (
+          <div>
+            <h4 className="text-center">No load balancers match the filters you've selected.</h4>
+          </div>
+        )}
       </div>
     ) : (
       <div>
@@ -147,26 +154,42 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
               <div className="form-group">
                 <label className="checkbox"> Show </label>
                 <div className="checkbox">
-                  <label> <input type="checkbox" name="showServerGroups" checked={this.state.showServerGroups} onChange={this.handleInputChange} /> Server Groups <HelpField id="loadBalancers.filter.serverGroups"/></label>
+                  <label>
+                    {' '}
+                    <input
+                      type="checkbox"
+                      name="showServerGroups"
+                      checked={this.state.showServerGroups}
+                      onChange={this.handleInputChange}
+                    />{' '}
+                    Server Groups <HelpField id="loadBalancers.filter.serverGroups" />
+                  </label>
                 </div>
                 <div className="checkbox">
-                  <label> <input type="checkbox" name="showInstances" checked={this.state.showInstances} onChange={this.handleInputChange} /> Instances <HelpField placement="right" id="loadBalancers.filter.instances"/></label>
+                  <label>
+                    {' '}
+                    <input
+                      type="checkbox"
+                      name="showInstances"
+                      checked={this.state.showInstances}
+                      onChange={this.handleInputChange}
+                    />{' '}
+                    Instances <HelpField placement="right" id="loadBalancers.filter.instances" />
+                  </label>
                 </div>
               </div>
             </div>
           </div>
           <div className="col-lg-4 col-md-2">
-            <div className="form-inline clearfix filters"/>
+            <div className="form-inline clearfix filters" />
             <div className="application-actions">
               <CreateLoadBalancerButton app={this.props.app} />
             </div>
           </div>
-          <FilterTags tags={this.state.tags} tagCleared={this.tagCleared} clearFilters={this.clearFilters}/>
+          <FilterTags tags={this.state.tags} tagCleared={this.tagCleared} clearFilters={this.clearFilters} />
         </div>
 
-        <div className="content">
-          {groupings}
-        </div>
+        <div className="content">{groupings}</div>
       </div>
     );
   }

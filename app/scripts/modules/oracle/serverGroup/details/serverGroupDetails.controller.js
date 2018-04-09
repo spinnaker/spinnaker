@@ -8,41 +8,43 @@ import {
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_WRITER,
-  SUBNET_READ_SERVICE
+  SUBNET_READ_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.controller', [
-  require('@uirouter/angularjs').default,
-  SERVER_GROUP_READER,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  NETWORK_READ_SERVICE,
-  SUBNET_READ_SERVICE,
-  require('../../image/image.reader.js').name,
-  require('./resize/resizeServerGroup.controller.js').name,
-  require('./rollback/rollbackServerGroup.controller.js').name,
-])
-  .controller('oraclebmcsServerGroupDetailsCtrl', function ($scope,
-                                                            $state,
-                                                            $uibModal,
-                                                            app,
-                                                            serverGroup,
-                                                            confirmationModalService,
-                                                            serverGroupReader,
-                                                            serverGroupWriter,
-                                                            networkReader,
-                                                            subnetReader,
-                                                            oraclebmcsImageReader,
-                                                            serverGroupWarningMessageService) {
-
+module.exports = angular
+  .module('spinnaker.oraclebmcs.serverGroup.details.controller', [
+    require('@uirouter/angularjs').default,
+    SERVER_GROUP_READER,
+    CONFIRMATION_MODAL_SERVICE,
+    SERVER_GROUP_WRITER,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+    NETWORK_READ_SERVICE,
+    SUBNET_READ_SERVICE,
+    require('../../image/image.reader.js').name,
+    require('./resize/resizeServerGroup.controller.js').name,
+    require('./rollback/rollbackServerGroup.controller.js').name,
+  ])
+  .controller('oraclebmcsServerGroupDetailsCtrl', function(
+    $scope,
+    $state,
+    $uibModal,
+    app,
+    serverGroup,
+    confirmationModalService,
+    serverGroupReader,
+    serverGroupWriter,
+    networkReader,
+    subnetReader,
+    oraclebmcsImageReader,
+    serverGroupWarningMessageService,
+  ) {
     const provider = 'oraclebmcs';
 
     this.application = app;
     this.serverGroup = serverGroup;
 
     this.state = {
-      loading: true
+      loading: true,
     };
 
     /////////////////////////////////////////////////////////
@@ -52,7 +54,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
     let retrieveServerGroup = () => {
       return serverGroupReader
         .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-        .then((details) => {
+        .then(details => {
           cancelLoader();
           details.account = serverGroup.accountId;
           this.serverGroup = details;
@@ -63,16 +65,16 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
     };
 
     let retrieveNetwork = () => {
-      networkReader.listNetworksByProvider(provider).then((networks) => {
+      networkReader.listNetworksByProvider(provider).then(networks => {
         this.serverGroup.network = _.chain(networks)
-          .filter({account: this.serverGroup.account, id: this.serverGroup.launchConfig.vpcId})
+          .filter({ account: this.serverGroup.account, id: this.serverGroup.launchConfig.vpcId })
           .head()
           .value();
       });
     };
 
     let retrieveSubnet = () => {
-      subnetReader.getSubnetByIdAndProvider(this.serverGroup.launchConfig.subnetId, provider).then((subnet) => {
+      subnetReader.getSubnetByIdAndProvider(this.serverGroup.launchConfig.subnetId, provider).then(subnet => {
         this.serverGroup.subnet = subnet;
       });
     };
@@ -80,9 +82,9 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
     let retrieveImage = () => {
       oraclebmcsImageReader
         .getImage(this.serverGroup.launchConfig.imageId, this.serverGroup.region, this.serverGroup.account)
-        .then((image) => {
+        .then(image => {
           if (!image) {
-            image = {id: this.serverGroup.launchConfig.imageId, name: this.serverGroup.launchConfig.imageId};
+            image = { id: this.serverGroup.launchConfig.imageId, name: this.serverGroup.launchConfig.imageId };
           }
           this.serverGroup.image = image;
         });
@@ -99,14 +101,14 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
         title: 'Destroying ' + serverGroup.name,
       };
 
-      let submitMethod = function () {
+      let submitMethod = function() {
         return serverGroupWriter.destroyServerGroup(serverGroup, app);
       };
 
       let stateParams = {
         name: serverGroup.name,
         account: serverGroup.account,
-        region: serverGroup.region
+        region: serverGroup.region,
       };
 
       confirmationModalService.confirm({
@@ -129,9 +131,13 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
         templateUrl: require('./resize/resizeServerGroup.html'),
         controller: 'oraclebmcsResizeServerGroupCtrl as ctrl',
         resolve: {
-          serverGroup: () => { return this.serverGroup; },
-          application: () => { return app; }
-        }
+          serverGroup: () => {
+            return this.serverGroup;
+          },
+          application: () => {
+            return app;
+          },
+        },
       });
     };
 
@@ -145,13 +151,13 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
             let sgSummary = _.find(app.serverGroups.data, {
               name: this.serverGroup.name,
               account: this.serverGroup.account,
-              region: this.serverGroup.region
+              region: this.serverGroup.region,
             });
-            let cluster = _.find(app.clusters, {name: sgSummary.cluster, account: this.serverGroup.account});
-            return _.filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
+            let cluster = _.find(app.clusters, { name: sgSummary.cluster, account: this.serverGroup.account });
+            return _.filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
           },
-          application: () => app
-        }
+          application: () => app,
+        },
       });
     };
 
@@ -160,10 +166,10 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
 
       let taskMonitor = {
         application: app,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
-      let submitMethod = (params) => serverGroupWriter.disableServerGroup(serverGroup, app, params);
+      let submitMethod = params => serverGroupWriter.disableServerGroup(serverGroup, app, params);
 
       let confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
@@ -193,7 +199,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
         title: 'Enabling ' + serverGroup.name,
       };
 
-      let submitMethod = (params) => serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      let submitMethod = params => serverGroupWriter.enableServerGroup(serverGroup, app, params);
 
       let confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
@@ -222,5 +228,4 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.contro
         app.serverGroups.onRefresh($scope, retrieveServerGroup);
       }
     });
-  }
-);
+  });

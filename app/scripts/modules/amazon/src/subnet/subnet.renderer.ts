@@ -3,7 +3,6 @@ import { module } from 'angular';
 import { IServerGroup } from '@spinnaker/core';
 
 export class AwsSubnetRenderer {
-
   public render(serverGroup: IServerGroup): string {
     return serverGroup.subnetType;
   }

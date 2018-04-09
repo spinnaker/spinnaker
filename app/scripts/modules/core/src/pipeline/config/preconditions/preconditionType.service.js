@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.service', [
-  require('./preconditionTypeConfig.provider.js').name,
-])
-  .factory('preconditionTypeService', function (preconditionTypeConfig) {
-
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.preconditions.service', [
+    require('./preconditionTypeConfig.provider.js').name,
+  ])
+  .factory('preconditionTypeService', function(preconditionTypeConfig) {
     function listPreconditionTypes() {
       return preconditionTypeConfig.listPreconditionTypes();
     }
@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.se
 
     return {
       listPreconditionTypes: listPreconditionTypes,
-      getPreconditionType: getPreconditionType
+      getPreconditionType: getPreconditionType,
     };
-
   });

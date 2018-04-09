@@ -6,22 +6,20 @@ import _ from 'lodash';
 import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroup.details.resize.capacity.component', [
-    SERVER_GROUP_WRITER,
-  ])
+  .module('spinnaker.oraclebmcs.serverGroup.details.resize.capacity.component', [SERVER_GROUP_WRITER])
   .component('oracleBmcsResizeCapacity', {
     bindings: {
       command: '=',
       application: '=',
       serverGroup: '=',
-      formMethods: '='
+      formMethods: '=',
     },
     templateUrl: require('./resizeCapacity.component.html'),
-    controller: function ($scope, serverGroupWriter) {
+    controller: function($scope, serverGroupWriter) {
       this.command.newSize = null;
 
       angular.extend(this.formMethods, {
-        formIsValid: () => _.every([ this.command.newSize !== null, $scope.resizeCapacityForm.$valid ]),
+        formIsValid: () => _.every([this.command.newSize !== null, $scope.resizeCapacityForm.$valid]),
         submitMethod: () => {
           return serverGroupWriter.resizeServerGroup(this.serverGroup, this.application, {
             capacity: { min: this.command.newSize, max: this.command.newSize, desired: this.command.newSize },
@@ -31,7 +29,7 @@ module.exports = angular
             interestingHealthProviderNames: this.command.interestingHealthProviderNames,
             reason: this.command.reason,
           });
-        }
+        },
       });
-    }
+    },
   });

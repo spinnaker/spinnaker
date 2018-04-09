@@ -1,13 +1,11 @@
 'use strict';
 const angular = require('angular');
 
-module.exports = angular
-    .module('spinnaker.core.task.monitor.error', [])
-    .component('taskMonitorError', {
-      bindings: {
-        monitor: '=',
-      },
-      template: `<div class="col-md-12 overlay-modal-error" ng-if="$ctrl.monitor.error">
+module.exports = angular.module('spinnaker.core.task.monitor.error', []).component('taskMonitorError', {
+  bindings: {
+    monitor: '=',
+  },
+  template: `<div class="col-md-12 overlay-modal-error" ng-if="$ctrl.monitor.error">
         <alert type="danger">
           <h4><i class="fa fa-exclamation-triangle"></i> Error:</h4>
 
@@ -19,5 +17,5 @@ module.exports = angular
             View this failed task in the tasks pane.
           </a>
         </p>
-      </div>`
-    });
+      </div>`,
+});

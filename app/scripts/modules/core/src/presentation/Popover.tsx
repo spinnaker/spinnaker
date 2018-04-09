@@ -12,12 +12,16 @@ export interface IPopoverProps {
 export class Popover extends React.Component<IPopoverProps> {
   public static defaultProps: Partial<IPopoverProps> = {
     placement: 'top',
-    value: ''
+    value: '',
   };
 
   public render() {
     const { value, template, placement, children } = this.props;
-    let popover = <BSPopover id={value}><Markdown message={value}/></BSPopover>;
+    let popover = (
+      <BSPopover id={value}>
+        <Markdown message={value} />
+      </BSPopover>
+    );
     if (template) {
       popover = <BSPopover id={value}>{template}</BSPopover>;
     }

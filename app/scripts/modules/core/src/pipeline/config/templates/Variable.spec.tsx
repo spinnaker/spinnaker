@@ -15,7 +15,7 @@ describe('Variable component', () => {
     return {
       variableMetadata: {
         type,
-        name: 'variable'
+        name: 'variable',
       },
       variable: {
         name: 'variable',
@@ -27,14 +27,7 @@ describe('Variable component', () => {
     };
   };
 
-  beforeEach(
-    mock.module(
-      PIPELINE_TEMPLATE_MODULE,
-      HELP_CONTENTS_REGISTRY,
-      HELP_CONTENTS,
-      REACT_MODULE
-    )
-  );
+  beforeEach(mock.module(PIPELINE_TEMPLATE_MODULE, HELP_CONTENTS_REGISTRY, HELP_CONTENTS, REACT_MODULE));
 
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 

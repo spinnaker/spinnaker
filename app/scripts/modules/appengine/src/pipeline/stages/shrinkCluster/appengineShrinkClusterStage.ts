@@ -16,7 +16,9 @@ class AppengineShrinkClusterStageCtrl extends AppengineStageCtrl {
     'ngInject';
     super($scope, accountService);
 
-    super.setAccounts().then(() => { super.setStageRegion(); });
+    super.setAccounts().then(() => {
+      super.setStageRegion();
+    });
     super.setStageCloudProvider();
     super.setStageCredentials();
 
@@ -56,4 +58,5 @@ module(APPENGINE_SHRINK_CLUSTER_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDE
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('appengineShrinkClusterStageCtrl', AppengineShrinkClusterStageCtrl);
+  })
+  .controller('appengineShrinkClusterStageCtrl', AppengineShrinkClusterStageCtrl);

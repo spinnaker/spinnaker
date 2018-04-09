@@ -6,10 +6,9 @@ import { ACCOUNT_SERVICE } from 'core/account/account.service';
 import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
 
 export class SkinSelectorCtrl implements IController {
-  public command =  { skin: '' };
+  public command = { skin: '' };
 
-  constructor(public skinOptions: string[],
-              private $uibModalInstance: IModalInstanceService) {
+  constructor(public skinOptions: string[], private $uibModalInstance: IModalInstanceService) {
     'ngInject';
 
     if (skinOptions.length > 0) {
@@ -28,7 +27,4 @@ export class SkinSelectorCtrl implements IController {
 
 export const SKIN_SELECTOR_CTRL = 'spinnaker.core.cloudProvider.skinSelector.controller';
 
-module(SKIN_SELECTOR_CTRL, [
-  ACCOUNT_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-]).controller('skinSelectorCtrl', SkinSelectorCtrl);
+module(SKIN_SELECTOR_CTRL, [ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY]).controller('skinSelectorCtrl', SkinSelectorCtrl);

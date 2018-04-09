@@ -16,7 +16,7 @@ function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
   const IS_PRODUCTION = WEBPACK_MODE === 'production';
 
-  console.log("Webpack mode: " + WEBPACK_MODE);
+  console.log('Webpack mode: ' + WEBPACK_MODE);
 
   const config = {
     context: __dirname,
@@ -34,7 +34,7 @@ function configure(env, webpackOpts) {
     },
     devtool: IS_PRODUCTION ? 'source-map' : 'eval',
     optimization: {
-      splitChunks: { chunks: 'all', },
+      splitChunks: { chunks: 'all' },
       minimizer: [],
       // TODO(dpeach): figure out how we can minify deck-kayenta without breaking Angular DI.
       // minimizer: IS_PRODUCTION ? [
@@ -47,38 +47,44 @@ function configure(env, webpackOpts) {
       // ] : [], // Disable minification unless production
     },
     resolve: {
-      extensions: [ '.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html' ],
-      modules: [
-        NODE_MODULE_PATH,
-        path.join(__dirname, 'app', 'scripts', 'modules'),
-      ],
+      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
+      modules: [NODE_MODULE_PATH, path.join(__dirname, 'app', 'scripts', 'modules')],
       alias: {
-        'root': __dirname,
-        'core': path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src'),
+        root: __dirname,
+        core: path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src'),
         '@spinnaker/core': path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src'),
-        'docker': path.join(__dirname, 'app', 'scripts', 'modules', 'docker', 'src'),
+        docker: path.join(__dirname, 'app', 'scripts', 'modules', 'docker', 'src'),
         '@spinnaker/docker': path.join(__dirname, 'app', 'scripts', 'modules', 'docker', 'src'),
-        'amazon': path.join(__dirname, 'app', 'scripts', 'modules', 'amazon', 'src'),
+        amazon: path.join(__dirname, 'app', 'scripts', 'modules', 'amazon', 'src'),
         '@spinnaker/amazon': path.join(__dirname, 'app', 'scripts', 'modules', 'amazon', 'src'),
         '@spinnaker/titus': path.join(__dirname, 'app', 'scripts', 'modules', 'titus', 'src'),
-        'google': path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
+        google: path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
         '@spinnaker/google': path.join(__dirname, 'app', 'scripts', 'modules', 'google', 'src'),
-        'kubernetes': path.join(__dirname, 'app', 'scripts', 'modules', 'kubernetes', 'src'),
+        kubernetes: path.join(__dirname, 'app', 'scripts', 'modules', 'kubernetes', 'src'),
         '@spinnaker/kubernetes': path.join(__dirname, 'app', 'scripts', 'modules', 'kubernetes', 'src'),
-        'openstack': path.join(__dirname, 'app', 'scripts', 'modules', 'openstack', 'src'),
+        openstack: path.join(__dirname, 'app', 'scripts', 'modules', 'openstack', 'src'),
         '@spinnaker/openstack': path.join(__dirname, 'app', 'scripts', 'modules', 'openstack', 'src'),
-        'coreImports': path.resolve(__dirname, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-        'appengine': path.join(__dirname, 'app', 'scripts', 'modules', 'appengine', 'src'),
+        coreImports: path.resolve(
+          __dirname,
+          'app',
+          'scripts',
+          'modules',
+          'core',
+          'src',
+          'presentation',
+          'less',
+          'imports',
+          'commonImports.less',
+        ),
+        appengine: path.join(__dirname, 'app', 'scripts', 'modules', 'appengine', 'src'),
         '@spinnaker/appengine': path.join(__dirname, 'app', 'scripts', 'modules', 'appengine', 'src'),
-      }
+      },
     },
     module: {
       rules: [
         {
           test: /settings\.js/,
-          use: [
-            { loader: 'envify-loader' },
-          ],
+          use: [{ loader: 'envify-loader' }],
         },
         {
           test: /\.js$/,
@@ -88,7 +94,7 @@ function configure(env, webpackOpts) {
             { loader: 'babel-loader' },
             { loader: 'eslint-loader' },
           ],
-          exclude: /(node_modules(?!\/clipboard)|settings\.js)/
+          exclude: /(node_modules(?!\/clipboard)|settings\.js)/,
         },
         {
           test: /\.tsx?$/,
@@ -99,7 +105,7 @@ function configure(env, webpackOpts) {
             { loader: 'ts-loader', options: { happyPackMode: true } },
             { loader: 'tslint-loader' },
           ],
-          exclude: /node_modules/
+          exclude: /node_modules/,
         },
         {
           test: /\.less$/,
@@ -112,36 +118,24 @@ function configure(env, webpackOpts) {
         },
         {
           test: /\.css$/,
-          use: [
-            { loader: 'style-loader' },
-            { loader: 'css-loader' },
-            { loader: 'postcss-loader' },
-          ]
+          use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
         },
         {
           test: /\.html$/,
-          use: [
-            { loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname)) + '/' },
-            { loader: 'html-loader' },
-          ]
+          use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
         },
         {
           test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
-          use: [
-            { loader: 'file-loader', options: { name: '[name].[hash:5].[ext]' } },
-          ],
+          use: [{ loader: 'file-loader', options: { name: '[name].[hash:5].[ext]' } }],
         },
         {
           test: require.resolve('jquery'),
-          use: [
-            { loader: 'expose-loader?$' },
-            { loader: 'expose-loader?jQuery' },
-          ],
+          use: [{ loader: 'expose-loader?$' }, { loader: 'expose-loader?jQuery' }],
         },
         {
           test: /ui-sortable/,
-          use: [ 'imports-loader?$UI=jquery-ui/ui/widgets/sortable' ]
-        }
+          use: ['imports-loader?$UI=jquery-ui/ui/widgets/sortable'],
+        },
       ],
     },
     plugins: [
@@ -150,15 +144,14 @@ function configure(env, webpackOpts) {
         {
           from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
           to: `./styleguide.html`,
-        }
+        },
       ]),
       new HtmlWebpackPlugin({
         title: 'Spinnaker',
         template: './app/index.deck',
         favicon: process.env.NODE_ENV === 'production' ? 'app/prod-favicon.ico' : 'app/dev-favicon.ico',
         inject: true,
-      })
-
+      }),
     ],
     devServer: {
       disableHostCheck: true,
@@ -193,7 +186,6 @@ function getCacheInvalidateString() {
   });
 }
 
-
 // When running locally, use one less than the physical number of cpus
 // When running on travis, use max of 2 threads
 // https://docs.travis-ci.com/user/reference/overview/#Virtualization-environments
@@ -203,7 +195,11 @@ function getThreadLoaderThreads() {
   const autoThreads = !!process.env.TRAVIS ? travisThreads : bareMetalThreads;
   const threads = process.env.THREADS || autoThreads;
 
-  console.log(`INFO: cpus: ${require('os').cpus().length} physical: ${require('physical-cpu-count')} thread-loader threads: ${threads}`);
+  console.log(
+    `INFO: cpus: ${
+      require('os').cpus().length
+    } physical: ${require('physical-cpu-count')} thread-loader threads: ${threads}`,
+  );
 
   return threads;
 }

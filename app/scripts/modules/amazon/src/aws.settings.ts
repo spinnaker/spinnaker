@@ -28,7 +28,9 @@ export interface IAWSProviderSettings extends IProviderSettings {
   disableSpotPricing?: boolean;
 }
 
-export const AWSProviderSettings: IAWSProviderSettings = <IAWSProviderSettings>SETTINGS.providers.aws || { defaults: {} };
+export const AWSProviderSettings: IAWSProviderSettings = <IAWSProviderSettings>SETTINGS.providers.aws || {
+  defaults: {},
+};
 if (AWSProviderSettings) {
   AWSProviderSettings.resetToOriginal = SETTINGS.resetProvider('aws');
 }

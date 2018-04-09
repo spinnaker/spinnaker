@@ -69,7 +69,8 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     let docker: DockerViewModel = null;
 
     if (jenkinsConfig && (jenkinsConfig.host || jenkinsConfig.fullUrl || serverGroup.buildInfo.buildInfoUrl)) {
-      const fromHost = jenkinsConfig.host && [jenkinsConfig.host + 'job', jenkinsConfig.name, jenkinsConfig.number, ''].join('/');
+      const fromHost =
+        jenkinsConfig.host && [jenkinsConfig.host + 'job', jenkinsConfig.name, jenkinsConfig.number, ''].join('/');
       const fromFullUrl = jenkinsConfig.fullUrl;
       const fromBuildInfo = serverGroup.buildInfo.buildInfoUrl;
 
@@ -81,7 +82,8 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       docker = {
         tag: dockerConfig.tag,
         image: dockerConfig.image,
-        href: SETTINGS.dockerInsights.url + 'image/' + encodeURIComponent(dockerConfig.image) + '/tag/' + dockerConfig.tag
+        href:
+          SETTINGS.dockerInsights.url + 'image/' + encodeURIComponent(dockerConfig.image) + '/tag/' + dockerConfig.tag,
       };
     } else if (has(serverGroup, 'buildInfo.images')) {
       images = serverGroup.buildInfo.images.join(', ');
@@ -149,8 +151,8 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       }
       ReactInjector.MultiselectModel.toggleServerGroup(this.props.serverGroup);
       event.preventDefault();
-    })
-  };
+    });
+  }
 
   private handleServerGroupClicked(event: React.MouseEvent<any>) {
     ReactGA.event({ category: 'Cluster Pod', action: 'Load Server Group Details' });
@@ -167,10 +169,10 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     const serverGroupClassName = classNames({
       'server-group': true,
       'rollup-pod-server-group': true,
-      'clickable': true,
+      clickable: true,
       'clickable-row': true,
-      'disabled': serverGroup.isDisabled,
-      'active': isSelected,
+      disabled: serverGroup.isDisabled,
+      active: isSelected,
     });
 
     return (
@@ -200,13 +202,13 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
                 </div>
               ) : (
                 <div>
-                  <Instances highlight={sortFilter.filter} instances={instances}/>
+                  <Instances highlight={sortFilter.filter} instances={instances} />
                 </div>
               )}
             </div>
           )}
         </div>
       </div>
-    )
+    );
   }
 }

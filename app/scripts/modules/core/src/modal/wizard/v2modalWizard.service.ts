@@ -18,7 +18,6 @@ export interface WizardPage {
 }
 
 export class V2ModalWizardService {
-
   public renderedPages: WizardPage[] = [];
   public pageRegistry: WizardPage[] = [];
   public currentPage: WizardPage;
@@ -51,7 +50,7 @@ export class V2ModalWizardService {
   }
 
   public setCurrentPage(page: WizardPage, skipScroll?: boolean): void {
-    this.pageRegistry.forEach(test => test.state.current = (test === page));
+    this.pageRegistry.forEach(test => (test.state.current = test === page));
     this.currentPage = page;
     this.markClean(page.key);
 
@@ -65,22 +64,21 @@ export class V2ModalWizardService {
   }
 
   public registerPage(key: string, label: string, state?: WizardPageState): void {
-    state = state ||
-      {
-        done: false,
-        blocked: true,
-        rendered: true,
-        current: false,
-        dirty: false,
-        markCompleteOnView: false,
-        required: false,
-      };
+    state = state || {
+      done: false,
+      blocked: true,
+      rendered: true,
+      current: false,
+      dirty: false,
+      markCompleteOnView: false,
+      required: false,
+    };
     this.pageRegistry.push({ key: key, label: label, state: state });
     this.renderPages();
   }
 
   public renderPages(): void {
-    const renderedPages: WizardPage[] = this.pageRegistry.filter((page) => page.state.rendered);
+    const renderedPages: WizardPage[] = this.pageRegistry.filter(page => page.state.rendered);
     this.renderedPages = renderedPages;
     if (renderedPages.length === 1) {
       this.setCurrentPage(renderedPages[0]);
@@ -88,20 +86,21 @@ export class V2ModalWizardService {
   }
 
   public isComplete(): boolean {
-    return this.renderedPages.map(p => p.state)
+    return this.renderedPages
+      .map(p => p.state)
       .filter(s => s.rendered && s.required)
       .every(s => s.done && !s.dirty);
   }
 
   public allPagesVisited(): boolean {
-    return this.renderedPages.map(p => p.state)
+    return this.renderedPages
+      .map(p => p.state)
       .filter(s => s.rendered && s.required)
       .every(s => s.done);
   }
 
   public setRendered(key: string, rendered: boolean): void {
-    this.pageRegistry.filter((page) => page.key === key)
-      .forEach((page) => page.state.rendered = rendered);
+    this.pageRegistry.filter(page => page.key === key).forEach(page => (page.state.rendered = rendered));
     this.renderPages();
   }
 
@@ -119,9 +118,7 @@ export class V2ModalWizardService {
     this.currentPage = null;
     this.heading = null;
   }
-
 }
 
 export const V2_MODAL_WIZARD_SERVICE = 'spinnaker.core.modalWizard.service.v2';
-module(V2_MODAL_WIZARD_SERVICE, [SCROLL_TO_SERVICE])
-  .service('v2modalWizardService', V2ModalWizardService);
+module(V2_MODAL_WIZARD_SERVICE, [SCROLL_TO_SERVICE]).service('v2modalWizardService', V2ModalWizardService);

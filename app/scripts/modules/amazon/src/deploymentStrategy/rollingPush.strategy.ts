@@ -7,14 +7,19 @@ DeploymentStrategyRegistry.registerStrategy({
     the principles of immutable infrastructure - but may be necessary in some cases.`,
   key: 'rollingpush',
   providerRestricted: true,
-  additionalFields: ['termination.totalRelaunches', 'termination.concurrentRelaunches', 'termination.order', 'termination.relaunchAllInstances'],
+  additionalFields: [
+    'termination.totalRelaunches',
+    'termination.concurrentRelaunches',
+    'termination.order',
+    'termination.relaunchAllInstances',
+  ],
   additionalFieldsTemplateUrl: require('./additionalFields.html'),
-  initializationMethod: (command) => {
+  initializationMethod: command => {
     command.termination = command.termination || {
-        order: 'oldest',
-        relaunchAllInstances: true,
-        concurrentRelaunches: 1,
-        totalRelaunches: command.capacity.max
-      };
-  }
+      order: 'oldest',
+      relaunchAllInstances: true,
+      concurrentRelaunches: 1,
+      totalRelaunches: command.capacity.max,
+    };
+  },
 });

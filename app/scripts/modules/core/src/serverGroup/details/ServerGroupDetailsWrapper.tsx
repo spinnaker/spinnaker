@@ -29,12 +29,12 @@ export type DetailsGetter = (props: IServerGroupDetailsProps, autoClose: () => v
 
 export interface IServerGroupDetailsWrapperState {
   angular: {
-    template: string,
-    controller: string,
+    template: string;
+    controller: string;
   };
-  detailsGetter: DetailsGetter,
-  sections: React.ComponentType<IServerGroupDetailsSectionProps>[],
-  Actions: React.ComponentType<IServerGroupActionsProps>,
+  detailsGetter: DetailsGetter;
+  sections: React.ComponentType<IServerGroupDetailsSectionProps>[];
+  Actions: React.ComponentType<IServerGroupActionsProps>;
 }
 
 export interface IServerGroupActionsProps {
@@ -48,9 +48,9 @@ export interface IServerGroupDetailsSectionProps {
 }
 
 export interface IServerGroupDetailsProps extends IServerGroupDetailsWrapperProps {
-  Actions: React.ComponentType<IServerGroupActionsProps>,
-  detailsGetter: DetailsGetter,
-  sections: React.ComponentType<IServerGroupDetailsSectionProps>[],
+  Actions: React.ComponentType<IServerGroupActionsProps>;
+  detailsGetter: DetailsGetter;
+  sections: React.ComponentType<IServerGroupDetailsSectionProps>[];
 }
 
 export interface IServerGroupDetailsState {
@@ -59,7 +59,10 @@ export interface IServerGroupDetailsState {
 }
 
 @BindAll()
-export class ServerGroupDetailsWrapper extends React.Component<IServerGroupDetailsWrapperProps, IServerGroupDetailsWrapperState> {
+export class ServerGroupDetailsWrapper extends React.Component<
+  IServerGroupDetailsWrapperProps,
+  IServerGroupDetailsWrapperState
+> {
   constructor(props: IServerGroupDetailsWrapperProps) {
     super(props);
 
@@ -77,23 +80,29 @@ export class ServerGroupDetailsWrapper extends React.Component<IServerGroupDetai
   private getServerGroupDetailsTemplate(): void {
     const { provider, accountId } = ReactInjector.$stateParams;
     const { skinService } = ReactInjector;
-    $q.all([
-      skinService.getValue(provider, accountId, 'serverGroup.detailsActions'),
-      skinService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
-      skinService.getValue(provider, accountId, 'serverGroup.detailsSections'),
-      skinService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
-      skinService.getValue(provider, accountId, 'serverGroup.detailsController'),
-    ]).then((values: [
-      React.ComponentClass<IServerGroupActionsProps>,
-      DetailsGetter,
-      React.ComponentType<IServerGroupDetailsSectionProps>[],
-      string,
-      string
-    ]) => {
-      const [ Actions, detailsGetter, sections, templateUrl, controller ] = values;
-      const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
-      this.setState({ angular: { template, controller }, Actions, detailsGetter, sections });
-    });
+    $q
+      .all([
+        skinService.getValue(provider, accountId, 'serverGroup.detailsActions'),
+        skinService.getValue(provider, accountId, 'serverGroup.detailsGetter'),
+        skinService.getValue(provider, accountId, 'serverGroup.detailsSections'),
+        skinService.getValue(provider, accountId, 'serverGroup.detailsTemplateUrl'),
+        skinService.getValue(provider, accountId, 'serverGroup.detailsController'),
+      ])
+      .then(
+        (
+          values: [
+            React.ComponentClass<IServerGroupActionsProps>,
+            DetailsGetter,
+            React.ComponentType<IServerGroupDetailsSectionProps>[],
+            string,
+            string
+          ],
+        ) => {
+          const [Actions, detailsGetter, sections, templateUrl, controller] = values;
+          const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
+          this.setState({ angular: { template, controller }, Actions, detailsGetter, sections });
+        },
+      );
   }
 
   public componentDidMount(): void {
@@ -117,12 +126,20 @@ export class ServerGroupDetailsWrapper extends React.Component<IServerGroupDetai
           sections={sections}
           Actions={Actions}
           detailsGetter={detailsGetter}
-        />);
+        />
+      );
     }
 
     // angular
     if (template && controller) {
-      return <AngularJSAdapter className="detail-content flex-container-h" template={template} controller={`${controller} as ctrl`} locals={{ app, serverGroup }} />
+      return (
+        <AngularJSAdapter
+          className="detail-content flex-container-h"
+          template={template}
+          controller={`${controller} as ctrl`}
+          locals={{ app, serverGroup }}
+        />
+      );
     }
 
     return null;

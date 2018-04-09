@@ -11,7 +11,7 @@ export interface ILoadBalancersTagProps {
   serverGroup: IServerGroup;
   // Render popover contents into this container
   container?: JSX.Element | HTMLElement;
-};
+}
 
 @BindAll()
 export class LoadBalancersTagWrapper extends React.Component<ILoadBalancersTagProps> {

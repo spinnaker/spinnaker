@@ -4,9 +4,9 @@ import { IArtifact, IExpectedArtifact } from 'core/domain';
 import './artifactList.less';
 
 export interface IArtifactListProps {
-  artifacts: IArtifact[],
-  resolvedExpectedArtifacts?: IExpectedArtifact[]
-};
+  artifacts: IArtifact[];
+  resolvedExpectedArtifacts?: IExpectedArtifact[];
+}
 
 export interface IArtifactListState {}
 
@@ -55,31 +55,19 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
             <li key={`${i}-${name}`} className="break-word" title={this.tooltip(artifact, isDefault)}>
               <dl>
                 <div>
-                  <dt>
-                    Type
-                  </dt>
-                  <dd>
-                    {type}
-                  </dd>
+                  <dt>Type</dt>
+                  <dd>{type}</dd>
                 </div>
                 <div>
-                  <dt>
-                    Artifact{isDefault && '*'}
-                  </dt>
-                  <dd>
-                    {name}
-                  </dd>
+                  <dt>Artifact{isDefault && '*'}</dt>
+                  <dd>{name}</dd>
                 </div>
-                {version &&
+                {version && (
                   <div>
-                    <dt>
-                      Version
-                    </dt>
-                    <dd>
-                      {version}
-                    </dd>
+                    <dt>Version</dt>
+                    <dd>{version}</dd>
                   </div>
-                }
+                )}
               </dl>
             </li>
           );

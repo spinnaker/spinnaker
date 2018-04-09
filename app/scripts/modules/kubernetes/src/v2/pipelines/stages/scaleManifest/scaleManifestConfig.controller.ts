@@ -12,7 +12,7 @@ export class KubernetesV2ScaleManifestConfigCtrl implements IController {
       };
       Object.assign(this.$scope.stage, defaultSelection);
       const defaultOptions: any = {
-        replicas: null
+        replicas: null,
       };
       Object.assign(this.$scope.stage, defaultOptions);
       this.$scope.stage.cloudProvider = 'kubernetes';

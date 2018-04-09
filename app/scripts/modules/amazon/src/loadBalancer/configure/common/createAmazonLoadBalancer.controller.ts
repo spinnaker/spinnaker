@@ -68,22 +68,24 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   private taskMonitor: TaskMonitor;
   public enforceUniqueName: boolean;
 
-  constructor(protected $scope: IScope,
-              protected $uibModalInstance: IModalInstanceService,
-              protected $state: StateService,
-              protected accountService: AccountService,
-              protected securityGroupReader: SecurityGroupReader,
-              protected amazonCertificateReader: AmazonCertificateReader,
-              protected cacheInitializer: CacheInitializerService,
-              protected infrastructureCaches: InfrastructureCacheService,
-              protected v2modalWizardService: any,
-              protected loadBalancerWriter: LoadBalancerWriter,
-              protected taskMonitorBuilder: TaskMonitorBuilder,
-              protected subnetReader: SubnetReader,
-              protected namingService: NamingService,
-              protected application: Application,
-              protected isNew: boolean,
-              protected forPipelineConfig: boolean) {
+  constructor(
+    protected $scope: IScope,
+    protected $uibModalInstance: IModalInstanceService,
+    protected $state: StateService,
+    protected accountService: AccountService,
+    protected securityGroupReader: SecurityGroupReader,
+    protected amazonCertificateReader: AmazonCertificateReader,
+    protected cacheInitializer: CacheInitializerService,
+    protected infrastructureCaches: InfrastructureCacheService,
+    protected v2modalWizardService: any,
+    protected loadBalancerWriter: LoadBalancerWriter,
+    protected taskMonitorBuilder: TaskMonitorBuilder,
+    protected subnetReader: SubnetReader,
+    protected namingService: NamingService,
+    protected application: Application,
+    protected isNew: boolean,
+    protected forPipelineConfig: boolean,
+  ) {
     'ngInject';
   }
 
@@ -102,7 +104,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       removedSecurityGroups: [],
       securityGroupRefreshTime: this.infrastructureCaches.get('securityGroups').getStats().ageMax,
       securityGroupsLoaded: false,
-      submitButtonLabel: this.forPipelineConfig ? (this.isNew ? 'Add' : 'Done') : (this.isNew ? 'Create' : 'Update'),
+      submitButtonLabel: this.forPipelineConfig ? (this.isNew ? 'Add' : 'Done') : this.isNew ? 'Create' : 'Update',
       submitting: false,
     };
 
@@ -110,10 +112,11 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       application: this.application,
       title: `${this.isNew ? 'Creating' : 'Updating'} your load balancer`,
       modalInstance: this.$uibModalInstance,
-      onTaskComplete: () => this.onTaskComplete()
+      onTaskComplete: () => this.onTaskComplete(),
     });
 
-    this.certificateTypes = AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.certificateTypes || ['iam', 'acm'];
+    this.certificateTypes = (AWSProviderSettings.loadBalancers &&
+      AWSProviderSettings.loadBalancers.certificateTypes) || ['iam', 'acm'];
 
     this.setSecurityGroupRefreshTime();
     this.initializeController();
@@ -180,7 +183,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
         this.viewState.hideInternalFlag = true;
       }
     }
-    this.accountService.listAccounts('aws').then((accounts) => {
+    this.accountService.listAccounts('aws').then(accounts => {
       this.accounts = accounts;
       this.viewState.accountsLoaded = true;
       this.accountUpdated();
@@ -188,14 +191,14 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   private preloadSecurityGroups(): IPromise<void> {
-    return this.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
+    return this.securityGroupReader.getAllSecurityGroups().then(securityGroups => {
       this.allSecurityGroups = securityGroups;
       this.viewState.securityGroupsLoaded = true;
     });
   }
 
   private loadCertificates(): IPromise<void> {
-    return this.amazonCertificateReader.listCertificates().then((certificates) => {
+    return this.amazonCertificateReader.listCertificates().then(certificates => {
       this.certificates = certificates;
     });
   }
@@ -209,23 +212,29 @@ export abstract class CreateAmazonLoadBalancerCtrl {
         return 1;
       }
     }
-    return this.loadBalancerCommand.securityGroups.includes(a.id) ? -1 :
-      this.loadBalancerCommand.securityGroups.includes(b.id) ? 1 :
-        0;
+    return this.loadBalancerCommand.securityGroups.includes(a.id)
+      ? -1
+      : this.loadBalancerCommand.securityGroups.includes(b.id) ? 1 : 0;
   }
 
   private updateAvailableSecurityGroups(availableVpcIds: string[]): void {
     this.defaultSecurityGroups = this.defaultSecurityGroups || [];
     const account = this.loadBalancerCommand.credentials,
-          region = this.loadBalancerCommand.region;
+      region = this.loadBalancerCommand.region;
 
-    if (account && region && this.allSecurityGroups && this.allSecurityGroups[account] && this.allSecurityGroups[account].aws[region]) {
-      this.availableSecurityGroups = filter(this.allSecurityGroups[account].aws[region], (securityGroup) => {
+    if (
+      account &&
+      region &&
+      this.allSecurityGroups &&
+      this.allSecurityGroups[account] &&
+      this.allSecurityGroups[account].aws[region]
+    ) {
+      this.availableSecurityGroups = filter(this.allSecurityGroups[account].aws[region], securityGroup => {
         return availableVpcIds.includes(securityGroup.vpcId);
       }).sort((a, b) => this.availableGroupsSorter(a, b)); // push existing groups to top
       this.existingSecurityGroupNames = map(this.availableSecurityGroups, 'name');
-      const existingNames = this.defaultSecurityGroups.filter((name) => this.existingSecurityGroupNames.includes(name));
-      this.loadBalancerCommand.securityGroups.forEach((securityGroup) => {
+      const existingNames = this.defaultSecurityGroups.filter(name => this.existingSecurityGroupNames.includes(name));
+      this.loadBalancerCommand.securityGroups.forEach(securityGroup => {
         if (!this.existingSecurityGroupNames.includes(securityGroup)) {
           const matches = filter(this.availableSecurityGroups, { id: securityGroup });
           if (matches.length) {
@@ -250,25 +259,28 @@ export abstract class CreateAmazonLoadBalancerCtrl {
 
   protected updateLoadBalancerNames(): void {
     const account = this.loadBalancerCommand.credentials,
-          region = this.loadBalancerCommand.region;
+      region = this.loadBalancerCommand.region;
 
     const accountLoadBalancersByRegion: { [region: string]: string[] } = {};
-    this.application.getDataSource('loadBalancers').refresh(true).then(() => {
-      this.application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-        if (loadBalancer.account === account) {
-          accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-          accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-        }
-      });
+    this.application
+      .getDataSource('loadBalancers')
+      .refresh(true)
+      .then(() => {
+        this.application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+          if (loadBalancer.account === account) {
+            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
+            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+          }
+        });
 
-      this.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
-    });
+        this.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
+      });
   }
 
   private getAvailableSubnets(): IPromise<ISubnet[]> {
     const account = this.loadBalancerCommand.credentials,
-          region = this.loadBalancerCommand.region;
-    return this.subnetReader.listSubnets().then((subnets) => {
+      region = this.loadBalancerCommand.region;
+    return this.subnetReader.listSubnets().then(subnets => {
       return chain(subnets)
         .filter({ account: account, region: region })
         .reject({ target: 'ec2' })
@@ -277,7 +289,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   private updateAvailabilityZones(): void {
-    const selected = this.regions ? this.regions.filter((region) => region.name === this.loadBalancerCommand.region) : [];
+    const selected = this.regions ? this.regions.filter(region => region.name === this.loadBalancerCommand.region) : [];
     if (selected.length) {
       this.loadBalancerCommand.regionZones = clone(selected[0].availabilityZones);
       this.availabilityZones = selected[0].availabilityZones;
@@ -287,18 +299,27 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   private updateSubnets(): void {
-    this.getAvailableSubnets().then((subnets) => {
-      const subnetOptions = subnets.reduce((accumulator, subnet) => {
-        if (!accumulator[subnet.purpose]) {
-          accumulator[subnet.purpose] = { purpose: subnet.purpose, label: subnet.label, deprecated: subnet.deprecated, vpcIds: [], availabilityZones: [] };
-        }
-        const acc = accumulator[subnet.purpose];
-        if (acc.vpcIds.indexOf(subnet.vpcId) === -1) {
-          acc.vpcIds.push(subnet.vpcId);
-        }
-        acc.availabilityZones.push(subnet.availabilityZone);
-        return accumulator;
-      }, {} as { [purpose: string]: ISubnetOption });
+    this.getAvailableSubnets().then(subnets => {
+      const subnetOptions = subnets.reduce(
+        (accumulator, subnet) => {
+          if (!accumulator[subnet.purpose]) {
+            accumulator[subnet.purpose] = {
+              purpose: subnet.purpose,
+              label: subnet.label,
+              deprecated: subnet.deprecated,
+              vpcIds: [],
+              availabilityZones: [],
+            };
+          }
+          const acc = accumulator[subnet.purpose];
+          if (acc.vpcIds.indexOf(subnet.vpcId) === -1) {
+            acc.vpcIds.push(subnet.vpcId);
+          }
+          acc.availabilityZones.push(subnet.availabilityZone);
+          return accumulator;
+        },
+        {} as { [purpose: string]: ISubnetOption },
+      );
 
       this.setSubnetTypeFromVpc(subnetOptions);
 
@@ -312,7 +333,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
 
   private setSubnetTypeFromVpc(subnetOptions: { [purpose: string]: ISubnetOption }): void {
     if (this.loadBalancerCommand.vpcId) {
-      const currentSelection = find(subnetOptions, (option) => option.vpcIds.includes(this.loadBalancerCommand.vpcId));
+      const currentSelection = find(subnetOptions, option => option.vpcIds.includes(this.loadBalancerCommand.vpcId));
       if (currentSelection) {
         this.loadBalancerCommand.subnetType = currentSelection.purpose;
       }
@@ -325,8 +346,16 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     this.existingSecurityGroupNames = [];
   }
 
-  protected certificateIdAsARN(accountId: string, certificateId: string, region: string, certificateType: string): string {
-    if (certificateId && (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)) {
+  protected certificateIdAsARN(
+    accountId: string,
+    certificateId: string,
+    region: string,
+    certificateType: string,
+  ): string {
+    if (
+      certificateId &&
+      (certificateId.indexOf('arn:aws:iam::') !== 0 || certificateId.indexOf('arn:aws:acm:') !== 0)
+    ) {
       // If they really want to enter the ARN...
       if (certificateType === 'iam') {
         return `arn:aws:iam::${accountId}:server-certificate/${certificateId}`;
@@ -347,7 +376,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
         this.updateAvailableSecurityGroups([this.loadBalancerCommand.vpcId]);
       });
     });
-  };
+  }
 
   private setSecurityGroupRefreshTime(): void {
     this.viewState.securityGroupRefreshTime = this.infrastructureCaches.get('securityGroups').getStats().ageMax;
@@ -364,14 +393,14 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   private updateName(): void {
     const elb = this.loadBalancerCommand;
     const moniker: IMoniker = {
-        app: this.application.name,
-        cluster: this.getName(),
-        stack: elb.stack,
-        detail: elb.detail
+      app: this.application.name,
+      cluster: this.getName(),
+      stack: elb.stack,
+      detail: elb.detail,
     };
     this.loadBalancerCommand.moniker = moniker;
     this.loadBalancerCommand.name = this.getName();
-  };
+  }
 
   public removeListener(index: number): void {
     this.loadBalancerCommand.listeners.splice(index, 1);
@@ -379,29 +408,29 @@ export abstract class CreateAmazonLoadBalancerCtrl {
 
   private getName(): string {
     const elb = this.loadBalancerCommand;
-    const elbName = [this.application.name, (elb.stack || ''), (elb.detail || '')].join('-');
+    const elbName = [this.application.name, elb.stack || '', elb.detail || ''].join('-');
     return trimEnd(elbName, '-');
-  };
+  }
 
   private accountUpdated(): void {
-    this.accountService.getRegionsForAccount(this.loadBalancerCommand.credentials).then((regions) => {
+    this.accountService.getRegionsForAccount(this.loadBalancerCommand.credentials).then(regions => {
       this.regions = regions;
       this.clearSecurityGroups();
       this.regionUpdated();
     });
-  };
+  }
 
   private regionUpdated(): void {
     this.updateAvailabilityZones();
     this.updateLoadBalancerNames();
     this.updateSubnets();
     this.updateName();
-  };
+  }
 
   public subnetUpdated(): void {
     const subnetPurpose = this.loadBalancerCommand.subnetType || null,
-        subnet = this.subnets.find((test) => test.purpose === subnetPurpose),
-        availableVpcIds = subnet ? subnet.vpcIds : [];
+      subnet = this.subnets.find(test => test.purpose === subnetPurpose),
+      availableVpcIds = subnet ? subnet.vpcIds : [];
     this.updateAvailableSecurityGroups(availableVpcIds);
     if (subnetPurpose) {
       this.loadBalancerCommand.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
@@ -410,19 +439,18 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       }
       this.availabilityZones = this.subnets
         .find(o => o.purpose === this.loadBalancerCommand.subnetType)
-        .availabilityZones
-        .sort();
+        .availabilityZones.sort();
       this.v2modalWizardService.includePage('Security Groups');
     } else {
       this.updateAvailabilityZones();
       this.loadBalancerCommand.vpcId = null;
       this.v2modalWizardService.excludePage('Security Groups');
     }
-  };
+  }
 
   public internalFlagChanged(): void {
     this.viewState.internalFlagToggled = true;
-  };
+  }
 
   protected abstract showSslCertificateNameField(): boolean;
 
@@ -440,22 +468,21 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       });
     } else {
       this.taskMonitor.submit(() => {
-          return this.formatListeners(loadBalancerCommandFormatted).then(() => {
-            this.formatCommand(loadBalancerCommandFormatted);
-            return this.loadBalancerWriter.upsertLoadBalancer(loadBalancerCommandFormatted, this.application, descriptor);
-          });
-        }
-      );
+        return this.formatListeners(loadBalancerCommandFormatted).then(() => {
+          this.formatCommand(loadBalancerCommandFormatted);
+          return this.loadBalancerWriter.upsertLoadBalancer(loadBalancerCommandFormatted, this.application, descriptor);
+        });
+      });
     }
-  };
+  }
 
   public setAvailabilityZones(loadBalancerCommand: IAmazonLoadBalancerUpsertCommand): void {
     const availabilityZones: { [region: string]: string[] } = {};
     availabilityZones[loadBalancerCommand.region] = loadBalancerCommand.regionZones || [];
     loadBalancerCommand.availabilityZones = availabilityZones;
-  };
+  }
 
   public cancel() {
     this.$uibModalInstance.dismiss();
-  };
+  }
 }

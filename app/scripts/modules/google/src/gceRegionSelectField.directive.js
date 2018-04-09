@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.google.regionSelectField.directive', [
-])
-  .directive('gceRegionSelectField', function () {
+module.exports = angular
+  .module('spinnaker.google.regionSelectField.directive', [])
+  .directive('gceRegionSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('./regionSelectField.directive.html'),
@@ -17,6 +17,6 @@ module.exports = angular.module('spinnaker.google.regionSelectField.directive', 
         labelColumns: '@',
         readOnly: '=',
         fieldColumns: '@',
-      }
+      },
     };
-});
+  });

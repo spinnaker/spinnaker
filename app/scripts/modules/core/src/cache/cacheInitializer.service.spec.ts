@@ -21,8 +21,7 @@ interface IFoundKeys {
   [key: string]: boolean;
 }
 
-describe('Service: cacheInitializer', function () {
-
+describe('Service: cacheInitializer', function() {
   let $q: ng.IQService;
   let $root: ng.IRootScopeService;
   let cacheInitializer: CacheInitializerService;
@@ -40,16 +39,19 @@ describe('Service: cacheInitializer', function () {
       SECURITY_GROUP_READER,
       APPLICATION_READ_SERVICE,
       IGOR_SERVICE,
-    ));
+    ),
+  );
   beforeEach(
-    mock.inject(function (_$q_: ng.IQService,
-                          _$rootScope_: ng.IRootScopeService,
-                          _cacheInitializer_: CacheInitializerService,
-                          _infrastructureCaches_: InfrastructureCacheService,
-                          _accountService_: AccountService,
-                          _securityGroupReader_: SecurityGroupReader,
-                          _applicationReader_: ApplicationReader,
-                          _igorService_: IgorService) {
+    mock.inject(function(
+      _$q_: ng.IQService,
+      _$rootScope_: ng.IRootScopeService,
+      _cacheInitializer_: CacheInitializerService,
+      _infrastructureCaches_: InfrastructureCacheService,
+      _accountService_: AccountService,
+      _securityGroupReader_: SecurityGroupReader,
+      _applicationReader_: ApplicationReader,
+      _igorService_: IgorService,
+    ) {
       $q = _$q_;
       $root = _$rootScope_;
       cacheInitializer = _cacheInitializer_;
@@ -58,10 +60,10 @@ describe('Service: cacheInitializer', function () {
       securityGroupReader = _securityGroupReader_;
       applicationReader = _applicationReader_;
       igorService = _igorService_;
-    })
+    }),
   );
 
-  it('should initialize injected dependencies', function () {
+  it('should initialize injected dependencies', function() {
     expect($q).toBeDefined();
     expect($root).toBeDefined();
     expect(cacheInitializer).toBeDefined();
@@ -72,12 +74,11 @@ describe('Service: cacheInitializer', function () {
   });
 
   describe('spinnaker.core.cache.initializer', () => {
-
     const keys: IKeys = {
       account: ['account1', 'account2', 'account3'],
       sg: ['sg1', 'sg2', 'sg3'],
       app: ['app1', 'app2', 'app3'],
-      bm: ['bm1', 'bm2', 'bm3']
+      bm: ['bm1', 'bm2', 'bm3'],
     };
     let initialized: boolean;
 
@@ -92,25 +93,22 @@ describe('Service: cacheInitializer', function () {
 
     it('should initialize the cache initializer with the initialization values', () => {
       cacheInitializer.initialize().then((result: any[]) => {
-
         expect(result.length).toBe(13); // from infrastructure cache config
         const flattened: string[][] = flatten(result); // only the arrays that actually contain data
-        expect (flattened.length).toBe(4); // the four initialized string[] above used for the spyOns.
+        expect(flattened.length).toBe(4); // the four initialized string[] above used for the spyOns.
 
         const prefixes: string[] = ['account', 'sg', 'app', 'bm'];
         const foundKeys: IFoundKeys = {
           account: false,
           sg: false,
           app: false,
-          bm: false
+          bm: false,
         };
 
         // verify the contents of each array; that they match the values used for initialization
         for (let i = 0; i < 4; i++) {
-
           const item: string[] = flattened[i];
           for (let j = 0; j < 4; j++) {
-
             const prefix: string = prefixes[j];
             if (item[0].startsWith(prefix)) {
               expect(item).toEqual(keys[prefix]);

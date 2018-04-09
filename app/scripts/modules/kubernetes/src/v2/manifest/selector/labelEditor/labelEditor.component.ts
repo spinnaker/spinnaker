@@ -84,5 +84,7 @@ class KubernetesManifestLabelEditorComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_LABEL_EDITOR = 'spinnaker.kubernetes.v2.manifest.labelEditor.component';
-module(KUBERNETES_MANIFEST_LABEL_EDITOR, [])
-  .component('kubernetesManifestLabelEditor', new KubernetesManifestLabelEditorComponent());
+module(KUBERNETES_MANIFEST_LABEL_EDITOR, []).component(
+  'kubernetesManifestLabelEditor',
+  new KubernetesManifestLabelEditorComponent(),
+);

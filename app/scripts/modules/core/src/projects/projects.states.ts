@@ -16,7 +16,6 @@ module(PROJECTS_STATES_CONFIG, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
 ]).config((stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
-
   const dashboard: INestedState = {
     name: 'dashboard',
     url: '/dashboard',
@@ -25,12 +24,12 @@ module(PROJECTS_STATES_CONFIG, [
         templateUrl: require('../projects/dashboard/dashboard.html'),
         controller: 'ProjectDashboardCtrl',
         controllerAs: 'vm',
-      }
+      },
     },
     data: {
       pageTitleSection: {
-        title: 'Dashboard'
-      }
+        title: 'Dashboard',
+      },
     },
   };
 
@@ -38,20 +37,24 @@ module(PROJECTS_STATES_CONFIG, [
     name: 'project',
     url: '/projects/{project}',
     resolve: {
-      projectConfiguration: ['$stateParams', 'projectReader', ($stateParams: IProjectStateParms, projectReader: any) => {
-        return projectReader.getProjectConfig($stateParams.project).then(
-          (projectConfig: IProject) => projectConfig,
-          (): IProject => {
-            return {
-              id: null,
-              name: $stateParams.project,
-              email: null,
-              config: null,
-              notFound: true,
-            };
-          }
-        );
-      }]
+      projectConfiguration: [
+        '$stateParams',
+        'projectReader',
+        ($stateParams: IProjectStateParms, projectReader: any) => {
+          return projectReader.getProjectConfig($stateParams.project).then(
+            (projectConfig: IProject) => projectConfig,
+            (): IProject => {
+              return {
+                id: null,
+                name: $stateParams.project,
+                email: null,
+                config: null,
+                notFound: true,
+              };
+            },
+          );
+        },
+      ],
     },
     views: {
       'main@': {
@@ -62,15 +65,13 @@ module(PROJECTS_STATES_CONFIG, [
     },
     data: {
       pageTitleMain: {
-        field: 'project'
+        field: 'project',
       },
       history: {
-        type: 'projects'
-      }
+        type: 'projects',
+      },
     },
-    children: [
-      dashboard
-    ]
+    children: [dashboard],
   };
 
   const allProjects: INestedState = {
@@ -80,13 +81,13 @@ module(PROJECTS_STATES_CONFIG, [
       'main@': {
         templateUrl: require('../projects/projects.html'),
         controller: 'ProjectsCtrl',
-        controllerAs: 'ctrl'
-      }
+        controllerAs: 'ctrl',
+      },
     },
     data: {
       pageTitleMain: {
-        label: 'Projects'
-      }
+        label: 'Projects',
+      },
     },
     children: [project],
   };
@@ -96,6 +97,8 @@ module(PROJECTS_STATES_CONFIG, [
   applicationStateProvider.addParentState(project, 'detail', '/applications');
 
   stateConfigProvider.addRewriteRule('/projects/{project}', '/projects/{project}/dashboard');
-  stateConfigProvider.addRewriteRule('/projects/{project}/applications/{application}', '/projects/{project}/applications/{application}/clusters');
-
+  stateConfigProvider.addRewriteRule(
+    '/projects/{project}/applications/{application}',
+    '/projects/{project}/applications/{application}/clusters',
+  );
 });

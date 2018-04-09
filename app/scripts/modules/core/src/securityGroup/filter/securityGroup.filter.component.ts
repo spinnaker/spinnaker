@@ -28,12 +28,13 @@ export class SecurityGroupFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(private securityGroupFilterService: any,
-              private securityGroupFilterModel: SecurityGroupFilterModel,
-              private dependentFilterService: any,
-              private securityGroupDependentFilterHelper: any,
-              private $scope: IScope,
-              private $rootScope: IScope,
+  constructor(
+    private securityGroupFilterService: any,
+    private securityGroupFilterModel: SecurityGroupFilterModel,
+    private dependentFilterService: any,
+    private securityGroupDependentFilterHelper: any,
+    private $scope: IScope,
+    private $rootScope: IScope,
   ) {
     'ngInject';
   }
@@ -44,8 +45,9 @@ export class SecurityGroupFilterCtrl {
     this.sortFilter = securityGroupFilterModel.asFilterModel.sortFilter;
     this.tags = securityGroupFilterModel.asFilterModel.tags;
 
-    this.groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream
-      .subscribe(() => this.tags = securityGroupFilterModel.asFilterModel.tags);
+    this.groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream.subscribe(
+      () => (this.tags = securityGroupFilterModel.asFilterModel.tags),
+    );
 
     this.initialize();
     app.securityGroups.onRefresh($scope, () => this.initialize());
@@ -59,21 +61,15 @@ export class SecurityGroupFilterCtrl {
       this.groupsUpdatedSubscription.unsubscribe();
       this.locationChangeUnsubscribe();
     });
-
   }
 
   private updateSecurityGroups(applyParamsToUrl = true): void {
-    const {
-      dependentFilterService,
-      securityGroupFilterModel,
-      securityGroupDependentFilterHelper,
-      app,
-    } = this;
+    const { dependentFilterService, securityGroupFilterModel, securityGroupDependentFilterHelper, app } = this;
 
     const { account, region } = dependentFilterService.digestDependentFilters({
       sortFilter: securityGroupFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region'],
-      pool: securityGroupDependentFilterHelper.poolBuilder(app.securityGroups.data)
+      pool: securityGroupDependentFilterHelper.poolBuilder(app.securityGroups.data),
     });
 
     this.accountHeadings = account;
@@ -82,7 +78,7 @@ export class SecurityGroupFilterCtrl {
     if (applyParamsToUrl) {
       securityGroupFilterModel.asFilterModel.applyParamsToUrl();
     }
-  };
+  }
 
   private getHeadingsForOption(option: string): string[] {
     return compact(uniq(map(this.app.securityGroups.data, option) as string[])).sort();
@@ -108,5 +104,5 @@ ngmodule.component('securityGroupFilter', {
   controller: SecurityGroupFilterCtrl,
   bindings: {
     app: '<',
-  }
+  },
 });

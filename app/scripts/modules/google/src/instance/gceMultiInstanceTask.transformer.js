@@ -4,14 +4,13 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.google.instance.multiInstance.task.transformer', [])
-  .factory('gceMultiInstanceTaskTransformer', function () {
-
+  .factory('gceMultiInstanceTaskTransformer', function() {
     // custom transformers for specific tasks,
     // e.g. "rebootInstances" needs an empty "interestingHealthProviderNames" array
     let transformers = {
-      rebootInstances: (job) => {
+      rebootInstances: job => {
         job.interestingHealthProviderNames = [];
-      }
+      },
     };
 
     // adds the "zone" field to all jobs

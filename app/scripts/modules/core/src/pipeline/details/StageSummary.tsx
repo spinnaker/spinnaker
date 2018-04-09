@@ -14,14 +14,16 @@ export interface IStageSummaryProps {
   stageSummary: IExecutionStageSummary;
 }
 
-export interface IStageSummaryState {
-}
+export interface IStageSummaryState {}
 
 @BindAll()
 export class StageSummary extends React.Component<IStageSummaryProps, IStageSummaryState> {
-
   private getSourceUrl(): string {
-    return get(this.props, 'config.executionSummaryUrl', require('../../pipeline/config/stages/core/executionSummary.html'));
+    return get(
+      this.props,
+      'config.executionSummaryUrl',
+      require('../../pipeline/config/stages/core/executionSummary.html'),
+    );
   }
 
   public render(): React.ReactElement<StageSummary> {
@@ -31,7 +33,13 @@ export class StageSummary extends React.Component<IStageSummaryProps, IStageSumm
       const { StageSummaryWrapper } = NgReact;
       return (
         <div className="stage-summary">
-          <StageSummaryWrapper application={application} execution={execution} sourceUrl={sourceUrl} stage={stage} stageSummary={stageSummary} />
+          <StageSummaryWrapper
+            application={application}
+            execution={execution}
+            sourceUrl={sourceUrl}
+            stage={stage}
+            stageSummary={stageSummary}
+          />
         </div>
       );
     }

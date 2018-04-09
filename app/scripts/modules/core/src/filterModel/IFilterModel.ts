@@ -7,7 +7,7 @@ export interface IFilterConfig {
   clearValue?: any;
   type?: keyof FilterModelServiceConverters;
   filterLabel?: string;
-  filterTranslator?: {[key: string]: string}
+  filterTranslator?: { [key: string]: string };
   displayOption?: boolean;
   defaultValue?: string;
   array?: boolean;
@@ -19,30 +19,30 @@ export interface IFilterConfig {
 // but I want to delete all this stuff in favor of router params eventually
 // anyway, so keeping the interface consolidated for now.
 export interface ISortFilter {
-  account: { [key: string]: boolean },
-  availabilityZone: { [key: string]: boolean },
-  category: { [key: string]: any },
-  clusters: { [key: string]: any },
-  count: number,
-  detail: { [key: string]: boolean },
-  filter: string,
-  groupBy: string,
+  account: { [key: string]: boolean };
+  availabilityZone: { [key: string]: boolean };
+  category: { [key: string]: any };
+  clusters: { [key: string]: any };
+  count: number;
+  detail: { [key: string]: boolean };
+  filter: string;
+  groupBy: string;
   instanceSort: string;
-  instanceType: { [key: string]: boolean },
-  listInstances: boolean,
-  maxInstances: number,
-  minInstances: number,
-  multiselect: boolean,
-  pipeline: { [key: string]: boolean },
-  providerType: { [key: string]: boolean },
-  region: { [key: string]: boolean },
-  showAllInstances: boolean,
-  showInstances: boolean,
+  instanceType: { [key: string]: boolean };
+  listInstances: boolean;
+  maxInstances: number;
+  minInstances: number;
+  multiselect: boolean;
+  pipeline: { [key: string]: boolean };
+  providerType: { [key: string]: boolean };
+  region: { [key: string]: boolean };
+  showAllInstances: boolean;
+  showInstances: boolean;
   showLoadBalancers: boolean;
-  showServerGroups: boolean,
+  showServerGroups: boolean;
   showStageDuration: boolean;
-  stack: { [key: string]: boolean },
-  status: { [key: string]: boolean },
+  stack: { [key: string]: boolean };
+  status: { [key: string]: boolean };
 }
 
 export interface IFilterModel {

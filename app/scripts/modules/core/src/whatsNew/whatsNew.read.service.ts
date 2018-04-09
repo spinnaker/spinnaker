@@ -3,7 +3,7 @@ import { SETTINGS } from 'core/config/settings';
 
 export interface IGistApiResponse {
   // There are many other fields in the real response object.
-  files: {[fileKey: string]: IGistFile};
+  files: { [fileKey: string]: IGistFile };
   updated_at: string;
 }
 
@@ -23,13 +23,14 @@ export interface IWhatsNewContents {
 }
 
 export class WhatsNewReader {
-
   private static extractFileContent(data: IGistApiResponse) {
     const fileName = SETTINGS.changelog.fileName;
     return data.files[fileName].content;
   }
 
-  constructor(private $http: IHttpService, private $log: ILogService, private $q: IQService) { 'ngInject'; }
+  constructor(private $http: IHttpService, private $log: ILogService, private $q: IQService) {
+    'ngInject';
+  }
 
   public getWhatsNewContents(): IPromise<IWhatsNewContents> {
     let gistId: string, accessToken: string;
@@ -43,7 +44,8 @@ export class WhatsNewReader {
     if (accessToken) {
       url += '?access_token=' + accessToken;
     }
-    return this.$http.get(url)
+    return this.$http
+      .get(url)
       .then((result: IHttpPromiseCallbackArg<IGistApiResponse>) => {
         return {
           contents: WhatsNewReader.extractFileContent(result.data),
@@ -58,5 +60,4 @@ export class WhatsNewReader {
 }
 
 export const WHATS_NEW_READ_SERVICE = 'spinnaker.core.whatsNew.read.service';
-module(WHATS_NEW_READ_SERVICE, [])
-  .service('whatsNewReader', WhatsNewReader);
+module(WHATS_NEW_READ_SERVICE, []).service('whatsNewReader', WhatsNewReader);

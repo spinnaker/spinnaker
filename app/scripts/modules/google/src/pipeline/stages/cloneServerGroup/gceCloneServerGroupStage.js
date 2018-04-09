@@ -5,11 +5,12 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, NAMING_SERVICE, ARTIFACT_REFERENCE_SERVICE_PROVIDER, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [
-  ACCOUNT_SERVICE,
-  NAMING_SERVICE,
-  ARTIFACT_REFERENCE_SERVICE_PROVIDER,
-])
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [
+    ACCOUNT_SERVICE,
+    NAMING_SERVICE,
+    ARTIFACT_REFERENCE_SERVICE_PROVIDER,
+  ])
   .config(function(pipelineConfigProvider, artifactReferenceServiceProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -19,8 +20,8 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..cloneServerGroupS
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'region', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'region' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
 
@@ -35,15 +36,15 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..cloneServerGroupS
       }
       return paths;
     });
-
-  }).controller('gceCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
+  })
+  .controller('gceCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then((accounts) => {
+    accountService.listAccounts('gce').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -54,7 +55,11 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..cloneServerGroupS
     stage.cloudProvider = 'gce';
     stage.cloudProviderType = 'gce';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Google'];
     }
 
@@ -87,4 +92,3 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..cloneServerGroupS
       stage.disableTraffic = !stage.disableTraffic;
     };
   });
-

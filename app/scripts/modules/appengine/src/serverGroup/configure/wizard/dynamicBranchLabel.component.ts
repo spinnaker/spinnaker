@@ -13,5 +13,7 @@ class AppengineDynamicBranchLabelComponent implements ng.IComponentOptions {
 }
 
 export const APPENGINE_DYNAMIC_BRANCH_LABEL = 'spinnaker.appengine.dynamicBranchLabel.component';
-module(APPENGINE_DYNAMIC_BRANCH_LABEL, [])
-  .component('appengineDynamicBranchLabel', new AppengineDynamicBranchLabelComponent());
+module(APPENGINE_DYNAMIC_BRANCH_LABEL, []).component(
+  'appengineDynamicBranchLabel',
+  new AppengineDynamicBranchLabelComponent(),
+);

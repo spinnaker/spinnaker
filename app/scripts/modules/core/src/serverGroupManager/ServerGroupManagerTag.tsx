@@ -24,7 +24,7 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
       <Tooltip value={`Server Group Manager: ${serverGroupManager.name}`}>
         <span className="server-group-manager-tag">
           <span className="badge badge-counter">
-            <span onClick={this.openDetails} className="fa fa-server"/>
+            <span onClick={this.openDetails} className="fa fa-server" />
           </span>
         </span>
       </Tooltip>
@@ -33,13 +33,16 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
 
   private extractServerGroupManager(): IServerGroupManager {
     const { application, serverGroup } = this.props;
-    return application.getDataSource('serverGroupManagers').data.find((manager: IServerGroupManager) =>
-      manager.serverGroups.some(group =>
-        serverGroup.name === group.name
-          && serverGroup.region === manager.region
-          && serverGroup.account === manager.account
-      )
-    );
+    return application
+      .getDataSource('serverGroupManagers')
+      .data.find((manager: IServerGroupManager) =>
+        manager.serverGroups.some(
+          group =>
+            serverGroup.name === group.name &&
+            serverGroup.region === manager.region &&
+            serverGroup.account === manager.account,
+        ),
+      );
   }
 
   private openDetails(event: React.MouseEvent<HTMLElement>): void {

@@ -36,7 +36,7 @@ export class CollapsibleSectionStateCache {
 }
 
 export const COLLAPSIBLE_SECTION_STATE_CACHE = 'spinnaker.core.cache.collapsibleSectionState';
-module(COLLAPSIBLE_SECTION_STATE_CACHE, [
-  require('angular-cache')
-])
-  .service('collapsibleSectionStateCache', CollapsibleSectionStateCache);
+module(COLLAPSIBLE_SECTION_STATE_CACHE, [require('angular-cache')]).service(
+  'collapsibleSectionStateCache',
+  CollapsibleSectionStateCache,
+);

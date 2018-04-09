@@ -26,7 +26,9 @@ export class CloudProviderLogo extends React.Component<ICloudProviderLogoProps, 
 
   private getState(props: ICloudProviderLogoProps): ICloudProviderLogoState {
     if (props.showTooltip) {
-      return { tooltip: ReactInjector.cloudProviderRegistry.getValue(this.props.provider, 'name') || this.props.provider };
+      return {
+        tooltip: ReactInjector.cloudProviderRegistry.getValue(this.props.provider, 'name') || this.props.provider,
+      };
     }
     return {};
   }
@@ -44,14 +46,11 @@ export class CloudProviderLogo extends React.Component<ICloudProviderLogoProps, 
           className={`icon icon-${this.props.provider}`}
           style={{ height: this.props.height, width: this.props.width }}
         />
-      </span>);
+      </span>
+    );
 
     if (this.state.tooltip) {
-      return (
-        <Tooltip value={this.state.tooltip}>
-          {logo}
-        </Tooltip>
-      );
+      return <Tooltip value={this.state.tooltip}>{logo}</Tooltip>;
     } else {
       return logo;
     }

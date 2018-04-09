@@ -7,39 +7,51 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_WRITER
+  SERVER_GROUP_WRITER,
 } from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.azure.module.js');
 
-
-module.exports = angular.module('spinnaker.azure.serverGroup.details.controller', [
-  require('@uirouter/angularjs').default,
-  require('../configure/serverGroupCommandBuilder.service.js').name,
-  SERVER_GROUP_READER,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-])
-  .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, app, serverGroup,
-                                                       serverGroupWarningMessageService, serverGroupReader,
-                                                       azureServerGroupCommandBuilder, $uibModal,
-                                                       confirmationModalService, serverGroupWriter) {
-
+module.exports = angular
+  .module('spinnaker.azure.serverGroup.details.controller', [
+    require('@uirouter/angularjs').default,
+    require('../configure/serverGroupCommandBuilder.service.js').name,
+    SERVER_GROUP_READER,
+    CONFIRMATION_MODAL_SERVICE,
+    SERVER_GROUP_WRITER,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  ])
+  .controller('azureServerGroupDetailsCtrl', function(
+    $scope,
+    $state,
+    $templateCache,
+    app,
+    serverGroup,
+    serverGroupWarningMessageService,
+    serverGroupReader,
+    azureServerGroupCommandBuilder,
+    $uibModal,
+    confirmationModalService,
+    serverGroupWriter,
+  ) {
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     this.application = app;
 
     function extractServerGroupSummary() {
-      var summary = _.find(app.serverGroups.data, function (toCheck) {
-        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
+      var summary = _.find(app.serverGroups.data, function(toCheck) {
+        return (
+          toCheck.name === serverGroup.name &&
+          toCheck.account === serverGroup.accountId &&
+          toCheck.region === serverGroup.region
+        );
       });
       if (!summary) {
-        app.loadBalancers.data.some(function (loadBalancer) {
+        app.loadBalancers.data.some(function(loadBalancer) {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-            return loadBalancer.serverGroups.some(function (possibleServerGroup) {
+            return loadBalancer.serverGroups.some(function(possibleServerGroup) {
               if (possibleServerGroup.name === serverGroup.name) {
                 summary = possibleServerGroup;
                 return true;
@@ -56,39 +68,52 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
-        cancelLoader();
+      return serverGroupReader
+        .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+        .then(function(details) {
+          cancelLoader();
 
-        angular.extend(details, summary);
-        details.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
+          angular.extend(details, summary);
+          details.account = serverGroup.accountId; // it's possible the summary was not found because the clusters are still loading
 
-        $scope.serverGroup = details;
+          $scope.serverGroup = details;
 
-        if (!_.isEmpty($scope.serverGroup)) {
+          if (!_.isEmpty($scope.serverGroup)) {
+            $scope.image = details.image ? details.image : undefined;
 
-          $scope.image = details.image ? details.image : undefined;
+            if (details.image && details.image.description) {
+              var tags = details.image.description.split(', ');
+              tags.forEach(function(tag) {
+                var keyVal = tag.split('=');
+                if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
+                  details.image.baseImage = keyVal[1];
+                }
+              });
+            }
 
-          if (details.image && details.image.description) {
-            var tags = details.image.description.split(', ');
-            tags.forEach(function(tag) {
-              var keyVal = tag.split('=');
-              if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
-                details.image.baseImage = keyVal[1];
-              }
-            });
+            if (details.launchConfig && details.launchConfig.securityGroups) {
+              $scope.securityGroups = _.chain(details.launchConfig.securityGroups)
+                .map(function(id) {
+                  return (
+                    _.find(app.securityGroups.data, {
+                      accountName: serverGroup.accountId,
+                      region: serverGroup.region,
+                      id: id,
+                    }) ||
+                    _.find(app.securityGroups.data, {
+                      accountName: serverGroup.accountId,
+                      region: serverGroup.region,
+                      name: id,
+                    })
+                  );
+                })
+                .compact()
+                .value();
+            }
+          } else {
+            $state.go('^');
           }
-
-          if (details.launchConfig && details.launchConfig.securityGroups) {
-            $scope.securityGroups = _.chain(details.launchConfig.securityGroups).map(function(id) {
-              return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-                _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
-            }).compact().value();
-          }
-
-        } else {
-          $state.go('^');
-        }
-      });
+        });
     }
 
     function cancelLoader() {
@@ -111,14 +136,14 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return serverGroupWriter.destroyServerGroup(serverGroup, app);
       };
 
       var stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
-        region: serverGroup.region
+        region: serverGroup.region,
       };
 
       const confirmationModalParams = {
@@ -144,7 +169,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
       const submitMethod = () => serverGroupWriter.disableServerGroup(serverGroup, app);
@@ -154,13 +179,12 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         buttonText: 'Disable ' + serverGroup.name,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       };
 
       serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
       confirmationModalService.confirm(confirmationModalParams);
-
     };
 
     this.enableServerGroup = function enableServerGroup() {
@@ -171,10 +195,14 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => {
-        return serverGroupWriter.enableServerGroup(serverGroup, app, angular.extend(params, {
-          interestingHealthProviderNames: [] // bypass the check for now; will change this later to ['azureService']
-        }));
+      var submitMethod = params => {
+        return serverGroupWriter.enableServerGroup(
+          serverGroup,
+          app,
+          angular.extend(params, {
+            interestingHealthProviderNames: [], // bypass the check for now; will change this later to ['azureService']
+          }),
+        );
       };
 
       confirmationModalService.confirm({
@@ -182,12 +210,11 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         buttonText: 'Enable ' + serverGroup.name,
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
-
     };
 
-    this.cloneServerGroup = (serverGroup) => {
+    this.cloneServerGroup = serverGroup => {
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'azureCloneServerGroupCtrl as ctrl',
@@ -195,8 +222,9 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
         resolve: {
           title: () => 'Clone ' + serverGroup.name,
           application: () => app,
-          serverGroupCommand: () => azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
-        }
+          serverGroupCommand: () =>
+            azureServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
+        },
       });
     };
 
@@ -206,5 +234,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
       }
       return null;
     };
-  }
-);
+  });

@@ -6,10 +6,8 @@ import { Observable, Subject } from 'rxjs';
 import { DOCKER_IMAGE_READER } from '@spinnaker/docker';
 
 module.exports = angular
-  .module('spinnaker.docker.pipeline.config.triggers.options.directive', [
-    DOCKER_IMAGE_READER,
-  ])
-  .directive('dockerTriggerOptions', function () {
+  .module('spinnaker.docker.pipeline.config.triggers.options.directive', [DOCKER_IMAGE_READER])
+  .directive('dockerTriggerOptions', function() {
     return {
       restrict: 'E',
       templateUrl: require('./dockerTriggerOptions.directive.html'),
@@ -18,10 +16,10 @@ module.exports = angular
       },
       controller: 'dockerTriggerOptionsCtrl',
       controllerAs: 'vm',
-      scope: {}
+      scope: {},
     };
   })
-  .controller('dockerTriggerOptionsCtrl', function ($scope, dockerImageReader) {
+  .controller('dockerTriggerOptionsCtrl', function($scope, dockerImageReader) {
     // These fields will be added to the trigger when the form is submitted
     this.command.extraFields = {};
 
@@ -31,7 +29,7 @@ module.exports = angular
       selectedTag: null,
     };
 
-    let tagLoadSuccess = (tags) => {
+    let tagLoadSuccess = tags => {
       this.tags = tags;
       if (this.tags.length) {
         // default to what is supplied by the trigger if possible; otherwise, use the latest
@@ -62,10 +60,11 @@ module.exports = angular
           provider: 'dockerRegistry',
           account: this.command.trigger.account,
           repository: this.command.trigger.repository,
-        }));
+        }),
+      );
     };
 
-    this.updateSelectedTag = (tag) => {
+    this.updateSelectedTag = tag => {
       this.command.extraFields.tag = tag;
 
       if (this.command.trigger && this.command.trigger.repository) {
@@ -74,12 +73,14 @@ module.exports = angular
           imageName += this.command.trigger.registry + '/';
         }
         imageName += this.command.trigger.repository;
-        this.command.extraFields.artifacts = [{
-          type: 'docker/image',
-          name: imageName,
-          version: tag,
-          reference: imageName + ':' + tag,
-        }];
+        this.command.extraFields.artifacts = [
+          {
+            type: 'docker/image',
+            name: imageName,
+            version: tag,
+            reference: imageName + ':' + tag,
+          },
+        ];
       }
     };
 

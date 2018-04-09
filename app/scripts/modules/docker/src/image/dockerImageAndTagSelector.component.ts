@@ -16,11 +16,10 @@ export interface IOnDockerBindingsChanges extends IOnChangesObject {
 }
 
 export class DockerImageAndTagSelectorController implements IController {
-
   private viewState: IViewState = {
     imagesLoading: false,
     imagesLoaded: false,
-    imagesRefreshing: false
+    imagesRefreshing: false,
   };
 
   private accountMap: { [key: string]: string[] };
@@ -45,8 +44,7 @@ export class DockerImageAndTagSelectorController implements IController {
   public onChange: Function;
   public deferInitialization: boolean;
 
-  constructor(private accountService: AccountService,
-              private dockerImageReader: DockerImageReaderService) {
+  constructor(private accountService: AccountService, private dockerImageReader: DockerImageReaderService) {
     'ngInject';
   }
 
@@ -56,7 +54,7 @@ export class DockerImageAndTagSelectorController implements IController {
         this.registry = this.registryMap[this.account];
         if (this.onChange) {
           this.onChange({
-            registry: this.registry
+            registry: this.registry,
           });
         }
       }
@@ -71,7 +69,7 @@ export class DockerImageAndTagSelectorController implements IController {
 
   private updateRepositoryList(): void {
     if (this.organizationMap) {
-      const key = `${this.showRegistry ? this.account : this.registry}/${this.organization || '' }`;
+      const key = `${this.showRegistry ? this.account : this.registry}/${this.organization || ''}`;
       this.repositories = this.organizationMap[key] || [];
       if (!this.repositories.includes(this.repository) && this.repository && !this.repository.includes('${')) {
         this.repository = null;
@@ -105,58 +103,67 @@ export class DockerImageAndTagSelectorController implements IController {
   }
 
   private updateAccountMap(images: IDockerImage[]): void {
-    const results: { [key: string]: string[] } = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
-      const key = image.account;
-      if (!key) {
+    const results: { [key: string]: string[] } = images.reduce(
+      (map: { [key: string]: string[] }, image: IDockerImage) => {
+        const key = image.account;
+        if (!key) {
+          return map;
+        }
+
+        const parts: string[] = image.repository.split('/');
+        parts.pop();
+        const org: string = parts.join('/');
+        if (!map[key]) {
+          map[key] = [];
+        }
+        map[key].push(org);
+
         return map;
-      }
-
-      const parts: string[] = image.repository.split('/');
-      parts.pop();
-      const org: string = parts.join('/');
-      if (!map[key]) {
-        map[key] = [];
-      }
-      map[key].push(org);
-
-      return map;
-    }, {});
+      },
+      {},
+    );
     this.uniqMapEntries(results);
     this.accountMap = results;
   }
 
   private updateOrganizationMap(images: IDockerImage[]): void {
-    const results: { [key: string]: string[] } = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
-      if (!image.repository) {
-        return map;
-      }
+    const results: { [key: string]: string[] } = images.reduce(
+      (map: { [key: string]: string[] }, image: IDockerImage) => {
+        if (!image.repository) {
+          return map;
+        }
 
-      const parts = image.repository.split('/');
-      parts.pop();
-      const key = `${image.account}/${parts.join('/')}`;
-      if (!map[key]) {
-        map[key] = [];
-      }
-      map[key].push(image.repository);
-      return map;
-    }, {});
+        const parts = image.repository.split('/');
+        parts.pop();
+        const key = `${image.account}/${parts.join('/')}`;
+        if (!map[key]) {
+          map[key] = [];
+        }
+        map[key].push(image.repository);
+        return map;
+      },
+      {},
+    );
     this.uniqMapEntries(results);
     this.organizationMap = results;
   }
 
   private updateRepositoryMap(images: IDockerImage[]): void {
-    const results: { [key: string]: string[] } = images.reduce((map: { [key: string]: string[] }, image: IDockerImage) => {
-      if (!image.repository) {
-        return map;
-      }
+    const results: { [key: string]: string[] } = images.reduce(
+      (map: { [key: string]: string[] }, image: IDockerImage) => {
+        if (!image.repository) {
+          return map;
+        }
 
-      const key: string = image.repository;
-      if (!map[key]) {
-        map[key] = [];
-      }
-      map[key].push(image.tag);
-      return map;
-    }, {});
+        const key: string = image.repository;
+        if (!map[key]) {
+          map[key] = [];
+        }
+        map[key].push(image.tag);
+        return map;
+      },
+      {},
+    );
 
     this.uniqMapEntries(results);
     this.repositoryMap = results;
@@ -176,29 +183,32 @@ export class DockerImageAndTagSelectorController implements IController {
   private initializeImages() {
     const imageConfig: IFindImageParams = {
       provider: 'dockerRegistry',
-      account: this.showRegistry ? this.account : this.registry
+      account: this.showRegistry ? this.account : this.registry,
     };
 
     this.viewState.imagesLoading = true;
-    const imageLoader = this.dockerImageReader.findImages(imageConfig).then((images: IDockerImage[]) => {
-      if (this.imageLoader !== imageLoader) {
-        // something else is getting loaded
-        return;
-      }
-      this.updateRegistryMap(images);
-      this.updateAccountMap(images);
-      this.accounts = this.accounts || Object.keys(this.accountMap);
+    const imageLoader = this.dockerImageReader
+      .findImages(imageConfig)
+      .then((images: IDockerImage[]) => {
+        if (this.imageLoader !== imageLoader) {
+          // something else is getting loaded
+          return;
+        }
+        this.updateRegistryMap(images);
+        this.updateAccountMap(images);
+        this.accounts = this.accounts || Object.keys(this.accountMap);
 
-      this.updateOrganizationMap(images);
-      this.organizations.push(...Object.keys(this.organizationMap));
-      this.updateRepositoryMap(images);
-      this.updateOrganizationsList();
+        this.updateOrganizationMap(images);
+        this.organizations.push(...Object.keys(this.organizationMap));
+        this.updateRepositoryMap(images);
+        this.updateOrganizationsList();
 
-      this.viewState.imagesLoaded = true;
-    }).finally(() => {
-      this.viewState.imagesLoading = false;
-      this.viewState.imagesRefreshing = false;
-    });
+        this.viewState.imagesLoaded = true;
+      })
+      .finally(() => {
+        this.viewState.imagesLoading = false;
+        this.viewState.imagesRefreshing = false;
+      });
     this.imageLoader = imageLoader;
   }
 
@@ -209,7 +219,7 @@ export class DockerImageAndTagSelectorController implements IController {
   }
 
   private isNew(): boolean {
-    return (!this.account && !this.organization && !this.registry && !this.repository && !this.tag);
+    return !this.account && !this.organization && !this.registry && !this.repository && !this.tag;
   }
 
   public refreshImages(): void {
@@ -231,7 +241,6 @@ export class DockerImageAndTagSelectorController implements IController {
   }
 
   public $onChanges(changes: IOnDockerBindingsChanges): void {
-
     if (this.deferInitialization && changes.registry && isString(changes.registry.currentValue)) {
       this.initializeAccounts();
     }
@@ -250,12 +259,14 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
     labelClass: '@?',
     fieldClass: '@?',
     onChange: '=?',
-    deferInitialization: '=?'
+    deferInitialization: '=?',
   };
   public controller: any = DockerImageAndTagSelectorController;
   public templateUrl: string = require('./dockerImageAndTagSelector.component.html');
 }
 
 export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.docker.imageAndTagSelector.component';
-module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [ACCOUNT_SERVICE, DOCKER_IMAGE_READER])
-  .component('dockerImageAndTagSelector', new DockerImageAndTagSelectorComponent());
+module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [ACCOUNT_SERVICE, DOCKER_IMAGE_READER]).component(
+  'dockerImageAndTagSelector',
+  new DockerImageAndTagSelectorComponent(),
+);

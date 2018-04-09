@@ -33,13 +33,36 @@ export class ReactModal {
    * @param props to pass to the Modal and ModalComponent
    * @returns {Promise<T>}
    */
-  public static show<P extends IModalComponentProps, T = any>(ModalComponent: React.ComponentType<P>, props?: P): Promise<T> {
+  public static show<P extends IModalComponentProps, T = any>(
+    ModalComponent: React.ComponentType<P>,
+    props?: P,
+  ): Promise<T> {
     const modalPropKeys: (keyof ModalProps)[] = [
-      'onHide', 'animation', 'autoFocus', 'backdrop', 'backdropClassName', 'backdropStyle',
-      'backdropTransitionTimeout', 'bsSize', 'container', 'containerClassName', 'dialogClassName',
-      'dialogComponent', 'dialogTransitionTimeout', 'enforceFocus', 'keyboard', 'onBackdropClick',
-      'onEnter', 'onEntered', 'onEntering', 'onEscapeKeyUp', 'onExit', 'onExited', 'onExiting',
-      'onShow', 'transition'
+      'onHide',
+      'animation',
+      'autoFocus',
+      'backdrop',
+      'backdropClassName',
+      'backdropStyle',
+      'backdropTransitionTimeout',
+      'bsSize',
+      'container',
+      'containerClassName',
+      'dialogClassName',
+      'dialogComponent',
+      'dialogTransitionTimeout',
+      'enforceFocus',
+      'keyboard',
+      'onBackdropClick',
+      'onEnter',
+      'onEntered',
+      'onEntering',
+      'onEscapeKeyUp',
+      'onExit',
+      'onExited',
+      'onExiting',
+      'onShow',
+      'transition',
     ];
 
     const modalProps: ModalProps = pick(props, modalPropKeys);
@@ -69,12 +92,11 @@ export class ReactModal {
       const handleDismiss = destroy(reject);
 
       function render() {
-        ReactDOM.render((
-            <Modal show={show} {...modalProps} onExited={onExited}>
-              <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose}/>
-            </Modal>
-          ),
-          mountNode
+        ReactDOM.render(
+          <Modal show={show} {...modalProps} onExited={onExited}>
+            <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
+          </Modal>,
+          mountNode,
         );
       }
 

@@ -4,7 +4,7 @@ import {
   CACHE_INITIALIZER_SERVICE,
   CacheInitializerService,
   INFRASTRUCTURE_CACHE_SERVICE,
-  InfrastructureCacheService
+  InfrastructureCacheService,
 } from '@spinnaker/core';
 
 class GceCacheRefreshCtrl implements IController {
@@ -17,8 +17,10 @@ class GceCacheRefreshCtrl implements IController {
   private cacheKey: string;
   private cacheKeyAlias: string;
 
-  constructor(private cacheInitializer: CacheInitializerService,
-              private infrastructureCaches: InfrastructureCacheService) {
+  constructor(
+    private cacheInitializer: CacheInitializerService,
+    private infrastructureCaches: InfrastructureCacheService,
+  ) {
     'ngInject';
   }
 
@@ -34,10 +36,13 @@ class GceCacheRefreshCtrl implements IController {
 
   public refresh(): void {
     this.refreshing = true;
-    this.cacheInitializer.refreshCache(this.cacheKey)
+    this.cacheInitializer
+      .refreshCache(this.cacheKey)
       .then(() => this.onRefresh())
-      .then(() => { this.refreshing = false; });
-  };
+      .then(() => {
+        this.refreshing = false;
+      });
+  }
 }
 
 class GceCacheRefresh implements IComponentOptions {
@@ -45,15 +50,14 @@ class GceCacheRefresh implements IComponentOptions {
     onRefresh: '&',
     cacheKey: '@',
     cacheKeyAlias: '@',
-    renderCompact: '<'
+    renderCompact: '<',
   };
   public controller: any = GceCacheRefreshCtrl;
   public templateUrl = require('./cacheRefresh.component.html');
 }
 
 export const GCE_CACHE_REFRESH = 'spinnaker.gce.cacheRefresh.component';
-module(GCE_CACHE_REFRESH, [
-  CACHE_INITIALIZER_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE
-]).component('gceCacheRefresh', new GceCacheRefresh());
-
+module(GCE_CACHE_REFRESH, [CACHE_INITIALIZER_SERVICE, INFRASTRUCTURE_CACHE_SERVICE]).component(
+  'gceCacheRefresh',
+  new GceCacheRefresh(),
+);

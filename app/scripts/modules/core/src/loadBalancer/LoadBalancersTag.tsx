@@ -27,9 +27,9 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
     return (
       <a onClick={this.onClick}>
         <span className="name">{this.props.loadBalancer.name}</span>
-        <HealthCounts container={this.props.loadBalancer.instanceCounts}/>
+        <HealthCounts container={this.props.loadBalancer.instanceCounts} />
       </a>
-    )
+    );
   }
 }
 
@@ -46,12 +46,12 @@ class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
         <button className="btn btn-link no-padding" onClick={this.onClick}>
           <span className="badge badge-counter">
             <span className="icon">
-              <i className="fa icon-sitemap"/>
+              <i className="fa icon-sitemap" />
             </span>
           </span>
         </button>
       </Tooltip>
-    )
+    );
   }
 }
 
@@ -69,7 +69,9 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
       loadBalancers: [],
     };
 
-    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => this.setState({ loadBalancers }));
+    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers =>
+      this.setState({ loadBalancers }),
+    );
   }
 
   private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
@@ -77,7 +79,12 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     const serverGroup = this.props.serverGroup;
     ReactGA.event({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
-    $state.go(nextState, { region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer.name, provider: serverGroup.type });
+    $state.go(nextState, {
+      region: serverGroup.region,
+      accountId: serverGroup.account,
+      name: loadBalancer.name,
+      provider: serverGroup.type,
+    });
   }
 
   private handleShowPopover() {
@@ -90,7 +97,9 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   }
 
   public componentDidMount(): void {
-    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
+    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => {
+      this.forceUpdate();
+    });
   }
 
   public componentWillUnmount(): void {
@@ -111,8 +120,12 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     const popover = (
       <div className="menu-load-balancers">
         <div className="menu-load-balancers-header"> Load Balancers </div>
-        {sortBy(loadBalancers, 'name').map((loadBalancer) => (
-          <LoadBalancerListItem key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>
+        {sortBy(loadBalancers, 'name').map(loadBalancer => (
+          <LoadBalancerListItem
+            key={loadBalancer.name}
+            loadBalancer={loadBalancer}
+            onItemClick={this.showLoadBalancerDetails}
+          />
         ))}
       </div>
     );
@@ -132,7 +145,10 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
           >
             <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding">
               <span className="badge badge-counter">
-                <span className="icon"><i className="fa icon-sitemap"/></span> {totalCount}
+                <span className="icon">
+                  <i className="fa icon-sitemap" />
+                </span>{' '}
+                {totalCount}
               </span>
             </button>
           </HoverablePopover>
@@ -140,12 +156,16 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
 
         {totalCount === 1 && (
           <span className="btn-load-balancer">
-            {sortBy(loadBalancers, 'name').map((loadBalancer) => (
-              <LoadBalancerButton key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>
+            {sortBy(loadBalancers, 'name').map(loadBalancer => (
+              <LoadBalancerButton
+                key={loadBalancer.name}
+                loadBalancer={loadBalancer}
+                onItemClick={this.showLoadBalancerDetails}
+              />
             ))}
           </span>
         )}
       </span>
-    )
+    );
   }
 }

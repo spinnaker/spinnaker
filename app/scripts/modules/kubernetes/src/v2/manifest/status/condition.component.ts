@@ -23,5 +23,7 @@ class KubernetesManifestConditionComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_CONDITION = 'spinnaker.kubernetes.v2.manifest.condition.component';
-module(KUBERNETES_MANIFEST_CONDITION, [])
-  .component('kubernetesManifestCondition', new KubernetesManifestConditionComponent());
+module(KUBERNETES_MANIFEST_CONDITION, []).component(
+  'kubernetesManifestCondition',
+  new KubernetesManifestConditionComponent(),
+);

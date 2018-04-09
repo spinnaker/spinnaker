@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function ServerGroupStageContext(props: { serverGroups: { [region: string]: string[] }}) {
+export function ServerGroupStageContext(props: { serverGroups: { [region: string]: string[] } }) {
   if (!props.serverGroups) {
     return null;
   }
@@ -9,15 +9,15 @@ export function ServerGroupStageContext(props: { serverGroups: { [region: string
       <div className="col-md-11">
         <dl className="dl-narrow dl-horizontal">
           <dt>Disabled</dt>
-          <dd/>
+          <dd />
           {Object.keys(props.serverGroups).map(region => {
-            return ([
+            return [
               <dt key={`t${region}`}>{region}</dt>,
-              <dd key={`d${region}`}>{props.serverGroups[region].join(', ')}</dd>
-            ]);
+              <dd key={`d${region}`}>{props.serverGroups[region].join(', ')}</dd>,
+            ];
           })}
         </dl>
       </div>
     </div>
   );
-};
+}

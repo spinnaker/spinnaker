@@ -3,52 +3,72 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
-
-import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
-
-module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.controller', [
-  require('@uirouter/angularjs').default,
+import {
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
-])
-  .controller('kubernetesLoadBalancerDetailsController', function ($interpolate, $scope, $state, $uibModal, loadBalancer, app,
-                                                                   confirmationModalService, accountService, loadBalancerWriter,
-                                                                   kubernetesProxyUiService) {
+  ServerGroupTemplates,
+} from '@spinnaker/core';
 
+import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
+
+module.exports = angular
+  .module('spinnaker.loadBalancer.kubernetes.details.controller', [
+    require('@uirouter/angularjs').default,
+    ACCOUNT_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    LOAD_BALANCER_WRITE_SERVICE,
+  ])
+  .controller('kubernetesLoadBalancerDetailsController', function(
+    $interpolate,
+    $scope,
+    $state,
+    $uibModal,
+    loadBalancer,
+    app,
+    confirmationModalService,
+    accountService,
+    loadBalancerWriter,
+    kubernetesProxyUiService,
+  ) {
     let application = app;
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     let extractLoadBalancer = () => {
-      return application.loadBalancers.ready()
-        .then(() => {
-          $scope.loadBalancer = application.loadBalancers.data.find((test) => {
-            return test.name === loadBalancer.name &&
-              (test.namespace === loadBalancer.region || test.namespace === loadBalancer.namespace) &&
-              test.account === loadBalancer.accountId;
-          });
-
-          if ($scope.loadBalancer) {
-            this.ingressProtocol = 'http:';
-            if (_.get($scope.loadBalancer, 'service.spec.ports', []).some(p => p.port === 443)) {
-              this.ingressProtocol = 'https:';
-            }
-            this.internalDNSName = $interpolate(
-              KubernetesProviderSettings.defaults.internalDNSNameTemplate || '{{name}}.{{namespace}}.svc.cluster.local'
-            )($scope.loadBalancer);
-            $scope.state.loading = false;
-          } else {
-            autoClose();
-          }
+      return application.loadBalancers.ready().then(() => {
+        $scope.loadBalancer = application.loadBalancers.data.find(test => {
+          return (
+            test.name === loadBalancer.name &&
+            (test.namespace === loadBalancer.region || test.namespace === loadBalancer.namespace) &&
+            test.account === loadBalancer.accountId
+          );
         });
+
+        if ($scope.loadBalancer) {
+          this.ingressProtocol = 'http:';
+          if (_.get($scope.loadBalancer, 'service.spec.ports', []).some(p => p.port === 443)) {
+            this.ingressProtocol = 'https:';
+          }
+          this.internalDNSName = $interpolate(
+            KubernetesProviderSettings.defaults.internalDNSNameTemplate || '{{name}}.{{namespace}}.svc.cluster.local',
+          )($scope.loadBalancer);
+          $scope.state.loading = false;
+        } else {
+          autoClose();
+        }
+      });
     };
 
     this.uiLink = function uiLink() {
-      return kubernetesProxyUiService.buildLink($scope.loadBalancer.account, 'service', $scope.loadBalancer.region, $scope.loadBalancer.name);
+      return kubernetesProxyUiService.buildLink(
+        $scope.loadBalancer.account,
+        'service',
+        $scope.loadBalancer.region,
+        $scope.loadBalancer.name,
+      );
     };
 
     this.showYaml = function showYaml() {
@@ -56,7 +76,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
       $scope.userData = $scope.loadBalancer.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
@@ -65,7 +85,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     extractLoadBalancer().then(() => {
@@ -82,10 +102,16 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
         controller: 'kubernetesUpsertLoadBalancerController as ctrl',
         size: 'lg',
         resolve: {
-          application: function() { return application; },
-          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
-          isNew: function() { return false; }
-        }
+          application: function() {
+            return application;
+          },
+          loadBalancer: function() {
+            return angular.copy($scope.loadBalancer);
+          },
+          isNew: function() {
+            return false;
+          },
+        },
       });
     };
 
@@ -115,8 +141,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
         account: loadBalancer.account,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
-  }
-);
+  });

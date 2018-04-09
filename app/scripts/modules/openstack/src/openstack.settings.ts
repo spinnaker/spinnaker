@@ -7,7 +7,8 @@ export interface IOpenStackProviderSettings extends IProviderSettings {
   };
 }
 
-export const OpenStackProviderSettings: IOpenStackProviderSettings = <IOpenStackProviderSettings>SETTINGS.providers.openstack || { defaults: {} };
+export const OpenStackProviderSettings: IOpenStackProviderSettings = <IOpenStackProviderSettings>SETTINGS.providers
+  .openstack || { defaults: {} };
 if (OpenStackProviderSettings) {
   OpenStackProviderSettings.resetToOriginal = SETTINGS.resetProvider('openstack');
 }

@@ -18,14 +18,14 @@ export const ApplicationNavSection = ({ application, categories, activeCategory 
   return (
     <div className="hidden-xs application-nav">
       <div className="nav-section horizontal middle">
-        {categories.map(category =>
+        {categories.map(category => (
           <CategoryDropdown
             key={category.key}
             category={category}
             activeCategory={activeCategory}
             application={application}
           />
-        )}
+        ))}
       </div>
     </div>
   );

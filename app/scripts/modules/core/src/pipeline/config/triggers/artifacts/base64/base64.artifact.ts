@@ -7,9 +7,7 @@ import { PipelineConfigProvider } from 'core/pipeline';
 import './base64.artifact.less';
 
 export const BASE64_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.base64';
-module(BASE64_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(BASE64_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'Base64',
     description: 'An artifact that includes its referenced resource as part of its payload.',

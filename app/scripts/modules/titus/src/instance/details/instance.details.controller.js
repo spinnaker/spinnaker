@@ -13,26 +13,37 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  ACCOUNT_SERVICE,
-  INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('titusInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, accountService,
-                                                    instanceWriter, confirmationModalService, recentHistoryService,
-                                                    cloudProviderRegistry, instanceReader, instance, app) {
-
+module.exports = angular
+  .module('spinnaker.instance.detail.titus.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    ACCOUNT_SERVICE,
+    INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('titusInstanceDetailsCtrl', function(
+    $scope,
+    $q,
+    $state,
+    $uibModal,
+    accountService,
+    instanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,
-      standalone: app.isStandalone
+      standalone: app.isStandalone,
     };
 
     $scope.application = app;
@@ -45,15 +56,14 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(
-        function(metric) {
-          return metric.state !== 'Unknown';
-        });
+      var displayableMetrics = instance.health.filter(function(metric) {
+        return metric.state !== 'Unknown';
+      });
 
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function (metric) {
-          var detailsMatch = latest.health.filter(function (latestHealth) {
+        displayableMetrics.forEach(function(metric) {
+          var detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -67,8 +77,8 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
     function retrieveInstance() {
       var extraData = {};
       var instanceSummary, loadBalancers, account, region, vpcId;
-      app.serverGroups.data.some(function (serverGroup) {
-        return serverGroup.instances.some(function (possibleInstance) {
+      app.serverGroups.data.some(function(serverGroup) {
+        return serverGroup.instances.some(function(possibleInstance) {
           if (possibleInstance.id === instance.instanceId) {
             instanceSummary = possibleInstance;
             loadBalancers = serverGroup.loadBalancers;
@@ -95,9 +105,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
           $scope.baseIpAddress = $scope.instance.placement.containerIp || $scope.instance.placement.host;
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
           getBastionAddressForAccount($scope.instance.account, $scope.instance.region);
-        },
-          autoClose
-        );
+        }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -112,7 +120,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     this.canRegisterWithLoadBalancer = function() {
@@ -138,14 +146,14 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {id: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { id: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
-        let params = {cloudProvider: 'titus'};
+      var submitMethod = function() {
+        let params = { cloudProvider: 'titus' };
         if (instance.serverGroup) {
           params.managedInstanceGroupName = instance.serverGroup;
         }
@@ -158,7 +166,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         account: instance.account,
         provider: 'titus',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -169,23 +177,25 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.terminateInstancesAndShrinkServerGroups(
-          [{
-            cloudProvider: instance.cloudProvider,
-            instanceIds: [instance.id],
-            account: instance.account,
-            region: instance.region,
-            serverGroup: instance.serverGroup,
-            instances: [instance]
-          }],
-          app
+          [
+            {
+              cloudProvider: instance.cloudProvider,
+              instanceIds: [instance.id],
+              account: instance.account,
+              region: instance.region,
+              serverGroup: instance.serverGroup,
+              instances: [instance],
+            },
+          ],
+          app,
         );
       };
 
@@ -195,7 +205,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         account: instance.account,
         provider: 'titus',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -213,10 +223,10 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Enabling ' + instance.instanceId + ' in discovery'
+        title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -225,7 +235,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -235,10 +245,10 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + instance.instanceId + ' in discovery'
+        title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -248,30 +258,33 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         provider: 'titus',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       let healthMetrics = $scope.instance.health || [];
-      return (healthMetrics.some(function (health) {
+      return healthMetrics.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
     let getBastionAddressForAccount = (account, region) => {
-      return accountService.getAccountDetails(account).then((details) => {
+      return accountService.getAccountDetails(account).then(details => {
         this.bastionHost = details.bastionHost || 'unknown';
 
-      const discoveryHealth = $scope.instance.health.find(m => m.type === 'Discovery');
+        const discoveryHealth = $scope.instance.health.find(m => m.type === 'Discovery');
 
-      if (discoveryHealth) {
-          this.discoveryInfoLink = `http://discoveryreadonly.${$scope.instance.region}.dyn${details.environment}.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
-      }
+        if (discoveryHealth) {
+          this.discoveryInfoLink = `http://discoveryreadonly.${$scope.instance.region}.dyn${
+            details.environment
+          }.netflix.net:7001/discovery/v2/apps/${discoveryHealth.application}/${$scope.instance.instanceId}`;
+        }
 
-      this.titusUiEndpoint = filter(details.regions, {name: region})[0].endpoint;
-      $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${$scope.instance.region} -id ${$scope.instance.id}'`;
+        this.titusUiEndpoint = filter(details.regions, { name: region })[0].endpoint;
+        $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh -region ${$scope.instance.region} -id ${
+          $scope.instance.id
+        }'`;
       });
     };
 
@@ -279,9 +292,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
       return Object.keys($scope.instance.resources.ports).length > 0;
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      app.serverGroups.ready().then(retrieveInstance);
+    let initialize = app.isStandalone ? retrieveInstance() : app.serverGroups.ready().then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -294,6 +305,4 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
     });
 
     $scope.account = instance.account;
-
-  }
-);
+  });

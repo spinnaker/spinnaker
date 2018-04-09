@@ -19,7 +19,6 @@ export interface IDataSourceEntryState {
 }
 
 export class DataSourceEntry extends React.Component<IDataSourceEntryProps, IDataSourceEntryState> {
-
   private runningCountSubscription: Subscription;
   private entityTagsSubscription: Subscription;
 
@@ -42,11 +41,11 @@ export class DataSourceEntry extends React.Component<IDataSourceEntryProps, IDat
     const { dataSource, application } = props;
     if (dataSource.badge && application.getDataSource(dataSource.badge)) {
       const badgeSource = application.getDataSource(dataSource.badge);
-      this.runningCountSubscription = badgeSource.refresh$
-        .subscribe(() => this.setState({ runningCount: badgeSource.data.length }));
+      this.runningCountSubscription = badgeSource.refresh$.subscribe(() =>
+        this.setState({ runningCount: badgeSource.data.length }),
+      );
     }
-    this.entityTagsSubscription = dataSource.refresh$
-      .subscribe(() => this.setState({ tags: dataSource.alerts }));
+    this.entityTagsSubscription = dataSource.refresh$.subscribe(() => this.setState({ tags: dataSource.alerts }));
   }
 
   private getState(props: IDataSourceEntryProps): IDataSourceEntryState {
@@ -71,10 +70,10 @@ export class DataSourceEntry extends React.Component<IDataSourceEntryProps, IDat
     const { tags, runningCount } = this.state;
     return (
       <>
-        {!hideIcon && <NavIcon icon={dataSource.icon}/>}
+        {!hideIcon && <NavIcon icon={dataSource.icon} />}
         {' ' + dataSource.label}
         {runningCount > 0 && <span className="badge badge-running-count">{runningCount}</span>}
-        <DataSourceNotifications tags={tags} application={application} tabName={dataSource.label}/>
+        <DataSourceNotifications tags={tags} application={application} tabName={dataSource.label} />
       </>
     );
   }

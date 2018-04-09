@@ -1,11 +1,11 @@
 import { module } from 'angular';
-import { IStage } from 'core/domain'
+import { IStage } from 'core/domain';
 import { isEmpty, get } from 'lodash';
 
 export type SupportedStage = 'stage';
 
 interface IWalker {
-  (refContainer: any): (string|number)[][];
+  (refContainer: any): (string | number)[][];
 }
 
 interface IReference {
@@ -27,7 +27,7 @@ export class ArtifactReferenceServiceProvider {
   public removeReferenceFromStages(reference: string, stages: IStage[]) {
     (stages || []).forEach(stage => {
       this.references.forEach(ref => {
-        const paths: (string|number)[][] = ref.walker(stage).filter(path => !isEmpty(path));
+        const paths: (string | number)[][] = ref.walker(stage).filter(path => !isEmpty(path));
         paths.map(p => p.slice(0)).forEach(path => {
           let tail = path.pop();
           let obj = stage;
@@ -53,5 +53,4 @@ export class ArtifactReferenceServiceProvider {
 }
 
 export const ARTIFACT_REFERENCE_SERVICE_PROVIDER = 'spinnaker.core.artifacts.referenceServiceProvider';
-module(ARTIFACT_REFERENCE_SERVICE_PROVIDER, [])
-  .provider('artifactReferenceService', ArtifactReferenceServiceProvider);
+module(ARTIFACT_REFERENCE_SERVICE_PROVIDER, []).provider('artifactReferenceService', ArtifactReferenceServiceProvider);

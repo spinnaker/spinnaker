@@ -5,11 +5,12 @@ import _ from 'lodash';
 
 import { LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSelectField.directive', [
-  LOAD_BALANCER_READ_SERVICE,
-  require('../common/selectField.component.js').name
-])
-  .directive('osLoadBalancerSelectField', function (loadBalancerReader) {
+module.exports = angular
+  .module('spinnaker.openstack.loadBalancer.loadBalancerSelectField.directive', [
+    LOAD_BALANCER_READ_SERVICE,
+    require('../common/selectField.component.js').name,
+  ])
+  .directive('osLoadBalancerSelectField', function(loadBalancerReader) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -24,7 +25,7 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSe
         onChange: '&',
         allowNoSelection: '=',
         noOptionsMessage: '@',
-        noSelectionMessage: '@'
+        noSelectionMessage: '@',
       },
       link: function(scope) {
         _.defaults(scope, {
@@ -39,8 +40,12 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSe
             return loadBalancerReader.listLoadBalancers('openstack').then(function(loadBalancers) {
               scope.options = _.chain(loadBalancers)
                 .filter(scope.filter || {})
-                .map(function(s) { return {label: s.name, value: s.id}; })
-                .sortBy(function(o) { return o.label; })
+                .map(function(s) {
+                  return { label: s.name, value: s.id };
+                })
+                .sortBy(function(o) {
+                  return o.label;
+                })
                 .value();
 
               return scope.options;
@@ -49,13 +54,19 @@ module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSe
 
           onValueChanged: function(newValue) {
             scope.model = newValue;
-            if( scope.onChange ) {
-              scope.onChange({loadBalancer: newValue});
+            if (scope.onChange) {
+              scope.onChange({ loadBalancer: newValue });
             }
-          }
+          },
         });
 
-        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); }, true);
-      }
+        scope.$watch(
+          'filter',
+          function() {
+            scope.$broadcast('updateOptions');
+          },
+          true,
+        );
+      },
     };
-});
+  });

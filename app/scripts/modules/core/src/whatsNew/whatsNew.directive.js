@@ -11,12 +11,8 @@ import { WHATS_NEW_READ_SERVICE } from './whatsNew.read.service';
 import './whatsNew.less';
 
 module.exports = angular
-  .module('spinnaker.core.whatsNew.directive', [
-    VIEW_STATE_CACHE_SERVICE,
-    WHATS_NEW_READ_SERVICE,
-    TIME_FORMATTERS,
-  ])
-  .directive('whatsNew', function (whatsNewReader, viewStateCache) {
+  .module('spinnaker.core.whatsNew.directive', [VIEW_STATE_CACHE_SERVICE, WHATS_NEW_READ_SERVICE, TIME_FORMATTERS])
+  .directive('whatsNew', function(whatsNewReader, viewStateCache) {
     return {
       restrict: 'E',
       replace: true,
@@ -54,7 +50,6 @@ module.exports = angular
         $scope.updatesUnread = function() {
           return $scope.fileLastUpdated && $scope.fileLastUpdated !== $scope.viewState.updateLastViewed;
         };
-
-      }
+      },
     };
   });

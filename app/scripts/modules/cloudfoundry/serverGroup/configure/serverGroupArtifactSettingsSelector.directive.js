@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.cf.artifactSettingsSelector', [
-])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.cf.artifactSettingsSelector', [])
   .directive('cfServerGroupArtifactSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.artifactSett
     };
   })
   .controller('cfServerGroupArtifactSettingsSelectorCtrl', function($scope) {
-
     if ($scope.command.repository === undefined) {
       $scope.command.repository = '';
     }
@@ -34,6 +33,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.artifactSett
     this.isS3 = function() {
       return $scope.command.repository.startsWith('s3://');
     };
-
-
-    });
+  });

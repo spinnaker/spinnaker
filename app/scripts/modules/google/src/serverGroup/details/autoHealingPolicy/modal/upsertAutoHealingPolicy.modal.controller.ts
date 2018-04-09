@@ -16,20 +16,25 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   public isNew: boolean;
   public submitButtonLabel: string;
 
-  constructor(private $uibModalInstance: IModalServiceInstance,
-              private application: Application,
-              public serverGroup: IGceServerGroup,
-              private gceHealthCheckReader: GceHealthCheckReader,
-              private taskMonitorBuilder: TaskMonitorBuilder,
-              private gceAutoscalingPolicyWriter: any) {
+  constructor(
+    private $uibModalInstance: IModalServiceInstance,
+    private application: Application,
+    public serverGroup: IGceServerGroup,
+    private gceHealthCheckReader: GceHealthCheckReader,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    private gceAutoscalingPolicyWriter: any,
+  ) {
     'ngInject';
     this.initialize();
   }
 
   public submit(): void {
     const submitMethod = () => {
-      return this.gceAutoscalingPolicyWriter
-        .upsertAutoHealingPolicy(this.application, this.serverGroup, this.autoHealingPolicy);
+      return this.gceAutoscalingPolicyWriter.upsertAutoHealingPolicy(
+        this.application,
+        this.serverGroup,
+        this.autoHealingPolicy,
+      );
     };
     this.taskMonitor.submit(submitMethod);
   }
@@ -43,13 +48,12 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   }
 
   public onHealthCheckRefresh(): void {
-    this.gceHealthCheckReader.listHealthChecks()
-      .then((healthChecks) => {
-        this.healthChecks = chain(healthChecks)
-          .filter({ account: this.serverGroup.account })
-          .map('name')
-          .value() as string[];
-      });
+    this.gceHealthCheckReader.listHealthChecks().then(healthChecks => {
+      this.healthChecks = chain(healthChecks)
+        .filter({ account: this.serverGroup.account })
+        .map('name')
+        .value() as string[];
+    });
   }
 
   private initialize(): void {

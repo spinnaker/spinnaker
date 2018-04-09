@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.configure.kubernetes.advancedSettings', [])
+module.exports = angular
+  .module('spinnaker.loadBalancer.configure.kubernetes.advancedSettings', [])
   .controller('kubernetesLoadBalancerAdvancedSettingsController', function($scope) {
     this.addExternalIp = function() {
       $scope.loadBalancer.externalIps.push({});

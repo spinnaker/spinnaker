@@ -36,16 +36,18 @@ export class UserVerification extends React.Component<IUserVerificationProps, IU
     const { label, expectedValue } = this.props;
     const { value, matches } = this.state;
     const className = `form-control input-sm highlight-pristine ${matches ? '' : 'ng-invalid'}`;
-    const defaultLabel =
-      <>Type the name of the account (<span className="verification-text">{expectedValue}</span>) to continue</>;
+    const defaultLabel = (
+      <>
+        Type the name of the account (<span className="verification-text">{expectedValue}</span>) to continue
+      </>
+    );
 
     return (
       <div className="row verification user-verification">
         <div className="col-sm-12">
           <div className="form-inline">
             <div className="form-group">
-              <div className="form-control-static">{label || defaultLabel}</div>
-              {' '}<HelpField id="user.verification"/>
+              <div className="form-control-static">{label || defaultLabel}</div> <HelpField id="user.verification" />
               <input type="text" className={className} value={value} onChange={this.handleChange} />
             </div>
           </div>

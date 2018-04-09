@@ -1,8 +1,18 @@
-import { IAttributes, IController, IDeferred, IDirective, INgModelController, IQService, IScope, module } from 'angular';
+import {
+  IAttributes,
+  IController,
+  IDeferred,
+  IDirective,
+  INgModelController,
+  IQService,
+  IScope,
+  module,
+} from 'angular';
 import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 import {
   APPLICATION_NAME_VALIDATOR,
-  ApplicationNameValidator, IApplicationNameValidationResult
+  ApplicationNameValidator,
+  IApplicationNameValidationResult,
 } from 'core/application/modal/validation/applicationName.validator';
 
 interface IValidateNameAttrs extends IAttributes {
@@ -16,7 +26,6 @@ interface IValidateNameAttrs extends IAttributes {
  */
 
 class ValidateApplicationNameController implements IController {
-
   public model: INgModelController;
   public cloudProviders: string[];
   public $attrs: IValidateNameAttrs;
@@ -27,20 +36,20 @@ class ValidateApplicationNameController implements IController {
   public initialize() {
     this.model.$asyncValidators['validateApplicationName'] = (value: string) => {
       const deferred: IDeferred<boolean> = this.$q.defer();
-      this.applicationNameValidator.validate(value, this.cloudProviders)
+      this.applicationNameValidator
+        .validate(value, this.cloudProviders)
         .then((result: IApplicationNameValidationResult) => {
           if (result.errors.length) {
             deferred.reject();
           } else {
             deferred.resolve();
           }
-      });
+        });
       return deferred.promise;
     };
     this.$scope.$watch(this.$attrs.cloudProviders, () => this.model.$validate());
   }
 }
-
 
 @DirectiveFactory('applicationNameValidator')
 class ValidateApplicationNameDirective implements IDirective {
@@ -63,5 +72,7 @@ class ValidateApplicationNameDirective implements IDirective {
 
 export const VALIDATE_APPLICATION_NAME = 'spinnaker.core.application.modal.validateApplicationName.component';
 
-module(VALIDATE_APPLICATION_NAME, [APPLICATION_NAME_VALIDATOR])
-  .directive('validateApplicationName', <any>ValidateApplicationNameDirective);
+module(VALIDATE_APPLICATION_NAME, [APPLICATION_NAME_VALIDATOR]).directive(
+  'validateApplicationName',
+  <any>ValidateApplicationNameDirective,
+);

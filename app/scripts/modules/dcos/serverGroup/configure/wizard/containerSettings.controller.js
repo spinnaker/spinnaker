@@ -3,10 +3,10 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.configure.containerSettings', [
-])
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.configure.containerSettings', [])
   .controller('dcosServerGroupContainerSettingsController', function($scope, dcosServerGroupConfigurationService) {
-    this.groupByRegistry = function (image) {
+    this.groupByRegistry = function(image) {
       if (image) {
         if (image.fromContext) {
           return 'Find Image Result(s)';
@@ -20,8 +20,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.containerS
 
     function searchImages(q) {
       return Observable.fromPromise(
-        dcosServerGroupConfigurationService
-          .configureCommand($scope.application, $scope.command, q)
+        dcosServerGroupConfigurationService.configureCommand($scope.application, $scope.command, q),
       );
     }
 
@@ -47,7 +46,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.containerS
 
       $scope.command.docker.parameters.push({
         key: '',
-        value: ''
+        value: '',
       });
     };
 

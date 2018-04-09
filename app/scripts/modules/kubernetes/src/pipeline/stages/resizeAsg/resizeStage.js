@@ -6,9 +6,8 @@ import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
 import './resizeStage.less';
 
-module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.resizeStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.kubernetes.pipeline.stage.resizeStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
@@ -19,27 +18,28 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.resizeStage
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'action' },
         { type: 'requiredField', fieldName: 'namespaces' },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('kubernetesResizeStageController', function($scope, accountService) {
-
+  })
+  .controller('kubernetesResizeStageController', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
-      namespacesLoaded: false
+      namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function (accounts) {
+    accountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -53,26 +53,26 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.resizeStage
       },
       {
         label: 'Scale Down',
-        val: 'scale_down'
+        val: 'scale_down',
       },
       {
         label: 'Scale to Cluster Size',
-        val: 'scale_to_cluster'
+        val: 'scale_to_cluster',
       },
       {
         label: 'Scale to Exact Size',
-        val: 'scale_exact'
+        val: 'scale_exact',
       },
     ];
 
     $scope.resizeTypes = [
       {
         label: 'Percentage',
-        val: 'pct'
+        val: 'pct',
       },
       {
         label: 'Incremental',
-        val: 'incr'
+        val: 'incr',
       },
     ];
 
@@ -110,4 +110,3 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.resizeStage
       }
     };
   });
-

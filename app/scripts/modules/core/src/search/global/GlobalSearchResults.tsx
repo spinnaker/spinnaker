@@ -23,7 +23,7 @@ export const GlobalSearchResults = ({
   onResultClick,
   onSeeMoreClick,
   resultRef,
-  seeMoreRef
+  seeMoreRef,
 }: IGlobalSearchResultsProps) => {
   const { searchVersion } = SETTINGS;
 
@@ -39,7 +39,7 @@ export const GlobalSearchResults = ({
 
   return (
     <ul className="dropdown-menu" role="menu">
-      {categories.map((category, categoryIndex) => ([
+      {categories.map((category, categoryIndex) => [
         <li key={category.type.id} className="category-heading">
           <div className="category-heading">{category.type.displayName}</div>
         </li>,
@@ -48,15 +48,15 @@ export const GlobalSearchResults = ({
             <a
               onKeyDown={onItemKeyDown}
               onClick={() => onResultClick(result)}
-              ref={(ref) => resultRef(categoryIndex, index, ref)}
+              ref={ref => resultRef(categoryIndex, index, ref)}
               // TODO: probably worth moving these (and the href for 'see more results') over to a UISRef at some point
               href={result.href}
             >
               <SearchResult displayName={result.displayName} account={(result as any).account} />
             </a>
           </li>
-        ))
-      ]))}
+        )),
+      ])}
       <li key="divider" className="divider" />
       <li key="seeMore" className="result">
         <UISref
@@ -64,16 +64,11 @@ export const GlobalSearchResults = ({
           // TODO: Setup route redirects to where this is unnecessary
           params={searchVersion === 2 ? { key: query } : { q: query }}
         >
-          <a
-            className="expand-results"
-            ref={seeMoreRef}
-            onKeyDown={onItemKeyDown}
-            onClick={onSeeMoreClick}
-          >
+          <a className="expand-results" ref={seeMoreRef} onKeyDown={onItemKeyDown} onClick={onSeeMoreClick}>
             See more results
           </a>
         </UISref>
       </li>
     </ul>
   );
-}
+};

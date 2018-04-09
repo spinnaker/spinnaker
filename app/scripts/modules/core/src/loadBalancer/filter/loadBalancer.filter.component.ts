@@ -29,12 +29,13 @@ class LoadBalancerFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(private $scope: IScope,
-              private loadBalancerFilterService: any,
-              private loadBalancerFilterModel: LoadBalancerFilterModel,
-              private $rootScope: IScope,
-              private loadBalancerDependentFilterHelper: any,
-              private dependentFilterService: any,
+  constructor(
+    private $scope: IScope,
+    private loadBalancerFilterService: any,
+    private loadBalancerFilterModel: LoadBalancerFilterModel,
+    private $rootScope: IScope,
+    private loadBalancerDependentFilterHelper: any,
+    private dependentFilterService: any,
   ) {
     'ngInject';
     this.sortFilter = loadBalancerFilterModel.asFilterModel.sortFilter;
@@ -45,11 +46,10 @@ class LoadBalancerFilterCtrl {
     const filterModel = loadBalancerFilterModel.asFilterModel;
 
     this.tags = filterModel.tags;
-    this.groupsUpdatedSubscription = loadBalancerFilterService.groupsUpdatedStream
-      .subscribe(() => {
-        // need to applyAsync because everything else is happening in React now; will replicate when converting clusters, etc.
-        $scope.$applyAsync(() => this.tags = filterModel.tags);
-      });
+    this.groupsUpdatedSubscription = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => {
+      // need to applyAsync because everything else is happening in React now; will replicate when converting clusters, etc.
+      $scope.$applyAsync(() => (this.tags = filterModel.tags));
+    });
 
     if (app.loadBalancers && app.loadBalancers.loaded) {
       this.initialize();
@@ -66,16 +66,21 @@ class LoadBalancerFilterCtrl {
       this.groupsUpdatedSubscription.unsubscribe();
       this.locationChangeUnsubscribe();
     });
-
   }
 
   public updateLoadBalancerGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, loadBalancerFilterModel, loadBalancerFilterService, loadBalancerDependentFilterHelper, app } = this;
+    const {
+      dependentFilterService,
+      loadBalancerFilterModel,
+      loadBalancerFilterService,
+      loadBalancerDependentFilterHelper,
+      app,
+    } = this;
 
     const { availabilityZone, region, account } = dependentFilterService.digestDependentFilters({
       sortFilter: loadBalancerFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone'],
-      pool: loadBalancerDependentFilterHelper.poolBuilder(app.loadBalancers.data)
+      pool: loadBalancerDependentFilterHelper.poolBuilder(app.loadBalancers.data),
     });
 
     this.accountHeadings = account;
@@ -112,7 +117,6 @@ ngmodule.component('loadBalancerFilter', {
   templateUrl: require('./loadBalancer.filter.component.html'),
   controller: LoadBalancerFilterCtrl,
   bindings: {
-    app: '<'
-  }
+    app: '<',
+  },
 });
-

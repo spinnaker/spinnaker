@@ -21,7 +21,6 @@ interface IPipelineSelectorCommand {
 }
 
 class PipelineSelectorController implements IController {
-
   public command: IPipelineSelectorCommand;
   public state: IPipelineSelectorState = {
     pipelinesLoaded: false,
@@ -38,7 +37,7 @@ class PipelineSelectorController implements IController {
   }
 
   public $onInit() {
-    this.applicationReader.listApplications().then((applications) => {
+    this.applicationReader.listApplications().then(applications => {
       this.state.applications = applications.map(a => a.name).sort();
       this.initializePipelines();
     });
@@ -50,7 +49,7 @@ class PipelineSelectorController implements IController {
 
   public initializePipelines(): void {
     if (this.command.application) {
-      this.pipelineConfigService.getPipelinesForApplication(this.command.application).then((pipelines) => {
+      this.pipelineConfigService.getPipelinesForApplication(this.command.application).then(pipelines => {
         this.state.pipelines = pipelines;
         if (pipelines.every(p => p.id !== this.command.pipelineId)) {
           this.command.pipelineId = null;
@@ -118,7 +117,7 @@ const pipelineSelectorComponent: IComponentOptions = {
 };
 
 export const PIPELINE_SELECTOR_COMPONENT = 'spinnaker.core.deploymentStrategy.rollingredblack.pipelineSelector';
-module(PIPELINE_SELECTOR_COMPONENT, [
-  APPLICATION_READ_SERVICE,
-  PIPELINE_CONFIG_SERVICE,
-]).component('pipelineSelector', pipelineSelectorComponent);
+module(PIPELINE_SELECTOR_COMPONENT, [APPLICATION_READ_SERVICE, PIPELINE_CONFIG_SERVICE]).component(
+  'pipelineSelector',
+  pipelineSelectorComponent,
+);

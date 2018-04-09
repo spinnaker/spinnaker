@@ -5,28 +5,46 @@ import _ from 'lodash';
 
 import { TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscaling.process.controller', [
-  TASK_MONITOR_BUILDER,
-  TASK_EXECUTOR,
-  ])
-  .controller('ModifyScalingProcessesCtrl', function($scope, $uibModalInstance, taskMonitorBuilder, taskExecutor, application, serverGroup, processes) {
+module.exports = angular
+  .module('spinnaker.amazon.serverGroup.details.autoscaling.process.controller', [TASK_MONITOR_BUILDER, TASK_EXECUTOR])
+  .controller('ModifyScalingProcessesCtrl', function(
+    $scope,
+    $uibModalInstance,
+    taskMonitorBuilder,
+    taskExecutor,
+    application,
+    serverGroup,
+    processes,
+  ) {
     $scope.command = angular.copy(processes);
     $scope.serverGroup = serverGroup;
     $scope.verification = {};
 
-    this.isValid = function () {
+    this.isValid = function() {
       if (!$scope.verification.verified) {
         return false;
       }
       return this.isDirty();
     };
 
-    var currentlyEnabled = _.chain($scope.command).filter({enabled: true}).map('name').value(),
-        currentlySuspended = _.chain($scope.command).filter({enabled: false}).map('name').value();
+    var currentlyEnabled = _.chain($scope.command)
+        .filter({ enabled: true })
+        .map('name')
+        .value(),
+      currentlySuspended = _.chain($scope.command)
+        .filter({ enabled: false })
+        .map('name')
+        .value();
 
-    this.isDirty = function () {
-      var enabledSelections = _.chain($scope.command).filter({enabled: true}).map('name').value(),
-        suspendedSelections = _.chain($scope.command).filter({enabled: false}).map('name').value(),
+    this.isDirty = function() {
+      var enabledSelections = _.chain($scope.command)
+          .filter({ enabled: true })
+          .map('name')
+          .value(),
+        suspendedSelections = _.chain($scope.command)
+          .filter({ enabled: false })
+          .map('name')
+          .value(),
         toEnable = _.intersection(currentlySuspended, enabledSelections),
         toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
@@ -40,11 +58,17 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscalin
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 
-    this.submit = function () {
-      var enabledSelections = _.chain($scope.command).filter({enabled: true}).map('name').value(),
-          suspendedSelections = _.chain($scope.command).filter({enabled: false}).map('name').value(),
-          toEnable = _.intersection(currentlySuspended, enabledSelections),
-          toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
+    this.submit = function() {
+      var enabledSelections = _.chain($scope.command)
+          .filter({ enabled: true })
+          .map('name')
+          .value(),
+        suspendedSelections = _.chain($scope.command)
+          .filter({ enabled: false })
+          .map('name')
+          .value(),
+        toEnable = _.intersection(currentlySuspended, enabledSelections),
+        toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
       var job = [];
       if (toEnable.length) {
@@ -76,7 +100,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscalin
         return taskExecutor.executeTask({
           job: job,
           application: application,
-          description: 'Update Auto Scaling Processes for ' + serverGroup.name
+          description: 'Update Auto Scaling Processes for ' + serverGroup.name,
         });
       };
 

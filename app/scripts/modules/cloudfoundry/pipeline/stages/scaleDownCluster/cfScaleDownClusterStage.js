@@ -4,25 +4,29 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.cf.pipeline.stage.scaleDownClusterStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.cf.pipeline.stage.scaleDownClusterStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'scaleDownCluster',
       cloudProvider: 'cf',
       templateUrl: require('./scaleDownClusterStage.html'),
-      accountExtractor: (stage) => [stage.context.credentials],
-      configAccountExtractor: (stage) => [stage.credentials],
+      accountExtractor: stage => [stage.context.credentials],
+      configAccountExtractor: stage => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        {
+          type: 'requiredField',
+          fieldName: 'remainingFullSizeServerGroups',
+          fieldLabel: 'Keep [X] full size Server Groups',
+        },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
       strategy: true,
     });
-  }).controller('cfScaleDownClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('cfScaleDownClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -31,12 +35,12 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.scaleDownClusterSta
       accounts: false,
     };
 
-    accountService.listAccounts('cf').then(function (accounts) {
+    accountService.listAccounts('cf').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
 
-    $scope.regions = {'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c']};
+    $scope.regions = { 'us-central1': ['us-central1-a', 'us-central1-b', 'us-central1-c'] };
 
     ctrl.accountUpdated = function() {
       accountService.getAccountDetails(stage.credentials).then(function(details) {
@@ -77,4 +81,3 @@ module.exports = angular.module('spinnaker.cf.pipeline.stage.scaleDownClusterSta
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

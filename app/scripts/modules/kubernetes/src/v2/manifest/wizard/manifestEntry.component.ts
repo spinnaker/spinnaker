@@ -27,5 +27,4 @@ class KubernetesManifestEntryComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_ENTRY = 'spinnaker.kubernetes.v2.kubernetes.manifest.entry.component';
-module(KUBERNETES_MANIFEST_ENTRY, [])
-  .component('kubernetesManifestEntry', new KubernetesManifestEntryComponent());
+module(KUBERNETES_MANIFEST_ENTRY, []).component('kubernetesManifestEntry', new KubernetesManifestEntryComponent());

@@ -2,7 +2,6 @@ import { IController, IComponentOptions, module } from 'angular';
 import { IJsonDiff } from 'core/utils/json/json.utility.service';
 
 class DiffViewController implements IController {
-
   public diff: IJsonDiff;
 
   public scrollBody(e: MouseEvent): void {
@@ -20,7 +19,7 @@ class DiffViewController implements IController {
 
 export const diffViewComponent: IComponentOptions = {
   bindings: {
-    diff: '<'
+    diff: '<',
   },
   controller: DiffViewController,
   template: `
@@ -35,7 +34,7 @@ export const diffViewComponent: IComponentOptions = {
              class="delta {{block.type}}">
         </div>
       </div>
-`
+`,
 };
 
 export const DIFF_VIEW_COMPONENT = 'spinnaker.core.pipeline.config.diffView.component';

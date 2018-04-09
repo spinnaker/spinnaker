@@ -9,22 +9,22 @@ import { FindArtifactFromExecutionExecutionDetails } from 'core/pipeline/config/
 
 export const FIND_ARTIFACT_FROM_EXECUTION_STAGE = 'spinnaker.core.pipeline.stage.findArtifactStage';
 
-module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
-  if (SETTINGS.feature.artifacts) {
-    pipelineConfigProvider.registerStage({
-      label: 'Find Artifact From Execution',
-      description: 'Find and bind an artifact from another execution',
-      key: 'findArtifactFromExecution',
-      templateUrl: require('./findArtifactFromExecutionConfig.html'),
-      controller: 'findArtifactFromExecutionCtrl',
-      controllerAs: 'ctrl',
-      executionDetailsSections: [FindArtifactFromExecutionExecutionDetails, ExecutionDetailsTasks],
-      validators: [
-        { type: 'requiredField', fieldName: 'pipeline', fieldLabel: 'Pipeline' },
-        { type: 'requiredField', fieldName: 'application', fieldLabel: 'Application' },
-      ],
-    });
-  }
-}).controller('findArtifactFromExecutionCtrl', FindArtifactFromExecutionCtrl);
+module(FIND_ARTIFACT_FROM_EXECUTION_STAGE, [PIPELINE_CONFIG_PROVIDER])
+  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+    if (SETTINGS.feature.artifacts) {
+      pipelineConfigProvider.registerStage({
+        label: 'Find Artifact From Execution',
+        description: 'Find and bind an artifact from another execution',
+        key: 'findArtifactFromExecution',
+        templateUrl: require('./findArtifactFromExecutionConfig.html'),
+        controller: 'findArtifactFromExecutionCtrl',
+        controllerAs: 'ctrl',
+        executionDetailsSections: [FindArtifactFromExecutionExecutionDetails, ExecutionDetailsTasks],
+        validators: [
+          { type: 'requiredField', fieldName: 'pipeline', fieldLabel: 'Pipeline' },
+          { type: 'requiredField', fieldName: 'application', fieldLabel: 'Application' },
+        ],
+      });
+    }
+  })
+  .controller('findArtifactFromExecutionCtrl', FindArtifactFromExecutionCtrl);

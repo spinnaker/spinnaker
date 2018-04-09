@@ -6,9 +6,7 @@ import { PipelineConfigProvider } from 'core/pipeline';
 import { isNil } from 'lodash';
 
 export const DEFAULT_DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultDocker';
-module(DEFAULT_DOCKER_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(DEFAULT_DOCKER_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'Docker',
     isDefault: true,
@@ -59,4 +57,3 @@ module(DEFAULT_DOCKER_ARTIFACT, [
 `,
   });
 });
-

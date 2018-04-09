@@ -16,7 +16,7 @@ export function FindAmiExecutionDetails(props: IExecutionDetailsSectionProps) {
           <dl className="dl-narrow dl-horizontal">
             <dt>Account</dt>
             <dd>
-              <AccountTag account={stage.context.credentials}/>
+              <AccountTag account={stage.context.credentials} />
             </dd>
             {regions && <dt>Regions</dt>}
             {regions && <dd>{regions}</dd>}
@@ -33,7 +33,7 @@ export function FindAmiExecutionDetails(props: IExecutionDetailsSectionProps) {
           <div className="col-md-12">
             <div className="well alert alert-info">
               <h4>Results</h4>
-              { stage.context.amiDetails.map((image: IFindAmiStageContext) => (
+              {stage.context.amiDetails.map((image: IFindAmiStageContext) => (
                 <dl key={image.imageId} className="dl-narrow dl-horizontal">
                   {image.region && <dt>Region</dt>}
                   {image.region && <dd>{image.region}</dd>}
@@ -49,7 +49,7 @@ export function FindAmiExecutionDetails(props: IExecutionDetailsSectionProps) {
       )}
     </ExecutionDetailsSection>
   );
-};
+}
 
 export namespace FindAmiExecutionDetails {
   export const title = 'findImageConfig';

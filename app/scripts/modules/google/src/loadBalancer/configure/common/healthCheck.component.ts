@@ -17,8 +17,9 @@ class HealthCheckCreateCtrl implements IController {
   public $onInit(): void {
     if (this.healthCheck.name) {
       this.healthCheckPlaceholder = this.healthCheck;
-      this.existingHealthChecksForProtocol =
-        this.healthChecksByAccountAndType[this.credentials][this.healthCheck.healthCheckType];
+      this.existingHealthChecksForProtocol = this.healthChecksByAccountAndType[this.credentials][
+        this.healthCheck.healthCheckType
+      ];
       this.editExisting = true;
     } else {
       this.existingHealthChecksForProtocol = this.healthChecksByAccountAndType[this.credentials]['TCP'];
@@ -35,9 +36,12 @@ class HealthCheckCreateCtrl implements IController {
 
   public setExistingHealthChecksForProtocol() {
     this.existingHealthChecksForProtocol =
-      get<{}, IGceHealthCheck[]>(this, ['healthChecksByAccountAndType', this.credentials, this.healthCheck.healthCheckType]) || [];
+      get<{}, IGceHealthCheck[]>(
+        this,
+        ['healthChecksByAccountAndType', this.credentials, this.healthCheck.healthCheckType],
+      ) || [];
 
-    if (!this.existingHealthChecksForProtocol.find((healthCheck) => healthCheck.name === this.healthCheck.name)) {
+    if (!this.existingHealthChecksForProtocol.find(healthCheck => healthCheck.name === this.healthCheck.name)) {
       delete this.healthCheck.name;
       delete this.healthCheckPlaceholder;
     }
@@ -71,6 +75,4 @@ class HealthCheckCreateComponent implements ng.IComponentOptions {
 
 export const GCE_HEALTH_CHECK_SELECTOR_COMPONENT = 'spinnaker.gce.healthCheckSelector.component';
 
-module(GCE_HEALTH_CHECK_SELECTOR_COMPONENT, [])
-  .component('gceHealthCheckSelector', new HealthCheckCreateComponent());
-
+module(GCE_HEALTH_CHECK_SELECTOR_COMPONENT, []).component('gceHealthCheckSelector', new HealthCheckCreateComponent());

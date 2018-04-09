@@ -2,14 +2,10 @@
 
 const angular = require('angular');
 
-import {
-  ACCOUNT_SERVICE,
-  StageConstants
-} from '@spinnaker/core';
+import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -19,23 +15,24 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.disableAsgS
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('oraclebmcsDisableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('oraclebmcsDisableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     const provider = 'oraclebmcs';
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
     accountService.listAccounts(provider).then(accounts => {

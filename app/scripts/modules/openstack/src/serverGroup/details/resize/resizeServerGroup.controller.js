@@ -4,25 +4,28 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.controller', [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-])
-  .controller('openstackResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorBuilder,
-                                                         application, serverGroup) {
-
+module.exports = angular
+  .module('spinnaker.openstack.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .controller('openstackResizeServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    serverGroupWriter,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+  ) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
       min: serverGroup.scalingConfig.minSize,
       max: serverGroup.scalingConfig.maxSize,
-      desired: serverGroup.scalingConfig.desiredSize
+      desired: serverGroup.scalingConfig.desiredSize,
     };
 
     $scope.verification = {};
 
     $scope.command = {
       capacity: angular.copy($scope.currentSize),
-      advancedMode: serverGroup.scalingConfig.min !== serverGroup.scalingConfig.max
+      advancedMode: serverGroup.scalingConfig.min !== serverGroup.scalingConfig.max,
     };
 
     if (application && application.attributes) {
@@ -33,14 +36,16 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       var command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
       }
-      return command.advancedMode ?
-        command.capacity.min <= command.capacity.max && command.capacity.desired >= command.capacity.min && command.capacity.desired <= command.capacity.max :
-        command.capacity.desired !== null;
+      return command.advancedMode
+        ? command.capacity.min <= command.capacity.max &&
+            command.capacity.desired >= command.capacity.min &&
+            command.capacity.desired <= command.capacity.max
+        : command.capacity.desired !== null;
     };
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
@@ -50,7 +55,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 
-    this.resize = function () {
+    this.resize = function() {
       if (!this.isValid()) {
         return;
       }
@@ -73,7 +78,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

@@ -23,7 +23,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
   constructor(props: ISkipWaitProps) {
     super(props);
     this.state = {
-      remainingWait: null
+      remainingWait: null,
     };
   }
 
@@ -36,7 +36,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const stage = this.props.stage;
     const matcher = (execution: IExecution) => {
-      const match = execution.stages.find((test) => test.id === stage.id);
+      const match = execution.stages.find(test => test.id === stage.id);
       return match.status !== 'RUNNING';
     };
 
@@ -46,9 +46,10 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
       buttonText: 'Skip',
       body: stage.context.skipWaitText || DEFAULT_SKIP_WAIT_TEXT,
       submitMethod: () => {
-        return executionService.patchExecution(this.props.execution.id, stage.id, data)
+        return executionService
+          .patchExecution(this.props.execution.id, stage.id, data)
           .then(() => executionService.waitUntilExecutionMatches(this.props.execution.id, matcher));
-      }
+      },
     });
   };
 
@@ -71,11 +72,9 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
         <div>
           <b>Wait time: </b>
           {stage.context.waitTime} seconds
-          { stage.context.skipRemainingWait && (
-            <span>(skipped after {duration(stage.runningTimeInMs)})</span>
-          )}
+          {stage.context.skipRemainingWait && <span>(skipped after {duration(stage.runningTimeInMs)})</span>}
         </div>
-        { stage.isRunning && (
+        {stage.isRunning && (
           <div>
             <div>
               <b>Remaining: </b>
@@ -83,14 +82,13 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
             </div>
             <div className="action-buttons">
               <button className="btn btn-xs btn-primary" onClick={this.skipRemainingWait}>
-                <span style={{ marginRight: '5px' }} className="small glyphicon glyphicon-fast-forward"/>
+                <span style={{ marginRight: '5px' }} className="small glyphicon glyphicon-fast-forward" />
                 Skip remaining wait
               </button>
             </div>
           </div>
         )}
       </div>
-    )
+    );
   }
 }
-

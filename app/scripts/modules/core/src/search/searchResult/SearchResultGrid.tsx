@@ -12,7 +12,7 @@ export interface ISearchResultGridProps {
 
 export const Searching = () => (
   <div className="flex-grow vertical center middle">
-    <Spinner size="large" message="Fetching search results ..."/>
+    <Spinner size="large" message="Fetching search results ..." />
   </div>
 );
 
@@ -29,11 +29,11 @@ const Results = ({ resultSet }: { resultSet: ISearchResultSet }) => {
   return (
     <div className="search-result-grid flex-fill" style={{ height: 'initial' }}>
       <div className={`table table-search-results table-search-results-${kebabCase(type.id)}`}>
-        <HeaderComponent resultSet={resultSet}/>
-        <DataComponent resultSet={resultSet}/>
+        <HeaderComponent resultSet={resultSet} />
+        <DataComponent resultSet={resultSet} />
       </div>
     </div>
-  )
+  );
 };
 
 const FetchError = ({ resultSet }: { resultSet: ISearchResultSet }) => (
@@ -45,7 +45,7 @@ const FetchError = ({ resultSet }: { resultSet: ISearchResultSet }) => (
 
 export class SearchResultGrid extends React.Component<ISearchResultGridProps> {
   public render(): React.ReactElement<SearchResultGrid> {
-    const resultSet = this.props.resultSet || {} as ISearchResultSet;
+    const resultSet = this.props.resultSet || ({} as ISearchResultSet);
     const { status, results } = resultSet;
 
     switch (status) {
@@ -54,17 +54,17 @@ export class SearchResultGrid extends React.Component<ISearchResultGridProps> {
         return null;
 
       case SearchStatus.ERROR:
-        return <FetchError resultSet={resultSet}/>;
+        return <FetchError resultSet={resultSet} />;
 
       case SearchStatus.SEARCHING:
-        return <Searching/>;
+        return <Searching />;
 
       case SearchStatus.FINISHED:
         if (!results.length) {
-          return <NoResults resultSet={resultSet}/>;
+          return <NoResults resultSet={resultSet} />;
         }
 
-        return <Results resultSet={resultSet}/>;
+        return <Results resultSet={resultSet} />;
       default:
         return null;
     }

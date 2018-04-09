@@ -3,8 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.health.stagePlatformHealthOverride.directive', [
-  ])
+  .module('spinnaker.core.pipeline.config.health.stagePlatformHealthOverride.directive', [])
   .directive('stagePlatformHealthOverride', function() {
     return {
       restrict: 'E',

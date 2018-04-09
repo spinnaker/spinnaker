@@ -2,11 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.serverGroup.configure.instanceArchetype.controller', [
-
-])
+module.exports = angular
+  .module('spinnaker.azure.serverGroup.configure.instanceArchetype.controller', [])
   .controller('azureInstanceArchetypeCtrl', function($scope, instanceTypeService, modalWizardService) {
-
     var wizard = modalWizardService.getWizard();
 
     $scope.$watch('command.viewState.instanceProfile', function() {
@@ -25,5 +23,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.instanceA
         wizard.markComplete('instance-profile');
       }
     });
-
   });

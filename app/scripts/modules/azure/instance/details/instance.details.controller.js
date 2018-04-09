@@ -9,22 +9,32 @@ import {
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
   InstanceTemplates,
-  RECENT_HISTORY_SERVICE
+  RECENT_HISTORY_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('azureInstanceDetailsCtrl', function ($scope, $state, $uibModal,
-                                                    instanceWriter, confirmationModalService, recentHistoryService,
-                                                    cloudProviderRegistry, instanceReader, instance, app, $q) {
-
+module.exports = angular
+  .module('spinnaker.azure.instance.detail.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('azureInstanceDetailsCtrl', function(
+    $scope,
+    $state,
+    $uibModal,
+    instanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+    $q,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('azure', 'instance.detailsTemplateUrl');
 
@@ -40,15 +50,13 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(
-        function(metric) {
-          return metric.type !== 'Azure' || metric.state !== 'Unknown';
-        }
-      );
+      var displayableMetrics = instance.health.filter(function(metric) {
+        return metric.type !== 'Azure' || metric.state !== 'Unknown';
+      });
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function (metric) {
-          var detailsMatch = latest.health.filter(function (latestHealth) {
+        displayableMetrics.forEach(function(metric) {
+          var detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -69,8 +77,8 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.data.some(function (serverGroup) {
-          return serverGroup.instances.some(function (possibleInstance) {
+        app.serverGroups.data.some(function(serverGroup) {
+          return serverGroup.instances.some(function(possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -85,8 +93,8 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another app
-          app.loadBalancers.data.some(function (loadBalancer) {
-            return loadBalancer.instances.some(function (possibleInstance) {
+          app.loadBalancers.data.some(function(loadBalancer) {
+            return loadBalancer.instances.some(function(possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = [loadBalancer.name];
@@ -124,27 +132,31 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         extraData.account = account;
         extraData.region = region;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
-        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
-          $scope.state.loading = false;
-          extractHealthMetrics(instanceSummary, details);
-          $scope.instance = _.defaults(details, instanceSummary);
-          $scope.instance.account = account;
-          $scope.instance.region = region;
-          $scope.instance.vpcId = vpcId;
-          $scope.instance.loadBalancers = loadBalancers;
-          var discoveryMetric = _.find($scope.healthMetrics, function(metric) { return metric.type === 'Discovery'; });
-          if( discoveryMetric && discoveryMetric.vipAddress) {
-            var vipList = discoveryMetric.vipAddress;
-            $scope.instance.vipAddress = vipList.includes(',') ? vipList.split(',') : [vipList];
-          }
-          $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
-        },
-        function() {
-          // When an instance is first starting up, we may not have the details cached in oort yet, but we still
-          // want to let the user see what details we have
-          $scope.state.loading = false;
-          $state.go('^');
-        });
+        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(
+          function(details) {
+            $scope.state.loading = false;
+            extractHealthMetrics(instanceSummary, details);
+            $scope.instance = _.defaults(details, instanceSummary);
+            $scope.instance.account = account;
+            $scope.instance.region = region;
+            $scope.instance.vpcId = vpcId;
+            $scope.instance.loadBalancers = loadBalancers;
+            var discoveryMetric = _.find($scope.healthMetrics, function(metric) {
+              return metric.type === 'Discovery';
+            });
+            if (discoveryMetric && discoveryMetric.vipAddress) {
+              var vipList = discoveryMetric.vipAddress;
+              $scope.instance.vipAddress = vipList.includes(',') ? vipList.split(',') : [vipList];
+            }
+            $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
+          },
+          function() {
+            // When an instance is first starting up, we may not have the details cached in oort yet, but we still
+            // want to let the user see what details we have
+            $scope.state.loading = false;
+            $state.go('^');
+          },
+        );
       }
 
       if (!instanceSummary) {
@@ -190,13 +202,13 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.terminateInstance(instance, app);
       };
 
@@ -206,7 +218,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         account: instance.account,
         provider: 'azure',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -217,13 +229,13 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
@@ -233,7 +245,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         account: instance.account,
         provider: 'azure',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -242,10 +254,10 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Rebooting ' + instance.instanceId
+        title: 'Rebooting ' + instance.instanceId,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.rebootInstance(instance, app);
       };
 
@@ -255,7 +267,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         account: instance.account,
         provider: 'azure',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -265,10 +277,10 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames
+        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
@@ -277,7 +289,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -287,10 +299,10 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames
+        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
@@ -300,7 +312,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         provider: 'azure',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -309,10 +321,10 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Enabling ' + instance.instanceId + ' in discovery'
+        title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -321,7 +333,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -330,10 +342,10 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + instance.instanceId + ' in discovery'
+        title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -343,32 +355,33 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
         provider: 'azure',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
-    this.showConsoleOutput = function () {
+    this.showConsoleOutput = function() {
       $uibModal.open({
         templateUrl: InstanceTemplates.consoleOutputModal,
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',
         resolve: {
-          instance: function() { return $scope.instance; },
-        }
+          instance: function() {
+            return $scope.instance;
+          },
+        },
       });
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance;
-      return (instance.health.some(function (health) {
+      return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+    let initialize = app.isStandalone
+      ? retrieveInstance()
+      : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -381,6 +394,4 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
     });
 
     $scope.account = instance.account;
-
-  }
-);
+  });

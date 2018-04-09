@@ -33,8 +33,11 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
 
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
-  private INITIAL_RESULTS: ISearchResultSet[] =
-    this.searchResultTypes.map(type => ({ type, status: SearchStatus.SEARCHING, results: [] }));
+  private INITIAL_RESULTS: ISearchResultSet[] = this.searchResultTypes.map(type => ({
+    type,
+    status: SearchStatus.SEARCHING,
+    results: [],
+  }));
 
   private destroy$ = new Subject();
 
@@ -56,10 +59,9 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   // returns parameter values that are OK to send through to the back end search API as filters
   private getApiFilterParams(params: IQueryParams): IQueryParams {
     const isValidApiParam = (val: any, key: string) => {
-      return API_PARAMS.includes(key) &&
-        val !== null &&
-        val !== undefined &&
-        !(typeof val === 'string' && val.trim() === '');
+      return (
+        API_PARAMS.includes(key) && val !== null && val !== undefined && !(typeof val === 'string' && val.trim() === '')
+      );
     };
 
     return pickBy(params, isValidApiParam);
@@ -80,21 +82,26 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
 
         // Start fetching results for each search type from the search service.
         // Update the overall results with the results for each search type.
-        return this.infrastructureSearchServiceV2.search(Object.assign({}, params))
+        return this.infrastructureSearchServiceV2
+          .search(Object.assign({}, params))
           .scan((acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
             const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
             resultSet = { ...resultSet, status };
             // Replace the result set placeholder with the results for this type
             return acc.filter(set => set.type !== resultSet.type).concat(resultSet);
-          }, this.INITIAL_RESULTS)
+          }, this.INITIAL_RESULTS);
       })
       .takeUntil(this.destroy$)
-      .subscribe(resultSets => {
-        if (!this.state.selectedTab) {
-          this.selectTab(resultSets);
-        }
-        this.setState({ resultSets })
-      }, null, () => this.setState({ isSearching: false }));
+      .subscribe(
+        resultSets => {
+          if (!this.state.selectedTab) {
+            this.selectTab(resultSets);
+          }
+          this.setState({ resultSets });
+        },
+        null,
+        () => this.setState({ isSearching: false }),
+      );
 
     this.$uiRouter.globals.params$
       .map(params => params.tab)
@@ -106,16 +113,19 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   /** Select the first tab with results */
   private selectTab(resultSets: ISearchResultSet[]): void {
     // Prioritize applications tab over all others
-    const order = (rs: ISearchResultSet) => rs.type.id === 'applications' ? -1 : rs.type.order;
+    const order = (rs: ISearchResultSet) => (rs.type.id === 'applications' ? -1 : rs.type.order);
     const tabs = resultSets.slice().sort((a, b) => order(a) - order(b));
 
     // Scan all tabs in order.  Find the first tab that has results.  Stop scanning when a tab with unfinished results is encountered.
-    const found = tabs.reduce((previous, tab) => {
-      const resultAlreadyFound = previous.tabId || previous.unfinished;
-      const unfinished = tab.status !== SearchStatus.FINISHED;
-      const tabId = tab.results.length ? tab.type.id : null;
-      return resultAlreadyFound ? previous : { ...previous, unfinished, tabId };
-    }, { tabId: null, unfinished: false });
+    const found = tabs.reduce(
+      (previous, tab) => {
+        const resultAlreadyFound = previous.tabId || previous.unfinished;
+        const unfinished = tab.status !== SearchStatus.FINISHED;
+        const tabId = tab.results.length ? tab.type.id : null;
+        return resultAlreadyFound ? previous : { ...previous, unfinished, tabId };
+      },
+      { tabId: null, unfinished: false },
+    );
 
     if (found.tabId) {
       this.$state.go('.', { tab: found.tabId });
@@ -126,10 +136,9 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     this.destroy$.next();
   }
 
-
   public handleFilterChange(filters: ITag[]) {
     const blankApiParams = API_PARAMS.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
-    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]:  filter.text }), blankApiParams);
+    const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]: filter.text }), blankApiParams);
     this.$state.go('.', newParams, { location: 'replace' });
   }
 
@@ -137,14 +146,13 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     const { params, resultSets, selectedTab, isSearching } = this.state;
     const hasSearchQuery = Object.keys(params).length > 0;
 
-
     return (
       <div className="infrastructure">
         <div className="infrastructure-section search-header">
           <div className="container">
             <h2 className="header-section">
               <div className="flex-grow">
-                <Search params={this.state.params} onChange={this.handleFilterChange}/>
+                <Search params={this.state.params} onChange={this.handleFilterChange} />
               </div>
             </h2>
             <div className="header-actions">
@@ -155,7 +163,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
         <div className="container flex-fill" style={{ overflowY: 'auto' }}>
           {!hasSearchQuery && (
             <div>
-              <RecentlyViewedItems Component={SearchResultPods}/>
+              <RecentlyViewedItems Component={SearchResultPods} />
             </div>
           )}
 

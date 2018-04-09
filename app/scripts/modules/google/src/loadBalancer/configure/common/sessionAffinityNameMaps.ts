@@ -5,7 +5,7 @@ export interface StringMap {
 }
 
 export const sessionAffinityViewToModelMap: StringMap = {
-  'None': 'NONE',
+  None: 'NONE',
   'Client IP': 'CLIENT_IP',
   'Generated Cookie': 'GENERATED_COOKIE',
   'Client IP and protocol': 'CLIENT_IP_PROTO',

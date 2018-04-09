@@ -2,27 +2,29 @@
 
 import _ from 'lodash';
 
-import {GCEProviderSettings} from '../gce.settings';
+import { GCEProviderSettings } from '../gce.settings';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
-  .factory('gceLoadBalancerTransformer', function ($q) {
-
+module.exports = angular
+  .module('spinnaker.gce.loadBalancer.transformer', [])
+  .factory('gceLoadBalancerTransformer', function($q) {
     function updateHealthCounts(container) {
       var instances = container.instances;
       var serverGroups = container.serverGroups || [container];
       container.instanceCounts = {
-        up: instances.filter(function (instance) {
+        up: instances.filter(function(instance) {
           return instance.health[0].state === 'InService';
         }).length,
-        down: instances.filter(function (instance) {
+        down: instances.filter(function(instance) {
           return instance.health[0].state === 'OutOfService';
         }).length,
-        outOfService: serverGroups.reduce(function (acc, serverGroup) {
-          return serverGroup.instances.filter(function (instance) {
-            return instance.healthState === 'OutOfService';
-          }).length + acc;
+        outOfService: serverGroups.reduce(function(acc, serverGroup) {
+          return (
+            serverGroup.instances.filter(function(instance) {
+              return instance.healthState === 'OutOfService';
+            }).length + acc
+          );
         }, 0),
       };
     }
@@ -33,7 +35,9 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
       instance.account = loadBalancer.account;
       instance.region = loadBalancer.region;
       instance.health.type = 'LoadBalancer';
-      instance.healthState = instance.health.state ? instance.health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
+      instance.healthState = instance.health.state
+        ? instance.health.state === 'InService' ? 'Up' : 'Down'
+        : 'OutOfService';
       instance.health = [instance.health];
       instance.loadBalancers = [loadBalancer.name];
     }
@@ -55,10 +59,16 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
         });
         updateHealthCounts(serverGroup);
       });
-      var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
+      var activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
       loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
-      loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
+      loadBalancer.instances = _.chain(activeServerGroups)
+        .map('instances')
+        .flatten()
+        .value();
+      loadBalancer.detachedInstances = _.chain(activeServerGroups)
+        .map('detachedInstances')
+        .flatten()
+        .value();
       if (_.get(loadBalancer, 'backendService.healthCheck')) {
         loadBalancer.backendService.healthCheck.timeout = loadBalancer.backendService.healthCheck.timeoutSec;
         loadBalancer.backendService.healthCheck.interval = loadBalancer.backendService.healthCheck.checkIntervalSec;
@@ -74,7 +84,7 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
         credentials: loadBalancer.account,
         listeners: [],
         name: loadBalancer.name,
-        regionZones: loadBalancer.availabilityZones
+        regionZones: loadBalancer.availabilityZones,
       };
 
       if (loadBalancer.elb) {
@@ -83,12 +93,12 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
         toEdit.vpcId = elb.vpcid;
 
         if (elb.listenerDescriptions) {
-          toEdit.listeners = elb.listenerDescriptions.map(function (description) {
+          toEdit.listeners = elb.listenerDescriptions.map(function(description) {
             var listener = description.listener;
             return {
               protocol: listener.protocol,
               portRange: listener.loadBalancerPort,
-              healthCheck: elb.healthCheck !== undefined
+              healthCheck: elb.healthCheck !== undefined,
             };
           });
         }
@@ -143,9 +153,9 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
           {
             protocol: 'TCP',
             portRange: '8080',
-            healthCheck: true
-          }
-        ]
+            healthCheck: true,
+          },
+        ],
       };
     }
 
@@ -154,5 +164,4 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
-
   });

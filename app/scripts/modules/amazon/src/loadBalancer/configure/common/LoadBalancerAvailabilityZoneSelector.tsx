@@ -16,7 +16,10 @@ export interface ILoadBalancerAvailabilityZoneSelectorState {
 }
 
 @BindAll()
-export class LoadBalancerAvailabilityZoneSelector extends React.Component<ILoadBalancerAvailabilityZoneSelectorProps, ILoadBalancerAvailabilityZoneSelectorState> {
+export class LoadBalancerAvailabilityZoneSelector extends React.Component<
+  ILoadBalancerAvailabilityZoneSelectorProps,
+  ILoadBalancerAvailabilityZoneSelectorState
+> {
   constructor(props: ILoadBalancerAvailabilityZoneSelectorProps) {
     super(props);
     this.state = {
@@ -37,9 +40,9 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<ILoadB
   private setDefaultZones(props: ILoadBalancerAvailabilityZoneSelectorProps) {
     const { credentials, onChange, region } = props;
 
-    ReactInjector.accountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then(
-      (preferredZones) => onChange(preferredZones.slice())
-    );
+    ReactInjector.accountService
+      .getAvailabilityZonesForAccountAndRegion('aws', credentials, region)
+      .then(preferredZones => onChange(preferredZones.slice()));
   }
 
   private handleUsePreferredZonesChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
@@ -74,11 +77,11 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<ILoadB
               <option value="true">Enabled</option>
               <option value="false">Manual</option>
             </select>
-            <br/>
+            <br />
             {usePreferredZones && (
               <div>
                 <p className="form-control-static">Server group will be available in:</p>
-                <ul>{allZones.map((zone) => <li key={zone}>{zone}</li>)}</ul>
+                <ul>{allZones.map(zone => <li key={zone}>{zone}</li>)}</ul>
               </div>
             )}
             {!usePreferredZones && (
@@ -94,6 +97,6 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<ILoadB
           </div>
         )}
       </div>
-    )
+    );
   }
 }

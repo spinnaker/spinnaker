@@ -6,10 +6,9 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.transformer', [])
-  .factory('openstackServerGroupTransformer', function ($q) {
-
+  .factory('openstackServerGroupTransformer', function($q) {
     function normalizeServerGroup(serverGroup) {
-      if( serverGroup.loadBalancers ) {
+      if (serverGroup.loadBalancers) {
         serverGroup.loadBalancerIds = _.map(serverGroup.loadBalancers, function(lb) {
           return /^openstack:/.test(lb) ? lb.split(':')[4] : lb;
         });
@@ -23,8 +22,22 @@ module.exports = angular
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       //avoid copying the backingData or viewState, which are expensive to copy over
-      var params = _.omit(base, 'backingData', 'viewState', 'selectedProvider', 'credentials',
-        'stack', 'region', 'account', 'cloudProvider', 'application', 'type', 'freeFormDetails', 'userDataType', 'userData');
+      var params = _.omit(
+        base,
+        'backingData',
+        'viewState',
+        'selectedProvider',
+        'credentials',
+        'stack',
+        'region',
+        'account',
+        'cloudProvider',
+        'application',
+        'type',
+        'freeFormDetails',
+        'userDataType',
+        'userData',
+      );
       var command = {
         type: base.type,
         application: base.application,
@@ -36,7 +49,7 @@ module.exports = angular
         userDataType: base.userDataType,
         userData: base.userData,
         serverGroupParameters: params,
-        strategy: base.strategy
+        strategy: base.strategy,
       };
 
       if (base.viewState.mode === 'clone' && base.source) {

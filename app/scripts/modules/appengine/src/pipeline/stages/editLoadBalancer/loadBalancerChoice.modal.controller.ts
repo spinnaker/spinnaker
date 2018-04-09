@@ -9,10 +9,12 @@ class AppengineLoadBalancerChoiceModalCtrl implements IController {
   public loadBalancers: ILoadBalancer[];
   public selectedLoadBalancer: ILoadBalancer;
 
-  constructor(private $uibModal: IModalService,
-              private $uibModalInstance: IModalServiceInstance,
-              private application: Application,
-              private cloudProviderRegistry: CloudProviderRegistry) {
+  constructor(
+    private $uibModal: IModalService,
+    private $uibModalInstance: IModalServiceInstance,
+    private application: Application,
+    private cloudProviderRegistry: CloudProviderRegistry,
+  ) {
     'ngInject';
     this.initialize();
   }
@@ -28,7 +30,7 @@ class AppengineLoadBalancerChoiceModalCtrl implements IController {
         loadBalancer: () => cloneDeep(this.selectedLoadBalancer),
         isNew: () => false,
         forPipelineConfig: () => true,
-      }
+      },
     }).result;
 
     this.$uibModalInstance.close(updatedLoadBalancerPromise);
@@ -39,10 +41,13 @@ class AppengineLoadBalancerChoiceModalCtrl implements IController {
   }
 
   private initialize(): void {
-    this.application.getDataSource('loadBalancers').ready()
+    this.application
+      .getDataSource('loadBalancers')
+      .ready()
       .then(() => {
-        this.loadBalancers = this.application.getDataSource('loadBalancers')
-          .data.filter((candidate) => candidate.cloudProvider === 'appengine');
+        this.loadBalancers = this.application
+          .getDataSource('loadBalancers')
+          .data.filter(candidate => candidate.cloudProvider === 'appengine');
 
         if (this.loadBalancers.length) {
           this.selectedLoadBalancer = this.loadBalancers[0];
@@ -53,5 +58,7 @@ class AppengineLoadBalancerChoiceModalCtrl implements IController {
 }
 
 export const APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL = 'spinnaker.appengine.loadBalancerChoiceModal.controller';
-module(APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL, [])
-  .controller('appengineLoadBalancerChoiceModelCtrl', AppengineLoadBalancerChoiceModalCtrl);
+module(APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL, []).controller(
+  'appengineLoadBalancerChoiceModelCtrl',
+  AppengineLoadBalancerChoiceModalCtrl,
+);

@@ -17,7 +17,7 @@ interface IWaypoint {
 }
 
 export class WaypointService {
-  private waypointRegistry: { [key: string]: IWaypoint; } = Object.create(null);
+  private waypointRegistry: { [key: string]: IWaypoint } = Object.create(null);
 
   public registerWaypointContainer(elementScope: IScope, element: JQuery, key: string, offset: number): void {
     this.waypointRegistry[key] = this.waypointRegistry[key] || Object.create(null);
@@ -36,30 +36,33 @@ export class WaypointService {
     if (!registryEntry.scrollEnabled) {
       // because they do not affect rendering directly, we can debounce this pretty liberally
       // but delay in case the scroll triggers a render of other elements and the top changes
-      element.bind('scroll.waypointEvents resize.waypointEvents', throttle(() => {
-        $timeout(() => {
-          const containerRect = element.get(0).getBoundingClientRect(),
-                topThreshold = containerRect.top + registryEntry.offset,
-                waypoints = element.find('[waypoint]'),
-                lastTop = this.waypointRegistry[key].top,
-                newTop = element.get(0).scrollTop,
-                inView: IViewPlacement[] = [];
-          waypoints.each((_index, waypoint) => {
-            const waypointRect = waypoint.getBoundingClientRect();
-            if (waypointRect.bottom >= topThreshold && waypointRect.top <= containerRect.bottom) {
+      element.bind(
+        'scroll.waypointEvents resize.waypointEvents',
+        throttle(() => {
+          $timeout(() => {
+            const containerRect = element.get(0).getBoundingClientRect(),
+              topThreshold = containerRect.top + registryEntry.offset,
+              waypoints = element.find('[waypoint]'),
+              lastTop = this.waypointRegistry[key].top,
+              newTop = element.get(0).scrollTop,
+              inView: IViewPlacement[] = [];
+            waypoints.each((_index, waypoint) => {
+              const waypointRect = waypoint.getBoundingClientRect();
+              if (waypointRect.bottom >= topThreshold && waypointRect.top <= containerRect.bottom) {
                 inView.push({ top: waypointRect.top, elem: waypoint.getAttribute('waypoint') });
+              }
+            });
+            this.waypointRegistry[key] = {
+              lastWindow: sortBy(inView, 'top'),
+              top: newTop,
+              direction: lastTop > newTop ? 'up' : 'down',
+            };
+            if (this.waypointRegistry[key].lastWindow.length) {
+              $rootScope.$broadcast('waypoints-changed', this.waypointRegistry[key]);
             }
           });
-          this.waypointRegistry[key] = {
-            lastWindow: sortBy(inView, 'top'),
-            top: newTop,
-            direction: lastTop > newTop ? 'up' : 'down'
-          };
-          if (this.waypointRegistry[key].lastWindow.length) {
-            $rootScope.$broadcast('waypoints-changed', this.waypointRegistry[key]);
-          }
-        });
-      }, 200));
+        }, 200),
+      );
       registryEntry.scrollEnabled = true;
     }
   }
@@ -75,5 +78,4 @@ export class WaypointService {
 }
 
 export const WAYPOINT_SERVICE = 'spinnaker.core.utils.waypoints.service';
-module(WAYPOINT_SERVICE, [])
-  .service('waypointService', WaypointService);
+module(WAYPOINT_SERVICE, []).service('waypointService', WaypointService);

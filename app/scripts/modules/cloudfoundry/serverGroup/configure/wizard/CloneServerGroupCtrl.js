@@ -4,14 +4,24 @@ const angular = require('angular');
 
 import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerGroup', [
-  require('@uirouter/angularjs').default,
-  V2_MODAL_WIZARD_SERVICE,
-])
-  .controller('cfCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                 serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
-                                                 cfServerGroupConfigurationService,
-                                                 serverGroupCommand, application, title) {
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.cf.cloneServerGroup', [
+    require('@uirouter/angularjs').default,
+    V2_MODAL_WIZARD_SERVICE,
+  ])
+  .controller('cfCloneServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    $state,
+    serverGroupWriter,
+    v2modalWizardService,
+    taskMonitorBuilder,
+    cfServerGroupConfigurationService,
+    serverGroupCommand,
+    application,
+    title,
+  ) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
@@ -19,7 +29,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       services: require('./services.html'),
       envs: require('./envs.html'),
       artifact: require('./artifactSettings.html'),
-      advanced: require('./advanced.html')
+      advanced: require('./advanced.html'),
     };
 
     $scope.title = title;
@@ -39,7 +49,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       if ($scope.$$destroyed) {
         return;
       }
-      let cloneStage = $scope.taskMonitor.task.execution.stages.find((stage) => stage.type === 'cloneServerGroup');
+      let cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
         let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
@@ -50,13 +60,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
             provider: 'cf',
           };
           var transitionTo = '^.^.^.clusters.serverGroup';
-          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+          if ($state.includes('**.clusters.serverGroup')) {
+            // clone via details, all view
             transitionTo = '^.serverGroup';
           }
-          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+          if ($state.includes('**.clusters.cluster.serverGroup')) {
+            // clone or create with details open
             transitionTo = '^.^.serverGroup';
           }
-          if ($state.includes('**.clusters')) { // create new, no details open
+          if ($state.includes('**.clusters')) {
+            // create new, no details open
             transitionTo = '.serverGroup';
           }
           $state.go(transitionTo, newStateParams);
@@ -77,7 +90,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
     });
 
     function configureCommand() {
-      cfServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
+      cfServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function() {
         $scope.state.loaded = true;
         initializeWizardState();
         initializeSelectOptions();
@@ -112,22 +125,24 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       };
     }
 
-    function processCommandUpdateResult() {
-    }
+    function processCommandUpdateResult() {}
 
-    this.isValid = function () {
-      return $scope.command &&
-        ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
-        ($scope.command.region !== null) &&
-        ($scope.command.capacity.desired !== null) &&
-        v2modalWizardService.isComplete();
+    this.isValid = function() {
+      return (
+        $scope.command &&
+        $scope.command.credentials !== null &&
+        $scope.command.instanceType !== null &&
+        $scope.command.region !== null &&
+        $scope.command.capacity.desired !== null &&
+        v2modalWizardService.isComplete()
+      );
     };
 
-    this.showSubmitButton = function () {
+    this.showSubmitButton = function() {
       return v2modalWizardService.allPagesVisited();
     };
 
-    this.clone = function () {
+    this.clone = function() {
       $scope.command.targetSize = $scope.command.capacity.desired; // TODO(GLT): Unify on this or capacity
 
       // Convert list of single entry maps into a single, comprehensive map.
@@ -144,14 +159,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
-      $scope.taskMonitor.submit(
-        function() {
-          return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 

@@ -3,21 +3,19 @@ import { DeploymentStrategyRegistry, IDeploymentStrategy } from 'core/deployment
 import {
   DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT,
   DeploymentStrategySelectorController,
-  IDeploymentCommand
+  IDeploymentCommand,
 } from './deploymentStrategySelector.component';
 
 describe('Controller: deploymentStrategySelector', () => {
+  beforeEach(mock.module(DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT));
 
   beforeEach(
-    mock.module(DEPLOYMENT_STRATEGY_SELECTOR_COMPONENT)
+    mock.inject(($componentController: IComponentControllerService) => {
+      $componentControllerService = $componentController;
+    }),
   );
 
-  beforeEach(mock.inject(($componentController: IComponentControllerService) => {
-    $componentControllerService = $componentController;
-  }));
-
-  let $ctrl: DeploymentStrategySelectorController,
-      $componentControllerService: IComponentControllerService;
+  let $ctrl: DeploymentStrategySelectorController, $componentControllerService: IComponentControllerService;
 
   const strategies: IDeploymentStrategy[] = [
     {
@@ -35,25 +33,28 @@ describe('Controller: deploymentStrategySelector', () => {
       label: '',
       description: '',
       additionalFields: ['fieldA'],
-      additionalFieldsTemplateUrl: 'aaa'
+      additionalFieldsTemplateUrl: 'aaa',
     },
     {
       key: 'extra-fields-2',
       label: '',
       description: '',
       additionalFields: ['fieldA'],
-      additionalFieldsTemplateUrl: 'bbb'
+      additionalFieldsTemplateUrl: 'bbb',
     },
   ];
 
   const initializeController = (command: IDeploymentCommand) => {
-    $ctrl = $componentControllerService('deploymentStrategySelector', {}, { command }) as DeploymentStrategySelectorController;
+    $ctrl = $componentControllerService(
+      'deploymentStrategySelector',
+      {},
+      { command },
+    ) as DeploymentStrategySelectorController;
     spyOn(DeploymentStrategyRegistry, 'listStrategies').and.returnValue(strategies);
     spyOn(DeploymentStrategyRegistry, 'getStrategy').and.callFake((key: string) => strategies.find(s => s.key === key));
   };
 
   describe('changing strategies', () => {
-
     it('removes previous fields when switching strategies if new strategy does not also have the field', () => {
       const command = { strategy: 'extra-fields-1', fieldA: true };
       initializeController(command);

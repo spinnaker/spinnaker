@@ -7,11 +7,9 @@ import { NAMING_SERVICE } from '@spinnaker/core';
 
 import { OracleBMCSProviderSettings } from '../../oraclebmcs.settings';
 
-module.exports = angular.module('spinnaker.oraclebmcs.serverGroupCommandBuilder.service', [
-  NAMING_SERVICE,
-])
-  .factory('oraclebmcsServerGroupCommandBuilder', function ($q, namingService) {
-
+module.exports = angular
+  .module('spinnaker.oraclebmcs.serverGroupCommandBuilder.service', [NAMING_SERVICE])
+  .factory('oraclebmcsServerGroupCommandBuilder', function($q, namingService) {
     let oracle = 'oraclebmcs';
 
     function buildNewServerGroupCommand(application, defaults) {
@@ -24,14 +22,14 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroupCommandBuilder.
         account: defaultAccount,
         application: application.name,
         capacity: {
-          desired: 1
+          desired: 1,
         },
         region: defaultRegion,
         selectedProvider: oracle,
         viewState: {
           mode: defaults.mode || 'create',
-          disableStrategySelection: true
-        }
+          disableStrategySelection: true,
+        },
       };
 
       return $q.when(command);
@@ -53,12 +51,12 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroupCommandBuilder.
         availabilityDomain: serverGroup.launchConfig.availabilityDomain,
         selectedProvider: oracle,
         capacity: {
-          desired: serverGroup.capacity.desired
+          desired: serverGroup.capacity.desired,
         },
         viewState: {
           mode: mode,
-          disableStrategySelection: true
-        }
+          disableStrategySelection: true,
+        },
       };
       return $q.when(command);
     }
@@ -66,12 +64,12 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroupCommandBuilder.
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
       let pipelineCluster = _.cloneDeep(originalCluster);
       let commandDefaults = { account: pipelineCluster.account, region: pipelineCluster.region };
-      return buildNewServerGroupCommand(application, commandDefaults).then((command) => {
+      return buildNewServerGroupCommand(application, commandDefaults).then(command => {
         let viewState = {
           disableImageSelection: true,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
-          templatingEnabled: true
+          templatingEnabled: true,
         };
 
         let viewOverrides = {
@@ -87,7 +85,7 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroupCommandBuilder.
       return $q.when({
         viewState: {
           requiresTemplateSelection: true,
-        }
+        },
       });
     }
 
@@ -95,6 +93,6 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroupCommandBuilder.
       buildNewServerGroupCommand: buildNewServerGroupCommand,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
-      buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline
+      buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-});
+  });

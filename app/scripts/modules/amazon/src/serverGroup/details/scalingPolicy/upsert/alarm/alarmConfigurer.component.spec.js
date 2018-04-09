@@ -1,29 +1,20 @@
 'use strict';
 
-describe('Component: alarmConfigurer', function () {
-
+describe('Component: alarmConfigurer', function() {
   let $ctrl;
 
-  beforeEach(
-    window.module(
-      require('./alarmConfigurer.component').name
-    )
-  );
+  beforeEach(window.module(require('./alarmConfigurer.component').name));
 
   beforeEach(
-    window.inject( function($componentController) {
-      this.initialize = (bindings) => {
-        $ctrl = $componentController(
-          'awsAlarmConfigurer',
-          {},
-          bindings
-        );
+    window.inject(function($componentController) {
+      this.initialize = bindings => {
+        $ctrl = $componentController('awsAlarmConfigurer', {}, bindings);
       };
-    })
+    }),
   );
 
-  describe('thresholdChanged', function () {
-    it ('updates first step when comparatorBound is max to new threshold, calls boundsChanged', function () {
+  describe('thresholdChanged', function() {
+    it('updates first step when comparatorBound is max to new threshold, calls boundsChanged', function() {
       let bcCalled = false;
       const command = {
         alarm: {
@@ -34,22 +25,23 @@ describe('Component: alarmConfigurer', function () {
           stepAdjustments: [
             {
               metricIntervalLowerBound: 1,
-              metricIntervalUpperBound: 2
+              metricIntervalUpperBound: 2,
             },
             {
               metricIntervalLowerBound: 3,
-              metricIntervalUpperBound: 4
-            }
-          ]
-        }
+              metricIntervalUpperBound: 4,
+            },
+          ],
+        },
       };
-      const boundsChanged = () => bcCalled = true;
+      const boundsChanged = () => (bcCalled = true);
 
       this.initialize({
         command: command,
-        serverGroup: { name: 'asg-v000'},
+        serverGroup: { name: 'asg-v000' },
         modalViewState: { comparatorBound: 'max' },
-        boundsChanged: boundsChanged });
+        boundsChanged: boundsChanged,
+      });
 
       spyOn($ctrl.alarmUpdated, 'next');
       $ctrl.thresholdChanged();

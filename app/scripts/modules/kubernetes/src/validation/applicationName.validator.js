@@ -5,11 +5,8 @@ const angular = require('angular');
 import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.validation.applicationName', [
-    APPLICATION_NAME_VALIDATOR,
-  ])
-  .factory('kubernetesApplicationNameValidator', function () {
-
+  .module('spinnaker.kubernetes.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
+  .factory('kubernetesApplicationNameValidator', function() {
     function validateSpecialCharacters(name, warnings, errors) {
       const alphanumPattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;
       if (!alphanumPattern.test(name)) {
@@ -17,8 +14,10 @@ module.exports = angular
         if (alphanumWithDashPattern.test(name)) {
           warnings.push('Dashes should only be used in application names when using the Kubernetes v2 provider.');
         } else {
-          errors.push('The application name must begin with a letter and must contain only letters or digits. ' +
-              'No special characters are allowed.');
+          errors.push(
+            'The application name must begin with a letter and must contain only letters or digits. ' +
+              'No special characters are allowed.',
+          );
         }
       }
     }
@@ -40,8 +39,10 @@ module.exports = angular
             application's name is longer than ${maxServiceNameLength} characters (currently: ${name.length}
           characters).`);
         } else if (name.length >= maxServiceNameLength - 2) {
-          warnings.push('With separators ("-"), you will not be able to include a stack and detail field for ' +
-            'Kubernetes load balancers.');
+          warnings.push(
+            'With separators ("-"), you will not be able to include a stack and detail field for ' +
+              'Kubernetes load balancers.',
+          );
         } else {
           let remaining = maxServiceNameLength - 2 - name.length;
           warnings.push(`If you plan to include a stack or detail field for Kubernetes load balancers, you will only
@@ -52,7 +53,7 @@ module.exports = angular
 
     function validate(name) {
       let warnings = [],
-          errors = [];
+        errors = [];
 
       if (name && name.length) {
         validateSpecialCharacters(name, warnings, errors);
@@ -66,7 +67,7 @@ module.exports = angular
     }
 
     return {
-      validate: validate
+      validate: validate,
     };
   })
   .run(function(applicationNameValidator, kubernetesApplicationNameValidator) {

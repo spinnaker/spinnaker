@@ -1,6 +1,6 @@
 'use strict';
 
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 
 const angular = require('angular');
 
@@ -16,13 +16,12 @@ module.exports = angular
     bindings: {
       application: '=',
     },
-    controller: function ($state, snapshotWriter, confirmationModalService) {
+    controller: function($state, snapshotWriter, confirmationModalService) {
       if (this.application.notFound) {
         return;
       }
 
       this.takeSnapshot = () => {
-
         var submitMethod = () => {
           return snapshotWriter.takeSnapshot(this.application.attributes);
         };
@@ -38,8 +37,8 @@ module.exports = angular
           buttonText: 'Take snapshot',
           provider: 'gce',
           taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod
+          submitMethod: submitMethod,
         });
       };
-    }
+    },
   });

@@ -2,7 +2,7 @@ import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
-import { Application, ISecurityGroupDetail, SECURITY_GROUP_READER, SecurityGroupReader, } from '@spinnaker/core';
+import { Application, ISecurityGroupDetail, SECURITY_GROUP_READER, SecurityGroupReader } from '@spinnaker/core';
 
 import { IKubernetesSecurityGroup } from './IKubernetesSecurityGroup';
 
@@ -17,12 +17,14 @@ class KubernetesSecurityGroupDetailsController implements IController {
   private securityGroupFromParams: ISecurityGroupFromStateParams;
   public securityGroup: IKubernetesSecurityGroup;
 
-  constructor(private $uibModal: IModalService,
-              private $state: StateService,
-              private $scope: IScope,
-              private securityGroupReader: SecurityGroupReader,
-              resolvedSecurityGroup: ISecurityGroupFromStateParams,
-              private app: Application) {
+  constructor(
+    private $uibModal: IModalService,
+    private $state: StateService,
+    private $scope: IScope,
+    private securityGroupReader: SecurityGroupReader,
+    resolvedSecurityGroup: ISecurityGroupFromStateParams,
+    private app: Application,
+  ) {
     'ngInject';
     this.securityGroupFromParams = resolvedSecurityGroup;
     this.extractSecurityGroup();
@@ -41,7 +43,7 @@ class KubernetesSecurityGroupDetailsController implements IController {
         },
         application: this.app,
         manifestController: (): string => null,
-      }
+      },
     });
   }
 
@@ -54,19 +56,21 @@ class KubernetesSecurityGroupDetailsController implements IController {
       resolve: {
         sourceManifest: this.securityGroup.manifest,
         sourceMoniker: this.securityGroup.moniker,
-        application: this.app
-      }
+        application: this.app,
+      },
     });
   }
 
   private extractSecurityGroup(): void {
     this.securityGroupReader
-      .getSecurityGroupDetails(this.app,
+      .getSecurityGroupDetails(
+        this.app,
         this.securityGroupFromParams.accountId,
         'kubernetes',
         this.securityGroupFromParams.region,
         '', // unused vpc id
-        this.securityGroupFromParams.name)
+        this.securityGroupFromParams.name,
+      )
       .then((rawSecurityGroup: ISecurityGroupDetail) => {
         this.securityGroup = rawSecurityGroup as IKubernetesSecurityGroup;
         this.securityGroup.namespace = this.securityGroup.region;
@@ -91,6 +95,7 @@ class KubernetesSecurityGroupDetailsController implements IController {
 }
 
 export const KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL = 'spinnaker.kubernetes.v2.securityGroupDetails.controller';
-module(KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL, [
-  SECURITY_GROUP_READER,
-]).controller('kubernetesV2SecurityGroupDetailsCtrl', KubernetesSecurityGroupDetailsController);
+module(KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL, [SECURITY_GROUP_READER]).controller(
+  'kubernetesV2SecurityGroupDetailsCtrl',
+  KubernetesSecurityGroupDetailsController,
+);

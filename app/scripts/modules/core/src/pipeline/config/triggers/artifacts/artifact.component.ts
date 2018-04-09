@@ -6,7 +6,7 @@ import {
   IControllerService,
   IRootElementService,
   IRootScopeService,
-  module
+  module,
 } from 'angular';
 import { IArtifact, IArtifactKindConfig } from 'core/domain';
 import { PipelineConfigProvider } from 'core/pipeline';
@@ -18,12 +18,14 @@ class ArtifactCtrl implements IController {
   private isDefault: boolean;
   private isMatch: boolean;
 
-  constructor(private pipelineConfig: PipelineConfigProvider,
-              private $attrs: IAttributes,
-              private $controller: IControllerService,
-              private $compile: ICompileService,
-              private $element: IRootElementService,
-              private $rootScope: IRootScopeService) {
+  constructor(
+    private pipelineConfig: PipelineConfigProvider,
+    private $attrs: IAttributes,
+    private $controller: IControllerService,
+    private $compile: ICompileService,
+    private $element: IRootElementService,
+    private $rootScope: IRootScopeService,
+  ) {
     'ngInject';
     if (this.$attrs.$attr.hasOwnProperty('isDefault')) {
       this.isDefault = true;
@@ -41,7 +43,7 @@ class ArtifactCtrl implements IController {
     return this.options.filter(o => o.isDefault === this.isDefault || o.isMatch === this.isMatch);
   }
 
-  public loadArtifactKind(): void  {
+  public loadArtifactKind(): void {
     const kind = this.artifact.kind;
     if (!kind) {
       return;
@@ -100,5 +102,4 @@ class ArtifactComponent implements IComponentOptions {
 }
 
 export const ARTIFACT = 'spinnaker.core.pipeline.config.trigger.artifacts.artifact';
-module(ARTIFACT, [])
-  .component('artifact', new ArtifactComponent());
+module(ARTIFACT, []).component('artifact', new ArtifactComponent());

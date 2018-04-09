@@ -10,7 +10,6 @@ import { Filter } from './Filter';
 
 import './search.less';
 
-
 export interface ISearchProps {
   params: { [key: string]: any };
   onChange: (tags: ITag[]) => void;
@@ -40,13 +39,13 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     const layouts: IFiltersLayout[] = [];
     layouts.push({
       header: 'SEARCH',
-      filterTypes: [SearchFilterTypeRegistry.KEYWORD_FILTER]
+      filterTypes: [SearchFilterTypeRegistry.KEYWORD_FILTER],
     });
 
     this.filterTypes = this.reorderFilterTypesForSearch(SearchFilterTypeRegistry.getValues());
     layouts.push({
       header: 'FILTER ON',
-      filterTypes: this.filterTypes.filter(type => type.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key)
+      filterTypes: this.filterTypes.filter(type => type.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key),
     });
 
     this.keys = new Set<string>(SearchFilterTypeRegistry.getValues().map((type: IFilterType) => type.key));
@@ -55,7 +54,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
       isFocused: true,
       isOpen: false,
       layouts,
-      tags: this.buildTagsFromParams(props.params, [])
+      tags: this.buildTagsFromParams(props.params, []),
     };
   }
 
@@ -66,8 +65,10 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   // TODO:  ANG to clean this up by adding sort weights to filters to control order so this hackery isn't needed
   private reorderFilterTypesForSearch(filterTypes: IFilterType[]): IFilterType[] {
-    const mods: Set<string> =
-      new Set<string>([SearchFilterTypeRegistry.KEYWORD_FILTER.key, SearchFilterTypeRegistry.NAME_FILTER.key]);
+    const mods: Set<string> = new Set<string>([
+      SearchFilterTypeRegistry.KEYWORD_FILTER.key,
+      SearchFilterTypeRegistry.NAME_FILTER.key,
+    ]);
     const result: IFilterType[] = filterTypes.filter((type: IFilterType) => !mods.has(type.key));
     result.unshift(SearchFilterTypeRegistry.NAME_FILTER);
     result.unshift(SearchFilterTypeRegistry.KEYWORD_FILTER);
@@ -77,7 +78,8 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   // Merge param changes with existing tags, maintaining the current order (new tags should go at the end)
   private buildTagsFromParams(params: { [key: string]: any }, currentTags: ITag[]): ITag[] {
-    const tagsToKeep: ITag[] = currentTags.filter(tag => params[tag.key])
+    const tagsToKeep: ITag[] = currentTags
+      .filter(tag => params[tag.key])
       .map(tag => ({ key: tag.key, text: params[tag.key] }));
 
     const tagsToAdd: ITag[] = Object.keys(params)
@@ -88,13 +90,15 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   }
 
   private isLongEnoughIfKeyword(tag: ITag): boolean {
-    return (tag.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key) ||
-      ((tag.key === SearchFilterTypeRegistry.KEYWORD_FILTER.key) && (tag.text.length > 2))
+    return (
+      tag.key !== SearchFilterTypeRegistry.KEYWORD_FILTER.key ||
+      (tag.key === SearchFilterTypeRegistry.KEYWORD_FILTER.key && tag.text.length > 2)
+    );
   }
 
   private hasModifier(input: string): boolean {
     const index = input.indexOf(':');
-    return this.keys.has(input.substring(0, index).toLocaleLowerCase()) && (index !== input.length);
+    return this.keys.has(input.substring(0, index).toLocaleLowerCase()) && index !== input.length;
   }
 
   private getModifier(input: string): string {
@@ -108,7 +112,6 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   }
 
   private buildTagFromInputString(filter: IFilterType = this.state.activeFilter): ITag {
-
     const value = this.inputElement.value.trim();
     const text = this.getSearchText(value).trim();
     if (!value || !text) {
@@ -124,7 +127,6 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   }
 
   private getActiveFilterText(filterType: IFilterType): string {
-
     let result: string;
     const text = this.inputElement.value.trim();
     if (this.hasModifier(text)) {
@@ -150,7 +152,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     if (!this.mouseDownFired) {
       this.setState({
         isFocused: false,
-        isOpen: false
+        isOpen: false,
       });
     }
   }
@@ -162,7 +164,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
       const key = this.getModifier(value);
       newState = {
         activeFilter: this.filterTypes.find((type: IFilterType) => type.key === key),
-        isOpen: true
+        isOpen: true,
       };
     } else {
       newState = { isOpen: !!value };
@@ -175,7 +177,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     const tags = this.state.tags.filter((t: ITag) => tag !== t);
     this.setState({
       isFocused: true,
-      tags
+      tags,
     });
     this.props.onChange(tags);
 
@@ -186,8 +188,8 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
 
   private handleFocus(): void {
     this.setState({
-      isFocused: true
-    })
+      isFocused: true,
+    });
   }
 
   private navigateUp(): void {
@@ -200,7 +202,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   private navigateDown(): void {
     const { filterTypes } = this;
     const activeIndex = this.getActiveFilterIndex();
-    const activeFilter = (activeIndex === (filterTypes.length - 1)) ? filterTypes[0] : filterTypes[activeIndex + 1];
+    const activeFilter = activeIndex === filterTypes.length - 1 ? filterTypes[0] : filterTypes[activeIndex + 1];
     this.navigate(activeFilter);
   }
 
@@ -218,7 +220,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
       this.setState({
         activeFilter: SearchFilterTypeRegistry.KEYWORD_FILTER,
         isOpen: false,
-        tags
+        tags,
       });
       this.inputElement.value = '';
       this.props.onChange(tags);
@@ -254,7 +256,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
         }
         this.setState({
           activeFilter: SearchFilterTypeRegistry.KEYWORD_FILTER,
-          isOpen: false
+          isOpen: false,
         });
         break;
     }
@@ -287,7 +289,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   private handleClearClick(): void {
     this.setState({
       isOpen: false,
-      tags: []
+      tags: [],
     });
     this.inputElement.value = '';
     this.inputElement.focus();
@@ -297,14 +299,14 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
   public render(): React.ReactElement<Search> {
     const { activeFilter, isFocused, isOpen, layouts, tags } = this.state;
     const className = classNames({
-      'search__input': true,
+      search__input: true,
       'search__input--focus': isFocused,
-      'search__input--blur': !isFocused
+      'search__input--blur': !isFocused,
     });
 
     return (
       <div className="search">
-        <i className="fa fa-search search__icon"/>
+        <i className="fa fa-search search__icon" />
         <span className="search-label">Search</span>
         <div className={className}>
           <TagList
@@ -327,7 +329,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
               onFocus={this.handleFocus}
               onKeyUp={this.handleKeyUpFromInput}
             />
-            <i className="fa fa-times" onClick={this.handleClearClick}/>
+            <i className="fa fa-times" onClick={this.handleClearClick} />
             <Filters
               activeFilter={activeFilter}
               isOpen={isOpen}

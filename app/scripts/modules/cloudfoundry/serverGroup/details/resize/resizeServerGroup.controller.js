@@ -4,13 +4,16 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.controller', [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-])
-  .controller('cfResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorBuilder,
-                                                  application, serverGroup) {
-
+module.exports = angular
+  .module('spinnaker.cf.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .controller('cfResizeServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    serverGroupWriter,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+  ) {
     $scope.serverGroup = serverGroup;
 
     $scope.verification = {};
@@ -21,12 +24,11 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       disk: serverGroup.disk == 0 ? 1024 : serverGroup.disk,
     };
 
-
     if (application && application.attributes) {
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       var command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
@@ -41,7 +43,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       onTaskComplete: () => application.serverGroups.refresh(),
     });
 
-    this.resize = function () {
+    this.resize = function() {
       if (!this.isValid()) {
         return;
       }
@@ -64,7 +66,7 @@ module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.control
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

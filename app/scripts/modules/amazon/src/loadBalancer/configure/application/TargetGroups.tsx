@@ -4,12 +4,17 @@ import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
-import { Application, HelpField, IWizardPageProps, SpInput, ValidationError, spelNumberCheck, wizardPage } from '@spinnaker/core';
-
 import {
-  IAmazonApplicationLoadBalancer,
-  IAmazonApplicationLoadBalancerUpsertCommand,
-} from 'amazon/domain';
+  Application,
+  HelpField,
+  IWizardPageProps,
+  SpInput,
+  ValidationError,
+  spelNumberCheck,
+  wizardPage,
+} from '@spinnaker/core';
+
+import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 
 export interface ITargetGroupsProps {
   app: Application;
@@ -23,7 +28,10 @@ export interface ITargetGroupsState {
 }
 
 @BindAll()
-class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>, ITargetGroupsState> {
+class TargetGroupsImpl extends React.Component<
+  ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>,
+  ITargetGroupsState
+> {
   public static LABEL = 'Target Groups';
 
   public protocols = ['HTTP', 'HTTPS'];
@@ -40,40 +48,68 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     };
   }
 
-  public validate(values: IAmazonApplicationLoadBalancerUpsertCommand): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> {
+  public validate(
+    values: IAmazonApplicationLoadBalancerUpsertCommand,
+  ): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> {
     const errors = {} as FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand>;
 
     let hasErrors = false;
-    const duplicateTargetGroups = uniq(flatten(filter(groupBy(values.targetGroups, 'name'), (count) => count.length > 1)).map((tg) => tg.name));
+    const duplicateTargetGroups = uniq(
+      flatten(filter(groupBy(values.targetGroups, 'name'), count => count.length > 1)).map(tg => tg.name),
+    );
     const targetGroupsErrors = values.targetGroups.map((targetGroup: any) => {
       const tgErrors: { [key: string]: string } = {};
 
-      if (targetGroup.name && get(this.state.existingTargetGroupNames, [ values.credentials, values.region ], []).includes(targetGroup.name.toLowerCase())) {
+      if (
+        targetGroup.name &&
+        get(this.state.existingTargetGroupNames, [values.credentials, values.region], []).includes(
+          targetGroup.name.toLowerCase(),
+        )
+      ) {
         tgErrors.name = `There is already a target group in ${values.credentials}:${values.region} with that name.`;
       }
 
       if (targetGroup.name && targetGroup.name.length > 32 - this.props.app.name.length) {
-        tgErrors.name = 'Target group name is automatically prefixed with the application name and cannot exceed 32 characters in length.';
+        tgErrors.name =
+          'Target group name is automatically prefixed with the application name and cannot exceed 32 characters in length.';
       }
 
       if (duplicateTargetGroups.includes(targetGroup.name)) {
         tgErrors.name = 'Duplicate target group name in this load balancer.';
       }
 
-      ['port', 'healthCheckInterval', 'healthCheckPort', 'healthyThreshold', 'unhealthyThreshold'].forEach((key) => {
+      ['port', 'healthCheckInterval', 'healthCheckPort', 'healthyThreshold', 'unhealthyThreshold'].forEach(key => {
         const err = spelNumberCheck(targetGroup[key]);
-        if (err) { tgErrors[key] = err; }
+        if (err) {
+          tgErrors[key] = err;
+        }
       });
 
-      ['name', 'protocol', 'port', 'healthCheckInterval', 'healthCheckPath', 'healthCheckPort', 'healthCheckProtocol', 'healthyThreshold', 'unhealthyThreshold'].forEach((key) => {
-        if (!targetGroup[key]) { tgErrors[key] = 'Required'; }
-      })
+      [
+        'name',
+        'protocol',
+        'port',
+        'healthCheckInterval',
+        'healthCheckPath',
+        'healthCheckPort',
+        'healthCheckProtocol',
+        'healthyThreshold',
+        'unhealthyThreshold',
+      ].forEach(key => {
+        if (!targetGroup[key]) {
+          tgErrors[key] = 'Required';
+        }
+      });
 
-      if (Object.keys(tgErrors).length > 0) { hasErrors = true; }
+      if (Object.keys(tgErrors).length > 0) {
+        hasErrors = true;
+      }
       return tgErrors;
     });
 
-    if (hasErrors) { errors.targetGroups = targetGroupsErrors; }
+    if (hasErrors) {
+      errors.targetGroups = targetGroupsErrors;
+    }
     return errors;
   }
 
@@ -81,7 +117,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     return name.replace(`${this.props.app.name}-`, '');
   }
 
-  protected updateLoadBalancerNames(props: ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>): void {
+  protected updateLoadBalancerNames(
+    props: ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>,
+  ): void {
     const { app, loadBalancer } = props;
 
     const targetGroupsByAccountAndRegion: { [account: string]: { [region: string]: string[] } } = {};
@@ -91,17 +129,18 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
         app.getDataSource('loadBalancers').data.forEach((lb: IAmazonApplicationLoadBalancer) => {
           if (lb.loadBalancerType === 'application') {
             if (!loadBalancer || lb.name !== loadBalancer.name) {
-              lb.targetGroups.forEach((targetGroup) => {
-                targetGroupsByAccountAndRegion[lb.account] = targetGroupsByAccountAndRegion[lb.account] ||  {};
-                targetGroupsByAccountAndRegion[lb.account][lb.region] = targetGroupsByAccountAndRegion[lb.account][lb.region] ||  [];
+              lb.targetGroups.forEach(targetGroup => {
+                targetGroupsByAccountAndRegion[lb.account] = targetGroupsByAccountAndRegion[lb.account] || {};
+                targetGroupsByAccountAndRegion[lb.account][lb.region] =
+                  targetGroupsByAccountAndRegion[lb.account][lb.region] || [];
                 targetGroupsByAccountAndRegion[lb.account][lb.region].push(this.removeAppName(targetGroup.name));
               });
             }
           }
         });
 
-      this.setState({ existingTargetGroupNames: targetGroupsByAccountAndRegion }, this.props.revalidate);
-    });
+        this.setState({ existingTargetGroupNames: targetGroupsByAccountAndRegion }, this.props.revalidate);
+      });
   }
 
   private targetGroupFieldChanged(index: number, field: string, value: string | boolean): void {
@@ -130,8 +169,8 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
         deregistrationDelay: 600,
         stickinessEnabled: false,
         stickinessType: 'lb_cookie',
-        stickinessDuration: 8400
-      }
+        stickinessDuration: 8400,
+      },
     });
     setFieldValue('targetGroups', values.targetGroups);
   }
@@ -142,7 +181,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     values.targetGroups.splice(index, 1);
 
     if (index < oldTargetGroupCount) {
-      this.setState({ oldTargetGroupCount: oldTargetGroupCount - 1 })
+      this.setState({ oldTargetGroupCount: oldTargetGroupCount - 1 });
     }
     setFieldValue('targetGroups', values.targetGroups);
   }
@@ -160,8 +199,8 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
     const { app, errors, values } = this.props;
     const { oldTargetGroupCount } = this.state;
 
-    const ProtocolOptions = this.protocols.map((p) => <option key={p}>{p}</option>);
-    const TargetTypeOptions = this.targetTypes.map((p) => <option key={p}>{p}</option>);
+    const ProtocolOptions = this.protocols.map(p => <option key={p}>{p}</option>);
+    const TargetTypeOptions = this.targetTypes.map(p => <option key={p}>{p}</option>);
 
     return (
       <div className="container-fluid form-horizontal">
@@ -181,18 +220,24 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                             className="form-control input-sm target-group-name"
                             type="text"
                             value={targetGroup.name}
-                            onChange={(event) => this.targetGroupFieldChanged(index, 'name', event.target.value)}
+                            onChange={event => this.targetGroupFieldChanged(index, 'name', event.target.value)}
                             required={true}
                             disabled={index < oldTargetGroupCount}
                           />
-                          <a className="sm-label clickable" onClick={() => this.removeTargetGroup(index)}><span className="glyphicon glyphicon-trash"/></a>
+                          <a className="sm-label clickable" onClick={() => this.removeTargetGroup(index)}>
+                            <span className="glyphicon glyphicon-trash" />
+                          </a>
                         </div>
-                        {tgErrors.name && <div className="wizard-pod-row-errors"><ValidationError message={tgErrors.name}/></div>}
+                        {tgErrors.name && (
+                          <div className="wizard-pod-row-errors">
+                            <ValidationError message={tgErrors.name} />
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="wizard-pod-row">
                       <div className="wizard-pod-row-title">
-                        <HelpField id="aws.targetGroup.targetType"/> <span>Target Type&nbsp;</span>
+                        <HelpField id="aws.targetGroup.targetType" /> <span>Target Type&nbsp;</span>
                       </div>
                       <div className="wizard-pod-row-contents">
                         <div className="wizard-pod-row-data">
@@ -200,7 +245,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                             <select
                               className="form-control input-sm"
                               value={targetGroup.targetType}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'targetType', event.target.value)}
+                              onChange={event => this.targetGroupFieldChanged(index, 'targetType', event.target.value)}
                               disabled={index < oldTargetGroupCount}
                             >
                               {TargetTypeOptions}
@@ -214,22 +259,24 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                       <div className="wizard-pod-row-contents">
                         <div className="wizard-pod-row-data">
                           <span className="wizard-pod-content">
-                            <label>Protocol </label><HelpField id="aws.targetGroup.protocol"/>{' '}
+                            <label>Protocol </label>
+                            <HelpField id="aws.targetGroup.protocol" />{' '}
                             <select
                               className="form-control input-sm inline-number"
                               value={targetGroup.protocol}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'protocol', event.target.value)}
+                              onChange={event => this.targetGroupFieldChanged(index, 'protocol', event.target.value)}
                               disabled={index < oldTargetGroupCount}
                             >
                               {ProtocolOptions}
                             </select>
                           </span>
                           <span className="wizard-pod-content">
-                            <label>Port </label><HelpField id="aws.targetGroup.port"/>{' '}
+                            <label>Port </label>
+                            <HelpField id="aws.targetGroup.port" />{' '}
                             <input
                               className="form-control input-sm inline-number"
                               value={targetGroup.port}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'port', event.target.value)}
+                              onChange={event => this.targetGroupFieldChanged(index, 'port', event.target.value)}
                               type="text"
                               required={true}
                               disabled={index < oldTargetGroupCount}
@@ -247,7 +294,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                             <select
                               className="form-control input-sm inline-number"
                               value={targetGroup.healthCheckProtocol}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckProtocol', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthCheckProtocol', event.target.value)
+                              }
                             >
                               {ProtocolOptions}
                             </select>
@@ -260,7 +309,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                               name="healthCheckPort"
                               required={true}
                               value={targetGroup.healthCheckPort}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckPort', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthCheckPort', event.target.value)
+                              }
                             />
                           </span>
                           <span className="wizard-pod-content">
@@ -271,7 +322,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                               name="healthCheckPath"
                               required={true}
                               value={targetGroup.healthCheckPath}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckPath', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthCheckPath', event.target.value)
+                              }
                             />
                           </span>
                           <span className="wizard-pod-content">
@@ -282,7 +335,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                               name="healthCheckTimeout"
                               required={true}
                               value={targetGroup.healthCheckTimeout}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckTimeout', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthCheckTimeout', event.target.value)
+                              }
                             />
                           </span>
                           <span className="wizard-pod-content">
@@ -293,7 +348,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                               name="healthCheckInterval"
                               required={true}
                               value={targetGroup.healthCheckInterval}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthCheckInterval', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthCheckInterval', event.target.value)
+                              }
                             />
                           </span>
                         </div>
@@ -311,7 +368,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                               name="healthyThreshold"
                               type="text"
                               value={targetGroup.healthyThreshold}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'healthyThreshold', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthyThreshold', event.target.value)
+                              }
                             />
                           </span>
                           <span className="wizard-pod-content">
@@ -322,7 +381,9 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                               name="unhealthyThreshold"
                               required={true}
                               value={targetGroup.unhealthyThreshold}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'unhealthyThreshold', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'unhealthyThreshold', event.target.value)
+                              }
                             />
                           </span>
                         </div>
@@ -333,12 +394,19 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                       <div className="wizard-pod-row-contents">
                         <div className="wizard-pod-row-data">
                           <span className="wizard-pod-content">
-                            <label>Dereg. Delay</label><HelpField id="aws.targetGroup.attributes.deregistrationDelay"/>{' '}
+                            <label>Dereg. Delay</label>
+                            <HelpField id="aws.targetGroup.attributes.deregistrationDelay" />{' '}
                             <input
                               className="form-control input-sm inline-number"
                               type="text"
                               value={targetGroup.attributes.deregistrationDelay}
-                              onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.deregistrationDelay', event.target.value)}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(
+                                  index,
+                                  'attributes.deregistrationDelay',
+                                  event.target.value,
+                                )
+                              }
                             />
                           </span>
                           <span className="wizard-pod-content">
@@ -346,19 +414,32 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                               <input
                                 type="checkbox"
                                 checked={targetGroup.attributes.stickinessEnabled}
-                                onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.stickinessEnabled', event.target.checked)}
-                              />
-                                {' '}<label>Sticky</label><HelpField id="aws.targetGroup.attributes.stickinessEnabled"/>
+                                onChange={event =>
+                                  this.targetGroupFieldChanged(
+                                    index,
+                                    'attributes.stickinessEnabled',
+                                    event.target.checked,
+                                  )
+                                }
+                              />{' '}
+                              <label>Sticky</label>
+                              <HelpField id="aws.targetGroup.attributes.stickinessEnabled" />
                             </label>
                           </span>
                           {targetGroup.attributes.stickinessEnabled && (
                             <span className="wizard-pod-content">
-                              <label>Duration </label><HelpField id="aws.targetGroup.attributes.stickinessDuration"/>
-                              {' '}
+                              <label>Duration </label>
+                              <HelpField id="aws.targetGroup.attributes.stickinessDuration" />{' '}
                               <input
                                 className="form-control input-sm inline-number"
                                 value={targetGroup.attributes.stickinessDuration}
-                                onChange={(event) => this.targetGroupFieldChanged(index, 'attributes.stickinessDuration', event.target.value)}
+                                onChange={event =>
+                                  this.targetGroupFieldChanged(
+                                    index,
+                                    'attributes.stickinessDuration',
+                                    event.target.value,
+                                  )
+                                }
                                 type="text"
                               />
                             </span>
@@ -375,7 +456,7 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
                 <tr>
                   <td>
                     <button type="button" className="add-new col-md-12" onClick={this.addTargetGroup}>
-                      <span className="glyphicon glyphicon-plus-sign"/> Add new target group
+                      <span className="glyphicon glyphicon-plus-sign" /> Add new target group
                     </button>
                   </td>
                 </tr>
@@ -386,6 +467,6 @@ class TargetGroupsImpl extends React.Component<ITargetGroupsProps & IWizardPageP
       </div>
     );
   }
-};
+}
 
 export const TargetGroups = wizardPage<ITargetGroupsProps>(TargetGroupsImpl);

@@ -9,5 +9,5 @@ const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.authentication.userMenu', [
   AUTHENTICATION_SERVICE,
-  AUTHENTICATION_USER_MENU
+  AUTHENTICATION_USER_MENU,
 ]);

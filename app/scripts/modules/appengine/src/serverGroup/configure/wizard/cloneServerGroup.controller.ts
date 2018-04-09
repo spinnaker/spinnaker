@@ -8,7 +8,7 @@ import {
   ServerGroupWriter,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
@@ -19,30 +19,33 @@ import { APPENGINE_DYNAMIC_BRANCH_LABEL } from './dynamicBranchLabel.component';
 import './serverGroupWizard.less';
 
 class AppengineCloneServerGroupCtrl implements IController {
-  public pages: {[pageKey: string]: string} = {
-    'basicSettings': require('./basicSettings.html'),
-    'advancedSettings': require('./advancedSettings.html'),
+  public pages: { [pageKey: string]: string } = {
+    basicSettings: require('./basicSettings.html'),
+    advancedSettings: require('./advancedSettings.html'),
   };
   public state = {
     loading: true,
   };
   public taskMonitor: TaskMonitor;
 
-  constructor(public $scope: IScope,
-              private $uibModalInstance: IModalInstanceService,
-              public serverGroupCommand: IAppengineServerGroupCommand,
-              private application: Application,
-              private taskMonitorBuilder: TaskMonitorBuilder,
-              private serverGroupWriter: ServerGroupWriter,
-              appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder) {
+  constructor(
+    public $scope: IScope,
+    private $uibModalInstance: IModalInstanceService,
+    public serverGroupCommand: IAppengineServerGroupCommand,
+    private application: Application,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    private serverGroupWriter: ServerGroupWriter,
+    appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder,
+  ) {
     'ngInject';
     if (['create', 'clone', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewState.mode'))) {
       this.$scope.command = serverGroupCommand;
       this.state.loading = false;
       this.initialize();
     } else {
-      appengineServerGroupCommandBuilder.buildNewServerGroupCommand(application, 'appengine', 'createPipeline')
-        .then((constructedCommand) => {
+      appengineServerGroupCommandBuilder
+        .buildNewServerGroupCommand(application, 'appengine', 'createPipeline')
+        .then(constructedCommand => {
           this.$scope.command = merge(constructedCommand, serverGroupCommand);
           this.state.loading = false;
           this.initialize();

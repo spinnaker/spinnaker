@@ -10,7 +10,7 @@ class ExpectedArtifactMultiSelectorCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
 
-  constructor (public expectedArtifactService: ExpectedArtifactService) {
+  constructor(public expectedArtifactService: ExpectedArtifactService) {
     'ngInject';
   }
 }
@@ -43,6 +43,7 @@ class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
 }
 
 export const EXPECTED_ARTIFACT_MULTI_SELECTOR_COMPONENT = 'spinnaker.core.artifacts.expected.multiSelector';
-module(EXPECTED_ARTIFACT_MULTI_SELECTOR_COMPONENT, [
-  EXPECTED_ARTIFACT_SERVICE,
-]).component('expectedArtifactMultiSelector', new ExpectedArtifactMultiSelectorComponent());
+module(EXPECTED_ARTIFACT_MULTI_SELECTOR_COMPONENT, [EXPECTED_ARTIFACT_SERVICE]).component(
+  'expectedArtifactMultiSelector',
+  new ExpectedArtifactMultiSelectorComponent(),
+);

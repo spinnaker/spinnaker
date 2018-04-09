@@ -18,7 +18,7 @@ export class ServerGroupConfigurationService {
 }
 
 export const SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.core.serverGroup.configure.common.configure.service';
-module(SERVER_GROUP_CONFIGURATION_SERVICE, [
-  PROVIDER_SERVICE_DELEGATE,
-])
-  .service('serverGroupConfigurationService', ServerGroupConfigurationService);
+module(SERVER_GROUP_CONFIGURATION_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service(
+  'serverGroupConfigurationService',
+  ServerGroupConfigurationService,
+);

@@ -4,29 +4,27 @@ import { mount } from 'enzyme';
 
 import { ReactInjector, REACT_MODULE } from 'core/reactShims';
 import {
-  IPermissions, IPermissionsConfigurerProps,
-  PermissionsConfigurer
+  IPermissions,
+  IPermissionsConfigurerProps,
+  PermissionsConfigurer,
 } from 'core/application/modal/PermissionsConfigurer';
 import { AUTHENTICATION_SERVICE } from 'core/authentication';
 
 describe('PermissionsConfigurer', () => {
   const createComponent = (props: IPermissionsConfigurerProps) => {
-    return mount(<PermissionsConfigurer {...props}/>).instance() as PermissionsConfigurer;
+    return mount(<PermissionsConfigurer {...props} />).instance() as PermissionsConfigurer;
   };
 
-  beforeEach(
-    mock.module(
-      AUTHENTICATION_SERVICE,
-      REACT_MODULE
-    )
-  );
+  beforeEach(mock.module(AUTHENTICATION_SERVICE, REACT_MODULE));
 
-  beforeEach(mock.inject(() => {
-    const authenticationService = ReactInjector.authenticationService;
-    spyOn(authenticationService, 'getAuthenticatedUser').and.callFake(() => {
-      return { roles: ['groupA', 'groupB', 'groupC'] };
-    });
-  }));
+  beforeEach(
+    mock.inject(() => {
+      const authenticationService = ReactInjector.authenticationService;
+      spyOn(authenticationService, 'getAuthenticatedUser').and.callFake(() => {
+        return { roles: ['groupA', 'groupB', 'groupC'] };
+      });
+    }),
+  );
 
   it('converts legacy requiredGroupMembership list to permissions object', () => {
     let permissions: IPermissions;

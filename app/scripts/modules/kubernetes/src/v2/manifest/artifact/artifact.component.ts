@@ -19,5 +19,7 @@ class KubernetesManifestArtifactComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_ARTIFACT = 'spinnaker.kubernetes.v2.manifest.artifact.component';
-module(KUBERNETES_MANIFEST_ARTIFACT, [])
-  .component('kubernetesManifestArtifact', new KubernetesManifestArtifactComponent());
+module(KUBERNETES_MANIFEST_ARTIFACT, []).component(
+  'kubernetesManifestArtifact',
+  new KubernetesManifestArtifactComponent(),
+);

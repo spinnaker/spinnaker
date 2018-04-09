@@ -15,20 +15,19 @@ module.exports = angular
     CLUSTER_SERVICE,
   ])
   .run(function($q, applicationDataSourceRegistry, executionService, pipelineConfigService, clusterService) {
-
     let addExecutions = (application, executions) => {
       executionService.transformExecutions(application, executions, application.executions.data);
       return $q.when(executionService.addExecutionsToApplication(application, executions));
     };
 
-    let loadExecutions = (application) => {
+    let loadExecutions = application => {
       return executionService.getExecutions(application.name, application);
     };
 
-    let loadPipelineConfigs = (application) => {
+    let loadPipelineConfigs = application => {
       let pipelineLoader = pipelineConfigService.getPipelinesForApplication(application.name),
-          strategyLoader = pipelineConfigService.getStrategiesForApplication(application.name);
-      return $q.all({pipelineConfigs: pipelineLoader, strategyConfigs: strategyLoader});
+        strategyLoader = pipelineConfigService.getStrategiesForApplication(application.name);
+      return $q.all({ pipelineConfigs: pipelineLoader, strategyConfigs: strategyLoader });
     };
 
     let addPipelineConfigs = (application, data) => {
@@ -36,7 +35,7 @@ module.exports = angular
       return $q.when(data.pipelineConfigs);
     };
 
-    let loadRunningExecutions = (application) => {
+    let loadRunningExecutions = application => {
       return executionService.getRunningExecutions(application.name);
     };
 
@@ -45,13 +44,13 @@ module.exports = angular
       return $q.when(data);
     };
 
-    let runningExecutionsLoaded = (application) => {
+    let runningExecutionsLoaded = application => {
       clusterService.addExecutionsToServerGroups(application);
       executionService.mergeRunningExecutionsIntoExecutions(application);
       application.getDataSource('serverGroups').dataUpdated();
     };
 
-    let executionsLoaded = (application) => {
+    let executionsLoaded = application => {
       executionService.removeCompletedExecutionsFromRunningData(application);
     };
 
@@ -70,7 +69,7 @@ module.exports = angular
         afterLoad: executionsLoaded,
         lazy: true,
         badge: 'runningExecutions',
-        description: 'Orchestrated deployment management'
+        description: 'Orchestrated deployment management',
       });
 
       applicationDataSourceRegistry.registerDataSource({
@@ -89,5 +88,4 @@ module.exports = angular
         afterLoad: runningExecutionsLoaded,
       });
     }
-
   });

@@ -4,7 +4,6 @@ import { IVariableValidator, VariableValidatorService } from './variableValidato
 import { IVariable, IVariableError } from '../inputs/variableInput.service';
 
 class ObjectValidator implements IVariableValidator {
-
   public handles(type: string) {
     return type === 'object';
   }
@@ -22,5 +21,6 @@ class ObjectValidator implements IVariableValidator {
 }
 
 export const OBJECT_VALIDATOR = 'spinnaker.core.pipelineTemplate.objectValidator';
-module(OBJECT_VALIDATOR, [])
-  .run((variableValidatorService: VariableValidatorService) => variableValidatorService.addValidator(new ObjectValidator()));
+module(OBJECT_VALIDATOR, []).run((variableValidatorService: VariableValidatorService) =>
+  variableValidatorService.addValidator(new ObjectValidator()),
+);

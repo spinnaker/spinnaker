@@ -49,7 +49,7 @@ export interface IExecutionDetailsComponentState {
 }
 
 export interface IExecutionStageSummary extends IOrchestratedItem {
-  activeStageType?: string,
+  activeStageType?: string;
   after: IExecutionStage[];
   before: IExecutionStage[];
   cloudProvider: string;

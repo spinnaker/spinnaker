@@ -4,7 +4,8 @@ const angular = require('angular');
 
 import './instanceTypeSelector.directive.less';
 
-module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2instanceTypeSelector', [])
+module.exports = angular
+  .module('spinnaker.core.serverGroup.configure.common.v2instanceTypeSelector', [])
   .directive('v2InstanceTypeSelector', function() {
     return {
       restrict: 'E',
@@ -26,9 +27,9 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
         categories.forEach(function(profile) {
           if (profile.type === command.viewState.instanceProfile) {
             if (!command.viewState.disableImageSelection) {
-              profile.families.forEach((family) => {
-                family.instanceTypes.forEach((instanceType) => {
-                  instanceType.unavailable = availableTypes.every((available) => available !== instanceType.name);
+              profile.families.forEach(family => {
+                family.instanceTypes.forEach(instanceType => {
+                  instanceType.unavailable = availableTypes.every(available => available !== instanceType.name);
                 });
               });
             }
@@ -50,9 +51,11 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
         delete $scope.command.viewState.dirty.instanceType;
       }
 
-      instanceTypeService.getInstanceTypeDetails($scope.command.selectedProvider, type.name).then(function(instanceTypeDetails) {
-        $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
-      });
+      instanceTypeService
+        .getInstanceTypeDetails($scope.command.selectedProvider, type.name)
+        .then(function(instanceTypeDetails) {
+          $scope.command.viewState.instanceTypeDetails = instanceTypeDetails;
+        });
     };
 
     this.getStorageDescription = function(instanceType) {
@@ -64,7 +67,8 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
     };
 
     this.getStorageDescriptionHelpKey = function(instanceType) {
-      return $scope.command.instanceType === instanceType.name && $scope.command.viewState.overriddenStorageDescription ? 'instanceType.storageOverridden' : null;
+      return $scope.command.instanceType === instanceType.name && $scope.command.viewState.overriddenStorageDescription
+        ? 'instanceType.storageOverridden'
+        : null;
     };
-
   });

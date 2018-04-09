@@ -2,10 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
-  ])
-  .factory('azureServerGroupTransformer', function () {
-
+module.exports = angular
+  .module('spinnaker.azure.serverGroup.transformer', [])
+  .factory('azureServerGroupTransformer', function() {
     function normalizeServerGroup(serverGroup) {
       return serverGroup;
     }
@@ -13,7 +12,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
     function convertServerGroupCommandToDeployConfiguration(command) {
       var tempImage;
 
-      if(command.viewState.mode === 'editPipeline' || command.viewState.mode === 'createPipeline') {
+      if (command.viewState.mode === 'editPipeline' || command.viewState.mode === 'createPipeline') {
         tempImage = {
           imageName: '',
           isCustom: 'true',
@@ -68,7 +67,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
         customScriptsSettings: {
           fileUris: null,
           commandToExecute: '',
-        }
+        },
       };
 
       if (typeof command.stack !== 'undefined') {
@@ -97,5 +96,4 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
       normalizeServerGroup: normalizeServerGroup,
     };
-
   });

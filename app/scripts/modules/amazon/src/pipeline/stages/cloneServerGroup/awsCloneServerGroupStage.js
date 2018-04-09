@@ -5,33 +5,31 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [
-  ACCOUNT_SERVICE,
-  LIST_EXTRACTOR_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
       cloudProvider: 'aws',
       templateUrl: require('./cloneServerGroupStage.html'),
       executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
-      accountExtractor: (stage) => stage.context.credentials,
+      accountExtractor: stage => stage.context.credentials,
       validators: [
         { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },
         { type: 'requiredField', fieldName: 'target' },
-        { type: 'requiredField', fieldName: 'region', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'}
+        { type: 'requiredField', fieldName: 'region' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService, namingService) {
-
+  })
+  .controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService, namingService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then((accounts) => {
+    accountService.listAccounts('aws').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -42,7 +40,11 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
     stage.cloudProvider = 'aws';
     stage.cloudProviderType = 'aws';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Amazon'];
     }
 
@@ -51,7 +53,11 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
     }
 
     if (stage.isNew) {
-      stage.useAmiBlockDeviceMappings = _.get($scope, 'application.attributes.providerSettings.aws.useAmiBlockDeviceMappings', false);
+      stage.useAmiBlockDeviceMappings = _.get(
+        $scope,
+        'application.attributes.providerSettings.aws.useAmiBlockDeviceMappings',
+        false,
+      );
       stage.copySourceCustomBlockDeviceMappings = false; // default to using block device mappings from current instance type
     }
 
@@ -84,7 +90,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
       stage.useSourceCapacity = true;
     }
 
-    this.toggleSuspendedProcess = (process) => {
+    this.toggleSuspendedProcess = process => {
       stage.suspendedProcesses = stage.suspendedProcesses || [];
       var processIndex = stage.suspendedProcesses.indexOf(process);
       if (processIndex === -1) {
@@ -94,7 +100,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
       }
     };
 
-    this.processIsSuspended = (process) => {
+    this.processIsSuspended = process => {
       return stage.suspendedProcesses && stage.suspendedProcesses.includes(process);
     };
 
@@ -107,7 +113,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGrou
       return 'default';
     };
 
-    this.selectBlockDeviceMappingsSource = (selection) => {
+    this.selectBlockDeviceMappingsSource = selection => {
       if (selection === 'source') {
         // copy block device mappings from source asg
         stage.copySourceCustomBlockDeviceMappings = true;

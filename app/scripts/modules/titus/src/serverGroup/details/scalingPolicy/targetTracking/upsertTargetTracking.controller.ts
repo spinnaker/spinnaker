@@ -6,7 +6,12 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import { Application, IServerGroup, TaskMonitorBuilder, TaskMonitor } from '@spinnaker/core';
 
-import { ITargetTrackingConfiguration, ITargetTrackingPolicy, IUpsertScalingPolicyCommand, ScalingPolicyWriter } from '@spinnaker/amazon';
+import {
+  ITargetTrackingConfiguration,
+  ITargetTrackingPolicy,
+  IUpsertScalingPolicyCommand,
+  ScalingPolicyWriter,
+} from '@spinnaker/amazon';
 import { IAlarmRenderingServerGroup } from './targetTrackingSummary.component';
 
 export interface ITargetTrackingState {
@@ -28,7 +33,6 @@ export interface ITitusTargetTrackingPolicy extends ITargetTrackingPolicy {
 }
 
 export class UpsertTargetTrackingController implements IComponentController {
-
   public statistics = ['Average', 'Maximum', 'Minimum', 'SampleCount', 'Sum'];
   public alarmUpdated = new Subject();
 
@@ -36,13 +40,15 @@ export class UpsertTargetTrackingController implements IComponentController {
   public state: ITargetTrackingState;
   public command: ITargetTrackingPolicyCommand;
 
-  constructor(private $uibModalInstance: IModalServiceInstance,
-              private scalingPolicyWriter: ScalingPolicyWriter,
-              private taskMonitorBuilder: TaskMonitorBuilder,
-              public policy: ITitusTargetTrackingPolicy,
-              public serverGroup: ITitusServerGroup,
-              public alarmServerGroup: IAlarmRenderingServerGroup,
-              public application: Application) {
+  constructor(
+    private $uibModalInstance: IModalServiceInstance,
+    private scalingPolicyWriter: ScalingPolicyWriter,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    public policy: ITitusTargetTrackingPolicy,
+    public serverGroup: ITitusServerGroup,
+    public alarmServerGroup: IAlarmRenderingServerGroup,
+    public application: Application,
+  ) {
     'ngInject';
   }
 
@@ -69,7 +75,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       application: this.application,
       title: `${action} scaling policy for ${this.serverGroup.name}`,
       modalInstance: this.$uibModalInstance,
-      submitMethod: () => this.scalingPolicyWriter.upsertScalingPolicy(this.application, command)
+      submitMethod: () => this.scalingPolicyWriter.upsertScalingPolicy(this.application, command),
     });
 
     this.taskMonitor.submit();
@@ -89,5 +95,4 @@ export class UpsertTargetTrackingController implements IComponentController {
       targetTrackingConfiguration: Object.assign({}, this.policy.targetTrackingConfiguration),
     };
   }
-
 }

@@ -18,14 +18,16 @@ export interface IBaseOsOptions {
 }
 
 export class BakeryService {
-
-  public constructor(private $q: ng.IQService, private API: Api, private accountService: AccountService) { 'ngInject'; }
+  public constructor(private $q: ng.IQService, private API: Api, private accountService: AccountService) {
+    'ngInject';
+  }
 
   public getRegions(provider: string): ng.IPromise<string[]> {
     if (has(SETTINGS, `providers.${provider}.bakeryRegions`)) {
       return this.$q.when(get(SETTINGS, `providers.${provider}.bakeryRegions`));
     }
-    return this.accountService.getUniqueAttributeForAllAccounts(provider, 'regions')
+    return this.accountService
+      .getUniqueAttributeForAllAccounts(provider, 'regions')
       .then((regions: string[]) => regions.sort());
   }
 
@@ -36,7 +38,9 @@ export class BakeryService {
   }
 
   private getAllBaseOsOptions(): ng.IPromise<IBaseOsOptions[]> {
-    return this.API.one('bakery', 'options').useCache().getList();
+    return this.API.one('bakery', 'options')
+      .useCache()
+      .getList();
   }
 
   public getBaseLabelOptions(): ng.IPromise<string[]> {
@@ -54,7 +58,4 @@ export class BakeryService {
 
 export const BAKERY_SERVICE = 'spinnaker.core.pipeline.bakery.service';
 
-module(BAKERY_SERVICE, [
-  API_SERVICE,
-  ACCOUNT_SERVICE,
-]).service('bakeryService', BakeryService);
+module(BAKERY_SERVICE, [API_SERVICE, ACCOUNT_SERVICE]).service('bakeryService', BakeryService);

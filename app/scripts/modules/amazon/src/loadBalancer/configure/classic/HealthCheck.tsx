@@ -30,55 +30,54 @@ class HealthCheckImpl extends React.Component<IWizardPageProps & FormikProps<IAm
         <div className="col-md-8">
           <table className="table table-condensed packed">
             <thead>
-            <tr>
-              <th style={{ width: '35%' }}>Protocol</th>
-              <th style={{ width: '30%' }}>Port</th>
-              <th>{this.requiresHealthCheckPath() && <span>Path</span>}</th>
-            </tr>
+              <tr>
+                <th style={{ width: '35%' }}>Protocol</th>
+                <th style={{ width: '30%' }}>Port</th>
+                <th>{this.requiresHealthCheckPath() && <span>Path</span>}</th>
+              </tr>
             </thead>
             <tbody>
-            <tr>
-              <td>
-                <Field
-                  className="form-control input-sm"
-                  component="select"
-                  name="healthCheckProtocol"
-                  required={true}
-                >
-                  <option>HTTP</option>
-                  <option>HTTPS</option>
-                  <option>SSL</option>
-                  <option>TCP</option>
-                </Field>
-              </td>
-              <td>
-                <Field
-                  className="form-control input-sm"
-                  type="number"
-                  name="healthCheckPort"
-                  required={true}
-                  min="0"
-                />
-              </td>
-              <td>
-                {this.requiresHealthCheckPath() && (
+              <tr>
+                <td>
                   <Field
-                    className="form-control input-sm no-spel"
-                    type="text"
-                    onChange={this.healthCheckPathChanged}
-                    name="healthCheckPath"
+                    className="form-control input-sm"
+                    component="select"
+                    name="healthCheckProtocol"
                     required={true}
+                  >
+                    <option>HTTP</option>
+                    <option>HTTPS</option>
+                    <option>SSL</option>
+                    <option>TCP</option>
+                  </Field>
+                </td>
+                <td>
+                  <Field
+                    className="form-control input-sm"
+                    type="number"
+                    name="healthCheckPort"
+                    required={true}
+                    min="0"
                   />
-                )}
-              </td>
-            </tr>
+                </td>
+                <td>
+                  {this.requiresHealthCheckPath() && (
+                    <Field
+                      className="form-control input-sm no-spel"
+                      type="text"
+                      onChange={this.healthCheckPathChanged}
+                      name="healthCheckPath"
+                      required={true}
+                    />
+                  )}
+                </td>
+              </tr>
             </tbody>
-
           </table>
         </div>
       </div>
     );
   }
-};
+}
 
 export const HealthCheck = wizardPage(HealthCheckImpl);

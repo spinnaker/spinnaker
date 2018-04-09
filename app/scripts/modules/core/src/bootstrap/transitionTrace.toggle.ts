@@ -17,11 +17,10 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
         trace.enable();
       } else {
         const traceValues = newValue.split(',').map(str => str.trim().toUpperCase());
-        trace.enable(...traceValues as any);
+        trace.enable(...(traceValues as any));
       }
     }
   };
 
   $uiRouter.transitionService.onBefore({}, paramChangedHelper('trace', changeTraceSetting));
 });
-

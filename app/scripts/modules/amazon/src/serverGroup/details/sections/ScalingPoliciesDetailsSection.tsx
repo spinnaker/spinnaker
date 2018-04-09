@@ -12,7 +12,10 @@ export interface IScalingPoliciesDetailsSectionState {
   scalingPoliciesDisabled: boolean;
 }
 
-export class ScalingPoliciesDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, IScalingPoliciesDetailsSectionState> {
+export class ScalingPoliciesDetailsSection extends React.Component<
+  IAmazonServerGroupDetailsSectionProps,
+  IScalingPoliciesDetailsSectionState
+> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -22,8 +25,12 @@ export class ScalingPoliciesDetailsSection extends React.Component<IAmazonServer
   private getState(props: IAmazonServerGroupDetailsSectionProps): IScalingPoliciesDetailsSectionState {
     const { serverGroup } = props;
 
-    const autoScalingProcesses: IScalingProcess[] = AwsReactInjector.autoScalingProcessService.normalizeScalingProcesses(serverGroup);
-    const scalingPoliciesDisabled = serverGroup.scalingPolicies.length > 0 && autoScalingProcesses
+    const autoScalingProcesses: IScalingProcess[] = AwsReactInjector.autoScalingProcessService.normalizeScalingProcesses(
+      serverGroup,
+    );
+    const scalingPoliciesDisabled =
+      serverGroup.scalingPolicies.length > 0 &&
+      autoScalingProcesses
         .filter(p => !p.enabled)
         .some(p => ['Launch', 'Terminate', 'AlarmNotification'].includes(p.name));
 
@@ -47,23 +54,22 @@ export class ScalingPoliciesDetailsSection extends React.Component<IAmazonServer
           <span>
             {scalingPoliciesDisabled && (
               <Tooltip value="Some scaling processes are disabled that may prevent scaling policies from working">
-                <span className="fa fa-exclamation-circle warning-text"/>
+                <span className="fa fa-exclamation-circle warning-text" />
               </Tooltip>
             )}
             Scaling Policies
           </span>
         )}
       >
-        {scalingPoliciesDisabled && <div className="band band-warning">Some scaling processes are disabled that may prevent scaling policies from working.</div>}
-        {serverGroup.scalingPolicies.map((policy) => (
-          <ScalingPolicySummary
-            key={policy.policyARN}
-            policy={policy}
-            serverGroup={serverGroup}
-            application={app}
-          />
+        {scalingPoliciesDisabled && (
+          <div className="band band-warning">
+            Some scaling processes are disabled that may prevent scaling policies from working.
+          </div>
+        )}
+        {serverGroup.scalingPolicies.map(policy => (
+          <ScalingPolicySummary key={policy.policyARN} policy={policy} serverGroup={serverGroup} application={app} />
         ))}
-        <CreateScalingPolicyButton serverGroup={serverGroup} application={app}/>
+        <CreateScalingPolicyButton serverGroup={serverGroup} application={app} />
       </CollapsibleSection>
     );
   }

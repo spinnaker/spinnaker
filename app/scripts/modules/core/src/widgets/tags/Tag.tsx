@@ -4,7 +4,8 @@ import { BindAll } from 'lodash-decorators';
 import { Key } from '../Keys';
 
 export enum DeleteType {
-  BACKSPACE, REMOVE
+  BACKSPACE,
+  REMOVE,
 }
 
 export interface ITag {
@@ -23,13 +24,12 @@ export interface ITagProps {
 
 @BindAll()
 export class Tag extends React.Component<ITagProps> {
-
   public static defaultProps: Partial<ITagProps> = {
     onBlur: () => {},
     onCreate: () => {},
     onDelete: () => {},
     onFocus: () => {},
-    onKeyUp: () => {}
+    onKeyUp: () => {},
   };
 
   private refCallback(element: HTMLElement): void {
@@ -47,7 +47,6 @@ export class Tag extends React.Component<ITagProps> {
   }
 
   private handleKeyUp(event: React.KeyboardEvent<HTMLElement>): void {
-
     switch (event.key) {
       case Key.BACKSPACE:
       case Key.DELETE:
@@ -65,7 +64,6 @@ export class Tag extends React.Component<ITagProps> {
   }
 
   public render(): React.ReactElement<Tag> {
-
     const { key, text } = this.props.tag;
     return (
       <div
@@ -79,7 +77,7 @@ export class Tag extends React.Component<ITagProps> {
         <div className="tag__category">{key.toLocaleUpperCase()}</div>
         <div className="tag__label">{text}</div>
         <div className="tag__remove">
-          <i className="fa fa-times-circle" onClick={this.handleRemoveClick}/>
+          <i className="fa fa-times-circle" onClick={this.handleRemoveClick} />
         </div>
       </div>
     );

@@ -12,7 +12,7 @@ import {
   SERVER_GROUP_READER,
   ServerGroupReader,
   TASK_EXECUTOR,
-  TaskExecutor
+  TaskExecutor,
 } from '@spinnaker/core';
 
 import { IAmazonInstance } from 'amazon/domain';
@@ -26,17 +26,25 @@ export interface IAmazonMultiInstanceJob extends IMultiInstanceJob {
 }
 
 export class AmazonInstanceWriter extends InstanceWriter {
-  public constructor(protected taskExecutor: TaskExecutor,
-                     protected serverGroupReader: ServerGroupReader,
-                     protected providerServiceDelegate: ProviderServiceDelegate) {
+  public constructor(
+    protected taskExecutor: TaskExecutor,
+    protected serverGroupReader: ServerGroupReader,
+    protected providerServiceDelegate: ProviderServiceDelegate,
+  ) {
     'ngInject';
     super(taskExecutor, serverGroupReader, providerServiceDelegate);
   }
 
-  public deregisterInstancesFromTargetGroup(instanceGroups: IMultiInstanceGroup[], application: Application,
-                                             targetGroupNames: string[]): IPromise<ITask> {
-    const jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer') as IAmazonMultiInstanceJob[];
-    jobs.forEach((job) => job.targetGroupNames = targetGroupNames);
+  public deregisterInstancesFromTargetGroup(
+    instanceGroups: IMultiInstanceGroup[],
+    application: Application,
+    targetGroupNames: string[],
+  ): IPromise<ITask> {
+    const jobs = this.buildMultiInstanceJob(
+      instanceGroups,
+      'deregisterInstancesFromLoadBalancer',
+    ) as IAmazonMultiInstanceJob[];
+    jobs.forEach(job => (job.targetGroupNames = targetGroupNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${targetGroupNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
@@ -45,7 +53,11 @@ export class AmazonInstanceWriter extends InstanceWriter {
     });
   }
 
-  public deregisterInstanceFromTargetGroup(instance: IAmazonInstance, application: Application, params: any = {}): IPromise<ITask> {
+  public deregisterInstanceFromTargetGroup(
+    instance: IAmazonInstance,
+    application: Application,
+    params: any = {},
+  ): IPromise<ITask> {
     params.type = 'deregisterInstancesFromLoadBalancer';
     params.instanceIds = [instance.id];
     params.targetGroupNames = instance.targetGroups;
@@ -55,13 +67,20 @@ export class AmazonInstanceWriter extends InstanceWriter {
     return this.taskExecutor.executeTask({
       job: [params],
       application: application,
-      description: `Deregister instance: ${instance.id}`
+      description: `Deregister instance: ${instance.id}`,
     });
   }
 
-  public registerInstancesWithTargetGroup(instanceGroups: IMultiInstanceGroup[], application: Application, targetGroupNames: string[]) {
-    const jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer') as IAmazonMultiInstanceJob[];
-    jobs.forEach((job) => job.targetGroupNames = targetGroupNames);
+  public registerInstancesWithTargetGroup(
+    instanceGroups: IMultiInstanceGroup[],
+    application: Application,
+    targetGroupNames: string[],
+  ) {
+    const jobs = this.buildMultiInstanceJob(
+      instanceGroups,
+      'registerInstancesWithLoadBalancer',
+    ) as IAmazonMultiInstanceJob[];
+    jobs.forEach(job => (job.targetGroupNames = targetGroupNames));
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${targetGroupNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
@@ -70,7 +89,11 @@ export class AmazonInstanceWriter extends InstanceWriter {
     });
   }
 
-  public registerInstanceWithTargetGroup(instance: IAmazonInstance, application: Application, params: any = {}): IPromise<ITask> {
+  public registerInstanceWithTargetGroup(
+    instance: IAmazonInstance,
+    application: Application,
+    params: any = {},
+  ): IPromise<ITask> {
     params.type = 'registerInstancesWithLoadBalancer';
     params.instanceIds = [instance.id];
     params.targetGroupNames = instance.targetGroups;
@@ -80,7 +103,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     return this.taskExecutor.executeTask({
       job: [params],
       application: application,
-      description: `Register instance: ${instance.id}`
+      description: `Register instance: ${instance.id}`,
     });
   }
 }

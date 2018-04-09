@@ -8,8 +8,21 @@ import { ReactInjector } from 'core/reactShims';
 import { IServerGroupSearchResult } from 'core/serverGroup/serverGroupSearchResultType';
 
 import {
-  searchResultTypeRegistry, AccountCell, BasicCell, HrefCell, ISearchColumn, DefaultSearchResultTab, SearchStatus,
-  HeaderCell, TableBody, TableHeader, TableRow, ISearchResult, SearchResultType, ISearchResultSet, ISearchResults,
+  searchResultTypeRegistry,
+  AccountCell,
+  BasicCell,
+  HrefCell,
+  ISearchColumn,
+  DefaultSearchResultTab,
+  SearchStatus,
+  HeaderCell,
+  TableBody,
+  TableHeader,
+  TableRow,
+  ISearchResult,
+  SearchResultType,
+  ISearchResultSet,
+  ISearchResults,
 } from 'core/search';
 
 export interface IClusterSearchResult extends ISearchResult {
@@ -29,32 +42,31 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
   private cols: { [key: string]: ISearchColumn } = {
     CLUSTER: { key: 'cluster', label: 'Name' },
     ACCOUNT: { key: 'account' },
-    EMAIL: { key: 'email' }
+    EMAIL: { key: 'email' },
   };
 
   public TabComponent = DefaultSearchResultTab;
 
   public HeaderComponent = () => (
     <TableHeader>
-      <HeaderCell col={this.cols.CLUSTER}/>
-      <HeaderCell col={this.cols.ACCOUNT}/>
-      <HeaderCell col={this.cols.EMAIL}/>
+      <HeaderCell col={this.cols.CLUSTER} />
+      <HeaderCell col={this.cols.ACCOUNT} />
+      <HeaderCell col={this.cols.EMAIL} />
     </TableHeader>
   );
 
   public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<IClusterSearchResult> }) => {
     const itemKeyFn = (item: IClusterSearchResult) => `${item.account}-${item.cluster}`;
-    const itemSortFn = (a: IClusterSearchResult, b: IClusterSearchResult) =>
-      a.cluster.localeCompare(b.cluster);
+    const itemSortFn = (a: IClusterSearchResult, b: IClusterSearchResult) => a.cluster.localeCompare(b.cluster);
     const results = resultSet.results.slice().sort(itemSortFn);
 
     return (
       <TableBody>
         {results.map(item => (
           <TableRow key={itemKeyFn(item)}>
-            <HrefCell item={item} col={this.cols.CLUSTER}/>
-            <AccountCell item={item} col={this.cols.ACCOUNT}/>
-            <BasicCell item={item} col={this.cols.EMAIL}/>
+            <HrefCell item={item} col={this.cols.CLUSTER} />
+            <AccountCell item={item} col={this.cols.ACCOUNT} />
+            <BasicCell item={item} col={this.cols.EMAIL} />
           </TableRow>
         ))}
       </TableBody>
@@ -71,7 +83,10 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
   }
 
   // create cluster search results based on the server group search results
-  public search(_params: IQueryParams, otherResults: Observable<ISearchResultSet>): Observable<ISearchResults<IClusterSearchResult>> {
+  public search(
+    _params: IQueryParams,
+    otherResults: Observable<ISearchResultSet>,
+  ): Observable<ISearchResults<IClusterSearchResult>> {
     const applications: Map<string, IApplicationSummary> = ReactInjector.applicationReader.getApplicationMap();
 
     return otherResults
@@ -88,10 +103,10 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
         const clusters: IClusterSearchResult[] = uniqBy(searchResults, sg => `${sg.account}-${sg.cluster}`);
         const clusterResults = clusters.map(cluster => {
           const app = applications.get(cluster.application);
-          return { ...cluster, email: app && app.email }
+          return { ...cluster, email: app && app.email };
         });
 
-        return { results: clusterResults }
+        return { results: clusterResults };
       });
   }
 

@@ -6,18 +6,18 @@ describe('Service: whatsNew reader ', () => {
   let reader: WhatsNewReader;
   let $http: IHttpBackendService;
 
+  beforeEach(mock.module(WHATS_NEW_READ_SERVICE));
+
   beforeEach(
-    mock.module(
-      WHATS_NEW_READ_SERVICE
-    )
+    mock.inject((whatsNewReader: WhatsNewReader, $httpBackend: IHttpBackendService) => {
+      reader = whatsNewReader;
+      $http = $httpBackend;
+    }),
   );
 
-  beforeEach(mock.inject((whatsNewReader: WhatsNewReader, $httpBackend: IHttpBackendService) => {
-    reader = whatsNewReader;
-    $http = $httpBackend;
-  }));
-
-  beforeEach(() => { SETTINGS.changelog = { gistId: 'abc', fileName: 'log.md' }; });
+  beforeEach(() => {
+    SETTINGS.changelog = { gistId: 'abc', fileName: 'log.md' };
+  });
 
   afterEach(SETTINGS.resetToOriginal);
 
@@ -28,10 +28,10 @@ describe('Service: whatsNew reader ', () => {
       url = `https://api.github.com/gists/${gistId}`;
     });
 
-    it ('returns file contents with lastUpdated', () => {
+    it('returns file contents with lastUpdated', () => {
       let result: IWhatsNewContents = null;
       const response: IGistApiResponse = {
-        'updated_at': '1999',
+        updated_at: '1999',
         files: {},
       };
 
@@ -41,7 +41,7 @@ describe('Service: whatsNew reader ', () => {
 
       $http.expectGET(url).respond(200, response);
 
-      reader.getWhatsNewContents().then((data: IWhatsNewContents) => result = data);
+      reader.getWhatsNewContents().then((data: IWhatsNewContents) => (result = data));
       $http.flush();
 
       expect(result).not.toBeNull();

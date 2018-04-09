@@ -2,7 +2,7 @@ import { IComponentOptions, IController, module } from 'angular';
 
 class KubernetesManifestAnnotations implements IController {
   public manifest: any;
-  private ignoreAnnotations = [ 'kubectl.kubernetes.io/last-applied-configuration' ];
+  private ignoreAnnotations = ['kubectl.kubernetes.io/last-applied-configuration'];
 
   public isValidKey(k: string): boolean {
     return this.ignoreAnnotations.indexOf(k) === -1;
@@ -29,5 +29,7 @@ class KubernetesManifestAnnotationsComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_ANNOTATIONS = 'spinnaker.kubernetes.v2.manifest.annotations';
-module(KUBERNETES_MANIFEST_ANNOTATIONS, [])
-  .component('kubernetesManifestAnnotations', new KubernetesManifestAnnotationsComponent());
+module(KUBERNETES_MANIFEST_ANNOTATIONS, []).component(
+  'kubernetesManifestAnnotations',
+  new KubernetesManifestAnnotationsComponent(),
+);

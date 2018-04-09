@@ -18,15 +18,14 @@ export interface ICloudProviderConfig {
 }
 
 class Providers {
-
-  private providers: { cloudProvider: string, config: ICloudProviderConfig }[] = [];
+  private providers: { cloudProvider: string; config: ICloudProviderConfig }[] = [];
 
   public set(cloudProvider: string, config: ICloudProviderConfig): void {
     // The original implementation used a Map, so calling #set could overwrite a config.
     // The tests depend on this behavior, but maybe something else does as well.
     this.providers = without(
       this.providers,
-      this.providers.find(p => p.cloudProvider === cloudProvider && p.config.skin === config.skin)
+      this.providers.find(p => p.cloudProvider === cloudProvider && p.config.skin === config.skin),
     ).concat([{ cloudProvider, config }]);
   }
 
@@ -81,7 +80,9 @@ export class CloudProviderRegistry {
 
   public overrideValue(cloudProvider: string, key: string, overrideValue: any, skin?: string) {
     if (!this.providers.has(cloudProvider, skin)) {
-      console.warn(`Cannot override "${key}" for provider "${cloudProvider}${skin ? `:${skin}` : ''}" (provider not registered)`);
+      console.warn(
+        `Cannot override "${key}" for provider "${cloudProvider}${skin ? `:${skin}` : ''}" (provider not registered)`,
+      );
       return;
     }
     const config = this.providers.get(cloudProvider, skin),
@@ -89,7 +90,7 @@ export class CloudProviderRegistry {
       lastKey = parentKeys.pop();
     let current = config;
 
-    parentKeys.forEach((parentKey) => {
+    parentKeys.forEach(parentKey => {
       if (!current[parentKey]) {
         current[parentKey] = {};
       }
@@ -112,7 +113,7 @@ export class CloudProviderRegistry {
     let current = config,
       notFound = false;
 
-    keyParts.forEach((keyPart) => {
+    keyParts.forEach(keyPart => {
       if (!notFound && current.hasOwnProperty(keyPart)) {
         current = current[keyPart];
       } else {
@@ -126,9 +127,7 @@ export class CloudProviderRegistry {
     }
     return current;
   }
-
 }
 
 export const CLOUD_PROVIDER_REGISTRY = 'spinnaker.core.cloudProvider.registry';
-module(CLOUD_PROVIDER_REGISTRY, [])
-  .provider('cloudProviderRegistry', CloudProviderRegistry);
+module(CLOUD_PROVIDER_REGISTRY, []).provider('cloudProviderRegistry', CloudProviderRegistry);

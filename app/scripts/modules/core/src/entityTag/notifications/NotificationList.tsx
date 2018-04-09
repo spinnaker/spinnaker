@@ -22,14 +22,15 @@ export class NotificationList extends React.Component<INotificationListProps> {
     return (
       <div className="notification-list">
         {notifications.map((notification: INotification, idx: number) => {
-          const {
-            entityTag: { value: { title, message, tagline } },
-            entityTags: { lastModified },
-          } = notification;
+          const { entityTag: { value: { title, message, tagline } }, entityTags: { lastModified } } = notification;
 
           return (
             <div className="notification-message" key={idx}>
-              {title && <div className="notification-title"><Markdown message={title} /></div>}
+              {title && (
+                <div className="notification-title">
+                  <Markdown message={title} />
+                </div>
+              )}
               <Markdown message={message} />
 
               <div className="notification-tagline flex-container-h baseline">
@@ -42,9 +43,8 @@ export class NotificationList extends React.Component<INotificationListProps> {
                 <NotificationActions notification={notification} onEditTag={onEditTag} onDeleteTag={onDeleteTag} />
               </div>
             </div>
-            )
-          }
-        )}
+          );
+        })}
       </div>
     );
   }
@@ -69,9 +69,13 @@ class NotificationActions extends React.Component<IActionsProps> {
   public render() {
     return (
       <div className="flex-nogrow actions actions-popover" style={{ position: 'relative' }}>
-        <a onClick={this.editTag}><span className="glyphicon glyphicon-cog clickable" /></a>
-        <a onClick={this.deleteTag}><span className="glyphicon glyphicon-trash clickable" /></a>
+        <a onClick={this.editTag}>
+          <span className="glyphicon glyphicon-cog clickable" />
+        </a>
+        <a onClick={this.deleteTag}>
+          <span className="glyphicon glyphicon-trash clickable" />
+        </a>
       </div>
-    )
+    );
   }
 }

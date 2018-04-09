@@ -12,10 +12,12 @@ export interface IParamConverter {
 export class FilterModelService {
   private converters = new FilterModelServiceConverters(this.$location);
 
-  constructor (private $location: ILocationService,
-               private $state: StateService,
-               private $stateParams: StateParams,
-               private $timeout: ITimeoutService) {
+  constructor(
+    private $location: ILocationService,
+    private $state: StateService,
+    private $stateParams: StateParams,
+    private $timeout: ITimeoutService,
+  ) {
     'ngInject';
   }
 
@@ -28,13 +30,13 @@ export class FilterModelService {
     filterModel.savedState = {};
     filterModel.sortFilter = {} as ISortFilter;
 
-    filterModelConfig.forEach(property => property.param = property.param || property.model);
+    filterModelConfig.forEach(property => (property.param = property.param || property.model));
 
     filterModel.addTags = () => {
       filterModel.tags = [];
       filterModelConfig
         .filter(property => !property.displayOption)
-        .forEach((property) => this.addTagsForSection(filterModel, property));
+        .forEach(property => this.addTagsForSection(filterModel, property));
     };
 
     filterModel.saveState = (state, params, filters) => {
@@ -56,12 +58,12 @@ export class FilterModelService {
         const currentParams = $location.search();
         // clear any shared params between states, e.g. previous state set 'acct', which this state also uses,
         // but this state does not have that field set, so angular.extend will not overwrite it
-        forOwn(currentParams, function (_val, key) {
+        forOwn(currentParams, function(_val, key) {
           if (savedState.filters.hasOwnProperty(key)) {
             delete currentParams[key];
           }
         });
-        $timeout(function () {
+        $timeout(function() {
           $location.search(extend(currentParams, savedState.filters));
           filterModel.activate();
           $location.replace();
@@ -71,11 +73,13 @@ export class FilterModelService {
 
     filterModel.hasSavedState = toParams => {
       const application = toParams.application;
-      return filterModel.savedState[application] !== undefined && filterModel.savedState[application].params !== undefined;
+      return (
+        filterModel.savedState[application] !== undefined && filterModel.savedState[application].params !== undefined
+      );
     };
 
     filterModel.clearFilters = () => {
-      filterModelConfig.forEach(function (property) {
+      filterModelConfig.forEach(function(property) {
         if (!property.displayOption) {
           filterModel.sortFilter[property.model] = property.clearValue;
         }
@@ -83,26 +87,29 @@ export class FilterModelService {
     };
 
     filterModel.activate = () => {
-      filterModelConfig.forEach(function (property) {
+      filterModelConfig.forEach(function(property) {
         filterModel.sortFilter[property.model] = converters[property.type].toModel(filterModel, property);
       });
     };
 
     filterModel.applyParamsToUrl = () => {
-      const newFilters = Object.keys($stateParams).reduce((acc, paramName) => {
-        const modelConfig = filterModelConfig.find(c => c.param === paramName);
-        if (modelConfig) {
-          const converted = converters[modelConfig.type].toParam(filterModel, modelConfig);
-          if (converted === null || converted === undefined) {
-            acc[paramName] = null;
+      const newFilters = Object.keys($stateParams).reduce(
+        (acc, paramName) => {
+          const modelConfig = filterModelConfig.find(c => c.param === paramName);
+          if (modelConfig) {
+            const converted = converters[modelConfig.type].toParam(filterModel, modelConfig);
+            if (converted === null || converted === undefined) {
+              acc[paramName] = null;
+            } else {
+              acc[paramName] = cloneDeep(filterModel.sortFilter[modelConfig.model]);
+            }
           } else {
-            acc[paramName] = cloneDeep(filterModel.sortFilter[modelConfig.model]);
+            acc[paramName] = cloneDeep($stateParams[paramName]);
           }
-        } else {
-          acc[paramName] = cloneDeep($stateParams[paramName]);
-        }
-        return acc;
-      }, {} as StateParams);
+          return acc;
+        },
+        {} as StateParams,
+      );
 
       $state.go('.', newFilters, { inherit: false });
     };
@@ -115,14 +122,17 @@ export class FilterModelService {
   }
 
   public getCheckValues(sortFilterModel: { [key: string]: boolean }) {
-    return reduce(sortFilterModel, function(acc, val, key) {
-      if (val) {
-        acc.push(key);
-      }
-      return acc;
-    }, []).sort();
+    return reduce(
+      sortFilterModel,
+      function(acc, val, key) {
+        if (val) {
+          acc.push(key);
+        }
+        return acc;
+      },
+      [],
+    ).sort();
   }
-
 
   public checkAccountFilters(model: IFilterModel) {
     return (target: any) => {
@@ -180,12 +190,14 @@ export class FilterModelService {
     return (target: any) => {
       if (this.isFilterable(model.sortFilter.status)) {
         const checkedStatus = this.getCheckValues(model.sortFilter.status);
-        return includes(checkedStatus, 'Up') && target.instanceCounts.down === 0 ||
-          includes(checkedStatus, 'Down') && target.instanceCounts.down > 0 ||
-          includes(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0 ||
-          includes(checkedStatus, 'Starting') && target.instanceCounts.starting > 0 ||
-          includes(checkedStatus, 'Disabled') && target.isDisabled ||
-          includes(checkedStatus, 'Unknown') && target.instanceCounts.unknown > 0;
+        return (
+          (includes(checkedStatus, 'Up') && target.instanceCounts.down === 0) ||
+          (includes(checkedStatus, 'Down') && target.instanceCounts.down > 0) ||
+          (includes(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0) ||
+          (includes(checkedStatus, 'Starting') && target.instanceCounts.starting > 0) ||
+          (includes(checkedStatus, 'Disabled') && target.isDisabled) ||
+          (includes(checkedStatus, 'Unknown') && target.instanceCounts.unknown > 0)
+        );
       }
       return true;
     };
@@ -228,10 +240,10 @@ export class FilterModelService {
             key: key,
             label: label,
             value: translator[value] || value,
-            clear: function () {
+            clear: function() {
               delete (modelVal as any)[value];
               model.applyParamsToUrl();
-            }
+            },
           });
         }
       });
@@ -241,10 +253,10 @@ export class FilterModelService {
           key: key,
           label: label,
           value: translator[modelVal as string] || modelVal,
-          clear: function () {
+          clear: function() {
             model.sortFilter[key] = clearValue;
             model.applyParamsToUrl();
-          }
+          },
         });
       }
     }
@@ -256,33 +268,39 @@ export class FilterModelServiceConverters {
   public trueKeyObject: IParamConverter = {
     toParam: (filterModel: IFilterModel, property: IFilterConfig) => {
       const obj = filterModel.sortFilter[property.model];
-      return chain(obj || {})
-        .map(function (val: any, key: string) {
-          if (val) {
-            // replace any commas in the string with their uri-encoded version ('%2c'), since
-            // we use commas as our separator in the URL
-            return key.replace(/,/g, '%2c');
-          }
-          return undefined;
-        })
-        .remove(undefined)
-        .value()
-        .sort()
-        .join(',') || null;
+      return (
+        chain(obj || {})
+          .map(function(val: any, key: string) {
+            if (val) {
+              // replace any commas in the string with their uri-encoded version ('%2c'), since
+              // we use commas as our separator in the URL
+              return key.replace(/,/g, '%2c');
+            }
+            return undefined;
+          })
+          .remove(undefined)
+          .value()
+          .sort()
+          .join(',') || null
+      );
     },
     toModel: (_filterModel: IFilterModel, property: IFilterConfig) => {
       const paramList = this.getParamVal(property);
       if (paramList) {
-        return reduce(paramList.split(','), function (acc, value: string) {
-          // replace any uri-encoded commas in the string ('%2c') with actual commas, since
-          // we use commas as our separator in the URL
-          acc[value.replace(/%2c/g, ',')] = true;
-          return acc;
-        }, {} as { [key: string]: boolean });
+        return reduce(
+          paramList.split(','),
+          function(acc, value: string) {
+            // replace any uri-encoded commas in the string ('%2c') with actual commas, since
+            // we use commas as our separator in the URL
+            acc[value.replace(/%2c/g, ',')] = true;
+            return acc;
+          },
+          {} as { [key: string]: boolean },
+        );
       } else {
         return {};
       }
-    }
+    },
   };
 
   public string: IParamConverter = {
@@ -293,7 +311,7 @@ export class FilterModelServiceConverters {
     toModel: (_filterModel: IFilterModel, property: IFilterConfig) => {
       const val = this.getParamVal(property);
       return val ? val : '';
-    }
+    },
   };
 
   public boolean: IParamConverter = {
@@ -304,7 +322,7 @@ export class FilterModelServiceConverters {
     toModel: (_filterModel: IFilterModel, property: IFilterConfig) => {
       const val = this.getParamVal(property);
       return Boolean(val);
-    }
+    },
   };
 
   public 'inverse-boolean': IParamConverter = {
@@ -315,7 +333,7 @@ export class FilterModelServiceConverters {
     toModel: (_filterModel: IFilterModel, property: IFilterConfig) => {
       const val = this.getParamVal(property);
       return !val;
-    }
+    },
   };
 
   public int: IParamConverter = {
@@ -326,10 +344,10 @@ export class FilterModelServiceConverters {
     toModel: (_filterModel: IFilterModel, property: IFilterConfig) => {
       const val = this.getParamVal(property);
       return isNaN(val) ? null : Number(val);
-    }
+    },
   };
 
-  constructor(private $location: ILocationService) { }
+  constructor(private $location: ILocationService) {}
 
   private getParamVal(property: IFilterConfig) {
     return this.$location.search()[property.param] || property.defaultValue;
@@ -337,6 +355,7 @@ export class FilterModelServiceConverters {
 }
 
 export const FILTER_MODEL_SERVICE = 'spinnaker.core.filterModel.service';
-module(FILTER_MODEL_SERVICE, [require('@uirouter/angularjs').default])
-  .service('filterModelService', FilterModelService);
-
+module(FILTER_MODEL_SERVICE, [require('@uirouter/angularjs').default]).service(
+  'filterModelService',
+  FilterModelService,
+);

@@ -20,8 +20,10 @@ export interface ICreateScalingPolicyButtonState {
 }
 
 @BindAll()
-export class CreateScalingPolicyButton extends React.Component<ICreateScalingPolicyButtonProps, ICreateScalingPolicyButtonState> {
-
+export class CreateScalingPolicyButton extends React.Component<
+  ICreateScalingPolicyButtonProps,
+  ICreateScalingPolicyButtonState
+> {
   constructor(props: ICreateScalingPolicyButtonProps) {
     super(props);
     this.state = {
@@ -38,33 +40,37 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   public createStepPolicy(): void {
     const { serverGroup, application } = this.props;
 
-    ReactInjector.modalService.open({
-      templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
-      controller: 'awsUpsertScalingPolicyCtrl',
-      controllerAs: 'ctrl',
-      size: 'lg',
-      resolve: {
-        policy: () => AwsReactInjector.awsServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
-        serverGroup: () => serverGroup,
-        application: () => application,
-      }
-    }).result.catch(() => {});
+    ReactInjector.modalService
+      .open({
+        templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
+        controller: 'awsUpsertScalingPolicyCtrl',
+        controllerAs: 'ctrl',
+        size: 'lg',
+        resolve: {
+          policy: () => AwsReactInjector.awsServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
+          serverGroup: () => serverGroup,
+          application: () => application,
+        },
+      })
+      .result.catch(() => {});
   }
 
   public createTargetTrackingPolicy(): void {
     const { serverGroup, application } = this.props;
 
-    ReactInjector.modalService.open({
-      templateUrl: require('./targetTracking/upsertTargetTracking.modal.html'),
-      controller: UpsertTargetTrackingController,
-      controllerAs: '$ctrl',
-      size: 'lg',
-      resolve: {
-        policy: () => AwsReactInjector.awsServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(),
-        serverGroup: () => serverGroup,
-        application: () => application,
-      }
-    }).result.catch(() => {});
+    ReactInjector.modalService
+      .open({
+        templateUrl: require('./targetTracking/upsertTargetTracking.modal.html'),
+        controller: UpsertTargetTrackingController,
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          policy: () => AwsReactInjector.awsServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(),
+          serverGroup: () => serverGroup,
+          application: () => application,
+        },
+      })
+      .result.catch(() => {});
   }
 
   public typeSelected(typeSelection: string): void {
@@ -84,9 +90,11 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   public render() {
     return (
       <div>
-        <a className="clickable" onClick={this.handleClick}>Create new scaling policy</a>
-        { this.state.showSelection && (
-          <PolicyTypeSelectionModal typeSelectedCallback={this.typeSelected} showCallback={this.showModalCallback}/>
+        <a className="clickable" onClick={this.handleClick}>
+          Create new scaling policy
+        </a>
+        {this.state.showSelection && (
+          <PolicyTypeSelectionModal typeSelectedCallback={this.typeSelected} showCallback={this.showModalCallback} />
         )}
       </div>
     );

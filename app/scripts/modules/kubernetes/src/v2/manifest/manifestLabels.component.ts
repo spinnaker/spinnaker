@@ -24,5 +24,4 @@ class KubernetesManifestLabelsComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_LABELS = 'spinnaker.kubernetes.v2.manifest.labels';
-module(KUBERNETES_MANIFEST_LABELS, [])
-  .component('kubernetesManifestLabels', new KubernetesManifestLabelsComponent());
+module(KUBERNETES_MANIFEST_LABELS, []).component('kubernetesManifestLabels', new KubernetesManifestLabelsComponent());

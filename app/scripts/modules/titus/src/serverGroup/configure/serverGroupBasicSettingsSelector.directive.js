@@ -5,10 +5,9 @@ const angular = require('angular');
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 import _ from 'lodash';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSettingsSelector', [
-  ACCOUNT_SERVICE
-])
-  .directive('titusServerGroupBasicSettingsSelector', function () {
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.basicSettingsSelector', [ACCOUNT_SERVICE])
+  .directive('titusServerGroupBasicSettingsSelector', function() {
     return {
       restrict: 'E',
       scope: {
@@ -20,25 +19,34 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSett
       controller: 'titusServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('titusServerGroupBasicSettingsSelectorCtrl', function ($scope, $controller, namingService, $uibModalStack, $state) {
-    angular.extend(this, $controller('BasicSettingsMixin', {
-      $scope: $scope,
-      namingService: namingService,
-      $uibModalStack: $uibModalStack,
-      $state: $state,
-    }));
+  .controller('titusServerGroupBasicSettingsSelectorCtrl', function(
+    $scope,
+    $controller,
+    namingService,
+    $uibModalStack,
+    $state,
+  ) {
+    angular.extend(
+      this,
+      $controller('BasicSettingsMixin', {
+        $scope: $scope,
+        namingService: namingService,
+        $uibModalStack: $uibModalStack,
+        $state: $state,
+      }),
+    );
 
     this.detailPattern = {
-      test: function (detail) {
-        var pattern = $scope.command.viewState.templatingEnabled ?
-          /^([a-zA-Z_0-9._$-{}\\\^~]*(\${.+})*)*$/ :
-          /^[a-zA-Z_0-9._$-{}\\\^~]*$/;
+      test: function(detail) {
+        var pattern = $scope.command.viewState.templatingEnabled
+          ? /^([a-zA-Z_0-9._$-{}\\\^~]*(\${.+})*)*$/
+          : /^[a-zA-Z_0-9._$-{}\\\^~]*$/;
 
         return isNotExpressionLanguage(detail) ? pattern.test(detail) : true;
-      }
+      },
     };
 
-    let isNotExpressionLanguage = (field) => {
+    let isNotExpressionLanguage = field => {
       return field && !field.includes('${');
     };
 
@@ -47,8 +55,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.basicSett
       if (!_.isEqual(oldValues, newValues)) {
         if ($scope.command.repository && $scope.command.tag) {
           $scope.command.imageId = `${$scope.command.repository}:${$scope.command.tag}`;
-        }
-        else {
+        } else {
           delete $scope.command.imageId;
         }
       }

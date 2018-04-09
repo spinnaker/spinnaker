@@ -3,9 +3,8 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.google.serverGroup.configure.wizard.securityGroups.removed.directive', [
-  ])
-  .directive('gceServerGroupSecurityGroupsRemoved', function () {
+  .module('spinnaker.google.serverGroup.configure.wizard.securityGroups.removed.directive', [])
+  .directive('gceServerGroupSecurityGroupsRemoved', function() {
     return {
       restrict: 'E',
       templateUrl: require('./securityGroupsRemoved.directive.html'),
@@ -16,7 +15,8 @@ module.exports = angular
       controllerAs: 'vm',
       controller: 'gceServerGroupSecurityGroupsRemovedCtrl',
     };
-  }).controller('gceServerGroupSecurityGroupsRemovedCtrl', function () {
+  })
+  .controller('gceServerGroupSecurityGroupsRemovedCtrl', function() {
     this.acknowledgeSecurityGroupRemoval = () => {
       this.command.viewState.dirty.securityGroups = null;
     };

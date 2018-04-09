@@ -6,12 +6,12 @@ export interface IFilterType {
 export class FilterTypeRegistry {
   public KEYWORD_FILTER: IFilterType = Object.freeze({
     key: 'key',
-    name: 'Keyword'
+    name: 'Keyword',
   });
 
   public NAME_FILTER: IFilterType = Object.freeze({
     key: 'name',
-    name: 'Name'
+    name: 'Name',
   });
 
   private registry: Map<string, IFilterType> = new Map<string, IFilterType>();

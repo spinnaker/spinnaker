@@ -5,14 +5,15 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_SERVICE])
-  .factory('gceInstanceTypeService', function ($http, $q, $log, accountService) {
-
+module.exports = angular
+  .module('spinnaker.gce.instanceType.service', [ACCOUNT_SERVICE])
+  .factory('gceInstanceTypeService', function($http, $q, $log, accountService) {
     var cachedResult = null;
 
     var n1standard = {
       type: 'n1-standard',
-      description: 'This family provides a balance of compute, memory, and network resources, and it is a good choice for general purpose applications.',
+      description:
+        'This family provides a balance of compute, memory, and network resources, and it is a good choice for general purpose applications.',
       storageType: 'SSD',
       storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
@@ -21,35 +22,35 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           label: 'Small',
           cpu: 1,
           memory: 3.75,
-          costFactor: 1
+          costFactor: 1,
         },
         {
           name: 'n1-standard-2',
           label: 'Medium',
           cpu: 2,
           memory: 7.5,
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'n1-standard-4',
           label: 'Large',
           cpu: 4,
           memory: 15,
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'n1-standard-8',
           label: 'XLarge',
           cpu: 8,
           memory: 30,
-          costFactor: 3
+          costFactor: 3,
         },
         {
           name: 'n1-standard-16',
           label: '2XLarge',
           cpu: 16,
           memory: 60,
-          costFactor: 3
+          costFactor: 3,
         },
         {
           name: 'n1-standard-32',
@@ -57,14 +58,15 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           label: '4XLarge',
           cpu: 32,
           memory: 120,
-          costFactor: 4
-        }
-      ]
+          costFactor: 4,
+        },
+      ],
     };
 
     var f1micro = {
       type: 'f1-micro bursting',
-      description: 'This family of machine types is a good choice for small, non-resource intensive workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
+      description:
+        'This family of machine types is a good choice for small, non-resource intensive workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
       storageType: 'Std',
       storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
@@ -72,22 +74,23 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           name: 'f1-micro',
           label: 'Micro',
           cpu: 1,
-          memory: 0.60,
-          costFactor: 1
+          memory: 0.6,
+          costFactor: 1,
         },
         {
           name: 'g1-small',
           label: 'Small',
           cpu: 1,
-          memory: 1.70,
-          costFactor: 1
-        }
-      ]
+          memory: 1.7,
+          costFactor: 1,
+        },
+      ],
     };
 
     var n1highmem = {
       type: 'n1-highmem',
-      description: 'High memory machine types are ideal for tasks that require more memory relative to virtual cores. High memory machine types have 6.50GB of RAM per virtual core.',
+      description:
+        'High memory machine types are ideal for tasks that require more memory relative to virtual cores. High memory machine types have 6.50GB of RAM per virtual core.',
       storageType: 'SSD',
       storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
@@ -96,28 +99,28 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           label: 'Medium',
           cpu: 2,
           memory: 13,
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'n1-highmem-4',
           label: 'Large',
           cpu: 4,
           memory: 26,
-          costFactor: 2
+          costFactor: 2,
         },
         {
           name: 'n1-highmem-8',
           label: 'XLarge',
           cpu: 8,
           memory: 52,
-          costFactor: 3
+          costFactor: 3,
         },
         {
           name: 'n1-highmem-16',
           label: '2XLarge',
           cpu: 16,
           memory: 104,
-          costFactor: 3
+          costFactor: 3,
         },
         {
           name: 'n1-highmem-32',
@@ -125,14 +128,15 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           label: '4XLarge',
           cpu: 32,
           memory: 208,
-          costFactor: 4
-        }
-      ]
+          costFactor: 4,
+        },
+      ],
     };
 
     var n1highcpu = {
       type: 'n1-highcpu',
-      description: 'High CPU machine types are ideal for tasks that require more virtual cores relative to memory. High CPU machine types have one virtual core for every 0.90GB of RAM.',
+      description:
+        'High CPU machine types are ideal for tasks that require more virtual cores relative to memory. High CPU machine types have one virtual core for every 0.90GB of RAM.',
       storageType: 'SSD',
       storageHelpFieldKey: 'gce.instance.storage',
       instanceTypes: [
@@ -140,29 +144,29 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           name: 'n1-highcpu-2',
           label: 'Medium',
           cpu: 2,
-          memory: 1.80,
-          costFactor: 1
+          memory: 1.8,
+          costFactor: 1,
         },
         {
           name: 'n1-highcpu-4',
           label: 'Large',
           cpu: 4,
-          memory: 3.60,
-          costFactor: 2
+          memory: 3.6,
+          costFactor: 2,
         },
         {
           name: 'n1-highcpu-8',
           label: 'XLarge',
           cpu: 8,
-          memory: 7.20,
-          costFactor: 2
+          memory: 7.2,
+          costFactor: 2,
         },
         {
           name: 'n1-highcpu-16',
           label: '2XLarge',
           cpu: 16,
           memory: 14.4,
-          costFactor: 3
+          costFactor: 3,
         },
         {
           name: 'n1-highcpu-32',
@@ -170,59 +174,59 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           label: '4XLarge',
           cpu: 32,
           memory: 28.8,
-          costFactor: 4
-        }
-      ]
+          costFactor: 4,
+        },
+      ],
     };
 
     var customMachine = {
       type: 'buildCustom',
-      instanceTypes : [
+      instanceTypes: [
         {
           name: 'buildCustom',
           nameRegex: /custom-\d{1,2}-\d{4,6}/,
           storage: {
-            localSSDSupported: true
-          }
-        }
-      ]
+            localSSDSupported: true,
+          },
+        },
+      ],
     };
 
     var categories = [
       {
         type: 'general',
         label: 'General Purpose',
-        families: [ n1standard ],
-        icon: 'hdd'
+        families: [n1standard],
+        icon: 'hdd',
       },
       {
         type: 'memory',
         label: 'High Memory',
-        families: [ n1highmem ],
-        icon: 'hdd'
+        families: [n1highmem],
+        icon: 'hdd',
       },
       {
         type: 'cpu',
         label: 'High CPU',
-        families: [ n1highcpu ],
-        icon: 'hdd'
+        families: [n1highcpu],
+        icon: 'hdd',
       },
       {
         type: 'micro',
         label: 'Micro Utility',
-        families: [ f1micro ],
-        icon: 'hdd'
+        families: [f1micro],
+        icon: 'hdd',
       },
       {
         type: 'custom',
         label: 'Custom Type',
         families: [],
-        icon: 'asterisk'
+        icon: 'asterisk',
       },
       {
         type: 'buildCustom',
         label: 'Build Custom',
-        families: [ customMachine ],
+        families: [customMachine],
         icon: 'wrench',
       },
     ];
@@ -236,33 +240,37 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
           let families = _.flatten(initializedCategories.map(category => category.families));
           families.forEach(family => {
             family.instanceTypes.forEach(instanceType => {
-              let diskDefaults = instanceTypeDisks
-                .find(instanceTypeDisk => instanceTypeDisk.instanceType === instanceType.name);
+              let diskDefaults = instanceTypeDisks.find(
+                instanceTypeDisk => instanceTypeDisk.instanceType === instanceType.name,
+              );
               if (diskDefaults) {
-                const disks = diskDefaults.disks.map(disk => {
-                  switch (disk.type) {
-                    case 'PD_SSD':
-                      return {
-                        type: 'pd-ssd',
-                        sizeGb: disk.sizeGb,
-                      };
-                    case 'PD_STANDARD':
-                      return {
-                        type: 'pd-standard',
-                        sizeGb: disk.sizeGb,
-                      };
-                    case 'LOCAL_SSD':
-                      return {
-                        type: 'local-ssd',
-                        sizeGb: 375,
-                      };
-                    default:
-                      $log.warn(`Disk type '${disk.type}' not supported.`);
-                      return null;
-                  }
-                }).filter(disk => !!disk);
+                const disks = diskDefaults.disks
+                  .map(disk => {
+                    switch (disk.type) {
+                      case 'PD_SSD':
+                        return {
+                          type: 'pd-ssd',
+                          sizeGb: disk.sizeGb,
+                        };
+                      case 'PD_STANDARD':
+                        return {
+                          type: 'pd-standard',
+                          sizeGb: disk.sizeGb,
+                        };
+                      case 'LOCAL_SSD':
+                        return {
+                          type: 'local-ssd',
+                          sizeGb: 375,
+                        };
+                      default:
+                        $log.warn(`Disk type '${disk.type}' not supported.`);
+                        return null;
+                    }
+                  })
+                  .filter(disk => !!disk);
 
-                let size = 0, count = 0;
+                let size = 0,
+                  count = 0;
                 if (diskDefaults.supportsLocalSSD) {
                   count = disks.filter(disk => disk.type === 'local-ssd').length;
                   size = 375;
@@ -293,7 +301,6 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
     });
 
     function getAllTypesByRegion() {
-
       if (cachedResult) {
         return $q.when(cachedResult);
       }
@@ -326,5 +333,4 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
       getAllTypesByRegion: getAllTypesByRegion,
       getAvailableTypesForLocations: getAvailableTypesForLocations,
     };
-  }
-);
+  });

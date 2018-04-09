@@ -4,8 +4,8 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.enableAsgStage', [
-])
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.enableAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',
@@ -15,22 +15,23 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.enableAsgStage'
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('awsEnableAsgStageCtrl', function($scope, accountService) {
+  })
+  .controller('awsEnableAsgStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(function (accounts) {
+    accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -45,7 +46,11 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.enableAsgStage'
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Amazon'];
     }
 
@@ -62,4 +67,3 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.enableAsgStage'
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
-

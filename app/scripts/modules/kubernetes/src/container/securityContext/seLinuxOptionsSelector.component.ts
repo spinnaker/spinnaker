@@ -23,7 +23,7 @@ class SeLinuxOptions implements IController {
     {
       label: 'Level',
       model: 'level',
-    }
+    },
   ];
 }
 
@@ -37,5 +37,7 @@ class SeLinuxOptionsComponent implements IComponentOptions {
 
 export const KUBERNETES_SE_LINUX_OPTIONS_SELECTOR = 'spinnaker.kubernetes.securityContext.seLinuxOptionsSelector';
 
-module(KUBERNETES_SE_LINUX_OPTIONS_SELECTOR, [])
-  .component('kubernetesSeLinuxOptionsSelector', new SeLinuxOptionsComponent());
+module(KUBERNETES_SE_LINUX_OPTIONS_SELECTOR, []).component(
+  'kubernetesSeLinuxOptionsSelector',
+  new SeLinuxOptionsComponent(),
+);

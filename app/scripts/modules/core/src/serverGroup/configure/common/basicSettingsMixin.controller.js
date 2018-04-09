@@ -2,8 +2,8 @@
 
 import _ from 'lodash';
 
-import {IMAGE_READER} from 'core/image/image.reader';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+import { IMAGE_READER } from 'core/image/image.reader';
+import { NAMING_SERVICE } from 'core/naming/naming.service';
 
 const angular = require('angular');
 
@@ -14,8 +14,7 @@ module.exports = angular
     NAMING_SERVICE,
     IMAGE_READER,
   ])
-  .controller('BasicSettingsMixin', function ($scope, imageReader, namingService, $uibModalStack, $state) {
-
+  .controller('BasicSettingsMixin', function($scope, imageReader, namingService, $uibModalStack, $state) {
     this.createsNewCluster = function() {
       var name = this.getNamePreview();
       $scope.latestServerGroup = this.getLatestServerGroup();
@@ -33,11 +32,17 @@ module.exports = angular
     this.getLatestServerGroup = function() {
       var command = $scope.command;
       var cluster = namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
-      var inCluster = $scope.application.serverGroups.data.filter(function(serverGroup) {
-        return serverGroup.cluster === cluster &&
-          serverGroup.account === command.credentials &&
-          serverGroup.region === command.region;
-      }).sort(function (a, b) { return a.createdTime - b.createdTime; });
+      var inCluster = $scope.application.serverGroups.data
+        .filter(function(serverGroup) {
+          return (
+            serverGroup.cluster === cluster &&
+            serverGroup.account === command.credentials &&
+            serverGroup.region === command.region
+          );
+        })
+        .sort(function(a, b) {
+          return a.createdTime - b.createdTime;
+        });
       return inCluster.length ? inCluster.pop() : null;
     };
 
@@ -54,7 +59,7 @@ module.exports = angular
           provider: $scope.command.selectedProvider,
           accountId: latest.account,
           region: latest.region,
-          serverGroup: latest.name
+          serverGroup: latest.name,
         };
 
       $uibModalStack.dismissAll();
@@ -67,26 +72,25 @@ module.exports = angular
 
     this.stackPattern = {
       test: function(stack) {
-        var pattern = $scope.command.viewState.templatingEnabled ?
-          /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/ :
-          /^[a-zA-Z_0-9._${}]*$/;
+        var pattern = $scope.command.viewState.templatingEnabled
+          ? /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/
+          : /^[a-zA-Z_0-9._${}]*$/;
 
         return isNotExpressionLanguage(stack) ? pattern.test(stack) : true;
-      }
+      },
     };
 
     this.detailPattern = {
       test: function(detail) {
-        var pattern = $scope.command.viewState.templatingEnabled ?
-          /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/ :
-          /^[a-zA-Z_0-9._${}-]*$/;
+        var pattern = $scope.command.viewState.templatingEnabled
+          ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/
+          : /^[a-zA-Z_0-9._${}-]*$/;
 
         return isNotExpressionLanguage(detail) ? pattern.test(detail) : true;
-      }
+      },
     };
 
-    let isNotExpressionLanguage = (field) => {
+    let isNotExpressionLanguage = field => {
       return field && !field.includes('${');
     };
-
   });

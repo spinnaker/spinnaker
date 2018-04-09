@@ -1,49 +1,50 @@
 'use strict';
 
-
 describe('Controller: Projects', function() {
-
-
-  beforeEach(
-    window.module(
-      require('./projects.controller').name,
-      require('angular-ui-bootstrap')
-    )
-  );
+  beforeEach(window.module(require('./projects.controller').name, require('angular-ui-bootstrap')));
 
   describe('filtering', function() {
-
     var deck = { name: 'deck', email: 'a@netflix.com', createTs: new Date(2) },
-        oort = { name: 'oort', email: 'b@netflix.com', createTs: new Date(3) },
-        mort = { name: 'mort', email: 'c@netflix.com', createTs: new Date(1) },
-        projectList = [ deck, oort, mort ];
+      oort = { name: 'oort', email: 'b@netflix.com', createTs: new Date(3) },
+      mort = { name: 'mort', email: 'c@netflix.com', createTs: new Date(1) },
+      projectList = [deck, oort, mort];
 
     // Initialize the controller and a mock scope
-    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, $uibModal, $log, $filter,
-                                $state, $timeout, projectReader) {
+    beforeEach(
+      window.inject(function(
+        $controller,
+        $rootScope,
+        $window,
+        $q,
+        $uibModal,
+        $log,
+        $filter,
+        $state,
+        $timeout,
+        projectReader,
+      ) {
+        this.$scope = $rootScope.$new();
+        this.$q = $q;
+        this.projectReader = projectReader;
 
-      this.$scope = $rootScope.$new();
-      this.$q = $q;
-      this.projectReader = projectReader;
+        spyOn(this.projectReader, 'listProjects').and.callFake(function() {
+          return $q.when(projectList);
+        });
 
-      spyOn(this.projectReader, 'listProjects').and.callFake(function () {
-        return $q.when(projectList);
-      });
+        this.ctrl = $controller('ProjectsCtrl', {
+          $scope: this.$scope,
+          $uibModal: $uibModal,
+          $log: $log,
+          $filter: $filter,
+          $state: $state,
+          $timeout: $timeout,
+        });
 
-      this.ctrl = $controller('ProjectsCtrl', {
-        $scope: this.$scope,
-        $uibModal: $uibModal,
-        $log: $log,
-        $filter: $filter,
-        $state: $state,
-        $timeout: $timeout
-      });
+        this.$scope.viewState.sortModel.key = 'name';
+      }),
+    );
 
-      this.$scope.viewState.sortModel.key = 'name';
-
-    }));
-
-    it('sets projectsLoaded flag when projects retrieved and added to scope', function () {
+    it('sets projectsLoaded flag when projects retrieved and added to scope', function() {
       var $scope = this.$scope;
 
       expect($scope.projectsLoaded).toBe(false);
@@ -54,12 +55,11 @@ describe('Controller: Projects', function() {
       expect($scope.projectsLoaded).toBe(true);
       expect($scope.projects).toBe(projectList);
       expect($scope.filteredProjects).toEqual([deck, mort, oort]);
-
     });
 
-    it('filters projects by name or email', function () {
+    it('filters projects by name or email', function() {
       var $scope = this.$scope,
-          ctrl = this.ctrl;
+        ctrl = this.ctrl;
 
       $scope.viewState.projectFilter = 'a@netflix.com';
       $scope.$digest();
@@ -73,7 +73,7 @@ describe('Controller: Projects', function() {
 
     it('sorts and filters projects', function() {
       var $scope = this.$scope,
-          ctrl = this.ctrl;
+        ctrl = this.ctrl;
 
       $scope.viewState.sortModel.key = '-name';
       $scope.$digest();
@@ -91,7 +91,5 @@ describe('Controller: Projects', function() {
       ctrl.filterProjects();
       expect($scope.filteredProjects).toEqual([mort, oort]);
     });
-
-
   });
 });

@@ -2,23 +2,24 @@
 
 const angular = require('angular');
 import * as _ from 'lodash';
-import {BackendServiceTemplate} from '../templates';
+import { BackendServiceTemplate } from '../templates';
 
-module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backendService.component', [])
+module.exports = angular
+  .module('spinnaker.deck.gce.httpLoadBalancer.backendService.component', [])
   .component('gceHttpLoadBalancerBackendServiceSelector', {
     bindings: {
       deleteService: '&',
       backendService: '=',
       command: '=',
-      index: '='
+      index: '=',
     },
     templateUrl: require('./backendService.component.html'),
-    controller: function () {
+    controller: function() {
       this.backingData = this.command.backingData;
       this.loadBalancer = this.command.loadBalancer;
       let servicesByName = this.backingData.backendServicesKeyedByName;
 
-      this.onBackendServiceSelect = (selectedBackendService) => {
+      this.onBackendServiceSelect = selectedBackendService => {
         assign(selectedBackendService);
         this.command.onHealthCheckSelected(selectedBackendService.healthCheck, this.command);
       };
@@ -36,16 +37,16 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backendServ
       this.getAllHealthChecks = () => {
         let allHealthChecks = this.loadBalancer.healthChecks.concat(this.backingData.healthChecks);
         return _.chain(allHealthChecks)
-          .filter((hc) => hc.account === this.loadBalancer.credentials || !hc.account)
-          .map((hc) => hc.name)
+          .filter(hc => hc.account === this.loadBalancer.credentials || !hc.account)
+          .map(hc => hc.name)
           .uniq()
           .value();
       };
 
       this.getAllServiceNames = () => {
         return this.command.backingData.backendServices
-          .filter((service) => service.account === this.loadBalancer.credentials)
-          .map((service) => service.name);
+          .filter(service => service.account === this.loadBalancer.credentials)
+          .map(service => service.name);
       };
 
       this.maxCookieTtl = 60 * 60 * 24; // One day.
@@ -58,8 +59,8 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backendServ
         this.editExisting = true;
       }
 
-      let assign = (toAssign) => {
+      let assign = toAssign => {
         this.loadBalancer.backendServices[this.index] = this.backendService = toAssign;
       };
-    }
+    },
   });

@@ -5,14 +5,19 @@ import _ from 'lodash';
 
 import { CLUSTER_FILTER_SERVICE, URL_BUILDER_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.titus.pipeline.stage.cloneServerGroup.executionDetails.controller', [
-  require('@uirouter/angularjs').default,
-  CLUSTER_FILTER_SERVICE,
-  URL_BUILDER_SERVICE
-])
-  .controller('titusCloneServerGroupExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
-                                                                   urlBuilderService, clusterFilterService) {
-
+module.exports = angular
+  .module('spinnaker.titus.pipeline.stage.cloneServerGroup.executionDetails.controller', [
+    require('@uirouter/angularjs').default,
+    CLUSTER_FILTER_SERVICE,
+    URL_BUILDER_SERVICE,
+  ])
+  .controller('titusCloneServerGroupExecutionDetailsCtrl', function(
+    $scope,
+    $stateParams,
+    executionDetailsSectionService,
+    urlBuilderService,
+    clusterFilterService,
+  ) {
     $scope.configSections = ['cloneServerGroupConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -24,7 +29,7 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.cloneServerGroup
       function addDeployedArtifacts(key) {
         let deployedArtifacts = _.find(resultObjects, key);
         if (deployedArtifacts) {
-          _.forEach(deployedArtifacts[key], (serverGroupNameAndRegion) => {
+          _.forEach(deployedArtifacts[key], serverGroupNameAndRegion => {
             if (serverGroupNameAndRegion.includes(':')) {
               let [region, serverGroupName] = serverGroupNameAndRegion.split(':');
               let result = {
@@ -59,5 +64,4 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.cloneServerGroup
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

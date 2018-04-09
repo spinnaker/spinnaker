@@ -25,7 +25,7 @@ export interface IExecutionFiltersState {
 }
 
 const DragHandle = SortableHandle(() => (
-  <span className="pipeline-drag-handle clickable glyphicon glyphicon-resize-vertical"/>
+  <span className="pipeline-drag-handle clickable glyphicon glyphicon-resize-vertical" />
 ));
 
 @BindAll()
@@ -43,16 +43,22 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
       pipelineNames: this.getPipelineNames(),
       pipelineReorderEnabled: false,
       tags: executionFilterModel.asFilterModel.tags,
-    }
+    };
   }
 
   public componentDidMount(): void {
     const { application } = this.props;
     const { executionFilterModel, executionFilterService } = ReactInjector;
 
-    this.executionsRefreshUnsubscribe = application.executions.onRefresh(null, () => { this.refreshPipelines(); });
-    this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => this.setState({ tags: executionFilterModel.asFilterModel.tags }));
-    this.pipelineConfigsRefreshUnsubscribe = application.pipelineConfigs.onRefresh(null, () => { this.refreshPipelines(); });
+    this.executionsRefreshUnsubscribe = application.executions.onRefresh(null, () => {
+      this.refreshPipelines();
+    });
+    this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() =>
+      this.setState({ tags: executionFilterModel.asFilterModel.tags }),
+    );
+    this.pipelineConfigsRefreshUnsubscribe = application.pipelineConfigs.onRefresh(null, () => {
+      this.refreshPipelines();
+    });
 
     this.initialize();
     this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => {
@@ -64,12 +70,12 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   private enablePipelineReorder(): void {
     this.setState({ pipelineReorderEnabled: true });
     ReactGA.event({ category: 'Pipelines', action: 'Filter: reorder' });
-  };
+  }
 
   private disablePipelineReorder(): void {
     this.setState({ pipelineReorderEnabled: false });
     ReactGA.event({ category: 'Pipelines', action: 'Filter: stop reorder' });
-  };
+  }
 
   private updateExecutionGroups(): void {
     ReactInjector.executionFilterModel.asFilterModel.applyParamsToUrl();
@@ -135,8 +141,8 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 
   private updatePipelines(pipelines: IPipeline[]): void {
-    $q.all(pipelines.map((pipeline) => ReactInjector.pipelineConfigService.savePipeline(pipeline)));
-  };
+    $q.all(pipelines.map(pipeline => ReactInjector.pipelineConfigService.savePipeline(pipeline)));
+  }
 
   private handleSortEnd(sortEnd: SortEnd): void {
     const pipelineNames = arrayMove(this.state.pipelineNames, sortEnd.oldIndex, sortEnd.newIndex);
@@ -193,20 +199,16 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
                   update={this.refreshExecutions}
                   onSortEnd={this.handleSortEnd}
                 />
-                { pipelineNames.length > 0 && (
+                {pipelineNames.length > 0 && (
                   <div>
-                    { !pipelineReorderEnabled && (
-                      <a
-                        className="btn btn-xs btn-default clickable"
-                        onClick={this.enablePipelineReorder}
-                      >Reorder Pipelines
+                    {!pipelineReorderEnabled && (
+                      <a className="btn btn-xs btn-default clickable" onClick={this.enablePipelineReorder}>
+                        Reorder Pipelines
                       </a>
                     )}
-                    { pipelineReorderEnabled && (
-                      <a
-                        className="btn btn-xs btn-default clickable"
-                        onClick={this.disablePipelineReorder}
-                      >Done
+                    {pipelineReorderEnabled && (
+                      <a className="btn btn-xs btn-default clickable" onClick={this.disablePipelineReorder}>
+                        Done
                       </a>
                     )}
                   </div>
@@ -216,15 +218,14 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
             <FilterSection heading="Status" expanded={true}>
               <div className="form">
-                <FilterStatus status="RUNNING" label="Running" refresh={this.refreshExecutions}/>
-                <FilterStatus status="TERMINAL" label="Terminal" refresh={this.refreshExecutions}/>
-                <FilterStatus status="SUCCEEDED" label="Succeeded" refresh={this.refreshExecutions}/>
-                <FilterStatus status="NOT_STARTED" label="Not Started" refresh={this.refreshExecutions}/>
-                <FilterStatus status="CANCELED" label="Canceled" refresh={this.refreshExecutions}/>
-                <FilterStatus status="STOPPED" label="Stopped" refresh={this.refreshExecutions}/>
+                <FilterStatus status="RUNNING" label="Running" refresh={this.refreshExecutions} />
+                <FilterStatus status="TERMINAL" label="Terminal" refresh={this.refreshExecutions} />
+                <FilterStatus status="SUCCEEDED" label="Succeeded" refresh={this.refreshExecutions} />
+                <FilterStatus status="NOT_STARTED" label="Not Started" refresh={this.refreshExecutions} />
+                <FilterStatus status="CANCELED" label="Canceled" refresh={this.refreshExecutions} />
+                <FilterStatus status="STOPPED" label="Stopped" refresh={this.refreshExecutions} />
               </div>
             </FilterSection>
-
           </div>
         </div>
       </div>
@@ -232,7 +233,12 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 }
 
-const FilterCheckbox = (props: { tag: IFilterTag, pipeline: string, visible: boolean, update: () => void }): JSX.Element => {
+const FilterCheckbox = (props: {
+  tag: IFilterTag;
+  pipeline: string;
+  visible: boolean;
+  update: () => void;
+}): JSX.Element => {
   const { pipeline, tag, update, visible } = props;
   const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
   const changeHandler = () => {
@@ -253,45 +259,62 @@ const FilterCheckbox = (props: { tag: IFilterTag, pipeline: string, visible: boo
       onChange={changeHandler}
     />
   );
-}
+};
 
-const Pipeline = SortableElement((props: { tag: IFilterTag, pipeline: string, dragEnabled: boolean, update: () => void }) => (
-  <div className="checkbox sortable">
-  <div>
-    <label>
-      {props.dragEnabled && <DragHandle/>}
-      <FilterCheckbox pipeline={props.pipeline} tag={props.tag} visible={!props.dragEnabled} update={props.update}/>
-      {props.pipeline}
-    </label>
-  </div>
-</div>
-));
+const Pipeline = SortableElement(
+  (props: { tag: IFilterTag; pipeline: string; dragEnabled: boolean; update: () => void }) => (
+    <div className="checkbox sortable">
+      <div>
+        <label>
+          {props.dragEnabled && <DragHandle />}
+          <FilterCheckbox
+            pipeline={props.pipeline}
+            tag={props.tag}
+            visible={!props.dragEnabled}
+            update={props.update}
+          />
+          {props.pipeline}
+        </label>
+      </div>
+    </div>
+  ),
+);
 
-const Pipelines = SortableContainer((props: { names: string[], tags: IFilterTag[], dragEnabled: boolean, update: () => void }) => (
-  <div>
-    {props.names.map((pipeline, index) => {
-      const tag = props.tags.find((t) => t.key === 'pipeline' && t.value === pipeline);
+const Pipelines = SortableContainer(
+  (props: { names: string[]; tags: IFilterTag[]; dragEnabled: boolean; update: () => void }) => (
+    <div>
+      {props.names.map((pipeline, index) => {
+        const tag = props.tags.find(t => t.key === 'pipeline' && t.value === pipeline);
 
-      return (
-        <Pipeline key={pipeline} tag={tag} index={index} pipeline={pipeline} disabled={!props.dragEnabled} dragEnabled={props.dragEnabled} update={props.update}/>
-      );
-    })}
-  </div>
-));
+        return (
+          <Pipeline
+            key={pipeline}
+            tag={tag}
+            index={index}
+            pipeline={pipeline}
+            disabled={!props.dragEnabled}
+            dragEnabled={props.dragEnabled}
+            update={props.update}
+          />
+        );
+      })}
+    </div>
+  ),
+);
 
-const FilterStatus = (props: { status: string, label: string, refresh: () => void }): JSX.Element => {
+const FilterStatus = (props: { status: string; label: string; refresh: () => void }): JSX.Element => {
   const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
   const changed = () => {
     ReactGA.event({ category: 'Pipelines', action: 'Filter: status', label: props.label.toUpperCase() });
     sortFilter.status[props.status] = !sortFilter.status[props.status];
     props.refresh();
-  }
+  };
   return (
     <div className="checkbox">
       <label>
-        <input type="checkbox" checked={sortFilter.status[props.status] || false} onChange={changed}/>
+        <input type="checkbox" checked={sortFilter.status[props.status] || false} onChange={changed} />
         {props.label}
       </label>
     </div>
   );
-}
+};

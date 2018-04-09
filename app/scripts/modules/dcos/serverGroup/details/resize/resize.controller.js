@@ -4,16 +4,20 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.details.resize.controller', [
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-])
-  .controller('dcosResizeServerGroupController', function($scope, $uibModalInstance, serverGroupWriter, taskMonitorBuilder,
-                                                     application, serverGroup) {
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER])
+  .controller('dcosResizeServerGroupController', function(
+    $scope,
+    $uibModalInstance,
+    serverGroupWriter,
+    taskMonitorBuilder,
+    application,
+    serverGroup,
+  ) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
       oldSize: serverGroup.instances.length,
-      newSize: null
+      newSize: null,
     };
 
     $scope.verification = {};
@@ -24,7 +28,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.resize.contr
       $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
     }
 
-    this.isValid = function () {
+    this.isValid = function() {
       var command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
@@ -38,7 +42,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.resize.contr
       modalInstance: $uibModalInstance,
     });
 
-    this.resize = function () {
+    this.resize = function() {
       if (!this.isValid()) {
         return;
       }
@@ -55,14 +59,14 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.resize.contr
           group: serverGroup.group,
           capacity: capacity,
           targetSize: $scope.command.newSize,
-          forceDeployment: $scope.command.forceDeployment
+          forceDeployment: $scope.command.forceDeployment,
         });
       };
 
       $scope.taskMonitor.submit(submitMethod);
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

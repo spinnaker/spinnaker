@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
+import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
 
 const angular = require('angular');
 
@@ -9,9 +9,8 @@ const angular = require('angular');
  * Propagates standard Angular form validation to v2modalWizardService.
  */
 
-module.exports = angular.module('spinnaker.core.modalWizard.subFormValidation.service', [
-    V2_MODAL_WIZARD_SERVICE,
-  ])
+module.exports = angular
+  .module('spinnaker.core.modalWizard.subFormValidation.service', [V2_MODAL_WIZARD_SERVICE])
   .factory('wizardSubFormValidation', function(v2modalWizardService) {
     let validatorRegistry = {};
 
@@ -29,7 +28,7 @@ module.exports = angular.module('spinnaker.core.modalWizard.subFormValidation.se
     this.register = ({ subForm, page, validators = [] }) => {
       validators.push({
         watchString: buildWatchString(this.form, subForm, '$valid'),
-        validator: subFormIsValid => subFormIsValid
+        validator: subFormIsValid => subFormIsValid,
       });
 
       validatorRegistry[page] = validators.map(v => new Validator(v, this.scope, page));
@@ -54,22 +53,25 @@ module.exports = angular.module('spinnaker.core.modalWizard.subFormValidation.se
 
         let watchType = collection ? '$watchCollection' : '$watch';
 
-        scope[watchType](watchString, (value) => {
-          this.state.valid = validator(value);
+        scope[watchType](
+          watchString,
+          value => {
+            this.state.valid = validator(value);
 
-          if (v2modalWizardService.getPage(this.page)) {
-            if (this.state.valid) {
-              this.emitValid();
-            } else {
-              this.emitInvalid();
+            if (v2modalWizardService.getPage(this.page)) {
+              if (this.state.valid) {
+                this.emitValid();
+              } else {
+                this.emitInvalid();
+              }
             }
-          }
-        }, watchDeep || false);
+          },
+          watchDeep || false,
+        );
       }
 
       emitValid() {
-        let pageIsValid = validatorRegistry[this.page]
-          .every(v => v.state.valid);
+        let pageIsValid = validatorRegistry[this.page].every(v => v.state.valid);
 
         if (pageIsValid) {
           v2modalWizardService.markComplete(this.page);

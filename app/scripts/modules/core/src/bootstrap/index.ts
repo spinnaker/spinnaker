@@ -1,5 +1,5 @@
 export * from './bootstrap.module';
-export * from './paramChangedHelper'
+export * from './paramChangedHelper';
 
 import './angular.config';
 import './appInit';

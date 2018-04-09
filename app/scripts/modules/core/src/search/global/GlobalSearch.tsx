@@ -33,7 +33,6 @@ export interface IGlobalSearchState {
 @UIRouterContext
 @BindAll()
 export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
-
   private container: HTMLElement;
   private searchField: HTMLInputElement;
   private resultRefs: HTMLElement[][];
@@ -48,7 +47,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       showMinLengthWarning: false,
       query: '',
       querying: false,
-      categories: null
+      categories: null,
     };
   }
 
@@ -61,24 +60,22 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
     this.query$
       .debounceTime(300)
-      .do((query) => {
+      .do(query => {
         ReactGA.event({ category: 'Global Search', action: 'Query', label: query });
         this.setState({ querying: true });
       })
-      .switchMap((query: string) => (
-        Observable.fromPromise(search.query(query))
-      ))
-      .map((result) => (
+      .switchMap((query: string) => Observable.fromPromise(search.query(query)))
+      .map(result =>
         result
           .filter(({ results }) => results.length)
-          .map((category) => ({
+          .map(category => ({
             ...category,
-            results: searchRank(category.results).slice(0, 5)
+            results: searchRank(category.results).slice(0, 5),
           }))
-          .sort((a, b) => a.type.order - b.type.order)
-      ))
+          .sort((a, b) => a.type.order - b.type.order),
+      )
       .takeUntil(this.destroy$)
-      .subscribe((categories) => {
+      .subscribe(categories => {
         this.resultRefs = categories.map(() => []);
 
         this.setState({ querying: false, categories });
@@ -107,13 +104,13 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   }
 
   private handleWindowClick(event: MouseEvent) {
-    if (!this.container.contains((event.target as Node))) {
+    if (!this.container.contains(event.target as Node)) {
       this.hideDropdown();
     }
   }
 
   private searchFieldBlurred({ relatedTarget }: React.FocusEvent<HTMLInputElement>) {
-    if (!this.container.contains((relatedTarget as Node))) {
+    if (!this.container.contains(relatedTarget as Node)) {
       this.hideDropdown();
     }
   }
@@ -125,21 +122,25 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
     const { which, shiftKey } = event;
 
-    if (which === 27) { // escape
+    if (which === 27) {
+      // escape
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'escape (from input)' });
       return this.searchField.blur();
     }
-    if (which === 40) { // down
+    if (which === 40) {
+      // down
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'arrow down (from input)' });
       event.preventDefault();
       return this.focusFirstSearchResult();
     }
-    if (which === 38) { // up
+    if (which === 38) {
+      // up
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'arrow up (from input)' });
       event.preventDefault();
       return this.focusLastSearchResult();
     }
-    if (which === 9) { // tab
+    if (which === 9) {
+      // tab
       if (!shiftKey) {
         ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'tab (from input)' });
         event.preventDefault();
@@ -162,17 +163,19 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
 
   private navigateResult(event: React.KeyboardEvent<HTMLElement>) {
     const { which, target } = event;
-    if (which === 27) { // escape
+    if (which === 27) {
+      // escape
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'escape (from result)' });
       this.setState({
         showDropdown: false,
         showMinLengthWarning: false,
         query: '',
         querying: false,
-        categories: null
-       });
+        categories: null,
+      });
     }
-    if (which === 9) { // tab - let it navigate automatically, but close menu if on the last result
+    if (which === 9) {
+      // tab - let it navigate automatically, but close menu if on the last result
       const flattenedRefs = flatten(this.resultRefs);
       const lastResultRef = flattenedRefs[flattenedRefs.length - 1];
       if (target === lastResultRef) {
@@ -181,19 +184,21 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
         return;
       }
     }
-    if (which === 40) { // down
+    if (which === 40) {
+      // down
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'down (from result)' });
       const flattenedRefs = flatten(this.resultRefs);
-      const currentRefIndex = flattenedRefs.indexOf((target as HTMLElement));
+      const currentRefIndex = flattenedRefs.indexOf(target as HTMLElement);
       const nextResultRef = flattenedRefs[currentRefIndex + 1];
 
       nextResultRef && nextResultRef.focus();
       event.preventDefault();
     }
-    if (which === 38) { // up
+    if (which === 38) {
+      // up
       ReactGA.event({ category: 'Global Search', action: 'Keyboard Nav', label: 'up (from result)' });
       const flattenedRefs = flatten(this.resultRefs);
-      const currentRefIndex = flattenedRefs.indexOf((target as HTMLElement));
+      const currentRefIndex = flattenedRefs.indexOf(target as HTMLElement);
       const prevResultRef = flattenedRefs[currentRefIndex - 1];
 
       prevResultRef && prevResultRef.focus();
@@ -209,18 +214,21 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     // rather than hiding it only to re-show.
     const shouldKeepWarningVisible = !!query && query.length < MIN_SEARCH_LENGTH && showMinLengthWarning;
 
-    this.setState({
-      query,
-      querying: false,
-      showMinLengthWarning: shouldKeepWarningVisible,
-      categories: null
-    }, () => {
-      if (query.length >= MIN_SEARCH_LENGTH) {
-        this.query$.next(query);
-      } else if (!shouldKeepWarningVisible) {
-        this.considerMinLengthWarning();
-      }
-    });
+    this.setState(
+      {
+        query,
+        querying: false,
+        showMinLengthWarning: shouldKeepWarningVisible,
+        categories: null,
+      },
+      () => {
+        if (query.length >= MIN_SEARCH_LENGTH) {
+          this.query$.next(query);
+        } else if (!shouldKeepWarningVisible) {
+          this.considerMinLengthWarning();
+        }
+      },
+    );
   }
 
   // Rather than add a jarring warning message as someone is typing a query —
@@ -245,30 +253,20 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   }
 
   private renderDropdown() {
-    const {
-      query,
-      querying,
-      showMinLengthWarning,
-      categories
-    } = this.state;
+    const { query, querying, showMinLengthWarning, categories } = this.state;
 
-    const {
-      SpinnerDropdown,
-      MinLengthWarning,
-      SearchResults,
-      RecentlyViewed
-    } = this;
+    const { SpinnerDropdown, MinLengthWarning, SearchResults, RecentlyViewed } = this;
 
     if (!query) {
-      return <RecentlyViewed/>;
+      return <RecentlyViewed />;
     }
     if (querying) {
-      return <SpinnerDropdown/>;
+      return <SpinnerDropdown />;
     }
     if (query.length < MIN_SEARCH_LENGTH && showMinLengthWarning) {
-      return <MinLengthWarning/>;
+      return <MinLengthWarning />;
     } else if (categories) {
-      return <SearchResults/>;
+      return <SearchResults />;
     }
 
     return null;
@@ -278,15 +276,12 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     const { showDropdown, query } = this.state;
 
     return (
-      <li
-        ref={(ref) => this.container = ref}
-        className="global-search open"
-      >
+      <li ref={ref => (this.container = ref)} className="global-search open">
         <form className="right global-search">
           <div className="form-group has-feedback">
             <div className="input-group">
               <input
-                ref={(ref) => this.searchField = ref}
+                ref={ref => (this.searchField = ref)}
                 type="search"
                 className="form-control flat input-sm no-border"
                 placeholder="Search"
@@ -299,7 +294,9 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
               <Tooltip
                 placement="right"
                 template={
-                  <span>Keyboard shortcut: <span className="keyboard-key">/</span></span>
+                  <span>
+                    Keyboard shortcut: <span className="keyboard-key">/</span>
+                  </span>
                 }
               >
                 <i className="glyphicon glyphicon-search form-control-feedback" />
@@ -374,7 +371,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
             this.resultRefs[categoryIndex][resultIndex] = ref;
           }
         }}
-        seeMoreRef={(ref) => {
+        seeMoreRef={ref => {
           // Make sure keyboard handling works even though this isn't part of the actual results
           this.resultRefs[categories.length] = [ref];
         }}

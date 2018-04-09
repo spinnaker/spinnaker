@@ -22,7 +22,6 @@ interface ICustomStrategyCommand {
 }
 
 class CustomStrategySelectorController implements IController {
-
   public command: ICustomStrategyCommand;
   public state: ICustomStrategyState = {
     pipelinesLoaded: false,
@@ -42,7 +41,7 @@ class CustomStrategySelectorController implements IController {
     if (!this.command.strategyApplication) {
       this.command.strategyApplication = this.command.application;
     }
-    this.applicationReader.listApplications().then((applications) => {
+    this.applicationReader.listApplications().then(applications => {
       this.state.applications = applications.map(a => a.name).sort();
       this.initializeStrategies();
     });
@@ -54,7 +53,7 @@ class CustomStrategySelectorController implements IController {
 
   public initializeStrategies(): void {
     if (this.command.application) {
-      this.pipelineConfigService.getStrategiesForApplication(this.command.strategyApplication).then((pipelines) => {
+      this.pipelineConfigService.getStrategiesForApplication(this.command.strategyApplication).then(pipelines => {
         this.state.pipelines = pipelines;
         if (pipelines.every(p => p.id !== this.command.strategyPipeline)) {
           this.command.strategyPipeline = null;
@@ -122,7 +121,7 @@ const customStrategyComponent: IComponentOptions = {
 };
 
 export const CUSTOM_STRATEGY_SELECTOR_COMPONENT = 'spinnaker.core.deploymentStrategy.custom.customStrategySelector';
-module(CUSTOM_STRATEGY_SELECTOR_COMPONENT, [
-  APPLICATION_READ_SERVICE,
-  PIPELINE_CONFIG_SERVICE,
-]).component('customStrategySelector', customStrategyComponent);
+module(CUSTOM_STRATEGY_SELECTOR_COMPONENT, [APPLICATION_READ_SERVICE, PIPELINE_CONFIG_SERVICE]).component(
+  'customStrategySelector',
+  customStrategyComponent,
+);

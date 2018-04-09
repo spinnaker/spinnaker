@@ -8,18 +8,19 @@ import { ILoadBalancer, IServerGroup } from 'core/domain';
 import { Application } from 'core/application';
 
 export class SkinService {
-
-  constructor(private $log: ILogService,
-              private $q: IQService,
-              private accountService: AccountService,
-              private cloudProviderRegistry: CloudProviderRegistry) {
+  constructor(
+    private $log: ILogService,
+    private $q: IQService,
+    private accountService: AccountService,
+    private cloudProviderRegistry: CloudProviderRegistry,
+  ) {
     'ngInject';
   }
 
   public getValue(cloudProvider: string, accountName: string, key: string): IPromise<any> {
     return this.getAccounts().then(accounts => {
       const account = accounts.find(a => a.name === accountName && a.cloudProvider === cloudProvider);
-      return (account && account.skin)
+      return account && account.skin
         ? this.cloudProviderRegistry.getValue(cloudProvider, key, account.skin)
         : this.cloudProviderRegistry.getValue(cloudProvider, key);
     });
@@ -27,15 +28,12 @@ export class SkinService {
 
   public getInstanceSkin(cloudProvider: string, instanceId: string, app: Application): IPromise<string> {
     return this.getAccounts().then(accounts => {
-      const skins = accounts.reduce(
-        (versions, account) => {
-          if (account.cloudProvider === cloudProvider && !!account.skin) {
-            versions.add(account.skin);
-          }
-          return versions;
-        },
-        new Set<string>(),
-      );
+      const skins = accounts.reduce((versions, account) => {
+        if (account.cloudProvider === cloudProvider && !!account.skin) {
+          versions.add(account.skin);
+        }
+        return versions;
+      }, new Set<string>());
 
       if (skins.size === 0) {
         // Rely on the cloudProviderRegistry to return the default skin implementation.
@@ -45,12 +43,15 @@ export class SkinService {
       }
 
       return app.ready().then(() => {
-        for (const serverGroup of (app.getDataSource('serverGroups').data as IServerGroup[])) {
-          if (serverGroup.cloudProvider === cloudProvider && (serverGroup.instances || []).some(instance => instance.id === instanceId)) {
+        for (const serverGroup of app.getDataSource('serverGroups').data as IServerGroup[]) {
+          if (
+            serverGroup.cloudProvider === cloudProvider &&
+            (serverGroup.instances || []).some(instance => instance.id === instanceId)
+          ) {
             return this.mapAccountToSkin(serverGroup.account);
           }
         }
-        for (const loadBalancer of (app.getDataSource('loadBalancers').data as ILoadBalancer[])) {
+        for (const loadBalancer of app.getDataSource('loadBalancers').data as ILoadBalancer[]) {
           if (loadBalancer.cloudProvider === cloudProvider) {
             if ((loadBalancer.instances || []).some(instance => instance.id === instanceId)) {
               return this.mapAccountToSkin(loadBalancer.account);
@@ -58,8 +59,10 @@ export class SkinService {
             // Hit a crazy Babel bug - can't return from a nested for...of loop.
             for (let i = 0; i < (loadBalancer.serverGroups || []).length; i++) {
               const serverGroup = loadBalancer.serverGroups[i];
-              if (serverGroup.isDisabled
-                  && (serverGroup.instances || []).some(instance => instance.id === instanceId)) {
+              if (
+                serverGroup.isDisabled &&
+                (serverGroup.instances || []).some(instance => instance.id === instanceId)
+              ) {
                 return this.mapAccountToSkin(loadBalancer.account);
               }
             }
@@ -77,10 +80,15 @@ export class SkinService {
       const loadBalancerServerGroups = loadBalancers.map(lb => lb.serverGroups).reduce((acc, sg) => acc.concat(sg), []);
 
       const hasInstance = (obj: IServerGroup | ILoadBalancer) => {
-        return obj.cloudProvider === cloudProvider && (obj.instances || []).some(instance => instance.id === instanceId);
+        return (
+          obj.cloudProvider === cloudProvider && (obj.instances || []).some(instance => instance.id === instanceId)
+        );
       };
 
-      const all: (IServerGroup | ILoadBalancer)[] = [].concat(serverGroups).concat(loadBalancers).concat(loadBalancerServerGroups);
+      const all: (IServerGroup | ILoadBalancer)[] = []
+        .concat(serverGroups)
+        .concat(loadBalancers)
+        .concat(loadBalancerServerGroups);
       const found = all.find(hasInstance);
       return found && found.account;
     });
@@ -91,7 +99,8 @@ export class SkinService {
       return this.$q.resolve([]);
     }
 
-    return this.accountService.getCredentialsKeyedByAccount()
+    return this.accountService
+      .getCredentialsKeyedByAccount()
       .then(aggregatedAccounts => map(aggregatedAccounts))
       .catch(e => {
         this.$log.warn('Could not initialize accounts: ', e && e.message);
@@ -108,5 +117,4 @@ export class SkinService {
 }
 
 export const SKIN_SERVICE = 'spinnaker.core.skin.service';
-module(SKIN_SERVICE, [])
-  .service('skinService', SkinService);
+module(SKIN_SERVICE, []).service('skinService', SkinService);

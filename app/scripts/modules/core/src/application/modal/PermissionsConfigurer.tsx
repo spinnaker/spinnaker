@@ -31,7 +31,6 @@ export interface IPermissionsConfigurerState {
 
 @BindAll()
 export class PermissionsConfigurer extends React.Component<IPermissionsConfigurerProps, IPermissionsConfigurerState> {
-
   private static accessTypes: Option[] = [
     { value: 'READ', label: 'Read only' },
     { value: 'READ,WRITE', label: 'Read and write' },
@@ -83,12 +82,13 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     const availableRoles = ReactInjector.authenticationService.getAuthenticatedUser().roles;
     return without(
       availableRoles || [],
-      ...(permissions ? (permissions.READ || []).concat(permissions.WRITE || []) : [])
+      ...(permissions ? (permissions.READ || []).concat(permissions.WRITE || []) : []),
     ).map(role => ({ value: role, label: role }));
   }
 
   private convertRequiredGroupMembershipToPermissions(): IPermissions {
-    let READ: string[] = [], WRITE: string[] = [];
+    let READ: string[] = [],
+      WRITE: string[] = [];
     if (this.props.permissions && this.props.permissions.READ) {
       READ = this.props.permissions.READ.slice();
     }
@@ -134,9 +134,11 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
   }
 
   private willApplicationLockoutAllUsers(): boolean {
-    return !!(this.props.permissions) &&
-        compact(this.props.permissions.READ).length > 0 &&
-        compact(this.props.permissions.WRITE).length === 0;
+    return (
+      !!this.props.permissions &&
+      compact(this.props.permissions.READ).length > 0 &&
+      compact(this.props.permissions.WRITE).length === 0
+    );
   }
 
   private handleRoleSelect(rowIndex: number): (option: Option) => void {
@@ -152,7 +154,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
       const permissionRows = cloneDeep(this.state.permissionRows);
       permissionRows[rowIndex].access = option.value as string;
       this.props.onPermissionsChange(this.buildPermissions(permissionRows));
-    }
+    };
   }
 
   private handleDeletePermission(rowIndex: number): (event: React.MouseEvent<HTMLElement>) => void {
@@ -172,49 +174,47 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
   public render() {
     return (
       <div className="permissions-configurer">
-        {
-          this.state.permissionRows.map((row, i) => {
-            const permissionTypeLabel = PermissionsConfigurer.accessTypes
-              .find(type => type.value === row.access).label;
+        {this.state.permissionRows.map((row, i) => {
+          const permissionTypeLabel = PermissionsConfigurer.accessTypes.find(type => type.value === row.access).label;
 
-            return (
-              <div key={row.group || i} className="permissions-row clearfix">
-                <div className="col-md-5 permissions-group">
-                  <Creatable
-                    clearable={false}
-                    value={{ value: row.group, label: row.group }}
-                    options={this.state.roleOptions}
-                    onChange={this.handleRoleSelect(i)}
-                  />
-                </div>
-                <div className="col-md-5">
-                  <Select
-                    value={{ value: row.access, label: permissionTypeLabel }}
-                    options={PermissionsConfigurer.accessTypes}
-                    onChange={this.handleAccessTypeSelect(i)}
-                    clearable={false}
-                  />
-                </div>
-                <div className="col-md-2 delete-permissions">
-                  <a onClick={this.handleDeletePermission(i)} className="clickable">
-                    <span className="glyphicon glyphicon-trash"/>
-                  </a>
-                </div>
+          return (
+            <div key={row.group || i} className="permissions-row clearfix">
+              <div className="col-md-5 permissions-group">
+                <Creatable
+                  clearable={false}
+                  value={{ value: row.group, label: row.group }}
+                  options={this.state.roleOptions}
+                  onChange={this.handleRoleSelect(i)}
+                />
               </div>
-            );
-          })
-        }
+              <div className="col-md-5">
+                <Select
+                  value={{ value: row.access, label: permissionTypeLabel }}
+                  options={PermissionsConfigurer.accessTypes}
+                  onChange={this.handleAccessTypeSelect(i)}
+                  clearable={false}
+                />
+              </div>
+              <div className="col-md-2 delete-permissions">
+                <a onClick={this.handleDeletePermission(i)} className="clickable">
+                  <span className="glyphicon glyphicon-trash" />
+                </a>
+              </div>
+            </div>
+          );
+        })}
         <div className="row">
           <div className="col-md-11">
             <Button className="btn btn-block add-new small" onClick={this.handleAddPermission}>
-              <span className="glyphicon glyphicon-plus-sign"/> Add
+              <span className="glyphicon glyphicon-plus-sign" /> Add
             </Button>
           </div>
         </div>
         {this.willApplicationLockoutForUser() && (
           <div className="col-md-11">
             <div className="alert alert-warning">
-              <p><i className="fa fa-exclamation-triangle"/>
+              <p>
+                <i className="fa fa-exclamation-triangle" />
                 The permissions you have selected will lock you out of this application.
               </p>
             </div>
@@ -223,7 +223,8 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
         {this.willApplicationLockoutAllUsers() && (
           <div className="col-md-11">
             <div className="alert alert-warning">
-              <p><i className="fa fa-exclamation-triangle"/>
+              <p>
+                <i className="fa fa-exclamation-triangle" />
                 The permissions you have selected will lock ALL users out of this application.
               </p>
             </div>

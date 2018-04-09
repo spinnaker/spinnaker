@@ -1,28 +1,41 @@
 'use strict';
 
-import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
+import {
+  ACCOUNT_SERVICE,
+  CONFIRMATION_MODAL_SERVICE,
+  LOAD_BALANCER_WRITE_SERVICE,
+  ServerGroupTemplates,
+} from '@spinnaker/core';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller', [
-  ACCOUNT_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE
-])
-  .controller('dcosLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
-                                                                   confirmationModalService, accountService, loadBalancerWriter,
-                                                                   dcosProxyUiService, $q) {
-
+module.exports = angular
+  .module('spinnaker.dcos.loadBalancer.details.controller', [
+    ACCOUNT_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    LOAD_BALANCER_WRITE_SERVICE,
+  ])
+  .controller('dcosLoadBalancerDetailsController', function(
+    $scope,
+    $state,
+    $uibModal,
+    loadBalancer,
+    app,
+    confirmationModalService,
+    accountService,
+    loadBalancerWriter,
+    dcosProxyUiService,
+    $q,
+  ) {
     let application = app;
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     function extractLoadBalancer() {
-      $scope.loadBalancer = application.loadBalancers.data.find(function (test) {
-        return test.name === loadBalancer.name &&
-          test.account === loadBalancer.accountId;
+      $scope.loadBalancer = application.loadBalancers.data.find(function(test) {
+        return test.name === loadBalancer.name && test.account === loadBalancer.accountId;
       });
 
       if ($scope.loadBalancer) {
@@ -35,7 +48,11 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller'
     }
 
     this.uiLink = function uiLink() {
-      return dcosProxyUiService.buildLoadBalancerLink($scope.loadBalancer.clusterUrl, $scope.loadBalancer.account, $scope.loadBalancer.name);
+      return dcosProxyUiService.buildLoadBalancerLink(
+        $scope.loadBalancer.clusterUrl,
+        $scope.loadBalancer.account,
+        $scope.loadBalancer.name,
+      );
     };
 
     this.showJson = function showJson() {
@@ -43,7 +60,7 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller'
       $scope.userData = $scope.loadBalancer.json;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
@@ -52,7 +69,7 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller'
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     extractLoadBalancer().then(() => {
@@ -69,10 +86,16 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller'
         controller: 'dcosUpsertLoadBalancerController as ctrl',
         size: 'lg',
         resolve: {
-          application: function() { return application; },
-          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
-          isNew: function() { return false; }
-        }
+          application: function() {
+            return application;
+          },
+          loadBalancer: function() {
+            return angular.copy($scope.loadBalancer);
+          },
+          isNew: function() {
+            return false;
+          },
+        },
       });
     };
 
@@ -91,7 +114,7 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller'
         loadBalancerName: $scope.loadBalancer.name,
         dcosCluster: $scope.loadBalancer.dcosCluster,
         region: $scope.loadBalancer.region,
-        credentials: $scope.loadBalancer.account
+        credentials: $scope.loadBalancer.account,
       };
 
       const submitMethod = () => loadBalancerWriter.deleteLoadBalancer(command, application);
@@ -103,8 +126,7 @@ module.exports = angular.module('spinnaker.dcos.loadBalancer.details.controller'
         account: loadBalancer.account,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
-  }
-);
+  });

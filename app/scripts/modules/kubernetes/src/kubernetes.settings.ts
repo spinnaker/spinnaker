@@ -7,12 +7,13 @@ export interface IKubernetesProviderSettings extends IProviderSettings {
     proxy?: string;
     internalDNSNameTemplate?: string;
     instanceLinkTemplate?: string;
-    rrb?: boolean
+    rrb?: boolean;
     apiPrefix?: string;
   };
 }
 
-export const KubernetesProviderSettings: IKubernetesProviderSettings = <IKubernetesProviderSettings>SETTINGS.providers.kubernetes || { defaults: {} };
+export const KubernetesProviderSettings: IKubernetesProviderSettings = <IKubernetesProviderSettings>SETTINGS.providers
+  .kubernetes || { defaults: {} };
 if (KubernetesProviderSettings) {
   KubernetesProviderSettings.resetToOriginal = SETTINGS.resetProvider('kubernetes');
 }

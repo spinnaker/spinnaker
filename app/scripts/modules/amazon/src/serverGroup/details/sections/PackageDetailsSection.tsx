@@ -9,7 +9,10 @@ export interface IPackageDetailsSectionState {
   jenkinsLink: string;
 }
 
-export class PackageDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps, IPackageDetailsSectionState> {
+export class PackageDetailsSection extends React.Component<
+  IAmazonServerGroupDetailsSectionProps,
+  IPackageDetailsSectionState
+> {
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -60,7 +63,11 @@ export class PackageDetailsSection extends React.Component<IAmazonServerGroupDet
             <dt>Version</dt>
             <dd>{serverGroup.buildInfo.version}</dd>
             <dt>Build Link</dt>
-            <dd><a target="_blank" href={jenkinsLink}>{jenkinsLink}</a></dd>
+            <dd>
+              <a target="_blank" href={jenkinsLink}>
+                {jenkinsLink}
+              </a>
+            </dd>
           </dl>
         </CollapsibleSection>
       );

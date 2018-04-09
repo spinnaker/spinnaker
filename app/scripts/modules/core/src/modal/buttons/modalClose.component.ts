@@ -2,7 +2,7 @@ import { module, IComponentOptions } from 'angular';
 
 const modalCloseComponent: IComponentOptions = {
   bindings: {
-    dismiss: '&'
+    dismiss: '&',
   },
   template: `
     <div class="close-button pull-right">
@@ -10,7 +10,7 @@ const modalCloseComponent: IComponentOptions = {
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
-`
+`,
 };
 
 export const MODAL_CLOSE_COMPONENT = 'spinnaker.core.modal.modalClose.component';

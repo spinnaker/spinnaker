@@ -1,7 +1,7 @@
 import { IProviderSettings, SETTINGS } from '@spinnaker/core';
 
 export interface ITitusProviderSettings extends IProviderSettings {
-  autoScalingEnabled?: boolean,
+  autoScalingEnabled?: boolean;
   defaults: {
     account?: string;
     region?: string;
@@ -9,7 +9,9 @@ export interface ITitusProviderSettings extends IProviderSettings {
   };
 }
 
-export const TitusProviderSettings: ITitusProviderSettings = <ITitusProviderSettings>SETTINGS.providers.titus || { defaults: {} };
+export const TitusProviderSettings: ITitusProviderSettings = <ITitusProviderSettings>SETTINGS.providers.titus || {
+  defaults: {},
+};
 if (TitusProviderSettings) {
   TitusProviderSettings.resetToOriginal = SETTINGS.resetToOriginal;
 }

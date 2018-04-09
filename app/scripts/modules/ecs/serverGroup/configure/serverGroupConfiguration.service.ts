@@ -71,17 +71,18 @@ export class EcsServerGroupConfigurationService {
   // private healthCheckTypes = ['EC2', 'ELB'];
   // private terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
-  constructor(private $q: IQService,
-              private accountService: AccountService,
-              private cacheInitializer: CacheInitializerService,
-              private subnetReader: SubnetReader,
-              private loadBalancerReader: LoadBalancerReader,
-              private serverGroupCommandRegistry: ServerGroupCommandRegistry,
-              private iamRoleReader: IamRoleReader,
-              private ecsClusterReader: EscClusterReader,
-              private metricAlarmReader: MetricAlarmReader,
-              private placementStrategyService: PlacementStrategyService,
-              ) {
+  constructor(
+    private $q: IQService,
+    private accountService: AccountService,
+    private cacheInitializer: CacheInitializerService,
+    private subnetReader: SubnetReader,
+    private loadBalancerReader: LoadBalancerReader,
+    private serverGroupCommandRegistry: ServerGroupCommandRegistry,
+    private iamRoleReader: IamRoleReader,
+    private ecsClusterReader: EscClusterReader,
+    private metricAlarmReader: MetricAlarmReader,
+    private placementStrategyService: PlacementStrategyService,
+  ) {
     'ngInject';
   }
 
@@ -114,40 +115,44 @@ export class EcsServerGroupConfigurationService {
     };
 
     command.regionIsDeprecated = (): boolean => {
-      return has(command, 'backingData.filtered.regions') &&
-        command.backingData.filtered.regions.some((region) => region.name === command.region && region.deprecated);
+      return (
+        has(command, 'backingData.filtered.regions') &&
+        command.backingData.filtered.regions.some(region => region.name === command.region && region.deprecated)
+      );
     };
 
-    return this.$q.all({
-      credentialsKeyedByAccount: this.accountService.getCredentialsKeyedByAccount('ecs'),
-      loadBalancers: this.loadBalancerReader.listLoadBalancers('ecs'),
-      subnets: this.subnetReader.listSubnets(),
-      iamRoles: this.iamRoleReader.listRoles('ecs'),
-      ecsClusters: this.ecsClusterReader.listClusters(),
-      metricAlarms: this.metricAlarmReader.listMetricAlarms(),
-    }).then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
-      let loadBalancerReloader = this.$q.when();
-      backingData.accounts = keys(backingData.credentialsKeyedByAccount);
-      backingData.filtered = {} as IEcsServerGroupCommandBackingDataFiltered;
-      command.backingData = backingData as IEcsServerGroupCommandBackingData;
-      this.configureVpcId(command);
-      this.configureAvailableIamRoles(command);
-      this.configureAvailableMetricAlarms(command);
-      this.configureAvailableEcsClusters(command);
+    return this.$q
+      .all({
+        credentialsKeyedByAccount: this.accountService.getCredentialsKeyedByAccount('ecs'),
+        loadBalancers: this.loadBalancerReader.listLoadBalancers('ecs'),
+        subnets: this.subnetReader.listSubnets(),
+        iamRoles: this.iamRoleReader.listRoles('ecs'),
+        ecsClusters: this.ecsClusterReader.listClusters(),
+        metricAlarms: this.metricAlarmReader.listMetricAlarms(),
+      })
+      .then((backingData: Partial<IEcsServerGroupCommandBackingData>) => {
+        let loadBalancerReloader = this.$q.when();
+        backingData.accounts = keys(backingData.credentialsKeyedByAccount);
+        backingData.filtered = {} as IEcsServerGroupCommandBackingDataFiltered;
+        command.backingData = backingData as IEcsServerGroupCommandBackingData;
+        this.configureVpcId(command);
+        this.configureAvailableIamRoles(command);
+        this.configureAvailableMetricAlarms(command);
+        this.configureAvailableEcsClusters(command);
 
-      if (command.loadBalancers && command.loadBalancers.length) {
-        // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-        const loadBalancerNames = this.getLoadBalancerNames(command);
-        if (intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
-          loadBalancerReloader = this.refreshLoadBalancers(command, true);
+        if (command.loadBalancers && command.loadBalancers.length) {
+          // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
+          const loadBalancerNames = this.getLoadBalancerNames(command);
+          if (intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
+            loadBalancerReloader = this.refreshLoadBalancers(command, true);
+          }
         }
-      }
 
-      return this.$q.all([loadBalancerReloader]).then(() => {
-        this.applyOverrides('afterConfiguration', command);
-        this.attachEventHandlers(command);
+        return this.$q.all([loadBalancerReloader]).then(() => {
+          this.applyOverrides('afterConfiguration', command);
+          this.attachEventHandlers(command);
+        });
       });
-    });
   }
 
   public applyOverrides(phase: string, command: IEcsServerGroupCommand): void {
@@ -158,10 +163,11 @@ export class EcsServerGroupConfigurationService {
     });
   }
 
-
   public configureAvailabilityZones(command: IEcsServerGroupCommand): void {
-    command.backingData.filtered.availabilityZones =
-      find<IRegion>(command.backingData.credentialsKeyedByAccount[command.credentials].regions, { name: command.region }).availabilityZones;
+    command.backingData.filtered.availabilityZones = find<IRegion>(
+      command.backingData.credentialsKeyedByAccount[command.credentials].regions,
+      { name: command.region },
+    ).availabilityZones;
     command.availabilityZones = command.backingData.filtered.availabilityZones;
   }
 
@@ -170,7 +176,7 @@ export class EcsServerGroupConfigurationService {
     command.backingData.filtered.metricAlarms = chain(command.backingData.metricAlarms)
       .filter({
         accountName: command.credentials,
-        region: command.region
+        region: command.region,
       })
       .map(metricAlarm => {
         return {
@@ -199,8 +205,10 @@ export class EcsServerGroupConfigurationService {
 
   public configureAvailableEcsClusters(command: IEcsServerGroupCommand): void {
     command.backingData.filtered.ecsClusters = chain(command.backingData.ecsClusters)
-      .filter({ account: command.credentials ,
-                region: command.region })
+      .filter({
+        account: command.credentials,
+        region: command.region,
+      })
       .map('name')
       .value();
   }
@@ -228,7 +236,11 @@ export class EcsServerGroupConfigurationService {
       .uniqBy('purpose')
       .value();
 
-    if (!chain(filteredData.subnetPurposes).some({ purpose: command.subnetType }).value()) {
+    if (
+      !chain(filteredData.subnetPurposes)
+        .some({ purpose: command.subnetType })
+        .value()
+    ) {
       command.subnetType = null;
       result.dirty.subnetType = true;
     }
@@ -245,22 +257,26 @@ export class EcsServerGroupConfigurationService {
       .filter({ name: command.region })
       .map<IAmazonLoadBalancer>('loadBalancers')
       .flattenDeep<IAmazonLoadBalancer>()
-      .value()
+      .value();
   }
 
   public getLoadBalancerNames(command: IEcsServerGroupCommand): string[] {
-    const loadBalancers = this.getLoadBalancerMap(command).filter((lb) => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId === command.vpcId);
-    return loadBalancers.map((lb) => lb.name).sort();
+    const loadBalancers = this.getLoadBalancerMap(command).filter(
+      lb => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId === command.vpcId,
+    );
+    return loadBalancers.map(lb => lb.name).sort();
   }
 
   public getVpcLoadBalancerNames(command: IEcsServerGroupCommand): string[] {
-    const loadBalancersForVpc = this.getLoadBalancerMap(command).filter((lb) => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId);
-    return loadBalancersForVpc.map((lb) => lb.name).sort();
+    const loadBalancersForVpc = this.getLoadBalancerMap(command).filter(
+      lb => (!lb.loadBalancerType || lb.loadBalancerType === 'classic') && lb.vpcId,
+    );
+    return loadBalancersForVpc.map(lb => lb.name).sort();
   }
 
   public getTargetGroupNames(command: IEcsServerGroupCommand): string[] {
-    const loadBalancersV2 = this.getLoadBalancerMap(command).filter((lb) => lb.loadBalancerType !== 'classic') as any[];
-    const allTargetGroups = flatten(loadBalancersV2.map<string[]>((lb) => lb.targetGroups));
+    const loadBalancersV2 = this.getLoadBalancerMap(command).filter(lb => lb.loadBalancerType !== 'classic') as any[];
+    const allTargetGroups = flatten(loadBalancersV2.map<string[]>(lb => lb.targetGroups));
     return allTargetGroups.sort();
   }
 
@@ -304,7 +320,7 @@ export class EcsServerGroupConfigurationService {
 
   public refreshLoadBalancers(command: IEcsServerGroupCommand, skipCommandReconfiguration?: boolean) {
     return this.cacheInitializer.refreshCache('loadBalancers').then(() => {
-      return this.loadBalancerReader.listLoadBalancers('ecs').then((loadBalancers) => {
+      return this.loadBalancerReader.listLoadBalancers('ecs').then(loadBalancers => {
         command.backingData.loadBalancers = loadBalancers;
         if (!skipCommandReconfiguration) {
           this.configureLoadBalancerOptions(command);
@@ -322,7 +338,7 @@ export class EcsServerGroupConfigurationService {
       const subnet = find<ISubnet>(command.backingData.subnets, {
         purpose: command.subnetType,
         account: command.credentials,
-        region: command.region
+        region: command.region,
       });
       command.vpcId = subnet ? subnet.vpcId : null;
     }
@@ -359,7 +375,8 @@ export class EcsServerGroupConfigurationService {
         this.configureAvailableMetricAlarms(command);
         this.configureAvailableEcsClusters(command);
 
-        const regionsForAccount: IAccountDetails = backingData.credentialsKeyedByAccount[command.credentials] || { regions: [] } as IAccountDetails;
+        const regionsForAccount: IAccountDetails =
+          backingData.credentialsKeyedByAccount[command.credentials] || ({ regions: [] } as IAccountDetails);
         backingData.filtered.regions = regionsForAccount.regions;
         if (!some(backingData.filtered.regions, { name: command.region })) {
           command.region = null;
@@ -375,13 +392,14 @@ export class EcsServerGroupConfigurationService {
 
     command.placementStrategyNameChanged = (): IServerGroupCommandResult => {
       const result: IEcsServerGroupCommandResult = { dirty: {} };
-      command.placementStrategySequence = this.placementStrategyService.getPredefinedStrategy(command.placementStrategyName);
+      command.placementStrategySequence = this.placementStrategyService.getPredefinedStrategy(
+        command.placementStrategyName,
+      );
       return result;
     };
 
     this.applyOverrides('attachEventHandlers', command);
   }
-
 }
 
 export const ECS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.ecs.serverGroup.configure.service';
@@ -391,5 +409,4 @@ module(ECS_SERVER_GROUP_CONFIGURATION_SERVICE, [
   LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
-])
-  .service('ecsServerGroupConfigurationService', EcsServerGroupConfigurationService);
+]).service('ecsServerGroupConfigurationService', EcsServerGroupConfigurationService);

@@ -18,9 +18,9 @@ import { OverrideRegistry } from 'core/overrideRegistry';
  * }
  */
 export function Overrides(key: string, cloudProvider?: string, cloudProviderVersion?: string) {
-  return function <P, T extends React.ComponentClass<P>> (targetComponent: T): void {
+  return function<P, T extends React.ComponentClass<P>>(targetComponent: T): void {
     overrideRegistrationQueue.register(targetComponent, key, cloudProvider, cloudProviderVersion);
-  }
+  };
 }
 
 /**

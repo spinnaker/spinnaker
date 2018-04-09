@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.titus.advancedSettingSelector', [])
+module.exports = angular
+  .module('spinnaker.serverGroup.configure.titus.advancedSettingSelector', [])
   .directive('titusServerGroupAdvancedSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -29,5 +30,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.titus.advancedS
     this.removeTag = function(index) {
       $scope.command.tags.splice(index, 1);
     };
-
   });

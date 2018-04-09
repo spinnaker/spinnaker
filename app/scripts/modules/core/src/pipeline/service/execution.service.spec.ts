@@ -18,16 +18,25 @@ describe('Service: executionService', () => {
   beforeEach(
     mock.module(($qProvider: IQProvider) => {
       $qProvider.errorOnUnhandledRejections(false);
-  }));
+    }),
+  );
 
   beforeEach(
-    mock.inject((_executionService_: ExecutionService, _$httpBackend_: IHttpBackendService, _$timeout_: ITimeoutService, _$q_: IQService, executionFilterModel: ExecutionFilterModel) => {
-      executionService = _executionService_;
-      $httpBackend = _$httpBackend_;
-      timeout = _$timeout_;
-      $q = _$q_;
-      executionFilterModel.asFilterModel.sortFilter.count = 3;
-    })
+    mock.inject(
+      (
+        _executionService_: ExecutionService,
+        _$httpBackend_: IHttpBackendService,
+        _$timeout_: ITimeoutService,
+        _$q_: IQService,
+        executionFilterModel: ExecutionFilterModel,
+      ) => {
+        executionService = _executionService_;
+        $httpBackend = _$httpBackend_;
+        timeout = _$timeout_;
+        $q = _$q_;
+        executionFilterModel.asFilterModel.sortFilter.count = 3;
+      },
+    ),
   );
 
   afterEach(() => {
@@ -39,14 +48,14 @@ describe('Service: executionService', () => {
     it('should wait until pipeline is not running, then resolve', () => {
       let completed = false;
       const executionId = 'abc';
-      const cancelUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'cancel' ].join('/');
-      const checkUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
+      const cancelUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/');
+      const checkUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
       $httpBackend.expectGET(checkUrl).respond(200, { id: executionId, status: 'RUNNING' });
 
-      executionService.cancelExecution(application, executionId).then(() => completed = true);
+      executionService.cancelExecution(application, executionId).then(() => (completed = true));
       $httpBackend.flush();
       expect(completed).toBe(false);
 
@@ -59,12 +68,12 @@ describe('Service: executionService', () => {
     it('should propagate rejection from failed cancel', () => {
       let failed = false;
       const executionId = 'abc';
-      const cancelUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'cancel' ].join('/');
+      const cancelUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectPUT(cancelUrl).respond(500, []);
 
-      executionService.cancelExecution(application, executionId).then(noop, () => failed = true);
+      executionService.cancelExecution(application, executionId).then(noop, () => (failed = true));
       $httpBackend.flush();
       expect(failed).toBe(true);
     });
@@ -74,14 +83,14 @@ describe('Service: executionService', () => {
     it('should wait until pipeline is missing, then resolve', () => {
       let completed = false;
       const executionId = 'abc';
-      const deleteUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
-      const checkUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
+      const deleteUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
+      const checkUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
       $httpBackend.expectGET(checkUrl).respond(200, { id: executionId });
 
-      executionService.deleteExecution(application, executionId).then(() => completed = true);
+      executionService.deleteExecution(application, executionId).then(() => (completed = true));
       $httpBackend.flush();
       expect(completed).toBe(false);
 
@@ -94,12 +103,12 @@ describe('Service: executionService', () => {
     it('should propagate rejection from failed delete', () => {
       let failed = false;
       const executionId = 'abc';
-      const deleteUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
+      const deleteUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectDELETE(deleteUrl).respond(500, []);
 
-      executionService.deleteExecution(application, executionId).then(noop, () => failed = true);
+      executionService.deleteExecution(application, executionId).then(noop, () => (failed = true));
       $httpBackend.flush();
       expect(failed).toBe(true);
     });
@@ -109,14 +118,14 @@ describe('Service: executionService', () => {
     it('should wait until pipeline is PAUSED, then resolve', () => {
       let completed = false;
       const executionId = 'abc';
-      const pauseUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'pause' ].join('/');
-      const singleExecutionUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
+      const pauseUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'pause'].join('/');
+      const singleExecutionUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
       $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
 
-      executionService.pauseExecution(application, executionId).then(() => completed = true);
+      executionService.pauseExecution(application, executionId).then(() => (completed = true));
       $httpBackend.flush();
       expect(completed).toBe(false);
 
@@ -132,14 +141,14 @@ describe('Service: executionService', () => {
     it('should wait until pipeline is RUNNING, then resolve', () => {
       let completed = false;
       const executionId = 'abc';
-      const pauseUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'resume' ].join('/');
-      const singleExecutionUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
+      const pauseUrl = [SETTINGS.gateUrl, 'pipelines', executionId, 'resume'].join('/');
+      const singleExecutionUrl = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
       const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
 
       $httpBackend.expectPUT(pauseUrl).respond(200, []);
       $httpBackend.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
 
-      executionService.resumeExecution(application, executionId).then(() => completed = true);
+      executionService.resumeExecution(application, executionId).then(() => (completed = true));
       $httpBackend.flush();
       expect(completed).toBe(false);
 
@@ -152,14 +161,8 @@ describe('Service: executionService', () => {
   });
 
   describe('when fetching pipelines', () => {
-
     it('should resolve the promise if a 200 response is received with empty array', () => {
-      const url = [
-          SETTINGS.gateUrl,
-          'applications',
-          'deck',
-          'pipelines?limit=3&expand=false',
-        ].join('/');
+      const url = [SETTINGS.gateUrl, 'applications', 'deck', 'pipelines?limit=3&expand=false'].join('/');
 
       $httpBackend.expectGET(url).respond(200, []);
 
@@ -168,22 +171,17 @@ describe('Service: executionService', () => {
       $httpBackend.flush();
 
       responsePromise
-        .then((result) => {
+        .then(result => {
           expect(result).toBeDefined(); // only success should be called
           expect(result).toEqual([]);
         })
-        .catch((reject) => {
+        .catch(reject => {
           expect(reject).toBeUndefined();
         });
     });
 
     it('should reject the promise if a 429 response is received', () => {
-      const url = [
-        SETTINGS.gateUrl,
-        'applications',
-        'deck',
-        'pipelines?limit=3&expand=false',
-      ].join('/');
+      const url = [SETTINGS.gateUrl, 'applications', 'deck', 'pipelines?limit=3&expand=false'].join('/');
 
       $httpBackend.expectGET(url).respond(429, []);
 
@@ -192,17 +190,16 @@ describe('Service: executionService', () => {
       $httpBackend.flush();
 
       responsePromise
-        .then((result) => {
+        .then(result => {
           expect(result).toBeUndefined();
         })
-        .catch((result) => {
+        .catch(result => {
           expect(result).toBeDefined(); // only reject should be called
         });
     });
   });
 
   describe('waitUntilExecutionMatches', () => {
-
     it('resolves when the execution matches the closure', () => {
       const executionId = 'abc';
       const url = [SETTINGS.gateUrl, 'pipelines', executionId].join('/');
@@ -210,8 +207,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, { thingToMatch: true });
 
-      executionService.waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
-      .then(() => succeeded = true);
+      executionService
+        .waitUntilExecutionMatches(executionId, execution => (execution as any).thingToMatch)
+        .then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -226,8 +224,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
 
-      executionService.waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
-        .then(() => succeeded = true);
+      executionService
+        .waitUntilExecutionMatches(executionId, execution => (execution as any).thingToMatch)
+        .then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -257,8 +256,9 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, { thingToMatch: false });
 
-      executionService.waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
-        .then(() => succeeded = true, () => failed = true);
+      executionService
+        .waitUntilExecutionMatches(executionId, execution => (execution as any).thingToMatch)
+        .then(() => (succeeded = true), () => (failed = true));
 
       expect(succeeded).toBe(false);
       expect(failed).toBe(false);
@@ -282,15 +282,19 @@ describe('Service: executionService', () => {
     beforeEach(() => {
       dataUpdated = false;
       application = {
-        executions: { data: [], dataUpdated: () => dataUpdated = true },
-        runningExecutions: { data: [], dataUpdated: () => dataUpdated = true }
+        executions: { data: [], dataUpdated: () => (dataUpdated = true) },
+        runningExecutions: { data: [], dataUpdated: () => (dataUpdated = true) },
       } as any;
     });
 
     describe('removeCompletedExecutionsFromRunningData', () => {
       it('should remove executions that have completed', () => {
-        application.executions.data = [ { id: 0, isActive: false }, { id: 1, isActive: false }, { id: 2, isActive: true } ];
-        application.runningExecutions.data = [ { id: 1, isActive: true }, { id: 2, isActive: true } ];
+        application.executions.data = [
+          { id: 0, isActive: false },
+          { id: 1, isActive: false },
+          { id: 2, isActive: true },
+        ];
+        application.runningExecutions.data = [{ id: 1, isActive: true }, { id: 2, isActive: true }];
         executionService.removeCompletedExecutionsFromRunningData(application);
         expect(application.runningExecutions.data.map((d: any) => d.id)).toEqual([2]);
         expect(dataUpdated).toBe(true);
@@ -299,21 +303,29 @@ describe('Service: executionService', () => {
 
     describe('mergeRunningExecutionsIntoExecutions', () => {
       it('should add running executions to executions, and update if stringVal changed', () => {
-        application.executions.data = [ { id: 0, isActive: false, stringVal: 'a' }, { id: 2, isActive: true, stringVal: 'b' } ];
-        application.runningExecutions.data = [ { id: 1, isActive: true, stringVal: 'c' }, { id: 2, isActive: true, stringVal: 'd' } ];
+        application.executions.data = [
+          { id: 0, isActive: false, stringVal: 'a' },
+          { id: 2, isActive: true, stringVal: 'b' },
+        ];
+        application.runningExecutions.data = [
+          { id: 1, isActive: true, stringVal: 'c' },
+          { id: 2, isActive: true, stringVal: 'd' },
+        ];
         executionService.mergeRunningExecutionsIntoExecutions(application);
         expect(application.executions.data.map((d: any) => `${d.id}:${d.stringVal}`)).toEqual(['0:a', '2:d', '1:c']);
         expect(dataUpdated).toBe(true);
       });
 
       it('should only call dataUpdated if actual updates occurred', () => {
-        application.executions.data = [ { id: 0, isActive: false, stringVal: 'a' }, { id: 2, isActive: true, stringVal: 'b' } ];
-        application.runningExecutions.data = [ { id: 2, isActive: true, stringVal: 'b' } ];
+        application.executions.data = [
+          { id: 0, isActive: false, stringVal: 'a' },
+          { id: 2, isActive: true, stringVal: 'b' },
+        ];
+        application.runningExecutions.data = [{ id: 2, isActive: true, stringVal: 'b' }];
         executionService.mergeRunningExecutionsIntoExecutions(application);
         expect(application.executions.data.map((d: any) => `${d.id}:${d.stringVal}`)).toEqual(['0:a', '2:b']);
         expect(dataUpdated).toBe(false);
       });
-
     });
   });
 
@@ -345,13 +357,13 @@ describe('Service: executionService', () => {
         { id: 'a', status: 'COMPLETED' },
         { id: 'b', status: 'RUNNING' },
         { id: 'c', status: 'RUNNING' },
-        { id: 'd', status: 'NOT_STARTED' }
+        { id: 'd', status: 'NOT_STARTED' },
       ];
       const updatedStages = [
         { id: 'a', status: 'COMPLETED' },
         { id: 'b', status: 'RUNNING', newField: 'x' },
         { id: 'c', status: 'RUNNING' },
-        { id: 'd', status: 'NOT_STARTED' }
+        { id: 'd', status: 'NOT_STARTED' },
       ];
       const original = {
         id: 1,
@@ -380,7 +392,6 @@ describe('Service: executionService', () => {
       expect(application.executions.data[0].stageSummaries[2]).toEqual(updatedStages[2]);
       expect(application.executions.data[0].stageSummaries[3]).toBe(originalStages[3]);
       expect(application.executions.data[0].stageSummaries[3]).toEqual(updatedStages[3]);
-
     });
 
     it('should replace an existing execution if status changes', () => {
@@ -434,7 +445,6 @@ describe('Service: executionService', () => {
 
       expect(data).toEqual([]);
     });
-
   });
 
   describe('waitUntilNewTriggeredPipelineAppears', () => {
@@ -447,8 +457,7 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(200, {});
 
-      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId)
-        .then(() => succeeded = true);
+      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId).then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -461,8 +470,7 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(404, {});
 
-      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId)
-        .then(() => succeeded = true);
+      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId).then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -475,8 +483,7 @@ describe('Service: executionService', () => {
 
       $httpBackend.expectGET(url).respond(404, {});
 
-      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId)
-        .then(() => succeeded = true);
+      executionService.waitUntilNewTriggeredPipelineAppears(application, executionId).then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -491,5 +498,5 @@ describe('Service: executionService', () => {
 
       expect(succeeded).toBe(true);
     });
-  })
+  });
 });

@@ -15,63 +15,67 @@ import {
   SERVER_GROUP_WRITER,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', [
-  require('@uirouter/angularjs').default,
-  ACCOUNT_SERVICE,
-  ECS_SERVER_GROUP_TRANSFORMER,
-  CLUSTER_TARGET_BUILDER,
-  CONFIRMATION_MODAL_SERVICE,
-  OVERRIDE_REGISTRY,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_WRITER,
-  require('../configure/serverGroupCommandBuilder.service.js').name,
-  require('./resize/resizeServerGroup.controller').name,
-  require('./rollback/rollbackServerGroup.controller').name,
-])
-  .controller('ecsServerGroupDetailsCtrl', function ($scope, $state,
-                                                     app,
-                                                     serverGroup,
-                                                     serverGroupReader,
-                                                     ecsServerGroupCommandBuilder,
-                                                     $uibModal,
-                                                     confirmationModalService,
-                                                     serverGroupWriter,
-                                                     subnetReader,
-                                                     clusterTargetBuilder,
-                                                     ecsServerGroupTransformer,
-                                                     accountService,
-                                                     serverGroupWarningMessageService,
-                                                     overrideRegistry
+module.exports = angular
+  .module('spinnaker.ecs.serverGroup.details.controller', [
+    require('@uirouter/angularjs').default,
+    ACCOUNT_SERVICE,
+    ECS_SERVER_GROUP_TRANSFORMER,
+    CLUSTER_TARGET_BUILDER,
+    CONFIRMATION_MODAL_SERVICE,
+    OVERRIDE_REGISTRY,
+    SERVER_GROUP_READER,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+    SERVER_GROUP_WRITER,
+    require('../configure/serverGroupCommandBuilder.service.js').name,
+    require('./resize/resizeServerGroup.controller').name,
+    require('./rollback/rollbackServerGroup.controller').name,
+  ])
+  .controller('ecsServerGroupDetailsCtrl', function(
+    $scope,
+    $state,
+    app,
+    serverGroup,
+    serverGroupReader,
+    ecsServerGroupCommandBuilder,
+    $uibModal,
+    confirmationModalService,
+    serverGroupWriter,
+    subnetReader,
+    clusterTargetBuilder,
+    ecsServerGroupTransformer,
+    accountService,
+    serverGroupWarningMessageService,
+    overrideRegistry,
   ) {
-
     this.state = {
-      loading: true
+      loading: true,
     };
 
     this.application = app;
 
     let extractServerGroupSummary = () => {
-      return app
-        .ready()
-        .then(() => {
-          var summary = find(app.serverGroups.data, (toCheck) => {
-            return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
-          });
-          if (!summary) {
-            app.loadBalancers.data.some((loadBalancer) => {
-              if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-                return loadBalancer.serverGroups.some((possibleServerGroup) => {
-                  if (possibleServerGroup.name === serverGroup.name) {
-                    summary = possibleServerGroup;
-                    return true;
-                  }
-                });
-              }
-            });
-          }
-          return summary;
+      return app.ready().then(() => {
+        var summary = find(app.serverGroups.data, toCheck => {
+          return (
+            toCheck.name === serverGroup.name &&
+            toCheck.account === serverGroup.accountId &&
+            toCheck.region === serverGroup.region
+          );
         });
+        if (!summary) {
+          app.loadBalancers.data.some(loadBalancer => {
+            if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
+              return loadBalancer.serverGroups.some(possibleServerGroup => {
+                if (possibleServerGroup.name === serverGroup.name) {
+                  summary = possibleServerGroup;
+                  return true;
+                }
+              });
+            }
+          });
+        }
+        return summary;
+      });
     };
 
     let autoClose = () => {
@@ -79,7 +83,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     };
 
     let cancelLoader = () => {
@@ -88,9 +92,10 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
 
     let retrieveServerGroup = () => {
       return extractServerGroupSummary()
-        .then((summary) => {
-          return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-            .then((details) => {
+        .then(summary => {
+          return serverGroupReader
+            .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+            .then(details => {
               cancelLoader();
 
               // it's possible the summary was not found because the clusters are still loading
@@ -100,22 +105,23 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
               this.applyAccountDetails(this.serverGroup);
 
               if (!isEmpty(this.serverGroup)) {
-
                 this.image = details.image ? details.image : undefined;
 
                 var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
 
                 if (vpc !== '') {
                   var subnetId = vpc.split(',')[0];
-                  subnetReader.listSubnets().then((subnets) => {
-                    var subnet = chain(subnets).find({'id': subnetId}).value();
+                  subnetReader.listSubnets().then(subnets => {
+                    var subnet = chain(subnets)
+                      .find({ id: subnetId })
+                      .value();
                     this.serverGroup.subnetType = subnet.purpose;
                   });
                 }
 
                 if (details.image && details.image.description) {
                   var tags = details.image.description.split(', ');
-                  tags.forEach((tag) => {
+                  tags.forEach(tag => {
                     var keyVal = tag.split('=');
                     if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
                       details.image.baseImage = keyVal[1];
@@ -135,7 +141,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
 
                 if (has(this.serverGroup, 'buildInfo.jenkins')) {
                   this.changeConfig.buildInfo = {
-                    jenkins: this.serverGroup.buildInfo.jenkins
+                    jenkins: this.serverGroup.buildInfo.jenkins,
                   };
                 }
 
@@ -151,13 +157,10 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
                   metadata: get(this.serverGroup.entityTags, 'creationMetadata')
                 };
                 */
-
-
               } else {
                 autoClose();
               }
             });
-
         })
         .catch(autoClose);
     };
@@ -178,12 +181,12 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      var submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
       var stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
-        region: serverGroup.region
+        region: serverGroup.region,
       };
 
       var confirmationModalParams = {
@@ -200,7 +203,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
           }
-        }
+        },
       };
 
       serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
@@ -217,10 +220,10 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => {
+      var submitMethod = params => {
         return serverGroupWriter.disableServerGroup(serverGroup, app, params);
       };
 
@@ -233,7 +236,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Ecs',
         submitMethod: submitMethod,
-        askForReason: true
+        askForReason: true,
       };
 
       serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
@@ -253,7 +256,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => {
+      var submitMethod = params => {
         return serverGroupWriter.enableServerGroup(serverGroup, app, params);
       };
 
@@ -265,7 +268,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Ecs',
         submitMethod: submitMethod,
-        askForReason: true
+        askForReason: true,
       };
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
@@ -282,17 +285,21 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
         resolve: {
           serverGroup: () => this.serverGroup,
           disabledServerGroups: () => {
-            var cluster = find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
-            return filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
+            var cluster = find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
+            return filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
           },
-          allServerGroups: () => app.getDataSource('serverGroups').data.filter(g =>
-            g.cluster === this.serverGroup.cluster &&
-            g.region === this.serverGroup.region &&
-            g.account === this.serverGroup.account &&
-            g.name !== this.serverGroup.name
-          ),
-          application: () => app
-        }
+          allServerGroups: () =>
+            app
+              .getDataSource('serverGroups')
+              .data.filter(
+                g =>
+                  g.cluster === this.serverGroup.cluster &&
+                  g.region === this.serverGroup.region &&
+                  g.account === this.serverGroup.account &&
+                  g.name !== this.serverGroup.name,
+              ),
+          application: () => app,
+        },
       });
     };
 
@@ -302,12 +309,12 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
         controller: 'ecsResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: () => this.serverGroup,
-          application: () => app
-        }
+          application: () => app,
+        },
       });
     };
 
-    this.cloneServerGroup = (serverGroup) => {
+    this.cloneServerGroup = serverGroup => {
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'ecsCloneServerGroupCtrl as ctrl',
@@ -316,7 +323,7 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
           title: () => 'Clone ' + serverGroup.name,
           application: () => app,
           serverGroupCommand: () => ecsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
-        }
+        },
       });
     };
 
@@ -337,10 +344,9 @@ module.exports = angular.module('spinnaker.ecs.serverGroup.details.controller', 
       return null;
     };
 
-    this.applyAccountDetails = (serverGroup) => {
-      return accountService.getAccountDetails(serverGroup.account).then((details) => {
+    this.applyAccountDetails = serverGroup => {
+      return accountService.getAccountDetails(serverGroup.account).then(details => {
         serverGroup.accountDetails = details;
       });
     };
-  }
-);
+  });

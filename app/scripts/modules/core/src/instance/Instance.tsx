@@ -19,7 +19,9 @@ export class Instance extends React.Component<IInstanceProps> {
   }
 
   public onMouseOver(event: React.MouseEvent<any>) {
-    $(event.target).tooltip({ animation: false } as JQueryUI.TooltipOptions).tooltip('show');
+    $(event.target)
+      .tooltip({ animation: false } as JQueryUI.TooltipOptions)
+      .tooltip('show');
   }
 
   public shouldComponentUpdate(nextProps: IInstanceProps) {
@@ -31,7 +33,9 @@ export class Instance extends React.Component<IInstanceProps> {
     const { instance, active, highlight } = this.props;
     const { id, healthState } = instance;
 
-    const className = `instance health-status-${healthState} ${highlight === id ? 'highlighted' : ''} ${active ? 'active' : ''}`;
+    const className = `instance health-status-${healthState} ${highlight === id ? 'highlighted' : ''} ${
+      active ? 'active' : ''
+    }`;
     return (
       <a
         className={className}

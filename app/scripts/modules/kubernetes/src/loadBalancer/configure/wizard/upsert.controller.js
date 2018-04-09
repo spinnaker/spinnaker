@@ -6,22 +6,32 @@ import {
   ACCOUNT_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.controller', [
-  require('@uirouter/angularjs').default,
-  LOAD_BALANCER_WRITE_SERVICE,
-  ACCOUNT_SERVICE,
-  V2_MODAL_WIZARD_SERVICE,
-  TASK_MONITOR_BUILDER,
-  require('../../../namespace/selectField.directive.js').name,
-  require('../../transformer.js').name,
-])
-  .controller('kubernetesUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
-                                                                 application, loadBalancer, isNew,
-                                                                 accountService, kubernetesLoadBalancerTransformer,
-                                                                 v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
+module.exports = angular
+  .module('spinnaker.loadBalancer.kubernetes.create.controller', [
+    require('@uirouter/angularjs').default,
+    LOAD_BALANCER_WRITE_SERVICE,
+    ACCOUNT_SERVICE,
+    V2_MODAL_WIZARD_SERVICE,
+    TASK_MONITOR_BUILDER,
+    require('../../../namespace/selectField.directive.js').name,
+    require('../../transformer.js').name,
+  ])
+  .controller('kubernetesUpsertLoadBalancerController', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    application,
+    loadBalancer,
+    isNew,
+    accountService,
+    kubernetesLoadBalancerTransformer,
+    v2modalWizardService,
+    loadBalancerWriter,
+    taskMonitorBuilder,
+  ) {
     var ctrl = this;
     $scope.isNew = isNew;
 
@@ -33,7 +43,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
 
     $scope.state = {
       accountsLoaded: false,
-      submitting: false
+      submitting: false,
     };
 
     function onApplicationRefresh() {
@@ -72,7 +82,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
     }
 
     function initializeCreateMode() {
-      accountService.listAccounts('kubernetes').then(function (accounts) {
+      accountService.listAccounts('kubernetes').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -87,18 +97,22 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
 
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials,
-          namespace = $scope.loadBalancer.namespace;
+        namespace = $scope.loadBalancer.namespace;
 
       const accountLoadBalancersByNamespace = {};
-      application.getDataSource('loadBalancers').refresh(true).then(() => {
-        application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-          if (loadBalancer.account === account) {
-            accountLoadBalancersByNamespace[loadBalancer.namespace] = accountLoadBalancersByNamespace[loadBalancer.namespace] || [];
-            accountLoadBalancersByNamespace[loadBalancer.namespace].push(loadBalancer.name);
-          }
+      application
+        .getDataSource('loadBalancers')
+        .refresh(true)
+        .then(() => {
+          application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+            if (loadBalancer.account === account) {
+              accountLoadBalancersByNamespace[loadBalancer.namespace] =
+                accountLoadBalancersByNamespace[loadBalancer.namespace] || [];
+              accountLoadBalancersByNamespace[loadBalancer.namespace].push(loadBalancer.name);
+            }
+          });
+          $scope.existingLoadBalancerNames = accountLoadBalancersByNamespace[namespace] || [];
         });
-        $scope.existingLoadBalancerNames = accountLoadBalancersByNamespace[namespace] || [];
-      });
     }
 
     // initialize controller
@@ -118,7 +132,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
 
     this.getName = function() {
       var loadBalancer = $scope.loadBalancer;
-      var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
+      var loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
@@ -134,25 +148,23 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
       ctrl.updateName();
     };
 
-    this.submit = function () {
+    this.submit = function() {
       var descriptor = isNew ? 'Create' : 'Update';
 
       this.updateName();
-      $scope.taskMonitor.submit(
-        function() {
-          var zones = {};
-          // TODO(lwander) make generic Q2 2016
-          zones[$scope.loadBalancer.namespace] = [$scope.loadBalancer.namespace];
-          let params = {
-            cloudProvider: 'kubernetes',
-            availabilityZones: zones
-          };
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        var zones = {};
+        // TODO(lwander) make generic Q2 2016
+        zones[$scope.loadBalancer.namespace] = [$scope.loadBalancer.namespace];
+        let params = {
+          cloudProvider: 'kubernetes',
+          availabilityZones: zones,
+        };
+        return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
   });

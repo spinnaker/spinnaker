@@ -29,7 +29,6 @@ export class TaskMonitor {
   private onTaskRetry: () => void;
 
   constructor(public config: ITaskMonitorConfig, private $timeout: ng.ITimeoutService, private taskReader: TaskReader) {
-
     this.title = config.title;
     this.application = config.application;
     this.modalInstance = config.modalInstance;
@@ -78,8 +77,9 @@ export class TaskMonitor {
     if (this.application && this.application.getDataSource('runningTasks')) {
       this.application.getDataSource('runningTasks').refresh();
     }
-    this.taskReader.waitUntilTaskCompletes(task, this.monitorInterval)
-      .then(() => this.onTaskComplete ? this.onTaskComplete() : noop)
+    this.taskReader
+      .waitUntilTaskCompletes(task, this.monitorInterval)
+      .then(() => (this.onTaskComplete ? this.onTaskComplete() : noop))
       .catch(() => this.setError(task));
   }
 
@@ -106,15 +106,14 @@ export class TaskMonitor {
 }
 
 export class TaskMonitorBuilder {
-  constructor(private $timeout: ng.ITimeoutService, private taskReader: TaskReader) { 'ngInject'; }
+  constructor(private $timeout: ng.ITimeoutService, private taskReader: TaskReader) {
+    'ngInject';
+  }
 
   public buildTaskMonitor(config: ITaskMonitorConfig) {
     return new TaskMonitor(config, this.$timeout, this.taskReader);
   }
-
 }
 
 export const TASK_MONITOR_BUILDER = 'spinnaker.core.task.monitor.builder';
-module(TASK_MONITOR_BUILDER, [
-  TASK_READ_SERVICE
-]).service('taskMonitorBuilder', TaskMonitorBuilder);
+module(TASK_MONITOR_BUILDER, [TASK_READ_SERVICE]).service('taskMonitorBuilder', TaskMonitorBuilder);

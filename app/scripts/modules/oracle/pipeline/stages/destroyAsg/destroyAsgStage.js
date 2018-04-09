@@ -4,7 +4,8 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgStage', [])
+module.exports = angular
+  .module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
@@ -14,16 +15,17 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgS
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('oraclebmcsDestroyAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('oraclebmcsDestroyAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
     let provider = 'oraclebmcs';
 
@@ -32,12 +34,12 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgS
     stage.cloudProvider = provider;
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
     init();
 
-    function init () {
+    function init() {
       accountService.listAccounts(provider).then(accounts => {
         $scope.accounts = accounts;
         $scope.state.accounts = true;

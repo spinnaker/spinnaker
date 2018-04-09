@@ -10,58 +10,73 @@ import {
   SECURITY_GROUP_READER,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_WRITER
+  SERVER_GROUP_WRITER,
 } from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.openstack.module.js');
 
-module.exports = angular.module('spinnaker.serverGroup.details.openstack.controller', [
-  require('@uirouter/angularjs').default,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER,
-  SECURITY_GROUP_READER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  OVERRIDE_REGISTRY,
-  ACCOUNT_SERVICE,
-  SERVER_GROUP_READER,
-  require('../configure/ServerGroupCommandBuilder.js').name,
-  require('../serverGroup.transformer.js').name,
-])
-  .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
-                                                     serverGroupReader, openstackServerGroupCommandBuilder, $uibModal,
-                                                     confirmationModalService, serverGroupWriter, subnetReader,
-                                                     networkReader, securityGroupReader, loadBalancerReader,
-                                                     accountService,
-                                                     serverGroupWarningMessageService, openstackServerGroupTransformer,
-                                                     overrideRegistry) {
+module.exports = angular
+  .module('spinnaker.serverGroup.details.openstack.controller', [
+    require('@uirouter/angularjs').default,
+    CONFIRMATION_MODAL_SERVICE,
+    SERVER_GROUP_WRITER,
+    SECURITY_GROUP_READER,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+    OVERRIDE_REGISTRY,
+    ACCOUNT_SERVICE,
+    SERVER_GROUP_READER,
+    require('../configure/ServerGroupCommandBuilder.js').name,
+    require('../serverGroup.transformer.js').name,
+  ])
+  .controller('openstackServerGroupDetailsCtrl', function(
+    $scope,
+    $state,
+    app,
+    serverGroup,
+    serverGroupReader,
+    openstackServerGroupCommandBuilder,
+    $uibModal,
+    confirmationModalService,
+    serverGroupWriter,
+    subnetReader,
+    networkReader,
+    securityGroupReader,
+    loadBalancerReader,
+    accountService,
+    serverGroupWarningMessageService,
+    openstackServerGroupTransformer,
+    overrideRegistry,
+  ) {
     var ctrl = this;
     this.state = {
-      loading: true
+      loading: true,
     };
 
     this.application = app;
 
     let extractServerGroupSummary = () => {
-      return app
-        .ready()
-        .then(() => {
-          var summary = _.find(app.serverGroups.data, (toCheck) => {
-            return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
-          });
-          if (!summary) {
-            app.loadBalancers.data.some((loadBalancer) => {
-              if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-                return loadBalancer.serverGroups.some((possibleServerGroup) => {
-                  if (possibleServerGroup.name === serverGroup.name) {
-                    summary = possibleServerGroup;
-                    return true;
-                  }
-                });
-              }
-            });
-          }
-          return summary;
+      return app.ready().then(() => {
+        var summary = _.find(app.serverGroups.data, toCheck => {
+          return (
+            toCheck.name === serverGroup.name &&
+            toCheck.account === serverGroup.accountId &&
+            toCheck.region === serverGroup.region
+          );
         });
+        if (!summary) {
+          app.loadBalancers.data.some(loadBalancer => {
+            if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
+              return loadBalancer.serverGroups.some(possibleServerGroup => {
+                if (possibleServerGroup.name === serverGroup.name) {
+                  summary = possibleServerGroup;
+                  return true;
+                }
+              });
+            }
+          });
+        }
+        return summary;
+      });
     };
 
     let autoClose = () => {
@@ -69,7 +84,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     };
 
     let cancelLoader = () => {
@@ -78,9 +93,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
 
     let retrieveServerGroup = () => {
       return extractServerGroupSummary()
-        .then((summary) => {
-          return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
-            .then((details) => {
+        .then(summary => {
+          return serverGroupReader
+            .getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+            .then(details => {
               cancelLoader();
 
               angular.extend(details, summary);
@@ -103,7 +119,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
                 autoClose();
               }
             });
-
         })
         .catch(autoClose);
     };
@@ -118,9 +133,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
 
     this.isEnableLocked = () => {
       if (this.serverGroup.isDisabled) {
-        let resizeTasks = (this.serverGroup.runningTasks || [])
-          .filter(task => _.get(task, 'execution.stages', []).some(
-            stage => stage.type === 'resizeServerGroup'));
+        let resizeTasks = (this.serverGroup.runningTasks || []).filter(task =>
+          _.get(task, 'execution.stages', []).some(stage => stage.type === 'resizeServerGroup'),
+        );
         if (resizeTasks.length) {
           return true;
         }
@@ -136,12 +151,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      var submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
       var stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
-        region: serverGroup.region
+        region: serverGroup.region,
       };
 
       var confirmationModalParams = {
@@ -174,10 +189,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => {
+      var submitMethod = params => {
         return serverGroupWriter.disableServerGroup(serverGroup, app, params);
       };
 
@@ -190,7 +205,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Openstack',
         submitMethod: submitMethod,
-        askForReason: true
+        askForReason: true,
       };
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
@@ -210,7 +225,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => {
+      var submitMethod = params => {
         return serverGroupWriter.enableServerGroup(serverGroup, app, params);
       };
 
@@ -222,7 +237,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Openstack',
         submitMethod: submitMethod,
-        askForReason: true
+        askForReason: true,
       };
 
       if (app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly) {
@@ -234,31 +249,34 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
 
     this.rollbackServerGroup = () => {
       $uibModal.open({
-        templateUrl: overrideRegistry.getTemplate('openstack.rollback.modal', require('./rollback/rollbackServerGroup.html')),
+        templateUrl: overrideRegistry.getTemplate(
+          'openstack.rollback.modal',
+          require('./rollback/rollbackServerGroup.html'),
+        ),
         controller: 'openstackRollbackServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: () => this.serverGroup,
           disabledServerGroups: () => {
-            var cluster = _.find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
-            return _.filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
+            var cluster = _.find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
+            return _.filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
           },
-          application: () => app
-        }
+          application: () => app,
+        },
       });
     };
 
     this.resizeServerGroup = () => {
-    $uibModal.open({
-      templateUrl: require('./resize/resizeServerGroup.html'),
-      controller: 'openstackResizeServerGroupCtrl as ctrl',
+      $uibModal.open({
+        templateUrl: require('./resize/resizeServerGroup.html'),
+        controller: 'openstackResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: () => this.serverGroup,
-          application: () => app
-        }
+          application: () => app,
+        },
       });
     };
 
-    this.cloneServerGroup = (serverGroup) => {
+    this.cloneServerGroup = serverGroup => {
       $uibModal.open({
         templateUrl: require('../configure/wizard/serverGroupWizard.html'),
         controller: 'openstackCloneServerGroupCtrl as ctrl',
@@ -266,8 +284,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         resolve: {
           title: () => 'Clone ' + serverGroup.name,
           application: () => app,
-          serverGroupCommand: () => openstackServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
-        }
+          serverGroupCommand: () =>
+            openstackServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
+        },
       });
     };
 
@@ -288,50 +307,54 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
       return null;
     };
 
-    this.applyAccountDetails = (serverGroup) => {
-      return accountService.getAccountDetails(serverGroup.account).then((details) => {
+    this.applyAccountDetails = serverGroup => {
+      return accountService.getAccountDetails(serverGroup.account).then(details => {
         serverGroup.accountDetails = details;
       });
     };
 
-    this.applySecurityGroupDetails = (serverGroup) => {
-      return securityGroupReader.loadSecurityGroups().then( (allSecurityGroups) => {
+    this.applySecurityGroupDetails = serverGroup => {
+      return securityGroupReader.loadSecurityGroups().then(allSecurityGroups => {
         var accountIndex = allSecurityGroups[serverGroup.account] || {};
         var regionSecurityGroups = accountIndex[serverGroup.region] || {};
-        $scope.securityGroups = _.map(serverGroup.launchConfig.securityGroups, (sgId) => {
+        $scope.securityGroups = _.map(serverGroup.launchConfig.securityGroups, sgId => {
           //TODO(jcwest): remove this once the back-end sends correctly formatted security group IDs
-          if( new RegExp('^\\[u\'').test(sgId) ) {
-            sgId = sgId.split('\'')[1];
+          if (new RegExp("^\\[u'").test(sgId)) {
+            sgId = sgId.split("'")[1];
           }
-          return regionSecurityGroups[sgId] || {id: sgId, name: sgId};
+          return regionSecurityGroups[sgId] || { id: sgId, name: sgId };
         });
       });
     };
 
-    this.applyLoadBalancerDetails = (serverGroup) => {
-      return loadBalancerReader.loadLoadBalancers(app.name).then( (allLoadBalancers) => {
+    this.applyLoadBalancerDetails = serverGroup => {
+      return loadBalancerReader.loadLoadBalancers(app.name).then(allLoadBalancers => {
         var lbIndex = {};
-        _.forEach(allLoadBalancers, (lb) => { lbIndex[lb.name] = lb; } );
+        _.forEach(allLoadBalancers, lb => {
+          lbIndex[lb.name] = lb;
+        });
         $scope.loadBalancers = _.chain(serverGroup.loadBalancers)
-            .map((lbName) => { return lbIndex[lbName]; } )
-            .compact()
-            .value();
+          .map(lbName => {
+            return lbIndex[lbName];
+          })
+          .compact()
+          .value();
       });
     };
 
     this.applySubnetDetails = () => {
-      return subnetReader.getSubnetByIdAndProvider(this.serverGroup.subnetId, 'openstack').then((details) => {
+      return subnetReader.getSubnetByIdAndProvider(this.serverGroup.subnetId, 'openstack').then(details => {
         ctrl.subnetName = (details || {}).name;
       });
     };
 
     this.applyFloatingIpDetails = () => {
-      return networkReader.listNetworksByProvider('openstack').then((networks) => {
-        ctrl.floatingNetworkName = (_.find(networks, (net) => {
-          return net.id === ctrl.serverGroup.launchConfig.floatingNetworkId;
-        }) || {}).name;
+      return networkReader.listNetworksByProvider('openstack').then(networks => {
+        ctrl.floatingNetworkName = (
+          _.find(networks, net => {
+            return net.id === ctrl.serverGroup.launchConfig.floatingNetworkId;
+          }) || {}
+        ).name;
       });
     };
-
-  }
-);
+  });

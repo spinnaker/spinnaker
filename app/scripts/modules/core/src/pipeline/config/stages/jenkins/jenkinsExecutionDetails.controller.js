@@ -2,11 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.executionDetails.controller', [
-  require('@uirouter/angularjs').default,
-])
-  .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
-
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.jenkins.executionDetails.controller', [require('@uirouter/angularjs').default])
+  .controller('JenkinsExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['jenkinsConfig', 'taskStatus'];
 
     let initialized = () => {
@@ -16,14 +14,15 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.execution
 
     function getFailureMessage() {
       var failureMessage = $scope.stage.failureMessage,
-          context = $scope.stage.context || {},
-          buildInfo = context.buildInfo || {},
-          testResults = buildInfo && buildInfo.testResults && buildInfo.testResults.length ?
-            buildInfo.testResults : [],
-          failingTests = testResults.filter(function(results) { return results.failCount > 0; }),
-          failingTestCount = failingTests.reduce(function(acc, results) {
-            return acc + results.failCount;
-          }, 0);
+        context = $scope.stage.context || {},
+        buildInfo = context.buildInfo || {},
+        testResults = buildInfo && buildInfo.testResults && buildInfo.testResults.length ? buildInfo.testResults : [],
+        failingTests = testResults.filter(function(results) {
+          return results.failCount > 0;
+        }),
+        failingTestCount = failingTests.reduce(function(acc, results) {
+          return acc + results.failCount;
+        }, 0);
 
       if (buildInfo.result === 'FAILURE') {
         failureMessage = 'Build failed.';
@@ -41,5 +40,4 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.execution
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize);
-
   });

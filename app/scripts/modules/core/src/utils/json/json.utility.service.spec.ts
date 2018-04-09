@@ -2,14 +2,15 @@ import { mock } from 'angular';
 import { JSON_UTILITY_SERVICE, JsonUtilityService, IJsonDiff } from './json.utility.service';
 
 describe('jsonUtilityService', () => {
-
   let jsonService: JsonUtilityService;
 
   beforeEach(mock.module(JSON_UTILITY_SERVICE));
 
-  beforeEach(mock.inject((jsonUtilityService: JsonUtilityService) => {
-    jsonService = jsonUtilityService;
-  }));
+  beforeEach(
+    mock.inject((jsonUtilityService: JsonUtilityService) => {
+      jsonService = jsonUtilityService;
+    }),
+  );
 
   it('generates a nice alphabetized diff', () => {
     const left = `{"num": 3, "str": "a", "arr": ["b", "a"], "obj": {"a": 1, "c": 3, "b": 2, "arr": [1, 3, 2]}}`;
@@ -42,7 +43,7 @@ describe('jsonUtilityService', () => {
       '    "c": 4', // changed
       '  },',
       '  "str": "a"',
-      '}'
+      '}',
     ]);
   });
 });

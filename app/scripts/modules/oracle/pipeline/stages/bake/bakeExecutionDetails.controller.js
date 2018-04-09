@@ -1,18 +1,21 @@
 'use strict';
 
-import {
-  EXECUTION_DETAILS_SECTION_SERVICE,
-  SETTINGS
-} from '@spinnaker/core';
+import { EXECUTION_DETAILS_SECTION_SERVICE, SETTINGS } from '@spinnaker/core';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bake.executionDetails.controller', [
-  EXECUTION_DETAILS_SECTION_SERVICE,
-  require('@uirouter/angularjs').default
-])
-  .controller('oraclebmcsBakeExecutionDetailsCtrl', function ($log, $scope, $stateParams, executionDetailsSectionService, $interpolate) {
-
+module.exports = angular
+  .module('spinnaker.oraclebmcs.pipeline.stage.bake.executionDetails.controller', [
+    EXECUTION_DETAILS_SECTION_SERVICE,
+    require('@uirouter/angularjs').default,
+  ])
+  .controller('oraclebmcsBakeExecutionDetailsCtrl', function(
+    $log,
+    $scope,
+    $stateParams,
+    executionDetailsSectionService,
+    $interpolate,
+  ) {
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
     let initialized = () => {

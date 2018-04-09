@@ -18,5 +18,4 @@ export function buildDisplayNameFilter() {
 }
 
 export const BUILD_DISPLAY_NAME_FILTER = 'spinnaker.core.pipeline.buildDisplayName.filter';
-module(BUILD_DISPLAY_NAME_FILTER, [])
-  .filter('buildDisplayName', buildDisplayNameFilter);
+module(BUILD_DISPLAY_NAME_FILTER, []).filter('buildDisplayName', buildDisplayNameFilter);

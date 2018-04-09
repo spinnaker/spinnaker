@@ -4,8 +4,8 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableAsgStage', [
-])
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.disableAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -16,35 +16,39 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableAsgStage
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('awsDisableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('awsDisableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(function (accounts) {
+    accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
-
 
     $scope.targets = StageConstants.TARGET_LIST;
 
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'aws';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Amazon'];
     }
 
@@ -58,6 +62,4 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableAsgStage
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-
   });
-

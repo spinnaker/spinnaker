@@ -2,12 +2,13 @@ import { ITimeoutService, module } from 'angular';
 import * as $ from 'jquery';
 
 export class ScrollToService {
-
   public static toDomId(id: string) {
-    return id.replace(/[\W]/g, '-')
+    return id.replace(/[\W]/g, '-');
   }
 
-  constructor(private $timeout: ITimeoutService) { 'ngInject'; }
+  constructor(private $timeout: ITimeoutService) {
+    'ngInject';
+  }
 
   public scrollTo(selector: string, scrollableContainer: string, offset = 0, delay = 0): void {
     this.$timeout(() => {
@@ -25,5 +26,4 @@ export class ScrollToService {
 
 export const SCROLL_TO_SERVICE = 'spinnaker.core.utils.scrollTo';
 
-module(SCROLL_TO_SERVICE, [])
-  .service('scrollToService', ScrollToService);
+module(SCROLL_TO_SERVICE, []).service('scrollToService', ScrollToService);

@@ -4,7 +4,7 @@ import { get } from 'lodash';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
-  ExecutionDetailsSectionService
+  ExecutionDetailsSectionService,
 } from 'core/pipeline/details/executionDetailsSection.service';
 
 export class WebhookExecutionDetailsCtrl implements IController {
@@ -14,9 +14,11 @@ export class WebhookExecutionDetailsCtrl implements IController {
   public progressMessage: string;
   public stage: any;
 
-  constructor(private $stateParams: StateParams,
-              private executionDetailsSectionService: ExecutionDetailsSectionService,
-              private $scope: IScope) {
+  constructor(
+    private $stateParams: StateParams,
+    private executionDetailsSectionService: ExecutionDetailsSectionService,
+    private $scope: IScope,
+  ) {
     'ngInject';
     this.initialize();
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
@@ -40,7 +42,7 @@ export class WebhookExecutionDetailsCtrl implements IController {
     const context = this.stage.context || {},
       buildInfo = context.buildInfo || {};
     if (buildInfo.status === 'TERMINAL') {
-        failureMessage = `Webhook failed: ${buildInfo.reason}`;
+      failureMessage = `Webhook failed: ${buildInfo.reason}`;
     }
     return failureMessage;
   }
@@ -51,6 +53,7 @@ export class WebhookExecutionDetailsCtrl implements IController {
 }
 
 export const WEBHOOK_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.core.pipeline.stage.webhook.executionDetails.controller';
-module(WEBHOOK_EXECUTION_DETAILS_CONTROLLER, [
-  EXECUTION_DETAILS_SECTION_SERVICE,
-]).controller('WebhookExecutionDetailsCtrl', WebhookExecutionDetailsCtrl);
+module(WEBHOOK_EXECUTION_DETAILS_CONTROLLER, [EXECUTION_DETAILS_SECTION_SERVICE]).controller(
+  'WebhookExecutionDetailsCtrl',
+  WebhookExecutionDetailsCtrl,
+);

@@ -7,9 +7,8 @@ import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigPro
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerDirective', [
-  PIPELINE_CONFIG_PROVIDER
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.trigger.triggerDirective', [PIPELINE_CONFIG_PROVIDER])
   .directive('trigger', function() {
     return {
       restrict: 'E',
@@ -17,13 +16,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
       scope: {
         trigger: '=',
         pipeline: '=',
-        application: '='
+        application: '=',
       },
       controller: 'TriggerCtrl as triggerCtrl',
       templateUrl: require('./trigger.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
-      }
+      },
     };
   })
   .controller('TriggerCtrl', function($scope, $element, pipelineConfig, $compile, $controller, $templateCache) {
@@ -40,14 +39,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
     this.summarizeExpectedArtifact = function(expected) {
       const artifact = copy(expected.matchArtifact);
       return Object.keys(artifact)
-        .filter((k) => artifact[k])
-        .map((k) => (`${k}: ${artifact[k]}`))
+        .filter(k => artifact[k])
+        .map(k => `${k}: ${artifact[k]}`)
         .join(', ');
     };
 
     this.loadTrigger = () => {
       var type = $scope.trigger.type,
-          triggerScope = $scope.$new();
+        triggerScope = $scope.$new();
       if (type) {
         if (this.disableAutoTriggering.includes(type)) {
           $scope.trigger.enabled = false;
@@ -57,11 +56,11 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerD
         });
         if (triggerConfig.length) {
           var config = triggerConfig[0],
-              template = $templateCache.get(config.templateUrl);
+            template = $templateCache.get(config.templateUrl);
           $scope.description = config.description;
           if (config.controller) {
             var ctrl = config.controller.split(' as ');
-            var controller = $controller(ctrl[0], {$scope: triggerScope, trigger: $scope.trigger});
+            var controller = $controller(ctrl[0], { $scope: triggerScope, trigger: $scope.trigger });
             if (ctrl.length === 2) {
               triggerScope[ctrl[1]] = controller;
             }

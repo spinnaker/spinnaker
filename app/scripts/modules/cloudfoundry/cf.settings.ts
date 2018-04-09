@@ -7,7 +7,8 @@ export interface ICloudFoundryProviderSettings extends IProviderSettings {
   };
 }
 
-export const CloudFoundryProviderSettings: ICloudFoundryProviderSettings = <ICloudFoundryProviderSettings>SETTINGS.providers.cf || { defaults: {} };
+export const CloudFoundryProviderSettings: ICloudFoundryProviderSettings = <ICloudFoundryProviderSettings>SETTINGS
+  .providers.cf || { defaults: {} };
 if (CloudFoundryProviderSettings) {
   CloudFoundryProviderSettings.resetToOriginal = SETTINGS.resetProvider('cf');
 }

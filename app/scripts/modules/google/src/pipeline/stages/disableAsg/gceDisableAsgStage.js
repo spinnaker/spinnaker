@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.gce.pipeline.stage..disableAsgStage', [
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.gce.pipeline.stage..disableAsgStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -16,24 +15,25 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..disableAsgStage',
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('gceDisableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('gceDisableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function (accounts) {
+    accountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
@@ -43,7 +43,11 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..disableAsgStage',
     stage.regions = stage.regions || [];
     stage.cloudProvider = 'gce';
 
-    if (stage.isNew && $scope.application.attributes.platformHealthOnlyShowOverride && $scope.application.attributes.platformHealthOnly) {
+    if (
+      stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       stage.interestingHealthProviderNames = ['Google'];
     }
 
@@ -57,6 +61,4 @@ module.exports = angular.module('spinnaker.gce.pipeline.stage..disableAsgStage',
     if (!stage.target) {
       stage.target = $scope.targets[0].val;
     }
-
   });
-

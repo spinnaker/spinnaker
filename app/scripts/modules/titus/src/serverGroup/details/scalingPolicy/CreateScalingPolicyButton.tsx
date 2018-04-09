@@ -20,8 +20,10 @@ export interface ICreateScalingPolicyButtonState {
 }
 
 @BindAll()
-export class CreateScalingPolicyButton extends React.Component<ICreateScalingPolicyButtonProps, ICreateScalingPolicyButtonState> {
-
+export class CreateScalingPolicyButton extends React.Component<
+  ICreateScalingPolicyButtonProps,
+  ICreateScalingPolicyButtonState
+> {
   constructor(props: ICreateScalingPolicyButtonProps) {
     super(props);
     this.state = {
@@ -30,7 +32,7 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
       typeSelection: null,
       awsAccount: null,
     };
-    ReactInjector.accountService.getAccountDetails(props.serverGroup.account).then((details) => {
+    ReactInjector.accountService.getAccountDetails(props.serverGroup.account).then(details => {
       this.setState({ awsAccount: details.awsAccount });
     });
   }
@@ -42,35 +44,51 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   public createStepPolicy(): void {
     const { serverGroup, application } = this.props;
 
-    ReactInjector.modalService.open({
-      templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
-      controller: 'titusUpsertScalingPolicyCtrl',
-      controllerAs: 'ctrl',
-      size: 'lg',
-      resolve: {
-        policy: () => TitusReactInjector.titusServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
-        serverGroup: () => serverGroup,
-        alarmServerGroup: () => ({ type: 'aws', account: this.state.awsAccount, region: serverGroup.region, name: serverGroup.name }),
-        application: () => application,
-      }
-    }).result.catch(() => {});
+    ReactInjector.modalService
+      .open({
+        templateUrl: require('./upsert/upsertScalingPolicy.modal.html'),
+        controller: 'titusUpsertScalingPolicyCtrl',
+        controllerAs: 'ctrl',
+        size: 'lg',
+        resolve: {
+          policy: () =>
+            TitusReactInjector.titusServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
+          serverGroup: () => serverGroup,
+          alarmServerGroup: () => ({
+            type: 'aws',
+            account: this.state.awsAccount,
+            region: serverGroup.region,
+            name: serverGroup.name,
+          }),
+          application: () => application,
+        },
+      })
+      .result.catch(() => {});
   }
 
   public createTargetTrackingPolicy(): void {
     const { serverGroup, application } = this.props;
 
-    ReactInjector.modalService.open({
-      templateUrl: require('./targetTracking/upsertTargetTracking.modal.html'),
-      controller: UpsertTargetTrackingController,
-      controllerAs: '$ctrl',
-      size: 'lg',
-      resolve: {
-        policy: () => TitusReactInjector.titusServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(serverGroup),
-        serverGroup: () => serverGroup,
-        alarmServerGroup: () => ({ type: 'aws', account: this.state.awsAccount, region: serverGroup.region, name: serverGroup.name }),
-        application: () => application,
-      }
-    }).result.catch(() => {});
+    ReactInjector.modalService
+      .open({
+        templateUrl: require('./targetTracking/upsertTargetTracking.modal.html'),
+        controller: UpsertTargetTrackingController,
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          policy: () =>
+            TitusReactInjector.titusServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(serverGroup),
+          serverGroup: () => serverGroup,
+          alarmServerGroup: () => ({
+            type: 'aws',
+            account: this.state.awsAccount,
+            region: serverGroup.region,
+            name: serverGroup.name,
+          }),
+          application: () => application,
+        },
+      })
+      .result.catch(() => {});
   }
 
   public typeSelected(typeSelection: string): void {
@@ -90,9 +108,13 @@ export class CreateScalingPolicyButton extends React.Component<ICreateScalingPol
   public render() {
     return (
       <div>
-        {this.state.awsAccount ? <a className="clickable" onClick={this.handleClick}>Create new scaling policy</a> : null}
-        { this.state.showSelection && (
-          <PolicyTypeSelectionModal typeSelectedCallback={this.typeSelected} showCallback={this.showModalCallback}/>
+        {this.state.awsAccount ? (
+          <a className="clickable" onClick={this.handleClick}>
+            Create new scaling policy
+          </a>
+        ) : null}
+        {this.state.showSelection && (
+          <PolicyTypeSelectionModal typeSelectedCallback={this.typeSelected} showCallback={this.showModalCallback} />
         )}
       </div>
     );

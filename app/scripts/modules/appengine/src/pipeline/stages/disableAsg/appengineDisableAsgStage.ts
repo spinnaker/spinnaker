@@ -11,18 +11,19 @@ class AppengineDisableAsgStageCtrl extends AppengineStageCtrl {
     'ngInject';
     super($scope, accountService);
 
-    super.setAccounts()
-      .then(() => {
-        super.setStageRegion();
-      });
+    super.setAccounts().then(() => {
+      super.setStageRegion();
+    });
 
     super.setStageCloudProvider();
     super.setTargets();
     super.setStageCredentials();
 
-    if ($scope.stage.isNew &&
-        $scope.application.attributes.platformHealthOnlyShowOverride &&
-        $scope.application.attributes.platformHealthOnly) {
+    if (
+      $scope.stage.isNew &&
+      $scope.application.attributes.platformHealthOnlyShowOverride &&
+      $scope.application.attributes.platformHealthOnly
+    ) {
       $scope.stage.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
   }
@@ -30,10 +31,7 @@ class AppengineDisableAsgStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_DISABLE_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.disableAsgStage';
 
-module(APPENGINE_DISABLE_ASG_STAGE, [
-  ACCOUNT_SERVICE,
-  PIPELINE_CONFIG_PROVIDER,
-])
+module(APPENGINE_DISABLE_ASG_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -44,11 +42,13 @@ module(APPENGINE_DISABLE_ASG_STAGE, [
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
+        { type: 'requiredField', fieldName: 'target' },
         { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('appengineDisableAsgStageCtrl', AppengineDisableAsgStageCtrl);
+  })
+  .controller('appengineDisableAsgStageCtrl', AppengineDisableAsgStageCtrl);

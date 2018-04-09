@@ -2,8 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.navigation.stateActive.directive', [
-])
+module.exports = angular
+  .module('spinnaker.core.navigation.stateActive.directive', [])
   .directive('stateActive', function() {
     return {
       restrict: 'A',
@@ -19,4 +19,4 @@ module.exports = angular.module('spinnaker.core.navigation.stateActive.directive
         });
       },
     };
-});
+  });

@@ -29,7 +29,6 @@ export interface ILoadBalancerDeleteCommand extends IJob {
 }
 
 export class LoadBalancerWriter {
-
   public constructor(private infrastructureCaches: InfrastructureCacheService, private taskExecutor: TaskExecutor) {
     'ngInject';
   }
@@ -42,11 +41,16 @@ export class LoadBalancerWriter {
     return this.taskExecutor.executeTask({
       job: [command],
       application: application,
-      description: `Delete load balancer: ${command.loadBalancerName}`
+      description: `Delete load balancer: ${command.loadBalancerName}`,
     });
   }
 
-  public upsertLoadBalancer(command: ILoadBalancerUpsertCommand, application: Application, descriptor: string, params: any = {}): ng.IPromise<ITask> {
+  public upsertLoadBalancer(
+    command: ILoadBalancerUpsertCommand,
+    application: Application,
+    descriptor: string,
+    params: any = {},
+  ): ng.IPromise<ITask> {
     Object.assign(command, params);
     command.type = 'upsertLoadBalancer';
 
@@ -61,5 +65,7 @@ export class LoadBalancerWriter {
 }
 
 export const LOAD_BALANCER_WRITE_SERVICE = 'spinnaker.core.loadBalancer.write.service';
-module(LOAD_BALANCER_WRITE_SERVICE, [TASK_EXECUTOR, INFRASTRUCTURE_CACHE_SERVICE])
-  .service('loadBalancerWriter', LoadBalancerWriter);
+module(LOAD_BALANCER_WRITE_SERVICE, [TASK_EXECUTOR, INFRASTRUCTURE_CACHE_SERVICE]).service(
+  'loadBalancerWriter',
+  LoadBalancerWriter,
+);

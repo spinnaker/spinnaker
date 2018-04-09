@@ -1,6 +1,6 @@
 import { get, has } from 'lodash';
 
-'use strict';
+('use strict');
 
 const angular = require('angular');
 
@@ -8,8 +8,13 @@ module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller', [
     require('@uirouter/angularjs').default,
   ])
-  .controller('kubernetesRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionService, executionDetailsSectionService, $uibModal) {
-
+  .controller('kubernetesRunJobExecutionDetailsCtrl', function(
+    $scope,
+    $stateParams,
+    executionService,
+    executionDetailsSectionService,
+    $uibModal,
+  ) {
     $scope.configSections = ['runJobConfig', 'taskStatus'];
     $scope.hasLogs = has($scope.stage, 'context.jobStatus.logs');
     $scope.executionId = $stateParams.executionId;
@@ -36,7 +41,7 @@ module.exports = angular
       $uibModal.open({
         templateUrl: require('./runJobLogs.html'),
         scope: $scope,
-        size: 'lg'
+        size: 'lg',
       });
       if ($scope.logs === '') {
         const getExecutionPromise = executionService.getExecution($scope.executionId);

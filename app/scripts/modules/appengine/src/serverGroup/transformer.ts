@@ -3,9 +3,7 @@ import { module } from 'angular';
 import { IServerGroup } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineGitTrigger, IAppengineJenkinsTrigger } from 'appengine/domain/index';
-import {
-  IAppengineServerGroupCommand
-} from './configure/serverGroupCommandBuilder.service';
+import { IAppengineServerGroupCommand } from './configure/serverGroupCommandBuilder.service';
 
 export class AppengineDeployDescription {
   public cloudProvider = 'appengine';
@@ -68,18 +66,22 @@ export class AppengineDeployDescription {
 }
 
 class AppengineServerGroupTransformer {
-  constructor (private $q: ng.IQService) { 'ngInject'; }
+  constructor(private $q: ng.IQService) {
+    'ngInject';
+  }
 
-  public normalizeServerGroup (serverGroup: IServerGroup): ng.IPromise<IServerGroup> {
+  public normalizeServerGroup(serverGroup: IServerGroup): ng.IPromise<IServerGroup> {
     return this.$q.resolve(serverGroup);
   }
 
-  public convertServerGroupCommandToDeployConfiguration (command: IAppengineServerGroupCommand) {
+  public convertServerGroupCommandToDeployConfiguration(command: IAppengineServerGroupCommand) {
     return new AppengineDeployDescription(command);
   }
 }
 
 export const APPENGINE_SERVER_GROUP_TRANSFORMER = 'spinnaker.appengine.serverGroup.transformer.service';
 
-module(APPENGINE_SERVER_GROUP_TRANSFORMER, [])
-  .service('appengineServerGroupTransformer', AppengineServerGroupTransformer);
+module(APPENGINE_SERVER_GROUP_TRANSFORMER, []).service(
+  'appengineServerGroupTransformer',
+  AppengineServerGroupTransformer,
+);

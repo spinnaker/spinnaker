@@ -9,14 +9,15 @@ export interface INotification {
 }
 
 export class NotifierService {
-
   private stream = new Subject<INotification>();
 
   public get messageStream(): Subject<INotification> {
     return this.stream;
   }
 
-  constructor(private $sce: ISCEService) { 'ngInject'; }
+  constructor(private $sce: ISCEService) {
+    'ngInject';
+  }
 
   public publish(message: INotification): void {
     message.body = this.$sce.trustAsHtml(message.body);

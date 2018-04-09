@@ -17,7 +17,7 @@ export const metricOptions: IMetricOptionGroup[] = [
       {
         name: 'cgroup.cpu.processingCapacity',
         description: 'Amount of processing time requested for the container.',
-        units: 'seconds/second'
+        units: 'seconds/second',
       },
       {
         name: 'cgroup.cpu.processingTime',
@@ -34,8 +34,8 @@ export const metricOptions: IMetricOptionGroup[] = [
         description: 'Amount of time spent processing code in the container in either the system or user category.',
         units: 'seconds/second',
         idDimensions: ['system', 'user'],
-      }
-    ]
+      },
+    ],
   },
   {
     category: 'Memory',
@@ -68,6 +68,6 @@ export const metricOptions: IMetricOptionGroup[] = [
         units: 'bytes',
         idDimensions: ['cache', 'rss', 'rss_huge', 'mapped_file'],
       },
-    ]
-  }
+    ],
+  },
 ];

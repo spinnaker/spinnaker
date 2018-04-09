@@ -9,7 +9,7 @@ export class KubernetesV2FindArtifactsFromResourceConfigCtrl implements IControl
       const defaultSelection: IManifestSelector = {
         location: '',
         account: '',
-        manifestName: ''
+        manifestName: '',
       };
       Object.assign(this.$scope.stage, defaultSelection);
       this.$scope.stage.cloudProvider = 'kubernetes';

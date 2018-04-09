@@ -5,30 +5,37 @@ import { Observable, Subject } from 'rxjs';
 
 import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  V2_MODAL_WIZARD_SERVICE,
-  IMAGE_READER,
-  NAMING_SERVICE,
-  require('../../../../gceRegionSelectField.directive.js').name,
-  require('../../../../gceNetworkSelectField.directive.js').name,
-  require('../../../../subnet/subnetSelectField.directive.js').name,
-])
-  .controller('gceServerGroupBasicSettingsCtrl', function($scope, $controller, $uibModalStack, $state,
-                                                          v2modalWizardService, imageReader, namingService) {
-
+module.exports = angular
+  .module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    V2_MODAL_WIZARD_SERVICE,
+    IMAGE_READER,
+    NAMING_SERVICE,
+    require('../../../../gceRegionSelectField.directive.js').name,
+    require('../../../../gceNetworkSelectField.directive.js').name,
+    require('../../../../subnet/subnetSelectField.directive.js').name,
+  ])
+  .controller('gceServerGroupBasicSettingsCtrl', function(
+    $scope,
+    $controller,
+    $uibModalStack,
+    $state,
+    v2modalWizardService,
+    imageReader,
+    namingService,
+  ) {
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
         {
-          message: `<loading-spinner size="'nano'"></loading-spinner> Finding results matching "${q}"...`
-        }
+          message: `<loading-spinner size="'nano'"></loading-spinner> Finding results matching "${q}"...`,
+        },
       ];
       return Observable.fromPromise(
         imageReader.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
-        })
+        }),
       );
     }
 
@@ -37,7 +44,7 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
     imageSearchResultsStream
       .debounceTime(250)
       .switchMap(searchImages)
-      .subscribe(function (data) {
+      .subscribe(function(data) {
         $scope.command.backingData.filtered.images = data.map(function(image) {
           if (image.message && !image.imageName) {
             return image;
@@ -59,30 +66,29 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
       this.searchImages('');
     };
 
-    angular.extend(this, $controller('BasicSettingsMixin', {
-      $scope: $scope,
-      imageReader: imageReader,
-      namingService: namingService,
-      $uibModalStack: $uibModalStack,
-      $state: $state,
-    }));
+    angular.extend(
+      this,
+      $controller('BasicSettingsMixin', {
+        $scope: $scope,
+        imageReader: imageReader,
+        namingService: namingService,
+        $uibModalStack: $uibModalStack,
+        $state: $state,
+      }),
+    );
 
     this.stackPattern = {
       test: function(stack) {
-        var pattern = $scope.command.viewState.templatingEnabled ?
-          /^([a-zA-Z0-9]*(\${.+})*)*$/ :
-          /^[a-zA-Z0-9]*$/;
+        var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
         return pattern.test(stack);
-      }
+      },
     };
 
     this.detailPattern = {
       test: function(detail) {
-        var pattern = $scope.command.viewState.templatingEnabled ?
-          /^([a-zA-Z0-9-]*(\${.+})*)*$/ :
-          /^[a-zA-Z0-9-]*$/;
+        var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
         return pattern.test(detail);
-      }
+      },
     };
 
     this.getSubnetPlaceholder = () => {
@@ -97,8 +103,5 @@ module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.b
       }
     };
 
-    this.imageSources = [
-      'artifact',
-      'priorStage'
-    ];
+    this.imageSources = ['artifact', 'priorStage'];
   });

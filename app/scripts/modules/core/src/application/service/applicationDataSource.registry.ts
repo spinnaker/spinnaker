@@ -5,8 +5,14 @@ import { cloneDeep } from 'lodash';
 import { IDataSourceConfig } from './applicationDataSource';
 
 export class ApplicationDataSourceRegistry {
-
-  private defaultDataSourceOrder: string[] = ['executions', 'serverGroups', 'loadBalancers', 'securityGroups', 'tasks', 'config'];
+  private defaultDataSourceOrder: string[] = [
+    'executions',
+    'serverGroups',
+    'loadBalancers',
+    'securityGroups',
+    'tasks',
+    'config',
+  ];
   private dataSources: IDataSourceConfig[] = [];
   private dataSourceOrder: string[] = [];
 
@@ -40,5 +46,4 @@ export class ApplicationDataSourceRegistry {
 
 export const APPLICATION_DATA_SOURCE_REGISTRY = 'spinnaker.core.application.section.registry';
 
-module(APPLICATION_DATA_SOURCE_REGISTRY, [])
-  .service('applicationDataSourceRegistry', ApplicationDataSourceRegistry);
+module(APPLICATION_DATA_SOURCE_REGISTRY, []).service('applicationDataSourceRegistry', ApplicationDataSourceRegistry);

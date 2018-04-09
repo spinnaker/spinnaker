@@ -5,10 +5,8 @@ import { ScaleDownClusterExecutionDetails } from './ScaleDownClusterExecutionDet
 import { ExecutionDetailsTasks } from '../core/ExecutionDetailsTasks';
 
 export const SCALE_DOWN_CLUSTER_STAGE = 'spinnaker.core.pipeline.stage.scaleDownClusterStage';
-module(SCALE_DOWN_CLUSTER_STAGE, [
-  PIPELINE_CONFIG_PROVIDER
-])
-  .config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(SCALE_DOWN_CLUSTER_STAGE, [PIPELINE_CONFIG_PROVIDER]).config(
+  (pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       executionDetailsSections: [ScaleDownClusterExecutionDetails, ExecutionDetailsTasks],
       useBaseProvider: true,
@@ -17,5 +15,5 @@ module(SCALE_DOWN_CLUSTER_STAGE, [
       description: 'Scales down a cluster',
       strategy: true,
     });
-  });
-
+  },
+);

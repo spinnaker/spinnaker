@@ -2,9 +2,10 @@
 
 const angular = require('angular');
 
-import {KubernetesProviderSettings} from '../kubernetes.settings';
+import { KubernetesProviderSettings } from '../kubernetes.settings';
 
-module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
+module.exports = angular
+  .module('spinnaker.proxy.kubernetes.ui.service', [])
   .factory('kubernetesProxyUiService', function($interpolate) {
     function getHost(accountName) {
       let host = KubernetesProviderSettings.defaults.proxy;
@@ -23,7 +24,7 @@ module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
       if (account && account.apiPrefix) {
         apiPrefix = account.apiPrefix;
       }
-      if ((apiPrefix == null) || (apiPrefix === '')) {
+      if (apiPrefix == null || apiPrefix === '') {
         apiPrefix = 'api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#';
       }
 
@@ -36,7 +37,7 @@ module.exports = angular.module('spinnaker.proxy.kubernetes.ui.service', [])
 
     function getInstanceLink(accountName, instance) {
       const template = KubernetesProviderSettings.defaults.instanceLinkTemplate;
-      return $interpolate(template)(Object.assign({host: getHost(accountName)}, instance));
+      return $interpolate(template)(Object.assign({ host: getHost(accountName) }, instance));
     }
 
     return {

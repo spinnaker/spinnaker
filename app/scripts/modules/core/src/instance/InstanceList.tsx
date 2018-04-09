@@ -40,7 +40,6 @@ interface IColumnWidths {
 
 @BindAll()
 export class InstanceList extends React.Component<IInstanceListProps, IInstanceListState> {
-
   private instanceGroup: any;
   private clusterFilterModel = ReactInjector.clusterFilterModel.asFilterModel;
   private MultiselectModel = ReactInjector.MultiselectModel;
@@ -58,11 +57,9 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
   }
 
   public componentDidMount() {
-    this.MultiselectModel.instancesStream
-      .takeUntil(this.destroy$)
-      .subscribe(() => {
-        this.setState({ allSelected: this.instanceGroup.selectAll });
-      });
+    this.MultiselectModel.instancesStream.takeUntil(this.destroy$).subscribe(() => {
+      this.setState({ allSelected: this.instanceGroup.selectAll });
+    });
 
     this.$uiRouter.globals.params$
       .map(params => params.multiselect)
@@ -115,7 +112,16 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     if (this.props.serverGroup.stringVal !== nextProps.serverGroup.stringVal) {
       return true;
     }
-    if (this.props.instances.map(i => i.id).sort().join(',') !== nextProps.instances.map(i => i.id).sort().join(',')) {
+    if (
+      this.props.instances
+        .map(i => i.id)
+        .sort()
+        .join(',') !==
+      nextProps.instances
+        .map(i => i.id)
+        .sort()
+        .join(',')
+    ) {
       return true;
     }
     return this.state.multiselect !== nextState.multiselect || this.state.allSelected !== nextState.allSelected;
@@ -138,39 +144,39 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
         <tr>
           {this.state.multiselect && (
             <th style={{ width: '3%' }}>
-              <input
-                type="checkbox"
-                readOnly={true}
-                checked={this.state.allSelected}
-                onClick={this.toggleSelectAll}
-              />
+              <input type="checkbox" readOnly={true} checked={this.state.allSelected} onClick={this.toggleSelectAll} />
             </th>
           )}
           <th style={{ width: columnWidths.id + '%' }}>
-            <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="id" label="Instance"/>
+            <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="id" label="Instance" />
           </th>
           <th style={{ width: columnWidths.launchTime + '%' }}>
-            <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="launchTime" label="Launch Time"/>
+            <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="launchTime" label="Launch Time" />
           </th>
           <th style={{ width: columnWidths.zone + '%' }}>
-            <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="availabilityZone" label="Zone"/>
+            <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="availabilityZone" label="Zone" />
           </th>
           {hasDiscovery && (
             <th style={{ width: columnWidths.discovery + '%' }} className="text-center">
-              <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="discoveryState" label="Discovery"/>
+              <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="discoveryState" label="Discovery" />
             </th>
           )}
           {hasLoadBalancers && (
             <th style={{ width: columnWidths.loadBalancers + '%' }}>
-              <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="loadBalancerSort" label="Load Balancers"/>
+              <SortToggle
+                currentSort={sortKey}
+                onChange={this.toggleSort}
+                sortKey="loadBalancerSort"
+                label="Load Balancers"
+              />
             </th>
           )}
           {showProviderHealth && (
             <th style={{ width: columnWidths.cloudProvider + '%' }} className="text-center">
-              <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="providerHealth" label="Provider"/>
+              <SortToggle currentSort={sortKey} onChange={this.toggleSort} sortKey="providerHealth" label="Provider" />
             </th>
           )}
-          </tr>
+        </tr>
       </thead>
     );
   }
@@ -178,16 +184,15 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
   public render() {
     const { instances } = this.props;
     if (!instances.length) {
-      return <div/>;
+      return <div />;
     }
     const Header = this.renderHeader();
 
     return (
       <table className="table table-hover table-condensed instances">
         {Header}
-        <InstanceListBody {...this.props}/>
+        <InstanceListBody {...this.props} />
       </table>
     );
   }
-
 }

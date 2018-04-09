@@ -5,9 +5,7 @@ import { IArtifact } from 'core/domain/IArtifact';
 import { PipelineConfigProvider } from 'core/pipeline';
 
 export const GCS_ARTIFACT = 'spinnaker.core.pipeline.trigger.gcs.artifact';
-module(GCS_ARTIFACT, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(GCS_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerArtifactKind({
     label: 'GCS',
     description: 'A GCS object.',
@@ -38,4 +36,3 @@ module(GCS_ARTIFACT, [
 `,
   });
 });
-

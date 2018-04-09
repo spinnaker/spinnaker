@@ -11,34 +11,48 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
-  require('@uirouter/angularjs').default,
-  require('../configure/configure.kubernetes.module.js').name,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WRITER,
-  require('../paramsMixin.js').name,
-])
-  .controller('kubernetesServerGroupDetailsController', function ($scope, $state, app, serverGroup,
-                                                                  serverGroupReader, $uibModal, serverGroupWriter,
-                                                                  serverGroupWarningMessageService,
-                                                                  kubernetesServerGroupCommandBuilder, kubernetesServerGroupParamsMixin,
-                                                                  confirmationModalService, kubernetesProxyUiService) {
-    let application = this.application = app;
+module.exports = angular
+  .module('spinnaker.serverGroup.details.kubernetes.controller', [
+    require('@uirouter/angularjs').default,
+    require('../configure/configure.kubernetes.module.js').name,
+    CONFIRMATION_MODAL_SERVICE,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+    SERVER_GROUP_READER,
+    SERVER_GROUP_WRITER,
+    require('../paramsMixin.js').name,
+  ])
+  .controller('kubernetesServerGroupDetailsController', function(
+    $scope,
+    $state,
+    app,
+    serverGroup,
+    serverGroupReader,
+    $uibModal,
+    serverGroupWriter,
+    serverGroupWarningMessageService,
+    kubernetesServerGroupCommandBuilder,
+    kubernetesServerGroupParamsMixin,
+    confirmationModalService,
+    kubernetesProxyUiService,
+  ) {
+    let application = (this.application = app);
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     function extractServerGroupSummary() {
-      var summary = _.find(application.serverGroups.data, function (toCheck) {
-        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
+      var summary = _.find(application.serverGroups.data, function(toCheck) {
+        return (
+          toCheck.name === serverGroup.name &&
+          toCheck.account === serverGroup.accountId &&
+          toCheck.region === serverGroup.region
+        );
       });
       if (!summary) {
-        application.loadBalancers.data.some(function (loadBalancer) {
+        application.loadBalancers.data.some(function(loadBalancer) {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-            return loadBalancer.serverGroups.some(function (possibleServerGroup) {
+            return loadBalancer.serverGroups.some(function(possibleServerGroup) {
               if (possibleServerGroup.name === serverGroup.name) {
                 summary = possibleServerGroup;
                 return true;
@@ -51,7 +65,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
     }
 
     this.uiLink = function uiLink() {
-      return kubernetesProxyUiService.buildLink($scope.serverGroup.account, $scope.serverGroup.kind, $scope.serverGroup.region, $scope.serverGroup.name);
+      return kubernetesProxyUiService.buildLink(
+        $scope.serverGroup.account,
+        $scope.serverGroup.kind,
+        $scope.serverGroup.region,
+        $scope.serverGroup.name,
+      );
     };
 
     this.showYaml = function showYaml() {
@@ -59,7 +78,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       $scope.userData = $scope.serverGroup.yaml;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
@@ -75,16 +94,16 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
-        cancelLoader();
+      return serverGroupReader
+        .getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+        .then(function(details) {
+          cancelLoader();
 
-        angular.extend(details, summary);
+          angular.extend(details, summary);
 
-        $scope.serverGroup = details;
-        normalizeDeploymentStatus($scope.serverGroup);
-      },
-        autoClose
-      );
+          $scope.serverGroup = details;
+          normalizeDeploymentStatus($scope.serverGroup);
+        }, autoClose);
     }
 
     function autoClose() {
@@ -92,7 +111,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     function cancelLoader() {
@@ -115,16 +134,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(
+      var submitMethod = params =>
+        serverGroupWriter.destroyServerGroup(
           serverGroup,
           application,
-          angular.extend(params, kubernetesServerGroupParamsMixin.destroyServerGroup(serverGroup, application))
-      );
+          angular.extend(params, kubernetesServerGroupParamsMixin.destroyServerGroup(serverGroup, application)),
+        );
 
       var stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
-        namespace: serverGroup.namespace
+        namespace: serverGroup.namespace,
       };
 
       const confirmationModalParams = {
@@ -151,14 +171,15 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
 
       var taskMonitor = {
         application: application,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.disableServerGroup(
+      var submitMethod = params =>
+        serverGroupWriter.disableServerGroup(
           serverGroup,
           application,
-          angular.extend(params, kubernetesServerGroupParamsMixin.disableServerGroup(serverGroup, application))
-      );
+          angular.extend(params, kubernetesServerGroupParamsMixin.disableServerGroup(serverGroup, application)),
+        );
 
       var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
@@ -183,11 +204,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.enableServerGroup(
+      var submitMethod = params =>
+        serverGroupWriter.enableServerGroup(
           serverGroup,
           application,
-          angular.extend(params, kubernetesServerGroupParamsMixin.enableServerGroup(serverGroup, application))
-      );
+          angular.extend(params, kubernetesServerGroupParamsMixin.enableServerGroup(serverGroup, application)),
+        );
 
       var confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
@@ -207,13 +229,20 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
         templateUrl: require('./rollback/rollback.html'),
         controller: 'kubernetesRollbackServerGroupController as ctrl',
         resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          disabledServerGroups: function() {
-            var cluster = _.find(app.clusters, {name: $scope.serverGroup.cluster, account: $scope.serverGroup.account});
-            return _.filter(cluster.serverGroups, {isDisabled: true, region: $scope.serverGroup.namespace});
+          serverGroup: function() {
+            return $scope.serverGroup;
           },
-          application: function() { return app; }
-        }
+          disabledServerGroups: function() {
+            var cluster = _.find(app.clusters, {
+              name: $scope.serverGroup.cluster,
+              account: $scope.serverGroup.account,
+            });
+            return _.filter(cluster.serverGroups, { isDisabled: true, region: $scope.serverGroup.namespace });
+          },
+          application: function() {
+            return app;
+          },
+        },
       });
     };
 
@@ -222,9 +251,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
         templateUrl: require('./resize/resize.html'),
         controller: 'kubernetesResizeServerGroupController as ctrl',
         resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return application; }
-        }
+          serverGroup: function() {
+            return $scope.serverGroup;
+          },
+          application: function() {
+            return application;
+          },
+        },
       });
     };
 
@@ -234,12 +267,19 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
         controller: 'kubernetesCloneServerGroupController as ctrl',
         size: 'lg',
         resolve: {
-          title: function() { return 'Clone ' + serverGroup.name; },
-          application: function() { return application; },
-          serverGroup: function() { return serverGroup; },
-          serverGroupCommand: function() { return kubernetesServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
-        }
+          title: function() {
+            return 'Clone ' + serverGroup.name;
+          },
+          application: function() {
+            return application;
+          },
+          serverGroup: function() {
+            return serverGroup;
+          },
+          serverGroupCommand: function() {
+            return kubernetesServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup);
+          },
+        },
       });
     };
-  }
-);
+  });

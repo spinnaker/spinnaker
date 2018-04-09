@@ -1,6 +1,5 @@
 'use strict';
 
-
 const angular = require('angular');
 
 module.exports = angular
@@ -14,7 +13,7 @@ module.exports = angular
         clusters: '=',
         required: '=?',
         toggled: '&?',
-        onChange: '&?'
+        onChange: '&?',
       },
       controllerAs: 'vm',
       controller: function controller() {
@@ -25,7 +24,11 @@ module.exports = angular
         vm.required = vm.required || false;
 
         let selectedNotInClusterList = () => {
-          return !(angular.isArray(vm.clusters) && vm.clusters.length && vm.clusters.some((cluster) => cluster === vm.model));
+          return !(
+            angular.isArray(vm.clusters) &&
+            vm.clusters.length &&
+            vm.clusters.some(cluster => cluster === vm.model)
+          );
         };
 
         let modelIsSet = () => {
@@ -33,7 +36,7 @@ module.exports = angular
         };
 
         vm.clusterChanged = function() {
-          vm.onChange({clusterName:vm.model});
+          vm.onChange({ clusterName: vm.model });
         };
 
         vm.freeFormClusterField = modelIsSet() ? selectedNotInClusterList() : false;
@@ -41,10 +44,9 @@ module.exports = angular
         vm.toggleFreeFormClusterField = function(event) {
           event.preventDefault();
           vm.freeFormClusterField = !vm.freeFormClusterField;
-          vm.toggled({isToggled: vm.freeFormClusterField});
+          vm.toggled({ isToggled: vm.freeFormClusterField });
         };
-
       },
-      templateUrl: require('./scopeClusterSelector.directive.html')
+      templateUrl: require('./scopeClusterSelector.directive.html'),
     };
   });

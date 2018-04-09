@@ -4,27 +4,27 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.titus.pipeline.stage.titusBakeStage', [
-  require('./bakeExecutionDetails.controller.js').name,
-  PIPELINE_CONFIG_PROVIDER,
-])
-  .config(function (pipelineConfigProvider) {
+module.exports = angular
+  .module('spinnaker.titus.pipeline.stage.titusBakeStage', [
+    require('./bakeExecutionDetails.controller.js').name,
+    PIPELINE_CONFIG_PROVIDER,
+  ])
+  .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'bake',
       useBaseProvider: true,
       cloudProvider: 'titus',
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
-      validators: []
+      validators: [],
     });
-  }).controller('titusBakeCtrl', function ($scope, authenticationService) {
-
+  })
+  .controller('titusBakeCtrl', function($scope, authenticationService) {
     let stage = $scope.stage;
 
     if (!stage.user) {
       stage.user = authenticationService.getAuthenticatedUser().name;
     }
-
 
     if (!stage.regions) {
       stage.regions = ['us-west-1'];
@@ -98,6 +98,4 @@ module.exports = angular.module('spinnaker.titus.pipeline.stage.titusBakeStage',
 
     $scope.$watch('stage.repository', this.updateRepository, true, true);
     $scope.$watch('stage.image', this.updateImage, true, true);
-
   });
-

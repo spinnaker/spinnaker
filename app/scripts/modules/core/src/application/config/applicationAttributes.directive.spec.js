@@ -1,36 +1,36 @@
 'use strict';
 
-describe('Controller: Config', function () {
-
+describe('Controller: Config', function() {
   var $controller;
   var configController;
   var $uibModal;
   var application;
 
-  beforeEach(window.module(
-    require('./applicationAttributes.directive.js').name
-  ));
+  beforeEach(window.module(require('./applicationAttributes.directive.js').name));
 
   beforeEach(
-    window.inject(function (_$controller_, _$uibModal_) {
+    window.inject(function(_$controller_, _$uibModal_) {
       $controller = _$controller_;
       $uibModal = _$uibModal_;
-    })
+    }),
   );
 
-  describe('edit application ', function () {
-    beforeEach( function() {
-        application = {
-          serverGroups:[],
-          name: 'test-app',
-          accounts: 'test'
-        };
+  describe('edit application ', function() {
+    beforeEach(function() {
+      application = {
+        serverGroups: [],
+        name: 'test-app',
+        accounts: 'test',
+      };
 
-        configController = $controller('ApplicationAttributesCtrl', {
+      configController = $controller(
+        'ApplicationAttributesCtrl',
+        {
           $uibModal: $uibModal,
-        }, {application: application});
-      }
-    );
+        },
+        { application: application },
+      );
+    });
 
     it('should copy attributes when edit application is successful', function() {
       var newAttributes = { foo: 'bar' };
@@ -40,8 +40,8 @@ describe('Controller: Config', function () {
             method(newAttributes);
             return modalStub.result;
           },
-          catch: () => {}
-        }
+          catch: () => {},
+        },
       };
       spyOn($uibModal, 'open').and.returnValue(modalStub);
 

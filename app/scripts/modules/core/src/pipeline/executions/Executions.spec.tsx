@@ -11,7 +11,7 @@ import { HELP_CONTENTS_REGISTRY } from 'core/help/helpContents.registry';
 import { HELP_CONTENTS } from 'core/help/help.contents';
 import { INSIGHT_FILTER_STATE_MODEL } from 'core/insight/insightFilterState.model';
 import { REACT_MODULE, ReactInjector } from 'core/reactShims';
-import { SCROLL_TO_SERVICE } from 'core/utils'
+import { SCROLL_TO_SERVICE } from 'core/utils';
 import { IExecutionsProps, IExecutionsState, Executions } from './Executions';
 
 describe('<Executions/>', () => {
@@ -35,23 +35,31 @@ describe('<Executions/>', () => {
     component = mount(<Executions app={application} />);
   }
 
-  beforeEach(mock.module(
-    APPLICATION_MODEL_BUILDER,
-    EXECUTION_FILTER_MODEL,
-    EXECUTION_FILTER_SERVICE,
-    HELP_CONTENTS_REGISTRY,
-    HELP_CONTENTS,
-    INSIGHT_FILTER_STATE_MODEL,
-    REACT_MODULE,
-    SCROLL_TO_SERVICE,
-  ));
-  beforeEach(mock.inject((_$timeout_: ITimeoutService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
-    scope = $rootScope.$new();
-    $timeout = _$timeout_;
-    application = applicationModelBuilder.createApplication('app', { key: 'executions', lazy: true }, { key: 'pipelineConfigs', lazy: true });
-  }));
+  beforeEach(
+    mock.module(
+      APPLICATION_MODEL_BUILDER,
+      EXECUTION_FILTER_MODEL,
+      EXECUTION_FILTER_SERVICE,
+      HELP_CONTENTS_REGISTRY,
+      HELP_CONTENTS,
+      INSIGHT_FILTER_STATE_MODEL,
+      REACT_MODULE,
+      SCROLL_TO_SERVICE,
+    ),
+  );
+  beforeEach(
+    mock.inject((_$timeout_: ITimeoutService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+      scope = $rootScope.$new();
+      $timeout = _$timeout_;
+      application = applicationModelBuilder.createApplication(
+        'app',
+        { key: 'executions', lazy: true },
+        { key: 'pipelineConfigs', lazy: true },
+      );
+    }),
+  );
 
-  it('should not set loading flag to false until executions and pipeline configs have been loaded', function () {
+  it('should not set loading flag to false until executions and pipeline configs have been loaded', function() {
     initializeApplication();
 
     expect(component.state().loading).toBe(true);
@@ -62,13 +70,12 @@ describe('<Executions/>', () => {
     expect(component.state().loading).toBe(false);
   });
 
-  describe('auto-scrolling behavior', function () {
-
-    beforeEach(function () {
+  describe('auto-scrolling behavior', function() {
+    beforeEach(function() {
       spyOn(ReactInjector.scrollToService, 'scrollTo');
     });
 
-    it('should scroll execution into view on initialization if an execution is present in state params', function () {
+    it('should scroll execution into view on initialization if an execution is present in state params', function() {
       ReactInjector.$stateParams.executionId = 'a';
 
       initializeApplication({ pipelineConfigs: [], executions: [] });
@@ -77,7 +84,7 @@ describe('<Executions/>', () => {
       expect((ReactInjector.scrollToService.scrollTo as any).calls.count()).toBe(1);
     });
 
-    it('should NOT scroll execution into view on initialization if none present in state params', function () {
+    it('should NOT scroll execution into view on initialization if none present in state params', function() {
       initializeApplication();
       scope.$digest();
 
@@ -146,6 +153,5 @@ describe('<Executions/>', () => {
     //   scope.$broadcast('$stateChangeSuccess', {name: 'executions'}, toParams, {name: 'executions'}, fromParams);
     //   expect((ReactInjector.scrollToService.scrollTo as any).calls.count()).toBe(0);
     // });
-
   });
 });

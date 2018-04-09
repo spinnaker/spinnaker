@@ -11,20 +11,20 @@ import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalan
 
 @BindAll()
 export class LoadBalancerFilterService {
-
   public groupsUpdatedStream: Subject<ILoadBalancerGroup[]> = new Subject<ILoadBalancerGroup[]>();
 
   private isFilterable: (object: any) => boolean;
   private getCheckValues: (object: any) => string[];
   private lastApplication: Application;
 
-  constructor(private loadBalancerFilterModel: LoadBalancerFilterModel,
-              private filterModelService: any,
-              private $log: ILogService) {
+  constructor(
+    private loadBalancerFilterModel: LoadBalancerFilterModel,
+    private filterModelService: any,
+    private $log: ILogService,
+  ) {
     'ngInject';
     this.isFilterable = filterModelService.isFilterable;
     this.getCheckValues = filterModelService.getCheckValues;
-
   }
 
   private addSearchFields(loadBalancer: ILoadBalancer): void {
@@ -57,25 +57,24 @@ export class LoadBalancerFilterService {
 
   public filterLoadBalancersForDisplay(loadBalancers: ILoadBalancer[]): ILoadBalancer[] {
     return chain(loadBalancers)
-      .filter((lb) => this.checkSearchTextFilter(lb))
-      .filter((lb) => this.filterModelService.checkAccountFilters(this.loadBalancerFilterModel)(lb))
-      .filter((lb) => this.filterModelService.checkRegionFilters(this.loadBalancerFilterModel)(lb))
-      .filter((lb) => this.filterModelService.checkStackFilters(this.loadBalancerFilterModel)(lb))
-      .filter((lb) => this.filterModelService.checkDetailFilters(this.loadBalancerFilterModel)(lb))
-      .filter((lb) => this.filterModelService.checkStatusFilters(this.loadBalancerFilterModel)(lb))
-      .filter((lb) => this.filterModelService.checkProviderFilters(this.loadBalancerFilterModel)(lb))
-      .filter((lb) => this.instanceFilters(lb))
+      .filter(lb => this.checkSearchTextFilter(lb))
+      .filter(lb => this.filterModelService.checkAccountFilters(this.loadBalancerFilterModel)(lb))
+      .filter(lb => this.filterModelService.checkRegionFilters(this.loadBalancerFilterModel)(lb))
+      .filter(lb => this.filterModelService.checkStackFilters(this.loadBalancerFilterModel)(lb))
+      .filter(lb => this.filterModelService.checkDetailFilters(this.loadBalancerFilterModel)(lb))
+      .filter(lb => this.filterModelService.checkStatusFilters(this.loadBalancerFilterModel)(lb))
+      .filter(lb => this.filterModelService.checkProviderFilters(this.loadBalancerFilterModel)(lb))
+      .filter(lb => this.instanceFilters(lb))
       .value();
   }
 
   private instanceFilters(loadBalancer: ILoadBalancer): boolean {
-    return !this.shouldFilterInstances() || some(loadBalancer.instances, (instance) => this.shouldShowInstance(instance));
+    return !this.shouldFilterInstances() || some(loadBalancer.instances, instance => this.shouldShowInstance(instance));
   }
 
   private shouldFilterInstances(): boolean {
     const sortFilter: ISortFilter = this.loadBalancerFilterModel.asFilterModel.sortFilter;
-    return this.isFilterable(sortFilter.status) ||
-      this.isFilterable(sortFilter.availabilityZone);
+    return this.isFilterable(sortFilter.status) || this.isFilterable(sortFilter.availabilityZone);
   }
 
   public shouldShowInstance(instance: IInstance): boolean {
@@ -116,10 +115,10 @@ export class LoadBalancerFilterService {
         }
       }
     });
-    groupsToRemove.reverse().forEach((idx) => {
+    groupsToRemove.reverse().forEach(idx => {
       oldGroups.splice(idx, 1);
     });
-    newGroups.forEach((newGroup) => {
+    newGroups.forEach(newGroup => {
       const match = find(oldGroups, { heading: newGroup.heading });
       if (!match) {
         oldGroups.push(newGroup);
@@ -131,23 +130,41 @@ export class LoadBalancerFilterService {
     const toRemove: number[] = [];
     oldGroup.serverGroups.forEach((serverGroup, idx) => {
       serverGroup.stringVal = serverGroup.stringVal || JSON.stringify(serverGroup, this.jsonReplacer);
-      const newServerGroup = find(newGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
+      const newServerGroup = find(newGroup.serverGroups, {
+        name: serverGroup.name,
+        account: serverGroup.account,
+        region: serverGroup.region,
+      });
       if (!newServerGroup) {
-        this.$log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region);
+        this.$log.debug(
+          'server group no longer found, removing:',
+          serverGroup.name,
+          serverGroup.account,
+          serverGroup.region,
+        );
         toRemove.push(idx);
       } else {
         newServerGroup.stringVal = newServerGroup.stringVal || JSON.stringify(newServerGroup, this.jsonReplacer);
         if (serverGroup.stringVal !== newServerGroup.stringVal) {
-          this.$log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
+          this.$log.debug(
+            'change detected, updating server group:',
+            serverGroup.name,
+            serverGroup.account,
+            serverGroup.region,
+          );
           oldGroup.serverGroups[idx] = newServerGroup;
         }
       }
     });
-    toRemove.reverse().forEach((idx) => {
+    toRemove.reverse().forEach(idx => {
       oldGroup.serverGroups.splice(idx, 1);
     });
-    newGroup.serverGroups.forEach((serverGroup) => {
-      const oldServerGroup = find(oldGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
+    newGroup.serverGroups.forEach(serverGroup => {
+      const oldServerGroup = find(oldGroup.serverGroups, {
+        name: serverGroup.name,
+        account: serverGroup.account,
+        region: serverGroup.region,
+      });
       if (!oldServerGroup) {
         this.$log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
         oldGroup.serverGroups.push(serverGroup);
@@ -177,7 +194,7 @@ export class LoadBalancerFilterService {
 
   private filterServerGroups(loadBalancer: ILoadBalancer): IServerGroup[] {
     if (this.shouldFilterInstances()) {
-      return loadBalancer.serverGroups.filter((serverGroup) => {
+      return loadBalancer.serverGroups.filter(serverGroup => {
         return serverGroup.instances.some((instance: IInstance) => this.shouldShowInstance(instance));
       });
     }
@@ -206,18 +223,21 @@ export class LoadBalancerFilterService {
 
     forOwn(grouped, (group, account) => {
       const groupedByType = values(groupBy(group, 'loadBalancerType'));
-      const namesByType = groupedByType.map((g) => g.map((lb) => lb.name));
-      const crossTypeLoadBalancerNames = namesByType.length > 1 ? intersection(...namesByType).reduce<{[key: string]: boolean}>((acc, name) => {
-        acc[name] = true;
-        return acc;
-      }, {}) : {};
-      const subGroupings = groupBy(group, (lb) => `${lb.name}:${lb.loadBalancerType}`),
-            subGroups: ILoadBalancerGroup[] = [];
+      const namesByType = groupedByType.map(g => g.map(lb => lb.name));
+      const crossTypeLoadBalancerNames =
+        namesByType.length > 1
+          ? intersection(...namesByType).reduce<{ [key: string]: boolean }>((acc, name) => {
+              acc[name] = true;
+              return acc;
+            }, {})
+          : {};
+      const subGroupings = groupBy(group, lb => `${lb.name}:${lb.loadBalancerType}`),
+        subGroups: ILoadBalancerGroup[] = [];
 
       forOwn(subGroupings, (subGroup, nameAndType) => {
-        const [ name, type ] = nameAndType.split(':');
+        const [name, type] = nameAndType.split(':');
         const subSubGroups: ILoadBalancerGroup[] = [];
-        subGroup.forEach((loadBalancer) => {
+        subGroup.forEach(loadBalancer => {
           subSubGroups.push({
             heading: loadBalancer.region,
             loadBalancer: loadBalancer,
@@ -232,20 +252,19 @@ export class LoadBalancerFilterService {
         });
       });
 
-      groups.push( { heading: account, subgroups: sortBy(subGroups, 'heading') } );
-
+      groups.push({ heading: account, subgroups: sortBy(subGroups, 'heading') });
     });
 
     this.sortGroupsByHeading(groups);
     this.loadBalancerFilterModel.asFilterModel.addTags();
     this.lastApplication = application;
     this.groupsUpdatedStream.next(groups);
-  };
+  }
 }
 
 export const LOAD_BALANCER_FILTER_SERVICE = 'spinnaker.core.loadBalancer.filter.service';
-module(LOAD_BALANCER_FILTER_SERVICE, [
-  LOAD_BALANCER_FILTER_MODEL,
-  FILTER_MODEL_SERVICE,
-]).factory('loadBalancerFilterService', (loadBalancerFilterModel: LoadBalancerFilterModel, filterModelService: any, $log: ILogService) =>
-                                        new LoadBalancerFilterService(loadBalancerFilterModel, filterModelService, $log));
+module(LOAD_BALANCER_FILTER_SERVICE, [LOAD_BALANCER_FILTER_MODEL, FILTER_MODEL_SERVICE]).factory(
+  'loadBalancerFilterService',
+  (loadBalancerFilterModel: LoadBalancerFilterModel, filterModelService: any, $log: ILogService) =>
+    new LoadBalancerFilterService(loadBalancerFilterModel, filterModelService, $log),
+);

@@ -8,30 +8,41 @@ module.exports = angular.module('spinnaker.openstack.common.selectField', []).co
   templateUrl: require('./selectField.component.html'),
   controller: SelectFieldController,
   bindings: {
-      label: '@',
-      options: '<',
-      value: '<?',
-      onChange: '&',
-      labelColumnSize: '@?',
-      valueColumnSize: '@?',
-      helpKey: '@?',
-      readOnly: '<?',
-      allowNoSelection: '<?',
-      noOptionsMessage: '@?',
-      noSelectionMessage: '@?',
-      backingCache: '@?',
-      optionUpdate: '<?'
-  }
+    label: '@',
+    options: '<',
+    value: '<?',
+    onChange: '&',
+    labelColumnSize: '@?',
+    valueColumnSize: '@?',
+    helpKey: '@?',
+    readOnly: '<?',
+    allowNoSelection: '<?',
+    noOptionsMessage: '@?',
+    noSelectionMessage: '@?',
+    backingCache: '@?',
+    optionUpdate: '<?',
+  },
 });
 
-function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScope, infrastructureCaches, cacheInitializer) {
+function SelectFieldController(
+  $scope,
+  $element,
+  $attrs,
+  $timeout,
+  $q,
+  $rootScope,
+  infrastructureCaches,
+  cacheInitializer,
+) {
   var ctrl = this;
   var coveredThreshold = 0;
 
   this.refreshTooltipTemplate = require('./refresh.tooltip.html');
 
   function findOptionByValue(value) {
-    return _.find(ctrl.options, function(o) { return angular.equals(o.value, value); });
+    return _.find(ctrl.options, function(o) {
+      return angular.equals(o.value, value);
+    });
   }
 
   //called whenever the list of options is updated to ensure that a default value is selected, if required
@@ -59,7 +70,7 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
   }
 
   function updateDone() {
-    if( ctrl.backingCache && infrastructureCaches.get(ctrl.backingCache) ) {
+    if (ctrl.backingCache && infrastructureCaches.get(ctrl.backingCache)) {
       coveredThreshold = infrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
     }
     ctrl.updatingOptions = false;
@@ -74,23 +85,27 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
     ctrl.refreshing = false;
   }
 
-  var stopWatchingRefreshTime = ctrl.backingCache ? $rootScope.$watch(function() {
-    return infrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
-  }, function(ageMax) {
-    if (ageMax) {
-      ctrl.lastRefresh = ageMax;
+  var stopWatchingRefreshTime = ctrl.backingCache
+    ? $rootScope.$watch(
+        function() {
+          return infrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
+        },
+        function(ageMax) {
+          if (ageMax) {
+            ctrl.lastRefresh = ageMax;
 
-      //update options, but don't start an infinite loop since fetching the options can also update ageMax
-      if( !ctrl.updatingOptions && ageMax > coveredThreshold ) {
-        updateOptions();
-      }
-    }
-  }) : angular.noop;
-
+            //update options, but don't start an infinite loop since fetching the options can also update ageMax
+            if (!ctrl.updatingOptions && ageMax > coveredThreshold) {
+              updateOptions();
+            }
+          }
+        },
+      )
+    : angular.noop;
 
   this.refresh = function() {
     ctrl.refreshing = true;
-    if( ctrl.backingCache ) {
+    if (ctrl.backingCache) {
       cacheInitializer.refreshCache(ctrl.backingCache).then(clearRefreshingFlag, clearRefreshingFlag);
     } else {
       updateOptions();
@@ -99,10 +114,9 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
 
   this.selectionUpdated = function() {
     if (ctrl.onChange) {
-      ctrl.onChange({value: ctrl.value});
+      ctrl.onChange({ value: ctrl.value });
     }
   };
-
 
   ctrl.$onInit = function() {
     $scope.showRefresh = !!ctrl.optionUpdate;
@@ -113,7 +127,9 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
       valueColumnSize: 7,
       readOnly: false,
       onChange: angular.noop,
-      optionUpdate: function() { return $q.when(ctrl.options); }
+      optionUpdate: function() {
+        return $q.when(ctrl.options);
+      },
     });
 
     updateOptions();
@@ -125,7 +141,7 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
     }
   };
 
-  ctrl.$onDestroy = function () {
+  ctrl.$onDestroy = function() {
     stopWatchingRefreshTime();
   };
 

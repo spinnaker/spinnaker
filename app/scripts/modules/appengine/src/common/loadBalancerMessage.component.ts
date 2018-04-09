@@ -7,5 +7,7 @@ class AppengineLoadBalancerMessageComponent implements ng.IComponentOptions {
 
 export const APPENGINE_LOAD_BALANCER_CREATE_MESSAGE = 'spinnaker.appengine.loadBalancer.createMessage.component';
 
-module(APPENGINE_LOAD_BALANCER_CREATE_MESSAGE, [])
-  .component('appengineLoadBalancerMessage', new AppengineLoadBalancerMessageComponent());
+module(APPENGINE_LOAD_BALANCER_CREATE_MESSAGE, []).component(
+  'appengineLoadBalancerMessage',
+  new AppengineLoadBalancerMessageComponent(),
+);

@@ -6,26 +6,26 @@ import { IBuildTrigger } from 'core/domain/ITrigger';
 import { TRAVIS_TRIGGER, TravisTrigger } from './travisTrigger.module';
 
 describe('Controller: travisTrigger', () => {
-  let $scope: IScope,
-    igorService: IgorService,
-    $q: IQService,
-    $ctrl: IControllerService;
+  let $scope: IScope, igorService: IgorService, $q: IQService, $ctrl: IControllerService;
 
   beforeEach(mock.module(TRAVIS_TRIGGER));
 
   beforeEach(
-    mock.inject(($controller: IControllerService, $rootScope: IRootScopeService, _$q_: IQService, _igorService_: IgorService) => {
-      $ctrl = $controller;
-      $q = _$q_;
-      igorService = _igorService_;
-      $scope = $rootScope.$new();
-    }));
+    mock.inject(
+      ($controller: IControllerService, $rootScope: IRootScopeService, _$q_: IQService, _igorService_: IgorService) => {
+        $ctrl = $controller;
+        $q = _$q_;
+        igorService = _igorService_;
+        $scope = $rootScope.$new();
+      },
+    ),
+  );
 
   const initializeController = (trigger: IBuildTrigger): TravisTrigger => {
     return $ctrl(TravisTrigger, {
       trigger,
       $scope,
-      igorService
+      igorService,
     });
   };
 
@@ -49,15 +49,15 @@ describe('Controller: travisTrigger', () => {
     it('updates jobs list when master changes, preserving job if present in both masters', () => {
       const masterA = {
           name: 'masterA',
-          jobs: ['a', 'b']
+          jobs: ['a', 'b'],
         },
         masterB = {
           name: 'masterB',
-          jobs: ['b', 'c']
+          jobs: ['b', 'c'],
         },
         trigger = <IBuildTrigger>{
           master: 'masterA',
-          job: 'a'
+          job: 'a',
         };
 
       spyOn(igorService, 'listJobsForMaster').and.callFake((master: string) => {
@@ -92,7 +92,7 @@ describe('Controller: travisTrigger', () => {
     it('retains current job if no jobs found in master because that is probably a server-side issue', () => {
       const trigger = <IBuildTrigger>{
         master: 'masterA',
-        job: 'a'
+        job: 'a',
       };
 
       spyOn(igorService, 'listJobsForMaster').and.callFake(() => {

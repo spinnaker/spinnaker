@@ -1,20 +1,19 @@
 'use strict';
 
 const angular = require('angular');
-import {PathRuleTemplate} from '../templates';
+import { PathRuleTemplate } from '../templates';
 
-module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.hostRule.component', [
-    require('../pathRule/pathRule.component.js').name,
-  ])
+module.exports = angular
+  .module('spinnaker.deck.gce.httpLoadBalancer.hostRule.component', [require('../pathRule/pathRule.component.js').name])
   .component('gceHostRule', {
     bindings: {
       hostRule: '=',
       index: '=',
       command: '=',
-      deleteHostRule: '&'
+      deleteHostRule: '&',
     },
     templateUrl: require('./hostRule.component.html'),
-    controller: function () {
+    controller: function() {
       this.loadBalancer = this.command.loadBalancer;
       let pathRules = this.hostRule.pathMatcher.pathRules;
 
@@ -22,8 +21,8 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.hostRule.co
         pathRules.push(new PathRuleTemplate());
       };
 
-      this.deletePathRule = (index) => {
+      this.deletePathRule = index => {
         pathRules.splice(index, 1);
       };
-    }
+    },
   });

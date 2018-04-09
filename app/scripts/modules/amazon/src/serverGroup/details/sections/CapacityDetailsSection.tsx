@@ -10,12 +10,15 @@ import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetai
 export class CapacityDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   public static resizeServerGroup(serverGroup: IServerGroup, application: Application): void {
     ReactInjector.modalService.open({
-      templateUrl: ReactInjector.overrideRegistry.getTemplate('aws.resize.modal', require('../resize/resizeServerGroup.html')),
+      templateUrl: ReactInjector.overrideRegistry.getTemplate(
+        'aws.resize.modal',
+        require('../resize/resizeServerGroup.html'),
+      ),
       controller: 'awsResizeServerGroupCtrl as ctrl',
       resolve: {
         serverGroup: () => serverGroup,
         application: () => application,
-      }
+      },
     });
   }
 
@@ -42,13 +45,15 @@ export class CapacityDetailsSection extends React.Component<IAmazonServerGroupDe
         </dl>
 
         <div>
-          <a className="clickable" onClick={() => CapacityDetailsSection.resizeServerGroup(serverGroup, app)}>Resize Server Group</a>
+          <a className="clickable" onClick={() => CapacityDetailsSection.resizeServerGroup(serverGroup, app)}>
+            Resize Server Group
+          </a>
         </div>
 
         <div>
-          <ViewScalingActivitiesLink serverGroup={serverGroup}/>
+          <ViewScalingActivitiesLink serverGroup={serverGroup} />
         </div>
       </CollapsibleSection>
-    )
+    );
   }
 }

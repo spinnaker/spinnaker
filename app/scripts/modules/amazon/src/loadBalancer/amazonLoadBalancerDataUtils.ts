@@ -11,7 +11,14 @@ export class AmazonLoadBalancerDataUtils {
       return null;
     }
 
-    const targetGroup: ITargetGroup = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider, account: match.account, region: match.region, loadBalancerNames: match.loadBalancerNames } as ITargetGroup;
+    const targetGroup: ITargetGroup = {
+      name: match.name,
+      vpcId: match.vpcId,
+      cloudProvider: match.cloudProvider,
+      account: match.account,
+      region: match.region,
+      loadBalancerNames: match.loadBalancerNames,
+    } as ITargetGroup;
     targetGroup.instanceCounts = { up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0 };
 
     serverGroup.instances.forEach(instance => {
@@ -30,15 +37,27 @@ export class AmazonLoadBalancerDataUtils {
     return targetGroup;
   }
 
-  public static populateTargetGroups(application: Application, serverGroup: IAmazonServerGroup): IPromise<ITargetGroup[]> {
-    return application.getDataSource('loadBalancers').ready().then(() => {
-      const loadBalancers: IAmazonApplicationLoadBalancer[] = application.getDataSource('loadBalancers').data.filter((lb) => lb.loadBalancerType === 'application' || lb.loadBalancerType === 'network') as IAmazonApplicationLoadBalancer[];
-      const targetGroups = serverGroup.targetGroups.map((targetGroupName: string) => {
-        const allTargetGroups = flatten(loadBalancers.map((lb) => lb.targetGroups || []));
-        const targetGroup = allTargetGroups.find((tg) => tg.name === targetGroupName);
-        return this.buildTargetGroup(targetGroup, serverGroup);
-      }).filter((tg) => tg);
-      return targetGroups;
-    });
+  public static populateTargetGroups(
+    application: Application,
+    serverGroup: IAmazonServerGroup,
+  ): IPromise<ITargetGroup[]> {
+    return application
+      .getDataSource('loadBalancers')
+      .ready()
+      .then(() => {
+        const loadBalancers: IAmazonApplicationLoadBalancer[] = application
+          .getDataSource('loadBalancers')
+          .data.filter(
+            lb => lb.loadBalancerType === 'application' || lb.loadBalancerType === 'network',
+          ) as IAmazonApplicationLoadBalancer[];
+        const targetGroups = serverGroup.targetGroups
+          .map((targetGroupName: string) => {
+            const allTargetGroups = flatten(loadBalancers.map(lb => lb.targetGroups || []));
+            const targetGroup = allTargetGroups.find(tg => tg.name === targetGroupName);
+            return this.buildTargetGroup(targetGroup, serverGroup);
+          })
+          .filter(tg => tg);
+        return targetGroups;
+      });
   }
 }

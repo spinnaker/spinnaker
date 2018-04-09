@@ -7,34 +7,63 @@ import {
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE
+  V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
-module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', [
-  require('@uirouter/angularjs').default,
-  AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE,
-  OVERRIDE_REGISTRY,
-  SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
+module.exports = angular
+  .module('spinnaker.amazon.cloneServerGroup.controller', [
+    require('@uirouter/angularjs').default,
+    AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
+    SERVER_GROUP_WRITER,
+    TASK_MONITOR_BUILDER,
+    V2_MODAL_WIZARD_SERVICE,
+    OVERRIDE_REGISTRY,
+    SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
   ])
-  .controller('awsCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                  serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
-                                                  overrideRegistry, awsServerGroupConfigurationService,
-                                                  serverGroupCommandRegistry,
-                                                  serverGroupCommand, application, title) {
+  .controller('awsCloneServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    $state,
+    serverGroupWriter,
+    v2modalWizardService,
+    taskMonitorBuilder,
+    overrideRegistry,
+    awsServerGroupConfigurationService,
+    serverGroupCommandRegistry,
+    serverGroupCommand,
+    application,
+    title,
+  ) {
     $scope.pages = {
-      templateSelection: overrideRegistry.getTemplate('aws.serverGroup.templateSelection', require('./templateSelection/templateSelection.html')),
-      basicSettings: overrideRegistry.getTemplate('aws.serverGroup.basicSettings', require('./location/basicSettings.html')),
-      loadBalancers: overrideRegistry.getTemplate('aws.serverGroup.loadBalancers', require('./loadBalancers/loadBalancers.html')),
-      securityGroups: overrideRegistry.getTemplate('aws.serverGroup.securityGroups', require('./securityGroups/securityGroups.html')),
-      instanceType: overrideRegistry.getTemplate('aws.serverGroup.instanceType', require('./instanceType/instanceType.html')),
+      templateSelection: overrideRegistry.getTemplate(
+        'aws.serverGroup.templateSelection',
+        require('./templateSelection/templateSelection.html'),
+      ),
+      basicSettings: overrideRegistry.getTemplate(
+        'aws.serverGroup.basicSettings',
+        require('./location/basicSettings.html'),
+      ),
+      loadBalancers: overrideRegistry.getTemplate(
+        'aws.serverGroup.loadBalancers',
+        require('./loadBalancers/loadBalancers.html'),
+      ),
+      securityGroups: overrideRegistry.getTemplate(
+        'aws.serverGroup.securityGroups',
+        require('./securityGroups/securityGroups.html'),
+      ),
+      instanceType: overrideRegistry.getTemplate(
+        'aws.serverGroup.instanceType',
+        require('./instanceType/instanceType.html'),
+      ),
       capacity: overrideRegistry.getTemplate('aws.serverGroup.capacity', require('./capacity/capacity.html')),
       zones: overrideRegistry.getTemplate('aws.serverGroup.zones', require('./capacity/zones.html')),
-      advancedSettings: overrideRegistry.getTemplate('aws.serverGroup.advancedSettings', require('./advancedSettings/advancedSettings.html')),
+      advancedSettings: overrideRegistry.getTemplate(
+        'aws.serverGroup.advancedSettings',
+        require('./advancedSettings/advancedSettings.html'),
+      ),
     };
 
     $scope.title = title;
@@ -55,16 +84,17 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
         'load balancers',
         'security groups',
         'instance type',
-        'all fields on the Advanced Settings page'
+        'all fields on the Advanced Settings page',
       ],
-      notCopied: [
-        'the following suspended scaling processes: Launch, Terminate, AddToLoadBalancer',
-      ],
-      additionalCopyText: 'If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.'
+      notCopied: ['the following suspended scaling processes: Launch, Terminate, AddToLoadBalancer'],
+      additionalCopyText:
+        'If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.',
     };
 
     if (!$scope.command.viewState.disableStrategySelection) {
-      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+      this.templateSelectionText.notCopied.push(
+        'the deployment strategy (if any) used to deploy the most recent server group',
+      );
     }
 
     function onApplicationRefresh() {
@@ -72,7 +102,7 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
       if ($scope.$$destroyed) {
         return;
       }
-      let cloneStage = $scope.taskMonitor.task.execution.stages.find((stage) => stage.type === 'cloneServerGroup');
+      let cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
         let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
@@ -83,13 +113,16 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
             provider: 'aws',
           };
           var transitionTo = '^.^.^.clusters.serverGroup';
-          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+          if ($state.includes('**.clusters.serverGroup')) {
+            // clone via details, all view
             transitionTo = '^.serverGroup';
           }
-          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+          if ($state.includes('**.clusters.cluster.serverGroup')) {
+            // clone or create with details open
             transitionTo = '^.^.serverGroup';
           }
-          if ($state.includes('**.clusters')) { // create new, no details open
+          if ($state.includes('**.clusters')) {
+            // create new, no details open
             transitionTo = '.serverGroup';
           }
           $state.go(transitionTo, newStateParams);
@@ -110,7 +143,7 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
     });
 
     function configureCommand() {
-      awsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+      awsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
         var mode = serverGroupCommand.viewState.mode;
         if (mode === 'clone' || mode === 'create') {
           if (!serverGroupCommand.backingData.packageImages.length) {
@@ -124,21 +157,23 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
       });
     }
 
-
     function initializeWatches() {
       $scope.$watch('command.credentials', createResultProcessor($scope.command.credentialsChanged));
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch('command.subnetType', createResultProcessor($scope.command.subnetChanged));
-      $scope.$watch('command.viewState.usePreferredZones', createResultProcessor($scope.command.usePreferredZonesChanged));
+      $scope.$watch(
+        'command.viewState.usePreferredZones',
+        createResultProcessor($scope.command.usePreferredZonesChanged),
+      );
       $scope.$watch('command.virtualizationType', createResultProcessor($scope.command.imageChanged));
       $scope.$watch('command.stack', $scope.command.clusterChanged);
       $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
       $scope.$watch('command.instanceType', $scope.command.instanceTypeChanged);
 
       // if any additional watches have been configured, add them
-      serverGroupCommandRegistry.getCommandOverrides('aws').forEach((override) => {
+      serverGroupCommandRegistry.getCommandOverrides('aws').forEach(override => {
         if (override.addWatches) {
-          override.addWatches($scope.command).forEach((watchConfig) => {
+          override.addWatches($scope.command).forEach(watchConfig => {
             $scope.$watch(watchConfig.property, watchConfig.method);
           });
         }
@@ -180,7 +215,10 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
     function initializeCommand() {
       if (serverGroupCommand.viewState.imageId) {
         var foundImage = $scope.command.backingData.packageImages.filter(function(image) {
-          return image.amis[serverGroupCommand.region] && image.amis[serverGroupCommand.region].includes(serverGroupCommand.viewState.imageId);
+          return (
+            image.amis[serverGroupCommand.region] &&
+            image.amis[serverGroupCommand.region].includes(serverGroupCommand.viewState.imageId)
+          );
         });
         if (foundImage.length) {
           serverGroupCommand.amiName = foundImage[0].imageName;
@@ -188,34 +226,37 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
       }
     }
 
-    this.isValid = function () {
-      return $scope.command &&
+    this.isValid = function() {
+      return (
+        $scope.command &&
         ($scope.command.viewState.disableImageSelection || $scope.command.amiName) &&
-        ($scope.command.application) &&
-        ($scope.command.credentials) && ($scope.command.instanceType) &&
-        ($scope.command.region) && ($scope.command.availabilityZones) &&
-        ($scope.command.capacity.min >= 0) && ($scope.command.capacity.max >= 0) &&
-        ($scope.command.capacity.desired >= 0) &&
+        $scope.command.application &&
+        $scope.command.credentials &&
+        $scope.command.instanceType &&
+        $scope.command.region &&
+        $scope.command.availabilityZones &&
+        $scope.command.capacity.min >= 0 &&
+        $scope.command.capacity.max >= 0 &&
+        $scope.command.capacity.desired >= 0 &&
         $scope.form.$valid &&
-        v2modalWizardService.isComplete();
-    };
-
-    this.showSubmitButton = function () {
-      return v2modalWizardService.allPagesVisited();
-    };
-
-    this.submit = function () {
-      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
-        return $uibModalInstance.close($scope.command);
-      }
-      $scope.taskMonitor.submit(
-        function() {
-          return serverGroupWriter.cloneServerGroup($scope.command, application);
-        }
+        v2modalWizardService.isComplete()
       );
     };
 
-    this.cancel = function () {
+    this.showSubmitButton = function() {
+      return v2modalWizardService.allPagesVisited();
+    };
+
+    this.submit = function() {
+      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
+        return $uibModalInstance.close($scope.command);
+      }
+      $scope.taskMonitor.submit(function() {
+        return serverGroupWriter.cloneServerGroup($scope.command, application);
+      });
+    };
+
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 

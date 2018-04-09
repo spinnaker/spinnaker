@@ -10,7 +10,9 @@ class AppengineLoadBalancerAdvancedSettingsCtrl implements IController {
       return true;
     } else {
       const targetServerGroupName = this.loadBalancer.splitDescription.allocationDescriptions[0].serverGroupName;
-      const targetServerGroup = this.loadBalancer.serverGroups.find(candidate => candidate.name === targetServerGroupName);
+      const targetServerGroup = this.loadBalancer.serverGroups.find(
+        candidate => candidate.name === targetServerGroupName,
+      );
 
       if (targetServerGroup) {
         return !targetServerGroup.allowsGradualTrafficMigration;
@@ -46,5 +48,7 @@ class AppengineLoadBalancerAdvancedSettingsComponent implements IComponentOption
 
 export const APPENGINE_LOAD_BALANCER_ADVANCED_SETTINGS = 'spinnaker.appengine.loadBalancer.advancedSettings.component';
 
-module(APPENGINE_LOAD_BALANCER_ADVANCED_SETTINGS, [])
-  .component('appengineLoadBalancerAdvancedSettings', new AppengineLoadBalancerAdvancedSettingsComponent());
+module(APPENGINE_LOAD_BALANCER_ADVANCED_SETTINGS, []).component(
+  'appengineLoadBalancerAdvancedSettings',
+  new AppengineLoadBalancerAdvancedSettingsComponent(),
+);

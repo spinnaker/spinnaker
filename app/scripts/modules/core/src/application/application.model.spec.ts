@@ -8,36 +8,37 @@ import { SecurityGroupReader } from 'core/securityGroup/securityGroupReader.serv
 import { SERVER_GROUP_DATA_SOURCE } from 'core/serverGroup/serverGroup.dataSource';
 import { SECURITY_GROUP_DATA_SOURCE } from 'core/securityGroup/securityGroup.dataSource';
 
-import {
-  IEntityTag,
-  IEntityTags,
-  IServerGroup,
-  IInstanceCounts,
-  ILoadBalancer
-} from 'core/domain';
+import { IEntityTag, IEntityTags, IServerGroup, IInstanceCounts, ILoadBalancer } from 'core/domain';
 
-describe ('Application Model', function () {
-
+describe('Application Model', function() {
   let application: Application;
   let securityGroupReader: SecurityGroupReader,
-      loadBalancerReader: any,
-      clusterService: any,
-      $q: ng.IQService,
-      $scope: ng.IScope,
-      applicationModelBuilder: ApplicationModelBuilder,
-      applicationDataSourceRegistry: ApplicationDataSourceRegistry;
+    loadBalancerReader: any,
+    clusterService: any,
+    $q: ng.IQService,
+    $scope: ng.IScope,
+    applicationModelBuilder: ApplicationModelBuilder,
+    applicationDataSourceRegistry: ApplicationDataSourceRegistry;
 
   beforeEach(
     mock.module(
       SECURITY_GROUP_DATA_SOURCE,
       SERVER_GROUP_DATA_SOURCE,
       LOAD_BALANCER_DATA_SOURCE,
-      APPLICATION_MODEL_BUILDER
-  ));
+      APPLICATION_MODEL_BUILDER,
+    ),
+  );
 
   beforeEach(
-    mock.inject(function (_securityGroupReader_: SecurityGroupReader, _clusterService_: any, _$q_: ng.IQService, _loadBalancerReader_: any, $rootScope: any,
-                            _applicationModelBuilder_: ApplicationModelBuilder, _applicationDataSourceRegistry_: ApplicationDataSourceRegistry) {
+    mock.inject(function(
+      _securityGroupReader_: SecurityGroupReader,
+      _clusterService_: any,
+      _$q_: ng.IQService,
+      _loadBalancerReader_: any,
+      $rootScope: any,
+      _applicationModelBuilder_: ApplicationModelBuilder,
+      _applicationDataSourceRegistry_: ApplicationDataSourceRegistry,
+    ) {
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
       loadBalancerReader = _loadBalancerReader_;
@@ -45,16 +46,20 @@ describe ('Application Model', function () {
       $scope = $rootScope.$new();
       applicationModelBuilder = _applicationModelBuilder_;
       applicationDataSourceRegistry = _applicationDataSourceRegistry_;
-    })
+    }),
   );
 
-
   function configureApplication(serverGroups: any[], loadBalancers: any[], securityGroupsByApplicationName: any[]) {
-    spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue($q.when(securityGroupsByApplicationName));
+    spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue(
+      $q.when(securityGroupsByApplicationName),
+    );
     spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when(loadBalancers));
     spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when(serverGroups));
     spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([]));
-    spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function(_app: Application, groupsByName: any[]) {
+    spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function(
+      _app: Application,
+      groupsByName: any[],
+    ) {
       return $q.when(groupsByName || []);
     });
     application = applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
@@ -62,19 +67,21 @@ describe ('Application Model', function () {
     $scope.$digest();
   }
 
-  describe('lazy dataSources', function () {
-
-    beforeEach(function () {
+  describe('lazy dataSources', function() {
+    beforeEach(function() {
       applicationDataSourceRegistry.registerDataSource({
         key: 'lazySource',
         lazy: true,
-        loader: () => { application.getDataSource('lazySource').data = ['a']; return $q.when(null); },
-        onLoad: () => $q.when(null)
+        loader: () => {
+          application.getDataSource('lazySource').data = ['a'];
+          return $q.when(null);
+        },
+        onLoad: () => $q.when(null),
       });
     });
 
-    describe('activate', function () {
-      it('refreshes section if not already active and not already loaded', function () {
+    describe('activate', function() {
+      it('refreshes section if not already active and not already loaded', function() {
         configureApplication([], [], []);
         spyOn(application.getDataSource('lazySource'), 'refresh').and.callThrough();
 
@@ -98,8 +105,8 @@ describe ('Application Model', function () {
       });
     });
 
-    describe('refresh behavior', function () {
-      it('clears data on inactive lazy dataSources and sets loaded flag to false', function () {
+    describe('refresh behavior', function() {
+      it('clears data on inactive lazy dataSources and sets loaded flag to false', function() {
         configureApplication([], [], []);
 
         expect(application.getDataSource('lazySource').active).toBeFalsy();
@@ -118,23 +125,23 @@ describe ('Application Model', function () {
         expect(application.getDataSource('lazySource').loaded).toBe(false);
       });
 
-      it('adds entityTags that contain alerts if found on data', function () {
+      it('adds entityTags that contain alerts if found on data', function() {
         const alertTag: IEntityTag = { name: 'spinnaker_ui_alert:alert1', value: { message: 'an alert' } };
         const tags: IEntityTags = {
           id: 'zzzz',
-          tags: [ alertTag ],
+          tags: [alertTag],
           tagsMetadata: null,
           entityRef: null,
-          alerts: [ alertTag ],
-          notices: []
+          alerts: [alertTag],
+          notices: [],
         };
         const nonAlertTags: IEntityTags = {
           id: 'zzzz',
-          tags: [ { name: 'spinnaker_ui_notice:notice1', value: { message: 'a notice' } } ],
+          tags: [{ name: 'spinnaker_ui_notice:notice1', value: { message: 'a notice' } }],
           tagsMetadata: null,
           entityRef: null,
           alerts: [],
-          notices: [ { name: 'spinnaker_ui_notice:notice1', value: { message: 'a notice' } } ]
+          notices: [{ name: 'spinnaker_ui_notice:notice1', value: { message: 'a notice' } }],
         };
         const serverGroups: IServerGroup[] = [
           {
@@ -146,7 +153,7 @@ describe ('Application Model', function () {
             name: 'myapp-v001',
             region: 'us-east-1',
             type: 'aws',
-            entityTags: tags
+            entityTags: tags,
           },
           {
             account: 'test',
@@ -157,7 +164,7 @@ describe ('Application Model', function () {
             name: 'myapp-v001',
             region: 'us-east-1',
             type: 'aws',
-            entityTags: nonAlertTags
+            entityTags: nonAlertTags,
           },
           {
             account: 'test',
@@ -168,39 +175,39 @@ describe ('Application Model', function () {
             name: 'myapp-no-alerts-v002',
             region: 'us-east-1',
             type: 'aws',
-          }
+          },
         ];
         configureApplication(serverGroups, [], []);
         expect(application.getDataSource('serverGroups').alerts).toEqual([tags]);
       });
     });
 
-    describe('application ready', function () {
-      it('ignores lazy dataSources when determining if application is ready', function () {
+    describe('application ready', function() {
+      it('ignores lazy dataSources when determining if application is ready', function() {
         let isReady = false;
         configureApplication([], [], []);
 
-        application.ready().then(() => isReady = true);
+        application.ready().then(() => (isReady = true));
         $scope.$digest();
         expect(isReady).toBe(true);
       });
     });
   });
 
-  describe('setting default credentials and regions', function () {
-
-    it('sets default credentials and region from server group when only one account/region found', function () {
-
-      const serverGroups: IServerGroup[] = [{
-          name: 'deck-test-v001',
-          cluster: 'deck-test',
-          account: 'test',
-          region: 'us-west-2',
-          type: 'aws',
-          cloudProvider: 'aws',
-          instances: [],
-          instanceCounts: <IInstanceCounts>{}
-        }],
+  describe('setting default credentials and regions', function() {
+    it('sets default credentials and region from server group when only one account/region found', function() {
+      const serverGroups: IServerGroup[] = [
+          {
+            name: 'deck-test-v001',
+            cluster: 'deck-test',
+            account: 'test',
+            region: 'us-west-2',
+            type: 'aws',
+            cloudProvider: 'aws',
+            instances: [],
+            instanceCounts: <IInstanceCounts>{},
+          },
+        ],
         loadBalancers: ILoadBalancer[] = [],
         securityGroupsByApplicationName: any[] = [];
 
@@ -209,9 +216,11 @@ describe ('Application Model', function () {
       expect(application.defaultRegions.aws).toBe('us-west-2');
     });
 
-    it('sets default credentials and region from load balancer when only one account/region found', function () {
+    it('sets default credentials and region from load balancer when only one account/region found', function() {
       const serverGroups: IServerGroup[] = [],
-        loadBalancers: ILoadBalancer[] = [{ name: 'deck-frontend', cloudProvider: 'gce', vpcId: 'vpc0', region: 'us-central-1', account: 'prod' }],
+        loadBalancers: ILoadBalancer[] = [
+          { name: 'deck-frontend', cloudProvider: 'gce', vpcId: 'vpc0', region: 'us-central-1', account: 'prod' },
+        ],
         securityGroupsByApplicationName: any[] = [];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
@@ -219,47 +228,61 @@ describe ('Application Model', function () {
       expect(application.defaultRegions.gce).toBe('us-central-1');
     });
 
-    it('sets default credentials and region from security group', function () {
+    it('sets default credentials and region from security group', function() {
       const serverGroups: any[] = [],
         loadBalancers: ILoadBalancer[] = [],
-        securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'cf', accountName: 'test', region: 'us-south-7' }];
+        securityGroupsByApplicationName: any[] = [
+          { name: 'deck-test', provider: 'cf', accountName: 'test', region: 'us-south-7' },
+        ];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.cf).toBe('test');
       expect(application.defaultRegions.cf).toBe('us-south-7');
     });
 
-    it('does not set defaults when multiple values found for the same provider', function () {
+    it('does not set defaults when multiple values found for the same provider', function() {
       const serverGroups: IServerGroup[] = [],
-        loadBalancers: ILoadBalancer[] = [ { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-west-1', account: 'prod' } ],
-        securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' }];
+        loadBalancers: ILoadBalancer[] = [
+          { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-west-1', account: 'prod' },
+        ],
+        securityGroupsByApplicationName: any[] = [
+          { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' },
+        ];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBeUndefined();
       expect(application.defaultRegions.aws).toBeUndefined();
     });
 
-    it('sets default region or default credentials if possible', function () {
+    it('sets default region or default credentials if possible', function() {
       const serverGroups: IServerGroup[] = [],
-        loadBalancers: ILoadBalancer[] = [{ name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-east-1', account: 'prod' }],
-        securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' }];
+        loadBalancers: ILoadBalancer[] = [
+          { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-east-1', account: 'prod' },
+        ],
+        securityGroupsByApplicationName: any[] = [
+          { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' },
+        ];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBeUndefined();
       expect(application.defaultRegions.aws).toBe('us-east-1');
     });
 
-    it('sets default credentials, even if region cannot be set', function () {
+    it('sets default credentials, even if region cannot be set', function() {
       const serverGroups: IServerGroup[] = [],
-        loadBalancers: ILoadBalancer[] = [{ name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpc0', region: 'us-east-1', account: 'test' }],
-        securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-1' }];
+        loadBalancers: ILoadBalancer[] = [
+          { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpc0', region: 'us-east-1', account: 'test' },
+        ],
+        securityGroupsByApplicationName: any[] = [
+          { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-1' },
+        ];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBe('test');
       expect(application.defaultRegions.aws).toBeUndefined();
     });
 
-    it('should set defaults for multiple providers', function () {
+    it('should set defaults for multiple providers', function() {
       const serverGroups: any[] = [
           {
             name: 'deck-test-v001',
@@ -276,10 +299,20 @@ describe ('Application Model', function () {
             provider: 'gce',
             instances: [],
             instanceCounts: { up: 0, down: 0, starting: 0, unknown: 0, outOfService: 0 },
-          }
+          },
         ],
-        loadBalancers: ILoadBalancer[] = [{ name: 'deck-frontend', account: 'gce-test', cloudProvider: 'gce', region: 'us-central-1', serverGroups: [] }],
-        securityGroupsByApplicationName: any[] = [{ name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-2' }];
+        loadBalancers: ILoadBalancer[] = [
+          {
+            name: 'deck-frontend',
+            account: 'gce-test',
+            cloudProvider: 'gce',
+            region: 'us-central-1',
+            serverGroups: [],
+          },
+        ],
+        securityGroupsByApplicationName: any[] = [
+          { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-2' },
+        ];
 
       configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBe('test');

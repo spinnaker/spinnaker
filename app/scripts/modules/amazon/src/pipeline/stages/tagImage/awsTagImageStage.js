@@ -4,10 +4,9 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.amazon.pipeline.stage.tagImageStage', [
-  PIPELINE_CONFIG_PROVIDER,
-])
-  .config(function (pipelineConfigProvider) {
+module.exports = angular
+  .module('spinnaker.amazon.pipeline.stage.tagImageStage', [PIPELINE_CONFIG_PROVIDER])
+  .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'upsertImageTags',
       cloudProvider: 'aws',

@@ -21,9 +21,9 @@ export interface ICanaryScoresProps {
 
 @BindAll()
 export class CanaryScores extends React.Component<ICanaryScoresProps> {
-
   public render() {
-    const hasExpressions = this.isExpression(this.props.unhealthyScore) || this.isExpression(this.props.successfulScore);
+    const hasExpressions =
+      this.isExpression(this.props.unhealthyScore) || this.isExpression(this.props.successfulScore);
 
     let successful: number, unhealthy: number;
     if (!hasExpressions) {
@@ -40,9 +40,7 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
             <div className="col-md-2 col-md-offset-1 sm-label-right">
               <label>Canary Scores</label>
             </div>
-            <div className="col-md-9 form-control-static">
-              Expressions are currently being used for canary scores.
-            </div>
+            <div className="col-md-9 form-control-static">Expressions are currently being used for canary scores.</div>
           </div>
         )}
         {!hasExpressions && (
@@ -50,7 +48,7 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
             <div className="form-group">
               <div className="col-md-2 col-md-offset-1 sm-label-right">
                 <label>{this.props.unhealthyLabel || 'Unhealthy Score'}</label>
-                <HelpField id={this.props.unhealthyHelpFieldId || 'pipeline.config.canary.unhealthyScore'}/>
+                <HelpField id={this.props.unhealthyHelpFieldId || 'pipeline.config.canary.unhealthyScore'} />
               </div>
               <div className="col-md-2">
                 <input
@@ -58,12 +56,14 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                   required={true}
                   value={Number.isNaN(unhealthy) ? '' : unhealthy}
                   onChange={this.handleUnhealthyChange}
-                  className={`form-control input-sm ${this.isUnhealthyScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-min'}`}
+                  className={`form-control input-sm ${
+                    this.isUnhealthyScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-min'
+                  }`}
                 />
               </div>
               <div className="col-md-2 col-md-offset-1 sm-label-right">
                 <label>{this.props.successfulLabel || 'Successful Score'}</label>
-                <HelpField id={this.props.successfulHelpFieldId || 'pipeline.config.canary.successfulScore'}/>
+                <HelpField id={this.props.successfulHelpFieldId || 'pipeline.config.canary.successfulScore'} />
               </div>
               <div className="col-md-2">
                 <input
@@ -71,17 +71,25 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                   required={true}
                   value={Number.isNaN(successful) ? '' : successful}
                   onChange={this.handleSuccessfulChange}
-                  className={`form-control input-sm ${this.isSuccessfulScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-max'}`}
+                  className={`form-control input-sm ${
+                    this.isSuccessfulScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-max'
+                  }`}
                 />
               </div>
             </div>
             <div className="row">
               <div className="col-md-offset-1 col-md-10">
                 <div className="progress">
-                  <div className="progress-bar progress-bar-danger" style={{ width: `${invalid ? 0 : unhealthy}%` }}/>
-                  <div className="progress-bar progress-bar-warning" style={{ width: `${invalid ? 0 : 100 - (unhealthy + (100 - successful))}%` }}/>
-                  <div className="progress-bar progress-bar-success" style={{ width: `${invalid ? 0 : 100 - successful}%` }}/>
-                  <div className="progress-bar progress-bar-warning" style={{ width: `${invalid ? 100 : 0}%` }}/>
+                  <div className="progress-bar progress-bar-danger" style={{ width: `${invalid ? 0 : unhealthy}%` }} />
+                  <div
+                    className="progress-bar progress-bar-warning"
+                    style={{ width: `${invalid ? 0 : 100 - (unhealthy + (100 - successful))}%` }}
+                  />
+                  <div
+                    className="progress-bar progress-bar-success"
+                    style={{ width: `${invalid ? 0 : 100 - successful}%` }}
+                  />
+                  <div className="progress-bar progress-bar-warning" style={{ width: `${invalid ? 100 : 0}%` }} />
                 </div>
               </div>
             </div>

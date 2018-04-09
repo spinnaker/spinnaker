@@ -3,24 +3,18 @@ import { mock } from 'angular';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/pipeline/filter/executionFilter.model';
 import { EXECUTION_FILTER_SERVICE, ExecutionFilterService } from './executionFilter.service';
 
-describe('Service: executionFilterService', function () {
-
+describe('Service: executionFilterService', function() {
   let service: ExecutionFilterService;
   let model: ExecutionFilterModel;
 
   beforeEach(function() {
-    mock.module(
-      EXECUTION_FILTER_SERVICE,
-      EXECUTION_FILTER_MODEL
-    );
-    mock.inject(
-      function (executionFilterService: ExecutionFilterService, executionFilterModel: ExecutionFilterModel) {
-        service = executionFilterService;
-        model = executionFilterModel;
-        executionFilterModel.asFilterModel.groups = [];
-        spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
-      }
-    );
+    mock.module(EXECUTION_FILTER_SERVICE, EXECUTION_FILTER_MODEL);
+    mock.inject(function(executionFilterService: ExecutionFilterService, executionFilterModel: ExecutionFilterModel) {
+      service = executionFilterService;
+      model = executionFilterModel;
+      executionFilterModel.asFilterModel.groups = [];
+      spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
+    });
   });
 
   describe('Sorting', () => {
@@ -36,5 +30,4 @@ describe('Service: executionFilterService', function () {
       expect(sorted).toEqual([firstGroup, secondGroup, strategy, adHocA, adHocB]);
     });
   });
-
 });

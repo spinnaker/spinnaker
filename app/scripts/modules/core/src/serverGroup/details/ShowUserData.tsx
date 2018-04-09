@@ -14,7 +14,6 @@ export interface IShowUserDataState {
 
 @BindAll()
 export class ShowUserData extends React.Component<IShowUserDataProps, IShowUserDataState> {
-
   constructor(props: IShowUserDataProps) {
     super(props);
     this.state = {
@@ -36,21 +35,24 @@ export class ShowUserData extends React.Component<IShowUserDataProps, IShowUserD
 
     return (
       <span>
-        <a className="clickable" onClick={this.open}>Show User Data</a>
+        <a className="clickable" onClick={this.open}>
+          Show User Data
+        </a>
         <Modal show={show} onHide={this.close}>
           <Modal.Header closeButton={true}>
-            <h3>{title || 'User Data'} for {serverGroupName}</h3>
+            <h3>
+              {title || 'User Data'} for {serverGroupName}
+            </h3>
           </Modal.Header>
           <Modal.Body>
             <div className="modal-body">
-              <textarea readOnly={true} rows={15} className="code">{userData}</textarea>
+              <textarea readOnly={true} rows={15} className="code">
+                {userData}
+              </textarea>
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <button
-              className="btn btn-default"
-              onClick={this.close}
-            >
+            <button className="btn btn-default" onClick={this.close}>
               Close
             </button>
           </Modal.Footer>

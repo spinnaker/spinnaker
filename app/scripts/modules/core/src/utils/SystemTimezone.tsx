@@ -6,6 +6,6 @@ import { SETTINGS } from 'core/config/settings';
 export class SystemTimezone extends React.Component<any> {
   public render() {
     const zone = SETTINGS.defaultTimeZone;
-    return (<span>{moment.tz(Date.now(), zone).zoneAbbr()}</span>);
+    return <span>{moment.tz(Date.now(), zone).zoneAbbr()}</span>;
   }
 }

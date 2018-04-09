@@ -12,16 +12,20 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
   'ngInject';
 
   let visualizerEnabled = false;
-  let VisualizerPlugin: { new(): UIRouterPlugin } = null;
+  let VisualizerPlugin: { new (): UIRouterPlugin } = null;
 
   const loadVisualizer = () => {
     // Auto-collapse certain states with lots of children
-    const collapseGlobs = ['home.*', 'home.*.application.*', 'home.*.application.insight.*'].map(globStr => new Glob(globStr));
-    const collapsedStates = $uiRouter.stateRegistry.get().filter(state => collapseGlobs.some(glob => glob.matches(state.name)));
-    collapsedStates.forEach(state => (state.$$state() as any)._collapsed = true);
+    const collapseGlobs = ['home.*', 'home.*.application.*', 'home.*.application.insight.*'].map(
+      globStr => new Glob(globStr),
+    );
+    const collapsedStates = $uiRouter.stateRegistry
+      .get()
+      .filter(state => collapseGlobs.some(glob => glob.matches(state.name)));
+    collapsedStates.forEach(state => ((state.$$state() as any)._collapsed = true));
 
     return System.import('@uirouter/visualizer')
-      .then((vis: any) => VisualizerPlugin = vis.Visualizer)
+      .then((vis: any) => (VisualizerPlugin = vis.Visualizer))
       .then(createVisualizer);
   };
 
@@ -61,4 +65,3 @@ bootstrapModule.run(($uiRouter: UIRouter) => {
   (window as any).vis = createVisualizer;
   $uiRouter.transitionService.onBefore({}, paramChangedHelper('vis', toggleVisualizer));
 });
-

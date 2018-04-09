@@ -32,7 +32,9 @@ class AppengineStageAllocationLabelCtrl implements IController {
         break;
       case 'targetCoordinate':
         if (this.allocationDescription.cluster && this.allocationDescription.target) {
-          const targetLabel = AppengineStageAllocationLabelCtrl.mapTargetCoordinateToLabel(this.allocationDescription.target);
+          const targetLabel = AppengineStageAllocationLabelCtrl.mapTargetCoordinateToLabel(
+            this.allocationDescription.target,
+          );
           this.inputViewValue = `${targetLabel} (${this.allocationDescription.cluster})`;
         } else {
           this.inputViewValue = null;
@@ -92,14 +94,14 @@ class AppengineStageAllocationConfigurationRow implements IComponentOptions {
     allocationDescription: '<',
     removeAllocation: '&',
     serverGroupOptions: '<',
-    onAllocationChange: '&'
+    onAllocationChange: '&',
   };
   public controller: any = AppengineStageAllocationConfigurationRowCtrl;
   public templateUrl = require('./stageAllocationConfigurationRow.component.html');
 }
 
-export const APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW = 'spinnaker.appengine.stageAllocationConfigurationRow.component';
+export const APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW =
+  'spinnaker.appengine.stageAllocationConfigurationRow.component';
 module(APPENGINE_STAGE_ALLOCATION_CONFIGURATION_ROW, [])
   .component('appengineStageAllocationConfigurationRow', new AppengineStageAllocationConfigurationRow())
   .component('appengineStageAllocationLabel', new AppengineStageAllocationLabel());
-

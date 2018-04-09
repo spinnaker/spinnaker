@@ -2,24 +2,27 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.configure.network', [
-])
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.configure.network', [])
   .controller('dcosServerGroupNetworkController', function($scope) {
-
     var HOST_NETWORK = 'HOST';
     var BRIDGE_NETWORK = 'BRIDGE';
     var USER_NETWORK = 'USER';
 
-    this.networkTypes = [{
+    this.networkTypes = [
+      {
         type: HOST_NETWORK,
-        name: 'Host'
-      }, {
+        name: 'Host',
+      },
+      {
         type: BRIDGE_NETWORK,
-        name: 'Bridge'
-      }, {
+        name: 'Bridge',
+      },
+      {
         type: USER_NETWORK,
-        name: 'Virtual'
-    }];
+        name: 'Virtual',
+      },
+    ];
 
     this.isHostNetwork = function(serviceEndpoint) {
       return serviceEndpoint === HOST_NETWORK || serviceEndpoint.networkType === HOST_NETWORK;
@@ -55,7 +58,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.configure.network', 
     };
 
     this.changeNetworkType = function() {
-      $scope.command.serviceEndpoints.forEach (function(endpoint) {
+      $scope.command.serviceEndpoints.forEach(function(endpoint) {
         endpoint.networkType = $scope.command.networkType;
       });
     };

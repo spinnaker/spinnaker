@@ -43,7 +43,7 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
     } else {
       $state.go('^.^.pipelineConfig', { pipelineId: id });
     }
-  };
+  }
 
   public render() {
     const modal = (
@@ -56,28 +56,21 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
     );
     if (this.props.asLink) {
       return (
-        <a
-          className="clickable"
-          onClick={this.createPipeline}
-        >
+        <a className="clickable" onClick={this.createPipeline}>
           Configure a new pipeline
           {modal}
         </a>
       );
     }
     return (
-      <button
-        className="btn btn-sm btn-default"
-        style={{ marginRight: '5px' }}
-        onClick={this.createPipeline}
-      >
-        <span className="glyphicon glyphicon-plus-sign visible-xl-inline"/>
+      <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={this.createPipeline}>
+        <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
         <Tooltip value="Create Pipeline or Strategy">
-          <span className="glyphicon glyphicon-plus-sign hidden-xl-inline"/>
+          <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
         </Tooltip>
         <span className="visible-xl-inline"> Create</span>
         {modal}
       </button>
-    )
+    );
   }
 }

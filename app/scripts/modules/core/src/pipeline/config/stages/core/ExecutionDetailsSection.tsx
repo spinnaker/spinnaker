@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { IExecutionDetailsComponentProps } from 'core/domain';
 
-export interface IExecutionDetailsSectionProps extends IExecutionDetailsComponentProps, IExecutionDetailsSectionWrapperProps {};
+export interface IExecutionDetailsSectionProps
+  extends IExecutionDetailsComponentProps,
+    IExecutionDetailsSectionWrapperProps {}
 
 export interface IExecutionDetailsSectionWrapperProps {
   children?: any;
@@ -9,13 +11,11 @@ export interface IExecutionDetailsSectionWrapperProps {
   current: string;
 }
 
-export const ExecutionDetailsSection: React.StatelessComponent<IExecutionDetailsSectionWrapperProps> = (props: IExecutionDetailsSectionWrapperProps): JSX.Element => {
+export const ExecutionDetailsSection: React.StatelessComponent<IExecutionDetailsSectionWrapperProps> = (
+  props: IExecutionDetailsSectionWrapperProps,
+): JSX.Element => {
   if (props.current === props.name) {
-    return (
-      <div className="step-section-details">
-        {props.children}
-      </div>
-    );
+    return <div className="step-section-details">{props.children}</div>;
   }
   return null;
-}
+};

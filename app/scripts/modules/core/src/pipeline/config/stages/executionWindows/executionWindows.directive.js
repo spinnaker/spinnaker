@@ -2,14 +2,15 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.directive', [
-  require('./executionWindows.controller.js').name,
-])
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.executionWindows.directive', [
+    require('./executionWindows.controller.js').name,
+  ])
   .directive('executionWindows', function() {
     return {
       restrict: 'E',
       scope: {
-        stage: '='
+        stage: '=',
       },
       templateUrl: require('./executionWindows.html'),
       controller: 'ExecutionWindowsCtrl',

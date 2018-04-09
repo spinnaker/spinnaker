@@ -21,11 +21,10 @@ export interface IConfigBinLinkState {
 
 @BindAll()
 export class ConfigBinLink extends React.Component<IConfigBinLinkProps, IConfigBinLinkState> {
-
   constructor(props: IConfigBinLinkProps) {
     super(props);
     this.state = {
-      modalOpen: false
+      modalOpen: false,
     };
   }
 
@@ -43,8 +42,10 @@ export class ConfigBinLink extends React.Component<IConfigBinLinkProps, IConfigB
     const linkText = this.props.linkText || 'Configure available metrics';
     return (
       <div>
-        <a className="clickable" onClick={this.showModal}>{linkText}</a> <HelpField id="titus.configBin.metrics"/>
-
+        <a className="clickable" onClick={this.showModal}>
+          {linkText}
+        </a>{' '}
+        <HelpField id="titus.configBin.metrics" />
         {this.state.modalOpen && (
           <ConfigBinModal
             application={application}
@@ -60,5 +61,3 @@ export class ConfigBinLink extends React.Component<IConfigBinLinkProps, IConfigB
     );
   }
 }
-
-

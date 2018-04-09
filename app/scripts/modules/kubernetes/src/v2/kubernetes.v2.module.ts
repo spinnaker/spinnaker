@@ -42,7 +42,7 @@ import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transf
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
-templates.keys().forEach(function (key) {
+templates.keys().forEach(function(key) {
   templates(key);
 });
 
@@ -89,57 +89,57 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_SHOW_MANIFEST_YAML,
   KUBERNETES_SHOW_MANIFEST_DETAILS,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-    cloudProviderRegistryProvider.registerProvider('kubernetes', {
-      name: 'Kubernetes',
-      skin: 'v2',
-      logo: {
-        path: require('../logo/kubernetes.icon.svg'),
-      },
-      serverGroup: {
-        cloneServerGroupController: 'kubernetesManifestWizardCtrl',
-        cloneServerGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
-        commandBuilder: 'kubernetesV2ServerGroupCommandBuilder',
-        detailsController: 'kubernetesV2ServerGroupDetailsCtrl',
-        detailsTemplateUrl: require('./serverGroup/details/details.html'),
-        transformer: 'kubernetesV2ServerGroupTransformer',
-      },
-      serverGroupManager: {
-        detailsTemplateUrl: require('./serverGroupManager/details/details.html'),
-        detailsController: 'kubernetesV2ServerGroupManagerDetailsCtrl',
-      },
-      loadBalancer: {
-        createLoadBalancerController: 'kubernetesManifestWizardCtrl',
-        createLoadBalancerTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
-        detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
-        detailsTemplateUrl: require('./loadBalancer/details/details.html'),
-        transformer: 'kubernetesV2LoadBalancerTransformer',
-      },
-      securityGroup: {
-        reader: 'kubernetesSecurityGroupReader',
-        createSecurityGroupController: 'kubernetesManifestWizardCtrl',
-        createSecurityGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
-        detailsController: 'kubernetesV2SecurityGroupDetailsCtrl',
-        detailsTemplateUrl: require('./securityGroup/details/details.html'),
-        transformer: 'kubernetesV2SecurityGroupTransformer',
-      },
-      instance: {
-        detailsController: 'kubernetesV2InstanceDetailsCtrl',
-        detailsTemplateUrl: require('./instance/details/details.html'),
-      },
-      unsupportedStageTypes: [
-        'deploy',
-        'destroyServerGroup',
-        'disableCluster',
-        'disableServerGroup',
-        'enableServerGroup',
-        'findImage',
-        'resizeServerGroup',
-        'rollbackCluster',
-        'runJob',
-        'scaleDown',
-        'scaleDownCluster',
-        'script',
-        'shrinkCluster',
-      ],
-    });
+  cloudProviderRegistryProvider.registerProvider('kubernetes', {
+    name: 'Kubernetes',
+    skin: 'v2',
+    logo: {
+      path: require('../logo/kubernetes.icon.svg'),
+    },
+    serverGroup: {
+      cloneServerGroupController: 'kubernetesManifestWizardCtrl',
+      cloneServerGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
+      commandBuilder: 'kubernetesV2ServerGroupCommandBuilder',
+      detailsController: 'kubernetesV2ServerGroupDetailsCtrl',
+      detailsTemplateUrl: require('./serverGroup/details/details.html'),
+      transformer: 'kubernetesV2ServerGroupTransformer',
+    },
+    serverGroupManager: {
+      detailsTemplateUrl: require('./serverGroupManager/details/details.html'),
+      detailsController: 'kubernetesV2ServerGroupManagerDetailsCtrl',
+    },
+    loadBalancer: {
+      createLoadBalancerController: 'kubernetesManifestWizardCtrl',
+      createLoadBalancerTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
+      detailsController: 'kubernetesV2LoadBalancerDetailsCtrl',
+      detailsTemplateUrl: require('./loadBalancer/details/details.html'),
+      transformer: 'kubernetesV2LoadBalancerTransformer',
+    },
+    securityGroup: {
+      reader: 'kubernetesSecurityGroupReader',
+      createSecurityGroupController: 'kubernetesManifestWizardCtrl',
+      createSecurityGroupTemplateUrl: require('./manifest/wizard/manifestWizard.html'),
+      detailsController: 'kubernetesV2SecurityGroupDetailsCtrl',
+      detailsTemplateUrl: require('./securityGroup/details/details.html'),
+      transformer: 'kubernetesV2SecurityGroupTransformer',
+    },
+    instance: {
+      detailsController: 'kubernetesV2InstanceDetailsCtrl',
+      detailsTemplateUrl: require('./instance/details/details.html'),
+    },
+    unsupportedStageTypes: [
+      'deploy',
+      'destroyServerGroup',
+      'disableCluster',
+      'disableServerGroup',
+      'enableServerGroup',
+      'findImage',
+      'resizeServerGroup',
+      'rollbackCluster',
+      'runJob',
+      'scaleDown',
+      'scaleDownCluster',
+      'script',
+      'shrinkCluster',
+    ],
   });
+});

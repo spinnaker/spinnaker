@@ -8,36 +8,50 @@ import {
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WRITER,
-  ServerGroupTemplates
+  ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller', [
-  require('../configure/configure.dcos.module.js').name,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER,
-  SERVER_GROUP_WRITER,
-  require('../paramsMixin.js').name,
-])
-  .controller('dcosServerGroupDetailsController', function ($scope, $state, app, serverGroup,
-                                                                  serverGroupReader, $uibModal, serverGroupWriter,
-                                                                  serverGroupWarningMessageService,
-                                                                  dcosServerGroupCommandBuilder, dcosServerGroupParamsMixin,
-                                                                  confirmationModalService, dcosProxyUiService) {
+module.exports = angular
+  .module('spinnaker.dcos.serverGroup.details.controller', [
+    require('../configure/configure.dcos.module.js').name,
+    CONFIRMATION_MODAL_SERVICE,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+    SERVER_GROUP_READER,
+    SERVER_GROUP_WRITER,
+    require('../paramsMixin.js').name,
+  ])
+  .controller('dcosServerGroupDetailsController', function(
+    $scope,
+    $state,
+    app,
+    serverGroup,
+    serverGroupReader,
+    $uibModal,
+    serverGroupWriter,
+    serverGroupWarningMessageService,
+    dcosServerGroupCommandBuilder,
+    dcosServerGroupParamsMixin,
+    confirmationModalService,
+    dcosProxyUiService,
+  ) {
     let application = app;
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
     function extractServerGroupSummary() {
-      var summary = _.find(application.serverGroups.data, function (toCheck) {
-        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
+      var summary = _.find(application.serverGroups.data, function(toCheck) {
+        return (
+          toCheck.name === serverGroup.name &&
+          toCheck.account === serverGroup.accountId &&
+          toCheck.region === serverGroup.region
+        );
       });
       if (!summary) {
-        application.loadBalancers.data.some(function (loadBalancer) {
+        application.loadBalancers.data.some(function(loadBalancer) {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
-            return loadBalancer.serverGroups.some(function (possibleServerGroup) {
+            return loadBalancer.serverGroups.some(function(possibleServerGroup) {
               if (possibleServerGroup.name === serverGroup.name) {
                 summary = possibleServerGroup;
                 return true;
@@ -50,7 +64,12 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
     }
 
     this.uiLink = function uiLink() {
-      return dcosProxyUiService.buildLink($scope.serverGroup.clusterUrl, $scope.serverGroup.account, $scope.serverGroup.region, $scope.serverGroup.name);
+      return dcosProxyUiService.buildLink(
+        $scope.serverGroup.clusterUrl,
+        $scope.serverGroup.account,
+        $scope.serverGroup.region,
+        $scope.serverGroup.name,
+      );
     };
 
     this.showJson = function showJson() {
@@ -58,7 +77,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
       $scope.userData = $scope.serverGroup.json;
       $uibModal.open({
         templateUrl: ServerGroupTemplates.userData,
-        scope: $scope
+        scope: $scope,
       });
     };
 
@@ -74,16 +93,16 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
-        cancelLoader();
+      return serverGroupReader
+        .getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+        .then(function(details) {
+          cancelLoader();
 
-        angular.extend(details, summary);
+          angular.extend(details, summary);
 
-        $scope.serverGroup = details;
-        normalizeDeploymentStatus($scope.serverGroup);
-      },
-        autoClose
-      );
+          $scope.serverGroup = details;
+          normalizeDeploymentStatus($scope.serverGroup);
+        }, autoClose);
     }
 
     function autoClose() {
@@ -91,7 +110,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     function cancelLoader() {
@@ -106,10 +125,10 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
       }
     });
 
-    this.isLastServerGroupInRegion = function (serverGroup, application ) {
+    this.isLastServerGroupInRegion = function(serverGroup, application) {
       try {
-        var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
-        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
+        var cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
+        return _.filter(cluster.serverGroups, { region: serverGroup.region }).length === 1;
       } catch (error) {
         return false;
       }
@@ -123,16 +142,17 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.destroyServerGroup(
+      var submitMethod = params =>
+        serverGroupWriter.destroyServerGroup(
           serverGroup,
           application,
-          angular.extend(params, dcosServerGroupParamsMixin.destroyServerGroup(serverGroup, application))
-      );
+          angular.extend(params, dcosServerGroupParamsMixin.destroyServerGroup(serverGroup, application)),
+        );
 
       var stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
-        region: serverGroup.region
+        region: serverGroup.region,
       };
 
       var confirmationModalParams = {
@@ -143,7 +163,7 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
         taskMonitorConfig: taskMonitor,
         platformHealthType: 'DCOS',
         submitMethod: submitMethod,
-        onTaskComplete: function () {
+        onTaskComplete: function() {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
           }
@@ -160,14 +180,15 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
 
       var taskMonitor = {
         application: application,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
-      var submitMethod = (params) => serverGroupWriter.disableServerGroup(
+      var submitMethod = params =>
+        serverGroupWriter.disableServerGroup(
           serverGroup,
           application,
-          angular.extend(params, dcosServerGroupParamsMixin.disableServerGroup(serverGroup, application))
-      );
+          angular.extend(params, dcosServerGroupParamsMixin.disableServerGroup(serverGroup, application)),
+        );
 
       var confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
@@ -187,9 +208,13 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
         templateUrl: require('./resize/resize.html'),
         controller: 'dcosResizeServerGroupController as ctrl',
         resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return application; }
-        }
+          serverGroup: function() {
+            return $scope.serverGroup;
+          },
+          application: function() {
+            return application;
+          },
+        },
       });
     };
 
@@ -199,12 +224,19 @@ module.exports = angular.module('spinnaker.dcos.serverGroup.details.controller',
         controller: 'dcosCloneServerGroupController as ctrl',
         size: 'lg',
         resolve: {
-          title: function() { return 'Clone ' + serverGroup.name; },
-          application: function() { return application; },
-          serverGroup: function() { return serverGroup; },
-          serverGroupCommand: function() { return dcosServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
-        }
+          title: function() {
+            return 'Clone ' + serverGroup.name;
+          },
+          application: function() {
+            return application;
+          },
+          serverGroup: function() {
+            return serverGroup;
+          },
+          serverGroupCommand: function() {
+            return dcosServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup);
+          },
+        },
       });
     };
-  }
-);
+  });

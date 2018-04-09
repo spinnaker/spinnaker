@@ -3,10 +3,10 @@ import { IComponentOptions, module } from 'angular';
 const resizeCapacityComponent: IComponentOptions = {
   bindings: {
     command: '=',
-    currentSize: '='
+    currentSize: '=',
   },
   templateUrl: require('./resizeCapacity.component.html'),
-  controller: () => {}
+  controller: () => {},
 };
 
 export const ECS_RESIZE_CAPACITY_COMPONENT = 'spinnaker.ecs.serverGroup.resize';

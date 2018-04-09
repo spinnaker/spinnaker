@@ -8,22 +8,32 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
-  RECENT_HISTORY_SERVICE
+  RECENT_HISTORY_SERVICE,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-  INSTANCE_WRITE_SERVICE,
-  INSTANCE_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  RECENT_HISTORY_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('cfInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal,
-                                                 instanceWriter, confirmationModalService, recentHistoryService,
-                                                 cloudProviderRegistry, instanceReader, instance, app) {
-
+module.exports = angular
+  .module('spinnaker.instance.detail.cf.controller', [
+    require('@uirouter/angularjs').default,
+    require('angular-ui-bootstrap'),
+    INSTANCE_WRITE_SERVICE,
+    INSTANCE_READ_SERVICE,
+    CONFIRMATION_MODAL_SERVICE,
+    RECENT_HISTORY_SERVICE,
+    CLOUD_PROVIDER_REGISTRY,
+  ])
+  .controller('cfInstanceDetailsCtrl', function(
+    $scope,
+    $q,
+    $state,
+    $uibModal,
+    instanceWriter,
+    confirmationModalService,
+    recentHistoryService,
+    cloudProviderRegistry,
+    instanceReader,
+    instance,
+    app,
+  ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('cf', 'instance.detailsTemplateUrl');
 
@@ -41,15 +51,14 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(
-        function(metric) {
-          return metric.type !== 'cf' || metric.state !== 'Unknown';
-        });
+      var displayableMetrics = instance.health.filter(function(metric) {
+        return metric.type !== 'cf' || metric.state !== 'Unknown';
+      });
 
       // backfill details where applicable
       if (latest.health) {
-        displayableMetrics.forEach(function (metric) {
-          var detailsMatch = latest.health.filter(function (latestHealth) {
+        displayableMetrics.forEach(function(metric) {
+          var detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -70,8 +79,8 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         account = instance.account;
         region = instance.region;
       } else {
-        app.serverGroups.data.some(function (serverGroup) {
-          return serverGroup.instances.some(function (possibleInstance) {
+        app.serverGroups.data.some(function(serverGroup) {
+          return serverGroup.instances.some(function(possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
@@ -84,8 +93,8 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another application
-          app.loadBalancers.data.some(function (loadBalancer) {
-            return loadBalancer.instances.some(function (possibleInstance) {
+          app.loadBalancers.data.some(function(loadBalancer) {
+            return loadBalancer.instances.some(function(possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
                 loadBalancers = [loadBalancer.name];
@@ -98,12 +107,12 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
           });
           if (!instanceSummary) {
             // perhaps it is in a disabled server group via a load balancer
-            app.loadBalancers.data.some(function (loadBalancer) {
-              return loadBalancer.serverGroups.some(function (serverGroup) {
+            app.loadBalancers.data.some(function(loadBalancer) {
+              return loadBalancer.serverGroups.some(function(serverGroup) {
                 if (!serverGroup.isDisabled) {
                   return false;
                 }
-                return serverGroup.instances.some(function (possibleInstance) {
+                return serverGroup.instances.some(function(possibleInstance) {
                   if (possibleInstance.id === instance.instanceId) {
                     instanceSummary = possibleInstance;
                     loadBalancers = [loadBalancer.name];
@@ -137,9 +146,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
           $scope.instance.internalDnsName = $scope.instance.instanceId;
 
           // TODO Add link to CF console outputs
-        },
-          autoClose
-        );
+        }, autoClose);
       }
 
       if (!instanceSummary) {
@@ -154,7 +161,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     this.canRegisterWithLoadBalancer = function() {
@@ -197,14 +204,14 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
-          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+          if ($state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
             $state.go('^');
           }
-        }
+        },
       };
 
-      var submitMethod = function () {
-        let params = {cloudProvider: 'cf'};
+      var submitMethod = function() {
+        let params = { cloudProvider: 'cf' };
 
         if (instance.serverGroup) {
           params.managedInstanceGroupName = instance.serverGroup;
@@ -219,7 +226,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         account: instance.account,
         provider: 'cf',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -228,10 +235,10 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Rebooting ' + instance.instanceId
+        title: 'Rebooting ' + instance.instanceId,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.rebootInstance(instance, app);
       };
 
@@ -241,7 +248,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         account: instance.account,
         provider: 'cf',
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -251,10 +258,10 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames
+        title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
           cloudProvider: 'cf',
           networkLoadBalancerNames: instance.loadBalancers,
@@ -266,7 +273,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -276,10 +283,10 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames
+        title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
           cloudProvider: 'cf',
           networkLoadBalancerNames: instance.loadBalancers,
@@ -292,7 +299,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         provider: 'cf',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -301,10 +308,10 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Enabling ' + instance.instanceId + ' in discovery'
+        title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -313,7 +320,7 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
@@ -322,10 +329,10 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
 
       var taskMonitor = {
         application: app,
-        title: 'Disabling ' + instance.instanceId + ' in discovery'
+        title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -335,21 +342,20 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
         provider: 'cf',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       });
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
       var instance = $scope.instance;
-      return (instance.health.some(function (health) {
+      return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
-      })
-      );
+      });
     };
 
-    let initialize = app.isStandalone ?
-      retrieveInstance() :
-      $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
+    let initialize = app.isStandalone
+      ? retrieveInstance()
+      : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:
@@ -362,6 +368,4 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
     });
 
     $scope.account = instance.account;
-
-  }
-);
+  });

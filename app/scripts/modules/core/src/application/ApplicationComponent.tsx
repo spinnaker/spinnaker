@@ -15,7 +15,6 @@ export interface IApplicationComponentProps {
 
 @BindAll()
 export class ApplicationComponent extends React.Component<IApplicationComponentProps> {
-
   constructor(props: IApplicationComponentProps) {
     super(props);
     this.mountApplication(props.app);
@@ -25,7 +24,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
     this.unmountApplication(this.props.app);
   }
 
-  public componentWillReceiveProps(nextProps: IApplicationComponentProps):  void {
+  public componentWillReceiveProps(nextProps: IApplicationComponentProps): void {
     this.unmountApplication(this.props.app);
     this.mountApplication(nextProps.app);
   }
@@ -56,11 +55,13 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
         {app.notFound && (
           <div>
             <h2 className="text-center">Application Not Found</h2>
-            <p className="text-center" style={{ marginBottom: '20px' }}>Please check your URL - we can't find any data for <em>{app.name}</em>.</p>
+            <p className="text-center" style={{ marginBottom: '20px' }}>
+              Please check your URL - we can't find any data for <em>{app.name}</em>.
+            </p>
           </div>
-          )}
+        )}
         <div className="container scrollable-columns">
-          <UIView className="secondary-panel" name="insight"/>
+          <UIView className="secondary-panel" name="insight" />
         </div>
       </div>
     );

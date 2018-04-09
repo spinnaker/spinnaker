@@ -5,11 +5,12 @@ import _ from 'lodash';
 
 import { SUBNET_READ_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.directive', [
-  SUBNET_READ_SERVICE,
-  require('../common/selectField.component.js').name
-])
-  .directive('osSubnetSelectField', function (subnetReader) {
+module.exports = angular
+  .module('spinnaker.openstack.subnet.subnetSelectField.directive', [
+    SUBNET_READ_SERVICE,
+    require('../common/selectField.component.js').name,
+  ])
+  .directive('osSubnetSelectField', function(subnetReader) {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -23,14 +24,14 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
         readOnly: '=',
         allowNoSelection: '=',
         noOptionsMessage: '@',
-        noSelectionMessage: '@'
+        noSelectionMessage: '@',
       },
       link: function(scope) {
         _.defaults(scope, {
           label: 'Subnet',
           labelColumnSize: 3,
           valueColumnSize: 7,
-          options: [{label: scope.model, value: scope.model}],
+          options: [{ label: scope.model, value: scope.model }],
           filter: {},
           backingCache: 'subnets',
 
@@ -38,8 +39,12 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
             return subnetReader.listSubnetsByProvider('openstack').then(function(subnets) {
               scope.options = _.chain(subnets)
                 .filter(scope.filter || {})
-                .map(function(s) { return {label: s.name, value: s.id}; })
-                .sortBy(function(o) { return o.label; })
+                .map(function(s) {
+                  return { label: s.name, value: s.id };
+                })
+                .sortBy(function(o) {
+                  return o.label;
+                })
                 .value();
 
               return scope.options;
@@ -48,14 +53,19 @@ module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.di
 
           onValueChanged: function(newValue) {
             scope.model = newValue;
-            if( scope.onChange ) {
-              scope.onChange({subnet: newValue});
+            if (scope.onChange) {
+              scope.onChange({ subnet: newValue });
             }
-          }
-
+          },
         });
 
-        scope.$watch('filter', function() { scope.$broadcast('updateOptions'); }, true);
-      }
+        scope.$watch(
+          'filter',
+          function() {
+            scope.$broadcast('updateOptions');
+          },
+          true,
+        );
+      },
     };
-});
+  });

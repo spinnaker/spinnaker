@@ -5,21 +5,30 @@
  ServerGroupConfigurationService is not mocked out to verify behavior that existed before it was refactored into
  existence.
  */
-describe('Controller: awsCloneServerGroup', function () {
+describe('Controller: awsCloneServerGroup', function() {
   const AccountServiceFixture = require('../AccountServiceFixtures.js');
   const securityGroupReaderFixture = require('./SecurityGroupServiceFixtures.js');
 
-  beforeEach(
-    window.module(
-      require('./CloneServerGroup.aws.controller.js').name
-    )
-  );
+  beforeEach(window.module(require('./CloneServerGroup.aws.controller.js').name));
 
   beforeEach(function() {
-    window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageReader,
-                     searchService, awsInstanceTypeService, v2modalWizardService, securityGroupReader, taskMonitorBuilder,
-                     awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
-
+    window.inject(function(
+      $controller,
+      $rootScope,
+      accountService,
+      serverGroupWriter,
+      awsImageReader,
+      searchService,
+      awsInstanceTypeService,
+      v2modalWizardService,
+      securityGroupReader,
+      taskMonitorBuilder,
+      awsServerGroupConfigurationService,
+      $q,
+      subnetReader,
+      keyPairsReader,
+      loadBalancerReader,
+    ) {
       this.$scope = $rootScope.$new();
       this.accountService = accountService;
       this.serverGroupWriter = serverGroupWriter;
@@ -38,17 +47,21 @@ describe('Controller: awsCloneServerGroup', function () {
 
     this.modalInstance = {
       result: {
-        then: angular.noop
-      }
+        then: angular.noop,
+      },
     };
 
     var spec = this;
 
     this.resolve = function(result) {
-      return function() { return spec.$q.when(result); };
+      return function() {
+        return spec.$q.when(result);
+      };
     };
     this.reject = function(result) {
-      return function() { return spec.$q.reject(result); };
+      return function() {
+        return spec.$q.reject(result);
+      };
     };
 
     this.buildBaseClone = function() {
@@ -60,14 +73,14 @@ describe('Controller: awsCloneServerGroup', function () {
         securityGroups: [],
         selectedProvider: 'aws',
         source: {
-          asgName: 'testasg-v002'
+          asgName: 'testasg-v002',
         },
         viewState: {
           mode: 'clone',
           imageId: 'ami-123',
           usePreferredZones: true,
           dirty: {},
-        }
+        },
       };
     };
 
@@ -83,14 +96,14 @@ describe('Controller: awsCloneServerGroup', function () {
           mode: 'create',
           usePreferredZones: true,
           dirty: {},
-        }
+        },
       };
     };
   });
 
   describe('preferred zone handling', function() {
     function initController(serverGroupCommand) {
-      window.inject(function ($controller) {
+      window.inject(function($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           $uibModalInstance: this.modalInstance,
@@ -104,8 +117,8 @@ describe('Controller: awsCloneServerGroup', function () {
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
           taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
-          application: {name: 'x'},
-          title: 'n/a'
+          application: { name: 'x' },
+          title: 'n/a',
         });
       });
     }
@@ -113,15 +126,23 @@ describe('Controller: awsCloneServerGroup', function () {
     function setupMocks() {
       var resolve = this.resolve;
 
-      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
+      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(
+        resolve(AccountServiceFixture.preferredZonesByAccount),
+      );
+      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(
+        resolve(AccountServiceFixture.credentialsKeyedByAccount),
+      );
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
-      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(
+        resolve(securityGroupReaderFixture.allSecurityGroups),
+      );
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
-      spyOn(this.awsImageReader, 'findImages').and.callFake(resolve([{attributes: {virtualizationType: 'hvm'}, amis: {'us-east-1': []}}]));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(
+        resolve([{ attributes: { virtualizationType: 'hvm' }, amis: { 'us-east-1': [] } }]),
+      );
 
-      spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
+      spyOn(this.searchService, 'search').and.callFake(resolve({ results: [] }));
       spyOn(this.v2modalWizardService, 'markComplete').and.stub();
       spyOn(this.v2modalWizardService, 'markDirty').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
@@ -207,7 +228,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   describe('image loading', function() {
     function initController(serverGroupCommand) {
-      window.inject(function ($controller) {
+      window.inject(function($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           $uibModalInstance: this.modalInstance,
@@ -217,8 +238,8 @@ describe('Controller: awsCloneServerGroup', function () {
           v2modalWizardService: this.v2modalWizardService,
           taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
-          application: {name: 'x'},
-          title: 'n/a'
+          application: { name: 'x' },
+          title: 'n/a',
         });
       });
     }
@@ -227,20 +248,26 @@ describe('Controller: awsCloneServerGroup', function () {
       var resolve = this.resolve;
 
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
-      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
+      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(
+        resolve(AccountServiceFixture.preferredZonesByAccount),
+      );
+      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(
+        resolve(AccountServiceFixture.credentialsKeyedByAccount),
+      );
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
-      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(
+        resolve(securityGroupReaderFixture.allSecurityGroups),
+      );
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
-      spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
+      spyOn(this.searchService, 'search').and.callFake(resolve({ results: [] }));
       spyOn(this.v2modalWizardService, 'markComplete').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
     }
 
-    it('sets state flags useAllImageSelection when none found and no server group provided', function () {
+    it('sets state flags useAllImageSelection when none found and no server group provided', function() {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
@@ -253,10 +280,10 @@ describe('Controller: awsCloneServerGroup', function () {
       expect($scope.command.viewState.useAllImageSelection).toBe(true);
     });
 
-    it('puts found images on scope when found', function () {
+    it('puts found images on scope when found', function() {
       var $scope = this.$scope,
         regionalImages = [
-          {attributes: { virtualizationType: 'hvm'}, imageName: 'someImage', amis: {'us-east-1': ['ami-1']}}
+          { attributes: { virtualizationType: 'hvm' }, imageName: 'someImage', amis: { 'us-east-1': ['ami-1'] } },
         ];
       setupMocks.bind(this).call();
 
@@ -268,20 +295,28 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
       expect($scope.command.backingData.filtered.images.length).toBe(1);
-      expect($scope.command.backingData.filtered.images[0]).toEqual({virtualizationType: 'hvm', imageName: 'someImage', ami: 'ami-1'});
+      expect($scope.command.backingData.filtered.images[0]).toEqual({
+        virtualizationType: 'hvm',
+        imageName: 'someImage',
+        ami: 'ami-1',
+      });
     });
 
-    it('queries based on existing ami when cloning', function () {
+    it('queries based on existing ami when cloning', function() {
       var context = this,
         $scope = this.$scope,
-        amiBasedImage = {attributes: {virtualizationType: 'hvm'}, imageName: 'something-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
+        amiBasedImage = {
+          attributes: { virtualizationType: 'hvm' },
+          imageName: 'something-packagebase-something-something',
+          amis: { 'us-east-1': ['ami-1234'] },
+        },
         packageBasedImages = [amiBasedImage],
         serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
 
       serverGroup.region = 'us-east-1';
 
-      spyOn(this.awsImageReader, 'findImages').and.callFake(function (params) {
+      spyOn(this.awsImageReader, 'findImages').and.callFake(function(params) {
         if (params.q === 'something-*') {
           return context.resolve(packageBasedImages).call();
         } else {
@@ -296,18 +331,29 @@ describe('Controller: awsCloneServerGroup', function () {
       $scope.$digest();
 
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
-      expect(this.awsImageReader.getImage).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
-      expect(this.awsImageReader.findImages).toHaveBeenCalledWith({provider: 'aws', q: 'something-*'});
+      expect(this.awsImageReader.getImage).toHaveBeenCalledWith(
+        serverGroup.viewState.imageId,
+        serverGroup.region,
+        serverGroup.credentials,
+      );
+      expect(this.awsImageReader.findImages).toHaveBeenCalledWith({ provider: 'aws', q: 'something-*' });
 
       expect($scope.command.backingData.filtered.images.length).toBe(1);
-      expect($scope.command.backingData.filtered.images[0]).toEqual({virtualizationType: 'hvm', imageName: 'something-packagebase-something-something', ami: 'ami-1234'});
-
+      expect($scope.command.backingData.filtered.images[0]).toEqual({
+        virtualizationType: 'hvm',
+        imageName: 'something-packagebase-something-something',
+        ami: 'ami-1234',
+      });
     });
 
     it('returns only the existing ami without further querying when package name is less than three characters', function() {
       var $scope = this.$scope,
-          amiBasedImage = {attributes: {virtualizationType: 'hvm'}, imageName: 'aa-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
-          serverGroup = this.buildBaseClone();
+        amiBasedImage = {
+          attributes: { virtualizationType: 'hvm' },
+          imageName: 'aa-packagebase-something-something',
+          amis: { 'us-east-1': ['ami-1234'] },
+        },
+        serverGroup = this.buildBaseClone();
 
       serverGroup.viewState.imageId = 'ami-1234';
       setupMocks.bind(this).call();
@@ -326,7 +372,7 @@ describe('Controller: awsCloneServerGroup', function () {
       expect($scope.command.backingData.filtered.images[0].imageName).toBe(amiBasedImage.imageName);
     });
 
-    it('adds no regional images to the scope when the one provided does not match any results', function () {
+    it('adds no regional images to the scope when the one provided does not match any results', function() {
       var $scope = this.$scope,
         serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
@@ -339,11 +385,15 @@ describe('Controller: awsCloneServerGroup', function () {
       $scope.$digest();
 
       expect($scope.command.viewState.useAllImageSelection).toBe(true);
-      expect(this.awsImageReader.getImage).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageReader.getImage).toHaveBeenCalledWith(
+        serverGroup.viewState.imageId,
+        serverGroup.region,
+        serverGroup.credentials,
+      );
       expect($scope.command.backingData.filtered.images).toEqual([]);
     });
 
-    it('queries all images for ami when no regional images present', function () {
+    it('queries all images for ami when no regional images present', function() {
       var $scope = this.$scope;
 
       setupMocks.bind(this).call();
@@ -361,7 +411,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   describe('command submit', function() {
     function initController(serverGroup) {
-      window.inject(function ($controller) {
+      window.inject(function($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           $uibModalInstance: this.modalInstance,
@@ -371,24 +421,30 @@ describe('Controller: awsCloneServerGroup', function () {
           v2modalWizardService: this.v2modalWizardService,
           taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroup,
-          application: {name: 'x'},
-          title: 'n/a'
+          application: { name: 'x' },
+          title: 'n/a',
         });
       });
     }
 
     function setupMocks() {
       var resolve = this.resolve,
-          spec = this;
+        spec = this;
 
-      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
-      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.credentialsKeyedByAccount));
+      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(
+        resolve(AccountServiceFixture.preferredZonesByAccount),
+      );
+      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(
+        resolve(AccountServiceFixture.credentialsKeyedByAccount),
+      );
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
-      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(
+        resolve(securityGroupReaderFixture.allSecurityGroups),
+      );
       spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
-      spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
+      spyOn(this.searchService, 'search').and.callFake(resolve({ results: [] }));
       spyOn(this.v2modalWizardService, 'markComplete').and.stub();
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.returnValue([]);
@@ -399,10 +455,9 @@ describe('Controller: awsCloneServerGroup', function () {
         spec.submitted = {
           command: command,
           applicationName: applicationName,
-          description: description
+          description: description,
         };
       });
-
     }
 
     it('updates vpcId when subnetType changes, ignoring subnets without a purpose', function() {
@@ -417,7 +472,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.command.backingData.subnets = [
         { vpcId: 'vpc-1', account: 'prod', region: 'us-west-1' },
-        { vpcId: 'vpc-2', account: 'prod', region: 'us-west-1', purpose: 'magic' }
+        { vpcId: 'vpc-2', account: 'prod', region: 'us-west-1', purpose: 'magic' },
       ];
 
       expect($scope.command.vpcId).toBe(null);
@@ -429,8 +484,6 @@ describe('Controller: awsCloneServerGroup', function () {
       $scope.command.subnetType = '';
       $scope.$digest();
       expect($scope.command.vpcId).toBe(null);
-
     });
   });
-
 });

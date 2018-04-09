@@ -1,39 +1,32 @@
 'use strict';
 
-describe('Jenkins Execution Details Controller:', function () {
+describe('Jenkins Execution Details Controller:', function() {
   var $scope;
 
+  beforeEach(window.module(require('./jenkinsExecutionDetails.controller.js').name));
+
   beforeEach(
-    window.module(
-      require('./jenkinsExecutionDetails.controller.js').name
-    )
+    window.inject(function($controller, $rootScope) {
+      this.initializeController = function(stage) {
+        var scope = $rootScope.$new();
+        scope.stage = stage;
+        $controller('JenkinsExecutionDetailsCtrl', {
+          $scope: scope,
+          executionDetailsSectionService: { synchronizeSection: (a, fn) => fn() },
+        });
+        $scope = scope;
+      };
+    }),
   );
 
-  beforeEach(window.inject(function($controller, $rootScope) {
-    this.initializeController = function(stage) {
-      var scope = $rootScope.$new();
-      scope.stage = stage;
-      $controller('JenkinsExecutionDetailsCtrl', {
-        '$scope': scope,
-        executionDetailsSectionService: { synchronizeSection: (a, fn) => fn(), },
-      });
-      $scope = scope;
-    };
-  }));
-
-  describe('getting failure message', function () {
-
-    it('should count number of failing tests', function () {
+  describe('getting failure message', function() {
+    it('should count number of failing tests', function() {
       var stage = {
         context: {
           buildInfo: {
-            testResults: [
-              { failCount: 0 },
-              { failCount: 3 },
-              { failCount: 2 }
-            ]
-          }
-        }
+            testResults: [{ failCount: 0 }, { failCount: 3 }, { failCount: 2 }],
+          },
+        },
       };
 
       this.initializeController(stage);
@@ -41,14 +34,14 @@ describe('Jenkins Execution Details Controller:', function () {
       expect($scope.failureMessage).toBe('5 test(s) failed.');
     });
 
-    it ('should fall back to "build failed" message when no failed tests found, but result is "FAILURE"', function () {
+    it('should fall back to "build failed" message when no failed tests found, but result is "FAILURE"', function() {
       var stage = {
         context: {
           buildInfo: {
             result: 'FAILURE',
-            testResults: []
-          }
-        }
+            testResults: [],
+          },
+        },
       };
 
       this.initializeController(stage);
@@ -59,9 +52,9 @@ describe('Jenkins Execution Details Controller:', function () {
         context: {
           buildInfo: {
             result: 'FAILURE',
-            testResults: [ { failCount: 0 }]
-          }
-        }
+            testResults: [{ failCount: 0 }],
+          },
+        },
       };
 
       this.initializeController(stage);
@@ -69,11 +62,9 @@ describe('Jenkins Execution Details Controller:', function () {
       expect($scope.failureMessage).toBe('Build failed.');
     });
 
-    it ('should set failureMessage to undefined when not failing', function () {
+    it('should set failureMessage to undefined when not failing', function() {
       this.initializeController({});
       expect($scope.failureMessage).toBeUndefined();
     });
-
   });
-
 });

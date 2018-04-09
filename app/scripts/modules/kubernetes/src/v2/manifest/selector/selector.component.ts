@@ -68,6 +68,7 @@ class KubernetesMultiManifestSelectorComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_SELECTOR = 'spinnaker.kubernetes.v2.manifest.selector.component';
-module(KUBERNETES_MANIFEST_SELECTOR, [
-    KUBERNETES_MANIFEST_LABEL_EDITOR,
-  ]).component('kubernetesManifestSelector', new KubernetesMultiManifestSelectorComponent());
+module(KUBERNETES_MANIFEST_SELECTOR, [KUBERNETES_MANIFEST_LABEL_EDITOR]).component(
+  'kubernetesManifestSelector',
+  new KubernetesMultiManifestSelectorComponent(),
+);

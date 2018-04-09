@@ -2,12 +2,13 @@
 
 import _ from 'lodash';
 
-import {KubernetesProviderSettings} from '../kubernetes.settings';
+import { KubernetesProviderSettings } from '../kubernetes.settings';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer', [])
-  .factory('kubernetesLoadBalancerTransformer', function ($q) {
+module.exports = angular
+  .module('spinnaker.kubernetes.loadBalancer.transformer', [])
+  .factory('kubernetesLoadBalancerTransformer', function($q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
@@ -31,15 +32,14 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
             succeeded: 0,
             failed: 0,
             unknown: 0,
-          }
+          },
         )
         .value();
 
       instanceCounts.outOfService += _.chain(serverGroups)
         .map('detachedInstances')
         .flatten()
-        .value()
-        .length;
+        .value().length;
 
       return instanceCounts;
     }
@@ -73,6 +73,6 @@ module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer',
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
-      convertLoadBalancerForEditing: convertLoadBalancerForEditing
+      convertLoadBalancerForEditing: convertLoadBalancerForEditing,
     };
   });

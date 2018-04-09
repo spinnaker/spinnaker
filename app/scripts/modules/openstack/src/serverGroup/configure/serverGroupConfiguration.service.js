@@ -8,58 +8,72 @@ import {
   CACHE_INITIALIZER_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   NAMING_SERVICE,
-  SECURITY_GROUP_READER
+  SECURITY_GROUP_READER,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.serverGroup.configure.configuration.service', [
-  require('../../image/image.reader.js').name,
-  ACCOUNT_SERVICE,
-  NAMING_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  SECURITY_GROUP_READER,
-  CACHE_INITIALIZER_SERVICE
-])
-  .factory('openstackServerGroupConfigurationService', function($q, openstackImageReader, accountService,
-                                                                securityGroupReader, cacheInitializer, namingService,
-                                                                loadBalancerReader) {
-
+module.exports = angular
+  .module('spinnaker.openstack.serverGroup.configure.configuration.service', [
+    require('../../image/image.reader.js').name,
+    ACCOUNT_SERVICE,
+    NAMING_SERVICE,
+    LOAD_BALANCER_READ_SERVICE,
+    SECURITY_GROUP_READER,
+    CACHE_INITIALIZER_SERVICE,
+  ])
+  .factory('openstackServerGroupConfigurationService', function(
+    $q,
+    openstackImageReader,
+    accountService,
+    securityGroupReader,
+    cacheInitializer,
+    namingService,
+    loadBalancerReader,
+  ) {
     var healthCheckTypes = [],
-      terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'],
+      terminationPolicies = [
+        'OldestInstance',
+        'NewestInstance',
+        'OldestLaunchConfiguration',
+        'ClosestToNextInstanceHour',
+        'Default',
+      ],
       userDataTypes = ['Text', 'Swift', 'URL'];
 
     function configureUpdateCommand(command) {
       command.backingData = {
         healthCheckTypes: angular.copy(healthCheckTypes),
         terminationPolicies: angular.copy(terminationPolicies),
-        userDataTypes: angular.copy(userDataTypes)
+        userDataTypes: angular.copy(userDataTypes),
       };
     }
 
     function configureCommand(application, command) {
-      return $q.all({
-        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('openstack'),
-        securityGroups: securityGroupReader.getAllSecurityGroups(),
-        loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
-        userDataTypes: $q.when(angular.copy(userDataTypes))
-      }).then(function(backingData) {
-        var loadBalancerReloader = $q.when(null);
-        backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
-        backingData.filtered = {};
-        command.backingData = backingData;
-        backingData.filtered.securityGroups = getRegionalSecurityGroups(command);
+      return $q
+        .all({
+          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('openstack'),
+          securityGroups: securityGroupReader.getAllSecurityGroups(),
+          loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
+          userDataTypes: $q.when(angular.copy(userDataTypes)),
+        })
+        .then(function(backingData) {
+          var loadBalancerReloader = $q.when(null);
+          backingData.accounts = _.keys(backingData.credentialsKeyedByAccount);
+          backingData.filtered = {};
+          command.backingData = backingData;
+          backingData.filtered.securityGroups = getRegionalSecurityGroups(command);
 
-        if(_.get(command, 'loadBalancers').length) {
-          // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
-          var loadBalancerNames = getLoadBalancerNames(command.backingData.loadBalancers);
-          if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
-            loadBalancerReloader = refreshLoadBalancers(command, true);
+          if (_.get(command, 'loadBalancers').length) {
+            // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
+            var loadBalancerNames = getLoadBalancerNames(command.backingData.loadBalancers);
+            if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
+              loadBalancerReloader = refreshLoadBalancers(command, true);
+            }
           }
-        }
 
-        return $q.all([loadBalancerReloader]).then(function() {
-          attachEventHandlers(command);
+          return $q.all([loadBalancerReloader]).then(function() {
+            attachEventHandlers(command);
+          });
         });
-      });
     }
 
     function configureImages(command) {
@@ -69,16 +83,19 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
         return result;
       }
       if (command.region) {
-        regionalImages = command.backingData.packageImages.
-          filter(function (image) {
+        regionalImages = command.backingData.packageImages
+          .filter(function(image) {
             return image.amis && image.amis[command.region];
-          }).
-          map(function (image) {
+          })
+          .map(function(image) {
             return { imageName: image.imageName, ami: image.amis ? image.amis[command.region][0] : null };
           });
-        if (command.amiName && !regionalImages.some(function (image) {
-          return image.imageName === command.amiName;
-        })) {
+        if (
+          command.amiName &&
+          !regionalImages.some(function(image) {
+            return image.imageName === command.amiName;
+          })
+        ) {
           result.dirty.amiName = true;
           command.amiName = null;
         }
@@ -99,7 +116,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
     function configureSecurityGroupOptions(command) {
       var result = { dirty: {} };
       var currentOptions;
-      if(command.backingData.filtered.securityGroups) {
+      if (command.backingData.filtered.securityGroups) {
         currentOptions = command.backingData.filtered.securityGroups;
       }
       var newRegionalSecurityGroups = getRegionalSecurityGroups(command);
@@ -109,15 +126,14 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
         command.selectedSecurityGroup = null;
         result.dirty.securityGroups = true;
       }
-      if(currentOptions != newRegionalSecurityGroups) {
+      if (currentOptions != newRegionalSecurityGroups) {
         command.backingData.filtered.securityGroups = newRegionalSecurityGroups;
         result.dirty.securityGroups = true;
       }
 
-      if(command.backingData.filtered.securityGroups === []) {
+      if (command.backingData.filtered.securityGroups === []) {
         command.viewState.securityGroupsConfigured = false;
-      }
-      else {
+      } else {
         command.viewState.securityGroupsConfigured = true;
       }
 
@@ -125,7 +141,8 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
     }
 
     function refreshSecurityGroups(command, skipCommandReconfiguration) {
-      return $q.when()
+      return $q
+        .when()
         .then(cacheInitializer.refreshCache('securityGroups'))
         .then(securityGroupReader.getAllSecurityGroups())
         .then(function(securityGroups) {
@@ -133,7 +150,7 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
           if (!skipCommandReconfiguration) {
             configureSecurityGroupOptions(command);
           }
-      });
+        });
     }
 
     function getLoadBalancerNames(loadBalancers) {
@@ -162,10 +179,11 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
     }
 
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
-      return $q.when()
+      return $q
+        .when()
         .then(cacheInitializer.refreshCache('loadBalancers'))
         .then(loadBalancerReader.listLoadBalancers('openstack'))
-        .then(function (loadBalancers) {
+        .then(function(loadBalancers) {
           command.backingData.loadBalancers = loadBalancers;
           if (!skipCommandReconfiguration) {
             configureLoadBalancerOptions(command);
@@ -176,7 +194,9 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
     function configureLoadBalancers(command) {
       var result = { dirty: {} };
       var temp = command.backingData.loadBalancers;
-      var filterlist = _.filter(temp, function(lb) { return (lb.account === command.credentials && lb.region === command.region);});
+      var filterlist = _.filter(temp, function(lb) {
+        return lb.account === command.credentials && lb.region === command.region;
+      });
 
       command.loadBalancers = getLoadBalancerNames(filterlist);
       command.viewState.loadBalancersConfigured = true;
@@ -185,7 +205,6 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
     }
 
     function attachEventHandlers(command) {
-
       command.regionChanged = function regionChanged() {
         var result = { dirty: {} };
         if (command.region && command.credentials) {
@@ -200,9 +219,16 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.confi
         var result = { dirty: {} };
         var backingData = command.backingData;
         if (command.credentials) {
-          var regionsForAccount = backingData.credentialsKeyedByAccount[command.credentials] || {regions: [], defaultKeyPair: null};
+          var regionsForAccount = backingData.credentialsKeyedByAccount[command.credentials] || {
+            regions: [],
+            defaultKeyPair: null,
+          };
           backingData.filtered.regions = regionsForAccount.regions;
-          if (!_.chain(backingData.filtered.regions).some({name: command.region}).value()) {
+          if (
+            !_.chain(backingData.filtered.regions)
+              .some({ name: command.region })
+              .value()
+          ) {
             command.region = null;
             result.dirty.region = true;
           } else {

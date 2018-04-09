@@ -14,4 +14,3 @@ mod.decorator('$uibModal', function($delegate: IModalService) {
   };
   return $delegate;
 });
-

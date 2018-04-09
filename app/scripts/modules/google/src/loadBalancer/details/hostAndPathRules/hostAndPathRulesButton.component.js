@@ -5,13 +5,13 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.deck.gce.loadBalancer.hostAndPathRulesButton.component', [
     require('angular-ui-bootstrap'),
-    require('./hostAndPathRules.controller.js').name
+    require('./hostAndPathRules.controller.js').name,
   ])
   .component('gceHostAndPathRulesButton', {
     bindings: {
       hostRules: '=',
       defaultService: '=',
-      loadBalancerName: '='
+      loadBalancerName: '=',
     },
     template: '<a href ng-click="$ctrl.viewHostAndPathRules()">View Host and Path Rules</a>',
     controller: function($uibModal) {
@@ -25,8 +25,8 @@ module.exports = angular
             hostRules: () => this.hostRules,
             defaultService: () => this.defaultService,
             loadBalancerName: () => this.loadBalancerName,
-          }
+          },
         });
       };
-    }
+    },
   });

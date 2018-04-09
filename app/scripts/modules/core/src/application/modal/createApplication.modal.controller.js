@@ -1,14 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
-import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
-import {APPLICATION_NAME_VALIDATION_MESSAGES} from './validation/applicationNameValidationMessages.component';
-import {TASK_READ_SERVICE} from 'core/task/task.read.service';
-import {VALIDATE_APPLICATION_NAME} from './validation/validateApplicationName.directive';
-import {CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT} from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
-import {SETTINGS} from 'core/config/settings';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
+import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
+import { APPLICATION_NAME_VALIDATION_MESSAGES } from './validation/applicationNameValidationMessages.component';
+import { TASK_READ_SERVICE } from 'core/task/task.read.service';
+import { VALIDATE_APPLICATION_NAME } from './validation/validateApplicationName.directive';
+import { CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
+import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
@@ -24,16 +24,25 @@ module.exports = angular
     require('./applicationProviderFields.component.js').name,
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
-  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
-                                                     applicationWriter, applicationReader, taskReader, $timeout) {
-
+  .controller('CreateApplicationModalCtrl', function(
+    $scope,
+    $q,
+    $log,
+    $state,
+    $uibModalInstance,
+    accountService,
+    applicationWriter,
+    applicationReader,
+    taskReader,
+    $timeout,
+  ) {
     let applicationLoader = applicationReader.listApplications();
-    applicationLoader.then((applications) => this.data.appNameList = _.map(applications, 'name'));
+    applicationLoader.then(applications => (this.data.appNameList = _.map(applications, 'name')));
 
     let providerLoader = accountService.listProviders();
-    providerLoader.then((providers) => this.data.cloudProviders = providers);
+    providerLoader.then(providers => (this.data.cloudProviders = providers));
 
-    $q.all([applicationLoader, providerLoader]).then(() => this.state.initializing = false);
+    $q.all([applicationLoader, providerLoader]).then(() => (this.state.initializing = false));
 
     this.state = {
       initializing: true,
@@ -42,7 +51,7 @@ module.exports = angular
       permissionsInvalid: false,
     };
     this.data = {
-      gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab']
+      gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'],
     };
     this.application = {
       cloudProviders: [],
@@ -62,23 +71,19 @@ module.exports = angular
 
     let routeToApplication = () => {
       navigateTimeout = $timeout(() => {
-        $state.go(
-          'home.applications.application.insight.clusters', {
-            application: this.application.name,
-          }
-        );
-      }, 1000 );
+        $state.go('home.applications.application.insight.clusters', {
+          application: this.application.name,
+        });
+      }, 1000);
     };
 
     $scope.$on('$destroy', () => $timeout.cancel(navigateTimeout));
 
-
-    let waitUntilApplicationIsCreated = (task) => {
-      return taskReader.waitUntilTaskCompletes(task)
-        .then(routeToApplication, () => {
-          this.state.errorMessages.push('Could not create application: ' + task.failureMessage);
-          goIdle();
-        });
+    let waitUntilApplicationIsCreated = task => {
+      return taskReader.waitUntilTaskCompletes(task).then(routeToApplication, () => {
+        this.state.errorMessages.push('Could not create application: ' + task.failureMessage);
+        goIdle();
+      });
     };
 
     let createApplicationFailure = () => {
@@ -87,7 +92,8 @@ module.exports = angular
     };
 
     this.createApplication = () => {
-      return applicationWriter.createApplication(this.application)
+      return applicationWriter
+        .createApplication(this.application)
         .then(waitUntilApplicationIsCreated, createApplicationFailure);
     };
 
@@ -110,7 +116,7 @@ module.exports = angular
       return true;
     }
 
-    this.handlePermissionsChange = (permissions) => {
+    this.handlePermissionsChange = permissions => {
       this.state.permissionsInvalid = !permissionsAreValid(permissions);
       this.application.permissions = permissions;
       $scope.$digest();
@@ -123,7 +129,5 @@ module.exports = angular
         this.application.cloudProviders = this.data.cloudProviders;
       }
       this.createApplication();
-
     };
-
   });

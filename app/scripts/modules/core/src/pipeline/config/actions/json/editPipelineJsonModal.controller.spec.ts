@@ -4,11 +4,8 @@ import { EditPipelineJsonModalCtrl } from './editPipelineJsonModal.controller';
 import { IPipeline } from 'core/domain';
 
 describe('Controller: editPipelineJsonModal', () => {
-
-  let $ctrl: IControllerService,
-    controller: EditPipelineJsonModalCtrl,
-    $uibModalInstance: any;
-  beforeEach(mock.inject(($controller: IControllerService) =>  $ctrl = $controller));
+  let $ctrl: IControllerService, controller: EditPipelineJsonModalCtrl, $uibModalInstance: any;
+  beforeEach(mock.inject(($controller: IControllerService) => ($ctrl = $controller)));
 
   function initializeController(pipeline: IPipeline) {
     $uibModalInstance = { close: () => {} };
@@ -16,7 +13,6 @@ describe('Controller: editPipelineJsonModal', () => {
   }
 
   it('controller removes name, application, appConfig, all fields and hash keys', () => {
-
     const pipeline: any = {
       name: 'foo',
       application: 'myApp',
@@ -25,8 +21,8 @@ describe('Controller: editPipelineJsonModal', () => {
         foo: [{}],
         bar: {},
         baz: '',
-        bat: 4
-      }
+        bat: 4,
+      },
     };
     initializeController(pipeline);
 
@@ -48,18 +44,15 @@ describe('Controller: editPipelineJsonModal', () => {
   });
 
   it('updatePipeline updates fields, removing name if added', () => {
-
     const pipeline: any = {
       application: 'myApp',
       name: 'foo',
       stage: {
-        foo: [
-          {}
-        ],
+        foo: [{}],
         bar: {},
         baz: '',
-        bat: 4
-      }
+        bat: 4,
+      },
     };
     initializeController(pipeline);
     controller.$onInit();
@@ -78,7 +71,6 @@ describe('Controller: editPipelineJsonModal', () => {
   });
 
   it('updatePipeline generates an error message when malformed JSON provided', () => {
-
     const pipeline: any = {};
     initializeController(pipeline);
 

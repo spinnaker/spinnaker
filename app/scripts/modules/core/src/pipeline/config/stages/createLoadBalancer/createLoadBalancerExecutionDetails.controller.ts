@@ -3,15 +3,20 @@ import { forEach } from 'lodash';
 import { StateParams } from '@uirouter/angularjs';
 
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
-import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
+import {
+  EXECUTION_DETAILS_SECTION_SERVICE,
+  ExecutionDetailsSectionService,
+} from 'core/pipeline/details/executionDetailsSection.service';
 
 import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../core/baseExecutionDetails.controller';
 
 export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
-  constructor (public $scope: IExecutionDetailsScope,
-               protected $stateParams: StateParams,
-               protected cloudProviderRegistry: CloudProviderRegistry,
-               protected executionDetailsSectionService: ExecutionDetailsSectionService) {
+  constructor(
+    public $scope: IExecutionDetailsScope,
+    protected $stateParams: StateParams,
+    protected cloudProviderRegistry: CloudProviderRegistry,
+    protected executionDetailsSectionService: ExecutionDetailsSectionService,
+  ) {
     'ngInject';
     super($scope, $stateParams, executionDetailsSectionService);
 
@@ -39,13 +44,13 @@ export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
                   region,
                   account: context.account,
                   dnsName: valueObj.dnsName,
-                  provider: context.providerType || context.cloudProvider || 'aws'
+                  provider: context.providerType || context.cloudProvider || 'aws',
                 };
                 results.push(result);
               });
             });
           }
-        }
+        };
         addCreatedArtifacts('loadBalancers');
       }
     }
@@ -54,10 +59,10 @@ export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
   }
 }
 
-export const CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.stage.createLoadBalancer.executionDetails.controller';
+export const CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL =
+  'spinnaker.core.pipeline.stage.createLoadBalancer.executionDetails.controller';
 module(CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL, [
   require('@uirouter/angularjs').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-])
-  .controller('createLoadBalancerExecutionDetailsCtrl', CreateLoadBalancerDetailsCtrl);
+]).controller('createLoadBalancerExecutionDetailsCtrl', CreateLoadBalancerDetailsCtrl);

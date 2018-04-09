@@ -12,11 +12,15 @@ class PageNavigatorController implements IController {
   private navigator: JQuery;
   private id: string;
 
-  private getEventKey(): string { return `scroll.pageNavigation.${this.id}`; }
+  private getEventKey(): string {
+    return `scroll.pageNavigation.${this.id}`;
+  }
 
-  public constructor(private $element: JQuery,
-                     private scrollToService: ScrollToService,
-                     public pageNavigationState: PageNavigationState) {
+  public constructor(
+    private $element: JQuery,
+    private scrollToService: ScrollToService,
+    public pageNavigationState: PageNavigationState,
+  ) {
     'ngInject';
   }
 
@@ -41,7 +45,7 @@ class PageNavigatorController implements IController {
 
   private handleScroll(): void {
     const navigatorRect = this.$element.get(0).getBoundingClientRect(),
-          scrollableContainerTop = this.container.get(0).getBoundingClientRect().top;
+      scrollableContainerTop = this.container.get(0).getBoundingClientRect().top;
 
     const currentPage = this.pageNavigationState.pages.find(p => {
       const content = this.container.find(`[data-page-content=${p.key}]`);
@@ -100,11 +104,9 @@ class PageNavigatorComponent implements ng.IComponentOptions {
   `;
 }
 
-
 export const PAGE_NAVIGATOR_COMPONENT = 'spinnaker.core.presentation.navigation.pageNavigator';
 
-module(PAGE_NAVIGATOR_COMPONENT, [
-  PAGE_NAVIGATION_STATE,
-  SCROLL_TO_SERVICE,
-  PAGE_SECTION_COMPONENT
-]).component('pageNavigator', new PageNavigatorComponent());
+module(PAGE_NAVIGATOR_COMPONENT, [PAGE_NAVIGATION_STATE, SCROLL_TO_SERVICE, PAGE_SECTION_COMPONENT]).component(
+  'pageNavigator',
+  new PageNavigatorComponent(),
+);

@@ -19,128 +19,165 @@ import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
 import { configBinService } from './scalingPolicy/configBin/configBin.reader';
 import { CONFIG_BIN_LINK_COMPONENT } from './scalingPolicy/configBin/configBinLink.component';
 
-module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
-  require('@uirouter/angularjs').default,
-  ACCOUNT_SERVICE,
-  require('../configure/ServerGroupCommandBuilder.js').name,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_READER,
-  CONFIG_BIN_LINK_COMPONENT,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER,
-  require('./resize/resizeServerGroup.controller').name,
-  require('./rollback/rollbackServerGroup.controller').name,
-  CLUSTER_TARGET_BUILDER,
-  NAMING_SERVICE,
-  SCALING_POLICY_MODULE,
-])
-  .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
-                                                       titusServerGroupCommandBuilder, serverGroupReader, $uibModal,
-                                                       confirmationModalService, serverGroupWriter, clusterTargetBuilder,
-                                                       awsServerGroupTransformer, namingService,
-                                                       serverGroupWarningMessageService, accountService) {
-
+module.exports = angular
+  .module('spinnaker.serverGroup.details.titus.controller', [
+    require('@uirouter/angularjs').default,
+    ACCOUNT_SERVICE,
+    require('../configure/ServerGroupCommandBuilder.js').name,
+    SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+    SERVER_GROUP_READER,
+    CONFIG_BIN_LINK_COMPONENT,
+    CONFIRMATION_MODAL_SERVICE,
+    SERVER_GROUP_WRITER,
+    require('./resize/resizeServerGroup.controller').name,
+    require('./rollback/rollbackServerGroup.controller').name,
+    CLUSTER_TARGET_BUILDER,
+    NAMING_SERVICE,
+    SCALING_POLICY_MODULE,
+  ])
+  .controller('titusServerGroupDetailsCtrl', function(
+    $scope,
+    $state,
+    $templateCache,
+    $interpolate,
+    app,
+    serverGroup,
+    titusServerGroupCommandBuilder,
+    serverGroupReader,
+    $uibModal,
+    confirmationModalService,
+    serverGroupWriter,
+    clusterTargetBuilder,
+    awsServerGroupTransformer,
+    namingService,
+    serverGroupWarningMessageService,
+    accountService,
+  ) {
     let application = app;
     this.application = app;
 
     $scope.gateUrl = SETTINGS.gateUrl;
 
     $scope.state = {
-      loading: true
+      loading: true,
     };
 
-    function extractServerGroupSummary () {
-      var summary = _.find(application.serverGroups.data, function (toCheck) {
-        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
+    function extractServerGroupSummary() {
+      var summary = _.find(application.serverGroups.data, function(toCheck) {
+        return (
+          toCheck.name === serverGroup.name &&
+          toCheck.account === serverGroup.accountId &&
+          toCheck.region === serverGroup.region
+        );
       });
       return summary;
     }
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
-        cancelLoader();
+      return serverGroupReader
+        .getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name)
+        .then(function(details) {
+          cancelLoader();
 
-        // it's possible the summary was not found because the clusters are still loading
-        details.account = serverGroup.accountId;
+          // it's possible the summary was not found because the clusters are still loading
+          details.account = serverGroup.accountId;
 
-        accountService.getAccountDetails(details.account).then((accountDetails) => {
-          details.apiEndpoint = _.filter(accountDetails.regions, {name: details.region})[0].endpoint;
-        });
+          accountService.getAccountDetails(details.account).then(accountDetails => {
+            details.apiEndpoint = _.filter(accountDetails.regions, { name: details.region })[0].endpoint;
+          });
 
-        angular.extend(details, summary);
+          angular.extend(details, summary);
 
-        $scope.serverGroup = details;
-        var labels = $scope.serverGroup.labels;
-        delete labels['name'];
-        delete labels['source'];
-        delete labels['spinnakerAccount'];
-        delete labels['NETFLIX_APP_METADATA'];
-        delete labels['NETFLIX_APP_METADATA_SIG'];
-        $scope.labels = labels;
+          $scope.serverGroup = details;
+          var labels = $scope.serverGroup.labels;
+          delete labels['name'];
+          delete labels['source'];
+          delete labels['spinnakerAccount'];
+          delete labels['NETFLIX_APP_METADATA'];
+          delete labels['NETFLIX_APP_METADATA_SIG'];
+          $scope.labels = labels;
 
-        transformScalingPolicies(details);
+          transformScalingPolicies(details);
 
-        if (!_.isEmpty($scope.serverGroup)) {
-          if (details.securityGroups) {
-            $scope.securityGroups = _.chain(details.securityGroups).map(function(id) {
-              return _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
-                _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
-            }).compact().value();
+          if (!_.isEmpty($scope.serverGroup)) {
+            if (details.securityGroups) {
+              $scope.securityGroups = _.chain(details.securityGroups)
+                .map(function(id) {
+                  return (
+                    _.find(application.securityGroups.data, {
+                      accountName: serverGroup.accountId,
+                      region: 'global',
+                      id: id,
+                    }) ||
+                    _.find(application.securityGroups.data, {
+                      accountName: serverGroup.accountId,
+                      region: 'global',
+                      name: id,
+                    })
+                  );
+                })
+                .compact()
+                .value();
+            }
+            configureEntityTagTargets();
+          } else {
+            autoClose();
           }
-          configureEntityTagTargets();
-        } else {
-          autoClose();
-        }
-      },
-        autoClose
-      );
+        }, autoClose);
     }
 
     $scope.addConfigBinData = () => {
       const cluster = namingService.parseServerGroupName($scope.serverGroup.name).cluster;
-      configBinService.getConfig(cluster).then(config => {
-        $scope.configBinData = config;
-      }).catch(() => { /* not found */ });
+      configBinService
+        .getConfig(cluster)
+        .then(config => {
+          $scope.configBinData = config;
+        })
+        .catch(() => {
+          /* not found */
+        });
     };
 
     function transformScalingPolicies(serverGroup) {
-      serverGroup.scalingPolicies = (serverGroup.scalingPolicies || []).map(p => {
-        const { policy } = p;
-        const { stepPolicyDescriptor } = policy;
-        const policyType = stepPolicyDescriptor ? 'StepScaling' : 'TargetTrackingScaling';
-        if (stepPolicyDescriptor) {
-          const alarm = stepPolicyDescriptor.alarmConfig;
-          alarm.period = alarm.periodSec;
-          alarm.namespace = alarm.metricNamespace;
-          if (alarm.metricNamespace === 'NFLX/EPIC' && !alarm.dimensions) {
-            alarm.dimensions = [ { name: 'AutoScalingGroupName', value: serverGroup.name } ];
+      serverGroup.scalingPolicies = (serverGroup.scalingPolicies || [])
+        .map(p => {
+          const { policy } = p;
+          const { stepPolicyDescriptor } = policy;
+          const policyType = stepPolicyDescriptor ? 'StepScaling' : 'TargetTrackingScaling';
+          if (stepPolicyDescriptor) {
+            const alarm = stepPolicyDescriptor.alarmConfig;
+            alarm.period = alarm.periodSec;
+            alarm.namespace = alarm.metricNamespace;
+            if (alarm.metricNamespace === 'NFLX/EPIC' && !alarm.dimensions) {
+              alarm.dimensions = [{ name: 'AutoScalingGroupName', value: serverGroup.name }];
+            }
+            if (!alarm.dimensions) {
+              alarm.dimensions = [];
+            }
+            const policy = _.cloneDeep(stepPolicyDescriptor.scalingPolicy);
+            policy.cooldown = policy.cooldownSec;
+            policy.policyType = policyType;
+            policy.alarms = [alarm];
+            policy.id = p.id;
+            if (policy.stepAdjustments) {
+              policy.stepAdjustments.forEach(step => {
+                // gRPC currently returns these values in upper camel case
+                step.metricIntervalUpperBound = _.get(step, 'metricIntervalUpperBound', step.MetricIntervalUpperBound);
+                step.metricIntervalLowerBound = _.get(step, 'metricIntervalLowerBound', step.MetricIntervalLowerBound);
+              });
+            }
+            return policy;
+          } else {
+            policy.id = p.id;
+            policy.targetTrackingConfiguration = policy.targetPolicyDescriptor;
+            policy.targetTrackingConfiguration.scaleOutCooldown =
+              policy.targetTrackingConfiguration.scaleOutCooldownSec;
+            policy.targetTrackingConfiguration.scaleInCooldown = policy.targetTrackingConfiguration.scaleInCooldownSec;
+            return policy;
           }
-          if (!alarm.dimensions) {
-            alarm.dimensions = [];
-          }
-          const policy = _.cloneDeep(stepPolicyDescriptor.scalingPolicy);
-          policy.cooldown = policy.cooldownSec;
-          policy.policyType = policyType;
-          policy.alarms = [alarm];
-          policy.id = p.id;
-          if (policy.stepAdjustments) {
-            policy.stepAdjustments.forEach(step => {
-              // gRPC currently returns these values in upper camel case
-              step.metricIntervalUpperBound = _.get(step, 'metricIntervalUpperBound', step.MetricIntervalUpperBound);
-              step.metricIntervalLowerBound = _.get(step, 'metricIntervalLowerBound', step.MetricIntervalLowerBound);
-            });
-          }
-          return policy;
-        } else {
-          policy.id = p.id;
-          policy.targetTrackingConfiguration = policy.targetPolicyDescriptor;
-          policy.targetTrackingConfiguration.scaleOutCooldown = policy.targetTrackingConfiguration.scaleOutCooldownSec;
-          policy.targetTrackingConfiguration.scaleInCooldown = policy.targetTrackingConfiguration.scaleInCooldownSec;
-          return policy;
-        }
-
-      }).map(p => awsServerGroupTransformer.transformScalingPolicy(p));
+        })
+        .map(p => awsServerGroupTransformer.transformScalingPolicy(p));
     }
 
     function autoClose() {
@@ -148,30 +185,35 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         return;
       }
       $state.params.allowModalToStayOpen = true;
-      $state.go('^', null, {location: 'replace'});
+      $state.go('^', null, { location: 'replace' });
     }
 
     function cancelLoader() {
       $scope.state.loading = false;
     }
 
-    retrieveServerGroup().then(() => {
-      $scope.addConfigBinData();
-      // If the user navigates away from the view before the initial retrieveServerGroup call completes,
-      // do not bother subscribing to the refresh
-      if (!$scope.$$destroyed) {
-        app.serverGroups.onRefresh($scope, retrieveServerGroup);
-      }
-    }).catch(() => {});
+    retrieveServerGroup()
+      .then(() => {
+        $scope.addConfigBinData();
+        // If the user navigates away from the view before the initial retrieveServerGroup call completes,
+        // do not bother subscribing to the refresh
+        if (!$scope.$$destroyed) {
+          app.serverGroups.onRefresh($scope, retrieveServerGroup);
+        }
+      })
+      .catch(() => {});
 
     accountService.getAccountDetails(serverGroup.accountId).then(details => {
       const awsAccount = details.awsAccount;
-      $scope.titusUiEndpoint = _.filter(details.regions, {name: serverGroup.region})[0].endpoint;
+      $scope.titusUiEndpoint = _.filter(details.regions, { name: serverGroup.region })[0].endpoint;
       accountService.getAccountDetails(awsAccount).then(awsDetails => {
         this.awsAccountId = awsDetails.accountId;
         this.env = awsDetails.environment;
       });
-      if (details.autoscalingEnabled && details.regions.some(r => r.name === serverGroup.region && r.autoscalingEnabled)) {
+      if (
+        details.autoscalingEnabled &&
+        details.regions.some(r => r.name === serverGroup.region && r.autoscalingEnabled)
+      ) {
         this.scalingPoliciesEnabled = true;
       }
     });
@@ -188,7 +230,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         title: 'Destroying ' + serverGroup.name,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return serverGroupWriter.destroyServerGroup(serverGroup, application, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
@@ -199,7 +241,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       var stateParams = {
         name: serverGroup.name,
         accountId: serverGroup.account,
-        region: serverGroup.region
+        region: serverGroup.region,
       };
 
       var confirmationModalParams = {
@@ -210,7 +252,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Titus',
         submitMethod: submitMethod,
-        onTaskComplete: function () {
+        onTaskComplete: function() {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
           }
@@ -227,10 +269,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
 
       var taskMonitor = {
         application: application,
-        title: 'Disabling ' + serverGroup.name
+        title: 'Disabling ' + serverGroup.name,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return serverGroupWriter.disableServerGroup(serverGroup, application, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
@@ -246,7 +288,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Titus',
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       };
 
       serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
@@ -268,7 +310,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         cancelButtonText: 'No, I just want to enable the server group',
       };
 
-      confirmationModalService.confirm(confirmationModalParams)
+      confirmationModalService
+        .confirm(confirmationModalParams)
         .then(() => this.rollbackServerGroup())
         .catch(({ source }) => {
           // don't show the enable modal if the user cancels with the header button
@@ -286,7 +329,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         title: 'Enabling ' + serverGroup.name,
       };
 
-      var submitMethod = function () {
+      var submitMethod = function() {
         return serverGroupWriter.enableServerGroup(serverGroup, application, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
@@ -302,11 +345,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         taskMonitorConfig: taskMonitor,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Titus',
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
       };
 
       confirmationModalService.confirm(confirmationModalParams);
-
     };
 
     this.resizeServerGroup = function resizeServerGroup() {
@@ -314,9 +356,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         templateUrl: require('./resize/resizeServerGroup.html'),
         controller: 'titusResizeServerGroupCtrl as ctrl',
         resolve: {
-          serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return application; }
-        }
+          serverGroup: function() {
+            return $scope.serverGroup;
+          },
+          application: function() {
+            return application;
+          },
+        },
       });
     };
 
@@ -327,11 +373,19 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
         controller: 'titusCloneServerGroupCtrl as ctrl',
         size: 'lg',
         resolve: {
-          title: function() { return 'Clone ' + serverGroup.name; },
-          application: function() { return application; },
-          serverGroup: function() { return serverGroup; },
-          serverGroupCommand: function() { return titusServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
-        }
+          title: function() {
+            return 'Clone ' + serverGroup.name;
+          },
+          application: function() {
+            return application;
+          },
+          serverGroup: function() {
+            return serverGroup;
+          },
+          serverGroupCommand: function() {
+            return titusServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup);
+          },
+        },
       });
     };
 
@@ -343,23 +397,27 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
       }
 
       // if the server group selected for rollback is disabled, ensure that at least one enabled server group exists
-      return application.getDataSource('serverGroups').data.some(g =>
-        g.cluster === serverGroup.cluster &&
-        g.region === serverGroup.region &&
-        g.account === serverGroup.account &&
-        g.isDisabled === false
-      );
+      return application
+        .getDataSource('serverGroups')
+        .data.some(
+          g =>
+            g.cluster === serverGroup.cluster &&
+            g.region === serverGroup.region &&
+            g.account === serverGroup.account &&
+            g.isDisabled === false,
+        );
     };
 
     this.rollbackServerGroup = function rollbackServerGroup() {
       let serverGroup = $scope.serverGroup;
 
       let previousServerGroup;
-      let allServerGroups = app.getDataSource('serverGroups').data.filter(g =>
-        g.cluster === serverGroup.cluster &&
-        g.region === serverGroup.region &&
-        g.account === serverGroup.account
-      );
+      let allServerGroups = app
+        .getDataSource('serverGroups')
+        .data.filter(
+          g =>
+            g.cluster === serverGroup.cluster && g.region === serverGroup.region && g.account === serverGroup.account,
+        );
 
       if (serverGroup.isDisabled) {
         // if the selected server group is disabled, it represents the server group that should be _rolled back to_
@@ -371,18 +429,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
          * isRollbackEnabled() ensures that at least one enabled server group exists.
          */
         serverGroup = _.orderBy(
-          allServerGroups.filter(g =>
-            g.name !== previousServerGroup.name && !g.isDisabled
-          ),
+          allServerGroups.filter(g => g.name !== previousServerGroup.name && !g.isDisabled),
           ['instanceCounts.total', 'createdTime'],
-          ['desc', 'desc']
+          ['desc', 'desc'],
         )[0];
       }
 
       // the set of all server groups should not include the server group selected for rollback
-      allServerGroups = allServerGroups.filter(g =>
-        g.name !== serverGroup.name
-      );
+      allServerGroups = allServerGroups.filter(g => g.name !== serverGroup.name);
 
       if (allServerGroups.length === 1 && !previousServerGroup) {
         // if there is only one other server group, default to it being the rollback target
@@ -396,13 +450,12 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
           serverGroup: () => serverGroup,
           previousServerGroup: () => previousServerGroup,
           disabledServerGroups: () => {
-          var cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
+            var cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
             return _.filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
           },
           allServerGroups: () => allServerGroups,
-          application: () => application
-        }
+          application: () => application,
+        },
       });
     };
-  }
-);
+  });

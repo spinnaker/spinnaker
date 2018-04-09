@@ -2,13 +2,16 @@ beforeEach(() => {
   jasmine.addMatchers({
     textMatch: () => {
       return {
-        compare: function (node: JQuery, expected: string) {
+        compare: function(node: JQuery, expected: string) {
           let actual: string;
           if (expected === undefined) {
             expected = '';
           }
           if (node !== undefined) {
-            actual = node.text().trim().replace(/\s+/g, ' ');
+            actual = node
+              .text()
+              .trim()
+              .replace(/\s+/g, ' ');
           }
           const result: jasmine.CustomMatcherResult = { pass: expected === actual };
           if (result.pass) {
@@ -17,8 +20,8 @@ beforeEach(() => {
             result.message = `Expected ${expected} but was ${actual}`;
           }
           return result;
-        }
+        },
       };
-    }
+    },
   });
 });

@@ -10,7 +10,9 @@ export class LogsDetailsSection extends React.Component<IAmazonServerGroupDetail
     return (
       <CollapsibleSection heading="Logs">
         <ul>
-          <li><ViewScalingActivitiesLink serverGroup={this.props.serverGroup}/></li>
+          <li>
+            <ViewScalingActivitiesLink serverGroup={this.props.serverGroup} />
+          </li>
         </ul>
       </CollapsibleSection>
     );

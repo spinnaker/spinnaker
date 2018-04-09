@@ -8,7 +8,11 @@ import { SearchResultTabs } from './SearchResultTabs';
 import './searchResults.less';
 
 export enum SearchStatus {
-  INITIAL, SEARCHING, FINISHED, NO_RESULTS, ERROR
+  INITIAL,
+  SEARCHING,
+  FINISHED,
+  NO_RESULTS,
+  ERROR,
 }
 
 export interface ISearchResultsProps {

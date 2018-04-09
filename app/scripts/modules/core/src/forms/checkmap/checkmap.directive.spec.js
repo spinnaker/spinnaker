@@ -1,25 +1,23 @@
 'use strict';
 
-describe('Directives: checkmap', function () {
+describe('Directives: checkmap', function() {
   require('./checkmap.directive.html');
 
-  beforeEach(
-    window.module(
-      require('./checkmap.directive.js').name
-    )
-  );
+  beforeEach(window.module(require('./checkmap.directive.js').name));
 
-  beforeEach(window.inject(function ($rootScope, $compile) {
-    this.scope = $rootScope.$new();
-    this.compile = $compile;
-  }));
+  beforeEach(
+    window.inject(function($rootScope, $compile) {
+      this.scope = $rootScope.$new();
+      this.compile = $compile;
+    }),
+  );
 
   it('updates selections when changed', function() {
     var scope = this.scope,
       compile = this.compile;
 
     scope.itemMap = {
-      alphabet : ['a', 'b', 'c', 'd']
+      alphabet: ['a', 'b', 'c', 'd'],
     };
 
     scope.selectedItems = ['a', 'b', 'c'];
@@ -45,6 +43,5 @@ describe('Directives: checkmap', function () {
 
     expect(checkmap.find('input:checked').length).toBe(1);
     expect(scope.selectedItems).toEqual(['d']);
-
   });
 });

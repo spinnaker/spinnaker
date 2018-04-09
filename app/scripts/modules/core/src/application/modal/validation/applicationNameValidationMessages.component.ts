@@ -1,7 +1,8 @@
 import { IController, module } from 'angular';
 import {
   APPLICATION_NAME_VALIDATOR,
-  ApplicationNameValidator, IApplicationNameValidationResult
+  ApplicationNameValidator,
+  IApplicationNameValidationResult,
 } from 'core/application/modal/validation/applicationName.validator';
 
 /**
@@ -13,10 +14,12 @@ class ApplicationNameValidationMessagesController implements IController {
   public cloudProviders: string[];
   public messages: IApplicationNameValidationResult;
 
-  public constructor(private applicationNameValidator: ApplicationNameValidator) { 'ngInject'; }
+  public constructor(private applicationNameValidator: ApplicationNameValidator) {
+    'ngInject';
+  }
 
   public $onChanges(): void {
-    this.applicationNameValidator.validate(this.name, this.cloudProviders).then(r => this.messages = r);
+    this.applicationNameValidator.validate(this.name, this.cloudProviders).then(r => (this.messages = r));
   }
 }
 
@@ -44,5 +47,7 @@ class ApplicationNameValidationMessagesComponent implements ng.IComponentOptions
 
 export const APPLICATION_NAME_VALIDATION_MESSAGES = 'spinnaker.core.application.applicationNameValidationMessages';
 
-module(APPLICATION_NAME_VALIDATION_MESSAGES, [APPLICATION_NAME_VALIDATOR])
-  .component('applicationNameValidationMessages', new ApplicationNameValidationMessagesComponent());
+module(APPLICATION_NAME_VALIDATION_MESSAGES, [APPLICATION_NAME_VALIDATOR]).component(
+  'applicationNameValidationMessages',
+  new ApplicationNameValidationMessagesComponent(),
+);

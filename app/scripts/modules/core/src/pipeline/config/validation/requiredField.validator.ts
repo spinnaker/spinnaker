@@ -6,7 +6,7 @@ import {
   IStageOrTriggerValidator,
   IValidatorConfig,
   PIPELINE_CONFIG_VALIDATOR,
-  PipelineConfigValidator
+  PipelineConfigValidator,
 } from './pipelineConfig.validator';
 
 export interface IRequiredFieldValidationConfig extends IValidatorConfig {
@@ -16,15 +16,23 @@ export interface IRequiredFieldValidationConfig extends IValidatorConfig {
 }
 
 export class RequiredFieldValidator implements IStageOrTriggerValidator {
-
-  public validate(pipeline: IPipeline, stage: IStage | ITrigger, validationConfig: IRequiredFieldValidationConfig, config: IStageOrTriggerTypeConfig): string {
-    if (pipeline.strategy === true && ['cluster', 'regions', 'zones', 'credentials'].includes(validationConfig.fieldName)) {
+  public validate(
+    pipeline: IPipeline,
+    stage: IStage | ITrigger,
+    validationConfig: IRequiredFieldValidationConfig,
+    config: IStageOrTriggerTypeConfig,
+  ): string {
+    if (
+      pipeline.strategy === true &&
+      ['cluster', 'regions', 'zones', 'credentials'].includes(validationConfig.fieldName)
+    ) {
       return null;
     }
 
     let fieldLabel: string = validationConfig.fieldLabel || validationConfig.fieldName;
     fieldLabel = fieldLabel.charAt(0).toUpperCase() + fieldLabel.substr(1);
-    const validationMessage = validationConfig.message || `<strong>${fieldLabel}</strong> is a required field for ${config.label} stages.`;
+    const validationMessage =
+      validationConfig.message || `<strong>${fieldLabel}</strong> is a required field for ${config.label} stages.`;
     const fieldExists = has(stage, validationConfig.fieldName);
     const field: any = get(stage, validationConfig.fieldName);
 
@@ -36,9 +44,7 @@ export class RequiredFieldValidator implements IStageOrTriggerValidator {
 }
 
 export const REQUIRED_FIELD_VALIDATOR = 'spinnaker.core.pipeline.config.validation.requiredField';
-module(REQUIRED_FIELD_VALIDATOR, [
-  PIPELINE_CONFIG_VALIDATOR
-])
+module(REQUIRED_FIELD_VALIDATOR, [PIPELINE_CONFIG_VALIDATOR])
   .service('requiredFieldValidator', RequiredFieldValidator)
   .run((pipelineConfigValidator: PipelineConfigValidator, requiredFieldValidator: RequiredFieldValidator) => {
     pipelineConfigValidator.registerValidator('requiredField', requiredFieldValidator);

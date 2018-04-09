@@ -8,14 +8,14 @@ import {
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   TaskMonitor,
-  TaskMonitorBuilder
+  TaskMonitorBuilder,
 } from '@spinnaker/core';
 
 import {
   IKubernetesManifestCommand,
   IKubernetesManifestCommandMetadata,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
-  KubernetesManifestCommandBuilder
+  KubernetesManifestCommandBuilder,
 } from '../manifestCommandBuilder.service';
 
 class KubernetesEditManifestCtrl implements IController {
@@ -27,16 +27,19 @@ class KubernetesEditManifestCtrl implements IController {
   public command: IKubernetesManifestCommand;
   public metadata: IKubernetesManifestCommandMetadata;
 
-  constructor(sourceManifest: any,
-              sourceMoniker: IMoniker,
-              private $uibModalInstance: IModalInstanceService,
-              private application: Application,
-              private manifestWriter: ManifestWriter,
-              private taskMonitorBuilder: TaskMonitorBuilder,
-              private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder) {
+  constructor(
+    sourceManifest: any,
+    sourceMoniker: IMoniker,
+    private $uibModalInstance: IModalInstanceService,
+    private application: Application,
+    private manifestWriter: ManifestWriter,
+    private taskMonitorBuilder: TaskMonitorBuilder,
+    private kubernetesManifestCommandBuilder: KubernetesManifestCommandBuilder,
+  ) {
     'ngInject';
-    this.kubernetesManifestCommandBuilder.buildNewManifestCommand(application, sourceManifest, sourceMoniker)
-      .then((builtCommand) => {
+    this.kubernetesManifestCommandBuilder
+      .buildNewManifestCommand(application, sourceManifest, sourceMoniker)
+      .then(builtCommand => {
         const { command, metadata } = builtCommand;
         this.command = command;
         this.command.versioned = false;

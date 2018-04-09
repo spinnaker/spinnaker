@@ -22,7 +22,6 @@ interface ISecurityGroupCommand extends ISecurityGroup {
 }
 
 class IngressRuleSelectorController implements IController {
-
   public rule: IRuleCommand;
   public securityGroup: ISecurityGroupCommand;
   public accounts: string[];
@@ -34,7 +33,7 @@ class IngressRuleSelectorController implements IController {
   public availableSecurityGroups: string[];
 
   public infiniteScroll: IInfiniteScroll = {
-    currentItems: 20
+    currentItems: 20,
   };
 
   public addMoreItems(): void {
@@ -59,19 +58,19 @@ class IngressRuleSelectorController implements IController {
       deprecated: vpc.deprecated,
       cloudProvider: vpc.cloudProvider,
     });
-  };
+  }
 
   public enableCrossAccount(): void {
     this.rule.crossAccountEnabled = true;
     this.rule.accountName = this.securityGroup.credentials;
     this.rule.vpcId = this.securityGroup.vpcId;
-  };
+  }
 
   public disableCrossAccount(): void {
     this.rule.crossAccountEnabled = false;
     this.rule.accountName = undefined;
     this.rule.vpcId = undefined;
-  };
+  }
 
   public $onInit(): void {
     this.setAvailableSecurityGroups();
@@ -98,7 +97,9 @@ class IngressRuleSelectorController implements IController {
       let regionalVpcId: string = null;
       if (vpcId) {
         const baseVpc: IVpc = this.vpcs.find(vpc => vpc.id === vpcId),
-              regionalVpc: IVpc = this.vpcs.find(vpc => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name);
+          regionalVpc: IVpc = this.vpcs.find(
+            vpc => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name,
+          );
         regionalVpcId = regionalVpc ? regionalVpc.id : undefined;
       }
 
@@ -139,7 +140,7 @@ class IngressRuleSelectorController implements IController {
         return;
       }
       const baseVpc = filtered.find(vpc => vpc.id === this.rule.vpcId),
-            regionalVpc = filtered.find(vpc => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
+        regionalVpc = filtered.find(vpc => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
       if (regionalVpc) {
         this.rule.vpcId = regionalVpc.id;
       } else {
@@ -161,8 +162,9 @@ const ingressRuleSelector: IComponentOptions = {
     allSecurityGroupsUpdated: '=',
   },
   templateUrl: require('./ingressRuleGroupSelector.component.html'),
-  controller: IngressRuleSelectorController
+  controller: IngressRuleSelectorController,
 };
 
-export const INGRESS_RULE_GROUP_SELECTOR_COMPONENT = 'spinnaker.amazon.securityGroup.configure.ingressRuleGroupSelector';
-module (INGRESS_RULE_GROUP_SELECTOR_COMPONENT, []).component('ingressRuleGroupSelector', ingressRuleSelector);
+export const INGRESS_RULE_GROUP_SELECTOR_COMPONENT =
+  'spinnaker.amazon.securityGroup.configure.ingressRuleGroupSelector';
+module(INGRESS_RULE_GROUP_SELECTOR_COMPONENT, []).component('ingressRuleGroupSelector', ingressRuleSelector);

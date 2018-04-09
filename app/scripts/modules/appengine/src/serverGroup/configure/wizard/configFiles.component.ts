@@ -2,7 +2,7 @@ import { IController, module } from 'angular';
 import { AppengineSourceType } from '../serverGroupCommandBuilder.service';
 
 class AppengineConfigFileConfigurerCtrl implements IController {
-  public command: {configFiles: string[], sourceType: string};
+  public command: { configFiles: string[]; sourceType: string };
 
   public $onInit(): void {
     if (!this.command.configFiles) {
@@ -101,5 +101,7 @@ class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
 }
 
 export const APPENGINE_CONFIG_FILE_CONFIGURER = 'spinnaker.appengine.configFileConfigurer.component';
-module(APPENGINE_CONFIG_FILE_CONFIGURER, [])
-  .component('appengineConfigFileConfigurer', new AppengineConfigFileConfigurerComponent());
+module(APPENGINE_CONFIG_FILE_CONFIGURER, []).component(
+  'appengineConfigFileConfigurer',
+  new AppengineConfigFileConfigurerComponent(),
+);

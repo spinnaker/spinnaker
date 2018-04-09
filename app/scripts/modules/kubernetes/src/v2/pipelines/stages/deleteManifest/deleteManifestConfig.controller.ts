@@ -12,14 +12,14 @@ export class KubernetesV2DeleteManifestConfigCtrl implements IController {
         account: '',
         kinds: [],
         labelSelectors: {
-          selectors: []
-        }
+          selectors: [],
+        },
       };
       Object.assign(this.$scope.stage, defaultSelection);
       const defaultOptions: IDeleteOptions = {
         gracePeriodSeconds: null,
         cascading: true,
-      }
+      };
       this.$scope.stage.options = defaultOptions;
       this.$scope.stage.cloudProvider = 'kubernetes';
     }

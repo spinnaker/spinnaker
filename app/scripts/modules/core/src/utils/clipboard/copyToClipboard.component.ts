@@ -11,9 +11,7 @@ export class CopyToClipboardController implements IController {
 
   public isOpen = false;
 
-  constructor(private $scope: IScope,
-              private $element: JQuery,
-              private $timeout: ITimeoutService) {
+  constructor(private $scope: IScope, private $element: JQuery, private $timeout: ITimeoutService) {
     'ngInject';
   }
 
@@ -46,7 +44,7 @@ export class CopyToClipboardComponent implements IComponentOptions {
   public bindings: any = {
     text: '<',
     toolTip: '<',
-    analyticsLabel: '<'
+    analyticsLabel: '<',
   };
   public controller: any = CopyToClipboardController;
   public template = `
@@ -69,6 +67,4 @@ export class CopyToClipboardComponent implements IComponentOptions {
 }
 
 export const COPY_TO_CLIPBOARD_COMPONENT = 'spinnaker.core.utils.copyToClipboard.directive';
-module(COPY_TO_CLIPBOARD_COMPONENT, [
-])
-.component('copyToClipboard', new CopyToClipboardComponent());
+module(COPY_TO_CLIPBOARD_COMPONENT, []).component('copyToClipboard', new CopyToClipboardComponent());

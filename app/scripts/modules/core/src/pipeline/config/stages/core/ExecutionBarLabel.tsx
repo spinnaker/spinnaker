@@ -18,21 +18,19 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps> 
       const executionWindowStage = stage.stages.find(s => s.type === 'restrictExecutionDuringTimeWindow');
       const template = (
         <div>
-          <div><b>{stage.name}</b> (waiting for execution window)</div>
-          <ExecutionWindowActions application={application} execution={execution} stage={executionWindowStage}/>
+          <div>
+            <b>{stage.name}</b> (waiting for execution window)
+          </div>
+          <ExecutionWindowActions application={application} execution={execution} stage={executionWindowStage} />
         </div>
       );
-      return (
-        <HoverablePopover template={template}>
-          {this.props.children}
-        </HoverablePopover>
-      );
+      return <HoverablePopover template={template}>{this.props.children}</HoverablePopover>;
     }
     if (executionMarker) {
       const LabelComponent = stage.labelComponent;
       const tooltip = (
         <Tooltip id={stage.id}>
-          <LabelComponent application={application} execution={execution} stage={stage}/>
+          <LabelComponent application={application} execution={execution} stage={stage} />
         </Tooltip>
       );
       return (
@@ -53,8 +51,6 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps> 
         }
       }
     }
-    return (
-      <span>{stageName}</span>
-    )
+    return <span>{stageName}</span>;
   }
 }

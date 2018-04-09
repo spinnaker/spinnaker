@@ -7,7 +7,6 @@ interface IWindowConfig {
 }
 
 class ExecutionWindowDayPickerController implements IController {
-
   public DAYS_OF_WEEK: any = DAYS_OF_WEEK;
   public windowConfig: IWindowConfig;
   public onChange: () => void;
@@ -69,5 +68,4 @@ class ExecutionWindowDayPickerComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./executionWindowDayPicker.component.html');
 }
 
-module(EXECUTION_WINDOWS_DAY_PICKER, [])
-  .component('executionWindowDayPicker', new ExecutionWindowDayPickerComponent());
+module(EXECUTION_WINDOWS_DAY_PICKER, []).component('executionWindowDayPicker', new ExecutionWindowDayPickerComponent());

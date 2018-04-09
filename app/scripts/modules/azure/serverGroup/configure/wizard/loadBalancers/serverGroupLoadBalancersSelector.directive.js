@@ -2,8 +2,12 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalancer.directive', [])
-  .directive('azureServerGroupLoadBalancersSelector', function(azureServerGroupConfigurationService, infrastructureCaches) {
+module.exports = angular
+  .module('spinnaker.azure.serverGroup.configure.loadBalancer.directive', [])
+  .directive('azureServerGroupLoadBalancersSelector', function(
+    azureServerGroupConfigurationService,
+    infrastructureCaches,
+  ) {
     return {
       restrict: 'E',
       scope: {
@@ -11,7 +15,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalan
       },
       templateUrl: require('./serverGroupLoadBalancersSelector.directive.html'),
       link: function(scope) {
-
         scope.getLoadBalancerRefreshTime = function() {
           return infrastructureCaches.get('loadBalancers').getStats().ageMax;
         };
@@ -22,6 +25,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalan
             scope.refreshing = false;
           });
         };
-      }
+      },
     };
   });

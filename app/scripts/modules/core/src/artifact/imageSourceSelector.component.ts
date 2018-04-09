@@ -24,5 +24,4 @@ class ImageSourceSelectorComponent implements IComponentOptions {
 }
 
 export const IMAGE_SOURCE_SELECTOR_COMPONENT = 'spinnaker.core.artifacts.expected.image.selector';
-module(IMAGE_SOURCE_SELECTOR_COMPONENT, [
-]).component('imageSourceSelector', new ImageSourceSelectorComponent());
+module(IMAGE_SOURCE_SELECTOR_COMPONENT, []).component('imageSourceSelector', new ImageSourceSelectorComponent());

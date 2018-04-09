@@ -2,7 +2,7 @@ import { Application, ISubnet } from '@spinnaker/core';
 
 export interface ISubnetSelectFieldProps {
   application: Application;
-  component: {[key: string]: any};
+  component: { [key: string]: any };
   field: string;
   helpKey: string;
   hideClassic?: boolean;

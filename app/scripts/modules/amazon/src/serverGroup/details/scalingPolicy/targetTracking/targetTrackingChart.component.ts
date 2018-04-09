@@ -14,7 +14,6 @@ const predefinedMetricTypeMapping: Dictionary<string> = {
 };
 
 class TargetTrackingChartController implements IComponentController {
-
   public config: ITargetTrackingConfiguration;
   public serverGroup: IServerGroup;
   public state: ITargetTrackingState;
@@ -84,7 +83,7 @@ const component: IComponentOptions = {
                         margins="{top: 10, left: 50}"
                         stats="$ctrl.state"
                         server-group="$ctrl.serverGroup"></metric-alarm-chart>
-  `
+  `,
 };
 
 export const TARGET_TRACKING_CHART_COMPONENT = 'spinnaker.amazon.scalingPolicy.targetTracking.chart.component';

@@ -1,37 +1,30 @@
 'use strict';
 
-describe('Controller: openstackResizeServerGroupCtrl', function () {
-
+describe('Controller: openstackResizeServerGroupCtrl', function() {
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;
   var scope;
 
-  beforeEach(
-    window.module(
-      require('./resizeServerGroup.controller').name
-    )
-  );
+  beforeEach(window.module(require('./resizeServerGroup.controller').name));
 
   beforeEach(
-    window.inject(function ($rootScope, $controller) {
+    window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('openstackResizeServerGroupCtrl', {
         $scope: scope,
-        $uibModalInstance: { result: {then: angular.noop}},
+        $uibModalInstance: { result: { then: angular.noop } },
         application: {},
         serverGroup: {
-          scalingConfig:{
-            min:0
-          }
-        }
+          scalingConfig: {
+            min: 0,
+          },
+        },
       });
-    })
+    }),
   );
 
-  it('should instantiate the controller', function () {
+  it('should instantiate the controller', function() {
     expect(controller).toBeDefined();
   });
 });
-
-

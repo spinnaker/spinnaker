@@ -6,9 +6,7 @@ import { ExecutionDetailsTasks } from '../core';
 
 export const ENABLE_ASG_STAGE = 'spinnaker.core.pipeline.stage.enableAsg';
 
-module(ENABLE_ASG_STAGE, [
-  PIPELINE_CONFIG_PROVIDER,
-]).config((pipelineConfigProvider: PipelineConfigProvider) => {
+module(ENABLE_ASG_STAGE, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: PipelineConfigProvider) => {
   pipelineConfigProvider.registerStage({
     useBaseProvider: true,
     executionDetailsSections: [EnableAsgExecutionDetails, ExecutionDetailsTasks],

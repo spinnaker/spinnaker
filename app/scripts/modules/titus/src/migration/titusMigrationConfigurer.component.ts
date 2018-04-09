@@ -5,14 +5,14 @@ import {
   APPLICATION_READ_SERVICE,
   ApplicationReader,
   PIPELINE_CONFIG_SERVICE,
-  PipelineConfigService
+  PipelineConfigService,
 } from '@spinnaker/core';
 
 import {
   IMigrationStrategy,
   IMigrationStrategyType,
   PipelineStrategy,
-  RollingPushStrategy
+  RollingPushStrategy,
 } from './titusMigrationConfig.component';
 
 interface IPipelineOption {
@@ -37,8 +37,10 @@ class TitusMigrationConfigurerController implements ng.IComponentController {
 
   public migrationOptions: string[] = [RollingPushStrategy.type, PipelineStrategy.type];
 
-  public constructor(private applicationReader: ApplicationReader,
-                     private pipelineConfigService: PipelineConfigService) {
+  public constructor(
+    private applicationReader: ApplicationReader,
+    private pipelineConfigService: PipelineConfigService,
+  ) {
     'ngInject';
   }
 
@@ -142,7 +144,7 @@ class TitusMigrationConfigurerComponent implements ng.IComponentOptions {
 
 export const TITUS_MIGRATION_CONFIGURER_COMPONENT = 'spinnaker.titus.migration.configurer.component';
 
-module(TITUS_MIGRATION_CONFIGURER_COMPONENT, [
-  APPLICATION_READ_SERVICE,
-  PIPELINE_CONFIG_SERVICE,
-]).component('titusMigrationConfigurer', new TitusMigrationConfigurerComponent());
+module(TITUS_MIGRATION_CONFIGURER_COMPONENT, [APPLICATION_READ_SERVICE, PIPELINE_CONFIG_SERVICE]).component(
+  'titusMigrationConfigurer',
+  new TitusMigrationConfigurerComponent(),
+);

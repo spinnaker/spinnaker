@@ -2,13 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-    .module('spinnaker.core.task.monitor.status', [])
-    .component('taskMonitorStatus', {
-      bindings: {
-        monitor: '=',
-      },
-      template: `<ul class="task task-progress">
+module.exports = angular.module('spinnaker.core.task.monitor.status', []).component('taskMonitorStatus', {
+  bindings: {
+    monitor: '=',
+  },
+  template: `<ul class="task task-progress">
           <li ng-repeat="step in $ctrl.monitor.task.steps | displayableTasks" ng-class="{'not-started': step.hasNotStarted}">
             <status-glyph item="step"></status-glyph>
             {{step.name | robotToHuman}}
@@ -27,5 +25,5 @@ module.exports = angular
             You can
             <a ui-sref="home.applications.application.tasks.taskDetails({application: $ctrl.monitor.application.name, taskId: $ctrl.monitor.task.id})">monitor
               this task from the Tasks view</a>.
-        </p>`
-    });
+        </p>`,
+});

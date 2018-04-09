@@ -34,14 +34,13 @@ class KubernetesEnvironmentFromCtrl implements IController {
   }
 
   public mapEnvFromSourceTypes(): void {
-    this.envFromSourceTypes = this.envFrom
-      .map((envFrom) => {
-        if (envFrom.configMapRef) {
-          return CONFIGMAP_TYPE;
-        } else {
-          return SECRET_TYPE;
-        }
-      });
+    this.envFromSourceTypes = this.envFrom.map(envFrom => {
+      if (envFrom.configMapRef) {
+        return CONFIGMAP_TYPE;
+      } else {
+        return SECRET_TYPE;
+      }
+    });
   }
 
   public removeEnvFrom(index: number): void {
@@ -70,13 +69,14 @@ class KubernetesEnvironmentFromCtrl implements IController {
 
 class KubernetesContainerEnvironmentFrom implements IComponentOptions {
   public bindings: any = {
-    envFrom: '='
+    envFrom: '=',
   };
   public templateUrl = require('./environmentFrom.component.html');
   public controller: any = KubernetesEnvironmentFromCtrl;
 }
 
 export const KUBERNETES_CONTAINER_ENVIRONMENT_FROM = 'spinnaker.kubernetes.container.environmentFrom.component';
-module(KUBERNETES_CONTAINER_ENVIRONMENT_FROM, [])
-  .component('kubernetesContainerEnvironmentFrom', new KubernetesContainerEnvironmentFrom());
-
+module(KUBERNETES_CONTAINER_ENVIRONMENT_FROM, []).component(
+  'kubernetesContainerEnvironmentFrom',
+  new KubernetesContainerEnvironmentFrom(),
+);

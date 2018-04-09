@@ -42,21 +42,13 @@ export class SortToggle extends React.Component<ISortToggleProps> {
       clickable: true,
     });
     return (
-      <span
-        className={className}
-        onClick={this.setSortKey}
-      >
+      <span className={className} onClick={this.setSortKey}>
         {this.props.label}
         <a>
-          {(!this.isReverse() || !isSortKey) && (
-            <span className="glyphicon glyphicon-Down-triangle"/>
-          )}
-          {(this.isReverse() && isSortKey) && (
-            <span className="glyphicon glyphicon-Up-triangle"/>
-          )}
+          {(!this.isReverse() || !isSortKey) && <span className="glyphicon glyphicon-Down-triangle" />}
+          {this.isReverse() && isSortKey && <span className="glyphicon glyphicon-Up-triangle" />}
         </a>
       </span>
     );
   }
-
 }

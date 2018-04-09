@@ -3,46 +3,49 @@ import { mock } from 'angular';
 import { CONFIG_SECTION_FOOTER, ConfigSectionFooterController } from './configSectionFooter.component';
 
 describe('Component: ConfigSectionFooter', () => {
-
   let $componentController: ng.IComponentControllerService,
-      applicationWriter: any,
-      $ctrl: ConfigSectionFooterController,
-      $q: ng.IQService,
-      $scope: ng.IScope;
+    applicationWriter: any,
+    $ctrl: ConfigSectionFooterController,
+    $q: ng.IQService,
+    $scope: ng.IScope;
 
   const initializeController = (data: any) => {
-    $ctrl = <ConfigSectionFooterController> $componentController(
+    $ctrl = <ConfigSectionFooterController>$componentController(
       'configSectionFooter',
       { $scope: null, applicationWriter: applicationWriter },
-      data
+      data,
     );
   };
 
   beforeEach(mock.module(CONFIG_SECTION_FOOTER));
 
-  beforeEach(mock.inject((
-    _$componentController_: ng.IComponentControllerService,
-    _$q_: ng.IQService,
-    $rootScope: ng.IRootScopeService,
-    _applicationWriter_: any) => {
-      $scope = $rootScope.$new();
-      $componentController = _$componentController_;
-      $q = _$q_;
-      applicationWriter = _applicationWriter_;
-  }));
+  beforeEach(
+    mock.inject(
+      (
+        _$componentController_: ng.IComponentControllerService,
+        _$q_: ng.IQService,
+        $rootScope: ng.IRootScopeService,
+        _applicationWriter_: any,
+      ) => {
+        $scope = $rootScope.$new();
+        $componentController = _$componentController_;
+        $q = _$q_;
+        applicationWriter = _applicationWriter_;
+      },
+    ),
+  );
 
   describe('revert', () => {
-
     it('replaces contents of config with original config', () => {
       const data = {
         viewState: {
-          originalConfig: { exceptions: ([] as any), enabled: false }
+          originalConfig: { exceptions: [] as any, enabled: false },
         },
         config: {
-          exceptions: [ { account: 'prod', region: 'us-east-1' } ],
+          exceptions: [{ account: 'prod', region: 'us-east-1' }],
           enabled: true,
-          grouping: 'app'
-        }
+          grouping: 'app',
+        },
       };
 
       initializeController(data);
@@ -55,7 +58,6 @@ describe('Component: ConfigSectionFooter', () => {
   });
 
   describe('save', () => {
-
     let data: any;
     beforeEach(() => {
       data = {
@@ -68,14 +70,14 @@ describe('Component: ConfigSectionFooter', () => {
           isDirty: true,
         },
         config: {
-          exceptions: [ { account: 'prod', region: 'us-east-1' } ],
+          exceptions: [{ account: 'prod', region: 'us-east-1' }],
           enabled: true,
-          grouping: 'app'
-        }
+          grouping: 'app',
+        },
       };
     });
 
-    it ('sets state to saving, saves, then sets flags appropriately', () => {
+    it('sets state to saving, saves, then sets flags appropriately', () => {
       const viewState = data.viewState;
       spyOn(applicationWriter, 'updateApplication').and.returnValue($q.when(null));
       initializeController(data);

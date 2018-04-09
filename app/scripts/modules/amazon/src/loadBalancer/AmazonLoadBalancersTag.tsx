@@ -7,7 +7,13 @@ import { BindAll } from 'lodash-decorators';
 import { sortBy } from 'lodash';
 
 import {
-  HealthCounts, ILoadBalancer, ILoadBalancersTagProps, LoadBalancerDataUtils, ReactInjector, Tooltip, HoverablePopover
+  HealthCounts,
+  ILoadBalancer,
+  ILoadBalancersTagProps,
+  LoadBalancerDataUtils,
+  ReactInjector,
+  Tooltip,
+  HoverablePopover,
 } from '@spinnaker/core';
 
 import { AmazonLoadBalancerDataUtils } from 'amazon/loadBalancer/amazonLoadBalancerDataUtils';
@@ -33,9 +39,9 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
     return (
       <a onClick={this.onClick}>
         <span className="name">{this.props.loadBalancer.name}</span>
-        <HealthCounts container={this.props.loadBalancer.instanceCounts}/>
+        <HealthCounts container={this.props.loadBalancer.instanceCounts} />
       </a>
-    )
+    );
   }
 }
 
@@ -52,12 +58,12 @@ class LoadBalancerButton extends React.Component<ILoadBalancerSingleItemProps> {
         <button className="btn btn-link no-padding" onClick={this.onClick}>
           <span className="badge badge-counter">
             <span className="icon">
-              <i className="fa icon-sitemap"/>
+              <i className="fa icon-sitemap" />
             </span>
           </span>
         </button>
       </Tooltip>
-    )
+    );
   }
 }
 
@@ -78,18 +84,18 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
       targetGroups: [],
     };
 
-    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup)
-      .then((loadBalancers) => {
-        if (this.mounted) {
-          this.setState({ loadBalancers });
-        }
-      });
-    AmazonLoadBalancerDataUtils.populateTargetGroups(props.application, props.serverGroup as IAmazonServerGroup)
-      .then((targetGroups: ITargetGroup[]) => {
+    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => {
+      if (this.mounted) {
+        this.setState({ loadBalancers });
+      }
+    });
+    AmazonLoadBalancerDataUtils.populateTargetGroups(props.application, props.serverGroup as IAmazonServerGroup).then(
+      (targetGroups: ITargetGroup[]) => {
         if (this.mounted) {
           this.setState({ targetGroups });
         }
-      });
+      },
+    );
   }
 
   private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
@@ -97,7 +103,12 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     const serverGroup = this.props.serverGroup;
     ReactGA.event({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
-    $state.go(nextState, { region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer.name, provider: serverGroup.type });
+    $state.go(nextState, {
+      region: serverGroup.region,
+      accountId: serverGroup.account,
+      name: loadBalancer.name,
+      provider: serverGroup.type,
+    });
   }
 
   private showTargetGroupDetails(targetGroup: ITargetGroup): void {
@@ -105,7 +116,13 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     const serverGroup = this.props.serverGroup;
     ReactGA.event({ category: 'Cluster Pod', action: `Load Target Group Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.targetGroupDetails' : '^.targetGroupDetails';
-    $state.go(nextState, { region: serverGroup.region, accountId: serverGroup.account, name: targetGroup.name, provider: serverGroup.type, loadBalancerName: targetGroup.loadBalancerNames[0] });
+    $state.go(nextState, {
+      region: serverGroup.region,
+      accountId: serverGroup.account,
+      name: targetGroup.name,
+      provider: serverGroup.type,
+      loadBalancerName: targetGroup.loadBalancerNames[0],
+    });
   }
 
   private handleShowPopover() {
@@ -119,7 +136,9 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
 
   public componentDidMount(): void {
     this.mounted = true;
-    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
+    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => {
+      this.forceUpdate();
+    });
   }
 
   public componentWillUnmount(): void {
@@ -130,9 +149,9 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   public render(): React.ReactElement<AmazonLoadBalancersTag> {
     const { loadBalancers, targetGroups } = this.state;
 
-    const targetGroupCount = targetGroups && targetGroups.length || 0,
-          loadBalancerCount = loadBalancers && loadBalancers.length || 0,
-          totalCount = targetGroupCount + loadBalancerCount;
+    const targetGroupCount = (targetGroups && targetGroups.length) || 0,
+      loadBalancerCount = (loadBalancers && loadBalancers.length) || 0,
+      totalCount = targetGroupCount + loadBalancerCount;
 
     if (!totalCount) {
       return null;
@@ -142,20 +161,28 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     const popover = (
       <div className="menu-load-balancers">
         {loadBalancerCount > 0 && <div className="menu-load-balancers-header">Load Balancers</div>}
-        {sortBy(loadBalancers, 'name').map((loadBalancer) => (
-          <LoadBalancerListItem key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>
+        {sortBy(loadBalancers, 'name').map(loadBalancer => (
+          <LoadBalancerListItem
+            key={loadBalancer.name}
+            loadBalancer={loadBalancer}
+            onItemClick={this.showLoadBalancerDetails}
+          />
         ))}
 
         {targetGroupCount > 0 && <div className="menu-load-balancers-header">Target Groups</div>}
-        {sortBy(targetGroups, 'name').map((targetGroup) => (
-          <LoadBalancerListItem key={targetGroup.name} loadBalancer={targetGroup} onItemClick={this.showTargetGroupDetails}/>
+        {sortBy(targetGroups, 'name').map(targetGroup => (
+          <LoadBalancerListItem
+            key={targetGroup.name}
+            loadBalancer={targetGroup}
+            onItemClick={this.showTargetGroupDetails}
+          />
         ))}
       </div>
     );
 
     return (
       <span className={className}>
-        { totalCount > 1 && (
+        {totalCount > 1 && (
           <HoverablePopover
             delayShow={100}
             delayHide={150}
@@ -166,26 +193,41 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
             container={this.props.container}
             className="no-padding menu-load-balancers"
           >
-            <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding" >
+            <button onClick={this.handleClick} className="btn btn-link btn-multiple-load-balancers clearfix no-padding">
               <span className="badge badge-counter">
-                <span className="icon"><i className="fa icon-sitemap"/></span> {totalCount}
+                <span className="icon">
+                  <i className="fa icon-sitemap" />
+                </span>{' '}
+                {totalCount}
               </span>
             </button>
           </HoverablePopover>
         )}
 
-        { (loadBalancers.length === 1 && targetGroups.length === 0) && (
-          <span className="btn-load-balancer">
-            <LoadBalancerButton key={loadBalancers[0].name} label="Load Balancer" loadBalancer={loadBalancers[0]} onItemClick={this.showLoadBalancerDetails}/>
-          </span>
-        )}
+        {loadBalancers.length === 1 &&
+          targetGroups.length === 0 && (
+            <span className="btn-load-balancer">
+              <LoadBalancerButton
+                key={loadBalancers[0].name}
+                label="Load Balancer"
+                loadBalancer={loadBalancers[0]}
+                onItemClick={this.showLoadBalancerDetails}
+              />
+            </span>
+          )}
 
-        { (targetGroups.length === 1 && loadBalancers.length === 0) && (
-          <span className="btn-load-balancer">
-            <LoadBalancerButton key={targetGroups[0].name} label="Target Group" loadBalancer={targetGroups[0]} onItemClick={this.showTargetGroupDetails}/>
-          </span>
-        )}
+        {targetGroups.length === 1 &&
+          loadBalancers.length === 0 && (
+            <span className="btn-load-balancer">
+              <LoadBalancerButton
+                key={targetGroups[0].name}
+                label="Target Group"
+                loadBalancer={targetGroups[0]}
+                onItemClick={this.showTargetGroupDetails}
+              />
+            </span>
+          )}
       </span>
-    )
+    );
   }
 }

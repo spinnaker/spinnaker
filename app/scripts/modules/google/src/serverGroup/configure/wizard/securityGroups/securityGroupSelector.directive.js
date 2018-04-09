@@ -11,7 +11,7 @@ module.exports = angular
     require('./tagSelectorGenerator.component.js').name,
     require('./tagManager.service.js').name,
   ])
-  .directive('gceServerGroupSecurityGroupSelector', function () {
+  .directive('gceServerGroupSecurityGroupSelector', function() {
     return {
       restrict: 'E',
       templateUrl: require('./securityGroupSelector.directive.html'),
@@ -22,9 +22,12 @@ module.exports = angular
       controllerAs: 'vm',
       controller: 'gceServerGroupSecurityGroupsSelectorCtrl',
     };
-  }).controller('gceServerGroupSecurityGroupsSelectorCtrl', function (gceServerGroupConfigurationService,
-                                                                      gceTagManager,
-                                                                      infrastructureCaches) {
+  })
+  .controller('gceServerGroupSecurityGroupsSelectorCtrl', function(
+    gceServerGroupConfigurationService,
+    gceTagManager,
+    infrastructureCaches,
+  ) {
     this.getSecurityGroupRefreshTime = () => {
       return infrastructureCaches.get('securityGroups').getStats().ageMax;
     };

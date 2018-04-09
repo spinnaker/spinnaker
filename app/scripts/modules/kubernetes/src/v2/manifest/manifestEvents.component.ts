@@ -5,11 +5,11 @@ class KubernetesManifestEvents implements IController {
 
   public pillStyle(e: any): string {
     if (e.type === 'Warning') {
-      return 'alert'
+      return 'alert';
     } else if (e.type === 'Normal') {
-      return 'success'
+      return 'success';
     } else {
-      return ''
+      return '';
     }
   }
 
@@ -48,5 +48,4 @@ class KubernetesManifestEventsComponent implements IComponentOptions {
 }
 
 export const KUBERNETES_MANIFEST_EVENTS = 'spinnaker.kubernetes.v2.manifest.events';
-module(KUBERNETES_MANIFEST_EVENTS, [])
-  .component('kubernetesManifestEvents', new KubernetesManifestEventsComponent());
+module(KUBERNETES_MANIFEST_EVENTS, []).component('kubernetesManifestEvents', new KubernetesManifestEventsComponent());

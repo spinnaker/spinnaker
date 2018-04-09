@@ -80,4 +80,3 @@ export * from './validation';
 export * from './widgets';
 
 export * from './core.module';
-

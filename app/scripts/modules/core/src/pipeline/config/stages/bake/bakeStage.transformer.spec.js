@@ -1,34 +1,31 @@
 'use strict';
 
 describe('bakeStageTransformer', function() {
+  beforeEach(window.module(require('./bakeStage.transformer').name));
 
   beforeEach(
-    window.module(
-      require('./bakeStage.transformer').name
-    )
+    window.inject(function(bakeStageTransformer) {
+      this.transformer = bakeStageTransformer;
+    }),
   );
 
-  beforeEach(window.inject(function (bakeStageTransformer) {
-    this.transformer = bakeStageTransformer;
-  }));
-
-  describe('transform', function () {
-    it('should add allPreviouslyBaked/somePreviouslyBaked flags when all/some child bake stages are marked previouslyBaked', function () {
+  describe('transform', function() {
+    it('should add allPreviouslyBaked/somePreviouslyBaked flags when all/some child bake stages are marked previouslyBaked', function() {
       var execution = {
         stages: [
-          {id: 'a', name: 'a', context: {}},
-          {id: 'b', name: 'b', parentStageId: 'a', context: {previouslyBaked: true}},
-          {id: 'c', name: 'c', parentStageId: 'a', context: {previouslyBaked: true}},
-          {id: 'e', name: 'e', context: {}},
-          {id: 'f', name: 'f', parentStageId: 'e', context: {previouslyBaked: true}},
-          {id: 'g', name: 'g', parentStageId: 'e', context: {previouslyBaked: false}},
-          {id: 'h', name: 'h', context: {}},
-          {id: 'i', name: 'i', parentStageId: 'h', context: {previouslyBaked: false}},
-          {id: 'j', name: 'j', context: {}},
-        ]
+          { id: 'a', name: 'a', context: {} },
+          { id: 'b', name: 'b', parentStageId: 'a', context: { previouslyBaked: true } },
+          { id: 'c', name: 'c', parentStageId: 'a', context: { previouslyBaked: true } },
+          { id: 'e', name: 'e', context: {} },
+          { id: 'f', name: 'f', parentStageId: 'e', context: { previouslyBaked: true } },
+          { id: 'g', name: 'g', parentStageId: 'e', context: { previouslyBaked: false } },
+          { id: 'h', name: 'h', context: {} },
+          { id: 'i', name: 'i', parentStageId: 'h', context: { previouslyBaked: false } },
+          { id: 'j', name: 'j', context: {} },
+        ],
       };
 
-      execution.stages.forEach((stage) => stage.type = 'bake');
+      execution.stages.forEach(stage => (stage.type = 'bake'));
 
       this.transformer.transform({}, execution);
 

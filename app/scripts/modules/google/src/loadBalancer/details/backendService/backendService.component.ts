@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 class GceBackendServiceDetailsComponent implements ng.IComponentOptions {
   public bindings: any = {
-    backendService: '<'
+    backendService: '<',
   };
   public template = `
     <dt>Name</dt>
@@ -15,6 +15,9 @@ class GceBackendServiceDetailsComponent implements ng.IComponentOptions {
     <dd ng-if="$ctrl.backendService.sessionAffinity === 'GENERATED_COOKIE'">{{$ctrl.backendService.affinityCookieTtlSec}}</dd>`;
 }
 
-export const GCE_BACKEND_SERVICE_DETAILS_COMPONENT = 'spinnaker.gce.loadBalancer.details.backendServiceDetails.component';
-module(GCE_BACKEND_SERVICE_DETAILS_COMPONENT, [])
-  .component('gceBackendServiceDetails', new GceBackendServiceDetailsComponent());
+export const GCE_BACKEND_SERVICE_DETAILS_COMPONENT =
+  'spinnaker.gce.loadBalancer.details.backendServiceDetails.component';
+module(GCE_BACKEND_SERVICE_DETAILS_COMPONENT, []).component(
+  'gceBackendServiceDetails',
+  new GceBackendServiceDetailsComponent(),
+);

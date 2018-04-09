@@ -12,9 +12,17 @@ module.exports = angular
     ACCOUNT_SERVICE,
   ])
 
-  .controller('azureCreateSecurityGroupCtrl', function ($scope, $uibModalInstance, $state, $controller, accountService,
-                                                        taskMonitorBuilder, application, securityGroup, azureSecurityGroupWriter) {
-
+  .controller('azureCreateSecurityGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $state,
+    $controller,
+    accountService,
+    taskMonitorBuilder,
+    application,
+    securityGroup,
+    azureSecurityGroupWriter,
+  ) {
     $scope.pages = {
       location: require('./createSecurityGroupProperties.html'),
       ingress: require('./createSecurityGroupIngress.html'),
@@ -80,7 +88,7 @@ module.exports = angular
       });
     };
 
-    ctrl.cancel = function () {
+    ctrl.cancel = function() {
       $uibModalInstance.dismiss();
     };
 
@@ -94,26 +102,25 @@ module.exports = angular
       $scope.namePreview = name;
     };
 
-    ctrl.upsert = function () {
-      $scope.taskMonitor.submit(
-        function() {
-          let params = {
-            cloudProvider: 'azure',
-            appName: application.name,
-            securityGroupName: $scope.securityGroup.name,
-            region: $scope.securityGroup.region,
-            subnet : 'none',
-            vpcId: 'null'
-            };
-          $scope.securityGroup.type = 'upsertSecurityGroup';
+    ctrl.upsert = function() {
+      $scope.taskMonitor.submit(function() {
+        let params = {
+          cloudProvider: 'azure',
+          appName: application.name,
+          securityGroupName: $scope.securityGroup.name,
+          region: $scope.securityGroup.region,
+          subnet: 'none',
+          vpcId: 'null',
+        };
+        $scope.securityGroup.type = 'upsertSecurityGroup';
 
-          return azureSecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create', params);
-        }
-      );
+        return azureSecurityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Create', params);
+      });
     };
 
     ctrl.addRule = function(ruleset) {
-      ruleset.push({ name: $scope.securityGroup.name + '-Rule' + ruleset.length,
+      ruleset.push({
+        name: $scope.securityGroup.name + '-Rule' + ruleset.length,
         priority: ruleset.length == 0 ? 100 : 100 * (ruleset.length + 1),
         protocol: 'tcp',
         access: 'Allow',
@@ -123,13 +130,12 @@ module.exports = angular
         destinationAddressPrefix: '*',
         destinationPortRange: '80-80',
         startPort: 80,
-        endPort: 80
+        endPort: 80,
       });
     };
 
     ctrl.portUpdated = function(ruleset, index) {
-        ruleset[index].destinationPortRange =
-            ruleset[index].startPort + '-' + ruleset[index].endPort;
+      ruleset[index].destinationPortRange = ruleset[index].startPort + '-' + ruleset[index].endPort;
     };
 
     ctrl.removeRule = function(ruleset, index) {
@@ -137,13 +143,11 @@ module.exports = angular
     };
 
     ctrl.moveUp = function(ruleset, index) {
-      if(index === 0)
-        return;
+      if (index === 0) return;
       swapRules(ruleset, index, index - 1);
     };
     ctrl.moveDown = function(ruleset, index) {
-      if(index === ruleset.length - 1)
-        return;
+      if (index === ruleset.length - 1) return;
       swapRules(ruleset, index, index + 1);
     };
 

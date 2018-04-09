@@ -72,12 +72,11 @@ export class ApplicationNameValidator {
       return { errors, warnings };
     });
   }
-
 }
 
 export const APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.name.validator';
 
-module(APPLICATION_NAME_VALIDATOR, [
-  CLOUD_PROVIDER_REGISTRY,
-  ACCOUNT_SERVICE,
-]).service('applicationNameValidator', ApplicationNameValidator);
+module(APPLICATION_NAME_VALIDATOR, [CLOUD_PROVIDER_REGISTRY, ACCOUNT_SERVICE]).service(
+  'applicationNameValidator',
+  ApplicationNameValidator,
+);

@@ -6,27 +6,30 @@ import { UrlParser } from 'core/navigation/urlParser';
 
 export const CLUSTER_FILTER_MODEL = 'cluster.filter.model';
 export const filterModelConfig: IFilterConfig[] = [
-  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
-  { model: 'account', param: 'acct', type: 'trueKeyObject', },
-  { model: 'region', param: 'reg', type: 'trueKeyObject', },
-  { model: 'stack', param: 'stack', type: 'trueKeyObject', },
-  { model: 'detail', param: 'detail', type: 'trueKeyObject', },
-  { model: 'category', param: 'category', type: 'trueKeyObject', },
-  { model: 'status', type: 'trueKeyObject', filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' } },
+  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
+  { model: 'account', param: 'acct', type: 'trueKeyObject' },
+  { model: 'region', param: 'reg', type: 'trueKeyObject' },
+  { model: 'stack', param: 'stack', type: 'trueKeyObject' },
+  { model: 'detail', param: 'detail', type: 'trueKeyObject' },
+  { model: 'category', param: 'category', type: 'trueKeyObject' },
+  {
+    model: 'status',
+    type: 'trueKeyObject',
+    filterTranslator: { Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service' },
+  },
   { model: 'availabilityZone', param: 'zone', type: 'trueKeyObject', filterLabel: 'availability zone' },
   { model: 'instanceType', type: 'trueKeyObject', filterLabel: 'instance type' },
-  { model: 'providerType', type: 'trueKeyObject', filterLabel: 'provider', },
-  { model: 'minInstances', type: 'int', filterLabel: 'instance count (min)', },
-  { model: 'maxInstances', type: 'int', filterLabel: 'instance count (max)', },
-  { model: 'showAllInstances', param: 'hideInstances', displayOption: true, type: 'inverse-boolean', },
-  { model: 'listInstances', displayOption: true, type: 'boolean', },
+  { model: 'providerType', type: 'trueKeyObject', filterLabel: 'provider' },
+  { model: 'minInstances', type: 'int', filterLabel: 'instance count (min)' },
+  { model: 'maxInstances', type: 'int', filterLabel: 'instance count (max)' },
+  { model: 'showAllInstances', param: 'hideInstances', displayOption: true, type: 'inverse-boolean' },
+  { model: 'listInstances', displayOption: true, type: 'boolean' },
   { model: 'instanceSort', displayOption: true, type: 'string', defaultValue: 'launchTime' },
-  { model: 'multiselect', displayOption: true, type: 'boolean', },
+  { model: 'multiselect', displayOption: true, type: 'boolean' },
   { model: 'clusters', type: 'trueKeyObject' },
 ];
 
 export class ClusterFilterModel {
-
   private mostRecentParams: any;
   public asFilterModel: IFilterModel;
 
@@ -38,8 +41,10 @@ export class ClusterFilterModel {
   }
 
   private isClusterState(stateName: string): boolean {
-    return stateName === 'home.applications.application.insight.clusters' ||
-      stateName === 'home.project.application.insight.clusters';
+    return (
+      stateName === 'home.applications.application.insight.clusters' ||
+      stateName === 'home.project.application.insight.clusters'
+    );
   }
 
   private isClusterStateOrChild(stateName: string): boolean {
@@ -54,7 +59,7 @@ export class ClusterFilterModel {
     return this.isClusterStateOrChild(toState.name);
   }
 
-  private movingFromClusterState (toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration): boolean {
+  private movingFromClusterState(toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration): boolean {
     return this.isClusterStateOrChild(fromState.name) && !this.isClusterStateOrChild(toState.name);
   }
 
@@ -82,29 +87,39 @@ export class ClusterFilterModel {
       }
     });
 
-    this.$rootScope.$on('$stateChangeStart', (_event: IAngularEvent, toState: Ng1StateDeclaration, _toParams: StateParams, fromState: Ng1StateDeclaration, fromParams: StateParams) => {
-      if (this.movingFromClusterState(toState, fromState)) {
-        this.asFilterModel.saveState(fromState, fromParams, this.mostRecentParams);
-      }
-    });
+    this.$rootScope.$on(
+      '$stateChangeStart',
+      (
+        _event: IAngularEvent,
+        toState: Ng1StateDeclaration,
+        _toParams: StateParams,
+        fromState: Ng1StateDeclaration,
+        fromParams: StateParams,
+      ) => {
+        if (this.movingFromClusterState(toState, fromState)) {
+          this.asFilterModel.saveState(fromState, fromParams, this.mostRecentParams);
+        }
+      },
+    );
 
-    this.$rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
-      if (this.movingToClusterState(toState) && this.isClusterStateOrChild(fromState.name)) {
-        this.asFilterModel.applyParamsToUrl();
-        return;
-      }
-      if (this.movingToClusterState(toState)) {
-        if (this.shouldRouteToSavedState(toParams, fromState)) {
-          this.asFilterModel.restoreState(toParams);
+    this.$rootScope.$on(
+      '$stateChangeSuccess',
+      (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+        if (this.movingToClusterState(toState) && this.isClusterStateOrChild(fromState.name)) {
+          this.asFilterModel.applyParamsToUrl();
+          return;
         }
-        if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
-          this.asFilterModel.clearFilters();
+        if (this.movingToClusterState(toState)) {
+          if (this.shouldRouteToSavedState(toParams, fromState)) {
+            this.asFilterModel.restoreState(toParams);
+          }
+          if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
+            this.asFilterModel.clearFilters();
+          }
         }
-      }
-    });
+      },
+    );
   }
 }
 
-module(CLUSTER_FILTER_MODEL, [
-  FILTER_MODEL_SERVICE,
-]).service('clusterFilterModel', ClusterFilterModel);
+module(CLUSTER_FILTER_MODEL, [FILTER_MODEL_SERVICE]).service('clusterFilterModel', ClusterFilterModel);

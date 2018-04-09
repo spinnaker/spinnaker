@@ -1,13 +1,14 @@
 'use strict';
 
 let angular = require('angular');
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
+import { ACCOUNT_SERVICE } from 'core/account/account.service';
 
-module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [
-  require('core/application/modal/platformHealthOverride.directive.js').name,
-  ACCOUNT_SERVICE,
-])
+module.exports = angular
+  .module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [
+    require('core/application/modal/platformHealthOverride.directive.js').name,
+    ACCOUNT_SERVICE,
+  ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -17,26 +18,27 @@ module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.disableAsgS
       validators: [
         {
           type: 'targetImpedance',
-          message: 'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.'
+          message:
+            'This pipeline will attempt to disable a server group without deploying a new version into the same cluster.',
         },
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'target', },
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        { type: 'requiredField', fieldName: 'target' },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('oraclebmcsDisableAsgStageCtrl', function($scope, accountService) {
-
+  })
+  .controller('oraclebmcsDisableAsgStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     let provider = 'oraclebmcs';
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts(provider).then(function (accounts) {
+    accountService.listAccounts(provider).then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

@@ -4,7 +4,7 @@ import { Application } from '@spinnaker/core';
 import {
   IKubernetesManifestCommandData,
   KUBERNETES_MANIFEST_COMMAND_BUILDER,
-  KubernetesManifestCommandBuilder
+  KubernetesManifestCommandBuilder,
 } from '../manifest/manifestCommandBuilder.service';
 
 export class KubernetesV2ServerGroupCommandBuilder {
@@ -19,6 +19,7 @@ export class KubernetesV2ServerGroupCommandBuilder {
 
 export const KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER = 'spinnaker.kubernetes.v2.serverGroup.commandBuilder.service';
 
-module(KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER, [
-  KUBERNETES_MANIFEST_COMMAND_BUILDER,
-]).service('kubernetesV2ServerGroupCommandBuilder', KubernetesV2ServerGroupCommandBuilder);
+module(KUBERNETES_V2_SERVER_GROUP_COMMAND_BUILDER, [KUBERNETES_MANIFEST_COMMAND_BUILDER]).service(
+  'kubernetesV2ServerGroupCommandBuilder',
+  KubernetesV2ServerGroupCommandBuilder,
+);

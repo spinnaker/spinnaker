@@ -4,18 +4,28 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
-  require('@uirouter/angularjs').default,
-  require('../serverGroupConfiguration.service.js').name,
-  require('../../serverGroup.transformer.js').name,
-  SERVER_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-  V2_MODAL_WIZARD_SERVICE,
-])
-  .controller('azureCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
-                                                    serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
-                                                    azureServerGroupConfigurationService, serverGroupCommand,
-                                                    application, title) {
+module.exports = angular
+  .module('spinnaker.azure.cloneServerGroup.controller', [
+    require('@uirouter/angularjs').default,
+    require('../serverGroupConfiguration.service.js').name,
+    require('../../serverGroup.transformer.js').name,
+    SERVER_GROUP_WRITER,
+    TASK_MONITOR_BUILDER,
+    V2_MODAL_WIZARD_SERVICE,
+  ])
+  .controller('azureCloneServerGroupCtrl', function(
+    $scope,
+    $uibModalInstance,
+    $q,
+    $state,
+    serverGroupWriter,
+    v2modalWizardService,
+    taskMonitorBuilder,
+    azureServerGroupConfigurationService,
+    serverGroupCommand,
+    application,
+    title,
+  ) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings/basicSettings.html'),
@@ -42,14 +52,17 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
         'load balancers',
         'security groups',
         'instance type',
-        'all fields on the Advanced Settings page'
+        'all fields on the Advanced Settings page',
       ],
       notCopied: [],
-      additionalCopyText: 'If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.'
+      additionalCopyText:
+        'If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.',
     };
 
     if (!$scope.command.viewState.disableStrategySelection) {
-      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+      this.templateSelectionText.notCopied.push(
+        'the deployment strategy (if any) used to deploy the most recent server group',
+      );
     }
 
     function onApplicationRefresh() {
@@ -57,7 +70,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       if ($scope.$$destroyed) {
         return;
       }
-      let cloneStage = $scope.taskMonitor.task.execution.stages.find((stage) => stage.type === 'cloneServerGroup');
+      let cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
         let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
@@ -68,13 +81,16 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
             provider: 'azure',
           };
           var transitionTo = '^.^.^.clusters.serverGroup';
-          if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
+          if ($state.includes('**.clusters.serverGroup')) {
+            // clone via details, all view
             transitionTo = '^.serverGroup';
           }
-          if ($state.includes('**.clusters.cluster.serverGroup')) { // clone or create with details open
+          if ($state.includes('**.clusters.cluster.serverGroup')) {
+            // clone or create with details open
             transitionTo = '^.^.serverGroup';
           }
-          if ($state.includes('**.clusters')) { // create new, no details open
+          if ($state.includes('**.clusters')) {
+            // create new, no details open
             transitionTo = '.serverGroup';
           }
           $state.go(transitionTo, newStateParams);
@@ -87,7 +103,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       application.serverGroups.onNextRefresh($scope, onApplicationRefresh);
     }
 
-
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
@@ -96,7 +111,7 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
     });
 
     function configureCommand() {
-      azureServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+      azureServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
         var mode = serverGroupCommand.viewState.mode;
         if (mode === 'clone' || mode === 'create') {
           serverGroupCommand.viewState.useAllImageSelection = true;
@@ -144,18 +159,16 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       }
     }
 
-    this.submit = function () {
+    this.submit = function() {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
-      $scope.taskMonitor.submit(
-        function() {
-          return serverGroupWriter.cloneServerGroup($scope.command, application);
-        }
-      );
+      $scope.taskMonitor.submit(function() {
+        return serverGroupWriter.cloneServerGroup($scope.command, application);
+      });
     };
 
-    this.cancel = function () {
+    this.cancel = function() {
       $uibModalInstance.dismiss();
     };
 

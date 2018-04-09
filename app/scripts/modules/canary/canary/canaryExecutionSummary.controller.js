@@ -4,20 +4,22 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.summary.controller', [
-  require('@uirouter/angularjs').default,
-  require('./actions/generateScore.controller.js').name,
-  require('./actions/endCanary.controller.js').name,
-  PIPELINE_CONFIG_PROVIDER
-])
-  .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, $uibModal, pipelineConfig) {
-
+module.exports = angular
+  .module('spinnaker.canary.summary.controller', [
+    require('@uirouter/angularjs').default,
+    require('./actions/generateScore.controller.js').name,
+    require('./actions/endCanary.controller.js').name,
+    PIPELINE_CONFIG_PROVIDER,
+  ])
+  .controller('CanaryExecutionSummaryCtrl', function($scope, $http, $uibModal, pipelineConfig) {
     this.generateCanaryScore = function() {
       $uibModal.open({
         templateUrl: require('./actions/generateScore.modal.html'),
         controller: 'GenerateScoreCtrl as ctrl',
         resolve: {
-          canaryId: function() { return $scope.stageSummary.masterStage.context.canary.id; },
+          canaryId: function() {
+            return $scope.stageSummary.masterStage.context.canary.id;
+          },
         },
       });
     };
@@ -27,7 +29,9 @@ module.exports = angular.module('spinnaker.canary.summary.controller', [
         templateUrl: require('./actions/endCanary.modal.html'),
         controller: 'EndCanaryCtrl as ctrl',
         resolve: {
-          canaryId: function() { return $scope.stageSummary.masterStage.context.canary.id; },
+          canaryId: function() {
+            return $scope.stageSummary.masterStage.context.canary.id;
+          },
         },
       });
     };
@@ -39,7 +43,5 @@ module.exports = angular.module('spinnaker.canary.summary.controller', [
       }
 
       return stageConfig.restartable || false;
-
     };
-
   });

@@ -9,7 +9,6 @@ import { IUpsertAlarmDescription } from 'amazon/serverGroup';
 import { METRIC_SELECTOR_COMPONENT, MetricSelectorController } from './metricSelector.component';
 
 describe('Component: metric selector', () => {
-
   let cloudMetricsReader: CloudMetricsReader;
   let $ctrl: MetricSelectorController;
   let $componentController: IComponentControllerService;
@@ -23,22 +22,26 @@ describe('Component: metric selector', () => {
   beforeEach(mock.module(METRIC_SELECTOR_COMPONENT));
 
   beforeEach(
-    mock.inject((_cloudMetricsReader_: CloudMetricsReader,
-                 _$componentController_: IComponentControllerService,
-                 _$q_: IQService,
-                 $rootScope: IRootScopeService) => {
-      cloudMetricsReader = _cloudMetricsReader_;
-      $componentController = _$componentController_;
-      $q = _$q_;
-      $scope = $rootScope.$new();
-    })
+    mock.inject(
+      (
+        _cloudMetricsReader_: CloudMetricsReader,
+        _$componentController_: IComponentControllerService,
+        _$q_: IQService,
+        $rootScope: IRootScopeService,
+      ) => {
+        cloudMetricsReader = _cloudMetricsReader_;
+        $componentController = _$componentController_;
+        $q = _$q_;
+        $scope = $rootScope.$new();
+      },
+    ),
   );
 
   const initialize = () => {
-    $ctrl = <MetricSelectorController> $componentController(
+    $ctrl = <MetricSelectorController>$componentController(
       'awsMetricSelector',
       { $scope, cloudMetricsReader },
-      { alarm, serverGroup, alarmUpdated }
+      { alarm, serverGroup, alarmUpdated },
     );
     $ctrl.$onInit();
   };
@@ -56,10 +59,12 @@ describe('Component: metric selector', () => {
     };
   };
 
-  const makeAlarm = (namespace: string,
-                     metricName: string,
-                     comparisonOperator: AlarmComparisonOperator,
-                     dimensions: IMetricAlarmDimension[]): IUpsertAlarmDescription => {
+  const makeAlarm = (
+    namespace: string,
+    metricName: string,
+    comparisonOperator: AlarmComparisonOperator,
+    dimensions: IMetricAlarmDimension[],
+  ): IUpsertAlarmDescription => {
     return {
       asgName: undefined,
       name: undefined,
@@ -77,15 +82,17 @@ describe('Component: metric selector', () => {
       dimensions,
       metricName,
       namespace,
-    }
+    };
   };
 
   describe('initialization', () => {
     beforeEach(() => {
-      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [{
-        name: 'AutoScalingGroupName',
-        value: 'asg-v000'
-      }]);
+      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [
+        {
+          name: 'AutoScalingGroupName',
+          value: 'asg-v000',
+        },
+      ]);
     });
 
     it('sets advanced mode when dimensions are non-standard', () => {
@@ -100,18 +107,20 @@ describe('Component: metric selector', () => {
     });
 
     it('updates available metrics on initialization, triggers alarmUpdated once', () => {
-      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue($q.when([
-        {
-          namespace: 'AWS/EC2',
-          name: 'CPUUtilization',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' } ]
-        },
-        {
-          namespace: 'AWS/EC2',
-          name: 'NetworkIn',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' } ]
-        }
-      ]));
+      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue(
+        $q.when([
+          {
+            namespace: 'AWS/EC2',
+            name: 'CPUUtilization',
+            dimensions: [{ name: 'AutoScalingGroupName', value: 'asg-v000' }],
+          },
+          {
+            namespace: 'AWS/EC2',
+            name: 'NetworkIn',
+            dimensions: [{ name: 'AutoScalingGroupName', value: 'asg-v000' }],
+          },
+        ]),
+      );
       serverGroup = makeServerGroup('asg-v000');
       initialize();
       const alarmUpdatedSpy = spyOn($ctrl.alarmUpdated, 'next');
@@ -128,20 +137,24 @@ describe('Component: metric selector', () => {
 
   describe('metricChanged', () => {
     beforeEach(() => {
-      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [ { name: 'AutoScalingGroupName', value: 'asg-v000' } ]);
+      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [
+        { name: 'AutoScalingGroupName', value: 'asg-v000' },
+      ]);
       serverGroup = makeServerGroup('asg-v000');
-      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue($q.when([
-        {
-          namespace: 'AWS/EC2',
-          name: 'CPUUtilization',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' } ]
-        },
-        {
-          namespace: 'AWS/EC2',
-          name: 'NetworkIn',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71' } ]
-        }
-      ]));
+      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue(
+        $q.when([
+          {
+            namespace: 'AWS/EC2',
+            name: 'CPUUtilization',
+            dimensions: [{ name: 'AutoScalingGroupName', value: 'asg-v000' }],
+          },
+          {
+            namespace: 'AWS/EC2',
+            name: 'NetworkIn',
+            dimensions: [{ name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71' }],
+          },
+        ]),
+      );
       initialize();
       $scope.$digest();
     });
@@ -185,32 +198,39 @@ describe('Component: metric selector', () => {
 
   describe('metric transformations', () => {
     beforeEach(() => {
-      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [ { name: 'AutoScalingGroupName', value: 'asg-v000' } ]);
+      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [
+        { name: 'AutoScalingGroupName', value: 'asg-v000' },
+      ]);
       serverGroup = makeServerGroup('asg-v000');
-      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue($q.when([
-        {
-          namespace: 'AWS/EC2',
-          name: 'CPUUtilization',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' } ]
-        },
-        {
-          namespace: 'AWS/EC2',
-          name: 'NetworkIn',
-          dimensions: [ { name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71' } ]
-        },
-        {
-          namespace: 'AWS/EBS',
-          name: 'somethingElse',
-          dimensions: [],
-        }
-      ]));
+      spyOn(cloudMetricsReader, 'listMetrics').and.returnValue(
+        $q.when([
+          {
+            namespace: 'AWS/EC2',
+            name: 'CPUUtilization',
+            dimensions: [{ name: 'AutoScalingGroupName', value: 'asg-v000' }],
+          },
+          {
+            namespace: 'AWS/EC2',
+            name: 'NetworkIn',
+            dimensions: [{ name: 'AutoScalingGroupName', value: 'asg-v000' }, { name: 'sr', value: '71' }],
+          },
+          {
+            namespace: 'AWS/EBS',
+            name: 'somethingElse',
+            dimensions: [],
+          },
+        ]),
+      );
       initialize();
       $scope.$digest();
     });
 
     it('adds label to each metric, sorts by label', () => {
       expect($ctrl.state.metrics.map(m => m.label)).toEqual([
-        '(AWS/EBS) somethingElse', '(AWS/EC2) CPUUtilization', '(AWS/EC2) NetworkIn']);
+        '(AWS/EBS) somethingElse',
+        '(AWS/EC2) CPUUtilization',
+        '(AWS/EC2) NetworkIn',
+      ]);
     });
 
     it('adds default dimensions if not present', () => {
@@ -220,15 +240,16 @@ describe('Component: metric selector', () => {
     it('adds dimensionValues to each dimension', () => {
       expect($ctrl.state.metrics.map(m => m.dimensionValues)).toEqual(['', 'asg-v000', 'asg-v000, 71']);
     });
-
   });
 
   describe('update available metrics', () => {
-    it ('sets advanced mode when metrics fail to load', () => {
-      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [{
-        name: 'AutoScalingGroupName',
-        value: 'asg-v000'
-      }]);
+    it('sets advanced mode when metrics fail to load', () => {
+      alarm = makeAlarm('AWS/EC2', 'CPUUtilization', 'GreaterThanThreshold', [
+        {
+          name: 'AutoScalingGroupName',
+          value: 'asg-v000',
+        },
+      ]);
       serverGroup = makeServerGroup('asg-v000');
 
       initialize();
@@ -241,5 +262,4 @@ describe('Component: metric selector', () => {
       expect($ctrl.state.advancedMode).toBe(true);
     });
   });
-
 });

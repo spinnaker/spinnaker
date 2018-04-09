@@ -4,13 +4,14 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.loadBalancer.loadBalancerType', [])
+module.exports = angular
+  .module('spinnaker.deck.gce.loadBalancer.loadBalancerType', [])
   .component('gceLoadBalancerType', {
     template: '<span>{{ $ctrl.type }}</span>',
     bindings: {
-      loadBalancer: '='
+      loadBalancer: '=',
     },
-    controller: function () {
+    controller: function() {
       this.type = (function(lb) {
         if (lb.loadBalancerType === 'HTTP') {
           if (_.isString(lb.certificate)) {
@@ -22,5 +23,5 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.loadBalancerTyp
           return lb.loadBalancerType;
         }
       })(this.loadBalancer);
-    }
+    },
   });

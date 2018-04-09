@@ -5,38 +5,38 @@ import { SUBNET_READ_SERVICE, SubnetReader } from 'core/subnet/subnet.read.servi
 import { ISubnet } from 'core/domain';
 
 describe('subnetReader', function() {
+  let service: SubnetReader, $http: ng.IHttpBackendService, $scope: ng.IScope, API: Api;
 
-  let service: SubnetReader,
-      $http: ng.IHttpBackendService,
-      $scope: ng.IScope,
-      API: Api;
+  beforeEach(mock.module(API_SERVICE, SUBNET_READ_SERVICE));
 
   beforeEach(
-    mock.module(
-      API_SERVICE,
-      SUBNET_READ_SERVICE
-    )
+    mock.inject(function(
+      $httpBackend: ng.IHttpBackendService,
+      $rootScope: ng.IRootScopeService,
+      _subnetReader_: SubnetReader,
+      _API_: Api,
+    ) {
+      API = _API_;
+      service = _subnetReader_;
+      $http = $httpBackend;
+      $scope = $rootScope.$new();
+    }),
   );
 
-  beforeEach(mock.inject(function ($httpBackend: ng.IHttpBackendService, $rootScope: ng.IRootScopeService, _subnetReader_: SubnetReader, _API_: Api) {
-    API = _API_;
-    service = _subnetReader_;
-    $http = $httpBackend;
-    $scope = $rootScope.$new();
-  }));
-
-
-  it('adds label to subnet, including (deprecated) if deprecated field is true', function () {
-
-    $http.whenGET(API.baseUrl + '/subnets').respond(200, [
-      { purpose: 'internal', deprecated: true },
-      { purpose: 'external', deprecated: false },
-      { purpose: 'internal' },
-    ]);
+  it('adds label to subnet, including (deprecated) if deprecated field is true', function() {
+    $http
+      .whenGET(API.baseUrl + '/subnets')
+      .respond(200, [
+        { purpose: 'internal', deprecated: true },
+        { purpose: 'external', deprecated: false },
+        { purpose: 'internal' },
+      ]);
 
     let result: ISubnet[] = null;
 
-    service.listSubnets().then((subnets: ISubnet[]) => { result = subnets; });
+    service.listSubnets().then((subnets: ISubnet[]) => {
+      result = subnets;
+    });
 
     $http.flush();
     $scope.$digest();
@@ -48,5 +48,4 @@ describe('subnetReader', function() {
     expect(result[2].label).toBe('internal');
     expect(result[2].deprecated).toBe(false);
   });
-
 });

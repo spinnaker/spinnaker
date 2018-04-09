@@ -6,37 +6,33 @@ import _ from 'lodash';
 import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
 import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
-
-module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service', [
-  ACCOUNT_SERVICE,
-  INSTANCE_TYPE_SERVICE,
-  NAMING_SERVICE,
-])
-  .factory('cfServerGroupCommandBuilder', function ($q, accountService, instanceTypeService, namingService) {
-
+module.exports = angular
+  .module('spinnaker.cf.serverGroupCommandBuilder.service', [ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE])
+  .factory('cfServerGroupCommandBuilder', function($q, accountService, instanceTypeService, namingService) {
     function populateTags(instanceTemplateTags, command) {
       if (instanceTemplateTags && instanceTemplateTags.items) {
-        _.map(instanceTemplateTags.items, function (tag) {
-          command.tags.push({value: tag});
+        _.map(instanceTemplateTags.items, function(tag) {
+          command.tags.push({ value: tag });
         });
       }
     }
 
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
-      return accountService.listAccounts('cf').then(function (cfAccounts) {
+      return accountService.listAccounts('cf').then(function(cfAccounts) {
         var cfAccountNames = _.map(cfAccounts, 'name');
         var firstcfAccount = null;
 
         if (application.accounts.length) {
-          firstcfAccount = _.find(application.accounts, function (applicationAccount) {
+          firstcfAccount = _.find(application.accounts, function(applicationAccount) {
             return cfAccountNames.includes(applicationAccount);
           });
         }
 
         var defaultCredentialsAreValid = defaultCredentials && cfAccountNames.includes(defaultCredentials);
 
-        command.credentials =
-            defaultCredentialsAreValid ? defaultCredentials : (firstcfAccount ? firstcfAccount : 'my-account-name');
+        command.credentials = defaultCredentialsAreValid
+          ? defaultCredentials
+          : firstcfAccount ? firstcfAccount : 'my-account-name';
       });
     }
 
@@ -55,7 +51,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
         capacity: {
           min: 1,
           max: 4,
-          desired: 1
+          desired: 1,
         },
         tags: [],
         cloudProvider: 'cf',
@@ -80,7 +76,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
           usePreferredZones: true,
           listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
-        }
+        },
       };
 
       attemptToSetValidCredentials(application, defaultCredentials, command);
@@ -93,7 +89,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
       return $q.when({
         viewState: {
           requiresTemplateSelection: true,
-        }
+        },
       });
     }
 
@@ -116,7 +112,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
         capacity: {
           min: serverGroup.capacity.min,
           max: serverGroup.capacity.max,
-          desired: serverGroup.capacity.desired
+          desired: serverGroup.capacity.desired,
         },
         tags: serverGroup.tags,
         availabilityZones: serverGroup.availabilityZones,
@@ -127,7 +123,7 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
           account: serverGroup.account,
           region: serverGroup.region,
           serverGroupName: serverGroup.name,
-          asgName: serverGroup.name
+          asgName: serverGroup.name,
         },
         repository: serverGroup.repository,
         artifact: serverGroup.artifact,
@@ -150,17 +146,19 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
-
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
-      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('cf', pipelineCluster.instanceType);
-      var commandOptions = {account: pipelineCluster.account, region: region};
+      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType(
+        'cf',
+        pipelineCluster.instanceType,
+      );
+      var commandOptions = { account: pipelineCluster.account, region: region };
       var asyncLoader = $q.all({
         command: buildNewServerGroupCommand(application, commandOptions),
-        instanceProfile: instanceTypeCategoryLoader
+        instanceProfile: instanceTypeCategoryLoader,
       });
 
-      return asyncLoader.then(function (asyncData) {
+      return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
 
         var viewState = {
@@ -181,13 +179,12 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
 
         var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
 
-        var instanceTemplateTags = {items: extendedCommand.tags};
+        var instanceTemplateTags = { items: extendedCommand.tags };
         extendedCommand.tags = [];
         populateTags(instanceTemplateTags, extendedCommand);
 
         return extendedCommand;
       });
-
     }
 
     return {
@@ -196,5 +193,4 @@ module.exports = angular.module('spinnaker.cf.serverGroupCommandBuilder.service'
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-});
-
+  });

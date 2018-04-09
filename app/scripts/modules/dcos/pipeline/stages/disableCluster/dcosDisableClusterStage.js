@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableClusterStage', [])
+module.exports = angular
+  .module('spinnaker.dcos.pipeline.stage.disableClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableCluster',
@@ -10,22 +11,27 @@ module.exports = angular.module('spinnaker.dcos.pipeline.stage.disableClusterSta
       templateUrl: require('./disableClusterStage.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
-        { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},
-        { type: 'requiredField', fieldName: 'regions', },
-        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account'},
+        {
+          type: 'requiredField',
+          fieldName: 'remainingEnabledServerGroups',
+          fieldLabel: 'Keep [X] enabled Server Groups',
+        },
+        { type: 'requiredField', fieldName: 'regions' },
+        { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
       ],
     });
-  }).controller('dcosDisableClusterStageCtrl', function($scope, accountService) {
+  })
+  .controller('dcosDisableClusterStageCtrl', function($scope, accountService) {
     var ctrl = this;
 
     let stage = $scope.stage;
 
     $scope.state = {
       accounts: false,
-      regionsLoaded: false
+      regionsLoaded: false,
     };
 
-    accountService.listAccounts('dcos').then(function (accounts) {
+    accountService.listAccounts('dcos').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

@@ -5,7 +5,21 @@ import { chain, find, isEqual, isNil, trimEnd, uniq } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { Field, FormikErrors, FormikProps } from 'formik';
 
-import { Application, HelpField, IAccount, IMoniker, IRegion, ISubnet, IWizardPageProps, NgReact, ReactInjector, RegionSelectField, Spinner, ValidationError, wizardPage } from '@spinnaker/core';
+import {
+  Application,
+  HelpField,
+  IAccount,
+  IMoniker,
+  IRegion,
+  ISubnet,
+  IWizardPageProps,
+  NgReact,
+  ReactInjector,
+  RegionSelectField,
+  Spinner,
+  ValidationError,
+  wizardPage,
+} from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AwsNgReact } from 'amazon/reactShims';
@@ -38,7 +52,10 @@ export interface ILoadBalancerLocationState {
 }
 
 @BindAll()
-class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProps & IWizardPageProps & FormikProps<IAmazonLoadBalancerUpsertCommand>, ILoadBalancerLocationState> {
+class LoadBalancerLocationImpl extends React.Component<
+  ILoadBalancerLocationProps & IWizardPageProps & FormikProps<IAmazonLoadBalancerUpsertCommand>,
+  ILoadBalancerLocationState
+> {
   public static LABEL = 'Location';
 
   constructor(props: ILoadBalancerLocationProps & IWizardPageProps & FormikProps<IAmazonLoadBalancerUpsertCommand>) {
@@ -112,7 +129,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
   }
 
   private loadAccounts(): void {
-    ReactInjector.accountService.listAccounts('aws').then((accounts) => {
+    ReactInjector.accountService.listAccounts('aws').then(accounts => {
       this.setState({ accounts });
       this.accountUpdated(this.props.values.credentials);
     });
@@ -120,9 +137,9 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
 
   private getName(): string {
     const elb = this.props.values;
-    const elbName = [this.props.app.name, (elb.stack || ''), (elb.detail || '')].join('-');
+    const elbName = [this.props.app.name, elb.stack || '', elb.detail || ''].join('-');
     return trimEnd(elbName, '-');
-  };
+  }
 
   private internalFlagChanged(event: React.ChangeEvent<any>): void {
     this.setState({ internalFlagToggled: true });
@@ -131,7 +148,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
 
   private getAvailabilityZones(regions: IRegion[]): string[] {
     const { setFieldValue, values } = this.props;
-    const selected = regions ? regions.filter((region) => region.name === values.region) : [];
+    const selected = regions ? regions.filter(region => region.name === values.region) : [];
     if (selected.length) {
       const newRegionZones = uniq(selected[0].availabilityZones);
       if (!isEqual(newRegionZones, values.regionZones)) {
@@ -139,14 +156,14 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
       }
       return newRegionZones;
     } else {
-      return  [];
+      return [];
     }
   }
 
   private getAvailableSubnets(): IPromise<ISubnet[]> {
     const account = this.props.values.credentials,
-          region = this.props.values.region;
-    return ReactInjector.subnetReader.listSubnets().then((subnets) => {
+      region = this.props.values.region;
+    return ReactInjector.subnetReader.listSubnets().then(subnets => {
       return chain(subnets)
         .filter({ account: account, region: region })
         .reject({ target: 'ec2' })
@@ -157,7 +174,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
   private setSubnetTypeFromVpc(subnetOptions: { [purpose: string]: ISubnetOption }): void {
     const { setFieldValue, values } = this.props;
     if (values.vpcId) {
-      const currentSelection = find(subnetOptions, (option) => option.vpcIds.includes(values.vpcId));
+      const currentSelection = find(subnetOptions, option => option.vpcIds.includes(values.vpcId));
       if (currentSelection) {
         values.subnetType = currentSelection.purpose;
       }
@@ -169,8 +186,8 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     const { setFieldValue, values } = this.props;
 
     const subnetPurpose = values.subnetType || null,
-        subnet = subnets.find((test) => test.purpose === subnetPurpose),
-        availableVpcIds = subnet ? subnet.vpcIds : [];
+      subnet = subnets.find(test => test.purpose === subnetPurpose),
+      availableVpcIds = subnet ? subnet.vpcIds : [];
 
     let availabilityZones: string[];
 
@@ -179,35 +196,41 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
       if (!this.state.hideInternalFlag && !this.state.internalFlagToggled) {
         setFieldValue('isInternal', subnetPurpose.includes('internal'));
       }
-      availabilityZones = uniq(subnets
-        .find(o => o.purpose === values.subnetType)
-        .availabilityZones
-        .sort());
+      availabilityZones = uniq(subnets.find(o => o.purpose === values.subnetType).availabilityZones.sort());
     } else {
       availabilityZones = this.getAvailabilityZones(this.state.regions);
       setFieldValue('vpcId', null);
     }
     this.setState({ availabilityZones });
-  };
+  }
 
   private handleSubnetUpdated(): void {
     this.subnetUpdated(this.state.subnets);
   }
 
   private updateSubnets(): void {
-    this.getAvailableSubnets().then((availableSubnets) => {
-      const subnetOptions = availableSubnets.reduce((accumulator, subnet) => {
-        if (!accumulator[subnet.purpose]) {
-          accumulator[subnet.purpose] = { purpose: subnet.purpose, label: subnet.label, deprecated: subnet.deprecated, vpcIds: [], availabilityZones: [] } as ISubnetOption;
-        }
-        const acc = accumulator[subnet.purpose];
-        if (acc.vpcIds.indexOf(subnet.vpcId) === -1) {
-          acc.vpcIds.push(subnet.vpcId);
-        }
-        acc.availabilityZones.push(subnet.availabilityZone);
-        acc.availabilityZones = uniq(acc.availabilityZones);
-        return accumulator;
-      }, {} as { [purpose: string]: ISubnetOption });
+    this.getAvailableSubnets().then(availableSubnets => {
+      const subnetOptions = availableSubnets.reduce(
+        (accumulator, subnet) => {
+          if (!accumulator[subnet.purpose]) {
+            accumulator[subnet.purpose] = {
+              purpose: subnet.purpose,
+              label: subnet.label,
+              deprecated: subnet.deprecated,
+              vpcIds: [],
+              availabilityZones: [],
+            } as ISubnetOption;
+          }
+          const acc = accumulator[subnet.purpose];
+          if (acc.vpcIds.indexOf(subnet.vpcId) === -1) {
+            acc.vpcIds.push(subnet.vpcId);
+          }
+          acc.availabilityZones.push(subnet.availabilityZone);
+          acc.availabilityZones = uniq(acc.availabilityZones);
+          return accumulator;
+        },
+        {} as { [purpose: string]: ISubnetOption },
+      );
 
       this.setSubnetTypeFromVpc(subnetOptions);
 
@@ -215,7 +238,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
         this.props.values.subnetType = '';
         this.props.setFieldValue('subnetType', '');
       }
-      const subnets = Object.keys(subnetOptions).map((k) => subnetOptions[k]);
+      const subnets = Object.keys(subnetOptions).map(k => subnetOptions[k]);
       this.setState({ subnets });
       this.subnetUpdated(subnets);
     });
@@ -223,37 +246,40 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
 
   protected updateExistingLoadBalancerNames(): void {
     const account = this.props.values.credentials,
-          region = this.props.values.region;
+      region = this.props.values.region;
 
     const accountLoadBalancersByRegion: { [region: string]: string[] } = {};
-    this.props.app.getDataSource('loadBalancers').refresh(true).then(() => {
-      this.props.app.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
-        if (loadBalancer.account === account) {
-          accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
-          accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
-        }
-      });
+    this.props.app
+      .getDataSource('loadBalancers')
+      .refresh(true)
+      .then(() => {
+        this.props.app.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+          if (loadBalancer.account === account) {
+            accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
+            accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+          }
+        });
 
-      this.setState({ existingLoadBalancerNames: accountLoadBalancersByRegion[region] || [] });
-      this.props.revalidate();
-    });
+        this.setState({ existingLoadBalancerNames: accountLoadBalancersByRegion[region] || [] });
+        this.props.revalidate();
+      });
   }
 
   private updateName(): void {
     const loadBalancerCommand = this.props.values;
     const moniker: IMoniker = {
-        app: this.props.app.name,
-        cluster: this.getName(),
-        stack: loadBalancerCommand.stack,
-        detail: loadBalancerCommand.detail
+      app: this.props.app.name,
+      cluster: this.getName(),
+      stack: loadBalancerCommand.stack,
+      detail: loadBalancerCommand.detail,
     };
     loadBalancerCommand.moniker = moniker;
     this.props.setFieldValue('name', this.getName());
-  };
+  }
 
   private accountUpdated(account: string): void {
     this.props.setFieldValue('credentials', account);
-    ReactInjector.accountService.getRegionsForAccount(this.props.values.credentials).then((regions) => {
+    ReactInjector.accountService.getRegionsForAccount(this.props.values.credentials).then(regions => {
       const availabilityZones = this.getAvailabilityZones(regions);
       this.setState({ availabilityZones, regions });
       this.updateExistingLoadBalancerNames();
@@ -269,7 +295,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
     this.updateExistingLoadBalancerNames();
     this.updateSubnets();
     this.updateName();
-  };
+  }
 
   private stackChanged(event: React.ChangeEvent<HTMLInputElement>): void {
     const stack = event.target.value;
@@ -297,14 +323,18 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
 
     const className = classNames({
       'col-md-12': true,
-      'well': true,
+      well: true,
       'alert-danger': errors.name,
       'alert-info': !errors.name,
     });
 
     return (
       <div className="container-fluid form-horizontal">
-        {!accounts && <div style={{ height: '200px' }}><Spinner size="medium" /></div>}
+        {!accounts && (
+          <div style={{ height: '200px' }}>
+            <Spinner size="medium" />
+          </div>
+        )}
         {accounts && (
           <div className="modal-body">
             <div className="form-group">
@@ -312,12 +342,7 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
                 <strong>Your load balancer will be named: </strong>
                 <span>{values.name}</span>
                 <HelpField id="aws.loadBalancer.name" />
-                <Field
-                  type="text"
-                  style={{ display: 'none' }}
-                  className="form-control input-sm no-spel"
-                  name="name"
-                />
+                <Field type="text" style={{ display: 'none' }} className="form-control input-sm no-spel" name="name" />
                 {errors.name && <ValidationError message={errors.name} />}
               </div>
             </div>
@@ -342,7 +367,9 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
               regions={regions}
             />
             <div className="form-group">
-              <div className="col-md-3 sm-label-right">Stack <HelpField id="aws.loadBalancer.stack" /></div>
+              <div className="col-md-3 sm-label-right">
+                Stack <HelpField id="aws.loadBalancer.stack" />
+              </div>
               <div className="col-md-3">
                 <input
                   type="text"
@@ -354,7 +381,9 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
               </div>
               <div className="col-md-6 form-inline">
                 <label className="sm-label-right">
-                  <span>Detail <HelpField id="aws.loadBalancer.detail" /> </span>
+                  <span>
+                    Detail <HelpField id="aws.loadBalancer.detail" />{' '}
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -364,8 +393,16 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
                   onChange={this.detailChanged}
                 />
               </div>
-              {errors.stack && <div className="col-md-7 col-md-offset-3"><ValidationError message={errors.stack} /></div>}
-              {errors.detail && <div className="col-md-7 col-md-offset-3"><ValidationError message={errors.detail} /></div>}
+              {errors.stack && (
+                <div className="col-md-7 col-md-offset-3">
+                  <ValidationError message={errors.stack} />
+                </div>
+              )}
+              {errors.detail && (
+                <div className="col-md-7 col-md-offset-3">
+                  <ValidationError message={errors.detail} />
+                </div>
+              )}
             </div>
 
             <LoadBalancerAvailabilityZoneSelector
@@ -385,26 +422,25 @@ class LoadBalancerLocationImpl extends React.Component<ILoadBalancerLocationProp
               application={app}
               onChange={this.handleSubnetUpdated}
             />
-            {values.vpcId && !hideInternalFlag && (
-              <div className="form-group">
-                <div className="col-md-3 sm-label-right"><b>Internal</b> <HelpField id="aws.loadBalancer.internal" /></div>
-                <div className="col-md-7 checkbox">
-                  <label>
-                    <input
-                      type="checkbox"
-                      name="isInternal"
-                      onChange={this.internalFlagChanged}
-                    />
-                    Create an internal load balancer
-                  </label>
+            {values.vpcId &&
+              !hideInternalFlag && (
+                <div className="form-group">
+                  <div className="col-md-3 sm-label-right">
+                    <b>Internal</b> <HelpField id="aws.loadBalancer.internal" />
+                  </div>
+                  <div className="col-md-7 checkbox">
+                    <label>
+                      <input type="checkbox" name="isInternal" onChange={this.internalFlagChanged} />
+                      Create an internal load balancer
+                    </label>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         )}
       </div>
     );
   }
-};
+}
 
 export const LoadBalancerLocation = wizardPage<ILoadBalancerLocationProps>(LoadBalancerLocationImpl);

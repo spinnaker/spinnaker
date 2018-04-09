@@ -81,6 +81,7 @@ class KubernetesInstanceContainerDetail implements IComponentOptions {
 }
 
 export const KUBERNETES_INSTANCE_CONTAINER_DETAIL = 'spinnaker.kubernetes.instance.container.detail';
-module(KUBERNETES_INSTANCE_CONTAINER_DETAIL, [])
-  .component('kubernetesInstanceContainerDetail', new KubernetesInstanceContainerDetail());
-
+module(KUBERNETES_INSTANCE_CONTAINER_DETAIL, []).component(
+  'kubernetesInstanceContainerDetail',
+  new KubernetesInstanceContainerDetail(),
+);

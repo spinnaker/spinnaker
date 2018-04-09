@@ -5,5 +5,4 @@ import { Spinner } from './Spinner';
 
 export const SPINNER_COMPONENT = 'spinnaker.core.spinner.component';
 
-module(SPINNER_COMPONENT, [])
-  .component('loadingSpinner', react2angular(Spinner, ['size', 'message']));
+module(SPINNER_COMPONENT, []).component('loadingSpinner', react2angular(Spinner, ['size', 'message']));

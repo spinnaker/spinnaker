@@ -5,18 +5,16 @@ import _ from 'lodash';
 
 import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.openstack.instanceType.service', [
-  API_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE
-])
-  .factory('openstackInstanceTypeService', function ($http, $q, API, infrastructureCaches) {
+module.exports = angular
+  .module('spinnaker.openstack.instanceType.service', [API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
+  .factory('openstackInstanceTypeService', function($http, $q, API, infrastructureCaches) {
     var categories = [
       {
         type: 'custom',
         label: 'Custom Type',
         families: [],
-        icon: 'asterisk'
-      }
+        icon: 'asterisk',
+      },
     ];
 
     function getCategories() {
@@ -28,11 +26,17 @@ module.exports = angular.module('spinnaker.openstack.instanceType.service', [
       if (cached) {
         return $q.when(cached);
       }
-      return API.one('instanceTypes').get()
-        .then(function (types) {
+      return API.one('instanceTypes')
+        .get()
+        .then(function(types) {
           var result = _.chain(types)
-            .map(function (type) {
-              return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };
+            .map(function(type) {
+              return {
+                region: type.region,
+                account: type.account,
+                name: type.name,
+                key: [type.region, type.account, type.name].join(':'),
+              };
             })
             .uniqBy('key')
             .groupBy('region')
@@ -61,7 +65,7 @@ module.exports = angular.module('spinnaker.openstack.instanceType.service', [
       return availableTypes.sort();
     }
 
-    function filterInstanceTypesByVirtualizationType(instanceTypes/*, virtualizationType*/) {
+    function filterInstanceTypesByVirtualizationType(instanceTypes /*, virtualizationType*/) {
       return instanceTypes;
     }
 
@@ -71,5 +75,4 @@ module.exports = angular.module('spinnaker.openstack.instanceType.service', [
       getAllTypesByRegion: getAllTypesByRegion,
       filterInstanceTypesByVirtualizationType: filterInstanceTypesByVirtualizationType,
     };
-  }
-);
+  });

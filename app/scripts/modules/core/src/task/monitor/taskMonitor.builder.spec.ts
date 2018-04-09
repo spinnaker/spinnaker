@@ -10,33 +10,30 @@ import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedI
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 
 describe('Service: taskMonitorBuilder', () => {
-
   let taskMonitorBuilder: TaskMonitorBuilder,
-      $scope: ng.IScope,
-      $http: ng.IHttpBackendService,
-      API: Api,
-      applicationModelBuilder: ApplicationModelBuilder;
+    $scope: ng.IScope,
+    $http: ng.IHttpBackendService,
+    API: Api,
+    applicationModelBuilder: ApplicationModelBuilder;
+
+  beforeEach(mock.module(TASK_MONITOR_BUILDER, API_SERVICE, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    mock.module(
-      TASK_MONITOR_BUILDER,
-      API_SERVICE,
-      APPLICATION_MODEL_BUILDER,
-    )
-  );
-
-  beforeEach(
-    mock.inject((_taskMonitorBuilder_: TaskMonitorBuilder,
-                 $rootScope: ng.IRootScopeService,
-                 $httpBackend: ng.IHttpBackendService,
-                 _applicationModelBuilder_: ApplicationModelBuilder,
-                 _API_: Api) => {
-      taskMonitorBuilder = _taskMonitorBuilder_;
-      $scope = $rootScope.$new();
-      $http = $httpBackend;
-      applicationModelBuilder = _applicationModelBuilder_;
-      API = _API_;
-    })
+    mock.inject(
+      (
+        _taskMonitorBuilder_: TaskMonitorBuilder,
+        $rootScope: ng.IRootScopeService,
+        $httpBackend: ng.IHttpBackendService,
+        _applicationModelBuilder_: ApplicationModelBuilder,
+        _API_: Api,
+      ) => {
+        taskMonitorBuilder = _taskMonitorBuilder_;
+        $scope = $rootScope.$new();
+        $http = $httpBackend;
+        applicationModelBuilder = _applicationModelBuilder_;
+        API = _API_;
+      },
+    ),
   );
 
   describe('task submit', () => {
@@ -50,7 +47,7 @@ describe('Service: taskMonitorBuilder', () => {
         application: applicationModelBuilder.createApplication('app', { key: 'runningTasks', lazy: true }),
         title: 'some task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
-        onTaskComplete: () => completeCalled = true,
+        onTaskComplete: () => (completeCalled = true),
       });
       spyOn(monitor.application.getDataSource('runningTasks'), 'refresh');
 
@@ -83,7 +80,7 @@ describe('Service: taskMonitorBuilder', () => {
         application: applicationModelBuilder.createApplication('app', { key: 'runningTasks', lazy: true }),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
-        onTaskComplete: () => completeCalled = true,
+        onTaskComplete: () => (completeCalled = true),
       });
 
       monitor.submit(operation);
@@ -107,7 +104,7 @@ describe('Service: taskMonitorBuilder', () => {
         application: applicationModelBuilder.createApplication('app', { key: 'runningTasks', lazy: true }),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
-        onTaskComplete: () => completeCalled = true,
+        onTaskComplete: () => (completeCalled = true),
       });
 
       monitor.submit(operation);
@@ -131,7 +128,5 @@ describe('Service: taskMonitorBuilder', () => {
       expect(monitor.errorMessage).toBe('There was an unknown server error.');
       expect(completeCalled).toBe(false);
     });
-
   });
 });
-

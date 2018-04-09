@@ -7,15 +7,15 @@ DeploymentStrategyRegistry.registerStrategy({
   providerRestricted: true,
   additionalFields: ['targetPercentages'],
   additionalFieldsTemplateUrl: require('./additionalFields.html'),
-  initializationMethod: (command) => {
+  initializationMethod: command => {
     if (!command.targetPercentages) {
       command.targetPercentages = [50, 100];
     }
 
     if (!command.pipelineBeforeCleanup) {
       command.beforeCleanupPipeline = {
-        application: command.application
-      }
+        application: command.application,
+      };
     }
-  }
+  },
 });

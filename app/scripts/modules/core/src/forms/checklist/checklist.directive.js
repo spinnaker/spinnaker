@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.forms.checklist.checklist.directive', [])
+module.exports = angular
+  .module('spinnaker.core.forms.checklist.checklist.directive', [])
   .directive('checklist', function() {
     return {
       restrict: 'E',
@@ -18,14 +19,14 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
         function initializeModelHolder() {
           scope.model = scope.model || [];
           scope.modelHolder = {};
-          scope.model.forEach(function (val) {
+          scope.model.forEach(function(val) {
             scope.modelHolder[val] = true;
           });
         }
 
         function updateModel() {
           var updatedModel = [];
-          scope.items.forEach(function (testKey) {
+          scope.items.forEach(function(testKey) {
             if (scope.modelHolder[testKey]) {
               updatedModel.push(testKey);
             }
@@ -40,7 +41,7 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
 
         function allItemsSelected() {
           var allSelected = true;
-          scope.items.forEach(function (key) {
+          scope.items.forEach(function(key) {
             if (!scope.modelHolder[key]) {
               allSelected = false;
             }
@@ -48,20 +49,20 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
           return allSelected;
         }
 
-        scope.selectAllOrNone = function () {
+        scope.selectAllOrNone = function() {
           if (allItemsSelected()) {
-            scope.items.forEach(function (key) {
+            scope.items.forEach(function(key) {
               scope.modelHolder[key] = false;
             });
           } else {
-            scope.items.forEach(function (key) {
+            scope.items.forEach(function(key) {
               scope.modelHolder[key] = true;
             });
           }
           updateModel();
         };
 
-        scope.selectButtonText = function () {
+        scope.selectButtonText = function() {
           if (allItemsSelected()) {
             return 'Deselect All';
           }
@@ -83,6 +84,6 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
             updateModel();
           }
         });
-      }
+      },
     };
   });

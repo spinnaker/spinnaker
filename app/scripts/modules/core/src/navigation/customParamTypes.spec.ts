@@ -1,7 +1,6 @@
 import { trueKeyObjectParamType, booleanParamType, inverseBooleanParamType, sortKeyParamType } from './state.provider';
 
 describe('custom param types', () => {
-
   describe('trueKeyObject', () => {
     it('decodes with or without commas', () => {
       expect(trueKeyObjectParamType.decode('a,b')).toEqual({ a: true, b: true });
@@ -12,7 +11,7 @@ describe('custom param types', () => {
     });
     it('encodes to null if no true keys found', () => {
       expect(trueKeyObjectParamType.encode({ a: false })).toBeNull();
-    })
+    });
   });
 
   describe('boolean', () => {

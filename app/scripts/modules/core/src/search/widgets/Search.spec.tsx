@@ -5,7 +5,6 @@ import { SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
 import { ISearchProps, Search } from './Search';
 
 describe('<Search/>', () => {
-
   SearchFilterTypeRegistry.register({ key: 'account', name: 'Account' });
   SearchFilterTypeRegistry.register({ key: 'region', name: 'Region' });
   let component: ReactWrapper<ISearchProps, any>;
@@ -38,7 +37,6 @@ describe('<Search/>', () => {
   });
 
   it('should clear the tags when the clear button is clicked', () => {
-
     let changeCalled = false;
     function handleChange() {
       changeCalled = true;

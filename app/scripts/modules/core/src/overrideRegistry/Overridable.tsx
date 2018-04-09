@@ -31,9 +31,9 @@ export interface IOverridableProps {
  * <MyCmp accountId={accountId} />
  */
 export function Overridable(key: string) {
-  return function <P extends IOverridableProps, T extends React.ComponentClass<P>> (targetComponent: T): T {
-    return overridableComponent(targetComponent, key)
-  }
+  return function<P extends IOverridableProps, T extends React.ComponentClass<P>>(targetComponent: T): T {
+    return overridableComponent(targetComponent, key);
+  };
 }
 
 /**
@@ -47,7 +47,10 @@ export function Overridable(key: string) {
  *
  * export const MyOverridableCmp = overridableComponent(MyCmp);
  */
-export function overridableComponent <P extends IOverridableProps, T extends React.ComponentClass<P>> (OriginalComponent: T, key: string): T {
+export function overridableComponent<P extends IOverridableProps, T extends React.ComponentClass<P>>(
+  OriginalComponent: T,
+  key: string,
+): T {
   class OverridableComponent extends React.Component<P, { Component: T }> {
     public static OriginalComponent: T = OriginalComponent;
 
@@ -70,7 +73,7 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
         })
         .map((accountDetails: IAccountDetails) => this.getComponent(accountDetails))
         .takeUntil(this.destroy$)
-        .subscribe((Component) => {
+        .subscribe(Component => {
           // The component may be ready synchronously (when the constructor is run), or it might require async.
           // Handle either case here
           if (constructing) {
@@ -120,7 +123,7 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
           />
         );
 
-        return Component as any as T;
+        return (Component as any) as T;
       }
 
       return null;
@@ -139,24 +142,26 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
         const controllerOverride: string = overrideRegistry.getController(key, null);
         const controllerAs = controllerOverride && controllerOverride.includes(' as ') ? undefined : 'ctrl';
         const Component = (props: any) => (
-            <AngularJSAdapter
-              {...props}
-              templateUrl={templateOverride}
-              controller={controllerOverride}
-              controllerAs={controllerAs}
-            />
+          <AngularJSAdapter
+            {...props}
+            templateUrl={templateOverride}
+            controller={controllerOverride}
+            controllerAs={controllerAs}
+          />
         );
 
-        return Component as any as T;
+        return (Component as any) as T;
       }
 
       return null;
     }
 
     private getComponent(accountDetails: IAccountDetails): T {
-      return this.getComponentFromCloudProvider(accountDetails || {} as any) ||
+      return (
+        this.getComponentFromCloudProvider(accountDetails || ({} as any)) ||
         this.getComponentFromOverrideRegistry() ||
-        OriginalComponent;
+        OriginalComponent
+      );
     }
 
     public render() {
@@ -164,14 +169,14 @@ export function overridableComponent <P extends IOverridableProps, T extends Rea
       const isOverridden = Component && Component !== OriginalComponent;
       const props = Object.assign({}, this.props, isOverridden ? { OriginalComponent } : {});
 
-      return Component ? <Component {...props}/> : <Spinner/>;
+      return Component ? <Component {...props} /> : <Spinner />;
     }
   }
 
   // Copy static properties
   Object.getOwnPropertyNames(OriginalComponent)
     .filter(propName => propName !== 'constructor' && !OverridableComponent.hasOwnProperty(propName))
-    .forEach(propName => (OverridableComponent as any)[propName] = (OriginalComponent as any)[propName]);
+    .forEach(propName => ((OverridableComponent as any)[propName] = (OriginalComponent as any)[propName]));
 
-  return OverridableComponent as any as T;
+  return (OverridableComponent as any) as T;
 }

@@ -1,7 +1,7 @@
 import { IUrlBuilder } from './urlBuilder.service';
 
 export class UrlBuilderRegistry {
-  private builders: { [key: string]: IUrlBuilder} = {};
+  private builders: { [key: string]: IUrlBuilder } = {};
 
   public register(key: string, builder: IUrlBuilder) {
     this.builders[key] = builder;

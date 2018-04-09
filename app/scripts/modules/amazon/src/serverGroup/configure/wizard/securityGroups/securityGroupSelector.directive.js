@@ -11,7 +11,7 @@ module.exports = angular
     INFRASTRUCTURE_CACHE_SERVICE,
     AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
-  .directive('serverGroupSecurityGroupSelector', function () {
+  .directive('serverGroupSecurityGroupSelector', function() {
     return {
       restrict: 'E',
       templateUrl: require('./securityGroupSelector.directive.html'),
@@ -22,25 +22,28 @@ module.exports = angular
         hideLabel: '<',
         refresh: '&?',
         groupsToEdit: '=',
-        helpKey: '@'
+        helpKey: '@',
       },
       controllerAs: 'vm',
       controller: 'awsServerGroupSecurityGroupsSelectorCtrl',
     };
-  }).controller('awsServerGroupSecurityGroupsSelectorCtrl', function (awsServerGroupConfigurationService, infrastructureCaches) {
-
+  })
+  .controller('awsServerGroupSecurityGroupsSelectorCtrl', function(
+    awsServerGroupConfigurationService,
+    infrastructureCaches,
+  ) {
     let setSecurityGroupRefreshTime = () => {
       this.refreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
-    this.addItems = () => this.currentItems += 25;
+    this.addItems = () => (this.currentItems += 25);
 
-    this.resetCurrentItems = () => this.currentItems = 25;
+    this.resetCurrentItems = () => (this.currentItems = 25);
 
     this.refreshSecurityGroups = () => {
       this.refreshing = true;
       if (this.refresh) {
-        this.refresh().then(() => this.refreshing = false);
+        this.refresh().then(() => (this.refreshing = false));
       } else {
         awsServerGroupConfigurationService.refreshSecurityGroups(this.command).then(() => {
           this.refreshing = false;

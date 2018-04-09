@@ -2,7 +2,8 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.types.clusterSize', [])
+module.exports = angular
+  .module('spinnaker.core.pipeline.config.preconditions.types.clusterSize', [])
   .config(function(preconditionTypeConfigProvider) {
     preconditionTypeConfigProvider.registerPreconditionType({
       label: 'Cluster Size',

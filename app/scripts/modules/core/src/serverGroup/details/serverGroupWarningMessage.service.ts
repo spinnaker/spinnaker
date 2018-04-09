@@ -6,8 +6,11 @@ import { IConfirmationModalParams } from 'core/confirmationModal/confirmationMod
 import { ICluster, IServerGroup } from 'core/domain';
 
 export class ServerGroupWarningMessageService {
-
-  public addDestroyWarningMessage(application: Application, serverGroup: IServerGroup, params: IConfirmationModalParams): void {
+  public addDestroyWarningMessage(
+    application: Application,
+    serverGroup: IServerGroup,
+    params: IConfirmationModalParams,
+  ): void {
     const remainingServerGroups: IServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
     if (!remainingServerGroups.length) {
       params.body = `
@@ -25,15 +28,19 @@ export class ServerGroupWarningMessageService {
     }
   }
 
-  public addDisableWarningMessage(application: Application, serverGroup: IServerGroup, params: IConfirmationModalParams): void {
-
+  public addDisableWarningMessage(
+    application: Application,
+    serverGroup: IServerGroup,
+    params: IConfirmationModalParams,
+  ): void {
     if (!serverGroup.instanceCounts.up) {
       return;
     }
 
     const otherServerGroupsInCluster: IServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
-    const remainingActiveServerGroups: IServerGroup[] =
-      otherServerGroupsInCluster.filter(s => !s.isDisabled && s.instanceCounts.up > 0);
+    const remainingActiveServerGroups: IServerGroup[] = otherServerGroupsInCluster.filter(
+      s => !s.isDisabled && s.instanceCounts.up > 0,
+    );
     const hasOtherInstances = otherServerGroupsInCluster.some(s => s.instances.length > 0);
 
     if (hasOtherInstances || remainingActiveServerGroups.length === 0 || otherServerGroupsInCluster.length === 0) {
@@ -61,10 +68,12 @@ export class ServerGroupWarningMessageService {
   }
 
   private getOtherServerGroupsInCluster(application: Application, serverGroup: IServerGroup): IServerGroup[] {
-    const cluster: ICluster = application.clusters
-      .find((c: ICluster) => c.account === serverGroup.account && c.name === serverGroup.cluster);
-    return cluster ? cluster.serverGroups
-        .filter(s => s.region === serverGroup.region && s.name !== serverGroup.name) : [];
+    const cluster: ICluster = application.clusters.find(
+      (c: ICluster) => c.account === serverGroup.account && c.name === serverGroup.cluster,
+    );
+    return cluster
+      ? cluster.serverGroups.filter(s => s.region === serverGroup.region && s.name !== serverGroup.name)
+      : [];
   }
 
   private getRemainingServerGroupsForDisplay(serverGroups: IServerGroup[]): string {
@@ -76,10 +85,13 @@ export class ServerGroupWarningMessageService {
           label = `${sg.name} (build #${sg.buildInfo.jenkins.number})`;
         }
         return `<li>${label}: ${sg.instanceCounts.up} instance${sg.instanceCounts.up === 1 ? '' : 's'}</li>`;
-    }).join('\n');
+      })
+      .join('\n');
   }
 }
 
 export const SERVER_GROUP_WARNING_MESSAGE_SERVICE = 'spinnaker.core.serverGroup.details.warningMessage.service';
-module(SERVER_GROUP_WARNING_MESSAGE_SERVICE, [])
-  .service('serverGroupWarningMessageService', ServerGroupWarningMessageService);
+module(SERVER_GROUP_WARNING_MESSAGE_SERVICE, []).service(
+  'serverGroupWarningMessageService',
+  ServerGroupWarningMessageService,
+);

@@ -46,23 +46,25 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
   public componentDidMount() {
     this.refresh$
       .switchMap((categories: string[]) => {
-        return Observable.forkJoin(categories.map(category => {
-          const config = this.search.getCategoryConfig(category);
-          const items = this.recentHistoryService.getItems(category);
-          const promises = items.map(item => this.getFullHistoryEntry(category, item));
-          return Promise.all(promises).then(results => ({
-            category,
-            config,
-            results: this.props.limit ? results.slice(0, this.props.limit) : results
-          }));
-        }));
+        return Observable.forkJoin(
+          categories.map(category => {
+            const config = this.search.getCategoryConfig(category);
+            const items = this.recentHistoryService.getItems(category);
+            const promises = items.map(item => this.getFullHistoryEntry(category, item));
+            return Promise.all(promises).then(results => ({
+              category,
+              config,
+              results: this.props.limit ? results.slice(0, this.props.limit) : results,
+            }));
+          }),
+        );
       })
       .map(recentItems => {
-        return recentItems.filter(item => item.results.length)
+        return recentItems.filter(item => item.results.length);
       })
       .takeUntil(this.destroy$)
       .subscribe(recentItems => {
-        this.setState({ recentItems })
+        this.setState({ recentItems });
       });
 
     this.updateRecentItems();
@@ -71,9 +73,8 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
   /** fetches the displayName and adds it to the history entry */
   private getFullHistoryEntry(category: string, item: IRecentHistoryEntry): IPromise<ISearchResult> {
     const routeParams = Object.assign({}, item.params, item.extraData);
-    return this.search.formatRouteResult(category, routeParams)
-      .then(displayName => ({ ...item, displayName }));
-  };
+    return this.search.formatRouteResult(category, routeParams).then(displayName => ({ ...item, displayName }));
+  }
 
   private handleRemoveProject(projectId: string) {
     this.recentHistoryService.removeItem('projects', projectId);
@@ -92,24 +93,22 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
   public render() {
     const { Component } = this.props;
 
-    return (
-      Component ? (
-        <Component
-          results={this.state.recentItems}
-          onRemoveItem={this.handleRemoveItem}
-          onRemoveProject={this.handleRemoveProject}
-          onResultClick={this.handleResultClick}
-        />
-       ) : (
-        // Once RecentlyViewedItems is no longer rendered as part of any angular
-        // templates, we can stop defaulting to SearchResultPods and require a component.
-        <SearchResultPods
-          results={this.state.recentItems}
-          onRemoveItem={this.handleRemoveItem}
-          onRemoveProject={this.handleRemoveProject}
-          onResultClick={this.handleResultClick}
-        />
-       )
+    return Component ? (
+      <Component
+        results={this.state.recentItems}
+        onRemoveItem={this.handleRemoveItem}
+        onRemoveProject={this.handleRemoveProject}
+        onResultClick={this.handleResultClick}
+      />
+    ) : (
+      // Once RecentlyViewedItems is no longer rendered as part of any angular
+      // templates, we can stop defaulting to SearchResultPods and require a component.
+      <SearchResultPods
+        results={this.state.recentItems}
+        onRemoveItem={this.handleRemoveItem}
+        onRemoveProject={this.handleRemoveProject}
+        onResultClick={this.handleResultClick}
+      />
     );
   }
 }

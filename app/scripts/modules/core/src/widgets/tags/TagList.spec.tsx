@@ -5,13 +5,12 @@ import { ITag } from './Tag';
 import { ITagListProps, TagList } from './TagList';
 
 describe('<TagList/>', () => {
-
   let component: ReactWrapper<ITagListProps, any>;
 
   function getNewTag(seed: number): ITag {
     return {
       key: 'key',
-      text: `some_text${seed}`
+      text: `some_text${seed}`,
     };
   }
 

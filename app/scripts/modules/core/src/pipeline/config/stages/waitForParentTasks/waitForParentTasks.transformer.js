@@ -1,9 +1,9 @@
 'use strict';
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.waitForParentTasks.transformer', [])
+module.exports = angular
+  .module('spinnaker.core.pipeline.stage.waitForParentTasks.transformer', [])
   .service('waitForParentTasksTransformer', function() {
-
     // injects wait for parent tasks stage
     function injectWaitForParentStages(execution) {
       /*
@@ -11,17 +11,18 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitForParentTask
       * */
       let stagesToInject = [];
       execution.stages
-        .filter((stage) => stage.requisiteStageRefIds && stage.requisiteStageRefIds.length > 1)
-        .forEach(function (stage) {
-          let waitStages = execution.stages.filter((candidate) => candidate.type === 'waitForRequisiteCompletion' &&
+        .filter(stage => stage.requisiteStageRefIds && stage.requisiteStageRefIds.length > 1)
+        .forEach(function(stage) {
+          let waitStages = execution.stages.filter(
+            candidate =>
+              candidate.type === 'waitForRequisiteCompletion' &&
               candidate.context.requisiteIds &&
               candidate.context.requisiteIds.length === stage.requisiteStageRefIds.length &&
-              candidate.context.requisiteIds.every((reqId) => stage.requisiteStageRefIds.includes(reqId))
+              candidate.context.requisiteIds.every(reqId => stage.requisiteStageRefIds.includes(reqId)),
           );
           if (waitStages.length) {
             let waitStage = waitStages[0],
-                parentStages = execution.stages
-                  .filter((parent) => waitStage.context.requisiteIds.includes(parent.refId));
+              parentStages = execution.stages.filter(parent => waitStage.context.requisiteIds.includes(parent.refId));
             stagesToInject.push({
               parentTasks: parentStages,
               syntheticStageOwner: 'STAGE_BEFORE',
@@ -32,7 +33,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitForParentTask
               type: waitStage.type,
               startTime: waitStage.startTime,
               endTime: waitStage.endTime,
-              status: waitStage.status
+              status: waitStage.status,
             });
           }
         });

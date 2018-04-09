@@ -9,7 +9,7 @@ export interface IAppengineLoadBalancer extends ILoadBalancer {
 
 export interface IAppengineTrafficSplit {
   shardBy: ShardBy;
-  allocations: {[serverGroupName: string]: number};
+  allocations: { [serverGroupName: string]: number };
 }
 
 export interface IAppengineDispatchRule {
