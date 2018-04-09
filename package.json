@@ -23,7 +23,8 @@
     "start-dev-server": "webpack-dev-server --progress --mode=development",
     "test": "karma start",
     "tslint": "tslint --project tsconfig.json",
-    "int": "protractor protractor.conf.js"
+    "int": "protractor protractor.conf.js",
+    "precommit": "pretty-quick --staged"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free-webfonts": "^1.0.4",
@@ -135,6 +136,7 @@
     "fork-ts-checker-webpack-plugin": "^0.4.1",
     "html-loader": "0.5.5",
     "html-webpack-plugin": "3.0.7",
+    "husky": "^0.14.3",
     "imports-loader": "^0.8.0",
     "istanbul-instrumenter-loader": "^3.0.0",
     "jasmine-core": "2.99.1",
@@ -153,6 +155,8 @@
     "physical-cpu-count": "^2.0.0",
     "postcss-colorfix": "^0.0.4",
     "postcss-loader": "^2.1.2",
+    "prettier": "^1.11.1",
+    "pretty-quick": "^1.4.1",
     "react-addons-test-utils": "15.6.2",
     "react-test-renderer": "16.2.0",
     "rimraf": "^2.5.4",
