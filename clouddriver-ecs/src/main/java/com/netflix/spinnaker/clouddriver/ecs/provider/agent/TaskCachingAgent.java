@@ -28,6 +28,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import groovy.lang.Closure;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +59,8 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
   ));
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public TaskCachingAgent(String accountName, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
-    super(accountName, region, amazonClientProvider, awsCredentialsProvider, registry);
+  public TaskCachingAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
+    super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
   }
 
   @Override

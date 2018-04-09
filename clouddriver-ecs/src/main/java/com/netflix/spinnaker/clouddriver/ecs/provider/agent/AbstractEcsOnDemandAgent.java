@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider;
@@ -35,8 +36,8 @@ import java.util.Map;
 abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T> implements OnDemandAgent {
   final OnDemandMetricsSupport metricsSupport;
 
-  AbstractEcsOnDemandAgent(String accountName, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
-    super(accountName, region, amazonClientProvider, awsCredentialsProvider);
+  AbstractEcsOnDemandAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider, Registry registry) {
+    super(account, region, amazonClientProvider, awsCredentialsProvider);
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, EcsCloudProvider.ID + ":" + EcsCloudProvider.ID + ":${OnDemandAgent.OnDemandType.ServerGroup}");
   }
 
@@ -66,7 +67,7 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T> im
       return null;
     }
 
-    AmazonECS ecs = amazonClientProvider.getAmazonEcs(accountName, awsCredentialsProvider, region);
+    AmazonECS ecs = amazonClientProvider.getAmazonEcs(account, region, false);
 
     List<T> items = metricsSupport.readData(new Closure<List<T>>(this, this) {
       public List<T> doCall() {

@@ -28,6 +28,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import org.slf4j.Logger;
@@ -50,11 +51,13 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
 
   final AmazonClientProvider amazonClientProvider;
   final AWSCredentialsProvider awsCredentialsProvider;
+  final NetflixAmazonCredentials account;
   final String region;
   final String accountName;
 
-  AbstractEcsCachingAgent(String accountName, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider) {
-    this.accountName = accountName;
+  AbstractEcsCachingAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider) {
+    this.account = account;
+    this.accountName = account.getName();
     this.region = region;
     this.amazonClientProvider = amazonClientProvider;
     this.awsCredentialsProvider = awsCredentialsProvider;
@@ -84,7 +87,7 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent {
   public CacheResult loadData(ProviderCache providerCache) {
     String authoritativeKeyName = getAuthoritativeKeyName();
 
-    AmazonECS ecs = amazonClientProvider.getAmazonEcs(accountName, awsCredentialsProvider, region);
+    AmazonECS ecs = amazonClientProvider.getAmazonEcs(account, region, false);
     List<T> items = getItems(ecs, providerCache);
     return buildCacheResult(authoritativeKeyName, items, providerCache);
   }

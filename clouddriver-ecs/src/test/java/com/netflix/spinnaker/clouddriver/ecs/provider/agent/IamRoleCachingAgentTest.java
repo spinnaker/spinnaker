@@ -22,6 +22,7 @@ import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
 import com.amazonaws.services.identitymanagement.model.ListRolesResult;
 import com.amazonaws.services.identitymanagement.model.Role;
 import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import java.util.Set;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 import static junit.framework.TestCase.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,7 +47,7 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
   private final AmazonIdentityManagement iam = mock(AmazonIdentityManagement.class);
   private final IamPolicyReader iamPolicyReader = mock(IamPolicyReader.class);
   @Subject
-  private final IamRoleCachingAgent agent = new IamRoleCachingAgent(ACCOUNT, clientProvider, credentialsProvider, iamPolicyReader);
+  private final IamRoleCachingAgent agent = new IamRoleCachingAgent(netflixAmazonCredentials, clientProvider, credentialsProvider, iamPolicyReader);
 
   @Test
   public void shouldGetListOfServices() {
@@ -71,7 +73,7 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
       iamRoles.add(iamRole);
     }
 
-    when(clientProvider.getIam(anyString(), any(AWSCredentialsProvider.class), anyString())).thenReturn(iam);
+    when(clientProvider.getIam(any(NetflixAmazonCredentials.class), anyString(), anyBoolean())).thenReturn(iam);
     when(iam.listRoles(any(ListRolesRequest.class))).thenReturn(new ListRolesResult().withRoles(roles).withIsTruncated(false));
     when(iamPolicyReader.getTrustedEntities(anyString())).thenReturn(Collections.singleton(iamTrustRelationship));
 

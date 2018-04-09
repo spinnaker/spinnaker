@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 
 public class TaskCachingAgentTest extends CommonCachingAgent {
   @Subject
-  private final TaskCachingAgent agent = new TaskCachingAgent(ACCOUNT, REGION, clientProvider, credentialsProvider, registry);
+  private final TaskCachingAgent agent = new TaskCachingAgent(netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
 
   @Test
   public void shouldGetListOfTasks() {

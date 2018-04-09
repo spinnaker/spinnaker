@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 public class TaskDefinitionCacheTest extends CommonCachingAgent {
   private final ObjectMapper mapper = new ObjectMapper();
   @Subject
-  private final TaskDefinitionCachingAgent agent = new TaskDefinitionCachingAgent(ACCOUNT, REGION, clientProvider, credentialsProvider, registry, mapper);
+  private final TaskDefinitionCachingAgent agent = new TaskDefinitionCachingAgent(netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry, mapper);
   @Subject
   private final TaskDefinitionCacheClient client = new TaskDefinitionCacheClient(providerCache, mapper);
 

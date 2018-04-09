@@ -87,7 +87,7 @@ public class EcrImageProvider implements ImageRepositoryProvider {
       throw new IllegalArgumentException("The repository URI provided does not belong to a region that the credentials have access to or the region is not valid.");
     }
 
-    AmazonECR amazonECR = amazonClientProvider.getAmazonEcr(credentials.getName(), credentials.getCredentialsProvider(), region);
+    AmazonECR amazonECR = amazonClientProvider.getAmazonEcr(credentials, region, false);
 
     ListImagesResult result = amazonECR.listImages(new ListImagesRequest().withRegistryId(accountId).withRepositoryName(repository));
     DescribeImagesResult imagesResult = amazonECR.describeImages(new DescribeImagesRequest().withRegistryId(accountId).withRepositoryName(repository).withImageIds(result.getImageIds()));

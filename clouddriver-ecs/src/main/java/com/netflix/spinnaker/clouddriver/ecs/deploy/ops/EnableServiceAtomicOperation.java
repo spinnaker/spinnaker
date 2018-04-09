@@ -25,6 +25,7 @@ import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
 import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
 
 import java.util.ArrayList;
@@ -95,9 +96,9 @@ public class EnableServiceAtomicOperation extends AbstractEcsAtomicOperation<Mod
   private AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {
     AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     String region = description.getRegion();
-    String credentialAccount = description.getCredentialAccount();
+    NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, credentialsProvider, region);
+    return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, region, false);
   }
 
 }

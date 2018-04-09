@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskHealthCacheClient
 import spock.lang.Specification
@@ -46,7 +47,7 @@ class TaskHealthCacheSpec extends Specification {
   ObjectMapper mapper = new ObjectMapper()
 
   @Subject
-  TaskHealthCachingAgent agent = new TaskHealthCachingAgent(CommonCachingAgent.ACCOUNT, CommonCachingAgent.REGION, clientProvider, credentialsProvider, mapper)
+  TaskHealthCachingAgent agent = new TaskHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, credentialsProvider, mapper)
   TaskHealthCacheClient client = new TaskHealthCacheClient(providerCache)
 
 

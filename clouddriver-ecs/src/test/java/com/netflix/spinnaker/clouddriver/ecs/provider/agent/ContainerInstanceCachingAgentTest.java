@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 public class ContainerInstanceCachingAgentTest extends CommonCachingAgent {
   @Subject
-  private final ContainerInstanceCachingAgent agent = new ContainerInstanceCachingAgent(ACCOUNT, REGION, clientProvider, credentialsProvider, registry);
+  private final ContainerInstanceCachingAgent agent = new ContainerInstanceCachingAgent(netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
 
   @Test
   public void shouldGetListOfContainerInstances() {

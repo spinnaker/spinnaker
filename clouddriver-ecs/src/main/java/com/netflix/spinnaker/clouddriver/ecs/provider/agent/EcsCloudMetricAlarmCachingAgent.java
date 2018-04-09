@@ -29,6 +29,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import org.slf4j.Logger;
@@ -54,14 +55,16 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private AmazonClientProvider amazonClientProvider;
   private AWSCredentialsProvider awsCredentialsProvider;
+  private NetflixAmazonCredentials account;
   private String accountName;
   private String region;
 
-  public EcsCloudMetricAlarmCachingAgent(String accountName, String region,
+  public EcsCloudMetricAlarmCachingAgent(NetflixAmazonCredentials account, String region,
                                          AmazonClientProvider amazonClientProvider,
                                          AWSCredentialsProvider awsCredentialsProvider) {
     this.region = region;
-    this.accountName = accountName;
+    this.account = account;
+    this.accountName = account.getName();
     this.amazonClientProvider = amazonClientProvider;
     this.awsCredentialsProvider = awsCredentialsProvider;
   }
@@ -85,7 +88,7 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AmazonCloudWatch cloudWatch = amazonClientProvider.getAmazonCloudWatch(accountName, awsCredentialsProvider, region);
+    AmazonCloudWatch cloudWatch = amazonClientProvider.getAmazonCloudWatch(account, region, false);
 
     Set<MetricAlarm> cacheableMetricAlarm = fetchMetricAlarms(cloudWatch);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableMetricAlarm);

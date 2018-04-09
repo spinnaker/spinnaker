@@ -21,6 +21,7 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatch
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm
 import spock.lang.Shared
@@ -38,7 +39,7 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
   AWSCredentialsProvider credentialsProvider
 
   @Subject
-  EcsCloudMetricAlarmCachingAgent agent = new EcsCloudMetricAlarmCachingAgent(ACCOUNT, REGION, clientProvider, credentialsProvider)
+  EcsCloudMetricAlarmCachingAgent agent = new EcsCloudMetricAlarmCachingAgent(CommonCachingAgent.netflixAmazonCredentials, REGION, clientProvider, credentialsProvider)
 
   def setup() {
     cloudWatch = Mock(AmazonCloudWatch)

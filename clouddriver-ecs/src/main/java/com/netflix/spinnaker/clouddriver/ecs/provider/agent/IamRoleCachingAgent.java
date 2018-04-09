@@ -30,6 +30,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
@@ -57,15 +58,17 @@ public class IamRoleCachingAgent implements CachingAgent {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private AmazonClientProvider amazonClientProvider;
   private AWSCredentialsProvider awsCredentialsProvider;
+  private NetflixAmazonCredentials account;
   private String accountName;
   private IamPolicyReader iamPolicyReader;
 
 
-  public IamRoleCachingAgent(String accountName,
+  public IamRoleCachingAgent(NetflixAmazonCredentials account,
                              AmazonClientProvider amazonClientProvider,
                              AWSCredentialsProvider awsCredentialsProvider,
                              IamPolicyReader iamPolicyReader) {
-    this.accountName = accountName;
+    this.account = account;
+    this.accountName = account.getName();
     this.amazonClientProvider = amazonClientProvider;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.iamPolicyReader = iamPolicyReader;
@@ -82,7 +85,7 @@ public class IamRoleCachingAgent implements CachingAgent {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AmazonIdentityManagement iam = amazonClientProvider.getIam(accountName, awsCredentialsProvider, Regions.DEFAULT_REGION.getName());
+    AmazonIdentityManagement iam = amazonClientProvider.getIam(account, Regions.DEFAULT_REGION.getName(), false);
 
     Set<IamRole> cacheableRoles = fetchIamRoles(iam, accountName);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableRoles);
@@ -178,7 +181,7 @@ public class IamRoleCachingAgent implements CachingAgent {
 
     return cacheableRoles;
   }
-  
+
   private boolean keyAccountFilter(String key) {
     Map<String, String> keyParts = Keys.parse(key);
     return keyParts != null &&

@@ -44,6 +44,7 @@ import com.amazonaws.services.identitymanagement.model.GetRoleResult;
 import com.amazonaws.services.identitymanagement.model.Role;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.AssumeRoleAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAssumeRoleAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.CreateServerGroupDescription;
@@ -270,23 +271,23 @@ public class CreateServerGroupAtomicOperation extends AbstractEcsAtomicOperation
 
   private AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {
     AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
-    String credentialAccount = description.getCredentialAccount();
+    NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, credentialsProvider, getRegion());
+    return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, getRegion(), false);
   }
 
   private AmazonElasticLoadBalancing getAmazonElasticLoadBalancingClient() {
     AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
-    String credentialAccount = description.getCredentialAccount();
+    NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonElasticLoadBalancingV2(credentialAccount, credentialsProvider, getRegion());
+    return amazonClientProvider.getAmazonElasticLoadBalancingV2(credentialAccount, getRegion(), false);
   }
 
   private AmazonIdentityManagement getAmazonIdentityManagementClient() {
     AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
-    String credentialAccount = description.getCredentialAccount();
+    NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
-    return amazonClientProvider.getAmazonIdentityManagement(credentialAccount, credentialsProvider, getRegion());
+    return amazonClientProvider.getAmazonIdentityManagement(credentialAccount, getRegion(), false);
   }
 
   private String getServerGroupName(Service service) {

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -47,8 +48,8 @@ public class EcsClusterCachingAgent extends AbstractEcsCachingAgent<String> {
   ));
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public EcsClusterCachingAgent(String accountName, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider) {
-    super(accountName, region, amazonClientProvider, awsCredentialsProvider);
+  public EcsClusterCachingAgent(NetflixAmazonCredentials account, String region, AmazonClientProvider amazonClientProvider, AWSCredentialsProvider awsCredentialsProvider) {
+    super(account, region, amazonClientProvider, awsCredentialsProvider);
   }
 
   @Override

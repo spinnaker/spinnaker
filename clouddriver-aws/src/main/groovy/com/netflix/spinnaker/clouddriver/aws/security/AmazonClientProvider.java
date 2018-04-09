@@ -287,12 +287,13 @@ public class AmazonClientProvider {
     return awsSdkClientSupplier.getClient(AmazonEC2ClientBuilder.class, AmazonEC2.class, accountName, awsCredentialsProvider, region);
   }
 
-  public AmazonECS getAmazonEcs(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(AmazonECSClientBuilder.class, AmazonECS.class, accountName, awsCredentialsProvider, region);
+  public AmazonECS getAmazonEcs(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    return proxyHandlerBuilder.getProxyHandler(AmazonECS.class, AmazonECSClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonIdentityManagement getIam(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(AmazonIdentityManagementClientBuilder.class, AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
+  public AmazonIdentityManagement getIam(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    return proxyHandlerBuilder.getProxyHandler(AmazonIdentityManagement.class, AmazonIdentityManagementClientBuilder.class, amazonCredentials, region, skipEdda);
+    // return awsSdkClientSupplier.getClient(AmazonIdentityManagementClientBuilder.class, AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
   }
 
   public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
@@ -436,11 +437,11 @@ public class AmazonClientProvider {
     return awsSdkClientSupplier.getClient(AWSShieldClientBuilder.class, AWSShield.class, accountName, awsCredentialsProvider, region);
   }
 
-  public AWSApplicationAutoScaling getAmazonApplicationAutoScaling(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(AWSApplicationAutoScalingClientBuilder.class, AWSApplicationAutoScaling.class, accountName, awsCredentialsProvider, region);
+  public AWSApplicationAutoScaling getAmazonApplicationAutoScaling(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    return proxyHandlerBuilder.getProxyHandler(AWSApplicationAutoScaling.class, AWSApplicationAutoScalingClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 
-  public AmazonECR getAmazonEcr(String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-    return awsSdkClientSupplier.getClient(AmazonECRClientBuilder.class, AmazonECR.class, accountName, awsCredentialsProvider, region);
+  public AmazonECR getAmazonEcr(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+    return proxyHandlerBuilder.getProxyHandler(AmazonECR.class, AmazonECRClientBuilder.class, amazonCredentials, region, skipEdda);
   }
 }

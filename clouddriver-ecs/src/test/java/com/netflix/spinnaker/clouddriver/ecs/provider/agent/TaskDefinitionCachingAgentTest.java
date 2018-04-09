@@ -45,7 +45,7 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
   ObjectMapper mapper = new ObjectMapper();
 
   @Subject
-  private final TaskDefinitionCachingAgent agent = new TaskDefinitionCachingAgent(ACCOUNT, REGION, clientProvider, credentialsProvider, registry, mapper);
+  private final TaskDefinitionCachingAgent agent = new TaskDefinitionCachingAgent(netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry, mapper);
 
   @Test
   public void shouldGetListOfTaskDefinitions() {

@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 
 public class EcsClusterCacheTest extends CommonCachingAgent {
   @Subject
-  private final EcsClusterCachingAgent agent = new EcsClusterCachingAgent(ACCOUNT, REGION, clientProvider, credentialsProvider);
+  private final EcsClusterCachingAgent agent = new EcsClusterCachingAgent(netflixAmazonCredentials, REGION, clientProvider, credentialsProvider);
   @Subject
   private final EcsClusterCacheClient client = new EcsClusterCacheClient(providerCache);
 

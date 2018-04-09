@@ -21,9 +21,11 @@ import com.amazonaws.services.ecs.AmazonECS;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import org.junit.BeforeClass;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -65,10 +67,16 @@ public class CommonCachingAgent {
   final ProviderCache providerCache = mock(ProviderCache.class);
   final AWSCredentialsProvider credentialsProvider = mock(AWSCredentialsProvider.class);
   final Registry registry = mock(Registry.class);
+  static final NetflixAmazonCredentials netflixAmazonCredentials;
+
+  static {
+    netflixAmazonCredentials = mock(NetflixAmazonCredentials.class);
+    when(netflixAmazonCredentials.getName()).thenReturn(ACCOUNT);
+  }
 
   @BeforeClass
   public static void setUp() {
-    when(clientProvider.getAmazonEcs(anyString(), any(AWSCredentialsProvider.class), anyString())).thenReturn(ecs);
+    when(clientProvider.getAmazonEcs(eq(netflixAmazonCredentials), anyString(), anyBoolean())).thenReturn(ecs);
   }
 
 }

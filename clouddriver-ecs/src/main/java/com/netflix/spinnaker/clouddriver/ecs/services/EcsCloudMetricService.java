@@ -34,6 +34,7 @@ import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsCloudWatchAlarmCacheClient;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
@@ -95,8 +96,8 @@ public class EcsCloudMetricService {
   }
 
   private void deregisterScalableTargets(Set<String> resources, String account, String region) {
-    AmazonCredentials credentials = (AmazonCredentials) accountCredentialsProvider.getCredentials(account);
-    AWSApplicationAutoScaling autoScaling = amazonClientProvider.getAmazonApplicationAutoScaling(account, credentials.getCredentialsProvider(), region);
+    NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
+    AWSApplicationAutoScaling autoScaling = amazonClientProvider.getAmazonApplicationAutoScaling(credentials, region, false);
 
     Map<String, Set<String>> resourceMap = new HashMap<>();
     for (String resource : resources) {
@@ -184,10 +185,10 @@ public class EcsCloudMetricService {
                                       String serviceName,
                                       String resourceId) {
 
-    AmazonCredentials credentials = (AmazonCredentials) accountCredentialsProvider.getCredentials(account);
+    NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) accountCredentialsProvider.getCredentials(account);
 
-    AmazonCloudWatch cloudWatch = amazonClientProvider.getAmazonCloudWatch(account, credentials.getCredentialsProvider(), region);
-    AWSApplicationAutoScaling autoScalingClient = amazonClientProvider.getAmazonApplicationAutoScaling(account, credentials.getCredentialsProvider(), region);
+    AmazonCloudWatch cloudWatch = amazonClientProvider.getAmazonCloudWatch(credentials, region, false);
+    AWSApplicationAutoScaling autoScalingClient = amazonClientProvider.getAmazonApplicationAutoScaling(credentials, region, false);
 
     DescribeAlarmsResult describeAlarmsResult = cloudWatch.describeAlarms(new DescribeAlarmsRequest()
       .withAlarmNames(alarmNames));

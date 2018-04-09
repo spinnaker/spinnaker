@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 
 public class ServiceCachingAgentTest extends CommonCachingAgent {
   @Subject
-  private final ServiceCachingAgent agent = new ServiceCachingAgent(ACCOUNT, REGION, clientProvider, credentialsProvider, registry);
+  private final ServiceCachingAgent agent = new ServiceCachingAgent(netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry);
 
   @Test
   public void shouldGetListOfServices() {

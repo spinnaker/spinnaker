@@ -31,6 +31,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.provider.EcsProvider;
 import org.slf4j.Logger;
@@ -57,15 +58,17 @@ public class ScalableTargetsCachingAgent implements CachingAgent {
   private final ObjectMapper objectMapper;
   private AmazonClientProvider amazonClientProvider;
   private AWSCredentialsProvider awsCredentialsProvider;
+  private NetflixAmazonCredentials account;
   private String accountName;
   private String region;
 
-  public ScalableTargetsCachingAgent(String accountName, String region,
+  public ScalableTargetsCachingAgent(NetflixAmazonCredentials account, String region,
                                      AmazonClientProvider amazonClientProvider,
                                      AWSCredentialsProvider awsCredentialsProvider,
                                      ObjectMapper objectMapper) {
     this.region = region;
-    this.accountName = accountName;
+    this.account = account;
+    this.accountName = account.getName();
     this.amazonClientProvider = amazonClientProvider;
     this.awsCredentialsProvider = awsCredentialsProvider;
     this.objectMapper = objectMapper;
@@ -82,7 +85,7 @@ public class ScalableTargetsCachingAgent implements CachingAgent {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AWSApplicationAutoScaling autoScalingClient = amazonClientProvider.getAmazonApplicationAutoScaling(accountName, awsCredentialsProvider, region);
+    AWSApplicationAutoScaling autoScalingClient = amazonClientProvider.getAmazonApplicationAutoScaling(account, region, false);
 
     Set<ScalableTarget> scalableTargets = fetchScalableTargets(autoScalingClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(scalableTargets);
