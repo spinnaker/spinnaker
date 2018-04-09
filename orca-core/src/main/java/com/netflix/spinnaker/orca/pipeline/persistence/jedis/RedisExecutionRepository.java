@@ -33,6 +33,7 @@ import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -514,6 +515,9 @@ public class RedisExecutionRepository implements ExecutionRepository {
       execution.setLimitConcurrent(Boolean.parseBoolean(map.get("limitConcurrent")));
       execution.setBuildTime(NumberUtils.createLong(map.get("buildTime")));
       execution.setStartTime(NumberUtils.createLong(map.get("startTime")));
+      if (map.get("startTimeTtl") != null) {
+        execution.setStartTimeTtl(Instant.ofEpochMilli(Long.valueOf(map.get("startTimeTtl"))));
+      }
       execution.setEndTime(NumberUtils.createLong(map.get("endTime")));
       if (map.get("status") != null) {
         execution.setStatus(ExecutionStatus.valueOf(map.get("status")));
@@ -542,6 +546,9 @@ public class RedisExecutionRepository implements ExecutionRepository {
         stage.setStartTime(NumberUtils.createLong(map.get(prefix + "startTime")));
         stage.setEndTime(NumberUtils.createLong(map.get(prefix + "endTime")));
         stage.setStatus(ExecutionStatus.valueOf(map.get(prefix + "status")));
+        if (map.get(prefix + "startTimeTtl") != null) {
+          stage.setStartTimeTtl(Instant.ofEpochMilli(Long.valueOf(map.get(prefix + "startTimeTtl"))));
+        }
         if (map.get(prefix + "syntheticStageOwner") != null) {
           stage.setSyntheticStageOwner(SyntheticStageOwner.valueOf(map.get(prefix + "syntheticStageOwner")));
         }
@@ -635,6 +642,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       map.put("buildTime", String.valueOf(execution.getBuildTime() != null ? execution.getBuildTime() : 0L));
       map.put("startTime", execution.getStartTime() != null ? execution.getStartTime().toString() : null);
       map.put("endTime", execution.getEndTime() != null ? execution.getEndTime().toString() : null);
+      map.put("startTimeTtl", execution.getStartTimeTtl() != null ? String.valueOf(execution.getStartTimeTtl().toEpochMilli()) : null);
       map.put("status", execution.getStatus().name());
       map.put("authentication", mapper.writeValueAsString(execution.getAuthentication()));
       map.put("paused", mapper.writeValueAsString(execution.getPaused()));
@@ -670,6 +678,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
     map.put(prefix + "name", stage.getName());
     map.put(prefix + "startTime", stage.getStartTime() != null ? stage.getStartTime().toString() : null);
     map.put(prefix + "endTime", stage.getEndTime() != null ? stage.getEndTime().toString() : null);
+    map.put(prefix + "startTimeTtl", stage.getStartTimeTtl() != null ? String.valueOf(stage.getStartTimeTtl().toEpochMilli()) : null);
     map.put(prefix + "status", stage.getStatus().name());
     map.put(prefix + "syntheticStageOwner", stage.getSyntheticStageOwner() != null ? stage.getSyntheticStageOwner().name() : null);
     map.put(prefix + "parentStageId", stage.getParentStageId());
