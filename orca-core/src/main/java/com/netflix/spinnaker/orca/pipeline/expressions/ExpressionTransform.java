@@ -55,10 +55,6 @@ public class ExpressionTransform {
   /**
    * Traverses and attempts to evaluate expressions
    * Failures can either be INFO (for a simple unresolved expression) or ERROR when an exception is thrown
-   *
-   * @param source
-   * @param evaluationContext
-   * @param summary
    * @return the transformed source object
    */
   public <T> T transform(T source, EvaluationContext evaluationContext, ExpressionEvaluationSummary summary, Map<String, ?> additionalContext) {
@@ -213,7 +209,7 @@ public class ExpressionTransform {
   /**
    * Lazily include the execution object (#root.execution) for Stage locating functions & aliases
    *
-   * @param expression #stage('property') becomes #stage(#root.execution, 'property')
+   * @param e #stage('property') becomes #stage(#root.execution, 'property')
    * @return an execution aware helper function
    */
   private static String includeExecutionParameter(String e) {
