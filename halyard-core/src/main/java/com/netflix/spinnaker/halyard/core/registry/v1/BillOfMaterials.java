@@ -112,10 +112,14 @@ public class BillOfMaterials {
           .get(obj);
 
       if (result == null && !artifactName.equals("defaultArtifact")) {
-        return getFieldArtifact(clazz, obj, "defaultArtifact");
-      } else {
-        return result;
+        result = getFieldArtifact(clazz, obj, "defaultArtifact");
       }
+      
+      if (result == null) {
+        result = new Artifact();
+      }
+
+      return result;
     } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     } catch (NullPointerException e) {
