@@ -71,8 +71,8 @@ class AmazonCertificateCachingAgent implements CachingAgent, AccountAware {
     this.objectMapper = objectMapper
     this.registry = registry
     this.securityTokenExceptionGauge = registry.createId("aws.certificateCache.errors",
-      "account.name", account.name,
-      "account.id", account.accountId,
+      "account", account.name,
+      "account_id", account.accountId,
       "region", region)
   }
 
