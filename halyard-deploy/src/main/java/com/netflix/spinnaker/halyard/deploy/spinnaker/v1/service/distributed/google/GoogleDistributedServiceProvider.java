@@ -59,7 +59,7 @@ public class GoogleDistributedServiceProvider extends DistributedServiceProvider
   @Autowired
   GoogleIgorService igorService;
 
-  @Autowired(required = false)
+  @Autowired
   GoogleKayentaService kayentaService;
 
   @Autowired
