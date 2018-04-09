@@ -640,12 +640,13 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     where:
     sourceDevice                                                                                        || targetDevice
-    new BlockDeviceMapping().withDeviceName("Device1").withVirtualName("virtualName")                   || new AmazonBlockDevice("Device1", "virtualName", null, null, null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withIops(500))                 || new AmazonBlockDevice("Device1", null, null, null, null, 500, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withDeleteOnTermination(true)) || new AmazonBlockDevice("Device1", null, null, null, true, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeSize(1024))          || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeType("volumeType"))  || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null)
-    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snapshotId"))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snapshotId")
+    new BlockDeviceMapping().withDeviceName("Device1").withVirtualName("virtualName")                   || new AmazonBlockDevice("Device1", "virtualName", null, null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withIops(500))                 || new AmazonBlockDevice("Device1", null, null, null, null, 500, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withDeleteOnTermination(true)) || new AmazonBlockDevice("Device1", null, null, null, true, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeSize(1024))          || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeType("volumeType"))  || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snapshotId"))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snapshotId", null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withEncrypted(true))  || new AmazonBlockDevice("Device1", null, null, null, null, null, null, true)
   }
 
   @Unroll

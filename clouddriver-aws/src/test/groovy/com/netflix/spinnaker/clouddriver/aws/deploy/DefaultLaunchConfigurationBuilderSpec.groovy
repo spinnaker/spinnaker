@@ -397,6 +397,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
         assert ebs.deleteOnTermination == false
         assert ebs.iops == 100
         assert ebs.volumeSize == 125
+        assert ebs.encrypted == true
       }
     }
     0 * _
@@ -414,7 +415,7 @@ class DefaultLaunchConfigurationBuilderSpec extends Specification {
       suffix: '20150515',
       blockDevices: [
         new AmazonBlockDevice(deviceName: '/dev/sdb', virtualName: 'ephemeral1'),
-        new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, iops: 100, deleteOnTermination: false, volumeType: 'io1', snapshotId: 's-69')],
+        new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, iops: 100, deleteOnTermination: false, volumeType: 'io1', snapshotId: 's-69', encrypted: true)],
       securityGroups: securityGroups)
 
   }

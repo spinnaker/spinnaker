@@ -87,7 +87,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
           volumeType: mapping.ebs.volumeType,
           deleteOnTermination: mapping.ebs.deleteOnTermination,
           iops: mapping.ebs.iops,
-          snapshotId: mapping.ebs.snapshotId)
+          snapshotId: mapping.ebs.snapshotId,
+          encrypted: mapping.ebs.encrypted)
       } else {
         new AmazonBlockDevice(deviceName: mapping.deviceName, virtualName: mapping.virtualName)
       }
@@ -264,6 +265,9 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
             }
             if (snapshotId) {
               ebs.withSnapshotId(snapshotId)
+            }
+            if (encrypted) {
+              ebs.withEncrypted(encrypted)
             }
           }
           mapping.withEbs(ebs)
