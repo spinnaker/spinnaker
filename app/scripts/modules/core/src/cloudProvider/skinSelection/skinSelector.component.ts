@@ -17,7 +17,7 @@ export class SkinSelectorCtrl implements IController {
     }
   }
 
-  public selectVersion(): void {
+  public selectSkin(): void {
     this.$uibModalInstance.close(this.command.skin);
   }
 
