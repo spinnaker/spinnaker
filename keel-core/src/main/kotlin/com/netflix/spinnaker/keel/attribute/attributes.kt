@@ -69,4 +69,5 @@ data class TimeWindow(
  * Defines the origin of an Intent. When defined, Spinnaker is capable of exposing richer back-linking to where an
  * Intent is defined.
  */
+@JsonTypeName("Origin")
 class OriginAttribute(value: String) : Attribute<String>("Origin", value)
