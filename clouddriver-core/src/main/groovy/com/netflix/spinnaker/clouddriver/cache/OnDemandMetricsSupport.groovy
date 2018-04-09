@@ -30,6 +30,7 @@ class OnDemandMetricsSupport {
   public static final String CACHE_WRITE = "onDemand_cache"
   public static final String CACHE_EVICT = "onDemand_evict"
   public static final String ON_DEMAND_ERROR = "onDemand_error"
+  public static final String ON_DEMAND_COUNT = "onDemand_count"
 
   private final Timer onDemandTotal
   private final Timer dataRead
@@ -38,6 +39,7 @@ class OnDemandMetricsSupport {
   private final Timer cacheWrite
   private final Timer cacheEvict
   private final Counter onDemandErrors
+  private final Counter onDemandCount
 
   public OnDemandMetricsSupport(Registry registry, OnDemandAgent agent, String onDemandType) {
     final String[] tags = ["providerName", agent.providerName, "agentType", agent.onDemandAgentType, "onDemandType", onDemandType]
@@ -48,6 +50,7 @@ class OnDemandMetricsSupport {
     this.cacheWrite = registry.timer(CACHE_WRITE, tags)
     this.cacheEvict = registry.timer(CACHE_EVICT, tags)
     this.onDemandErrors = registry.counter(ON_DEMAND_ERROR, tags)
+    this.onDemandCount = registry.counter(ON_DEMAND_COUNT, tags)
   }
 
   private <T> T record(Timer timer, Closure<T> closure) {
@@ -82,6 +85,10 @@ class OnDemandMetricsSupport {
 
   public void countError() {
     onDemandErrors.increment()
+  }
+
+  public void countOnDemand() {
+    onDemandCount.increment()
   }
 
   public void recordTotalRunTimeNanos(long nanos) {
