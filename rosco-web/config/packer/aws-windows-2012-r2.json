@@ -51,7 +51,7 @@
 
       "subnet_id": "{{user `aws_subnet_id`}}",
 
-      "ena_support": "{{user `aws_ena_support`}},
+      "ena_support": "{{user `aws_ena_support`}}",
       "spot_price": "{{user `aws_spot_price`}}",
       "spot_price_auto_product": "{{user `aws_spot_price_auto_product`}}",
 
