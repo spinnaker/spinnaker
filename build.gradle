@@ -8,11 +8,10 @@ buildscript {
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.16.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.0.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
-
 
 allprojects {
   apply plugin: "spinnaker.project"
@@ -67,6 +66,7 @@ allprojects {
       exceptionFormat = 'full'
     }
   }
+
   tasks.withType(JavaExec) {
     if (System.getProperty('DEBUG', 'false') == 'true') {
       jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8187'

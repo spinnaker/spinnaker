@@ -10,6 +10,8 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
 apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
 
+mainClassName = 'com.netflix.spinnaker.rosco.Main'
+
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
   exclude group: "org.slf4j", module: "slf4j-log4j12"
@@ -40,7 +42,7 @@ ospackage {
 
   from('../docker') {
     into "/opt/${project.applicationName}/docker"
-  }  
+  }
 }
 
 buildDeb {
