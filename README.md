@@ -31,7 +31,7 @@ To run the tests within the application, run `yarn run test`.
 
 #### NOTE
 Developing things locally? You will want to run [gate](https://github.com/spinnaker/gate) 
-locally (which runs on port 8084) and [kayenta](https://github.com/Netflix-Skunkworks) (which runs on port 8090).
+locally (which runs on port 8084) and [kayenta](https://github.com/spinnaker/kayenta) (which runs on port 8090).
 
 
 You also will need to provide the following fields to your `gate-local.yml` config:
