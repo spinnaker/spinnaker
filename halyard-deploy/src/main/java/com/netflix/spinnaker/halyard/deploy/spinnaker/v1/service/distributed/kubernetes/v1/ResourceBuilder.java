@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -57,11 +58,19 @@ class ResourceBuilder {
 
     ProbeBuilder probeBuilder = new ProbeBuilder();
 
+    String scheme = settings.getScheme();
+    if (StringUtils.isNotEmpty(scheme)) {
+      scheme = scheme.toUpperCase();
+    } else {
+      scheme = null;
+    }
+
     if (settings.getHealthEndpoint() != null) {
       probeBuilder = probeBuilder
           .withNewHttpGet()
           .withNewPort(port)
           .withPath(settings.getHealthEndpoint())
+          .withScheme(scheme)
           .endHttpGet();
     } else {
       probeBuilder = probeBuilder
