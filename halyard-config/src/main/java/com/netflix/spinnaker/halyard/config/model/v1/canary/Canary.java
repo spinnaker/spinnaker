@@ -48,7 +48,7 @@ public class Canary extends Node implements Cloneable {
   boolean reduxLoggerEnabled = true;
   String defaultMetricsAccount;
   String defaultStorageAccount;
-  String defaultJudge;
+  String defaultJudge = "NetflixACAJudge-v1.0";
   String defaultMetricsStore;
   boolean stagesEnabled = true;
   String atlasWebComponentsUrl;

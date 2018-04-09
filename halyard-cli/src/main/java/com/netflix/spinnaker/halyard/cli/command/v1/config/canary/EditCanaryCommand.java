@@ -58,7 +58,7 @@ public class EditCanaryCommand extends AbstractConfigCommand {
   @Parameter(
       names = "--default-judge",
       arity = 1,
-      description = "Name of canary judge to use by default (e.g. NetflixACAJudge-v1.0)."
+      description = "Name of canary judge to use by default (*Default*: `NetflixACAJudge-v1.0`)."
   )
   private String defaultJudge;
 

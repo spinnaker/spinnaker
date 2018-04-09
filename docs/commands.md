@@ -1431,7 +1431,7 @@ hal config canary edit [parameters]
 
 #### Parameters
  * `--atlasWebComponentsUrl`: Location of web components to use for Atlas metric configuration.
- * `--default-judge`: Name of canary judge to use by default (e.g. NetflixACAJudge-v1.0).
+ * `--default-judge`: Name of canary judge to use by default (*Default*: `NetflixACAJudge-v1.0`).
  * `--default-metrics-account`: Name of metrics account to use by default.
  * `--default-metrics-store`: Name of metrics store to use by default (e.g. atlas, datadog, prometheus, stackdriver).
  * `--default-storage-account`: Name of storage account to use by default.
