@@ -203,6 +203,18 @@ public class ExecutionMapper {
     return canaryExecutionStatusResponseBuilder.build();
   }
 
+  // Some older (stored) results have the execution request only in the judge context.
+  public String getCanaryExectutionRequestFromJudgeContext(Execution pipeline) {
+    Stage contextStage = pipeline.getStages().stream()
+      .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_JUDGE))
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Unable to find stage '" + CanaryStageNames.REFID_JUDGE + "' in pipeline ID '" + pipeline.getId() + "'"));
+    Map<String, Object> context = contextStage.getContext();
+
+    return (String) context.get("canaryExecutionRequest");
+  }
+
+
   public CanaryExecutionRequest getCanaryExecutionRequest(Execution pipeline) {
     Stage contextStage = pipeline.getStages().stream()
       .filter(stage -> stage.getRefId().equals(CanaryStageNames.REFID_SET_CONTEXT))
@@ -211,6 +223,9 @@ public class ExecutionMapper {
     Map<String, Object> context = contextStage.getContext();
 
     String canaryExecutionRequestJSON = (String)context.get("canaryExecutionRequest");
+    if (canaryExecutionRequestJSON == null) {
+      canaryExecutionRequestJSON = getCanaryExectutionRequestFromJudgeContext(pipeline);
+    }
     if (canaryExecutionRequestJSON == null) {
       return null;
     }
