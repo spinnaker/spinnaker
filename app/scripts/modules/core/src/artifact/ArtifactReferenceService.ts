@@ -4,7 +4,7 @@ import { isEmpty, get } from 'lodash';
 
 export type SupportedStage = 'stage';
 
-type IWalker = (refContainer: any) => Array<string | number>[];
+type IWalker = (refContainer: any) => Array<Array<string | number>>;
 
 interface IReference {
   category: SupportedStage;
@@ -25,7 +25,7 @@ export class ArtifactReferenceServiceProvider {
   public removeReferenceFromStages(reference: string, stages: IStage[]) {
     (stages || []).forEach(stage => {
       this.references.forEach(ref => {
-        const paths: Array<string | number>[] = ref.walker(stage).filter(path => !isEmpty(path));
+        const paths: Array<Array<string | number>> = ref.walker(stage).filter(path => !isEmpty(path));
         paths.map(p => p.slice(0)).forEach(path => {
           let tail = path.pop();
           let obj = stage;

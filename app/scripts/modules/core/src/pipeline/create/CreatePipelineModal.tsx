@@ -194,8 +194,9 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     this.props.showCallback(false);
   }
 
-  private handleTypeChange(option: Option): void {
-    this.setState({ command: { ...this.state.command, strategy: option.value } });
+  private handleTypeChange(option: Option<boolean>): void {
+    const strategy = option.value;
+    this.setState({ command: { ...this.state.command, strategy } });
   }
 
   private handleNameChange(e: React.ChangeEvent<HTMLInputElement>): void {

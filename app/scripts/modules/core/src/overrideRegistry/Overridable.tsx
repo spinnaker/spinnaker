@@ -167,7 +167,7 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
     public render() {
       const Component = this.state && this.state.Component;
       const isOverridden = Component && Component !== OriginalComponent;
-      const props = { ...this.props, ...(isOverridden ? { OriginalComponent } : {}) };
+      const props = { ...(this.props as any), ...(isOverridden ? { OriginalComponent } : {}) };
 
       return Component ? <Component {...props} /> : <Spinner />;
     }

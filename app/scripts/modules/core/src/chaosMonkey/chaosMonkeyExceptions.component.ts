@@ -57,8 +57,9 @@ export class ChaosMonkeyExceptionsController {
   public configureMatches(): void {
     this.clusterMatches.length = 0;
     this.config.exceptions.forEach((exception: IChaosMonkeyExceptionRule) => {
+      const { region: location, ...clusterMatchRule } = exception;
       // the "location" field in chaos monkey exceptions is mapped as "region", so we have to massage it a bit...
-      const rule: IClusterMatchRule = { ...exception, location: exception.region };
+      const rule: IClusterMatchRule = { ...clusterMatchRule, location };
       this.clusterMatches.push(
         this.application.clusters
           .filter(c =>
