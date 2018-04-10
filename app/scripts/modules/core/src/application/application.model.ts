@@ -46,7 +46,7 @@ export class Application {
    * IFF only one unique value is found, that value is set in the map. Otherwise, the provider is not present in the map
    * @type {Map<string, string>}
    */
-  public defaultCredentials: any = <any>{};
+  public defaultCredentials: any = {} as any;
 
   /**
    * A map where the key is the provider and the value is the default region value.
@@ -54,13 +54,13 @@ export class Application {
    * IFF only one unique value is found, that value is set in the map. Otherwise, the provider is not present in the map
    * @type {Map<string, string>}
    */
-  public defaultRegions: any = <any>{};
+  public defaultRegions: any = {} as any;
 
   /**
    * An arbitrary collection of attributes coming from Front50
    * @type {Map<string, string>}
    */
-  public attributes: any = <any>{};
+  public attributes: any = {} as any;
 
   /**
    * Indicates that the application was not found in Front50
@@ -211,7 +211,7 @@ export class Application {
         .filter(v => v.length > 0);
       const allRegions = union(...vals);
       if (allRegions.length === 1) {
-        (<any>results)[provider] = allRegions[0];
+        (results as any)[provider] = allRegions[0];
       }
     });
     return results;

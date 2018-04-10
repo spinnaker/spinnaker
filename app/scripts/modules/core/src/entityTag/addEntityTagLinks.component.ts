@@ -23,7 +23,7 @@ class AddEntityTagLinksCtrl implements IController {
     };
 
     const props: IEntityTagEditorProps = {
-      tag: tag,
+      tag,
       isNew: true,
       owner: this.component,
       entityType: this.entityType,

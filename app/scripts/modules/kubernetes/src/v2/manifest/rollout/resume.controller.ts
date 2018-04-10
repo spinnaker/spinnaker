@@ -36,7 +36,7 @@ class KubernetesManifestResumeRolloutController implements IController {
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       title: `Resume rollout of ${coordinates.name} in ${coordinates.namespace}`,
-      application: application,
+      application,
       modalInstance: $uibModalInstance,
     });
 

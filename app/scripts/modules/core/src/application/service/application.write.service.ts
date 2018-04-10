@@ -20,7 +20,7 @@ export class ApplicationWriter {
     const jobs: IJob[] = this.buildJobs(application, 'createApplication', cloneDeep);
     return this.taskExecutor.executeTask({
       job: jobs,
-      application: application,
+      application,
       description: 'Create Application: ' + application.name,
     });
   }
@@ -29,7 +29,7 @@ export class ApplicationWriter {
     const jobs: IJob[] = this.buildJobs(application, 'updateApplication', cloneDeep);
     return this.taskExecutor.executeTask({
       job: jobs,
-      application: application,
+      application,
       description: 'Update Application: ' + application.name,
     });
   }
@@ -41,7 +41,7 @@ export class ApplicationWriter {
     return this.taskExecutor
       .executeTask({
         job: jobs,
-        application: application,
+        application,
         description: 'Deleting Application: ' + application.name,
       })
       .then((task: any): any => {
@@ -59,7 +59,7 @@ export class ApplicationWriter {
     }
     delete command.accounts;
     jobs.push({
-      type: type,
+      type,
       application: command,
     });
     return jobs;

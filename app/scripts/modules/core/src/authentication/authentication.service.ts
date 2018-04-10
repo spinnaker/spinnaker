@@ -24,7 +24,7 @@ export class AuthenticationService implements IAuthenticationService {
   private authEvents: Function[] = [];
 
   public getAuthenticatedUser(): IUser {
-    return Object.assign({}, this.user);
+    return { ...this.user };
   }
 
   public setAuthenticatedUser(authenticatedUser: IUser): void {

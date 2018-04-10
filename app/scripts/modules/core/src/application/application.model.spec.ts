@@ -205,7 +205,7 @@ describe('Application Model', function() {
             type: 'aws',
             cloudProvider: 'aws',
             instances: [],
-            instanceCounts: <IInstanceCounts>{},
+            instanceCounts: {} as IInstanceCounts,
           },
         ],
         loadBalancers: ILoadBalancer[] = [],

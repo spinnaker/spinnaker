@@ -18,7 +18,7 @@ export class CancelModalService {
   public constructor(private $uibModal: IModalService, private $sce: ng.ISCEService) {}
 
   public confirm(params: ICancelModalParams): ng.IPromise<any> {
-    const extendedParams: ICancelModalParams = Object.assign({}, this.defaults, params);
+    const extendedParams: ICancelModalParams = { ...this.defaults, ...params };
 
     if (extendedParams.body) {
       extendedParams.body = this.$sce.trustAsHtml(extendedParams.body);

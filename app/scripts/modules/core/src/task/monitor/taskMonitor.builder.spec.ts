@@ -62,7 +62,7 @@ describe('Service: taskMonitorBuilder', () => {
       $timeout.flush();
       $http.flush();
       expect(monitor.task.isCompleted).toBe(false);
-      expect((<Spy>monitor.application.getDataSource('runningTasks').refresh).calls.count()).toBe(1);
+      expect((monitor.application.getDataSource('runningTasks').refresh as Spy).calls.count()).toBe(1);
 
       $http.expectGET([API.baseUrl, 'tasks', 'a'].join('/')).respond(200, { status: 'SUCCEEDED' });
       $timeout.flush(); // complete second time

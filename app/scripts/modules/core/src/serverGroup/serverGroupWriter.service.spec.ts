@@ -70,15 +70,15 @@ describe('serverGroupWriter', function() {
       let submitted: ITaskCommand = {};
       $httpBackend
         .expectPOST(`${API.baseUrl}/applications/app/tasks`, (body: string) => {
-          submitted = <ITaskCommand>JSON.parse(body);
+          submitted = JSON.parse(body) as ITaskCommand;
           return true;
         })
         .respond(200, { ref: '/1' });
 
-      const application: TestApplication = <TestApplication>applicationModelBuilder.createApplication(
+      const application: TestApplication = applicationModelBuilder.createApplication(
         'app',
         applicationDataSourceRegistry.getDataSources(),
-      );
+      ) as TestApplication;
       application.tasks = {
         refresh: noop,
       };

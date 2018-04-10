@@ -32,7 +32,7 @@ export class CacheInitializerService {
   private setConfigDefaults(key: string, config: ICacheConfig) {
     config.version = config.version || 1;
     config.maxAge = config.maxAge || moment.duration(2, 'days').asMilliseconds();
-    config.initializers = config.initializers || this.initializers[key] || <any[]>[];
+    config.initializers = config.initializers || this.initializers[key] || ([] as any[]);
     config.onReset = config.onReset || [noop];
   }
 
@@ -70,7 +70,7 @@ export class CacheInitializerService {
     this.infrastructureCaches.createCache(key, this.cacheConfig[key]);
     if (this.cacheConfig[key].initializers) {
       const initializer: any = this.cacheConfig[key].initializers;
-      const all: ng.IPromise<any>[] = [];
+      const all: Array<ng.IPromise<any>> = [];
       initializer.forEach((method: Function) => {
         all.push(method());
       });
@@ -109,7 +109,7 @@ export class CacheInitializerService {
   }
 
   public refreshCaches(): ng.IPromise<any[]> {
-    const all: ng.IPromise<any[]>[] = [];
+    const all: Array<ng.IPromise<any[]>> = [];
     Object.keys(this.cacheConfig).forEach((key: string) => {
       all.push(this.refreshCache(key));
     });

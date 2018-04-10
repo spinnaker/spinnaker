@@ -207,7 +207,7 @@ class PopoverOffset extends React.Component<IPopoverOffsetProps, IPopoverOffsetS
     const width = ReactDOM.findDOMNode(this).clientWidth;
     const offset = 0 - width * deltaPercent;
 
-    return { offset: offset };
+    return { offset };
   }
 
   public render(): any {
@@ -216,7 +216,7 @@ class PopoverOffset extends React.Component<IPopoverOffsetProps, IPopoverOffsetS
 
     if (offset) {
       const { style } = this.props;
-      const offsetStyle = Object.assign({}, style, { left: style.left + offset });
+      const offsetStyle = { ...style, left: style.left + offset };
       return <Popover {...rest} style={offsetStyle} arrowOffsetLeft={offsetPercent} />;
     } else {
       return <Popover {...rest} />;

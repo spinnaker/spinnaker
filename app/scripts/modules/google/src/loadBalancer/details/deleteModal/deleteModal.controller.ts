@@ -77,7 +77,7 @@ class DeleteLoadBalancerModalController implements IController {
     }
   }
 
-  private getSubmitMethod(): { (): IPromise<any> } {
+  private getSubmitMethod(): () => IPromise<any> {
     if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return () => {
         return this.gceHttpLoadBalancerWriter.deleteLoadBalancers(this.loadBalancer, this.application, this.params);

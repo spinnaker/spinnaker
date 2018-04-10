@@ -48,7 +48,7 @@ export class SearchService {
       pageSize: SearchService.DEFAULT_PAGE_SIZE,
     };
 
-    const params = Object.assign(searchParams, defaultParams);
+    const params = { ...searchParams, ...defaultParams };
 
     const requestBuilder = this.API.one('search').withParams(params);
 
@@ -58,7 +58,7 @@ export class SearchService {
 
     return requestBuilder
       .get()
-      .then((response: ISearchResults<T>[]) => {
+      .then((response: Array<ISearchResults<T>>) => {
         return response[0] || getFallbackResults();
       })
       .catch((response: IHttpPromiseCallbackArg<any>) => {

@@ -35,7 +35,7 @@ class KubernetesServerGroupResizeController implements IController {
     'ngInject';
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       title: `Resizing ${this.serverGroup.name}`,
-      application: application,
+      application,
       modalInstance: $uibModalInstance,
     });
 

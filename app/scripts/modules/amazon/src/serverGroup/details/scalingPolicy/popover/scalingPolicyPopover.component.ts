@@ -6,7 +6,7 @@ const scalingPolicyPopover: IComponentOptions = {
     serverGroup: '=',
   },
   templateUrl: require('./scalingPolicyPopover.component.html'),
-  controller: function() {
+  controller() {
     this.$onInit = () => {
       this.alarm = this.policy.alarms[0];
 

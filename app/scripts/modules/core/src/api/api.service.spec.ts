@@ -43,7 +43,7 @@ describe('API Service', function() {
         .then(noop, () => (rejected = true));
 
       $httpBackend.flush();
-      expect((<Spy>authenticationInitializer.reauthenticateUser).calls.count()).toBe(1);
+      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(1);
       expect(rejected).toBe(true);
     });
 
@@ -58,7 +58,7 @@ describe('API Service', function() {
         .then(() => (succeeded = true), () => (rejected = true));
 
       $httpBackend.flush();
-      expect((<Spy>authenticationInitializer.reauthenticateUser).calls.count()).toBe(0);
+      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
       expect(rejected).toBe(false);
       expect(succeeded).toBe(true);
     });
@@ -74,7 +74,7 @@ describe('API Service', function() {
         .then(() => (succeeded = true), () => (rejected = true));
       $httpBackend.flush();
 
-      expect((<Spy>authenticationInitializer.reauthenticateUser).calls.count()).toBe(0);
+      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
       expect(rejected).toBe(false);
       expect(succeeded).toBe(true);
 
@@ -87,7 +87,7 @@ describe('API Service', function() {
         .then(() => (succeeded = true), () => (rejected = true));
       $httpBackend.flush();
 
-      expect((<Spy>authenticationInitializer.reauthenticateUser).calls.count()).toBe(0);
+      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
       expect(rejected).toBe(false);
       expect(succeeded).toBe(true);
     });

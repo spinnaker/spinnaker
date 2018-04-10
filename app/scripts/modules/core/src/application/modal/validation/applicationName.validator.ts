@@ -64,8 +64,8 @@ export class ApplicationNameValidator {
         if (this.providerMap.has(provider)) {
           this.providerMap.get(provider).forEach(validator => {
             const results = validator.validate(applicationName);
-            results.warnings.forEach(message => warnings.push({ cloudProvider: provider, message: message }));
-            results.errors.forEach(message => errors.push({ cloudProvider: provider, message: message }));
+            results.warnings.forEach(message => warnings.push({ cloudProvider: provider, message }));
+            results.errors.forEach(message => errors.push({ cloudProvider: provider, message }));
           });
         }
       });

@@ -6,7 +6,7 @@ module(CAPACITY_SELECTOR, []).component('titusServerGroupCapacitySelector', {
     command: '=',
   },
   templateUrl: require('./capacitySelector.component.html'),
-  controller: function() {
+  controller() {
     this.minMaxDesiredTemplate = require('./minMaxDesiredFields.template.html');
 
     this.preferSourceCapacityOptions = [

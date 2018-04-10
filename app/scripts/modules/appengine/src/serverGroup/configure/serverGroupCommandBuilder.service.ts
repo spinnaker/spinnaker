@@ -110,7 +110,7 @@ export class AppengineServerGroupCommandBuilder {
     };
 
     const viewState: IViewState = {
-      mode: mode,
+      mode,
       submitButtonLabel: this.getSubmitButtonLabel(mode),
       disableStrategySelection: mode === 'create',
     };

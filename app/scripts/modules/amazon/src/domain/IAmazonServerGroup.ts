@@ -9,7 +9,7 @@ export interface IAmazonAsg extends IAsg {
   healthCheckType: string;
   healthCheckGracePeriod: number;
   terminationPolicies: string[];
-  enabledMetrics: { metric: string }[];
+  enabledMetrics: Array<{ metric: string }>;
   vpczoneIdentifier?: string;
 }
 

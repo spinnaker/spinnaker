@@ -112,14 +112,14 @@ export class TravisStage implements IController {
     const view = this.viewState;
     if (stage && stage.job && stage.master && !view.masterIsParameterized && !view.jobIsParameterized) {
       this.igorService.getJobConfig(stage.master, stage.job).then((config: IJobConfig) => {
-        config = config || <IJobConfig>{};
+        config = config || ({} as IJobConfig);
         if (!stage.parameters) {
           stage.parameters = {};
         }
         this.jobParams = config.parameterDefinitionList;
         this.userSuppliedParameters = stage.parameters;
         this.useDefaultParameters = {};
-        const params = this.jobParams || <IParameterDefinitionList[]>[];
+        const params = this.jobParams || ([] as IParameterDefinitionList[]);
         params.forEach((property: any) => {
           if (!(property.name in stage.parameters) && property.defaultValue !== null) {
             this.useDefaultParameters[property.name] = true;

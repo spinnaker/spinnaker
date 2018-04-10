@@ -96,7 +96,7 @@ export class PipelineTemplateService {
   public getPipelinePlan(config: IPipelineTemplateConfig, executionId?: String): IPromise<IPipeline> {
     return this.API.one('pipelines')
       .one('start')
-      .post(Object.assign({}, config, { plan: true, executionId }));
+      .post({ ...config, plan: true, executionId });
   }
 
   public getPipelineTemplatesByScope(scope: string): IPromise<IPipelineTemplate[]> {

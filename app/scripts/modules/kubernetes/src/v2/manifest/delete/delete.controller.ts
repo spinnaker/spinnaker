@@ -44,7 +44,7 @@ class KubernetesManifestDeleteController implements IController {
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       title: `Deleting ${coordinates.name} in ${coordinates.namespace}`,
-      application: application,
+      application,
       modalInstance: $uibModalInstance,
     });
 

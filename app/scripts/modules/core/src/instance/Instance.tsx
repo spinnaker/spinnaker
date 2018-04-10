@@ -25,7 +25,7 @@ export class Instance extends React.Component<IInstanceProps> {
   }
 
   public shouldComponentUpdate(nextProps: IInstanceProps) {
-    const checkProps: (keyof IInstanceProps)[] = ['instance', 'active', 'highlight'];
+    const checkProps: Array<keyof IInstanceProps> = ['instance', 'active', 'highlight'];
     return checkProps.some(key => this.props[key] !== nextProps[key]);
   }
 

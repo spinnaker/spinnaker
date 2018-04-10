@@ -14,11 +14,11 @@ describe('Controller: ChaosMonkeyExceptions', () => {
     applicationBuilder: ApplicationModelBuilder;
 
   const initializeController = (data: any) => {
-    $ctrl = <ChaosMonkeyExceptionsController>$componentController(
+    $ctrl = $componentController(
       'chaosMonkeyExceptions',
-      { $scope: null, accountService: accountService, $q: $q },
+      { $scope: null, accountService, $q },
       data,
-    );
+    ) as ChaosMonkeyExceptionsController;
   };
 
   beforeEach(mock.module(APPLICATION_MODEL_BUILDER, CHAOS_MONKEY_EXCEPTIONS_COMPONENT));

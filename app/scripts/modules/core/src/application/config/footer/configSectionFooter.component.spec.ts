@@ -10,11 +10,11 @@ describe('Component: ConfigSectionFooter', () => {
     $scope: ng.IScope;
 
   const initializeController = (data: any) => {
-    $ctrl = <ConfigSectionFooterController>$componentController(
+    $ctrl = $componentController(
       'configSectionFooter',
-      { $scope: null, applicationWriter: applicationWriter },
+      { $scope: null, applicationWriter },
       data,
-    );
+    ) as ConfigSectionFooterController;
   };
 
   beforeEach(mock.module(CONFIG_SECTION_FOOTER));

@@ -29,7 +29,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
       securityGroups = chain(serverGroup.launchConfig.securityGroups)
         .map((id: string) => {
           return (
-            find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, id: id }) ||
+            find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, id }) ||
             find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, name: id })
           );
         })

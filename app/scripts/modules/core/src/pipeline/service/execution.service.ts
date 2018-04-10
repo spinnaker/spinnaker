@@ -256,8 +256,8 @@ export class ExecutionService {
       method: 'PUT',
       url: [SETTINGS.gateUrl, 'pipelines', executionId, 'cancel'].join('/'),
       params: {
-        force: force,
-        reason: reason,
+        force,
+        reason,
       },
     }).then(
       () => this.waitUntilPipelineIsCancelled(application, executionId).then(deferred.resolve),
@@ -335,7 +335,7 @@ export class ExecutionService {
   public getProjectExecutions(project: string, limit = 1): IPromise<IExecution[]> {
     return this.API.one('projects', project)
       .all('pipelines')
-      .getList({ limit: limit })
+      .getList({ limit })
       .then((executions: IExecution[]) => {
         if (!executions || !executions.length) {
           return [];
@@ -526,14 +526,14 @@ export class ExecutionService {
     const request = {
       method: 'PATCH',
       url: targetUrl,
-      data: data,
+      data,
       timeout: SETTINGS.pollSchedule * 2 + 5000,
     };
     return this.$http(request).then(resp => resp.data);
   }
 
   private stringifyExecution(execution: IExecution): string {
-    const transient = Object.assign({}, execution);
+    const transient = { ...execution };
     transient.stages = transient.stages.filter(s => s.status !== 'SUCCEEDED' && s.status !== 'NOT_STARTED');
     return JSON.stringify(transient, this.jsonReplacer);
   }

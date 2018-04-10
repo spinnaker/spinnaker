@@ -59,8 +59,8 @@ export class RecentHistoryService {
     const items: IRecentHistoryEntry[] = this.getItems(type).slice(0, MAX_ITEMS),
       existing: IRecentHistoryEntry = this.getExisting(items, params, keyParams),
       entry = {
-        params: params,
-        state: state,
+        params,
+        state,
         accessTime: new Date().getTime(),
         extraData: {},
         id: UUIDGenerator.generateUuid(),

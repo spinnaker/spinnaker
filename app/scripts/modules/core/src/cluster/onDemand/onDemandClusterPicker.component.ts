@@ -56,7 +56,7 @@ const template = `
 `;
 
 const onDemandClusterPickerComponent: IComponentOptions = {
-  template: template,
+  template,
   controller: OnDemandClusterPickerController,
   bindings: {
     application: '<',

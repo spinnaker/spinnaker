@@ -74,8 +74,8 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
     }
 
     return {
-      warnings: warnings,
-      errors: errors,
+      warnings,
+      errors,
     };
   }
 }

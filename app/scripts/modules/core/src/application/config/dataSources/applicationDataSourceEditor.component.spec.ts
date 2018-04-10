@@ -14,11 +14,11 @@ describe('Component: Application Data Source Editor', () => {
     $scope: ng.IScope;
 
   const initialize = () => {
-    ctrl = <DataSourceEditorController>$componentController(
+    ctrl = $componentController(
       'applicationDataSourceEditor',
-      { $scope: null, applicationWriter: applicationWriter },
-      { application: application },
-    );
+      { $scope: null, applicationWriter },
+      { application },
+    ) as DataSourceEditorController;
     ctrl.$onInit();
   };
 

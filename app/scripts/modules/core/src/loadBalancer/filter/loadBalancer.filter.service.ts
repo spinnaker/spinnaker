@@ -239,7 +239,7 @@ export class LoadBalancerFilterService {
         subGroup.forEach(loadBalancer => {
           subSubGroups.push({
             heading: loadBalancer.region,
-            loadBalancer: loadBalancer,
+            loadBalancer,
             serverGroups: this.filterServerGroups(loadBalancer),
           });
         });

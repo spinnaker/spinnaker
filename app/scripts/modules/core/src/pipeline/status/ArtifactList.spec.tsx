@@ -66,7 +66,7 @@ describe('<ArtifactList/>', () => {
         id: 'abcd',
         type: ARTIFACT_TYPE,
         name: ARTIFACT_NAME,
-        version: version,
+        version,
       },
     ];
     component = shallow(<ArtifactList artifacts={artifacts} />);

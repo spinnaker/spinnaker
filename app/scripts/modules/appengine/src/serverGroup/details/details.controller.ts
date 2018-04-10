@@ -139,7 +139,7 @@ class AppengineServerGroupDetailsController implements IController {
       account: this.serverGroup.account,
       provider: 'appengine',
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: AppengineHealth.PLATFORM,
@@ -166,7 +166,7 @@ class AppengineServerGroupDetailsController implements IController {
     };
 
     const submitMethod = (params: any) =>
-      this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, Object.assign(params));
+      this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, { ...params });
 
     const modalBody = `
       <div class="well well-sm">
@@ -190,7 +190,7 @@ class AppengineServerGroupDetailsController implements IController {
       taskMonitorConfig: taskMonitor,
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: AppengineHealth.PLATFORM,
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
       interestingHealthProviderNames: [] as string[],
     };
@@ -240,7 +240,7 @@ class AppengineServerGroupDetailsController implements IController {
       taskMonitorConfig: taskMonitor,
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: AppengineHealth.PLATFORM,
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
       interestingHealthProviderNames: [] as string[],
     };
@@ -281,7 +281,7 @@ class AppengineServerGroupDetailsController implements IController {
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: AppengineHealth.PLATFORM,
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
     };
 
@@ -304,7 +304,7 @@ class AppengineServerGroupDetailsController implements IController {
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: AppengineHealth.PLATFORM,
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
     };
 
@@ -444,7 +444,7 @@ class AppengineServerGroupDetailsController implements IController {
           });
         }
 
-        this.serverGroup = Object.assign(serverGroupDetails, fromApp);
+        this.serverGroup = { ...serverGroupDetails, ...fromApp };
         this.state.loading = false;
       });
   }

@@ -11,9 +11,7 @@ import {
 } from 'core/cloudProvider/cloudProvider.registry';
 import { SETTINGS } from 'core/config/settings';
 
-export interface IProviderSelectionFilter {
-  (app: Application, acc: IAccountDetails, prov: ICloudProviderConfig): boolean;
-}
+export type IProviderSelectionFilter = (app: Application, acc: IAccountDetails, prov: ICloudProviderConfig) => boolean;
 
 export class ProviderSelectionService {
   constructor(

@@ -52,7 +52,7 @@ class IngressRuleSelectorController implements IController {
     this.regionalVpcs[account].push({
       name: vpc.name,
       region: vpc.region,
-      account: account,
+      account,
       id: vpc.id,
       label: vpc.label,
       deprecated: vpc.deprecated,

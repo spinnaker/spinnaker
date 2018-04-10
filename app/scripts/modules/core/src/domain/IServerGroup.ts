@@ -29,7 +29,7 @@ export interface IServerGroup {
   detail?: string;
   disabledDate?: number;
   entityTags?: IEntityTags;
-  insightActions?: { url: string; label: string }[];
+  insightActions?: Array<{ url: string; label: string }>;
   instanceCounts: IInstanceCounts;
   instances: IInstance[];
   instanceType?: string;

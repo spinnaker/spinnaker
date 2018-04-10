@@ -69,7 +69,7 @@ export interface IExecutionStageSummary extends IOrchestratedItem {
   masterStageIndex: number;
   name: string;
   refId: number | string;
-  requisiteStageRefIds: (number | string)[];
+  requisiteStageRefIds: Array<number | string>;
   stages: IExecutionStage[];
   startTime: number;
   status: string;

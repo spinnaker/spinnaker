@@ -41,9 +41,10 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
       this.resetActiveCategory(),
     );
     const categories = this.parseCategories(props);
-    this.state = Object.assign(categories, {
+    this.state = {
+      ...categories,
       activeCategory: this.getActiveCategory(categories.primaryCategories.concat(categories.secondaryCategories)),
-    });
+    };
   }
 
   public componentWillReceiveProps(nextProps: IApplicationHeaderProps) {
@@ -98,7 +99,7 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
       if (c.primary === primary) {
         const matchedSources = appSources.filter(ds => ds.category === c.key);
         if (matchedSources.length) {
-          categories.push(Object.assign(c, { dataSources: matchedSources }));
+          categories.push({ ...c, dataSources: matchedSources });
         }
       }
     });

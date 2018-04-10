@@ -30,7 +30,7 @@ export class PagerDutyWriter {
     const job = {
       type: 'pageApplicationOwner',
       message: reason,
-      details: details,
+      details,
     } as IJob;
 
     if (applications && applications.length > 0) {

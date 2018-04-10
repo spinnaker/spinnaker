@@ -85,7 +85,7 @@ export class SkinService {
         );
       };
 
-      const all: (IServerGroup | ILoadBalancer)[] = []
+      const all: Array<IServerGroup | ILoadBalancer> = []
         .concat(serverGroups)
         .concat(loadBalancers)
         .concat(loadBalancerServerGroups);

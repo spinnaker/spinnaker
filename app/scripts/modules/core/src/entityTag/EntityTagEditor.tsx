@@ -133,7 +133,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     tag.value.message = values.message;
 
     const taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
-      application: application,
+      application,
       title: `${isNew ? 'Create' : 'Update'} ${this.props.tag.value.type} for ${entityRef.entityId}`,
       modalInstance: this.$uibModalInstanceEmulation,
       onTaskComplete: () => application.entityTags.refresh().then(() => onUpdate()),

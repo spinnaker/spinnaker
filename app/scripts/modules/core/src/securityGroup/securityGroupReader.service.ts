@@ -37,10 +37,10 @@ export interface IReaderSecurityGroup extends ISecurityGroup {
 }
 
 export interface IRangeRule {
-  portRanges: {
+  portRanges: Array<{
     startPort: number;
     endPort: number;
-  }[];
+  }>;
   protocol: string;
 }
 

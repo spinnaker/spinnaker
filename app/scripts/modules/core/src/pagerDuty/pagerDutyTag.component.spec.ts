@@ -36,11 +36,11 @@ describe('PagerDutyTagComponent', () => {
   ];
 
   const initialize = (apiKey: string) => {
-    $ctrl = <PagerDutyTagComponentController>$componentController(
+    $ctrl = $componentController(
       'pagerDutyTag',
       { $scope: null, pagerDutyReader },
-      { apiKey: apiKey },
-    );
+      { apiKey },
+    ) as PagerDutyTagComponentController;
     $ctrl.$onInit();
   };
 

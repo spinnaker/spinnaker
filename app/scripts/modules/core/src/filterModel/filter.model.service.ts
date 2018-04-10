@@ -44,8 +44,8 @@ export class FilterModelService {
         filters = filters || $location.search();
         filterModel.savedState[params.application] = {
           filters: copy(filters),
-          state: state,
-          params: params,
+          state,
+          params,
         };
       }
     };
@@ -237,10 +237,10 @@ export class FilterModelService {
       forOwn(modelVal, (isActive, value) => {
         if (isActive) {
           tags.push({
-            key: key,
-            label: label,
+            key,
+            label,
             value: translator[value] || value,
-            clear: function() {
+            clear() {
               delete (modelVal as any)[value];
               model.applyParamsToUrl();
             },
@@ -250,10 +250,10 @@ export class FilterModelService {
     } else {
       if (modelVal !== null && modelVal !== undefined && modelVal !== '' && modelVal !== false) {
         tags.push({
-          key: key,
-          label: label,
+          key,
+          label,
           value: translator[modelVal as string] || modelVal,
-          clear: function() {
+          clear() {
             model.sortFilter[key] = clearValue;
             model.applyParamsToUrl();
           },

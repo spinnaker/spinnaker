@@ -36,7 +36,7 @@ class KubernetesManifestPauseRolloutController implements IController {
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       title: `Pause rollout of ${coordinates.name} in ${coordinates.namespace}`,
-      application: application,
+      application,
       modalInstance: $uibModalInstance,
     });
 

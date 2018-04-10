@@ -4,13 +4,9 @@ import { IInstance, IServerGroup } from 'core/domain';
 import { Application } from '../application.model';
 import { IMoniker } from 'core/naming/IMoniker';
 
-export interface IServerGroupFilter {
-  (s: IServerGroup): boolean;
-}
+export type IServerGroupFilter = (s: IServerGroup) => boolean;
 
-export interface IInstanceFilter {
-  (i: IInstance): boolean;
-}
+export type IInstanceFilter = (i: IInstance) => boolean;
 
 const defaultFilter = () => true;
 

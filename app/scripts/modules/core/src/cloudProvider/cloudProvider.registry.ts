@@ -18,7 +18,7 @@ export interface ICloudProviderConfig {
 }
 
 class Providers {
-  private providers: { cloudProvider: string; config: ICloudProviderConfig }[] = [];
+  private providers: Array<{ cloudProvider: string; config: ICloudProviderConfig }> = [];
 
   public set(cloudProvider: string, config: ICloudProviderConfig): void {
     // The original implementation used a Map, so calling #set could overwrite a config.

@@ -359,7 +359,7 @@ describe('executionTransformerService', function() {
     });
 
     it('adds buildInfo from lastBuild if present', () => {
-      const execution = { stages: [], trigger: { buildInfo: { lastBuild: lastBuild } } } as IExecution;
+      const execution = { stages: [], trigger: { buildInfo: { lastBuild } } } as IExecution;
       transformer.transformExecution({} as Application, execution);
       expect(execution.buildInfo.number).toBe(4);
     });

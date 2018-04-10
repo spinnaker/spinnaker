@@ -17,10 +17,10 @@ export class NumberListController implements IController {
   public synchronize(): void {
     const model: number[] | string = this.model; // typescript union type woes
     if (model instanceof Array) {
-      (<number[]>model).length = 0;
+      (model as number[]).length = 0;
       this.backingModel.forEach(num => {
         if (num !== null) {
-          (<number[]>model).push(num);
+          (model as number[]).push(num);
         }
       });
       model.sort((a, b) => a - b);

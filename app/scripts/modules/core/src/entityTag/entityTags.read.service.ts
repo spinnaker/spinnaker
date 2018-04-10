@@ -80,7 +80,7 @@ export class EntityTagsReader {
     return this.API.one('tags')
       .withParams({
         entityType: entityType.toLowerCase(),
-        entityId: entityId,
+        entityId,
       })
       .getList()
       .then((entityTagGroups: IEntityTags[]) => {

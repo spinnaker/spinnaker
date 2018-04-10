@@ -21,7 +21,7 @@ describe('Service: Cluster', function() {
     return {
       status: config.status,
       getValueFor: (key: string): any => {
-        return find(config.variables, { key: key }) ? find(config.variables, { key: key }).value : null;
+        return find(config.variables, { key }) ? find(config.variables, { key }).value : null;
       },
     };
   }

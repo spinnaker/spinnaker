@@ -73,7 +73,7 @@ export class V2ModalWizardService {
       markCompleteOnView: false,
       required: false,
     };
-    this.pageRegistry.push({ key: key, label: label, state: state });
+    this.pageRegistry.push({ key, label, state });
     this.renderPages();
   }
 

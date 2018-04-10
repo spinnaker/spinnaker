@@ -10,7 +10,7 @@ bootstrapModule.run(($uiRouter: UIRouter, $log: ILogService) => {
 
   const subscription = $uiRouter.globals.start$.subscribe((transition: Transition) => {
     const details = {
-      transition: transition,
+      transition,
       toState: transition.to(),
       toParams: transition.params('to'),
       fromState: transition.from(),
@@ -19,7 +19,7 @@ bootstrapModule.run(($uiRouter: UIRouter, $log: ILogService) => {
 
     $log.debug('$stateChangeStart', details);
     const success = () => $log.debug('$stateChangeSuccess', details);
-    const failure = (error: any) => $log.debug('$stateChangeError', Object.assign(details, { error }));
+    const failure = (error: any) => $log.debug('$stateChangeError', { ...details, error });
 
     transition.promise.then(success, failure);
   });

@@ -134,9 +134,9 @@ export class SecurityGroupFilterService {
             ? `${securityGroup.region} (${securityGroup.vpcName})`
             : securityGroup.region;
           subSubGroups.push({
-            heading: heading,
+            heading,
             vpcName: securityGroup.vpcName,
-            securityGroup: securityGroup,
+            securityGroup,
           });
         });
         subGroups.push({

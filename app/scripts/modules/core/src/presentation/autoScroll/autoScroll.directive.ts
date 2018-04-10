@@ -78,4 +78,4 @@ class AutoScrollDirective implements IDirective {
 
 export const AUTO_SCROLL_DIRECTIVE = 'spinnaker.core.autoScroll';
 
-module(AUTO_SCROLL_DIRECTIVE, []).directive('autoScroll', <any>AutoScrollDirective);
+module(AUTO_SCROLL_DIRECTIVE, []).directive('autoScroll', AutoScrollDirective as any);

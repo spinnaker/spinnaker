@@ -72,7 +72,7 @@ export interface ISpinnakerSettings {
   };
   executionWindow?: {
     atlas?: {
-      regions: { label: string; baseUrl: string }[];
+      regions: Array<{ label: string; baseUrl: string }>;
       url: string;
     };
   };
@@ -98,7 +98,7 @@ export interface ISpinnakerSettings {
   dockerInsights: IDockerInsightSettings;
 }
 
-export const SETTINGS: ISpinnakerSettings = (<any>window).spinnakerSettings;
+export const SETTINGS: ISpinnakerSettings = (window as any).spinnakerSettings;
 
 // Make sure to set up some reasonable default settings fields so we do not have to keep checking if they exist everywhere
 SETTINGS.feature = SETTINGS.feature || {};

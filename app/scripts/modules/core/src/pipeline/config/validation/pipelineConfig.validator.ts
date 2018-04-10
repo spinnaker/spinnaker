@@ -61,7 +61,7 @@ export class PipelineConfigValidator implements IServiceProvider {
   public validatePipeline(pipeline: IPipeline): IPromise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [],
       triggers: ITrigger[] = pipeline.triggers || [],
-      validations: IPromise<string>[] = [],
+      validations: Array<IPromise<string>> = [],
       pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline),
       stageValidations: Map<IStage, string[]> = new Map();
     let preventSave = false;

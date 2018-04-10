@@ -43,7 +43,7 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((<Spy>igorService.listJobsForMaster).calls.count()).toBe(0);
+      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
     });
 
     it('does nothing if job is parameterized', () => {
@@ -56,7 +56,7 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((<Spy>igorService.listJobsForMaster).calls.count()).toBe(0);
+      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
     });
 
     it('gets jobs from igor and adds them to scope', () => {
@@ -100,8 +100,8 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((<Spy>igorService.listJobsForMaster).calls.count()).toBe(0);
-      expect((<Spy>igorService.getJobConfig).calls.count()).toBe(0);
+      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
+      expect((igorService.getJobConfig as Spy).calls.count()).toBe(0);
     });
 
     it('does nothing if job is parameterized', () => {
@@ -115,8 +115,8 @@ describe('Travis Stage Controller', () => {
       $scope.$digest();
       expect(controller.jobs).toBeUndefined();
       expect(controller.viewState.jobsLoaded).toBe(true);
-      expect((<Spy>igorService.listJobsForMaster).calls.count()).toBe(0);
-      expect((<Spy>igorService.getJobConfig).calls.count()).toBe(0);
+      expect((igorService.listJobsForMaster as Spy).calls.count()).toBe(0);
+      expect((igorService.getJobConfig as Spy).calls.count()).toBe(0);
     });
 
     it('gets job config and adds parameters to scope, setting defaults if present and not overridden', () => {
@@ -125,9 +125,9 @@ describe('Travis Stage Controller', () => {
         { name: 'notSet', defaultValue: 'a' },
         { name: 'noDefault', defaultValue: null },
       ];
-      const jobConfig = <IJobConfig>{
+      const jobConfig = {
         parameterDefinitionList: params,
-      };
+      } as IJobConfig;
       spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
       spyOn(igorService, 'getJobConfig').and.returnValue($q.when(jobConfig));
       const stage = {

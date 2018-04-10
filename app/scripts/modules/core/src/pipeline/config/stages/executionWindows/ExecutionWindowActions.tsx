@@ -42,7 +42,7 @@ export class ExecutionWindowActions extends React.Component<
       dayText = this.replaceDays(days).join(', ');
     }
     this.state = {
-      dayText: dayText,
+      dayText,
     };
   }
 

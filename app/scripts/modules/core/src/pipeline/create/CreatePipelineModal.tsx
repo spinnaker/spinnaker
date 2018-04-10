@@ -28,7 +28,7 @@ export interface ICreatePipelineModalState {
   loadErrorMessage: string;
   command: ICreatePipelineCommand;
   existingNames: string[];
-  configs: Partial<IPipeline>[];
+  configs: Array<Partial<IPipeline>>;
   configOptions: Option[];
   templates: IPipelineTemplate[];
   useTemplate: boolean;
@@ -79,7 +79,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   private getDefaultState(): ICreatePipelineModalState {
     const defaultConfig = this.getDefaultConfig();
     const { application } = this.props;
-    const configs: Partial<IPipeline>[] = [defaultConfig].concat(get(application, 'pipelineConfigs.data', []));
+    const configs: Array<Partial<IPipeline>> = [defaultConfig].concat(get(application, 'pipelineConfigs.data', []));
     const configOptions: Option[] = configs.map(config => ({ value: config.name, label: config.name }));
     const existingNames: string[] = [defaultConfig]
       .concat(get(application, 'pipelineConfigs.data', []))
@@ -93,10 +93,10 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       loading: false,
       loadError: false,
       loadErrorMessage: null,
-      configs: configs,
-      configOptions: configOptions,
+      configs,
+      configOptions,
       templates: [],
-      existingNames: existingNames,
+      existingNames,
       command: { strategy: false, name: '', config: defaultConfig, template: null },
       useTemplate: false,
       useManagedTemplate: true,
@@ -195,16 +195,16 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   private handleTypeChange(option: Option): void {
-    this.setState({ command: Object.assign({}, this.state.command, { strategy: option.value }) });
+    this.setState({ command: { ...this.state.command, strategy: option.value } });
   }
 
   private handleNameChange(e: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({ command: Object.assign({}, this.state.command, { name: e.target.value }) });
+    this.setState({ command: { ...this.state.command, name: e.target.value } });
   }
 
   private handleConfigChange(option: Option): void {
     const config = this.state.configs.find(t => t.name === option.value);
-    this.setState({ command: Object.assign({}, this.state.command, { config }) });
+    this.setState({ command: { ...this.state.command, config } });
   }
 
   private handleSaveErrorDismiss(): void {
@@ -216,7 +216,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   private handleTemplateSelection(template: IPipelineTemplate): void {
-    this.setState({ command: Object.assign({}, this.state.command, { template }) });
+    this.setState({ command: { ...this.state.command, template } });
   }
 
   private handleUseTemplateSelection(useTemplate: boolean): () => void {
@@ -229,7 +229,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         useManagedTemplate,
         templateSourceUrl: '',
         loadingTemplateFromSourceError: false,
-        command: Object.assign({}, this.state.command, { template: null }),
+        command: { ...this.state.command, template: null },
       });
     };
   }

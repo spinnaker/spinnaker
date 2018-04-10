@@ -92,7 +92,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       serverGroupName: this.serverGroup.name,
       adjustmentType: null,
       name: this.policy.id,
-      targetTrackingConfiguration: Object.assign({}, this.policy.targetTrackingConfiguration),
+      targetTrackingConfiguration: { ...this.policy.targetTrackingConfiguration },
     };
   }
 }

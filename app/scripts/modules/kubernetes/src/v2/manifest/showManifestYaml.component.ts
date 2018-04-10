@@ -21,7 +21,7 @@ class KubernetesShowManifestYaml implements IController {
     scope.manifestData = this.text;
     this.$uibModal.open({
       templateUrl: require('./showManifestYaml.html'),
-      scope: scope,
+      scope,
     });
   }
 }

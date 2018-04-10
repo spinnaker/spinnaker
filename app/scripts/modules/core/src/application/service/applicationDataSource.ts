@@ -262,7 +262,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * Dumb queue to fire when the most recent refresh call finishes
    * (will go away when we switch from Promises to Observables)
    */
-  private refreshQueue: IDeferred<void>[] = [];
+  private refreshQueue: Array<IDeferred<void>> = [];
 
   /**
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated

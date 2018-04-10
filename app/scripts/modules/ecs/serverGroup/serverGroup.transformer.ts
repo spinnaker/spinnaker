@@ -46,7 +46,7 @@ export class EcsServerGroupTransformer {
   }
 
   private transformScalingPolicy(policy: IScalingPolicy): IScalingPolicyView {
-    const view: IScalingPolicyView = Object.assign({}, policy) as IScalingPolicyView;
+    const view: IScalingPolicyView = { ...policy } as IScalingPolicyView;
     const upperBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) =>
         b.metricIntervalUpperBound - a.metricIntervalUpperBound,
       lowerBoundSorter = (a: IStepAdjustmentView, b: IStepAdjustmentView) =>
@@ -66,7 +66,7 @@ export class EcsServerGroupTransformer {
   }
 
   public normalizeServerGroupDetails(serverGroup: IAmazonServerGroup): IAmazonServerGroupView {
-    const view: IAmazonServerGroupView = Object.assign({}, serverGroup) as IAmazonServerGroupView;
+    const view: IAmazonServerGroupView = { ...serverGroup } as IAmazonServerGroupView;
     if (serverGroup.scalingPolicies) {
       view.scalingPolicies = serverGroup.scalingPolicies.map(policy => this.transformScalingPolicy(policy));
     }

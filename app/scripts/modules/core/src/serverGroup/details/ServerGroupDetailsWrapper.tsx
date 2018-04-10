@@ -33,7 +33,7 @@ export interface IServerGroupDetailsWrapperState {
     controller: string;
   };
   detailsGetter: DetailsGetter;
-  sections: React.ComponentType<IServerGroupDetailsSectionProps>[];
+  sections: Array<React.ComponentType<IServerGroupDetailsSectionProps>>;
   Actions: React.ComponentType<IServerGroupActionsProps>;
 }
 
@@ -50,7 +50,7 @@ export interface IServerGroupDetailsSectionProps {
 export interface IServerGroupDetailsProps extends IServerGroupDetailsWrapperProps {
   Actions: React.ComponentType<IServerGroupActionsProps>;
   detailsGetter: DetailsGetter;
-  sections: React.ComponentType<IServerGroupDetailsSectionProps>[];
+  sections: Array<React.ComponentType<IServerGroupDetailsSectionProps>>;
 }
 
 export interface IServerGroupDetailsState {
@@ -93,7 +93,7 @@ export class ServerGroupDetailsWrapper extends React.Component<
           values: [
             React.ComponentClass<IServerGroupActionsProps>,
             DetailsGetter,
-            React.ComponentType<IServerGroupDetailsSectionProps>[],
+            Array<React.ComponentType<IServerGroupDetailsSectionProps>>,
             string,
             string
           ],

@@ -115,15 +115,15 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     const { entityTags, entityTag } = notification;
 
     const tag = pick(entityTag, 'name', 'namespace', 'category') as IEntityTag;
-    tag.value = Object.assign({}, entityTag.value);
+    tag.value = { ...entityTag.value };
 
     const props: IEntityTagEditorProps = {
-      tag: tag,
+      tag,
       isNew: false,
       owner: entity,
       entityType: entityTags.entityRef.entityType,
-      application: application,
-      onUpdate: onUpdate,
+      application,
+      onUpdate,
       ownerOptions: null,
       entityRef: entityTags.entityRef,
     };
@@ -138,7 +138,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     const type = entityTag.value['type'];
 
     const taskMonitorConfig: ITaskMonitorConfig = {
-      application: application,
+      application,
       title: `Deleting ${type} on ${entity.name}`,
       onTaskComplete: () => application.entityTags.refresh().then(() => onUpdate()),
     };
@@ -149,7 +149,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
       provider: entity.cloudProvider,
       account: entity.account,
       applicationName: application.name,
-      taskMonitorConfig: taskMonitorConfig,
+      taskMonitorConfig,
       submitMethod: () => entityTagWriter.deleteEntityTag(application, entity, entityTags, entityTag.name),
     });
   }

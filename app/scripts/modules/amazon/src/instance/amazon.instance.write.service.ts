@@ -48,7 +48,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${targetGroupNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
-      application: application,
+      application,
       description: descriptor,
     });
   }
@@ -66,7 +66,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     params.cloudProvider = instance.cloudProvider;
     return this.taskExecutor.executeTask({
       job: [params],
-      application: application,
+      application,
       description: `Deregister instance: ${instance.id}`,
     });
   }
@@ -84,7 +84,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${targetGroupNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
-      application: application,
+      application,
       description: descriptor,
     });
   }
@@ -102,7 +102,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     params.cloudProvider = instance.cloudProvider;
     return this.taskExecutor.executeTask({
       job: [params],
-      application: application,
+      application,
       description: `Register instance: ${instance.id}`,
     });
   }

@@ -79,7 +79,7 @@ class UrlBuilderUtils {
       val.forEach((v: any) => {
         if (isObject(v)) {
           if (isDate(v)) {
-            v = (<Date>v).toISOString();
+            v = (v as Date).toISOString();
           } else {
             v = JSON.stringify(v);
           }

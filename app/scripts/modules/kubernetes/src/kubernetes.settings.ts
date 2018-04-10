@@ -12,8 +12,8 @@ export interface IKubernetesProviderSettings extends IProviderSettings {
   };
 }
 
-export const KubernetesProviderSettings: IKubernetesProviderSettings = <IKubernetesProviderSettings>SETTINGS.providers
-  .kubernetes || { defaults: {} };
+export const KubernetesProviderSettings: IKubernetesProviderSettings = (SETTINGS.providers
+  .kubernetes as IKubernetesProviderSettings) || { defaults: {} };
 if (KubernetesProviderSettings) {
   KubernetesProviderSettings.resetToOriginal = SETTINGS.resetProvider('kubernetes');
 }

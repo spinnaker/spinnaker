@@ -116,17 +116,15 @@ export class MetricSelectorController implements IController {
   }
 
   private buildMetricOption(metric: ICloudMetricDescriptor): IMetricOption {
-    const option: IMetricOption = Object.assign(
-      {
-        label: `(${metric.namespace}) ${metric.name}`,
-        dimensions: [],
-        dimensionValues: metric.dimensions
-          .sort(dimensionSorter)
-          .map(d => d.value)
-          .join(', '),
-      },
-      metric,
-    );
+    const option: IMetricOption = {
+      label: `(${metric.namespace}) ${metric.name}`,
+      dimensions: [],
+      dimensionValues: metric.dimensions
+        .sort(dimensionSorter)
+        .map(d => d.value)
+        .join(', '),
+      ...metric,
+    };
     return option;
   }
 

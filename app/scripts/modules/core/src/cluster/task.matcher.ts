@@ -2,9 +2,7 @@ import { has, intersection, map } from 'lodash';
 
 import { IServerGroup, ITask } from 'core/domain';
 
-export interface ITaskMatcher {
-  (task: ITask, serverGroup: IServerGroup): boolean;
-}
+export type ITaskMatcher = (task: ITask, serverGroup: IServerGroup) => boolean;
 
 /**
  * Match running tasks for an application to a specific server group.
@@ -53,7 +51,7 @@ export class TaskMatcher {
   }
 
   public taskMatches(task: ITask, serverGroup: IServerGroup) {
-    const matchers: { [type: string]: ITaskMatcher } = Object.assign({}, this.customMatchers);
+    const matchers: { [type: string]: ITaskMatcher } = { ...this.customMatchers };
     this.instanceIdMatchers.forEach(m => (matchers[m] = instanceIdsTaskMatcher));
     this.baseTaskMatchers.forEach(m => (matchers[m] = baseTaskMatcher));
 

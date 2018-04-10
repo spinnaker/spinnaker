@@ -86,15 +86,15 @@ class CopyStageModalCtrl implements IController {
       .one(applicationName)
       .all(configType)
       .getList()
-      .then((configs: (IPipeline | IStrategy)[]) => {
+      .then((configs: Array<IPipeline | IStrategy>) => {
         const nestedStageWrappers = configs.map(config => {
           return (config.stages || [])
             .filter((stage: IStage) => !this.uncopiableStageTypes.has(stage.type))
             .map((stage: IStage) => {
               if (this.isStrategyConfig(config)) {
-                return { strategy: config.name, stage: stage };
+                return { strategy: config.name, stage };
               } else {
-                return { pipeline: config.name, stage: stage };
+                return { pipeline: config.name, stage };
               }
             });
         });

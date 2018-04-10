@@ -36,7 +36,10 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     _config: IStageOrTriggerTypeConfig,
   ): ng.IPromise<string> {
     const stageTypes = validator.stageTypes || [validator.stageType];
-    const stagesToTest: (IStage | ITrigger)[] = this.pipelineConfigService.getAllUpstreamDependencies(pipeline, stage);
+    const stagesToTest: Array<IStage | ITrigger> = this.pipelineConfigService.getAllUpstreamDependencies(
+      pipeline,
+      stage,
+    );
     stagesToTest.push(...pipeline.triggers);
 
     const parentTriggersToCheck = validator.checkParentTriggers ? this.addPipelineTriggers(pipeline, stagesToTest) : [];
@@ -48,7 +51,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     });
   }
 
-  private addTriggers(pipelines: IPipeline[], pipelineIdToFind: string, stagesToTest: (IStage | ITrigger)[]): void {
+  private addTriggers(pipelines: IPipeline[], pipelineIdToFind: string, stagesToTest: Array<IStage | ITrigger>): void {
     const match = pipelines.find(p => p.id === pipelineIdToFind);
     if (match) {
       stagesToTest.push(...match.triggers);
@@ -57,7 +60,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
 
   private addExternalTriggers(
     trigger: IPipelineTrigger,
-    stagesToTest: (IStage | ITrigger)[],
+    stagesToTest: Array<IStage | ITrigger>,
     deferred: ng.IDeferred<any>,
   ): void {
     this.pipelineConfigService.getPipelinesForApplication(trigger.application).then(pipelines => {
@@ -67,11 +70,11 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     });
   }
 
-  private addPipelineTriggers(pipeline: IPipeline, stagesToTest: (IStage | ITrigger)[]) {
+  private addPipelineTriggers(pipeline: IPipeline, stagesToTest: Array<IStage | ITrigger>) {
     const pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(
       t => t.type === 'pipeline',
     ) as IPipelineTrigger[];
-    const parentTriggersToCheck: ng.IPromise<any>[] = [];
+    const parentTriggersToCheck: Array<ng.IPromise<any>> = [];
     pipelineTriggers.forEach(trigger => {
       const deferred: ng.IDeferred<any> = this.$q.defer();
       if (this.pipelineCache.has(trigger.application)) {

@@ -12,11 +12,11 @@ describe('Component: deployInitializer', () => {
     application: Application;
 
   const initialize = () => {
-    ctrl = <DeployInitializerController>$componentController(
+    ctrl = $componentController(
       'deployInitializer',
       {},
       { application, command: { viewState: {} }, cloudProvider: 'aws' },
-    );
+    ) as DeployInitializerController;
     ctrl.$onInit();
   };
 

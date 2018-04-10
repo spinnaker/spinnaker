@@ -53,8 +53,8 @@ describe('pipelineConfigValidator', () => {
       application: 'app',
       limitConcurrent: true,
       keepWaitingPipelines: true,
-      stages: stages,
-      triggers: triggers,
+      stages,
+      triggers,
     };
   }
 
@@ -67,7 +67,7 @@ describe('pipelineConfigValidator', () => {
       executionDetailsUrl: null,
       controller: null,
       controllerAs: null,
-      validators: validators,
+      validators,
     };
   }
 
@@ -293,14 +293,14 @@ describe('pipelineConfigValidator', () => {
         );
 
         validate();
-        expect((<Spy>pipelineConfigService.getPipelinesForApplication).calls.count()).toBe(1);
+        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
 
         validate();
-        expect((<Spy>pipelineConfigService.getPipelinesForApplication).calls.count()).toBe(1);
+        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(1);
 
         stageOrTriggerBeforeTypeValidator.clearCache();
         validate();
-        expect((<Spy>pipelineConfigService.getPipelinesForApplication).calls.count()).toBe(2);
+        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(2);
       });
 
       it('fails if own stages and parent pipeline triggers do not match', () => {
@@ -330,7 +330,7 @@ describe('pipelineConfigValidator', () => {
           [{ type: 'pipeline', application: 'someApp', pipeline: 'abcd' }],
         );
         validate();
-        expect((<Spy>pipelineConfigService.getPipelinesForApplication).calls.count()).toBe(0);
+        expect((pipelineConfigService.getPipelinesForApplication as Spy).calls.count()).toBe(0);
         expect(validationResults.stages.length).toBe(1);
       });
     });

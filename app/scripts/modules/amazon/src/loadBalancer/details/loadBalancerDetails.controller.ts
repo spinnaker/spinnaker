@@ -39,7 +39,7 @@ export interface ILoadBalancerFromStateParams {
 export class AwsLoadBalancerDetailsController implements IController {
   public application: Application;
   public elbProtocol: string;
-  public listeners: { in: string; targets: ITargetGroup[] }[];
+  public listeners: Array<{ in: string; targets: ITargetGroup[] }>;
   public loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IAmazonLoadBalancer;
   public securityGroups: ISecurityGroup[];

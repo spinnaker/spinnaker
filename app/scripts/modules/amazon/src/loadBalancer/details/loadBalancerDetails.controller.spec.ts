@@ -32,10 +32,10 @@ describe('Controller: LoadBalancerDetailsCtrl', function() {
         const app = applicationModelBuilder.createApplication('app', { key: 'loadBalancers', lazy: true });
         app.loadBalancers.data.push(loadBalancer);
         controller = $controller(AwsLoadBalancerDetailsController, {
-          $scope: $scope,
-          loadBalancer: loadBalancer,
-          app: app,
-          $state: $state,
+          $scope,
+          loadBalancer,
+          app,
+          $state,
         });
       },
     ),

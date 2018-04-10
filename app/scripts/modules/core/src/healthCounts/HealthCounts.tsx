@@ -112,7 +112,7 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
     const percentLabel = this.state.percentLabel;
 
     let hasValue = false;
-    const counts: React.ReactElement<HTMLElement>[] = [];
+    const counts: Array<React.ReactElement<HTMLElement>> = [];
     if (container.up) {
       counts.push(
         <span key="up">

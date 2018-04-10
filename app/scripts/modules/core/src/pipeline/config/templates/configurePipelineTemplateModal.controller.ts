@@ -97,7 +97,8 @@ export class ConfigurePipelineTemplateModalController implements IController {
   }
 
   public buildConfig(): IPipelineTemplateConfig {
-    return Object.assign(this.pipelineTemplateConfig || {}, {
+    return {
+      ...(this.pipelineTemplateConfig || {}),
       type: 'templatedPipeline',
       name: this.pipelineName,
       application: this.application.name,
@@ -111,7 +112,7 @@ export class ConfigurePipelineTemplateModalController implements IController {
           variables: this.transformVariablesForPipelinePlan(),
         },
       },
-    });
+    };
   }
 
   private loadTemplate(): IPromise<void> {

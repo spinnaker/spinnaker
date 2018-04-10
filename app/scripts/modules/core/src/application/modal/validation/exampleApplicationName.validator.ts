@@ -55,8 +55,8 @@ export class ExampleApplicationNameValidator implements IApplicationNameValidato
     }
 
     return {
-      warnings: warnings,
-      errors: errors,
+      warnings,
+      errors,
     };
   }
 }
@@ -108,8 +108,8 @@ export class ExampleApplicationNameValidator2 implements IApplicationNameValidat
     }
 
     return {
-      warnings: warnings,
-      errors: errors,
+      warnings,
+      errors,
     };
   }
 }

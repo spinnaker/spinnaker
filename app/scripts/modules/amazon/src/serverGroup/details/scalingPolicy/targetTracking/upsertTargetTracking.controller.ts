@@ -103,7 +103,7 @@ export class UpsertTargetTrackingController implements IComponentController {
       adjustmentType: null,
       name: this.policy.policyName,
       estimatedInstanceWarmup: this.policy.estimatedInstanceWarmup || 600,
-      targetTrackingConfiguration: Object.assign({}, this.policy.targetTrackingConfiguration),
+      targetTrackingConfiguration: { ...this.policy.targetTrackingConfiguration },
     };
   }
 }

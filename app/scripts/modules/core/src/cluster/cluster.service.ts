@@ -132,8 +132,8 @@ export class ClusterService {
         const groupedByCluster = groupBy(categoryServerGroups, 'cluster');
         forOwn(groupedByCluster, (clusterServerGroups, clusterName) => {
           const cluster: ICluster = {
-            account: account,
-            category: category,
+            account,
+            category,
             name: clusterName,
             serverGroups: clusterServerGroups,
             cloudProvider: clusterServerGroups[0].cloudProvider,

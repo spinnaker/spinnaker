@@ -20,7 +20,7 @@ import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
 export interface ISecurityGroupsState {
-  availableSecurityGroups: { label: string; value: string }[];
+  availableSecurityGroups: Array<{ label: string; value: string }>;
   defaultSecurityGroups: string[];
   loaded: boolean;
   refreshing: boolean;
@@ -93,7 +93,7 @@ class SecurityGroupsImpl extends React.Component<
 
     const newRemoved = removed.slice();
 
-    let availableSecurityGroups: { label: string; value: string }[] = [];
+    let availableSecurityGroups: Array<{ label: string; value: string }> = [];
 
     if (
       account &&
@@ -158,7 +158,7 @@ class SecurityGroupsImpl extends React.Component<
       });
   }
 
-  private handleSecurityGroupsChanged(newValues: { label: string; value: string }[]): void {
+  private handleSecurityGroupsChanged(newValues: Array<{ label: string; value: string }>): void {
     this.props.setFieldValue('securityGroups', newValues.map(sg => sg.value));
   }
 

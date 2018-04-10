@@ -32,7 +32,7 @@ describe('Controller: travisTrigger', () => {
   describe('updateJobsList', () => {
     it('gets list of jobs when initialized with a trigger with a master and sets loading states', () => {
       const jobs = ['some_job', 'some_other_job'],
-        trigger = <IBuildTrigger>{ master: 'travis', job: 'some_job' };
+        trigger = { master: 'travis', job: 'some_job' } as IBuildTrigger;
 
       spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(jobs));
       spyOn(igorService, 'listMasters').and.returnValue($q.when(['travis']));
@@ -55,10 +55,10 @@ describe('Controller: travisTrigger', () => {
           name: 'masterB',
           jobs: ['b', 'c'],
         },
-        trigger = <IBuildTrigger>{
+        trigger = {
           master: 'masterA',
           job: 'a',
-        };
+        } as IBuildTrigger;
 
       spyOn(igorService, 'listJobsForMaster').and.callFake((master: string) => {
         return $q.when(find([masterA, masterB], { name: master }).jobs);
@@ -90,10 +90,10 @@ describe('Controller: travisTrigger', () => {
     });
 
     it('retains current job if no jobs found in master because that is probably a server-side issue', () => {
-      const trigger = <IBuildTrigger>{
+      const trigger = {
         master: 'masterA',
         job: 'a',
-      };
+      } as IBuildTrigger;
 
       spyOn(igorService, 'listJobsForMaster').and.callFake(() => {
         return $q.when([]);

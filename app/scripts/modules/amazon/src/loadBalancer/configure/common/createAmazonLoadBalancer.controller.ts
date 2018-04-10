@@ -282,7 +282,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       region = this.loadBalancerCommand.region;
     return this.subnetReader.listSubnets().then(subnets => {
       return chain(subnets)
-        .filter({ account: account, region: region })
+        .filter({ account, region })
         .reject({ target: 'ec2' })
         .value();
     });

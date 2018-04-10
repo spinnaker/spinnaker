@@ -156,7 +156,7 @@ module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER, API_SERVI
     API.one('webhooks')
       .all('preconfigured')
       .getList()
-      .then((preconfiguredWebhooks: Array<IPreconfiguredWebhook>) => {
+      .then((preconfiguredWebhooks: IPreconfiguredWebhook[]) => {
         preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) =>
           pipelineConfig.registerStage({
             label: preconfiguredWebhook.label,

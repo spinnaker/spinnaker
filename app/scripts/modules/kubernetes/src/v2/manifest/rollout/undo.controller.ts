@@ -43,7 +43,7 @@ class KubernetesManifestUndoRolloutController implements IController {
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       title: `Undo rollout of ${coordinates.name} in ${coordinates.namespace}`,
-      application: application,
+      application,
       modalInstance: $uibModalInstance,
     });
 

@@ -54,7 +54,7 @@ export class PipelineConfigService {
     const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
     return this.API.one(endpoint, id)
       .all('history')
-      .withParams({ count: count })
+      .withParams({ count })
       .getList();
   }
 
@@ -105,8 +105,8 @@ export class PipelineConfigService {
       });
   }
 
-  public getDownstreamStageIds(pipeline: IPipeline, stage: IStage): (string | number)[] {
-    let downstream: (string | number)[] = [];
+  public getDownstreamStageIds(pipeline: IPipeline, stage: IStage): Array<string | number> {
+    let downstream: Array<string | number> = [];
     const children = pipeline.stages.filter((stageToTest: IStage) => {
       return stageToTest.requisiteStageRefIds && stageToTest.requisiteStageRefIds.includes(stage.refId);
     });
@@ -120,7 +120,7 @@ export class PipelineConfigService {
   }
 
   public getDependencyCandidateStages(pipeline: IPipeline, stage: IStage): IStage[] {
-    const downstreamIds: (string | number)[] = this.getDownstreamStageIds(pipeline, stage);
+    const downstreamIds: Array<string | number> = this.getDownstreamStageIds(pipeline, stage);
     return pipeline.stages.filter((stageToTest: IStage) => {
       return (
         stage !== stageToTest &&
@@ -159,7 +159,7 @@ export class PipelineConfigService {
     const sorted = sortBy(pipelines, ['index', 'name']);
 
     // if there are pipelines with a bad index, fix that
-    const toReindex: IPromise<void>[] = [];
+    const toReindex: Array<IPromise<void>> = [];
     if (sorted && sorted.length) {
       sorted.forEach((pipeline, index) => {
         if (pipeline.index !== index) {

@@ -39,7 +39,7 @@ class KubernetesManifestScaleController implements IController {
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       title: `Scaling ${coordinates.name} in ${coordinates.namespace}`,
-      application: application,
+      application,
       modalInstance: $uibModalInstance,
     });
 

@@ -27,7 +27,7 @@ export interface IPipelineGraphNode {
   index?: number;
   leaf?: boolean;
   name: string;
-  parentIds: (string | number)[];
+  parentIds: Array<string | number>;
   parentLinks: IPipelineGraphLink[];
   parents: IPipelineGraphNode[];
   placeholder?: boolean;
@@ -77,10 +77,10 @@ export class PipelineGraphService {
         labelComponent: stage.labelComponent,
         masterStage: stage.masterStage,
         name: stage.name,
-        parentIds: Object.assign([], stage.requisiteStageRefIds || []),
+        parentIds: { ...[], ...(stage.requisiteStageRefIds || []) },
         parentLinks: [],
         parents: [],
-        stage: stage,
+        stage,
         status: stage.status,
       };
       if (!node.parentIds.length) {
@@ -124,12 +124,12 @@ export class PipelineGraphService {
         isActive: viewState.stageIndex === idx && viewState.section === 'stage',
         isHighlighted: false,
         name: stage.name || '[new stage]',
-        parentIds: Object.assign([], stage.requisiteStageRefIds || []),
+        parentIds: { ...[], ...(stage.requisiteStageRefIds || []) },
         parentLinks: [],
         parents: [],
         root: false,
         section: 'stage',
-        warnings: warnings,
+        warnings,
       };
       if (!node.parentIds.length) {
         node.parentIds.push(configNode.id);

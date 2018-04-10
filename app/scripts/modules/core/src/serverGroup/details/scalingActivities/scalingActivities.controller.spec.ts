@@ -30,7 +30,7 @@ describe('Controller: ScalingActivitiesCtrl', () => {
       spyOn(serverGroupReader, 'getScalingActivities').and.callFake(() => $q.when(activities));
 
       ctrl = $controller('ScalingActivitiesCtrl', {
-        serverGroupReader: serverGroupReader,
+        serverGroupReader,
         serverGroup: {
           name: 'asg-v001',
           region: 'us-east-1',

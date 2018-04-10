@@ -8,7 +8,7 @@ export interface IECSProviderSettings extends IProviderSettings {
   };
 }
 
-export const IECSProviderSettings: IECSProviderSettings = <IECSProviderSettings>SETTINGS.providers.ecs || {
+export const IECSProviderSettings: IECSProviderSettings = (SETTINGS.providers.ecs as IECSProviderSettings) || {
   defaults: {},
 };
 if (IECSProviderSettings) {

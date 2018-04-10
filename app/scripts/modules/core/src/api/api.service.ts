@@ -154,7 +154,7 @@ export class Api {
 
   private baseReturn(config: IRequestConfig): IRequestBuilder {
     return {
-      config: config,
+      config,
       one: this.internalOne(config),
       all: this.internalOne(config),
       useCache: this.useCacheFn(config),

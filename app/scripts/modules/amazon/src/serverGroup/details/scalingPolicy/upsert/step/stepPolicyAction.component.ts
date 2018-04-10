@@ -9,7 +9,7 @@ const stepPolicyActionComponent = {
     boundsChanged: '&',
   },
   templateUrl: require('./stepPolicyAction.component.html'),
-  controller: function() {
+  controller() {
     this.operatorChanged = () => {
       this.command.adjustmentType = this.viewState.operator === 'Set to' ? 'ExactCapacity' : 'ChangeInCapacity';
       this.adjustmentTypeOptions =

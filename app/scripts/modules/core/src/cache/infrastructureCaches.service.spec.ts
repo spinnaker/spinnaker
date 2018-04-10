@@ -89,7 +89,7 @@ describe('spinnaker.core.cache.infrastructure', function() {
 
       expect(cacheFactory.getCacheInstantiations().length).toBe(3);
       for (let i = 0; i < 3; i++) {
-        expect((<ICacheConfigOptions>cacheFactory.getCacheInstantiations()[i].config).storagePrefix).toBe(
+        expect((cacheFactory.getCacheInstantiations()[i].config as ICacheConfigOptions).storagePrefix).toBe(
           DeckCacheService.getStoragePrefix('infrastructure:myCache', i),
         );
       }
@@ -104,10 +104,10 @@ describe('spinnaker.core.cache.infrastructure', function() {
       infrastructureCacheService.createCache('myCache', config);
 
       expect(cacheFactory.getCacheInstantiations().length).toBe(2);
-      expect((<ICacheConfigOptions>cacheFactory.getCacheInstantiations()[0].config).storagePrefix).toBe(
+      expect((cacheFactory.getCacheInstantiations()[0].config as ICacheConfigOptions).storagePrefix).toBe(
         DeckCacheService.getStoragePrefix('infrastructure:myCache', 0),
       );
-      expect((<ICacheConfigOptions>cacheFactory.getCacheInstantiations()[1].config).storagePrefix).toBe(
+      expect((cacheFactory.getCacheInstantiations()[1].config as ICacheConfigOptions).storagePrefix).toBe(
         DeckCacheService.getStoragePrefix('infrastructure:myCache', 1),
       );
       expect(cacheFactory.getRemoveAllCalls().length).toBe(1);

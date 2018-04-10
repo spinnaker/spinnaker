@@ -26,11 +26,11 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
     extend(
       this,
       $controller('BasicSettingsMixin', {
-        $scope: $scope,
+        $scope,
         imageReader: null,
-        namingService: namingService,
-        $uibModalStack: $uibModalStack,
-        $state: $state,
+        namingService,
+        $uibModalStack,
+        $state,
       }),
     );
 

@@ -114,7 +114,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
   }
 
   private asConfigModel(expression: IClusterConfigExpression): IExpressionModel {
-    const model: IExpressionModel = Object.assign({ isCustom: false }, expression);
+    const model: IExpressionModel = { isCustom: false, ...expression };
     // pretty gross, but let's take our best guess at whether these are canned expressions by parsing the URL
     // e.g. http://atlas-main.us-east-1.prod.netflix.net/api/v1/graph?q=name,cgroup.cpu.processingTime,:eq,nf.cluster,cbmigrate-titus-autoscale2,:eq,:and,:sum,(,nf.asg,),:by
     let uri = expression.atlasUri;

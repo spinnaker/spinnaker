@@ -88,7 +88,7 @@ export class ClusterFilterService {
           forOwn(regionGroupings, (regionGroup: IServerGroup[], region: string) => {
             regionGroups.push({
               heading: region,
-              category: category,
+              category,
               serverGroups: regionGroup,
               key: `${region}:${category}`,
               entityTags: (regionGroup[0].clusterEntityTags || []).find(t => t.entityRef['region'] === region),
@@ -102,7 +102,7 @@ export class ClusterFilterService {
           if (appCluster) {
             clusterGroups.push({
               heading: cluster,
-              category: category,
+              category,
               key: `${cluster}:${category}`,
               cluster: appCluster,
               subgroups: sortBy(regionGroups, 'heading'),

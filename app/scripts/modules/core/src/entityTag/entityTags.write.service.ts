@@ -15,14 +15,14 @@ export class EntityTagWriter {
     isNew: boolean,
   ): IPromise<ITask> {
     return this.taskExecutor.executeTask({
-      application: application,
+      application,
       description: `${isNew ? 'Create' : 'Update'} entity tag on ${entityRef.entityId}`,
       job: [
         {
           type: 'upsertEntityTags',
           application: application.name,
           entityId: entityRef.entityId,
-          entityRef: entityRef,
+          entityRef,
           tags: [tag],
           isPartial: true,
         },
@@ -32,7 +32,7 @@ export class EntityTagWriter {
 
   public deleteEntityTag(application: Application, owner: any, entityTag: IEntityTags, tag: string) {
     return this.taskExecutor.executeTask({
-      application: application,
+      application,
       description: `Delete entity tag on ${owner.name}`,
       job: [
         {

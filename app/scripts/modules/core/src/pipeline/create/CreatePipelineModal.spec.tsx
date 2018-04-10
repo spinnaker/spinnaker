@@ -18,7 +18,7 @@ describe('CreatePipelineModal', () => {
   let $q: IQService;
   let $scope: IScope;
   let application: Application;
-  let initializeComponent: (configs?: Partial<IPipeline>[]) => void;
+  let initializeComponent: (configs?: Array<Partial<IPipeline>>) => void;
   let component: CreatePipelineModal;
   let pipelineConfigService: PipelineConfigService;
   let pipelineTemplateService: PipelineTemplateService;
@@ -134,7 +134,7 @@ describe('CreatePipelineModal', () => {
 
   describe('pipeline name validation', () => {
     const setPipelineName = (_component: CreatePipelineModal, name: string): void => {
-      _component.setState({ command: Object.assign({}, _component.state.command, { name }) });
+      _component.setState({ command: { ..._component.state.command, name } });
     };
 
     it('verifies that the pipeline name does not contain invalid characters', () => {
@@ -178,7 +178,7 @@ describe('CreatePipelineModal', () => {
         return $q.when(null);
       });
 
-      component.setState({ command: Object.assign({}, component.state.command, { name: 'new pipeline' }) });
+      component.setState({ command: { ...component.state.command, name: 'new pipeline' } });
 
       component.submit();
       $scope.$digest();

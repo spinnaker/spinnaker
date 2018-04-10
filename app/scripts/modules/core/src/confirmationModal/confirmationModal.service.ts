@@ -33,7 +33,7 @@ export class ConfirmationModalService {
   public constructor(private $uibModal: IModalService, private $sce: ng.ISCEService) {}
 
   public confirm(params: IConfirmationModalParams): ng.IPromise<any> {
-    const extendedParams: IConfirmationModalParams = Object.assign({}, this.defaults, params);
+    const extendedParams: IConfirmationModalParams = { ...this.defaults, ...params };
 
     if (extendedParams.body) {
       extendedParams.body = this.$sce.trustAsHtml(extendedParams.body);

@@ -89,23 +89,23 @@ describe('Service: applicationReader', function() {
     it('loads all data sources if dataSource attribute is missing', function() {
       loadApplication();
       expect(application.attributes.dataSources).toBeUndefined();
-      expect((<Spy>clusterService.loadServerGroups).calls.count()).toBe(1);
-      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(1);
+      expect((clusterService.loadServerGroups as Spy).calls.count()).toBe(1);
+      expect((securityGroupReader.getApplicationSecurityGroups as Spy).calls.count()).toBe(1);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(1);
     });
 
     it('loads all data sources if disabled dataSource attribute is an empty array', function() {
       loadApplication({ enabled: [], disabled: [] });
-      expect((<Spy>clusterService.loadServerGroups).calls.count()).toBe(1);
-      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(1);
+      expect((clusterService.loadServerGroups as Spy).calls.count()).toBe(1);
+      expect((securityGroupReader.getApplicationSecurityGroups as Spy).calls.count()).toBe(1);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(1);
     });
 
     it('only loads configured dataSources if attribute is non-empty', function() {
       const dataSources = { enabled: ['serverGroups'], disabled: ['securityGroups', 'loadBalancers'] };
       loadApplication(dataSources);
-      expect((<Spy>clusterService.loadServerGroups).calls.count()).toBe(1);
-      expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(0);
+      expect((clusterService.loadServerGroups as Spy).calls.count()).toBe(1);
+      expect((securityGroupReader.getApplicationSecurityGroups as Spy).calls.count()).toBe(0);
       expect(loadBalancerReader.loadLoadBalancers.calls.count()).toBe(0);
 
       expect(application.getDataSource('serverGroups').disabled).toBe(false);

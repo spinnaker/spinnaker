@@ -40,7 +40,7 @@ export class LoadBalancerWriter {
 
     return this.taskExecutor.executeTask({
       job: [command],
-      application: application,
+      application,
       description: `Delete load balancer: ${command.loadBalancerName}`,
     });
   }
@@ -58,7 +58,7 @@ export class LoadBalancerWriter {
 
     return this.taskExecutor.executeTask({
       job: [command],
-      application: application,
+      application,
       description: `${descriptor} Load Balancer: ${command['name']}`,
     });
   }

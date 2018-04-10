@@ -160,7 +160,7 @@ export class ExecutionFilterService {
       configs.filter((config: any) => !groups[config.name]).forEach((config: any) =>
         groups.push({
           heading: config.name,
-          config: config,
+          config,
           executions: [],
           targetAccounts: this.extractAccounts(config),
         }),
@@ -171,7 +171,7 @@ export class ExecutionFilterService {
         .forEach((config: any) => {
           groups.push({
             heading: config.name,
-            config: config,
+            config,
             executions: [],
             targetAccounts: this.extractAccounts(config),
           });
@@ -248,7 +248,7 @@ export class ExecutionFilterService {
       executions.sort((a, b) => this.executionSorter(a, b));
       groups.push({
         heading: '',
-        executions: executions,
+        executions,
         runningExecutions: [],
       });
     }

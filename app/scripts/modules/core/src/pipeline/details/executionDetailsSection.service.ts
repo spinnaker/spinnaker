@@ -27,7 +27,7 @@ export class ExecutionDetailsSectionService {
     }
     if (!this.sectionIsValid(availableSections)) {
       // use { location: 'replace' } to overwrite the invalid browser history state
-      this.$state.go('.', { details: details }, { location: 'replace' });
+      this.$state.go('.', { details }, { location: 'replace' });
     }
     if (onComplete) {
       this.pendingOnComplete = this.$timeout(onComplete);

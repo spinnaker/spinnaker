@@ -83,7 +83,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
         // Start fetching results for each search type from the search service.
         // Update the overall results with the results for each search type.
         return this.infrastructureSearchServiceV2
-          .search(Object.assign({}, params))
+          .search({ ...params })
           .scan((acc: ISearchResultSet[], resultSet: ISearchResultSet): ISearchResultSet[] => {
             const status = resultSet.status === SearchStatus.SEARCHING ? SearchStatus.FINISHED : resultSet.status;
             resultSet = { ...resultSet, status };

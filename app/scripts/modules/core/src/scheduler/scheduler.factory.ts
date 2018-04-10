@@ -81,7 +81,7 @@ export class SchedulerFactory {
 
     return {
       subscribe: scheduler.subscribe.bind(scheduler),
-      scheduleImmediate: scheduleImmediate,
+      scheduleImmediate,
       unsubscribe: () => {
         suspended = true;
         if (scheduler) {

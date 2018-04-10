@@ -79,7 +79,7 @@ class AppengineLoadBalancerDetailsController implements IController {
       body: this.getConfirmationModalBodyHtml(),
       account: this.loadBalancer.account,
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod,
+      submitMethod,
     });
   }
 

@@ -8,7 +8,7 @@ module(SECURITY_GROUPS_REMOVED, []).component('serverGroupSecurityGroupsRemoved'
     command: '=',
     removed: '=',
   },
-  controller: function() {
+  controller() {
     this.acknowledgeSecurityGroupRemoval = () => {
       if (has(this.command, 'viewState.dirty')) {
         this.command.viewState.dirty.securityGroups = null;

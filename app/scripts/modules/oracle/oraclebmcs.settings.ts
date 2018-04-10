@@ -7,8 +7,8 @@ export interface IOracleBMCSProviderSettings extends IProviderSettings {
   };
 }
 
-export const OracleBMCSProviderSettings: IOracleBMCSProviderSettings = <IOracleBMCSProviderSettings>SETTINGS.providers
-  .oraclebmcs || { defaults: {} };
+export const OracleBMCSProviderSettings: IOracleBMCSProviderSettings = (SETTINGS.providers
+  .oraclebmcs as IOracleBMCSProviderSettings) || { defaults: {} };
 if (OracleBMCSProviderSettings) {
   OracleBMCSProviderSettings.resetToOriginal = SETTINGS.resetProvider('oraclebmcs');
 }

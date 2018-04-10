@@ -31,11 +31,11 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
         $q = _$q_;
 
         command = {
-          trigger: <IBuildTrigger>{
+          trigger: {
             type: 'travis',
             master: 'a',
             job: 'b',
-          },
+          } as IBuildTrigger,
         };
       },
     ),
@@ -45,10 +45,10 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     const ctrl = $ctrl(
       TravisTriggerOptionsController,
       {
-        igorService: igorService,
-        $scope: $scope,
+        igorService,
+        $scope,
       },
-      { command: command },
+      { command },
     );
     ctrl.$onInit();
     return ctrl;
@@ -104,9 +104,9 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   });
 
   it('re-initializes when trigger changes', function() {
-    const firstBuild: IBuild = <any>{ number: '1', result: 'SUCCESS' },
-      secondBuild: IBuild = <any>{ number: '3', result: 'SUCCESS' },
-      secondTrigger: IBuildTrigger = <IBuildTrigger>{ type: 'travis', master: 'b', job: 'c' };
+    const firstBuild: IBuild = { number: '1', result: 'SUCCESS' } as any,
+      secondBuild: IBuild = { number: '3', result: 'SUCCESS' } as any,
+      secondTrigger: IBuildTrigger = { type: 'travis', master: 'b', job: 'c' } as IBuildTrigger;
 
     spyOn(igorService, 'listBuildsForJob').and.callFake((_master: string, job: string) => {
       let builds: IBuild[] = [];

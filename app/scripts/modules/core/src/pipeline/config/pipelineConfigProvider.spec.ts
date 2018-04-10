@@ -19,20 +19,23 @@ const mockProviderAccount = {
   authorized: true,
 };
 
-const awsProviderAccount = Object.assign({}, mockProviderAccount, {
+const awsProviderAccount = {
+  ...mockProviderAccount,
   cloudProvider: 'aws',
   providerVersion: 'foo',
-});
+};
 
-const titusProviderAccount = Object.assign({}, mockProviderAccount, {
+const titusProviderAccount = {
+  ...mockProviderAccount,
   cloudProvider: 'titus',
   providerVersion: 'foo',
-});
+};
 
-const gcpProviderAccount = Object.assign({}, mockProviderAccount, {
+const gcpProviderAccount = {
+  ...mockProviderAccount,
   cloudProvider: 'gcp',
   providerVersion: 'foo',
-});
+};
 
 describe('pipelineConfigProvider: API', function() {
   let configurer: PipelineConfigProvider, service: PipelineConfigProvider;

@@ -23,8 +23,8 @@ describe('Component: numberList', () => {
     model = startModel;
     $scope['data'] = {
       model: startModel,
-      constraints: constraints,
-      onChange: onChange,
+      constraints,
+      onChange,
     };
     if (stringModel) {
       $scope['data'].model = stringModel;

@@ -38,11 +38,11 @@ describe('Component: metric selector', () => {
   );
 
   const initialize = () => {
-    $ctrl = <MetricSelectorController>$componentController(
+    $ctrl = $componentController(
       'awsMetricSelector',
       { $scope, cloudMetricsReader },
       { alarm, serverGroup, alarmUpdated },
-    );
+    ) as MetricSelectorController;
     $ctrl.$onInit();
   };
 

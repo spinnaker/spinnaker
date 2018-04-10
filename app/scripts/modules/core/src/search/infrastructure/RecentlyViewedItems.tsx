@@ -72,7 +72,7 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
 
   /** fetches the displayName and adds it to the history entry */
   private getFullHistoryEntry(category: string, item: IRecentHistoryEntry): IPromise<ISearchResult> {
-    const routeParams = Object.assign({}, item.params, item.extraData);
+    const routeParams = { ...item.params, ...item.extraData };
     return this.search.formatRouteResult(category, routeParams).then(displayName => ({ ...item, displayName }));
   }
 

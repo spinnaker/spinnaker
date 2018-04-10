@@ -109,10 +109,10 @@ export interface IApplicationLoadBalancerCertificateSourceData {
 
 export interface IApplicationLoadBalancerListenerSourceData {
   certificates?: IApplicationLoadBalancerCertificateSourceData[];
-  defaultActions: {
+  defaultActions: Array<{
     targetGroupName: string;
     type: 'forward';
-  }[];
+  }>;
   listenerArn: string;
   loadBalancerName: string;
   port: number;
@@ -142,16 +142,16 @@ export interface IClassicLoadBalancerSourceData extends IAmazonLoadBalancerSourc
     unhealthyThreshold: number;
   };
   instances: string[];
-  listenerDescriptions: { listener: IClassicListenerSourceData; policyNames: string[] }[];
+  listenerDescriptions: Array<{ listener: IClassicListenerSourceData; policyNames: string[] }>;
   policies: {
-    appCookieStickinessPolicies: {
+    appCookieStickinessPolicies: Array<{
       CookieName: string;
       PolicyName: string;
-    }[];
-    lbcookieStickinessPolicies: {
+    }>;
+    lbcookieStickinessPolicies: Array<{
       CookieExpirationPeriod: string;
       PolicyName: string;
-    }[];
+    }>;
     otherPolicies: any[];
   };
   sourceSecurityGroup: {

@@ -124,7 +124,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
         );
       }
 
-      EventBus.publish('stage-failure-message:no-reason', { params: Object.assign({}, ReactInjector.$state.params) });
+      EventBus.publish('stage-failure-message:no-reason', { params: { ...ReactInjector.$state.params } });
     }
 
     return null;

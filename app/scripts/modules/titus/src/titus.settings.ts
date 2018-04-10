@@ -9,7 +9,7 @@ export interface ITitusProviderSettings extends IProviderSettings {
   };
 }
 
-export const TitusProviderSettings: ITitusProviderSettings = <ITitusProviderSettings>SETTINGS.providers.titus || {
+export const TitusProviderSettings: ITitusProviderSettings = (SETTINGS.providers.titus as ITitusProviderSettings) || {
   defaults: {},
 };
 if (TitusProviderSettings) {

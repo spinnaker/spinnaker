@@ -134,7 +134,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
   }
 
   private validate(values: FormikValues): any {
-    const errors: { [key: string]: string }[] = [];
+    const errors: Array<{ [key: string]: string }> = [];
     const newErrorPages: Set<string> = new Set();
 
     this.state.pages.forEach(pageName => {

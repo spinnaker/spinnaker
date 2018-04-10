@@ -82,7 +82,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       provider: 'aws',
       taskMonitorConfig: taskMonitor,
       interestingHealthProviderNames: undefined as string[],
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Amazon',
@@ -123,7 +123,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       taskMonitorConfig: taskMonitor,
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Amazon',
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
     };
 
@@ -181,7 +181,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       taskMonitorConfig: taskMonitor,
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Amazon',
-      submitMethod: submitMethod,
+      submitMethod,
       askForReason: true,
     };
 

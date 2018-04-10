@@ -24,7 +24,7 @@ export interface IExecutionStatusProps {
 
 export interface IExecutionStatusState {
   sortFilter: ISortFilter;
-  parameters: { key: string; value: any }[];
+  parameters: Array<{ key: string; value: any }>;
   timestamp: string;
 }
 
@@ -38,7 +38,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     // these are internal parameters that are not useful to end users
     const strategyExclusions = ['parentPipelineId', 'strategy', 'parentStageId', 'deploymentDetails', 'cloudProvider'];
 
-    let parameters: { key: string; value: any }[] = [];
+    let parameters: Array<{ key: string; value: any }> = [];
 
     const { execution } = this.props;
     if (execution.trigger && execution.trigger.parameters) {

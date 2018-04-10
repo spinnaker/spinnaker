@@ -89,7 +89,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
       account: loadBalancerFromParams.accountId,
       applicationName: app.name,
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod,
+      submitMethod,
     });
   }
 

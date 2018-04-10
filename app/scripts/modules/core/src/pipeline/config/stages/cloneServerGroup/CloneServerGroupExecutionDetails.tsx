@@ -55,7 +55,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<
           application: context.application,
           serverGroup: serverGroupName,
           account: context.credentials,
-          region: region,
+          region,
           provider: 'aws',
           project: ReactInjector.$stateParams.project,
         };

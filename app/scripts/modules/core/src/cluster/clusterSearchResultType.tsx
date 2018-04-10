@@ -76,7 +76,7 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
   private makeSearchResult(serverGroup: IServerGroupSearchResult): IClusterSearchResult {
     const type = this.id;
     const urlBuilder = urlBuilderRegistry.getBuilder(type);
-    const href = urlBuilder.build(Object.assign({ type }, serverGroup), ReactInjector.$state);
+    const href = urlBuilder.build({ type, ...serverGroup }, ReactInjector.$state);
 
     const { account, application, cluster, provider, stack } = serverGroup;
     return { account, application, cluster, provider, stack, displayName: cluster, href, type };

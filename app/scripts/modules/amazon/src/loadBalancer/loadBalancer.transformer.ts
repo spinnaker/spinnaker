@@ -293,7 +293,7 @@ export class AwsLoadBalancerTransformer {
             protocol: listener.protocol,
             port: listener.port,
             defaultActions: listener.defaultActions,
-            certificates: certificates,
+            certificates,
             rules: listener.rules || [],
             sslPolicy: listener.sslPolicy,
           };

@@ -8,7 +8,7 @@ export interface ISpinnerProps {
 
 @BindAll()
 export class Spinner extends React.Component<ISpinnerProps> {
-  public getBarRows(): Array<React.ReactNode> {
+  public getBarRows(): React.ReactNode[] {
     const { size } = this.props;
     let count = 3;
 

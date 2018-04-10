@@ -37,7 +37,7 @@ export class ReactModal {
     ModalComponent: React.ComponentType<P>,
     props?: P,
   ): Promise<T> {
-    const modalPropKeys: (keyof ModalProps)[] = [
+    const modalPropKeys: Array<keyof ModalProps> = [
       'onHide',
       'animation',
       'autoFocus',

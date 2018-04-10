@@ -38,7 +38,7 @@ describe('appListExtractorService', function() {
         app: 'test-application',
       };
       const filterByCluster = (serverGroup: IServerGroup) => serverGroup.moniker.cluster === 'test-cluster';
-      const applicationA: Application = buildApplication([{ moniker: moniker }]);
+      const applicationA: Application = buildApplication([{ moniker }]);
       const applicationB: Application = buildApplication();
 
       const result = service.getMonikers([applicationA, applicationB], filterByCluster);
@@ -58,7 +58,7 @@ describe('appListExtractorService', function() {
         cluster: 'test-cluster',
         app: 'test-application',
       };
-      const application: Application = buildApplication([{ moniker: moniker }]);
+      const application: Application = buildApplication([{ moniker }]);
       const result = service.getMonikers([application]);
       expect(result.length).toEqual(1);
       expect(result).toEqual([moniker]);
@@ -69,7 +69,7 @@ describe('appListExtractorService', function() {
         cluster: 'test-cluster',
         app: 'test-application',
       };
-      const applicationA: Application = buildApplication([{ moniker: moniker }]);
+      const applicationA: Application = buildApplication([{ moniker }]);
       const applicationB: Application = buildApplication();
       const result = service.getMonikers([applicationA, applicationB]);
       expect(result.length).toEqual(1);

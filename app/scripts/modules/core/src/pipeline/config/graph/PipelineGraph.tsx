@@ -255,9 +255,9 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
       parentIds: [],
       parentLinks: [],
       parents: [],
-      phase: phase,
+      phase,
       placeholder: true,
-      row: row,
+      row,
     };
   }
 
@@ -322,8 +322,8 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   private linkNodes(child: IPipelineGraphNode, parent: IPipelineGraphNode): void {
     const link: IPipelineGraphLink = {
-      parent: parent,
-      child: child,
+      parent,
+      child,
       line: this.curvedLink({ source: parent, target: child }),
     };
     parent.childLinks.push(link);

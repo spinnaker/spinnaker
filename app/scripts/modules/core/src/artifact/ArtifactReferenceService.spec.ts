@@ -1,16 +1,12 @@
 import { ArtifactReferenceServiceProvider } from './ArtifactReferenceService';
 
-const stage = (mixin: any) =>
-  Object.assign(
-    {},
-    {
-      name: 'name',
-      type: 'foobar',
-      refId: 'x',
-      requisiteStageRefIds: [],
-    },
-    mixin,
-  );
+const stage = (mixin: any) => ({
+  name: 'name',
+  type: 'foobar',
+  refId: 'x',
+  requisiteStageRefIds: [],
+  ...mixin,
+});
 
 describe('ArtifactReferenceService', () => {
   let svc: ArtifactReferenceServiceProvider;

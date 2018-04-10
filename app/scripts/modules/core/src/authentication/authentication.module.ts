@@ -22,7 +22,7 @@ angular
   })
   .factory('gateRequestInterceptor', function() {
     return {
-      request: function(config: ng.IRequestConfig) {
+      request(config: ng.IRequestConfig) {
         if (config.url.indexOf(SETTINGS.gateUrl) === 0) {
           config.withCredentials = true;
         }

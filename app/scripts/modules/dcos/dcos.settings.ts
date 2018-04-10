@@ -7,7 +7,7 @@ export interface IDcosProviderSettings extends IProviderSettings {
   };
 }
 
-export const DcosProviderSettings: IDcosProviderSettings = <IDcosProviderSettings>SETTINGS.providers.dcos || {
+export const DcosProviderSettings: IDcosProviderSettings = (SETTINGS.providers.dcos as IDcosProviderSettings) || {
   defaults: {},
 };
 if (DcosProviderSettings) {

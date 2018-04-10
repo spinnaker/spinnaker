@@ -74,5 +74,5 @@ export const VALIDATE_APPLICATION_NAME = 'spinnaker.core.application.modal.valid
 
 module(VALIDATE_APPLICATION_NAME, [APPLICATION_NAME_VALIDATOR]).directive(
   'validateApplicationName',
-  <any>ValidateApplicationNameDirective,
+  ValidateApplicationNameDirective as any,
 );

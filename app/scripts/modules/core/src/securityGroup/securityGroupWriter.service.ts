@@ -28,7 +28,7 @@ export class SecurityGroupWriter {
 
     const operation: IPromise<ITask> = this.taskExecutor.executeTask({
       job: [params],
-      application: application,
+      application,
       description: `Delete Security Group: ${securityGroup.name}`,
     });
     this.infrastructureCaches.clearCache('securityGroups');
@@ -44,11 +44,11 @@ export class SecurityGroupWriter {
   ): IPromise<ITask> {
     params.type = 'upsertSecurityGroup';
     params.credentials = securityGroup.credentials || securityGroup.accountName;
-    const job: ISecurityGroupJob = Object.assign(securityGroup, params);
+    const job: ISecurityGroupJob = { ...securityGroup, ...params };
 
     const operation: IPromise<ITask> = this.taskExecutor.executeTask({
       job: [job],
-      application: application,
+      application,
       description: `${description} Security Group: ${securityGroup.name}`,
     });
 

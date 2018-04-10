@@ -6,13 +6,13 @@ import { ILoadBalancer, ILoadBalancerSourceData } from 'core/domain';
 
 export interface ILoadBalancersByAccount {
   name: string;
-  accounts: {
+  accounts: Array<{
     name: string;
-    regions: {
+    regions: Array<{
       name: string;
       loadBalancers: ILoadBalancerSourceData[];
-    }[];
-  }[];
+    }>;
+  }>;
 }
 
 export class LoadBalancerReader {

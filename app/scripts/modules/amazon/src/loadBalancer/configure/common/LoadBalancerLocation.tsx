@@ -165,7 +165,7 @@ class LoadBalancerLocationImpl extends React.Component<
       region = this.props.values.region;
     return ReactInjector.subnetReader.listSubnets().then(subnets => {
       return chain(subnets)
-        .filter({ account: account, region: region })
+        .filter({ account, region })
         .reject({ target: 'ec2' })
         .value();
     });

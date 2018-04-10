@@ -13,7 +13,7 @@ ngmodule.directive('userMenu', function(authenticationService: any, authenticati
     restrict: 'E',
     replace: true,
     templateUrl: require('./userMenu.directive.html'),
-    link: function(scope: any) {
+    link(scope: any) {
       scope.authEnabled = SETTINGS.authEnabled;
       scope.user = authenticationService.getAuthenticatedUser();
       scope.showLogOutDropdown = () => authenticationService.getAuthenticatedUser().authenticated;

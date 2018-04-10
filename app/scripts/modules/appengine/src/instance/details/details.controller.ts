@@ -68,7 +68,7 @@ class AppengineInstanceDetailsController implements IController {
     const taskMonitor = {
       application: this.app,
       title: 'Terminating ' + shortName,
-      onTaskComplete: function() {
+      onTaskComplete() {
         if (this.$state.includes('**.instanceDetails', { instanceId: instance.name })) {
           this.$state.go('^');
         }
@@ -84,7 +84,7 @@ class AppengineInstanceDetailsController implements IController {
       buttonText: 'Terminate ' + shortName,
       account: instance.account,
       taskMonitorConfig: taskMonitor,
-      submitMethod: submitMethod,
+      submitMethod,
     });
   }
 

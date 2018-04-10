@@ -254,7 +254,7 @@ export class AwsServerGroupConfigurationService {
 
   public loadImagesFromApplicationName(application: Application, provider: string): any {
     return this.awsImageReader.findImages({
-      provider: provider,
+      provider,
       q: application.name.replace(/_/g, '[_\\-]') + '*',
     });
   }

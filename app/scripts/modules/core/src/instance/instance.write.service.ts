@@ -45,7 +45,7 @@ export class InstanceWriter {
 
     return this.taskExecutor.executeTask({
       job: [params],
-      application: application,
+      application,
       description: `Terminate instance: ${instance.id}`,
     });
   }
@@ -66,7 +66,7 @@ export class InstanceWriter {
     const descriptor = this.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
     return this.taskExecutor.executeTask({
       job: jobs,
-      application: application,
+      application,
       description: descriptor,
     });
   }
@@ -86,7 +86,7 @@ export class InstanceWriter {
 
     return this.taskExecutor.executeTask({
       job: [params],
-      application: application,
+      application,
       description: `Reboot instance: ${instance.id}`,
     });
   }
@@ -101,7 +101,7 @@ export class InstanceWriter {
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
-      application: application,
+      application,
       description: descriptor,
     });
   }
@@ -119,7 +119,7 @@ export class InstanceWriter {
     params.cloudProvider = instance.cloudProvider;
     return this.taskExecutor.executeTask({
       job: [params],
-      application: application,
+      application,
       description: `Deregister instance: ${instance.id}`,
     });
   }
@@ -134,7 +134,7 @@ export class InstanceWriter {
     const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
-      application: application,
+      application,
       description: descriptor,
     });
   }
@@ -152,7 +152,7 @@ export class InstanceWriter {
     params.cloudProvider = instance.cloudProvider;
     return this.taskExecutor.executeTask({
       job: [params],
-      application: application,
+      application,
       description: `Register instance: ${instance.id}`,
     });
   }
@@ -180,7 +180,7 @@ export class InstanceWriter {
           asgName: instance.serverGroup,
         },
       ],
-      application: application,
+      application,
       description: `Enable instance: ${instance.id}`,
     });
   }
@@ -208,7 +208,7 @@ export class InstanceWriter {
           asgName: instance.serverGroup,
         },
       ],
-      application: application,
+      application,
       description: `Disable instance: ${instance.id}`,
     });
   }
@@ -251,7 +251,7 @@ export class InstanceWriter {
 
         return this.taskExecutor.executeTask({
           job: [params],
-          application: application,
+          application,
           description: `Terminate instance ${instance.id} and shrink ${instance.serverGroup}`,
         });
       });
@@ -282,7 +282,7 @@ export class InstanceWriter {
     additionalJobProperties: any = {},
   ): IMultiInstanceJob {
     const job: IMultiInstanceJob = {
-      type: type,
+      type,
       cloudProvider: instanceGroup.cloudProvider,
       instanceIds: instanceGroup.instanceIds,
       credentials: instanceGroup.account,

@@ -44,11 +44,11 @@ describe('dockerImageAndTagSelector controller', () => {
   const initialize = (accounts: IAccount[], images: IDockerImage[]) => {
     spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
     spyOn(dockerImageReader, 'findImages').and.returnValue($q.when(images));
-    $ctrl = <DockerImageAndTagSelectorController>$componentController(
+    $ctrl = $componentController(
       'dockerImageAndTagSelector',
       { accountService, dockerImageReader },
       { organization, registry, repository, tag, account, showRegistry },
-    );
+    ) as DockerImageAndTagSelectorController;
     $ctrl.$onInit();
     $scope.$digest();
   };

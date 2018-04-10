@@ -5,6 +5,6 @@ export interface IStage {
   isNew?: boolean;
   name: string;
   refId: string | number; // unfortunately, we kept this loose early on, so it's either a string or a number
-  requisiteStageRefIds: (string | number)[];
+  requisiteStageRefIds: Array<string | number>;
   type: string;
 }

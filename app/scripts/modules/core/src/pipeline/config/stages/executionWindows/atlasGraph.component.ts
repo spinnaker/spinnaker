@@ -39,7 +39,7 @@ interface IZoom {
 }
 
 interface IChartOptions {
-  tooltipHook: { (rows: any[]): any };
+  tooltipHook: (rows: any[]) => any;
   series: IGraphSeries[];
   axes: IAxes;
   zoom: IZoom;

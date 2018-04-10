@@ -61,7 +61,7 @@ describe('Service: inferredApplicationWarning', () => {
       inferredApplicationWarningService.checkIfInferredAndWarn(inferredApp);
       inferredApplicationWarningService.checkIfInferredAndWarn(inferredApp);
 
-      expect((<Spy>notifierService.publish).calls.count()).toEqual(1);
+      expect((notifierService.publish as Spy).calls.count()).toEqual(1);
     });
   });
 });
