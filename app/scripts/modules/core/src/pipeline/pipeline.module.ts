@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
 import { APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE } from './config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module';
+import { BAKE_MANIFEST_STAGE } from './config/stages/bakeManifest/bakeManifestStage'
 import { CHECK_PRECONDITIONS_STAGE_MODULE } from './config/stages/checkPreconditions/checkPreconditionsStage.module';
 import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/cloneServerGroupStage.module';
 import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.controller';
@@ -62,6 +63,7 @@ module(PIPELINE_MODULE, [
   WEBHOOK_STAGE_MODULE,
   UNMATCHED_STAGE_TYPE_STAGE,
   require('./config/stages/bake/bakeStage.module').name,
+  BAKE_MANIFEST_STAGE,
   CHECK_PRECONDITIONS_STAGE_MODULE,
   CLONE_SERVER_GROUP_STAGE,
   STAGE_CORE_MODULE,

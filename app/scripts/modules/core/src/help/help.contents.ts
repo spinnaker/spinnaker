@@ -202,6 +202,7 @@ module(HELP_CONTENTS, [])
         <p>The selected value can be used in a subsequent <strong>Check Preconditions</strong> stage to determine branching.</p>
         <p>For example, if the user selects "rollback" from this list of options, that branch can be activated by using the expression:
           <samp class="small">execution.stages[n].context.judgmentInput=="rollback"</samp></p>`,
+    'pipeline.config.bake.manifest.expectedArtifact': '<p>This is the template you want to render.</p>',
     'pipeline.config.haltPipelineOnFailure': 'Immediately halts execution of all running stages and fails the entire execution.',
     'pipeline.config.haltBranchOnFailure': 'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run.',
     'pipeline.config.haltBranchOnFailureFailPipeline': 'Prevents any stages that depend on this stage from running, but allows other branches of the pipeline to run. The pipeline will be marked as failed once complete.',

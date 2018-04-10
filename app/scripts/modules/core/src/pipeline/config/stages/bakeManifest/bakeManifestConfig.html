@@ -1,0 +1,40 @@
+<div class="form-horizontal" xmlns="http://www.w3.org/1999/html">
+  <div class="alert alert-warning">
+    <strong>Warning!</strong> This stage is under active development and is subject to change.
+  </div>
+  <h4>Template Renderer</h4>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Render Engine
+      <help-field key="pipeline.config.bake.manifest.templateRenderer"></help-field>
+    </div>
+    <div class="col-md-3">
+      <select class="form-control input-sm"
+              ng-model="ctrl.$scope.stage.templateRenderer">
+        <option ng-repeat="renderer in ctrl.templateRenderers"
+                value="{{renderer}}"
+                ng-selected="ctrl.$scope.stage.templateRenderer === renderer">{{renderer}}</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Name
+    </div>
+    <div class="col-md-3">
+      <input type="text" class="form-control input-sm"
+             ng-model="ctrl.$scope.stage.outputName"
+             ng-change="ctrl.outputNameChange()">
+      </input>
+    </div>
+  </div>
+
+  <h4>Template Artifact</h4>
+  <expected-artifact-selector command="ctrl.$scope.stage"
+                              id-field="expectedArtifactId"
+                              account-field="expectedArtifactAccount"
+                              accounts="ctrl.artifactAccounts"
+                              expected-artifacts="ctrl.expectedArtifacts"
+                              help-field-key="pipeline.config.bake.manifest.expectedArtifact">
+  </expected-artifact-selector>
+</div>
