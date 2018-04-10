@@ -113,14 +113,13 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
 
   private showTargetGroupDetails(targetGroup: ITargetGroup): void {
     const { $state } = ReactInjector;
-    const serverGroup = this.props.serverGroup;
     ReactGA.event({ category: 'Cluster Pod', action: `Load Target Group Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.targetGroupDetails' : '^.targetGroupDetails';
     $state.go(nextState, {
-      region: serverGroup.region,
-      accountId: serverGroup.account,
+      region: targetGroup.region,
+      accountId: targetGroup.account,
       name: targetGroup.name,
-      provider: serverGroup.type,
+      provider: 'aws',
       loadBalancerName: targetGroup.loadBalancerNames[0],
     });
   }

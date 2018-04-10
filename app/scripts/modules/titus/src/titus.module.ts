@@ -6,7 +6,8 @@ import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConf
 import { TITUS_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
 import { TITUS_HELP } from './help/titus.help';
 import { TITUS_REACT_MODULE } from './reactShims/titus.react.module';
-import { TitusLoadBalancersTag } from './loadBalancers/TitusLoadBalancersTag';
+
+import { AmazonLoadBalancersTag } from '@spinnaker/amazon';
 
 import './logo/titus.logo.less';
 
@@ -62,7 +63,7 @@ module(TITUS_MODULE, [
       useProvider: 'aws',
     },
     loadBalancer: {
-      LoadBalancersTag: TitusLoadBalancersTag,
+      LoadBalancersTag: AmazonLoadBalancersTag,
       useProvider: 'aws',
     },
     instance: {
