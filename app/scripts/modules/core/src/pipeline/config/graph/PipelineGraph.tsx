@@ -6,6 +6,7 @@ import { BindAll, Debounce, Throttle } from 'lodash-decorators';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
 import { Subscription } from 'rxjs';
 
+import { Application } from 'core/application';
 import { IExecution, IPipeline } from 'core/domain';
 import { IPipelineValidationResults } from 'core/pipeline/config/validation/pipelineConfig.validator';
 import { ReactInjector } from 'core/reactShims';
@@ -24,6 +25,7 @@ import './pipelineGraph.less';
 
 export interface IPipelineGraphProps {
   execution?: IExecution;
+  application?: Application;
   onNodeClick: (node: IPipelineGraphNode, subIndex?: number) => void;
   pipeline?: IPipeline;
   shouldValidate?: boolean;
@@ -40,6 +42,7 @@ export interface IPipelineGraphState {
   nodeRadius: number;
   phaseCount: number;
   rowHeights: number[];
+  hydrated: boolean;
 }
 
 @BindAll()
@@ -55,6 +58,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     nodeRadius: this.defaultNodeRadius,
     phaseCount: 0,
     rowHeights: [],
+    hydrated: false,
   };
   private element: JQuery;
   private graphStatusHash: string;
@@ -65,15 +69,17 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   private rowPadding = 20;
   private validationSubscription: Subscription;
   private windowResize = this.handleWindowResize.bind(this);
+  private mounted = false;
 
   constructor(props: IPipelineGraphProps) {
     super(props);
-    this.state = this.defaultState;
+    const { execution } = props;
+    this.state = { ...this.defaultState, ...{ hydrated: execution && execution.hydrated } };
 
     // HACK: This is needed to update the node states in the graph based on the stage states.
     //       Once the execution itself changes based on stage status, this can be removed.
-    if (this.props.execution) {
-      this.graphStatusHash = this.props.execution.graphStatusHash;
+    if (execution) {
+      this.graphStatusHash = execution.graphStatusHash;
     }
   }
 
@@ -396,6 +402,14 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   public componentDidMount() {
     window.addEventListener('resize', this.windowResize);
+    this.mounted = true;
+    if (!this.state.hydrated && this.props.execution) {
+      ReactInjector.executionService.hydrate(this.props.application, this.props.execution).then(() => {
+        if (this.mounted) {
+          this.setState({ hydrated: true });
+        }
+      });
+    }
     this.validationSubscription = ReactInjector.pipelineConfigValidator.subscribe(validations => {
       this.pipelineValidations = validations;
       this.updateGraph(this.props);
@@ -445,6 +459,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   }
 
   public componentWillUnmount() {
+    this.mounted = false;
     this.validationSubscription.unsubscribe();
     window.removeEventListener('resize', this.windowResize);
   }

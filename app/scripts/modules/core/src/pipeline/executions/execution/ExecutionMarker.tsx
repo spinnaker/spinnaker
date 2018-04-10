@@ -1,8 +1,11 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { BindAll } from 'lodash-decorators';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { IExecution, IExecutionStageSummary } from 'core/domain';
+import { ReactInjector } from 'core/reactShims';
+import { Spinner } from 'core/widgets';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { duration } from 'core/utils/timeFormatters';
 
@@ -23,21 +26,36 @@ export interface IExecutionMarkerProps {
 
 export interface IExecutionMarkerState {
   duration: string;
+  hydrated: boolean;
 }
 
 @BindAll()
 export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExecutionMarkerState> {
   private runningTime: OrchestratedItemRunningTime;
+  private mounted = false;
 
   constructor(props: IExecutionMarkerProps) {
     super(props);
 
+    const { stage, execution } = props;
+
     this.state = {
-      duration: duration(props.stage.runningTimeInMs),
+      duration: duration(stage.runningTimeInMs),
+      hydrated: execution.hydrated,
     };
   }
 
+  private hydrate(): void {
+    const { execution, application } = this.props;
+    ReactInjector.executionService.hydrate(application, execution).then(() => {
+      if (this.mounted) {
+        this.setState({ hydrated: true });
+      }
+    });
+  }
+
   public componentDidMount() {
+    this.mounted = true;
     this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) =>
       this.setState({ duration: duration(time) }),
     );
@@ -48,6 +66,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
   }
 
   public componentWillUnmount() {
+    this.mounted = false;
     this.runningTime.reset();
   }
 
@@ -79,11 +98,22 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
       </div>
     );
     if (stage.useCustomTooltip) {
-      return (
-        <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
-          {stageContents}
-        </TooltipComponent>
-      );
+      if (execution.hydrated) {
+        return (
+          <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
+            {stageContents}
+          </TooltipComponent>
+        );
+      } else {
+        const loadingTooltip = (<Tooltip id={stage.id}><Spinner size="small"/></Tooltip>);
+        return (
+          <span onMouseEnter={this.hydrate}>
+            <OverlayTrigger placement="top" overlay={loadingTooltip}>
+              {this.props.children}
+            </OverlayTrigger>
+          </span>
+        );
+      }
     }
     return (
       <ExecutionBarLabel application={application} execution={execution} stage={stage} executionMarker={true}>

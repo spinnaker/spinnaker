@@ -300,6 +300,6 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   }
 
   private getDeploymentAccounts(): string[] {
-    return uniq(flatten<string>(this.props.group.executions.map((e: IExecution) => e.deploymentTargets))).sort();
+    return uniq(flatten<string>(this.props.group.executions.map((e: IExecution) => e.deploymentTargets))).sort().filter(a => !!a);
   }
 }

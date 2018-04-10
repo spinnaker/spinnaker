@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.canary.acaTask.transformer', []).serv
 
   this.transform = function(application, execution) {
     execution.stages.forEach(function(stage) {
-      if (stage.type === 'acaTask') {
+      if (stage.type === 'acaTask' && execution.hydrated) {
         OrchestratedItemTransformer.defineProperties(stage);
         stage.exceptions = [];
 

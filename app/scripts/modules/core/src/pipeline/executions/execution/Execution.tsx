@@ -409,7 +409,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         </div>
         {showingDetails && (
           <div className="execution-graph">
-            <PipelineGraph execution={execution} onNodeClick={this.handleNodeClick} viewState={viewState} />
+            <PipelineGraph execution={execution} application={application} onNodeClick={this.handleNodeClick} viewState={viewState} />
           </div>
         )}
         {showingDetails && (

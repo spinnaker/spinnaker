@@ -27,6 +27,8 @@ export interface IExecution extends IOrchestratedItem {
   trigger: IExecutionTrigger;
   user: string;
   fromTemplate?: boolean;
+  hydrated?: boolean;
+  hydrator?: Promise<IExecution>;
 }
 
 export interface IExecutionGroup {

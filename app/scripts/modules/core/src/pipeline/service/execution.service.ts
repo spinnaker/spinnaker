@@ -37,7 +37,7 @@ export class ExecutionService {
   }
 
   public getRunningExecutions(applicationName: string): IPromise<IExecution[]> {
-    return this.getFilteredExecutions(applicationName, this.activeStatuses, this.runningLimit);
+    return this.getFilteredExecutions(applicationName, this.activeStatuses, this.runningLimit, null, true);
   }
 
   private getFilteredExecutions(
@@ -56,7 +56,22 @@ export class ExecutionService {
 
     return call.then((data: IExecution[]) => {
       if (data) {
-        data.forEach((execution: IExecution) => this.cleanExecutionForDiffing(execution));
+        data.forEach((execution: IExecution) => {
+          execution.hydrated = expand;
+          // TODO: remove this code once the filtering takes place on Orca
+          if (!expand) {
+            execution.stages.forEach(s => {
+              s.context = {};
+              s.outputs = {};
+              s.tasks = [];
+            });
+          }
+          // TODO: Remove this, too, once the filtering takes place on Orca
+          if (execution.trigger.parentExecution) {
+            execution.trigger.parentExecution.stages = [];
+          }
+          return this.cleanExecutionForDiffing(execution);
+        });
         return data;
       }
       return [];
@@ -68,6 +83,8 @@ export class ExecutionService {
    * @param {string} applicationName the name of the application
    * @param {Application} application: if supplied, and pipeline parameters are present on the filter model, the
    * application will be used to correlate and filter the retrieved executions to only include those pipelines
+   * @param {boolean} expand: if true, the resulting executions will include fully hydrated context, outputs, and tasks
+   * fields
    * @return {<IExecution[]>}
    */
   public getExecutions(
@@ -91,6 +108,7 @@ export class ExecutionService {
     return this.API.one('pipelines', executionId)
       .get()
       .then((execution: IExecution) => {
+        execution.hydrated = true;
         this.cleanExecutionForDiffing(execution);
         return execution;
       });
@@ -131,12 +149,9 @@ export class ExecutionService {
 
   private cleanExecutionForDiffing(execution: IExecution): void {
     (execution.stages || []).forEach((stage: IExecutionStage) => this.removeInstances(stage));
-    if (execution.trigger && execution.trigger.parentExecution) {
-      (execution.trigger.parentExecution.stages || []).forEach((stage: IExecutionStage) => this.removeInstances(stage));
-    }
   }
 
-  public toggleDetails(execution: IExecution, stageIndex: number, subIndex: number) {
+  public toggleDetails(execution: IExecution, stageIndex: number, subIndex: number): void {
     const standalone = this.$state.current.name.endsWith('.executionDetails.execution');
 
     if (
@@ -203,15 +218,18 @@ export class ExecutionService {
 
   // remove these fields - they are not of interest when determining if the pipeline has changed
   private jsonReplacer(key: string, value: any): any {
-    if (
-      key === 'instances' ||
-      key === 'asg' ||
-      key === 'commits' ||
-      key === 'history' ||
-      key === '$$hashKey' ||
-      key === 'requisiteIds' ||
-      key === 'requisiteStageRefIds'
-    ) {
+    const ignored = [
+      'asg',
+      'commits',
+      'history',
+      'hydrator',
+      'hydrated',
+      'instances',
+      'requisiteIds',
+      'requisiteStageRefIds',
+      '$$hashKey',
+    ];
+    if (ignored.includes(key)) {
       return undefined;
     }
     return value;
@@ -478,6 +496,27 @@ export class ExecutionService {
         }
       });
     }
+  }
+
+  public hydrate(application: Application, unhydrated: IExecution): Promise<IExecution> {
+    if (unhydrated.hydrator) {
+      return unhydrated.hydrator;
+    }
+    const executionHydrator = this.getExecution(unhydrated.id).then(hydrated => {
+      this.transformExecution(application, hydrated);
+      hydrated.stages.forEach(s => {
+        const toHydrate = unhydrated.stages.find(s2 => s2.id === s.id);
+        if (toHydrate) {
+          toHydrate.context = s.context;
+          toHydrate.outputs = s.outputs;
+          toHydrate.tasks = s.tasks;
+        }
+      });
+      unhydrated.hydrated = true;
+      return unhydrated;
+    });
+    unhydrated.hydrator = Promise.resolve(executionHydrator);
+    return unhydrated.hydrator;
   }
 
   public getLastExecutionForApplicationByConfigId(appName: string, configId: string): IPromise<IExecution> {
