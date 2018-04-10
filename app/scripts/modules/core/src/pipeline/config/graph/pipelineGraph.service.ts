@@ -115,6 +115,7 @@ export class PipelineGraphService {
 
     pipeline.stages.forEach(function(stage: IExecutionStageSummary, idx: number) {
       const warnings = pipelineValidations.stages.find((e: any) => e.stage === stage);
+      const parentIds = (stage.requisiteStageRefIds || []).slice();
       const node: IPipelineGraphNode = {
         childLinks: [],
         children: [],
@@ -124,7 +125,7 @@ export class PipelineGraphService {
         isActive: viewState.stageIndex === idx && viewState.section === 'stage',
         isHighlighted: false,
         name: stage.name || '[new stage]',
-        parentIds: { ...[], ...(stage.requisiteStageRefIds || []) },
+        parentIds,
         parentLinks: [],
         parents: [],
         root: false,
