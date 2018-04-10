@@ -24,13 +24,12 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,26 +57,13 @@ public class ArtifactController {
     }
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/fetch")
-  String fetch(@RequestParam("artifactAccount") String artifactAccount,
-      @RequestParam("type") String type,
-      @RequestParam("reference") String reference,
-      @RequestParam(value = "version", required = false) String version) {
+  // PUT because we need to send a body, which GET does not allow for spring/retrofit
+  @RequestMapping(method = RequestMethod.PUT, value = "/fetch")
+  StreamingResponseBody fetch(@RequestBody Artifact artifact) {
     if (artifactDownloader == null) {
       throw new IllegalStateException("Artifacts have not been enabled. Enable them using 'artifacts.enabled' in clouddriver");
     }
 
-    Artifact artifact = Artifact.builder()
-        .type(type)
-        .artifactAccount(artifactAccount)
-        .reference(reference)
-        .version(version)
-        .build();
-
-    try {
-      return IOUtils.toString(artifactDownloader.download(artifact));
-    } catch (IOException e) {
-      throw new RuntimeException("Failure fetching '" + artifact + "': " + e.getMessage(), e);
-    }
+    return outputStream -> IOUtils.copy(artifactDownloader.download(artifact), outputStream);
   }
 }
