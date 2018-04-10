@@ -18,6 +18,7 @@ module.exports = angular
       bindToController: {
         label: '@',
         helpKey: '@',
+        helpKeyExpand: '@',
         fieldColumns: '@',
       },
       controller: function() {

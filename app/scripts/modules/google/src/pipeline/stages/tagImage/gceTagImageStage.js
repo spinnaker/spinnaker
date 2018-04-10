@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { AccountService, Registry } from '@spinnaker/core';
+import { AccountService, Registry, PipelineConfigService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.gce.pipeline.stage..tagImageStage', [])
@@ -15,11 +15,17 @@ module.exports = angular
       executionConfigSections: ['tagImageConfig', 'taskStatus'],
     });
   })
-  .controller('gceTagImageStageCtrl', function($scope) {
-    AccountService.listAccounts('gce').then(function(accounts) {
-      $scope.accounts = accounts;
-    });
+  .controller('gceTagImageStageCtrl', $scope => {
+    AccountService.listAccounts('gce').then(accounts => ($scope.accounts = accounts));
 
     $scope.stage.tags = $scope.stage.tags || {};
     $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'gce';
+
+    const initUpstreamStages = () => {
+      const upstreamDependencies = PipelineConfigService
+        .getAllUpstreamDependencies($scope.pipeline, $scope.stage)
+        .filter(stage => StageConstants.IMAGE_PRODUCING_STAGES.includes(stage.type));
+      $scope.consideredStages = new Map(upstreamDependencies.map(stage => [stage.refId, stage.name]));
+    };
+    $scope.$watch('pipeline.stages', initUpstreamStages);
   });

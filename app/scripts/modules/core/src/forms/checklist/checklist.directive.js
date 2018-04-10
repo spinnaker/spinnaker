@@ -15,8 +15,8 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
     },
     link: scope => {
       function initializeModelHolder() {
-        scope.values = {};
-        scope.itemsNormalized = [];
+        scope.values = scope.values || {};
+        scope.itemsNormalized = scope.itemsNormalized || [];
         scope.model = scope.model || [];
         scope.modelHolder = {};
         scope.model.forEach(val => {
@@ -49,6 +49,22 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
         return allSelected;
       }
 
+      function normalizeItems(items) {
+        if (items) {
+          if (_.isMap(items)) {
+            items.forEach((value, key) => {
+              scope.values[key] = value;
+            });
+            scope.itemsNormalized = Array.from(items, ([key]) => key);
+          } else {
+            items.forEach(item => {
+              scope.values[item] = item;
+            });
+            scope.itemsNormalized = items;
+          }
+        }
+      }
+
       scope.selectAllOrNone = () => {
         if (allItemsSelected()) {
           scope.itemsNormalized.forEach(key => {
@@ -75,22 +91,9 @@ module.exports = angular.module('spinnaker.core.forms.checklist.checklist.direct
       scope.$watch('model', initializeModelHolder);
 
       scope.$watch('items', (newOptions, oldOptions) => {
-        console.log(newOptions);
-        if (newOptions) {
-          if (_.isMap(newOptions)) {
-            newOptions.forEach((value, key) => {
-              scope.values[key] = value;
-            });
-            scope.itemsNormalized = Array.from(newOptions, ([key]) => key);
-          } else {
-            newOptions.forEach(item => {
-              scope.values[item] = item;
-            });
-            scope.itemsNormalized = newOptions;
-          }
-        }
+        normalizeItems(newOptions);
         if (oldOptions && oldOptions !== newOptions) {
-          oldOptions.forEach(function(oldOption, oldKey) {
+          oldOptions.forEach((oldOption, oldKey) => {
             if (_.isMap(newOptions)) {
               if (!newOptions.has(oldKey)) {
                 delete scope.modelHolder[oldKey];
