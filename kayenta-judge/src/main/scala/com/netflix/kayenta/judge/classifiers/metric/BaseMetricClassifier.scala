@@ -41,7 +41,6 @@ object MetricDirection{
   }
 }
 
-//todo (csanden): report deviation instead of ratio?
 case class MetricClassification(classification: MetricClassificationLabel, reason: Option[String], ratio: Double)
 
 abstract class BaseMetricClassifier {

@@ -22,7 +22,6 @@ import org.apache.commons.math3.stat.StatUtils
 
 case class MannWhitneyResult(lowerConfidence: Double, upperConfidence: Double, estimate: Double)
 
-//todo (csanden) rename this classifier
 class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95) extends BaseMetricClassifier{
 
   /**
@@ -30,7 +29,6 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95) exten
     * An implementation of the Mann-Whitney U test (also called Wilcoxon rank-sum test).
     * @param experimentValues
     * @param controlValues
-    * @return
     */
   def MannWhitneyUTest(experimentValues: Array[Double], controlValues: Array[Double]): MannWhitneyResult ={
     val mw = new MannWhitney()
@@ -47,7 +45,6 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95) exten
     * Calculate the upper and lower bounds for classifying the metric.
     * The bounds are calculated as a fraction of the Hodges–Lehmann estimator
     * @param testResult
-    * @return
     */
   def calculateBounds(testResult: MannWhitneyResult): (Double, Double) = {
     val estimate = math.abs(testResult.estimate)

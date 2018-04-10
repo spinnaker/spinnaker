@@ -23,12 +23,6 @@ import scala.collection.JavaConverters._
 
 class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
 
-  /**
-    *
-    * @param groupName
-    * @param classificationLabels
-    * @return
-    */
   private def calculateGroupScore(groupName: String, classificationLabels: List[String]): GroupScore ={
 
     val labelCounts = classificationLabels.groupBy(identity).mapValues(_.size)
@@ -45,11 +39,6 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     GroupScore(groupName, score, hasNoData, labelCounts, numMetrics)
   }
 
-  /**
-    *
-    * @param metricResults
-    * @return
-    */
   private def calculateGroupScores(metricResults: List[CanaryAnalysisResult]): List[GroupScore] ={
 
     val groupLabels = metricResults.flatMap{ metric =>
@@ -59,11 +48,6 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     groupLabels.map{ case (groupName, labels) => calculateGroupScore(groupName, labels)}.toList
   }
 
-  /**
-    *
-    * @param groupResults
-    * @return
-    */
   private def calculateSummaryScore(groupResults: List[GroupScore]): Double ={
 
     val groupWeightSum = groupWeights.values.sum
@@ -86,11 +70,6 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     summaryScore
   }
 
-  /**
-    *
-    * @param results
-    * @return
-    */
   override def score(results: List[CanaryAnalysisResult]): ScoreResult = {
     val groupScores = calculateGroupScores(results)
     val summaryScore = calculateSummaryScore(groupScores)

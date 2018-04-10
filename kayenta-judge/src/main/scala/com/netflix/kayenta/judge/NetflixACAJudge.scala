@@ -23,7 +23,7 @@ import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfi
 import com.netflix.kayenta.judge.classifiers.metric._
 import com.netflix.kayenta.judge.classifiers.score.{ScoreClassification, ThresholdScoreClassifier}
 import com.netflix.kayenta.judge.detectors.IQRDetector
-import com.netflix.kayenta.judge.preprocessing.{Transforms, ValidationResult, Validators}
+import com.netflix.kayenta.judge.preprocessing.Transforms
 import com.netflix.kayenta.judge.scorers.{ScoreResult, WeightedSumScorer}
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics
 import com.netflix.kayenta.judge.utils.MapUtils
@@ -41,7 +41,6 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
   private final val judgeName = "NetflixACAJudge-v1.0"
 
   override def isVisible: Boolean = true
-
   override def getName: String = judgeName
 
   override def judge(canaryConfig: CanaryConfig,
@@ -73,10 +72,6 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
 
   /**
     * Build the canary result object
-    * @param scores
-    * @param scoreClassification
-    * @param metricResults
-    * @return
     */
   def buildCanaryResult(scores: ScoreResult, scoreClassification: ScoreClassification,
                         metricResults: List[CanaryAnalysisResult]): CanaryJudgeResult ={
@@ -113,8 +108,6 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
 
   /**
     * Metric Transformations
-    * @param metric
-    * @return
     */
   def transformMetric(metric: Metric): Metric = {
     val detector = new IQRDetector(factor = 3.0, reduceSensitivity = true)
@@ -125,27 +118,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
   }
 
   /**
-    * Metric Validation
-    * @param metric
-    * @return
-    */
-  def validateMetric(metric: Metric): ValidationResult = {
-    val validators: List[Metric => ValidationResult] = List(
-      Validators.checkEmptyArray(_),
-      Validators.checkNaNArray(_))
-
-    val validationResults = validators.map(fn => fn(metric))
-    val invalidResults = validationResults.filter(_.valid == false)
-    val validResults = validationResults.filter(_.valid == true)
-
-    if(invalidResults.nonEmpty) invalidResults.head else validResults.head
-  }
-
-  /**
     * Metric Classification
-    * @param canaryConfig
-    * @param metric
-    * @return
     */
   def classifyMetric(canaryConfig: CanaryConfig, metric: MetricSetPair): CanaryAnalysisResult ={
 
@@ -165,23 +138,14 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     val directionality = MetricDirection.parse(directionalityString)
 
     //=============================================
-    // Metric Validation
+    // Metric Transformation (Remove NaN values, etc.)
     // ============================================
-    //todo (csanden) Implement metric validation
-    val validExperimentMetric = validateMetric(experiment)
-    val validControlMetric = validateMetric(control)
-
-    //=============================================
-    // Metric Transformation
-    // ============================================
-    //Transform the metrics (remove NaN values, remove outliers, etc)
     val transformedExperiment = transformMetric(experiment)
     val transformedControl = transformMetric(control)
 
     //=============================================
     // Calculate metric statistics
     // ============================================
-    //Calculate summary statistics such as mean, median, max, etc.
     val experimentStats = DescriptiveStatistics.summary(transformedExperiment)
     val controlStats = DescriptiveStatistics.summary(transformedControl)
 
@@ -214,7 +178,6 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
           .classificationReason("Metric Classification Failed")
           .build()
     }
-
   }
 
 }
