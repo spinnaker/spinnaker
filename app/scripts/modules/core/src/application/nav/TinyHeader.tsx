@@ -57,7 +57,7 @@ export class TinyHeader extends React.Component<ITinyHeaderProps> {
       .concat(secondaryCategories)
       .find(c => c.dataSources.some(ds => $state.includes(appState + ds.sref)));
     if (!categoryMatch) {
-      return null;
+      return undefined;
     }
     return categoryMatch.dataSources.find(ds => $state.includes(appState + ds.sref)).key;
   }
