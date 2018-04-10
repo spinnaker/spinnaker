@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.core
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.jedis.RedisTaskRepository
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
@@ -58,12 +60,17 @@ class RedisConfig {
   }
 
   @Bean
-  JedisPool jedisPool(RedisConfigurationProperties redisConfigurationProperties,
+  JedisPool jedisPool(Registry registry,
+                      RedisConfigurationProperties redisConfigurationProperties,
                       GenericObjectPoolConfig redisPoolConfig) {
-    return createPool(redisPoolConfig, redisConfigurationProperties.connection, redisConfigurationProperties.timeout)
+    return createPool(registry, redisPoolConfig, redisConfigurationProperties.connection, redisConfigurationProperties.timeout, "primaryDefault")
   }
 
-  private static JedisPool createPool(GenericObjectPoolConfig redisPoolConfig, String connection, int timeout) {
+  private static JedisPool createPool(Registry registry,
+                                      GenericObjectPoolConfig redisPoolConfig,
+                                      String connection,
+                                      int timeout,
+                                      String name) {
     URI redisConnection = URI.create(connection)
 
     String host = redisConnection.host
@@ -73,15 +80,19 @@ class RedisConfig {
 
     String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
 
-    new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, null)
+    new InstrumentedJedisPool(
+      registry,
+      new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, null),
+      name
+    )
   }
 
   @Bean
-  JedisPool jedisPoolPrevious(RedisConfigurationProperties redisConfigurationProperties) {
+  JedisPool jedisPoolPrevious(Registry registry, RedisConfigurationProperties redisConfigurationProperties) {
     if (redisConfigurationProperties.connection == redisConfigurationProperties.connectionPrevious || redisConfigurationProperties.connectionPrevious == null) {
       return null
     }
-    return createPool(null, redisConfigurationProperties.connectionPrevious, 1000)
+    return createPool(registry, null, redisConfigurationProperties.connectionPrevious, 1000, "previousDefault")
   }
 
   @Bean
