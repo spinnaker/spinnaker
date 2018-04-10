@@ -71,6 +71,9 @@ class ContextParameterProcessorSpec extends Specification {
     'support SPEL string methods with args'     | '${ replaceTest.replaceAll("-","") }'                       | 'stackwithhyphens'
     'make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'                         | 'stackwithhyphens'
     'make any string alphanumerical for deploy' | '''${#readJson('{ "newValue":"two" }')[#root.replaceMe]}''' | 'two' // [#root.parameters.cluster]
+    'support composite expression'              | 'a.${replaceMe}.b.${replaceMe}'                             | 'a.newValue.b.newValue'
+    'leave unresolved expressions alone'        | 'a.${ENV1}.b.${ENV2}'                                       | 'a.${ENV1}.b.${ENV2}'
+    'support partial resolution for composites' | 'a.${ENV1}.b.${replaceMe}'                                  | 'a.${ENV1}.b.newValue'
   }
 
   @Unroll
@@ -205,7 +208,6 @@ class ContextParameterProcessorSpec extends Specification {
 
     where:
     desc                                      | sourceValue              | expectedValue            | allowUnknownKeys
-    'should blank out null'                   | '${noexists}-foo'        | '-foo'                   | true
     'should leave alone non existing'         | '${noexists}-foo'        | '${noexists}-foo'        | false
     'should handle elvis'                     | '${noexists ?: "bacon"}' | 'bacon'                  | true
     'should leave elvis expression untouched' | '${noexists ?: "bacon"}' | '${noexists ?: "bacon"}' | false
@@ -854,6 +856,36 @@ class ContextParameterProcessorSpec extends Specification {
     then:
     result.judgment == expectedJudmentInput
     notThrown(SpelHelperFunctionException)
+  }
+
+  def "should get stage status as String"() {
+    given:
+    def pipe = pipeline {
+      stage {
+        refId = "1"
+        type = "wait"
+        name = "wait stage"
+        context = [status: '${#stage("manualJudgment stage")["status"]}']
+      }
+      stage {
+        refId = "2"
+        type = "manualJudgment"
+        name = "manualJudgment stage"
+        status = SUCCEEDED
+        context = [judgmentInput: "Real Judgment input"]
+      }
+    }
+
+    and:
+    def stage = pipe.stageByRef("1")
+    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+
+    when:
+    def result = contextParameterProcessor.process(stage.context, ctx, true)
+
+    then:
+    result.status == "SUCCEEDED"
+    result.status instanceof String
   }
 
   static escapeExpression(String expression) {

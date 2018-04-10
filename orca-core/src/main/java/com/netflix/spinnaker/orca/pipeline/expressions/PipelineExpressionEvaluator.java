@@ -37,9 +37,9 @@ public class PipelineExpressionEvaluator extends ExpressionsSupport implements E
   }
 
   @Override
-  public Map<String, Object> evaluate(Map<String, Object> source, Object rootObject, ExpressionEvaluationSummary summary, boolean ignoreUnknownProperties) {
-    StandardEvaluationContext evaluationContext = newEvaluationContext(rootObject, ignoreUnknownProperties);
-    return new ExpressionTransform(parserContext, parser).transform(source, evaluationContext, summary);
+  public Map<String, Object> evaluate(Map<String, Object> source, Object rootObject, ExpressionEvaluationSummary summary, boolean allowUnknownKeys) {
+    StandardEvaluationContext evaluationContext = newEvaluationContext(rootObject, allowUnknownKeys);
+    return new ExpressionTransform(parserContext, parser).transformMap(source, evaluationContext, summary);
   }
 }
 
