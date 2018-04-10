@@ -17,6 +17,8 @@ export interface IWizardPageProps {
 }
 
 export interface IWizardPageState {
+  hasErrors: boolean;
+  isDirty: boolean;
   label: string;
 }
 
@@ -41,6 +43,8 @@ export function wizardPage<P = {}>(
     constructor(props: P & IWizardPageProps) {
       super(props);
       this.state = {
+        hasErrors: false,
+        isDirty: false,
         label: WizardPage.label,
       };
     }
@@ -53,6 +57,13 @@ export function wizardPage<P = {}>(
       this.props.onMount(undefined);
     }
 
+    private dirtyCallback(name: string, dirty: boolean): void {
+      if (name === this.state.label) {
+        this.setState({ isDirty: dirty });
+        this.props.dirtyCallback(name, dirty);
+      }
+    }
+
     private handleRef(element: any) {
       if (element) {
         this.element = element;
@@ -61,17 +72,21 @@ export function wizardPage<P = {}>(
 
     private handleWrappedRef(wrappedComponent: any) {
       if (wrappedComponent) {
-        this.validate = wrappedComponent.validate;
+        this.validate = (values: { [key: string]: any }) => {
+          const errors = wrappedComponent.validate(values);
+          this.setState({ hasErrors: Object.keys(errors).length > 0 });
+          return errors;
+        }
       }
     }
 
     public render() {
-      const { dirtyCallback, dirty, done, mandatory } = this.props;
-      const { label } = this.state;
+      const { done, mandatory } = this.props;
+      const { hasErrors, isDirty, label } = this.state;
       const showDone = done || !mandatory;
       const className = classNames({
         default: !showDone,
-        dirty,
+        dirty: hasErrors || isDirty,
         done: showDone,
       });
 
@@ -81,7 +96,7 @@ export function wizardPage<P = {}>(
             <h4 className={className}>{label}</h4>
           </div>
           <div className="wizard-page-body">
-            <WrappedComponent {...this.props} dirtyCallback={dirtyCallback} ref={this.handleWrappedRef} />
+            <WrappedComponent {...this.props} dirtyCallback={this.dirtyCallback} ref={this.handleWrappedRef} />
           </div>
         </div>
       );
