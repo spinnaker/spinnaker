@@ -1,7 +1,6 @@
 import * as spel2js from 'spel2js';
-import { SpelExpression } from 'spel2js';
 
-export function parseSpelExpressions(template: string): SpelExpression[] {
+export function parseSpelExpressions(template: string): spel2js.SpelExpression[] {
   const spelExpressions = new TemplateAwareExpressionParser().parseExpressions(template);
 
   // A Monkey patch which adds the current context when an exception occurs
@@ -109,8 +108,8 @@ class TemplateAwareExpressionParser {
    * @return the parsed expressions
    * @throws ParseException when the expressions cannot be parsed
    */
-  public parseExpressions(expressionString: string): SpelExpression[] {
-    const expressions: SpelExpression[] = [];
+  public parseExpressions(expressionString: string): spel2js.SpelExpression[] {
+    const expressions: spel2js.SpelExpression[] = [];
     const prefix = '${';
     const suffix = '}';
 

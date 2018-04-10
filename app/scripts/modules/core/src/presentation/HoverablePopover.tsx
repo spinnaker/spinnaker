@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { HTMLProps } from 'react';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import { Observable, Subject } from 'rxjs';
 import { BindAll } from 'lodash-decorators';
@@ -13,7 +12,7 @@ export interface IHoverablePopoverContentsProps extends IHoverablePopoverProps {
   hidePopover: () => void;
 }
 
-export interface IHoverablePopoverProps extends HTMLProps<any> {
+export interface IHoverablePopoverProps extends React.HTMLProps<any> {
   /** The popover contents (simple mode) */
   value?: string;
   /** The popover contents (advanced mode) */

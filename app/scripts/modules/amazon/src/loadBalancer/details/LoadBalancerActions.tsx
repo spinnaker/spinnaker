@@ -28,7 +28,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
 
     const { app, loadBalancer } = this.props;
 
-    let application: Application = undefined;
+    let application: Application;
 
     const loadBalancerAppName = loadBalancer.name.split('-')[0];
     if (loadBalancerAppName === app.name) {

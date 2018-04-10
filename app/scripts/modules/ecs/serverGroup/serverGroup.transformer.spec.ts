@@ -1,8 +1,13 @@
 import { mock, IQService, IRootScopeService, IScope } from 'angular';
 
 import { ECS_SERVER_GROUP_TRANSFORMER, EcsServerGroupTransformer } from './serverGroup.transformer';
-import { IScalingPolicyAlarmView, IAmazonServerGroup, IStepAdjustment } from '@spinnaker/amazon';
-import { VPC_READ_SERVICE, VpcReader } from '@spinnaker/amazon';
+import {
+  IScalingPolicyAlarmView,
+  IAmazonServerGroup,
+  IStepAdjustment,
+  VPC_READ_SERVICE,
+  VpcReader,
+} from '@spinnaker/amazon';
 
 describe('ecsServerGroupTransformer', () => {
   let transformer: EcsServerGroupTransformer, vpcReader: VpcReader, $q: IQService, $scope: IScope;

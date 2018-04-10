@@ -15,8 +15,7 @@ import {
   HoverablePopover,
 } from '@spinnaker/core';
 
-import { AmazonLoadBalancerDataUtils } from '@spinnaker/amazon';
-import { IAmazonServerGroup, ITargetGroup } from '@spinnaker/amazon';
+import { AmazonLoadBalancerDataUtils, IAmazonServerGroup, ITargetGroup } from '@spinnaker/amazon';
 
 interface ILoadBalancerListItemProps {
   loadBalancer: ILoadBalancer | ITargetGroup;

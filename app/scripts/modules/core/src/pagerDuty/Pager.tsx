@@ -31,14 +31,16 @@ export interface IUserDisplay {
   url: string;
 }
 
-export type UserList = { [level: number]: IUserDisplay[] };
-export type OnCallsByService = {
-  users?: UserList;
+export interface IUserList {
+  [level: number]: IUserDisplay[];
+}
+export interface IOnCallsByService {
+  users?: IUserList;
   applications: IApplicationSummary[];
   last: moment.Moment;
   service: IPagerDutyService;
   searchString: string;
-};
+}
 
 export interface IPagerProps {}
 
@@ -51,7 +53,7 @@ export interface IPagerState {
   selectedKeys: Map<string, IPagerDutyService>;
   sortBy: string;
   sortDirection: SortDirectionType;
-  sortedData: OnCallsByService[];
+  sortedData: IOnCallsByService[];
 }
 
 const paddingStyle = { paddingTop: '15px', paddingBottom: '15px' };
@@ -82,7 +84,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     defaultHeight: 50,
     fixedWidth: true,
   });
-  private allData: OnCallsByService[] = [];
+  private allData: IOnCallsByService[] = [];
   private searchApi = new SearchApi();
 
   constructor(props: IPagerProps) {
@@ -117,7 +119,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     });
   }
 
-  private sortByFunction(a: OnCallsByService, b: OnCallsByService, sortBy: string): number {
+  private sortByFunction(a: IOnCallsByService, b: IOnCallsByService, sortBy: string): number {
     if (sortBy === 'service') {
       return a.service.name.localeCompare(b.service.name);
     }
@@ -145,7 +147,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     }
   }
 
-  public sortList(sortedData: OnCallsByService[], sortBy: string, sortDirection: SortDirectionType): void {
+  public sortList(sortedData: IOnCallsByService[], sortBy: string, sortDirection: SortDirectionType): void {
     if (sortBy) {
       sortedData.sort((a, b) => this.sortByFunction(a, b, sortBy));
       if (sortDirection === SortDirection.DESC) {
@@ -223,11 +225,11 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     applications: IApplicationSummary[],
     onCalls: { [id: string]: IOnCall[] },
     services: IPagerDutyService[],
-  ): OnCallsByService[] {
+  ): IOnCallsByService[] {
     return services
       .map(service => {
         // connect the users attached to the service by way of escalation policy
-        let users: UserList;
+        let users: IUserList;
         const searchTokens: string[] = [service.name];
         const levels = onCalls[service.policy];
         if (levels) {
@@ -343,7 +345,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   }
 
   private onCallRenderer(data: TableCellProps): React.ReactNode {
-    const onCalls: UserList = data.cellData;
+    const onCalls: IUserList = data.cellData;
     return (
       <CellMeasurer
         cache={this.cache}

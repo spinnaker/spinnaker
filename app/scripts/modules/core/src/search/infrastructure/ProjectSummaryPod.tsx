@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { MouseEvent } from 'react';
 import { BindAll } from 'lodash-decorators';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
@@ -19,7 +18,7 @@ export interface IProjectSummaryPodProps {
 @UIRouterContext
 @BindAll()
 export class ProjectSummaryPod extends React.Component<IProjectSummaryPodProps> {
-  private handleRemoveClicked(evt: MouseEvent<any>) {
+  private handleRemoveClicked(evt: React.MouseEvent<any>) {
     evt.preventDefault();
     this.props.onRemoveProject(this.props.id);
   }

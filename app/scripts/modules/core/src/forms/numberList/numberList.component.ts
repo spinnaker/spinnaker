@@ -1,14 +1,14 @@
 import { IController, IComponentOptions, module } from 'angular';
 import './numberList.component.less';
 
-export interface NumberListConstraints {
+export interface INumberListConstraints {
   min: number;
   max: number;
 }
 
 export class NumberListController implements IController {
   public model: number[] | string;
-  public constraints: NumberListConstraints;
+  public constraints: INumberListConstraints;
   public label: string;
   public backingModel: number[];
   public parameterized: boolean;

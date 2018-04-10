@@ -5,7 +5,6 @@ import { truncate } from 'lodash';
 
 import { Markdown } from 'core/presentation/Markdown';
 
-import '../spel2js.templateParser';
 import { Modal } from 'react-bootstrap';
 
 export interface IExpressionInputProps {

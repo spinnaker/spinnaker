@@ -42,7 +42,7 @@ interface IClusterFilter {
 }
 
 class UrlBuilderUtils {
-  private static forEachSorted(obj: any, iterator: Function, context: any = undefined): void {
+  private static forEachSorted(obj: any, iterator: Function, context?: any): void {
     const keys: string[] = Object.keys(obj).sort();
     keys.forEach((key: string) => {
       iterator.call(context, obj[key], key);

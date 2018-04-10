@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { SCROLL_TO_SERVICE, ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 
-export interface WizardPageState {
+export interface IWizardPageState {
   done: boolean;
   blocked: boolean;
   rendered: boolean;
@@ -11,16 +11,16 @@ export interface WizardPageState {
   required: boolean;
 }
 
-export interface WizardPage {
-  state: WizardPageState;
+export interface IWizardPage {
+  state: IWizardPageState;
   key: string;
   label: string;
 }
 
 export class V2ModalWizardService {
-  public renderedPages: WizardPage[] = [];
-  public pageRegistry: WizardPage[] = [];
-  public currentPage: WizardPage;
+  public renderedPages: IWizardPage[] = [];
+  public pageRegistry: IWizardPage[] = [];
+  public currentPage: IWizardPage;
   public heading: string;
 
   public constructor(private scrollToService: ScrollToService) {}
@@ -29,7 +29,7 @@ export class V2ModalWizardService {
     this.heading = heading;
   }
 
-  public getPage(key: string): WizardPage {
+  public getPage(key: string): IWizardPage {
     return this.pageRegistry.find(p => p.key === key);
   }
 
@@ -49,7 +49,7 @@ export class V2ModalWizardService {
     this.getPage(key).state.done = false;
   }
 
-  public setCurrentPage(page: WizardPage, skipScroll?: boolean): void {
+  public setCurrentPage(page: IWizardPage, skipScroll?: boolean): void {
     this.pageRegistry.forEach(test => (test.state.current = test === page));
     this.currentPage = page;
     this.markClean(page.key);
@@ -63,7 +63,7 @@ export class V2ModalWizardService {
     }
   }
 
-  public registerPage(key: string, label: string, state?: WizardPageState): void {
+  public registerPage(key: string, label: string, state?: IWizardPageState): void {
     state = state || {
       done: false,
       blocked: true,
@@ -78,7 +78,7 @@ export class V2ModalWizardService {
   }
 
   public renderPages(): void {
-    const renderedPages: WizardPage[] = this.pageRegistry.filter(page => page.state.rendered);
+    const renderedPages: IWizardPage[] = this.pageRegistry.filter(page => page.state.rendered);
     this.renderedPages = renderedPages;
     if (renderedPages.length === 1) {
       this.setCurrentPage(renderedPages[0]);

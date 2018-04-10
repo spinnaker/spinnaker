@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 
-import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, Application } from 'core/application';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
-import { Application } from 'core/application';
 import { SkinService } from 'core/cloudProvider';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';

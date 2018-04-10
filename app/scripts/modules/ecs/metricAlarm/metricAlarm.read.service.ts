@@ -1,14 +1,14 @@
 import { module } from 'angular';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
-import { MetricAlarmDescriptor } from './MetricAlarm';
+import { IMetricAlarmDescriptor } from './MetricAlarm';
 
 export class MetricAlarmReader {
   public constructor(private API: Api) {
     'ngInject';
   }
 
-  public listMetricAlarms(): ng.IPromise<MetricAlarmDescriptor[]> {
+  public listMetricAlarms(): ng.IPromise<IMetricAlarmDescriptor[]> {
     return this.API.all('ecs')
       .all('cloudMetrics')
       .all('alarms')

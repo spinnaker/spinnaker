@@ -2,9 +2,8 @@ import * as React from 'react';
 import * as DOMPurify from 'dompurify';
 import * as $ from 'jquery';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
+import { BindAll, Debounce, Throttle } from 'lodash-decorators';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
-import { Debounce, Throttle } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { IExecution, IPipeline } from 'core/domain';

@@ -1,6 +1,5 @@
 import * as React from 'react';
-import * as angular from 'angular';
-import { IScope } from 'angular';
+import { IScope, element } from 'angular';
 import { $compile, $controller, $templateRequest } from 'ngimport';
 
 export interface IRenderAngularJSBaseProps extends React.HTMLProps<HTMLDivElement> {
@@ -52,7 +51,7 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
     controllerAs?: string,
     locals?: object,
   ) {
-    const $element = angular.element(ref);
+    const $element = element(ref);
     const parentScope = $element.scope();
     const $scope = (this.$scope = parentScope.$new());
     $scope.props = this.props;

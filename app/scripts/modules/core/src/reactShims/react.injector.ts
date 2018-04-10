@@ -71,6 +71,7 @@ export abstract class ReactInject {
   public abstract initialize($injector: IInjectorService): void;
 }
 
+// prettier-ignore
 export class CoreReactInject extends ReactInject {
   // weird service because we wrap it
   private wrappedState: StateService;
@@ -83,214 +84,80 @@ export class CoreReactInject extends ReactInject {
   }
 
   // Services
-  public get $q() {
-    return this.$injector.get('$q') as IQService;
-  }
-  public get $rootScope() {
-    return this.$injector.get('$rootScope') as IScope;
-  }
-  public get $stateParams() {
-    return this.$injector.get('$stateParams') as StateParams;
-  }
-  public get $uiRouter() {
-    return this.$injector.get('$uiRouter') as UIRouter;
-  }
-  public get API() {
-    return this.$injector.get('API') as Api;
-  }
-  public get accountService() {
-    return this.$injector.get('accountService') as AccountService;
-  }
-  public get applicationDataSourceRegistry() {
-    return this.$injector.get('applicationDataSourceRegistry') as ApplicationDataSourceRegistry;
-  }
-  public get applicationModelBuilder() {
-    return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder;
-  }
-  public get applicationReader() {
-    return this.$injector.get('applicationReader') as ApplicationReader;
-  }
-  public get authenticationService() {
-    return this.$injector.get('authenticationService') as AuthenticationService;
-  }
-  public get cacheInitializer() {
-    return this.$injector.get('cacheInitializer') as CacheInitializerService;
-  }
-  public get cancelModalService() {
-    return this.$injector.get('cancelModalService') as CancelModalService;
-  }
-  public get cloudProviderRegistry() {
-    return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry;
-  }
-  public get clusterFilterModel() {
-    return this.$injector.get('clusterFilterModel') as ClusterFilterModel;
-  }
-  public get clusterFilterService() {
-    return this.$injector.get('clusterFilterService') as ClusterFilterService;
-  }
-  public get clusterTargetBuilder() {
-    return this.$injector.get('clusterTargetBuilder') as ClusterTargetBuilder;
-  }
-  public get collapsibleSectionStateCache() {
-    return this.$injector.get('collapsibleSectionStateCache') as CollapsibleSectionStateCache;
-  }
-  public get confirmationModalService() {
-    return this.$injector.get('confirmationModalService') as ConfirmationModalService;
-  }
-  public get entityTagWriter() {
-    return this.$injector.get('entityTagWriter') as EntityTagWriter;
-  }
-  public get executionDetailsSectionService() {
-    return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService;
-  }
-  public get executionFilterModel() {
-    return this.$injector.get('executionFilterModel') as ExecutionFilterModel;
-  }
-  public get executionFilterService() {
-    return this.$injector.get('executionFilterService') as ExecutionFilterService;
-  }
-  public get executionService() {
-    return this.$injector.get('executionService') as ExecutionService;
-  }
-  public get executionsTransformer() {
-    return this.$injector.get('executionsTransformer') as ExecutionsTransformerService;
-  }
-  public get helpContents() {
-    return this.$injector.get('helpContents') as IHelpContents;
-  }
-  public get helpContentsRegistry() {
-    return this.$injector.get('helpContentsRegistry') as HelpContentsRegistry;
-  }
-  public get infrastructureCaches() {
-    return this.$injector.get('infrastructureCaches') as InfrastructureCacheService;
-  }
-  public get infrastructureSearchService() {
-    return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService;
-  }
-  public get infrastructureSearchServiceV2() {
-    return this.$injector.get('infrastructureSearchServiceV2') as InfrastructureSearchServiceV2;
-  }
-  public get insightFilterStateModel() {
-    return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel;
-  }
-  public get loadBalancerFilterModel() {
-    return this.$injector.get('loadBalancerFilterModel') as LoadBalancerFilterModel;
-  }
-  public get loadBalancerFilterService() {
-    return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService;
-  }
-  public get loadBalancerWriter() {
-    return this.$injector.get('loadBalancerWriter') as LoadBalancerWriter;
-  }
-  public get manualJudgmentService() {
-    return this.$injector.get('manualJudgmentService') as ManualJudgmentService;
-  }
-  public get modalService(): IModalService {
-    return this.$injector.get('$uibModal') as IModalService;
-  }
-  public get MultiselectModel() {
-    return this.$injector.get('MultiselectModel') as any;
-  }
-  public get namingService() {
-    return this.$injector.get('namingService') as NamingService;
-  }
-  public get notifierService() {
-    return this.$injector.get('notifierService') as NotifierService;
-  }
-  public get overrideRegistry() {
-    return this.$injector.get('overrideRegistry') as OverrideRegistry;
-  }
-  public get pagerDutyReader() {
-    return this.$injector.get('pagerDutyReader') as PagerDutyReader;
-  }
-  public get pagerDutyWriter() {
-    return this.$injector.get('pagerDutyWriter') as PagerDutyWriter;
-  }
-  public get pageTitleService() {
-    return this.$injector.get('pageTitleService') as PageTitleService;
-  }
-  public get pipelineConfig() {
-    return this.$injector.get('pipelineConfig') as PipelineConfigProvider;
-  }
-  public get pipelineConfigService() {
-    return this.$injector.get('pipelineConfigService') as PipelineConfigService;
-  }
-  public get pipelineConfigValidator() {
-    return this.$injector.get('pipelineConfigValidator') as PipelineConfigValidator;
-  }
-  public get pipelineTemplateService() {
-    return this.$injector.get('pipelineTemplateService') as PipelineTemplateService;
-  }
-  public get providerSelectionService() {
-    return this.$injector.get('providerSelectionService') as ProviderSelectionService;
-  }
-  public get schedulerFactory() {
-    return this.$injector.get('schedulerFactory') as SchedulerFactory;
-  }
-  public get scrollToService() {
-    return this.$injector.get('scrollToService') as ScrollToService;
-  }
-  public get securityGroupReader() {
-    return this.$injector.get('securityGroupReader') as SecurityGroupReader;
-  }
-  public get serverGroupReader() {
-    return this.$injector.get('serverGroupReader') as ServerGroupReader;
-  }
-  public get serverGroupWarningMessageService() {
-    return this.$injector.get('serverGroupWarningMessageService') as ServerGroupWarningMessageService;
-  }
-  public get serverGroupWriter() {
-    return this.$injector.get('serverGroupWriter') as ServerGroupWriter;
-  }
-  public get subnetReader() {
-    return this.$injector.get('subnetReader') as SubnetReader;
-  }
-  public get recentHistoryService() {
-    return this.$injector.get('recentHistoryService') as RecentHistoryService;
-  }
-  public get searchService() {
-    return this.$injector.get('searchService') as SearchService;
-  }
-  public get stateEvents() {
-    return this.$injector.get('stateEvents') as StateEvents;
-  }
-  public get taskExecutor() {
-    return this.$injector.get('taskExecutor') as TaskExecutor;
-  }
-  public get taskReader() {
-    return this.$injector.get('taskReader') as TaskReader;
-  }
-  public get taskMonitorBuilder() {
-    return this.$injector.get('taskMonitorBuilder') as TaskMonitorBuilder;
-  }
-  public get urlBuilderService() {
-    return this.$injector.get('urlBuilderService') as UrlBuilderService;
-  }
-  public get variableInputService() {
-    return this.$injector.get('variableInputService') as VariableInputService;
-  }
-  public get variableValidatorService() {
-    return this.$injector.get('variableValidatorService') as VariableValidatorService;
-  }
-  public get skinSelectionService() {
-    return this.$injector.get('skinSelectionService') as SkinSelectionService;
-  }
-  public get skinService() {
-    return this.$injector.get('skinService') as SkinService;
-  }
-  public get viewStateCache() {
-    return this.$injector.get('viewStateCache') as ViewStateCacheService;
-  }
-  public get waypointService() {
-    return this.$injector.get('waypointService') as WaypointService;
-  }
+  public get $q() { return this.$injector.get('$q') as IQService; }
+  public get $rootScope() { return this.$injector.get('$rootScope') as IScope; }
+  public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
+  public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
+  public get API() { return this.$injector.get('API') as Api; }
+  public get accountService() { return this.$injector.get('accountService') as AccountService; }
+  public get applicationDataSourceRegistry() { return this.$injector.get('applicationDataSourceRegistry') as ApplicationDataSourceRegistry; }
+  public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
+  public get applicationReader() { return this.$injector.get('applicationReader') as ApplicationReader; }
+  public get authenticationService() { return this.$injector.get('authenticationService') as AuthenticationService; }
+  public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
+  public get cancelModalService() { return this.$injector.get('cancelModalService') as CancelModalService; }
+  public get cloudProviderRegistry() { return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry; }
+  public get clusterFilterModel() { return this.$injector.get('clusterFilterModel') as ClusterFilterModel; }
+  public get clusterFilterService() { return this.$injector.get('clusterFilterService') as ClusterFilterService; }
+  public get clusterTargetBuilder() { return this.$injector.get('clusterTargetBuilder') as ClusterTargetBuilder; }
+  public get collapsibleSectionStateCache() { return this.$injector.get('collapsibleSectionStateCache') as CollapsibleSectionStateCache; }
+  public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
+  public get entityTagWriter() { return this.$injector.get('entityTagWriter') as EntityTagWriter; }
+  public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }
+  public get executionFilterModel() { return this.$injector.get('executionFilterModel') as ExecutionFilterModel; }
+  public get executionFilterService() { return this.$injector.get('executionFilterService') as ExecutionFilterService; }
+  public get executionService() { return this.$injector.get('executionService') as ExecutionService; }
+  public get executionsTransformer() { return this.$injector.get('executionsTransformer') as ExecutionsTransformerService; }
+  public get helpContents() { return this.$injector.get('helpContents') as IHelpContents }
+  public get helpContentsRegistry() { return this.$injector.get('helpContentsRegistry') as HelpContentsRegistry; }
+  public get infrastructureCaches() { return this.$injector.get('infrastructureCaches') as InfrastructureCacheService; }
+  public get infrastructureSearchService() { return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService; }
+  public get infrastructureSearchServiceV2() { return this.$injector.get('infrastructureSearchServiceV2') as InfrastructureSearchServiceV2; }
+  public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
+  public get loadBalancerFilterModel() { return this.$injector.get('loadBalancerFilterModel') as LoadBalancerFilterModel; }
+  public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
+  public get loadBalancerWriter() { return this.$injector.get('loadBalancerWriter') as LoadBalancerWriter; }
+  public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
+  public get modalService(): IModalService { return this.$injector.get('$uibModal') as IModalService; }
+  public get MultiselectModel() { return this.$injector.get('MultiselectModel') as any; }
+  public get namingService() { return this.$injector.get('namingService') as NamingService; }
+  public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
+  public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
+  public get pagerDutyReader() { return this.$injector.get('pagerDutyReader') as PagerDutyReader; }
+  public get pagerDutyWriter() { return this.$injector.get('pagerDutyWriter') as PagerDutyWriter; }
+  public get pageTitleService() { return this.$injector.get('pageTitleService') as PageTitleService; }
+  public get pipelineConfig() { return this.$injector.get('pipelineConfig') as PipelineConfigProvider; }
+  public get pipelineConfigService() { return this.$injector.get('pipelineConfigService') as PipelineConfigService; }
+  public get pipelineConfigValidator() { return this.$injector.get('pipelineConfigValidator') as PipelineConfigValidator; }
+  public get pipelineTemplateService() { return this.$injector.get('pipelineTemplateService') as PipelineTemplateService; }
+  public get providerSelectionService() { return this.$injector.get('providerSelectionService') as ProviderSelectionService; }
+  public get schedulerFactory() { return this.$injector.get('schedulerFactory') as SchedulerFactory; }
+  public get scrollToService() { return this.$injector.get('scrollToService') as ScrollToService; }
+  public get securityGroupReader() { return this.$injector.get('securityGroupReader') as SecurityGroupReader; }
+  public get serverGroupReader() { return this.$injector.get('serverGroupReader') as ServerGroupReader; }
+  public get serverGroupWarningMessageService() { return this.$injector.get('serverGroupWarningMessageService') as ServerGroupWarningMessageService; }
+  public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }
+  public get subnetReader() { return this.$injector.get('subnetReader') as SubnetReader; }
+  public get recentHistoryService() { return this.$injector.get('recentHistoryService') as RecentHistoryService; }
+  public get searchService() { return this.$injector.get('searchService') as SearchService; }
+  public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
+  public get taskExecutor() { return this.$injector.get('taskExecutor') as TaskExecutor; }
+  public get taskReader() { return this.$injector.get('taskReader') as TaskReader; }
+  public get taskMonitorBuilder() { return this.$injector.get('taskMonitorBuilder') as TaskMonitorBuilder; }
+  public get urlBuilderService() { return this.$injector.get('urlBuilderService') as UrlBuilderService; }
+  public get variableInputService() { return this.$injector.get('variableInputService') as VariableInputService; }
+  public get variableValidatorService() { return this.$injector.get('variableValidatorService') as VariableValidatorService; }
+  public get skinSelectionService() { return this.$injector.get('skinSelectionService') as SkinSelectionService; }
+  public get skinService() { return this.$injector.get('skinService') as SkinService; }
+  public get viewStateCache() { return this.$injector.get('viewStateCache') as ViewStateCacheService; }
+  public get waypointService() { return this.$injector.get('waypointService') as WaypointService; }
 
   private createStateService(): StateService {
     const wrappedState = Object.create(this.$injector.get('$state')) as StateService;
     const $rootScope = this.$injector.get('$rootScope') as IRootScopeService;
     const $q = this.$injector.get('$q') as IQService;
     const originalGo = wrappedState.go;
-    wrappedState.go = function() {
+    wrappedState.go = function () {
       const args = arguments;
       const deferred = $q.defer();
       const promise = Object.create(deferred);

@@ -6,11 +6,10 @@ import { SETTINGS } from 'core/config';
 import { UrlBuilderService, URL_BUILDER_SERVICE, IQueryParams } from 'core/navigation';
 
 import { ISearchResultSet } from './infrastructureSearch.service';
-import { ISearchResults } from '../search.service';
+import { ISearchResult, SEARCH_SERVICE, ISearchResults } from '../search.service';
 import { SearchResultType } from '../searchResult/searchResultType';
 import { SearchStatus } from '../searchResult/SearchResults';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
-import { ISearchResult, SEARCH_SERVICE } from '../search.service';
 
 export class InfrastructureSearchServiceV2 {
   private EMPTY_RESULTS: ISearchResultSet[] = searchResultTypeRegistry

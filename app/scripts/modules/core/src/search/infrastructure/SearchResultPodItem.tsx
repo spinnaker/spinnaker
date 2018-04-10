@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { MouseEvent } from 'react';
 import { UISref } from '@uirouter/react';
 import { BindAll } from 'lodash-decorators';
 import { UIRouterContext } from '@uirouter/react-hybrid';
@@ -19,7 +18,7 @@ export interface ISearchResultPodItemProps {
 @UIRouterContext
 @BindAll()
 export class SearchResultPodItem extends React.Component<ISearchResultPodItemProps> {
-  private handleRemoveClicked(evt: MouseEvent<any>, categoryName: string, itemId: string) {
+  private handleRemoveClicked(evt: React.MouseEvent<any>, categoryName: string, itemId: string) {
     evt.preventDefault();
     this.props.onRemoveItem(categoryName, itemId);
   }

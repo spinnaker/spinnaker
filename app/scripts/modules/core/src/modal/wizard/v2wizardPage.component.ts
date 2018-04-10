@@ -16,7 +16,7 @@ import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
  *     scrolled into view
  */
 
-export interface WizardPageState {
+export interface IWizardPageState {
   rendered: boolean;
   done: boolean;
   dirty: boolean;
@@ -68,7 +68,7 @@ export class WizardPageController implements IController {
   /**
    * Internal state of the page, initialized based on other public fields
    */
-  public state: WizardPageState;
+  public state: IWizardPageState;
 
   public constructor(private $scope: ng.IScope, private v2modalWizardService: any) {
     'ngInject';

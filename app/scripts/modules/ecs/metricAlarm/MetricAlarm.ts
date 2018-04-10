@@ -1,4 +1,4 @@
-export interface MetricAlarmDescriptor {
+export interface IMetricAlarmDescriptor {
   accountName: string;
   region: string;
   alarmName: string;

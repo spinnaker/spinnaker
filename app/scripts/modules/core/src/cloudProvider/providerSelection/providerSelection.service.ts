@@ -2,9 +2,7 @@ import { IModalService } from 'angular-ui-bootstrap';
 import { IPromise, module, IQService } from 'angular';
 import { uniq } from 'lodash';
 
-import { IAccountDetails } from 'core/account/account.service';
-
-import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { IAccountDetails, ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { Application } from 'core/application/application.model';
 import {
   CLOUD_PROVIDER_REGISTRY,

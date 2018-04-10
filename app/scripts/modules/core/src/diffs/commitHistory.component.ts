@@ -1,6 +1,4 @@
-import { module } from 'angular';
-
-import { IComponentOptions } from 'angular';
+import { module, IComponentOptions } from 'angular';
 
 export interface ICommit {
   authorDisplayName: string;

@@ -19,8 +19,7 @@ export function anyFieldFilter() {
         let itemMatches = false;
 
         const keys: any[] = Object.keys(props);
-        for (let i = 0; i < keys.length; i++) {
-          const prop: any = keys[i];
+        for (const prop of keys) {
           const text: string = (<any>props)[prop].toLowerCase();
           if (
             item[prop] &&

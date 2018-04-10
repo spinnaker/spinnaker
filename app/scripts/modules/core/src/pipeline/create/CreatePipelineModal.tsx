@@ -1,12 +1,10 @@
 import * as React from 'react';
-import { MouseEvent } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import Select, { Option } from 'react-select';
-import { BindAll } from 'lodash-decorators';
+import { BindAll, Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { IHttpPromiseCallbackArg } from 'angular';
 import { cloneDeep, get, uniqBy } from 'lodash';
-import { Debounce } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { IPipeline } from 'core/domain/IPipeline';
@@ -190,7 +188,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     });
   }
 
-  public close(evt?: MouseEvent<any>): void {
+  public close(evt?: React.MouseEvent<any>): void {
     evt && evt.stopPropagation();
     this.setState(this.getDefaultState());
     this.props.showCallback(false);

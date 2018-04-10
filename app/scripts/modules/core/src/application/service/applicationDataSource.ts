@@ -122,7 +122,6 @@ export interface IDataSourceConfig {
    * (Optional) The application has potentially two default fields for each provider: region and credentials. These fields will
    * only have a value if every data source that contributes values has just one unique value for each provider. Useful
    * for setting initial values in modal dialogs when creating new server groups, load balancers, etc.
-
    * If the data source should contribute to the application's default region or credentials, this field should be set
    * to the field name that represents the provider on each data item.
    */

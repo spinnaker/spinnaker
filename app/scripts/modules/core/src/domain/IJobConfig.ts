@@ -1,4 +1,4 @@
-export interface ParameterDefinitionList {
+export interface IParameterDefinitionList {
   defaultValue: string;
   description?: string;
   name: string;
@@ -10,6 +10,6 @@ export interface IJobConfig {
   description: string;
   displayName: string;
   name: string;
-  parameterDefinitionList: ParameterDefinitionList[];
+  parameterDefinitionList: IParameterDefinitionList[];
   url: string;
 }

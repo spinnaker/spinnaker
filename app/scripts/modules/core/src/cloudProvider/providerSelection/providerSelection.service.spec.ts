@@ -3,12 +3,10 @@ import { Application } from 'core/application/application.model';
 import { mock, IQService, IScope, IRootScopeService } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { ACCOUNT_SERVICE, AccountService, IAccountDetails } from 'core/account/account.service';
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
 import { PROVIDER_SELECTION_SERVICE, ProviderSelectionService } from './providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
-
-import { IAccountDetails } from 'core/account/account.service';
 
 function fakeAccount(provider: string): IAccountDetails {
   return {

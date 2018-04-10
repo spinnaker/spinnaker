@@ -11,8 +11,9 @@ import {
   IStepAdjustmentView,
   IScalingPolicy,
   IAmazonServerGroupView,
+  VPC_READ_SERVICE,
+  VpcReader,
 } from '@spinnaker/amazon';
-import { VPC_READ_SERVICE, VpcReader } from '@spinnaker/amazon';
 
 export class EcsServerGroupTransformer {
   public constructor(private vpcReader: VpcReader) {

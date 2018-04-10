@@ -5,7 +5,7 @@ import {
 } from '../authentication/authentication.initializer.service';
 import { SETTINGS } from 'core/config/settings';
 
-interface DefaultParams {
+interface IDefaultParams {
   timeout: number;
   headers: { [key: string]: string };
 }
@@ -26,7 +26,7 @@ export interface IRequestBuilder {
 
 export class Api {
   private gateUrl: string;
-  private defaultParams: DefaultParams;
+  private defaultParams: IDefaultParams;
 
   constructor(
     private $q: IQService,

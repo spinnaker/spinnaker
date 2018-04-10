@@ -1,4 +1,3 @@
-import { ChangeEvent } from 'react';
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
@@ -19,7 +18,7 @@ export interface IUserVerificationState {
 export class UserVerification extends React.Component<IUserVerificationProps, IUserVerificationState> {
   public state = { value: '', matches: false };
 
-  private handleChange(evt: ChangeEvent<any>) {
+  private handleChange(evt: React.ChangeEvent<any>) {
     const { value } = evt.target;
     const { expectedValue } = this.props;
 

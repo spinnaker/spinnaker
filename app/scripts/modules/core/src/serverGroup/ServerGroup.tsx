@@ -16,12 +16,12 @@ import { ISortFilter } from 'core/filterModel';
 import { ServerGroupHeader } from './ServerGroupHeader';
 import { SETTINGS } from 'core';
 
-export interface JenkinsViewModel {
+export interface IJenkinsViewModel {
   number: number;
   href?: string;
 }
 
-export interface DockerViewModel {
+export interface IDockerViewModel {
   image: string;
   tag: string;
   href?: string;
@@ -37,8 +37,8 @@ export interface IServerGroupProps {
 }
 
 export interface IServerGroupState {
-  jenkins: JenkinsViewModel;
-  docker: DockerViewModel;
+  jenkins: IJenkinsViewModel;
+  docker: IDockerViewModel;
   instances: IInstance[];
   images?: string;
 
@@ -64,9 +64,9 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     const jenkinsConfig = serverGroup.buildInfo && serverGroup.buildInfo.jenkins;
     const dockerConfig = serverGroup.buildInfo && serverGroup.buildInfo.docker;
 
-    let jenkins: JenkinsViewModel = null;
+    let jenkins: IJenkinsViewModel = null;
     let images: string = null;
-    let docker: DockerViewModel = null;
+    let docker: IDockerViewModel = null;
 
     if (jenkinsConfig && (jenkinsConfig.host || jenkinsConfig.fullUrl || serverGroup.buildInfo.buildInfoUrl)) {
       const fromHost =

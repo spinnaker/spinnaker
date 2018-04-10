@@ -28,7 +28,7 @@ import { IamRoleReader } from '../../iamRoles/iamRole.read.service';
 import { EscClusterReader } from '../../ecsCluster/ecsCluster.read.service';
 import { MetricAlarmReader } from '../../metricAlarm/metricAlarm.read.service';
 import { IRoleDescriptor } from '../../iamRoles/IRole';
-import { MetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
+import { IMetricAlarmDescriptor } from '../../metricAlarm/MetricAlarm';
 import { PlacementStrategyService } from '../../placementStrategy/placementStrategy.service';
 import { IPlacementStrategy } from '../../placementStrategy/IPlacementStrategy';
 import { IEcsClusterDescriptor } from '../../ecsCluster/IEcsCluster';
@@ -45,7 +45,7 @@ export interface IEcsServerGroupCommandBackingDataFiltered extends IServerGroupC
   targetGroups: string[];
   iamRoles: string[];
   ecsClusters: string[];
-  metricAlarms: MetricAlarmDescriptor[];
+  metricAlarms: IMetricAlarmDescriptor[];
 }
 
 export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBackingData {
@@ -53,7 +53,7 @@ export interface IEcsServerGroupCommandBackingData extends IServerGroupCommandBa
   targetGroups: string[];
   ecsClusters: IEcsClusterDescriptor[];
   iamRoles: IRoleDescriptor[];
-  metricAlarms: MetricAlarmDescriptor[];
+  metricAlarms: IMetricAlarmDescriptor[];
 }
 
 export interface IEcsServerGroupCommand extends IServerGroupCommand {
@@ -182,7 +182,7 @@ export class EcsServerGroupConfigurationService {
         return {
           alarmName: metricAlarm.alarmName,
           alarmArn: metricAlarm.alarmArn,
-        } as MetricAlarmDescriptor;
+        } as IMetricAlarmDescriptor;
       })
       .value();
 

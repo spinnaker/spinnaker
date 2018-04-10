@@ -1,5 +1,5 @@
 import { mock } from 'angular';
-import { NUMBER_LIST_COMPONENT, NumberListConstraints } from './numberList.component';
+import { NUMBER_LIST_COMPONENT, INumberListConstraints } from './numberList.component';
 
 describe('Component: numberList', () => {
   let $compile: ng.ICompileService,
@@ -7,7 +7,7 @@ describe('Component: numberList', () => {
     stringModel: string,
     $scope: ng.IScope,
     elem: any,
-    constraints: NumberListConstraints,
+    constraints: INumberListConstraints,
     onChange: () => any;
 
   beforeEach(mock.module(NUMBER_LIST_COMPONENT));

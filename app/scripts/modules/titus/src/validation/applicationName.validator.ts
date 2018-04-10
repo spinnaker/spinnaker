@@ -35,10 +35,7 @@ class TitusApplicationNameValidator implements IApplicationNameValidator {
       this.validateLength(name, warnings, errors);
     }
 
-    return {
-      warnings: warnings,
-      errors: errors,
-    };
+    return { warnings, errors };
   }
 }
 

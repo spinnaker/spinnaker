@@ -5,7 +5,7 @@ import * as moment from 'moment';
 
 import { SETTINGS } from 'core/config/settings';
 import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
-import { IJobConfig, ParameterDefinitionList, IStage } from 'core/domain';
+import { IJobConfig, IParameterDefinitionList, IStage } from 'core/domain';
 import { TravisExecutionLabel } from './TravisExecutionLabel';
 
 export interface ITravisStageViewState {
@@ -31,7 +31,7 @@ export class TravisStage implements IController {
   public userSuppliedParameters: any;
   public masters: string[];
   public jobs: string[];
-  public jobParams: ParameterDefinitionList[];
+  public jobParams: IParameterDefinitionList[];
   public filterLimit = 100;
   private filterThreshold = 500;
 
@@ -119,7 +119,7 @@ export class TravisStage implements IController {
         this.jobParams = config.parameterDefinitionList;
         this.userSuppliedParameters = stage.parameters;
         this.useDefaultParameters = {};
-        const params = this.jobParams || <ParameterDefinitionList[]>[];
+        const params = this.jobParams || <IParameterDefinitionList[]>[];
         params.forEach((property: any) => {
           if (!(property.name in stage.parameters) && property.defaultValue !== null) {
             this.useDefaultParameters[property.name] = true;

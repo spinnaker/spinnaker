@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 
 import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 
-export interface AutoScrollAttrs extends IAttributes {
+export interface IAutoScrollAttrs extends IAttributes {
   autoScrollEnabled: string;
   autoScroll: string;
 }
@@ -14,7 +14,7 @@ export class AutoScrollController implements IController {
   public onScroll: (event: Event) => void;
   public scrollToTop: Subject<boolean>;
   public $element: JQuery;
-  public $attrs: AutoScrollAttrs;
+  public $attrs: IAutoScrollAttrs;
   public $scope: IScope;
 
   private scrollableContainer: JQuery;
@@ -68,7 +68,7 @@ class AutoScrollDirective implements IDirective {
     scrollToTop: '=?',
   };
 
-  public link($scope: IScope, $element: JQuery, $attrs: AutoScrollAttrs, ctrl: AutoScrollController) {
+  public link($scope: IScope, $element: JQuery, $attrs: IAutoScrollAttrs, ctrl: AutoScrollController) {
     ctrl.$scope = $scope;
     ctrl.$element = $element;
     ctrl.$attrs = $attrs;

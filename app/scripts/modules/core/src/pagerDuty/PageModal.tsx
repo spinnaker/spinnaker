@@ -1,7 +1,6 @@
 import { IDeferred } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import * as React from 'react';
-import { MouseEvent } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 import { BindAll } from 'lodash-decorators';
@@ -75,7 +74,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
     };
   }
 
-  public close(evt?: MouseEvent<any>): void {
+  public close(evt?: React.MouseEvent<any>): void {
     evt && evt.stopPropagation();
     this.setState(this.getDefaultState(this.props));
     this.props.closeCallback(false);

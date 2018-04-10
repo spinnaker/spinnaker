@@ -6,7 +6,7 @@ import { AccountSelectFieldWrapperComponent } from '../account/accountSelectFiel
 import { AddEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
 import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
-import { DiffViewProps } from '../pipeline/config/actions/history/DiffView';
+import { IDiffViewProps } from '../pipeline/config/actions/history/DiffView';
 import { EntitySourceComponent } from 'core/entityTag/entitySource.component';
 import { HelpFieldWrapperComponent } from '../help/helpField.component';
 import { IAccountSelectFieldProps } from 'core/account/AccountSelectField';
@@ -33,92 +33,29 @@ import { ViewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
 import { ViewScalingActivitiesLink } from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
 import { diffViewComponent } from '../pipeline/config/actions/history/diffView.component';
 
+// prettier-ignore
 export class NgReactInjector extends ReactInject {
   public $injectorProxy = {} as IInjectorService;
 
   // Reactified components
-  public AccountSelectField: React.ComponentClass<IAccountSelectFieldProps> = angular2react(
-    'accountSelectFieldWrapper',
-    new AccountSelectFieldWrapperComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps> = angular2react(
-    'addEntityTagLinksWrapper',
-    new AddEntityTagLinksWrapperComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps> = angular2react(
-    'buttonBusyIndicator',
-    new ButtonBusyIndicatorComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps> = angular2react(
-    'copyToClipboard',
-    new CopyToClipboardComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public DiffView: React.ComponentClass<DiffViewProps> = angular2react(
-    'diffView',
-    diffViewComponent,
-    this.$injectorProxy,
-  ) as any;
-  public EntitySource: React.ComponentClass<IEntitySourceProps> = angular2react(
-    'entitySource',
-    new EntitySourceComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public HelpField: React.ComponentClass<IHelpFieldProps> = angular2react(
-    'helpFieldWrapper',
-    new HelpFieldWrapperComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public InsightLayout: React.ComponentClass<IInsightLayoutProps> = angular2react(
-    'insightLayout',
-    new InsightLayoutComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public InstanceList: React.ComponentClass<IInstanceListProps> = angular2react(
-    'instanceList',
-    { bindings: instanceListBindings },
-    this.$injectorProxy,
-  ) as any;
-  public LegacySpinner: React.ComponentClass<ILegacySpinnerProps> = angular2react(
-    'spinnerWrapper',
-    new SpinnerWrapperComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps> = angular2react(
-    'runningTasksTag',
-    { bindings: runningTasksTagBindings },
-    this.$injectorProxy,
-  ) as any;
-  public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps> = angular2react(
-    'stageSummary',
-    new StageSummaryComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public StepExecutionDetailsWrapper: React.ComponentClass<IStepExecutionDetailsWrapperProps> = angular2react(
-    'stepExecutionDetails',
-    new StepExecutionDetailsComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps> = angular2react(
-    'taskMonitorWrapper',
-    new TaskMonitorWrapperComponent(),
-    this.$injectorProxy,
-  ) as any;
-  public UserMenu: React.ComponentClass<{}> = angular2react('userMenu', {}, this.$injectorProxy) as any;
-  public ViewChangesLink: React.ComponentClass<IViewChangesLinkProps> = angular2react(
-    'viewChangesLinkWrapper',
-    new ViewChangesLinkWrapper(),
-    this.$injectorProxy,
-  ) as any;
-  public ViewScalingActivitiesLink: React.ComponentClass<IViewScalingActivitiesLinkProps> = angular2react(
-    'viewScalingActivitiesLink',
-    new ViewScalingActivitiesLink(),
-    this.$injectorProxy,
-  ) as any;
-  public WhatsNew: React.ComponentClass<{}> = angular2react('whatsNew', {}, this.$injectorProxy) as any;
+  public AccountSelectField: React.ComponentClass<IAccountSelectFieldProps>                   = angular2react('accountSelectFieldWrapper', new AccountSelectFieldWrapperComponent(), this.$injectorProxy) as any;
+  public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                     = angular2react('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent(), this.$injectorProxy) as any;
+  public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>                 = angular2react('buttonBusyIndicator', new ButtonBusyIndicatorComponent(), this.$injectorProxy) as any;
+  public CopyToClipboard: React.ComponentClass<ICopyToClipboardProps>                         = angular2react('copyToClipboard', new CopyToClipboardComponent(), this.$injectorProxy) as any;
+  public DiffView: React.ComponentClass<IDiffViewProps>                                        = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;
+  public EntitySource: React.ComponentClass<IEntitySourceProps>                               = angular2react('entitySource', new EntitySourceComponent(), this.$injectorProxy) as any;
+  public HelpField: React.ComponentClass<IHelpFieldProps>                                     = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
+  public InsightLayout: React.ComponentClass<IInsightLayoutProps>                             = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
+  public InstanceList: React.ComponentClass<IInstanceListProps>                               = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;
+  public LegacySpinner: React.ComponentClass<ILegacySpinnerProps>                             = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
+  public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                         = angular2react('runningTasksTag', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
+  public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps>                 = angular2react('stageSummary', new StageSummaryComponent(), this.$injectorProxy) as any;
+  public StepExecutionDetailsWrapper: React.ComponentClass<IStepExecutionDetailsWrapperProps> = angular2react('stepExecutionDetails', new StepExecutionDetailsComponent(), this.$injectorProxy) as any;
+  public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps>                          = angular2react('taskMonitorWrapper', new TaskMonitorWrapperComponent(), this.$injectorProxy) as any;
+  public UserMenu: React.ComponentClass<{}>                                                   = angular2react('userMenu', {}, this.$injectorProxy) as any;
+  public ViewChangesLink: React.ComponentClass<IViewChangesLinkProps>                         = angular2react('viewChangesLinkWrapper', new ViewChangesLinkWrapper(), this.$injectorProxy) as any;
+  public ViewScalingActivitiesLink: React.ComponentClass<IViewScalingActivitiesLinkProps>     = angular2react('viewScalingActivitiesLink', new ViewScalingActivitiesLink(), this.$injectorProxy) as any;
+  public WhatsNew: React.ComponentClass<{}>                                                   = angular2react('whatsNew', {}, this.$injectorProxy) as any;
 
   public initialize($injector: IInjectorService) {
     const realInjector: { [key: string]: Function } = $injector as any;

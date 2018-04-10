@@ -164,6 +164,7 @@
     "thread-loader": "^1.1.5",
     "ts-loader": "4.1.0",
     "tslint": "^5.9.1",
+    "tslint-config-prettier": "^1.10.0",
     "tslint-eslint-rules": "^5.1.0",
     "tslint-loader": "^3.6.0",
     "tslint-react": "^3.5.1",

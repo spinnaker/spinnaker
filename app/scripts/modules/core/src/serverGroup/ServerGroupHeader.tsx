@@ -4,7 +4,7 @@ import { get } from 'lodash';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
-import { JenkinsViewModel, DockerViewModel } from 'core/serverGroup/ServerGroup';
+import { IJenkinsViewModel, IDockerViewModel } from 'core/serverGroup/ServerGroup';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
 import { CloudProviderLogo } from 'core/cloudProvider';
@@ -17,8 +17,8 @@ export interface IServerGroupHeaderProps {
   application: Application;
   images?: string;
   isMultiSelected: boolean;
-  jenkins: JenkinsViewModel;
-  docker: DockerViewModel;
+  jenkins: IJenkinsViewModel;
+  docker: IDockerViewModel;
   serverGroup: IServerGroup;
   sortFilter: ISortFilter;
 }

@@ -1,4 +1,4 @@
-/** based on http://jsfiddle.net/epinapala/WdeTM/4/  **/
+/** based on http://jsfiddle.net/epinapala/WdeTM/4/ */
 import { IController, IDirective, IScope, module } from 'angular';
 import { DirectiveFactory } from './tsDecorators/directiveFactoryDecorator';
 

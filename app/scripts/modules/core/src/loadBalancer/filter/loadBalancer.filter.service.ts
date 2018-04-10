@@ -1,8 +1,7 @@
 import { ILogService, module } from 'angular';
 import { chain, find, forOwn, groupBy, includes, intersection, map, some, sortBy, values, without } from 'lodash';
-import { Debounce } from 'lodash-decorators';
+import { Debounce, BindAll } from 'lodash-decorators';
 import { Subject } from 'rxjs';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
