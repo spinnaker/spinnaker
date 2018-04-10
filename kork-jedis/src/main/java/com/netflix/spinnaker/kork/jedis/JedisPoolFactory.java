@@ -15,7 +15,10 @@
  */
 package com.netflix.spinnaker.kork.jedis;
 
+import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.exception.MissingRequiredConfiguration;
+import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -25,6 +28,16 @@ import redis.clients.util.Pool;
 import java.net.URI;
 
 public class JedisPoolFactory {
+
+  private final Registry registry;
+
+  public JedisPoolFactory() {
+    this(new NoopRegistry());
+  }
+
+  public JedisPoolFactory(Registry registry) {
+    this.registry = registry;
+  }
 
   public Pool<Jedis> build(String name, JedisDriverProperties properties) {
     if (properties.connection == null || "".equals(properties.connection)) {
@@ -39,7 +52,11 @@ public class JedisPoolFactory {
     String password = parsePassword(redisConnection.getUserInfo());
     GenericObjectPoolConfig objectPoolConfig = properties.poolConfig;
 
-    return new JedisPool(objectPoolConfig, host, port, properties.timeoutMs, password, database, name);
+    return new InstrumentedJedisPool(
+      registry,
+      new JedisPool(objectPoolConfig, host, port, properties.timeoutMs, password, database, name),
+      name
+    );
   }
 
   private static int parseDatabase(String path) {

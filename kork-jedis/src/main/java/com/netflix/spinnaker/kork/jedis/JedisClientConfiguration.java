@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.jedis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spectator.api.Registry;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,8 +30,8 @@ import java.util.stream.Collectors;
 public class JedisClientConfiguration {
 
   @Bean
-  JedisClientDelegateFactory jedisClientDelegateFactory(ObjectMapper objectMapper) {
-    return new JedisClientDelegateFactory(objectMapper);
+  JedisClientDelegateFactory jedisClientDelegateFactory(Registry registry, ObjectMapper objectMapper) {
+    return new JedisClientDelegateFactory(registry, objectMapper);
   }
 
   @Bean
