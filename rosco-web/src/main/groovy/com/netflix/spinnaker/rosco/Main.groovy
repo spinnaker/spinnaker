@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.rosco
 
-import com.netflix.spinnaker.config.ErrorConfiguration
+import com.netflix.spinnaker.rosco.jobs.config.LocalJobConfig
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.azure.config.RoscoAzureConfiguration
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import com.netflix.spinnaker.rosco.providers.openstack.config.RoscoOpenstackConfiguration
-import com.netflix.spinnaker.rosco.jobs.config.LocalJobConfig
+import com.netflix.spinnaker.rosco.services.ServiceConfig
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -45,11 +45,13 @@ import javax.servlet.Filter
   "com.netflix.spinnaker.rosco.executor",
   "com.netflix.spinnaker.rosco.filters",
   "com.netflix.spinnaker.rosco.jobs",
+  "com.netflix.spinnaker.rosco.manifests",
   "com.netflix.spinnaker.rosco.persistence",
   "com.netflix.spinnaker.config"
 ])
 @Import([
   WebConfig,
+  ServiceConfig,
   RoscoAWSConfiguration,
   RoscoAzureConfiguration,
   RoscoDockerConfiguration,

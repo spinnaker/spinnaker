@@ -1,0 +1,5 @@
+dependencies {
+  compileOnly spinnaker.dependency("lombok")
+
+  compile project(":rosco-core")
+}

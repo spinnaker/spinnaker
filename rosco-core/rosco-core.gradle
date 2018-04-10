@@ -7,5 +7,6 @@ dependencies {
   compile spinnaker.dependency("frigga")
   compile spinnaker.dependency('jacksonGuava')
   compile spinnaker.dependency('jedis')
-  compile spinnaker.dependency("korkArtifacts")
+  compile spinnaker.dependency('korkWeb')
+  compile spinnaker.dependency('korkArtifacts')
 }

@@ -179,7 +179,7 @@ class BakeryController {
 
       def bakeRecipe = cloudProviderBakeHandler.produceBakeRecipe(region, bakeRequest)
       def jobRequest = new JobRequest(tokenizedCommand: bakeRecipe.command,
-                                      maskedPackerParameters: cloudProviderBakeHandler.maskedPackerParameters,
+                                      maskedParameters: cloudProviderBakeHandler.maskedPackerParameters,
                                       jobId: bakeRequest.request_id)
 
       if (bakeStore.acquireBakeLock(bakeKey)) {

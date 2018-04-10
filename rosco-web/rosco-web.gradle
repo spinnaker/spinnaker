@@ -17,6 +17,7 @@ configurations.all {
 
 dependencies {
   compile project(":rosco-core")
+  compile project(":rosco-manifests")
   compile spinnaker.dependency("kork")
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency('korkStackdriver')

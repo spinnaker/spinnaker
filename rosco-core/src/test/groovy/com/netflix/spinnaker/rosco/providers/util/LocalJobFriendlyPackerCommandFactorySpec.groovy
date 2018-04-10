@@ -71,7 +71,7 @@ class LocalJobFriendlyPackerCommandFactorySpec extends Specification implements 
 
     when:
       def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, null, "")
-      def jobRequest = new JobRequest(tokenizedCommand: packerCommand, maskedPackerParameters: maskedPackerParameters, jobId: SOME_UUID)
+      def jobRequest = new JobRequest(tokenizedCommand: packerCommand, maskedParameters: maskedPackerParameters, jobId: SOME_UUID)
       def commandLine = new CommandLine(jobRequest.tokenizedCommand[0])
       def arguments = (String []) Arrays.copyOfRange(jobRequest.tokenizedCommand.toArray(), 1, jobRequest.tokenizedCommand.size())
       commandLine.addArguments(arguments, false)

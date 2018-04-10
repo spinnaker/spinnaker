@@ -28,9 +28,9 @@ trait TestDefaults {
   static final String SOME_CLOUD_PROVIDER = "aws"
   static final String SOME_REGION = "eu-west-1"
 
-  static final Bake SOME_BAKE_DETAILS = new Bake(id: SOME_JOB_ID, ami: SOME_AMI_ID, image_name: SOME_IMAGE_NAME)
-  static final BakeRequest SOME_BAKE_REQUEST = new BakeRequest(build_info_url: SOME_BUILD_INFO_URL, build_number: SOME_BUILD_NR)
-  static final BakeRecipe SOME_BAKE_RECIPE = new BakeRecipe(name: SOME_BAKE_RECIPE_NAME, version: SOME_APP_VERSION_STR, command: [])
+  final Bake SOME_BAKE_DETAILS = new Bake(id: SOME_JOB_ID, ami: SOME_AMI_ID, image_name: SOME_IMAGE_NAME)
+  final BakeRequest SOME_BAKE_REQUEST = new BakeRequest(build_info_url: SOME_BUILD_INFO_URL, build_number: SOME_BUILD_NR)
+  final BakeRecipe SOME_BAKE_RECIPE = new BakeRecipe(name: SOME_BAKE_RECIPE_NAME, version: SOME_APP_VERSION_STR, command: [])
 
   static final BakeRequest.PackageType DEB_PACKAGE_TYPE = BakeRequest.PackageType.DEB
   static final BakeRequest.PackageType RPM_PACKAGE_TYPE = BakeRequest.PackageType.RPM
