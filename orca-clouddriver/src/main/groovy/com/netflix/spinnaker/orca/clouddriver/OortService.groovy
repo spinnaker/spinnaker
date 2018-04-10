@@ -17,9 +17,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest
 import retrofit.client.Response
+import retrofit.http.Body
 import retrofit.http.GET
+import retrofit.http.PUT
 import retrofit.http.Path
 import retrofit.http.Query
 import retrofit.http.QueryMap
@@ -90,11 +93,8 @@ interface OortService {
                        @Path("region") String region,
                        @Path("instanceId") String instanceId)
 
-  @GET("/artifacts/fetch/")
-  Response fetchArtifact(@Query("artifactAccount") String artifactAccount,
-                         @Query("type") String type,
-                         @Query("reference") String reference,
-                         @Query("version") String version)
+  @PUT("/artifacts/fetch/")
+  Response fetchArtifact(@Body Artifact artifact)
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   List<Map> getLoadBalancerDetails(@Path("provider") String provider,

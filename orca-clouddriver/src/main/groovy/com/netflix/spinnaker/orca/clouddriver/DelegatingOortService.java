@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver;
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.config.SelectableService;
 import com.netflix.spinnaker.orca.clouddriver.model.Manifest;
 import retrofit.client.Response;
@@ -88,8 +89,8 @@ public class DelegatingOortService
   }
 
   @Override
-  public Response fetchArtifact(String artifactAccount, String type, String reference, String version) {
-    return getService().fetchArtifact(artifactAccount, type, reference, version);
+  public Response fetchArtifact(Artifact artifact) {
+    return getService().fetchArtifact(artifact);
   }
 
   @Override

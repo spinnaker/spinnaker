@@ -91,11 +91,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
 
       manifestArtifact.setArtifactAccount((String) task.get("manifestArtifactAccount"));
-      Response manifestText = retrySupport.retry(() -> oort.fetchArtifact(manifestArtifact.getArtifactAccount(),
-          manifestArtifact.getType(),
-          manifestArtifact.getReference(),
-          manifestArtifact.getVersion()
-      ), 5, 1000, true);
+      Response manifestText = retrySupport.retry(() -> oort.fetchArtifact(manifestArtifact), 5, 1000, true);
 
       try {
         Iterable<Object> rawManifests = yamlParser.loadAll(manifestText.getBody().in());
