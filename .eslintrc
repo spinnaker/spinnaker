@@ -37,6 +37,7 @@
     "no-empty-pattern": 0
   },
   "parserOptions": {
+    "ecmaVersion": 8,
     "sourceType": "module"
   },
   "env": {
