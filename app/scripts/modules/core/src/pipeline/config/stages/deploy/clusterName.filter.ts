@@ -1,12 +1,14 @@
 import { module } from 'angular';
-import { IStageContext } from 'core/domain';
 
-export function clusterNameFilter(namingService: any): any {
+import { IStageContext } from 'core/domain';
+import { NameUtils } from 'core/naming';
+
+export function clusterNameFilter(): any {
   return function(input: IStageContext) {
     if (!input) {
       return 'n/a';
     }
-    return namingService.getClusterName(input.application, input.stack, input.freeFormDetails);
+    return NameUtils.getClusterName(input.application, input.stack, input.freeFormDetails);
   };
 }
 

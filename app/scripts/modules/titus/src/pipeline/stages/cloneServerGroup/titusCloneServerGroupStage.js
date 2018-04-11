@@ -3,12 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.cloneServerGroupStage', [
     ACCOUNT_SERVICE,
-    NAMING_SERVICE,
     require('./cloneServerGroupExecutionDetails.controller.js').name,
   ])
   .config(function(pipelineConfigProvider) {
@@ -26,7 +25,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
+  .controller('titusCloneServerGroupStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -58,7 +57,7 @@ module.exports = angular
 
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
-        let clusterName = namingService.parseServerGroupName(stage.targetCluster);
+        let clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
         stage.stack = clusterName.stack;
         stage.freeFormDetails = clusterName.freeFormDetails;
       } else {

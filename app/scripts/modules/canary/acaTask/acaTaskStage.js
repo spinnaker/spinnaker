@@ -34,7 +34,6 @@ module.exports = angular
     $scope,
     $uibModal,
     stage,
-    namingService,
     providerSelectionService,
     authenticationService,
     cloudProviderRegistry,

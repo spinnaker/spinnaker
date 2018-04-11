@@ -2,14 +2,13 @@
 
 const angular = require('angular');
 
-import { NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.ecs.serverGroup.configure.basicSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     V2_MODAL_WIZARD_SERVICE,
-    NAMING_SERVICE,
   ])
   .controller('ecsServerGroupBasicSettingsCtrl', function(
     $scope,
@@ -17,13 +16,11 @@ module.exports = angular
     $uibModalStack,
     $state,
     v2modalWizardService,
-    namingService,
   ) {
     angular.extend(
       this,
       $controller('BasicSettingsMixin', {
         $scope: $scope,
-        namingService: namingService,
         $uibModalStack: $uibModalStack,
         $state: $state,
       }),

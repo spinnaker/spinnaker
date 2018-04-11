@@ -6,6 +6,7 @@ import { isString, toInteger } from 'lodash';
 import {
   CLOUD_PROVIDER_REGISTRY,
   LIST_EXTRACTOR_SERVICE,
+  NameUtils,
   PIPELINE_CONFIG_PROVIDER,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   SETTINGS,
@@ -184,7 +185,6 @@ module.exports = angular
     $scope,
     $uibModal,
     stage,
-    namingService,
     providerSelectionService,
     authenticationService,
     cloudProviderRegistry,
@@ -395,7 +395,7 @@ module.exports = angular
     }
 
     function getClusterName(cluster) {
-      return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
+      return NameUtils.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
     }
 
     this.getClusterName = getClusterName;
@@ -409,7 +409,7 @@ module.exports = angular
         cluster.freeFormDetails += '-';
       }
       cluster.freeFormDetails += type.toLowerCase();
-      cluster.moniker = namingService.getMoniker(cluster.application, cluster.stack, cluster.freeFormDetails);
+      cluster.moniker = NameUtils.getMoniker(cluster.application, cluster.stack, cluster.freeFormDetails);
     }
 
     function configureServerGroupCommandForEditing(command) {

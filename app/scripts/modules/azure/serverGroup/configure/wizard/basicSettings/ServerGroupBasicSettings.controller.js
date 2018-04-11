@@ -1,6 +1,6 @@
 'use strict';
 
-import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { IMAGE_READER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 const angular = require('angular');
 
@@ -11,7 +11,6 @@ module.exports = angular
     require('./image.regional.filter.js').name,
     V2_MODAL_WIZARD_SERVICE,
     IMAGE_READER,
-    NAMING_SERVICE,
   ])
   .controller('azureServerGroupBasicSettingsCtrl', function(
     $scope,
@@ -20,7 +19,6 @@ module.exports = angular
     $state,
     v2modalWizardService,
     imageReader,
-    namingService,
   ) {
     $scope.$watch('form.$valid', function(newVal) {
       if (newVal) {
@@ -42,7 +40,6 @@ module.exports = angular
       $controller('BasicSettingsMixin', {
         $scope: $scope,
         imageReader: imageReader,
-        namingService: namingService,
         $uibModalStack: $uibModalStack,
         $state: $state,
       }),

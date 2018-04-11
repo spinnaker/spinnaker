@@ -7,7 +7,7 @@ import {
   ACCOUNT_SERVICE,
   CLUSTER_TARGET_BUILDER,
   CONFIRMATION_MODAL_SERVICE,
-  NAMING_SERVICE,
+  NameUtils,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_WRITER,
@@ -32,7 +32,6 @@ module.exports = angular
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
     CLUSTER_TARGET_BUILDER,
-    NAMING_SERVICE,
     SCALING_POLICY_MODULE,
   ])
   .controller('titusServerGroupDetailsCtrl', function(
@@ -49,7 +48,6 @@ module.exports = angular
     serverGroupWriter,
     clusterTargetBuilder,
     awsServerGroupTransformer,
-    namingService,
     serverGroupWarningMessageService,
     accountService,
   ) {
@@ -128,7 +126,7 @@ module.exports = angular
     }
 
     $scope.addConfigBinData = () => {
-      const cluster = namingService.parseServerGroupName($scope.serverGroup.name).cluster;
+      const cluster = NameUtils.parseServerGroupName($scope.serverGroup.name).cluster;
       configBinService
         .getConfig(cluster)
         .then(config => {

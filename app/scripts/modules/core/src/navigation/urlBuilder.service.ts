@@ -1,10 +1,11 @@
 import { isDate, isObject, isUndefined } from 'lodash';
 import { module } from 'angular';
-
 import { StateService } from '@uirouter/core';
+
 import { ITask } from 'core/domain';
+import { NameUtils } from 'core/naming';
+
 import { urlBuilderRegistry } from './urlBuilder.registry';
-import { NamingService } from 'core/naming/naming.service';
 
 // TODO: refactor to marker interface and have input types declare expected fields
 export interface IUrlBuilderInput {
@@ -287,12 +288,12 @@ export class UrlBuilderService {
       const asgName: string = regionAndName[region][0];
       if (!asgName) {
         result = false;
-      } else if (!asgName.match(NamingService.VERSION_PATTERN)) {
+      } else if (!asgName.match(NameUtils.VERSION_PATTERN)) {
         result = false;
       } else {
         result = this.$state.href('home.applications.application.insight.clusters.serverGroup', {
           application: asgName.split('-')[0],
-          cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
+          cluster: asgName.replace(NameUtils.VERSION_PATTERN, ''),
           account,
           accountId: account,
           region: regions,
@@ -312,12 +313,12 @@ export class UrlBuilderService {
     let result: string | boolean;
     if (!asgName) {
       result = false;
-    } else if (!asgName.match(NamingService.VERSION_PATTERN)) {
+    } else if (!asgName.match(NameUtils.VERSION_PATTERN)) {
       result = '/';
     } else {
       result = this.$state.href('home.applications.application.insight.clusters.serverGroup', {
         application: asgName.split('-')[0],
-        cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
+        cluster: asgName.replace(NameUtils.VERSION_PATTERN, ''),
         account,
         accountId: account,
         region: task.getValueFor('regions')[0],

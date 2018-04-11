@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { get } from 'lodash';
 
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
 import { IJenkinsViewModel, IDockerViewModel } from 'core/serverGroup/ServerGroup';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
+import { NameUtils } from 'core/naming';
 import { CloudProviderLogo } from 'core/cloudProvider';
 import { LoadBalancersTagWrapper } from 'core/loadBalancer';
 import { ServerGroupManagerTag } from 'core/serverGroupManager/ServerGroupManagerTag';
@@ -51,7 +52,7 @@ export class CloudProviderIcon extends React.Component<IServerGroupHeaderProps> 
 export class SequenceAndBuildAndImages extends React.Component<IServerGroupHeaderProps> {
   public render() {
     const { serverGroup, jenkins, images, docker } = this.props;
-    const serverGroupSequence = ReactInjector.namingService.getSequence(serverGroup.moniker.sequence);
+    const serverGroupSequence = NameUtils.getSequence(serverGroup.moniker.sequence);
     return (
       <div>
         {!!serverGroupSequence && <span className="server-group-sequence"> {serverGroupSequence}</span>}

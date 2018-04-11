@@ -2,7 +2,7 @@ import { IPromise, IQService, module } from 'angular';
 import { forOwn, get, groupBy, has, head, keys, values } from 'lodash';
 
 import { Api, API_SERVICE } from '../api/api.service';
-import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
+import { NameUtils } from 'core/naming';
 import { taskMatcher } from './task.matcher';
 import { IServerGroup } from 'core/domain';
 import { Application } from 'core/application/application.model';
@@ -18,7 +18,6 @@ export class ClusterService {
     private $q: IQService,
     private API: Api,
     private serverGroupTransformer: any,
-    private namingService: NamingService,
     private clusterFilterModel: ClusterFilterModel,
     private filterModelService: any,
   ) {
@@ -245,7 +244,7 @@ export class ClusterService {
   }
 
   private addNameParts(serverGroup: IServerGroup): void {
-    const nameParts = this.namingService.parseServerGroupName(serverGroup.name);
+    const nameParts = NameUtils.parseServerGroupName(serverGroup.name);
     if (serverGroup.moniker) {
       Object.assign(serverGroup, serverGroup.moniker);
     } else {
@@ -294,7 +293,6 @@ export class ClusterService {
 export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
 module(CLUSTER_SERVICE, [
   API_SERVICE,
-  NAMING_SERVICE,
   CLUSTER_FILTER_MODEL,
   require('../serverGroup/serverGroup.transformer.js').name,
 ]).service('clusterService', ClusterService);

@@ -3,7 +3,7 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { IMAGE_READER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
 
 module.exports = angular
@@ -12,7 +12,6 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     V2_MODAL_WIZARD_SERVICE,
     IMAGE_READER,
-    NAMING_SERVICE,
     SUBNET_SELECT_FIELD_COMPONENT,
   ])
   .controller('awsServerGroupBasicSettingsCtrl', function(
@@ -22,7 +21,6 @@ module.exports = angular
     $state,
     v2modalWizardService,
     imageReader,
-    namingService,
   ) {
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -93,7 +91,6 @@ module.exports = angular
       $controller('BasicSettingsMixin', {
         $scope: $scope,
         imageReader: imageReader,
-        namingService: namingService,
         $uibModalStack: $uibModalStack,
         $state: $state,
       }),

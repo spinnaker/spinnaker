@@ -4,6 +4,8 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
+import { NameUtils } from 'core/naming';
+
 import { OpenStackProviderSettings } from '../../openstack.settings';
 
 module.exports = angular
@@ -13,7 +15,6 @@ module.exports = angular
     openstackImageReader,
     subnetReader,
     loadBalancerReader,
-    namingService,
     applicationReader,
   ) {
     function buildNewServerGroupCommand(application, defaults) {
@@ -61,7 +62,7 @@ module.exports = angular
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
       var subnetsLoader = subnetReader.listSubnetsByProvider('openstack');
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
       var asyncLoader = $q.all({
         subnets: subnetsLoader,
         loadBalancers: loadBalancerReader.listLoadBalancers('openstack'),

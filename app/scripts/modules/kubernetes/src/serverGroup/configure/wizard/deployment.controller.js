@@ -2,16 +2,16 @@
 
 const angular = require('angular');
 
-import { NAMING_SERVICE } from '@spinnaker/core';
+import { NameUtils } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.serverGroup.configure.kubernetes.deployment', [NAMING_SERVICE])
-  .controller('kubernetesServerGroupDeploymentController', function($scope, namingService) {
+  .module('spinnaker.serverGroup.configure.kubernetes.deployment', [])
+  .controller('kubernetesServerGroupDeploymentController', function($scope) {
     this.strategyTypes = ['RollingUpdate', 'Recreate'];
 
     this.deploymentConfigWarning = function() {
       var command = $scope.command;
-      var name = namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      var name = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
       var clusters = $scope.application.clusters;
       if (!clusters) {
         return undefined;

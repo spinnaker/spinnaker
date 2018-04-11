@@ -33,7 +33,6 @@ import { LoadBalancerFilterModel } from '../loadBalancer/filter/loadBalancerFilt
 import { LoadBalancerFilterService } from '../loadBalancer/filter/loadBalancer.filter.service';
 import { LoadBalancerWriter } from '../loadBalancer/loadBalancer.write.service';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
-import { NamingService } from '../naming/naming.service';
 import { NotifierService } from '../widgets/notifier/notifier.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 import { PageTitleService } from 'core/pageTitle';
@@ -120,7 +119,6 @@ export class CoreReactInject extends ReactInject {
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get modalService(): IModalService { return this.$injector.get('$uibModal') as IModalService; }
   public get MultiselectModel() { return this.$injector.get('MultiselectModel') as any; }
-  public get namingService() { return this.$injector.get('namingService') as NamingService; }
   public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pagerDutyReader() { return this.$injector.get('pagerDutyReader') as PagerDutyReader; }

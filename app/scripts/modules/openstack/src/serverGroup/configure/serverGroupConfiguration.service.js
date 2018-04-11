@@ -7,7 +7,6 @@ import {
   ACCOUNT_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
-  NAMING_SERVICE,
   SECURITY_GROUP_READER,
 } from '@spinnaker/core';
 
@@ -15,7 +14,6 @@ module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.configuration.service', [
     require('../../image/image.reader.js').name,
     ACCOUNT_SERVICE,
-    NAMING_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
@@ -26,7 +24,6 @@ module.exports = angular
     accountService,
     securityGroupReader,
     cacheInitializer,
-    namingService,
     loadBalancerReader,
   ) {
     var healthCheckTypes = [],

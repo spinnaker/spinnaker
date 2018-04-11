@@ -1,5 +1,4 @@
-import { ReactInjector } from 'core/reactShims';
-import { NamingService } from 'core/naming/naming.service';
+import { NameUtils } from 'core/naming';
 
 export interface IClusterMatchRule {
   account: string;
@@ -19,10 +18,6 @@ export interface IClusterMatcher {
 }
 
 export class DefaultClusterMatcher implements IClusterMatcher {
-  // constructor is just here to allow us to pass in the namingService for testing; otherwise, it should be taken from
-  // the ReactInjector, allowing it to be pluggable
-  constructor(private namingService?: NamingService) {}
-
   public getMatchingRule(
     account: string,
     location: string,
@@ -32,8 +27,7 @@ export class DefaultClusterMatcher implements IClusterMatcher {
     if (!rules || !rules.length) {
       return null;
     }
-    const nameParser = this.namingService || ReactInjector.namingService;
-    const nameParts = nameParser.parseClusterName(clusterName);
+    const nameParts = NameUtils.parseClusterName(clusterName);
 
     const matchedRules = rules
       .filter(r => {

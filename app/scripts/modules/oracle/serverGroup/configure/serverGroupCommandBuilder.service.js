@@ -3,13 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { NAMING_SERVICE } from '@spinnaker/core';
+import { NameUtils } from '@spinnaker/core';
 
 import { OracleBMCSProviderSettings } from '../../oraclebmcs.settings';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.serverGroupCommandBuilder.service', [NAMING_SERVICE])
-  .factory('oraclebmcsServerGroupCommandBuilder', function($q, namingService) {
+  .module('spinnaker.oraclebmcs.serverGroupCommandBuilder.service', [])
+  .factory('oraclebmcsServerGroupCommandBuilder', function($q) {
     let oracle = 'oraclebmcs';
 
     function buildNewServerGroupCommand(application, defaults) {
@@ -37,7 +37,7 @@ module.exports = angular
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
-      let serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      let serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
       let command = {
         account: serverGroup.account,

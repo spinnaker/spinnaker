@@ -2,14 +2,11 @@
 
 const angular = require('angular');
 
-import { NAMING_SERVICE } from '@spinnaker/core';
+import { NameUtils } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.serverGroupCommandBuilder.service', [
-    require('../../image/image.reader.js').name,
-    NAMING_SERVICE,
-  ])
-  .factory('azureServerGroupCommandBuilder', function($q, azureImageReader, namingService) {
+  .module('spinnaker.azure.serverGroupCommandBuilder.service', [require('../../image/image.reader.js').name])
+  .factory('azureServerGroupCommandBuilder', function($q, azureImageReader) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
@@ -63,7 +60,7 @@ module.exports = angular
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
 
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
       var command = {
         application: application.name,

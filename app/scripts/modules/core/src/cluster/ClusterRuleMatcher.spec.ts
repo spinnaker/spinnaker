@@ -1,5 +1,4 @@
 import { DefaultClusterMatcher, IClusterMatcher, IClusterMatchRule } from './ClusterRuleMatcher';
-import { NamingService } from '../naming/naming.service';
 
 describe('CustomRuleMatcher', () => {
   let matcher: IClusterMatcher;
@@ -11,7 +10,7 @@ describe('CustomRuleMatcher', () => {
   const clusterName = 'myapp-stack-detail';
 
   beforeEach(() => {
-    matcher = new DefaultClusterMatcher(new NamingService());
+    matcher = new DefaultClusterMatcher();
   });
 
   it('returns null when no rules match on account, location, or stack/detail', () => {

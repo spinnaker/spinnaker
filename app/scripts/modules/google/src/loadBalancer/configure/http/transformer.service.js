@@ -3,13 +3,13 @@
 const angular = require('angular');
 import * as _ from 'lodash';
 
-import { NAMING_SERVICE } from '@spinnaker/core';
+import { NameUtils } from 'core/naming';
 
 import { sessionAffinityModelToViewMap, sessionAffinityViewToModelMap } from '../common/sessionAffinityNameMaps';
 
 module.exports = angular
-  .module('spinnaker.gce.deck.httpLoadBalancer.transformer', [NAMING_SERVICE])
-  .factory('gceHttpLoadBalancerTransformer', function(namingService) {
+  .module('spinnaker.gce.deck.httpLoadBalancer.transformer', [])
+  .factory('gceHttpLoadBalancerTransformer', function() {
     // SERIALIZE
 
     const keysToOmit = ['backendServices', 'healthChecks', 'listeners', 'stack', 'detail'];
@@ -146,7 +146,7 @@ module.exports = angular
 
     function getListeners(loadBalancer) {
       loadBalancer.listeners.forEach(listener => {
-        let { stack, freeFormDetails } = namingService.parseLoadBalancerName(listener.name);
+        let { stack, freeFormDetails } = NameUtils.parseLoadBalancerName(listener.name);
         listener.stack = stack;
         listener.detail = freeFormDetails;
         listener.created = true;

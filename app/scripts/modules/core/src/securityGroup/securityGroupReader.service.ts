@@ -2,7 +2,7 @@ import { filter, forOwn, has, uniq } from 'lodash';
 import { module, IPromise, ILogService, IQService } from 'angular';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
-import { NAMING_SERVICE, NamingService, IComponentName } from 'core/naming/naming.service';
+import { IComponentName, NameUtils } from 'core/naming';
 import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, ILoadBalancer, IServerGroup, IServerGroupUsage } from 'core/domain';
@@ -216,7 +216,7 @@ export class SecurityGroupReader {
   }
 
   private addNamePartsToSecurityGroup(securityGroup: ISecurityGroup): void {
-    const nameParts: IComponentName = this.namingService.parseSecurityGroupName(securityGroup.name);
+    const nameParts: IComponentName = NameUtils.parseSecurityGroupName(securityGroup.name);
     securityGroup.stack = nameParts.stack;
     securityGroup.detail = nameParts.freeFormDetails;
   }
@@ -277,7 +277,6 @@ export class SecurityGroupReader {
     private $log: ILogService,
     private $q: IQService,
     private searchService: SearchService,
-    private namingService: NamingService,
     private API: Api,
     private infrastructureCaches: InfrastructureCacheService,
     private securityGroupTransformer: SecurityGroupTransformerService,
@@ -437,7 +436,6 @@ export class SecurityGroupReader {
 export const SECURITY_GROUP_READER = 'spinnaker.core.securityGroup.read.service';
 module(SECURITY_GROUP_READER, [
   SEARCH_SERVICE,
-  NAMING_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   PROVIDER_SERVICE_DELEGATE,

@@ -16,18 +16,11 @@ module.exports = angular
       controller: 'cfServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('cfServerGroupBasicSettingsSelectorCtrl', function(
-    $scope,
-    $controller,
-    namingService,
-    $uibModalStack,
-    $state,
-  ) {
+  .controller('cfServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, $uibModalStack, $state) {
     angular.extend(
       this,
       $controller('BasicSettingsMixin', {
         $scope: $scope,
-        namingService: namingService,
         $uibModalStack: $uibModalStack,
         $state: $state,
       }),

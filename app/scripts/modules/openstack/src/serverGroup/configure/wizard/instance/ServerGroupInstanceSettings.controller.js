@@ -3,7 +3,7 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { IMAGE_READER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.openstack.instanceSettings', [
@@ -11,7 +11,6 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     V2_MODAL_WIZARD_SERVICE,
     IMAGE_READER,
-    NAMING_SERVICE,
     require('../../../../instance/osInstanceTypeSelectField.directive.js').name,
   ])
   .controller('openstackServerGroupInstanceSettingsCtrl', function(

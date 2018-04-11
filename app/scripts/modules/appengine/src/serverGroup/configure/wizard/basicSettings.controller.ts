@@ -2,7 +2,7 @@ import { copy, extend, IController, IControllerService, IScope, module } from 'a
 import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
-import { IArtifact, IExpectedArtifact, NamingService, SETTINGS } from '@spinnaker/core';
+import { IArtifact, IExpectedArtifact, SETTINGS } from '@spinnaker/core';
 
 import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
 import { AppengineSourceType, IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
@@ -19,7 +19,6 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
     $state: StateService,
     $controller: IControllerService,
     $uibModalStack: any,
-    namingService: NamingService,
   ) {
     'ngInject';
 
@@ -28,7 +27,6 @@ class AppengineServerGroupBasicSettingsCtrl implements IController {
       $controller('BasicSettingsMixin', {
         $scope,
         imageReader: null,
-        namingService,
         $uibModalStack,
         $state,
       }),

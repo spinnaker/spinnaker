@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE, SUBNET_READ_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils, SUBNET_READ_SERVICE } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
@@ -13,14 +13,12 @@ module.exports = angular
     ACCOUNT_SERVICE,
     SUBNET_READ_SERVICE,
     INSTANCE_TYPE_SERVICE,
-    NAMING_SERVICE,
     AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
   .factory('awsServerGroupCommandBuilder', function(
     $q,
     accountService,
     subnetReader,
-    namingService,
     instanceTypeService,
     awsServerGroupConfigurationService,
   ) {
@@ -181,7 +179,7 @@ module.exports = angular
       var preferredZonesLoader = accountService.getPreferredZonesByAccount('aws');
       var subnetsLoader = subnetReader.listSubnets();
 
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
+      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
       var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);

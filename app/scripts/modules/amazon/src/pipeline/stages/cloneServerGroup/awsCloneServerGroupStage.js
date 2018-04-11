@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE, StageConstants } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE])
@@ -22,7 +22,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService, namingService) {
+  .controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -70,7 +70,7 @@ module.exports = angular
           stage.freeFormDetails = moniker.detail;
         } else {
           // if the user has entered a free-form value for the target cluster, fall back to the naming service
-          const nameParts = namingService.parseClusterName(stage.targetCluster);
+          const nameParts = NameUtils.parseClusterName(stage.targetCluster);
           stage.stack = nameParts.stack;
           stage.freeFormDetails = nameParts.freeFormDetails;
         }

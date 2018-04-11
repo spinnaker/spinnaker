@@ -2,7 +2,13 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, SECURITY_GROUP_READER, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import {
+  ACCOUNT_SERVICE,
+  NameUtils,
+  SECURITY_GROUP_READER,
+  SECURITY_GROUP_WRITER,
+  TASK_MONITOR_BUILDER,
+} from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.securityGroup.openstack.create.controller', [
@@ -26,7 +32,6 @@ module.exports = angular
     securityGroupReader,
     securityGroupWriter,
     taskMonitorBuilder,
-    namingService,
   ) {
     var ctrl = this;
     $scope.isNew = !securityGroup.edit;
@@ -146,7 +151,7 @@ module.exports = angular
     } else {
       $scope.securityGroup = openstackSecurityGroupTransformer.prepareForEdit(securityGroup);
 
-      var result = namingService.parseServerGroupName($scope.securityGroup.name);
+      var result = NameUtils.parseServerGroupName($scope.securityGroup.name);
       $scope.securityGroup.application = result.application;
       $scope.securityGroup.stack = result.stack;
       $scope.securityGroup.detail = result.freeFormDetails;

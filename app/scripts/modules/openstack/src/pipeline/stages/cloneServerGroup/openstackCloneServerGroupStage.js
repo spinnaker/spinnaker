@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE, NAMING_SERVICE])
+  .module('spinnaker.openstack.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
+  .controller('openstackCloneServerGroupStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -53,7 +53,7 @@ module.exports = angular
 
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
-        let clusterName = namingService.parseServerGroupName(stage.targetCluster);
+        let clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
         stage.stack = clusterName.stack;
         stage.freeFormDetails = clusterName.freeFormDetails;
       } else {

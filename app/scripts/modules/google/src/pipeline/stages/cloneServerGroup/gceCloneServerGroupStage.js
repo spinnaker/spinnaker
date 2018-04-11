@@ -3,14 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, NAMING_SERVICE, ARTIFACT_REFERENCE_SERVICE_PROVIDER, StageConstants } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, ARTIFACT_REFERENCE_SERVICE_PROVIDER, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [
-    ACCOUNT_SERVICE,
-    NAMING_SERVICE,
-    ARTIFACT_REFERENCE_SERVICE_PROVIDER,
-  ])
+  .module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [ACCOUNT_SERVICE, ARTIFACT_REFERENCE_SERVICE_PROVIDER])
   .config(function(pipelineConfigProvider, artifactReferenceServiceProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -37,7 +33,7 @@ module.exports = angular
       return paths;
     });
   })
-  .controller('gceCloneServerGroupStageCtrl', function($scope, accountService, namingService) {
+  .controller('gceCloneServerGroupStageCtrl', function($scope, accountService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
@@ -69,7 +65,7 @@ module.exports = angular
 
     this.targetClusterUpdated = () => {
       if (stage.targetCluster) {
-        let clusterName = namingService.parseServerGroupName(stage.targetCluster);
+        let clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
         stage.stack = clusterName.stack;
         stage.freeFormDetails = clusterName.freeFormDetails;
       } else {

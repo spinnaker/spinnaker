@@ -1,5 +1,8 @@
 import { module } from 'angular';
 
+import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
+import { NameUtils } from 'core/naming';
+
 import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from '../services/pipelineConfig.service';
 import {
   IStageOrTriggerValidator,
@@ -7,8 +10,6 @@ import {
   PipelineConfigValidator,
   PIPELINE_CONFIG_VALIDATOR,
 } from './pipelineConfig.validator';
-import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
-import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
 
 export interface ITargetImpedanceValidationConfig extends IValidatorConfig {
   stageTypes?: string[];
@@ -17,7 +18,7 @@ export interface ITargetImpedanceValidationConfig extends IValidatorConfig {
 }
 
 export class TargetImpedanceValidator implements IStageOrTriggerValidator {
-  constructor(private pipelineConfigService: PipelineConfigService, private namingService: NamingService) {
+  constructor(private pipelineConfigService: PipelineConfigService) {
     'ngInject';
   }
 
@@ -36,7 +37,7 @@ export class TargetImpedanceValidator implements IStageOrTriggerValidator {
       stagesToTest.forEach(toTest => {
         if (toTest.type === 'deploy' && toTest['clusters'] && toTest['clusters'].length) {
           toTest['clusters'].forEach((cluster: any) => {
-            const clusterName: string = this.namingService.getClusterName(
+            const clusterName: string = NameUtils.getClusterName(
               cluster.application,
               cluster.stack,
               cluster.freeFormDetails,
@@ -70,7 +71,7 @@ export class TargetImpedanceValidator implements IStageOrTriggerValidator {
 }
 
 export const TARGET_IMPEDANCE_VALIDATOR = 'spinnaker.core.pipeline.validation.config.targetImpedance';
-module(TARGET_IMPEDANCE_VALIDATOR, [PIPELINE_CONFIG_SERVICE, NAMING_SERVICE, PIPELINE_CONFIG_VALIDATOR])
+module(TARGET_IMPEDANCE_VALIDATOR, [PIPELINE_CONFIG_SERVICE, PIPELINE_CONFIG_VALIDATOR])
   .service('targetImpedanceValidator', TargetImpedanceValidator)
   .run((pipelineConfigValidator: PipelineConfigValidator, targetImpedanceValidator: TargetImpedanceValidator) => {
     pipelineConfigValidator.registerValidator('targetImpedance', targetImpedanceValidator);

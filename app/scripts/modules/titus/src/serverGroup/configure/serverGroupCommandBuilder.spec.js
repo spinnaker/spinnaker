@@ -1,16 +1,17 @@
 'use strict';
 
+import { NameUtils } from 'core/naming';
+
 import { TitusProviderSettings } from '../../titus.settings';
 
 describe('titusServerGroupCommandBuilder', function() {
   beforeEach(window.module(require('./ServerGroupCommandBuilder.js').name));
 
   beforeEach(
-    window.inject(function(titusServerGroupCommandBuilder, namingService, $q, $rootScope) {
+    window.inject(function(titusServerGroupCommandBuilder, $q, $rootScope) {
       this.titusServerGroupCommandBuilder = titusServerGroupCommandBuilder;
       this.$scope = $rootScope;
       this.$q = $q;
-      this.namingService = namingService;
     }),
   );
 
@@ -32,7 +33,7 @@ describe('titusServerGroupCommandBuilder', function() {
 
   describe('buildServerGroupCommandFromExisting', function() {
     it('should set iam profile if available otherwise use the default', function() {
-      spyOn(this.namingService, 'parseServerGroupName').and.returnValue(this.$q.when('titusApp-test-test'));
+      spyOn(NameUtils, 'parseServerGroupName').and.returnValue(this.$q.when('titusApp-test-test'));
 
       var baseServerGroup = {
         account: 'prod',

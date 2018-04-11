@@ -3,8 +3,7 @@ import { module } from 'angular';
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
 import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
-import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
-import { IMoniker } from 'core/naming/IMoniker';
+import { IMoniker, NameUtils } from 'core/naming';
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
 export interface ICapacity {
@@ -27,11 +26,7 @@ export interface IServerGroupJob extends IJob {
 }
 
 export class ServerGroupWriter {
-  constructor(
-    private namingService: NamingService,
-    private taskExecutor: TaskExecutor,
-    private serverGroupTransformer: any,
-  ) {
+  constructor(private taskExecutor: TaskExecutor, private serverGroupTransformer: any) {
     'ngInject';
   }
 
@@ -42,7 +37,7 @@ export class ServerGroupWriter {
       command.type = 'cloneServerGroup';
     } else {
       command.type = 'createServerGroup';
-      description = `Create New Server Group in cluster ${this.namingService.getClusterName(
+      description = `Create New Server Group in cluster ${NameUtils.getClusterName(
         application.name,
         command.stack,
         command.freeFormDetails,
@@ -181,7 +176,7 @@ export class ServerGroupWriter {
 }
 
 export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';
-module(SERVER_GROUP_WRITER, [NAMING_SERVICE, TASK_EXECUTOR, require('./serverGroup.transformer.js').name]).service(
+module(SERVER_GROUP_WRITER, [TASK_EXECUTOR, require('./serverGroup.transformer.js').name]).service(
   'serverGroupWriter',
   ServerGroupWriter,
 );

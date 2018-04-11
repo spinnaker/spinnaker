@@ -3,7 +3,7 @@
 import _ from 'lodash';
 
 import { IMAGE_READER } from 'core/image/image.reader';
-import { NAMING_SERVICE } from 'core/naming/naming.service';
+import { NameUtils } from 'core/naming';
 
 const angular = require('angular');
 
@@ -11,10 +11,9 @@ module.exports = angular
   .module('spinnaker.core.serverGroup.basicSettings.controller', [
     require('angular-ui-bootstrap'),
     require('@uirouter/angularjs').default,
-    NAMING_SERVICE,
     IMAGE_READER,
   ])
-  .controller('BasicSettingsMixin', function($scope, imageReader, namingService, $uibModalStack, $state) {
+  .controller('BasicSettingsMixin', function($scope, imageReader, $uibModalStack, $state) {
     this.createsNewCluster = function() {
       var name = this.getNamePreview();
       $scope.latestServerGroup = this.getLatestServerGroup();
@@ -26,12 +25,12 @@ module.exports = angular
       if (!command) {
         return '';
       }
-      return namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      return NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
 
     this.getLatestServerGroup = function() {
       var command = $scope.command;
-      var cluster = namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      var cluster = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
       var inCluster = $scope.application.serverGroups.data
         .filter(function(serverGroup) {
           return (

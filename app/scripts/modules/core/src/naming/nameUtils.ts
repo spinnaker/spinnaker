@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { padStart, isNil } from 'lodash';
 import { IMoniker } from './IMoniker';
 
@@ -9,10 +8,10 @@ export interface IComponentName {
   cluster: string;
 }
 
-export class NamingService {
+export class NameUtils {
   public static VERSION_PATTERN: RegExp = /(v\d{3})/;
 
-  public parseServerGroupName(serverGroupName: string): IComponentName {
+  public static parseServerGroupName(serverGroupName: string): IComponentName {
     const result: IComponentName = {
       application: '',
       stack: '',
@@ -24,7 +23,7 @@ export class NamingService {
       return result;
     }
     const split: string[] = serverGroupName.split('-'),
-      isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
+      isVersioned = NameUtils.VERSION_PATTERN.test(split[split.length - 1]);
 
     result.application = split[0];
 
@@ -38,16 +37,16 @@ export class NamingService {
     if (split.length > 2) {
       result.freeFormDetails = split.slice(2, split.length).join('-');
     }
-    result.cluster = this.getClusterNameFromServerGroupName(serverGroupName);
+    result.cluster = NameUtils.getClusterNameFromServerGroupName(serverGroupName);
 
     return result;
   }
 
-  public parseClusterName(clusterName: string): IComponentName {
-    return this.parseServerGroupName(clusterName);
+  public static parseClusterName(clusterName: string): IComponentName {
+    return NameUtils.parseServerGroupName(clusterName);
   }
 
-  public getClusterName(app: string, stack: string, detail: string): string {
+  public static getClusterName(app: string, stack: string, detail: string): string {
     let clusterName = app;
     if (stack) {
       clusterName += `-${stack}`;
@@ -61,9 +60,9 @@ export class NamingService {
     return clusterName;
   }
 
-  public getClusterNameFromServerGroupName(serverGroupName: string): string {
+  public static getClusterNameFromServerGroupName(serverGroupName: string): string {
     const split = serverGroupName.split('-'),
-      isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
+      isVersioned = NameUtils.VERSION_PATTERN.test(split[split.length - 1]);
 
     if (isVersioned) {
       split.pop();
@@ -71,7 +70,7 @@ export class NamingService {
     return split.join('-');
   }
 
-  public getSequence(monikerSequence: number): string {
+  public static getSequence(monikerSequence: number): string {
     if (isNil(monikerSequence)) {
       return null;
     } else {
@@ -79,7 +78,7 @@ export class NamingService {
     }
   }
 
-  public parseLoadBalancerName(loadBalancerName: string): IComponentName {
+  public static parseLoadBalancerName(loadBalancerName: string): IComponentName {
     const split = loadBalancerName.split('-'),
       result: IComponentName = {
         application: split[0],
@@ -94,19 +93,15 @@ export class NamingService {
     if (split.length > 2) {
       result.freeFormDetails = split.slice(2, split.length).join('-');
     }
-    result.cluster = this.getClusterName(result.application, result.stack, result.freeFormDetails);
+    result.cluster = NameUtils.getClusterName(result.application, result.stack, result.freeFormDetails);
     return result;
   }
 
-  public parseSecurityGroupName(securityGroupName: string): IComponentName {
-    return this.parseLoadBalancerName(securityGroupName);
+  public static parseSecurityGroupName(securityGroupName: string): IComponentName {
+    return NameUtils.parseLoadBalancerName(securityGroupName);
   }
 
-  public getMoniker(app: string, stack: string, detail: string): IMoniker {
+  public static getMoniker(app: string, stack: string, detail: string): IMoniker {
     return { app, stack, detail };
   }
 }
-
-export const NAMING_SERVICE = 'spinnaker.core.naming.service';
-
-module(NAMING_SERVICE, []).service('namingService', NamingService);

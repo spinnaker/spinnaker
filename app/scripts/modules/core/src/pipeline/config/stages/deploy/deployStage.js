@@ -2,6 +2,7 @@
 
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { NameUtils } from 'core/naming';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
 
@@ -48,7 +49,6 @@ module.exports = angular
     $scope,
     $uibModal,
     stage,
-    namingService,
     providerSelectionService,
     cloudProviderRegistry,
     serverGroupCommandBuilder,
@@ -102,7 +102,7 @@ module.exports = angular
     };
 
     this.getClusterName = function(cluster) {
-      return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
+      return NameUtils.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
     };
 
     this.addCluster = function() {

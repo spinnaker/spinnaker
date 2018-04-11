@@ -3,14 +3,13 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.basicSettings', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     V2_MODAL_WIZARD_SERVICE,
-    NAMING_SERVICE,
   ])
   .controller('kubernetesServerGroupBasicSettingsController', function(
     $scope,
@@ -19,7 +18,6 @@ module.exports = angular
     $state,
     v2modalWizardService,
     kubernetesImageReader,
-    namingService,
     kubernetesServerGroupConfigurationService,
   ) {
     function searchImages(q) {
@@ -49,7 +47,6 @@ module.exports = angular
       $controller('BasicSettingsMixin', {
         $scope: $scope,
         imageReader: kubernetesImageReader,
-        namingService: namingService,
         $uibModalStack: $uibModalStack,
         $state: $state,
       }),

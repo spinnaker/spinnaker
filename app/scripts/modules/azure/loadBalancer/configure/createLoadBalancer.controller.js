@@ -7,7 +7,7 @@ import {
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
-  NAMING_SERVICE,
+  NameUtils,
   NETWORK_READ_SERVICE,
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,
@@ -22,7 +22,6 @@ module.exports = angular
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
     INFRASTRUCTURE_CACHE_SERVICE,
-    NAMING_SERVICE,
     NETWORK_READ_SERVICE,
   ])
   .controller('azureCreateLoadBalancerCtrl', function(
@@ -36,7 +35,6 @@ module.exports = angular
     v2modalWizardService,
     loadBalancerWriter,
     taskMonitorBuilder,
-    namingService,
     application,
     loadBalancer,
     isNew,
@@ -100,7 +98,7 @@ module.exports = angular
       if (loadBalancer) {
         $scope.loadBalancer = azureLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
         if (isNew) {
-          var nameParts = namingService.parseLoadBalancerName($scope.loadBalancer.name);
+          var nameParts = NameUtils.parseLoadBalancerName($scope.loadBalancer.name);
           $scope.loadBalancer.stack = nameParts.stack;
           $scope.loadBalancer.detail = nameParts.freeFormDetails;
           delete $scope.loadBalancer.name;

@@ -19,18 +19,11 @@ module.exports = angular
       controller: 'titusServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('titusServerGroupBasicSettingsSelectorCtrl', function(
-    $scope,
-    $controller,
-    namingService,
-    $uibModalStack,
-    $state,
-  ) {
+  .controller('titusServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, $uibModalStack, $state) {
     angular.extend(
       this,
       $controller('BasicSettingsMixin', {
         $scope: $scope,
-        namingService: namingService,
         $uibModalStack: $uibModalStack,
         $state: $state,
       }),

@@ -3,7 +3,7 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { IMAGE_READER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
@@ -11,7 +11,6 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     V2_MODAL_WIZARD_SERVICE,
     IMAGE_READER,
-    NAMING_SERVICE,
     require('../../../../gceRegionSelectField.directive.js').name,
     require('../../../../gceNetworkSelectField.directive.js').name,
     require('../../../../subnet/subnetSelectField.directive.js').name,
@@ -23,7 +22,6 @@ module.exports = angular
     $state,
     v2modalWizardService,
     imageReader,
-    namingService,
   ) {
     function searchImages(q) {
       $scope.command.backingData.filtered.images = [
@@ -71,7 +69,6 @@ module.exports = angular
       $controller('BasicSettingsMixin', {
         $scope: $scope,
         imageReader: imageReader,
-        namingService: namingService,
         $uibModalStack: $uibModalStack,
         $state: $state,
       }),

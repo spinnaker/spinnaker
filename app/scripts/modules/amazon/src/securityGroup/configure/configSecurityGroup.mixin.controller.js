@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 
 import {
   ACCOUNT_SERVICE,
+  NameUtils,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
@@ -38,7 +39,6 @@ module.exports = angular
     v2modalWizardService,
     cacheInitializer,
     infrastructureCaches,
-    namingService,
     vpcReader,
   ) {
     var ctrl = this;
@@ -302,7 +302,7 @@ module.exports = angular
 
     ctrl.updateName = function() {
       const { securityGroup } = $scope;
-      const name = namingService.getClusterName(application.name, securityGroup.stack, securityGroup.detail);
+      const name = NameUtils.getClusterName(application.name, securityGroup.stack, securityGroup.detail);
       securityGroup.name = name;
       $scope.namePreview = name;
     };

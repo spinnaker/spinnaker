@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 import { CANARY_SCORE_COMPONENT } from '../canary/canaryScore.component';
 
 module.exports = angular
@@ -13,7 +13,6 @@ module.exports = angular
     CANARY_SCORE_COMPONENT,
     require('../canary/canaryStatus.directive.js').name,
     ACCOUNT_SERVICE,
-    NAMING_SERVICE,
   ])
   .run(function(pipelineConfig, acaTaskTransformer) {
     pipelineConfig.registerTransformer(acaTaskTransformer);

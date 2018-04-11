@@ -15,7 +15,7 @@ import {
   ISecurityGroup,
   ISubnet,
   LoadBalancerWriter,
-  NamingService,
+  NameUtils,
   SecurityGroupReader,
   SubnetReader,
   TaskMonitorBuilder,
@@ -81,7 +81,6 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     protected loadBalancerWriter: LoadBalancerWriter,
     protected taskMonitorBuilder: TaskMonitorBuilder,
     protected subnetReader: SubnetReader,
-    protected namingService: NamingService,
     protected application: Application,
     protected isNew: boolean,
     protected forPipelineConfig: boolean,
@@ -147,7 +146,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
 
   protected buildName(): void {
     if (isNil(this.loadBalancerCommand.moniker)) {
-      const nameParts = this.namingService.parseLoadBalancerName(this.loadBalancerCommand.name);
+      const nameParts = NameUtils.parseLoadBalancerName(this.loadBalancerCommand.name);
       this.loadBalancerCommand.stack = nameParts.stack;
       this.loadBalancerCommand.detail = nameParts.freeFormDetails;
     } else {

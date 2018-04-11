@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
@@ -11,13 +11,11 @@ module.exports = angular
   .module('spinnaker.ecs.serverGroupCommandBuilder.service', [
     ACCOUNT_SERVICE,
     INSTANCE_TYPE_SERVICE,
-    NAMING_SERVICE,
     ECS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
   .factory('ecsServerGroupCommandBuilder', function(
     $q,
     accountService,
-    namingService,
     instanceTypeService,
     ecsServerGroupConfigurationService,
   ) {
@@ -149,7 +147,7 @@ module.exports = angular
     function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount('ecs');
 
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
+      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
       var asyncLoader = $q.all({
         preferredZones: preferredZonesLoader,

@@ -33,7 +33,7 @@ import {
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerReader,
-  NamingService,
+  NameUtils,
   SECURITY_GROUP_READER,
   SecurityGroupReader,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
@@ -116,7 +116,6 @@ export class AwsServerGroupConfigurationService {
     private subnetReader: SubnetReader,
     private keyPairsReader: KeyPairsReader,
     private loadBalancerReader: LoadBalancerReader,
-    private namingService: NamingService,
     private serverGroupCommandRegistry: ServerGroupCommandRegistry,
     private autoScalingProcessService: any,
   ) {
@@ -658,7 +657,7 @@ export class AwsServerGroupConfigurationService {
     };
 
     command.clusterChanged = (): void => {
-      command.moniker = this.namingService.getMoniker(command.application, command.stack, command.freeFormDetails);
+      command.moniker = NameUtils.getMoniker(command.application, command.stack, command.freeFormDetails);
     };
 
     command.credentialsChanged = (): IServerGroupCommandResult => {

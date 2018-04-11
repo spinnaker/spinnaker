@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, EXPECTED_ARTIFACT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, EXPECTED_ARTIFACT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 import { GCEProviderSettings } from 'google/gce.settings';
 
 module.exports = angular
@@ -11,7 +11,6 @@ module.exports = angular
     ACCOUNT_SERVICE,
     EXPECTED_ARTIFACT_SERVICE,
     INSTANCE_TYPE_SERVICE,
-    NAMING_SERVICE,
     require('google/common/xpnNaming.gce.service.js').name,
     require('./../../instance/custom/customInstanceBuilder.gce.service.js').name,
     require('./wizard/hiddenMetadataKeys.value.js').name,
@@ -21,7 +20,6 @@ module.exports = angular
     accountService,
     expectedArtifactService,
     instanceTypeService,
-    namingService,
     gceCustomInstanceBuilderService,
     gceServerGroupHiddenMetadataKeys,
     gceXpnNamingService,
@@ -377,7 +375,7 @@ module.exports = angular
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
       var command = {
         application: application.name,

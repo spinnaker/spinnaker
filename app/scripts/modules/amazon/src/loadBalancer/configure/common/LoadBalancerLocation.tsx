@@ -13,6 +13,7 @@ import {
   IRegion,
   ISubnet,
   IWizardPageProps,
+  NameUtils,
   NgReact,
   ReactInjector,
   RegionSelectField,
@@ -96,7 +97,7 @@ class LoadBalancerLocationImpl extends React.Component<
   protected buildName(): void {
     const { values } = this.props;
     if (isNil(values.moniker)) {
-      const nameParts = ReactInjector.namingService.parseLoadBalancerName(values.name);
+      const nameParts = NameUtils.parseLoadBalancerName(values.name);
       values.stack = nameParts.stack;
       values.detail = nameParts.freeFormDetails;
     } else {

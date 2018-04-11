@@ -3,12 +3,12 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
 module.exports = angular
-  .module('spinnaker.cf.serverGroupCommandBuilder.service', [ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE])
-  .factory('cfServerGroupCommandBuilder', function($q, accountService, instanceTypeService, namingService) {
+  .module('spinnaker.cf.serverGroupCommandBuilder.service', [ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE])
+  .factory('cfServerGroupCommandBuilder', function($q, accountService, instanceTypeService) {
     function populateTags(instanceTemplateTags, command) {
       if (instanceTemplateTags && instanceTemplateTags.items) {
         _.map(instanceTemplateTags.items, function(tag) {
@@ -96,7 +96,7 @@ module.exports = angular
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
 
-      var serverGroupName = namingService.parseServerGroupName(serverGroup.name);
+      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
       var command = {
         application: application.name,
