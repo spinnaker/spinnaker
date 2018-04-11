@@ -53,6 +53,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   };
 
   private activeRefresher: IScheduler;
+  private dataUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
   private runningTime: OrchestratedItemRunningTime;
 
@@ -176,26 +177,39 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   public componentDidMount(): void {
     this.mounted = true;
-    this.runningTime = new OrchestratedItemRunningTime(this.props.execution, (time: number) =>
+    const { application, execution } = this.props;
+    this.runningTime = new OrchestratedItemRunningTime(execution, (time: number) =>
       this.setState({ runningTimeInMs: time }),
     );
     this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() =>
       this.updateViewStateDetails(),
     );
+    this.configureActiveRefresh();
+    if (this.props.execution.isActive && !this.shouldRefresh(execution)) {
+      // we should not refresh now, but we might want to refresh later...
+      this.dataUpdatedSubscription = application.getDataSource(this.props.dataSourceKey).refresh$.subscribe(() => {
+        this.configureActiveRefresh();
+      });
+    }
+  }
 
-    const { execution, application } = this.props;
+  // TODO: This component should not be handling the refreshing itself; it should just be listening.
+  private configureActiveRefresh(): void {
+    const { execution, application, standalone } = this.props;
     const { executionService, schedulerFactory } = ReactInjector;
-    if (!this.props.standalone && this.shouldRefresh(execution)) {
-      // TODO: This component should not be handling the refreshing itself; it should just be listening.
+    this.activeRefresher && this.activeRefresher.unsubscribe();
+    if (!standalone && this.shouldRefresh(execution)) {
+      this.dataUpdatedSubscription && this.dataUpdatedSubscription.unsubscribe();
       this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(execution.stages.length / 10));
       let refreshing = false;
       this.activeRefresher.subscribe(() => {
-        if (refreshing || !this.shouldRefresh(execution)) {
+        const currentExecution = this.props.execution;
+        if (refreshing || !this.shouldRefresh(currentExecution)) {
           return;
         }
         refreshing = true;
         executionService
-          .getExecution(execution.id)
+          .getExecution(currentExecution.id)
           .then((updated: IExecution) => {
             if (this.mounted) {
               const dataSource = application.getDataSource(this.props.dataSourceKey);
@@ -215,6 +229,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   public componentWillReceiveProps(nextProps: IExecutionProps): void {
     if (nextProps.execution !== this.props.execution) {
+      this.configureActiveRefresh();
       this.runningTime.checkStatus(nextProps.execution);
       this.setState({
         showingDetails: this.invalidateShowingDetails(),
@@ -225,9 +240,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   public componentWillUnmount(): void {
     this.mounted = false;
     this.runningTime.reset();
-    if (this.activeRefresher) {
-      this.activeRefresher.unsubscribe();
-    }
+    this.activeRefresher && this.activeRefresher.unsubscribe();
+    this.dataUpdatedSubscription && this.dataUpdatedSubscription.unsubscribe();
     this.stateChangeSuccessSubscription.unsubscribe();
   }
 
@@ -409,7 +423,12 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         </div>
         {showingDetails && (
           <div className="execution-graph">
-            <PipelineGraph execution={execution} application={application} onNodeClick={this.handleNodeClick} viewState={viewState} />
+            <PipelineGraph
+              execution={execution}
+              application={application}
+              onNodeClick={this.handleNodeClick}
+              viewState={viewState}
+            />
           </div>
         )}
         {showingDetails && (

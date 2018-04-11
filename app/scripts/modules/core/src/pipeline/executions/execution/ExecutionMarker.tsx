@@ -105,11 +105,15 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
           </TooltipComponent>
         );
       } else {
-        const loadingTooltip = (<Tooltip id={stage.id}><Spinner size="small"/></Tooltip>);
+        const loadingTooltip = (
+          <Tooltip id={stage.id}>
+            <Spinner size="small" />
+          </Tooltip>
+        );
         return (
           <span onMouseEnter={this.hydrate}>
             <OverlayTrigger placement="top" overlay={loadingTooltip}>
-              {this.props.children}
+              {stageContents}
             </OverlayTrigger>
           </span>
         );

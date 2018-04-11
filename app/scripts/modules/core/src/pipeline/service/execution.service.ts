@@ -11,6 +11,7 @@ import {
 } from 'core/pipeline/service/executions.transformer.service';
 import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { JsonUtilityService, JSON_UTILITY_SERVICE } from 'core/utils/json/json.utility.service';
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { DebugWindow } from 'core/utils/consoleDebug';
@@ -23,6 +24,18 @@ export class ExecutionService {
   }
   private runningLimit = 30;
 
+  private ignoredStringValFields = [
+    'asg',
+    'commits',
+    'history',
+    'hydrator',
+    'hydrated',
+    'instances',
+    'requisiteIds',
+    'requisiteStageRefIds',
+    '$$hashKey',
+  ];
+
   constructor(
     private $http: IHttpService,
     private $q: IQService,
@@ -32,6 +45,7 @@ export class ExecutionService {
     private executionFilterModel: ExecutionFilterModel,
     private executionsTransformer: ExecutionsTransformerService,
     private pipelineConfig: PipelineConfigProvider,
+    private jsonUtilityService: JsonUtilityService,
   ) {
     'ngInject';
   }
@@ -214,25 +228,6 @@ export class ExecutionService {
         });
       }
     }
-  }
-
-  // remove these fields - they are not of interest when determining if the pipeline has changed
-  private jsonReplacer(key: string, value: any): any {
-    const ignored = [
-      'asg',
-      'commits',
-      'history',
-      'hydrator',
-      'hydrated',
-      'instances',
-      'requisiteIds',
-      'requisiteStageRefIds',
-      '$$hashKey',
-    ];
-    if (ignored.includes(key)) {
-      return undefined;
-    }
-    return value;
   }
 
   public waitUntilNewTriggeredPipelineAppears(application: Application, triggeredPipelineId: string): IPromise<any> {
@@ -451,7 +446,7 @@ export class ExecutionService {
           (!updatedSummary.isCompleted || !currentSummary.isCompleted) &&
           (!updatedSummary.hasNotStarted || !currentSummary.hasNotStarted)
         ) {
-          if (JSON.stringify(currentSummary, this.jsonReplacer) !== JSON.stringify(updatedSummary, this.jsonReplacer)) {
+          if (this.stringify(currentSummary) !== this.stringify(updatedSummary)) {
             Object.assign(currentSummary, updatedSummary);
           }
         }
@@ -574,7 +569,11 @@ export class ExecutionService {
   private stringifyExecution(execution: IExecution): string {
     const transient = { ...execution };
     transient.stages = transient.stages.filter(s => s.status !== 'SUCCEEDED' && s.status !== 'NOT_STARTED');
-    return JSON.stringify(transient, this.jsonReplacer);
+    return this.stringify(transient);
+  }
+
+  private stringify(object: IExecution | IExecutionStageSummary): string {
+    return this.jsonUtilityService.makeSortedStringFromAngularObject({ ...object }, this.ignoredStringValFields);
   }
 }
 
@@ -584,6 +583,7 @@ module(EXECUTION_SERVICE, [
   EXECUTIONS_TRANSFORMER_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
   API_SERVICE,
+  JSON_UTILITY_SERVICE,
 ]).factory(
   'executionService',
   (
@@ -595,8 +595,19 @@ module(EXECUTION_SERVICE, [
     executionFilterModel: any,
     executionsTransformer: any,
     pipelineConfig: any,
+    jsonUtilityService: JsonUtilityService,
   ) =>
-    new ExecutionService($http, $q, $state, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig),
+    new ExecutionService(
+      $http,
+      $q,
+      $state,
+      $timeout,
+      API,
+      executionFilterModel,
+      executionsTransformer,
+      pipelineConfig,
+      jsonUtilityService,
+    ),
 );
 
 DebugWindow.addInjectable('executionService');
