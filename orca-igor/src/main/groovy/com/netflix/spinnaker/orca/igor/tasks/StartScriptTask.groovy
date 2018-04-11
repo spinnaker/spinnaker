@@ -39,7 +39,7 @@ class StartScriptTask implements Task {
   String master
 
   @Value('${script.job:job}')
-  String job
+  String defaultJob
 
   @Override
   TaskResult execute(Stage stage) {
@@ -52,6 +52,7 @@ class StartScriptTask implements Task {
     String cmc = stage.context.cmc
     String repoUrl = stage.context.repoUrl
     String repoBranch = stage.context.repoBranch
+    String job = stage.context.job ?: defaultJob
 
     if (stage.execution.trigger.strategy) {
       def trigger = stage.execution.trigger
