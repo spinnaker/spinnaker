@@ -102,6 +102,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     }
 
     List<Map> serverGroups = cluster.get().serverGroups
+    log.debug("Server groups fetched from cluster (${cluster.get().name}): ${serverGroups*.name}")
 
     if (!serverGroups) {
       if (stage.context.continueIfClusterNotFound) {
@@ -137,7 +138,11 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       filterServerGroups(stage, clusterSelection.credentials, l, tsgs) ?: null
     }.flatten()
 
+    log.debug("Filtered cluster server groups (excluding parent deploys) in locations ${locations}: ${filteredServerGroups*.name}")
+
     List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(stage)).flatten()
+
+    log.debug("Kato ops for executionId (${stage.getExecution().getId()}): ${katoOps}")
 
     if (!katoOps) {
       log.warn("$stage.execution.id: No server groups to operate on from $targetServerGroupsByLocation in $locations")
