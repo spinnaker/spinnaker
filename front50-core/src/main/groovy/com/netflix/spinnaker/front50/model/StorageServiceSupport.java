@@ -312,7 +312,23 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
             .from(ids)
             .flatMap(entry -> {
                   try {
-                    return Observable.just((T) service.loadObject(objectType, entry.getKey()));
+                    T object = (T) service.loadObject(objectType, entry.getKey());
+
+                    Long expectedLastModifiedTime = keyUpdateTime.get(entry.getKey());
+                    Long currentLastModifiedTime = object.getLastModified();
+
+                    if (expectedLastModifiedTime != null && currentLastModifiedTime != null) {
+                      if (currentLastModifiedTime < expectedLastModifiedTime) {
+                        log.warn(
+                          "Unexpected stale read for {} (current: {}, expected: {})",
+                          entry.getKey(),
+                          new Date(currentLastModifiedTime),
+                          new Date(expectedLastModifiedTime)
+                        );
+                      }
+                    }
+
+                    return Observable.just(object);
                   } catch (NotFoundException e) {
                     resultMap.remove(keyToId.get(entry.getKey()));
                     numRemoved.getAndIncrement();
