@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Map;
 
 public class TelemetryHelper {
@@ -30,20 +31,19 @@ public class TelemetryHelper {
 
   private static Logger log = LoggerFactory.getLogger(TelemetryHelper.class);
 
-  static Id timerId(Registry registry, String name, String command) {
-    return registry.createId(DEFAULT_ID_PREFIX + ".latency." + command).withTag(POOL_TAG, name);
+  static Id timerId(Registry registry, String name, String command, boolean pipelined) {
+    return registry.createId(DEFAULT_ID_PREFIX + ".latency." + command)
+      .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
   }
 
-  static Id payloadSizeId(Registry registry, String name, String command) {
-    return registry.createId(DEFAULT_ID_PREFIX + ".payloadSize." + command).withTag(POOL_TAG, name);
+  static Id payloadSizeId(Registry registry, String name, String command, boolean pipelined) {
+    return registry.createId(DEFAULT_ID_PREFIX + ".payloadSize." + command)
+      .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined));
   }
 
-  static Id errorId(Registry registry, String name, String command) {
-    return registry.createId(DEFAULT_ID_PREFIX + ".error." + command).withTag(POOL_TAG, name);
-  }
-
-  static Id allErrorId(Registry registry, String name) {
-    return registry.createId(DEFAULT_ID_PREFIX + ".error").withTag(POOL_TAG, name);
+  static Id invocationId(Registry registry, String name, String command, boolean pipelined, boolean success) {
+    return registry.createId(DEFAULT_ID_PREFIX + ".invocation." + command)
+      .withTags(POOL_TAG, name, "pipelined", String.valueOf(pipelined), "success", String.valueOf(success));
   }
 
   static long payloadSize(String payload) {
@@ -80,6 +80,18 @@ public class TelemetryHelper {
     long size = 0;
     for (byte[] p : payload) {
       size += p.length;
+    }
+    return size;
+  }
+
+  static long payloadSize(List payload) {
+    long size = 0;
+    for (Object p : payload) {
+      if (p instanceof String) {
+        size += payloadSize((String) p);
+      } else {
+        size += payloadSize((byte[]) p);
+      }
     }
     return size;
   }
