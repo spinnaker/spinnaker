@@ -28,6 +28,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesEventHandler extends KubernetesHandler {
   @Override
+  public int deployPriority() {
+    throw new IllegalStateException("Events cannot be deployed.");
+  }
+
+  @Override
   public KubernetesKind kind() {
     return KubernetesKind.EVENT;
   }

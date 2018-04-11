@@ -32,9 +32,15 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.V1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
 @Component
 public class KubernetesServiceHandler extends KubernetesHandler implements CanDelete {
+  @Override
+  public int deployPriority() {
+    return NETWORK_RESOURCE_PRIORITY.getValue();
+  }
+
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.SERVICE;

@@ -33,6 +33,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
+
 @Component
 public class KubernetesJobHandler extends KubernetesHandler implements
   CanDelete,
@@ -44,6 +46,11 @@ public class KubernetesJobHandler extends KubernetesHandler implements
     registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
     registerReplacer(ArtifactReplacerFactory.configMapEnvFromReplacer());
     registerReplacer(ArtifactReplacerFactory.secretEnvFromReplacer());
+  }
+
+  @Override
+  public int deployPriority() {
+    return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
   @Override

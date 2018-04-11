@@ -36,6 +36,7 @@ import java.util.Map;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.APPS_V1BETA2;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 @Component
 public class KubernetesReplicaSetHandler extends KubernetesHandler implements
@@ -50,6 +51,11 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
     registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
     registerReplacer(ArtifactReplacerFactory.configMapEnvFromReplacer());
     registerReplacer(ArtifactReplacerFactory.secretEnvFromReplacer());
+  }
+
+  @Override
+  public int deployPriority() {
+    return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
   @Override

@@ -36,8 +36,8 @@ import com.netflix.spinnaker.clouddriver.model.Manifest;
 import lombok.extern.slf4j.Slf4j;
 
 public class CustomKubernetesHandlerFactory {
-  public static KubernetesHandler create(KubernetesKind kubernetesKind, SpinnakerKind spinnakerKind, boolean versioned) {
-    return new Handler(kubernetesKind, spinnakerKind, versioned);
+  public static KubernetesHandler create(KubernetesKind kubernetesKind, SpinnakerKind spinnakerKind, boolean versioned, int deployPriority) {
+    return new Handler(kubernetesKind, spinnakerKind, versioned, deployPriority);
   }
 
   @Slf4j
@@ -45,11 +45,18 @@ public class CustomKubernetesHandlerFactory {
     private final KubernetesKind kubernetesKind;
     private final SpinnakerKind spinnakerKind;
     private final boolean versioned;
+    private final int deployPriority;
 
-    Handler(KubernetesKind kubernetesKind, SpinnakerKind spinnakerKind, boolean versioned) {
+    Handler(KubernetesKind kubernetesKind, SpinnakerKind spinnakerKind, boolean versioned, int deployPriority) {
       this.kubernetesKind = kubernetesKind;
       this.spinnakerKind = spinnakerKind;
       this.versioned = versioned;
+      this.deployPriority = deployPriority;
+    }
+
+    @Override
+    public int deployPriority() {
+      return deployPriority;
     }
 
     @Override

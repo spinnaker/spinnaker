@@ -18,8 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactTypes;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesStatefulSetCachingAgent;
@@ -34,6 +32,8 @@ import io.kubernetes.client.models.V1beta2StatefulSetStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 @Component
 public class KubernetesStatefulSetHandler extends KubernetesHandler implements
@@ -51,6 +51,11 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
     registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
     registerReplacer(ArtifactReplacerFactory.configMapEnvFromReplacer());
     registerReplacer(ArtifactReplacerFactory.secretEnvFromReplacer());
+  }
+
+  @Override
+  public int deployPriority() {
+    return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
   @Override

@@ -26,16 +26,20 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +50,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
 
   private final ArtifactReplacer artifactReplacer = new ArtifactReplacer();
 
+  abstract public int deployPriority();
   abstract public KubernetesKind kind();
   abstract public boolean versioned();
   abstract public SpinnakerKind spinnakerKind();
@@ -115,5 +120,37 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
     result.put("region", key.getNamespace());
     result.put("name", KubernetesManifest.getFullResourceName(key.getKubernetesKind(), key.getName()));
     return result;
+  }
+
+  // lower "value" is deployed before higher "value"
+  public enum DeployPriority {
+    WORKLOAD_CONTROLLER_PRIORITY(100),
+    WORKLOAD_PRIORITY(100),
+    WORKLOAD_ATTACHMENT_PRIORITY(80),
+    NETWORK_RESOURCE_PRIORITY(70),
+    MOUNTABLE_DATA_PRIORITY(50),
+    MOUNTABLE_DATA_BACKING_RESOURCE_PRIORITY(40),
+    SERVICE_ACCOUNT_PRIORITY(40),
+    ROLE_BINDING_PRIORITY(30),
+    ROLE_PRIORITY(20),
+    NAMESPACE_PRIORITY(0);
+
+    @Getter
+    private final int value;
+
+    DeployPriority(int value) {
+      this.value = value;
+    }
+
+    public static DeployPriority fromString(String val) {
+      if (val == null) {
+        return null;
+      }
+
+      return Arrays.stream(values())
+          .filter(v -> v.toString().equalsIgnoreCase(val))
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException("No such priority '" + val + "'"));
+    }
   }
 }

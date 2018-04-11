@@ -25,8 +25,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_ATTACHMENT_PRIORITY;
+
 @Component
 public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler implements CanDelete {
+  @Override
+  public int deployPriority() {
+    return WORKLOAD_ATTACHMENT_PRIORITY.getValue();
+  }
+
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.HORIZONTAL_POD_AUTOSCALER;

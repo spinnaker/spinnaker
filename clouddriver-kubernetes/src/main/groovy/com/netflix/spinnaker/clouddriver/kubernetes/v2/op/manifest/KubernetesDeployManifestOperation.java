@@ -42,6 +42,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -130,6 +131,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     if (!unboundArtifacts.isEmpty()) {
       throw new IllegalArgumentException("The following artifacts could not be bound: '" + unboundArtifacts + "' . Failing the stage as this is likely a configuration error.");
     }
+
+    getTask().updateStatus(OP_NAME, "Sorting manifests by priority...");
+    deployManifests.sort(Comparator.comparingInt(m -> findResourceProperties(m).getHandler().deployPriority()));
+    getTask().updateStatus(OP_NAME, "Deploy order is: " + String.join(", ", deployManifests.stream().map(KubernetesManifest::getFullResourceName).collect(Collectors.toList())));
 
     OperationResult result = new OperationResult();
     for (KubernetesManifest manifest : deployManifests) {

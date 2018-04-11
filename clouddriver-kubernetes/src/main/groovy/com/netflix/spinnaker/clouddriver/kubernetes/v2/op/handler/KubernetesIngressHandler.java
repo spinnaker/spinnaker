@@ -39,9 +39,15 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
 @Component
 public class KubernetesIngressHandler extends KubernetesHandler implements CanDelete {
+  @Override
+  public int deployPriority() {
+    return NETWORK_RESOURCE_PRIORITY.getValue();
+  }
+
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.INGRESS;

@@ -27,6 +27,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang.StringUtils;
+
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 @Data
 @Builder
@@ -39,9 +42,22 @@ public class KubernetesResourceProperties {
   KubernetesUnversionedArtifactConverter unversionedConverter;
 
   public static KubernetesResourceProperties fromCustomResource(CustomKubernetesResource customResource) {
+    String deployPriority = customResource.getDeployPriority();
+    int deployPriorityValue;
+    if (StringUtils.isEmpty(deployPriority)) {
+      deployPriorityValue = WORKLOAD_CONTROLLER_PRIORITY.getValue();
+    } else {
+      try {
+        deployPriorityValue = Integer.valueOf(deployPriority);
+      } catch (NumberFormatException e) {
+        deployPriorityValue = KubernetesHandler.DeployPriority.fromString(deployPriority).getValue();
+      }
+    }
+
     KubernetesHandler handler = CustomKubernetesHandlerFactory.create(KubernetesKind.fromString(customResource.getKubernetesKind()),
         KubernetesSpinnakerKindMap.SpinnakerKind.fromString(customResource.getSpinnakerKind()),
-        customResource.isVersioned());
+        customResource.isVersioned(),
+        deployPriorityValue);
 
     return KubernetesResourceProperties.builder()
         .handler(handler)

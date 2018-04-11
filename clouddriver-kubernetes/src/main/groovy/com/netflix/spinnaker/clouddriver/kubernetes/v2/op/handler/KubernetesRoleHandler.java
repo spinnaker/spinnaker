@@ -25,8 +25,15 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.ROLE_PRIORITY;
+
 @Component
 public class KubernetesRoleHandler extends KubernetesHandler implements CanDelete {
+  @Override
+  public int deployPriority() {
+    return ROLE_PRIORITY.getValue();
+  }
+
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.ROLE;

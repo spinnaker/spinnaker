@@ -34,6 +34,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_PRIORITY;
+
 @Component
 public class KubernetesPodHandler extends KubernetesHandler implements CanDelete {
   public KubernetesPodHandler() {
@@ -44,6 +46,11 @@ public class KubernetesPodHandler extends KubernetesHandler implements CanDelete
             .type(ArtifactTypes.DOCKER_IMAGE)
             .build()
     );
+  }
+
+  @Override
+  public int deployPriority() {
+    return WORKLOAD_PRIORITY.getValue();
   }
 
   @Override
