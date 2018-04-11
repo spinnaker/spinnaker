@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.Image
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.mem.InMemoryCache
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -89,10 +90,10 @@ class GoogleNamedImageLookupController {
   }
 
   Map<String, List<Image>> listImagesByAccount() {
-    def filter = cacheView.filterIdentifiers(IMAGES.ns, "$GoogleCloudProvider.ID:*")
+    def identifiers = cacheView.filterIdentifiers(IMAGES.ns, "$GoogleCloudProvider.ID:*")
     def result = [:].withDefault { _ -> []}
 
-    cacheView.getAll(IMAGES.ns, filter).each { CacheData cacheData ->
+    cacheView.getAll(IMAGES.ns, identifiers, RelationshipCacheFilter.none()).each { CacheData cacheData ->
       def account = Keys.parse(cacheData.id).account
       result[account] << (cacheData.attributes.image as Image)
     }
