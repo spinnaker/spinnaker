@@ -99,6 +99,7 @@ public class SpinnakerMetadataServerGroupTagGenerator implements ServerGroupEnti
 
     Map<String, Object> tag = new HashMap<>();
     tag.put("name", "spinnaker:metadata");
+    tag.put("namespace", "spinnaker");
     tag.put("value", value);
 
     return Collections.singletonList(tag);

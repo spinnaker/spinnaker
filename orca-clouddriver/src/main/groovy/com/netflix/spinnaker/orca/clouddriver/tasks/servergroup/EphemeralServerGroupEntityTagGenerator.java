@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,18 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
 @Component
-public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenerator {
-  public static final String PINNED_CAPACITY_TAG = "spinnaker:pinned_capacity";
+public class EphemeralServerGroupEntityTagGenerator implements ServerGroupEntityTagGenerator {
+  public static final String TTL_TAG = "spinnaker:ttl";
 
   @Override
   public Collection<Map<String, Object>> generateTags(Stage stage,
@@ -37,30 +38,28 @@ public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenera
                                                       String location,
                                                       String cloudProvider) {
     StageData stageData = stage.mapTo(StageData.class);
-    if (stageData.capacity == null || stageData.sourceServerGroupCapacitySnapshot == null) {
+    if (stageData.ttl.hours == null && stageData.ttl.minutes == null) {
       return Collections.emptyList();
     }
 
-    if (stageData.capacity.min.equals(stageData.sourceServerGroupCapacitySnapshot.min)) {
-      // min capacity was not actually pinned, no need to mark this server group as having a pinned capacity
-      return Collections.emptyList();
+    ZonedDateTime expiry = ZonedDateTime.now(ZoneOffset.UTC);
+    if (stageData.ttl.hours != null) {
+      expiry = expiry.plus(stageData.ttl.hours, ChronoUnit.HOURS);
+    }
+    if (stageData.ttl.minutes != null) {
+      expiry = expiry.plus(stageData.ttl.minutes, ChronoUnit.MINUTES);
     }
 
     Map<String, Object> value = ImmutableMap.<String, Object>builder()
       .put("serverGroup", serverGroup)
-      .put("account", account)
-      .put("location", location)
-      .put("cloudProvider", cloudProvider)
       .put("executionId", stage.getExecution().getId())
       .put("executionType", stage.getExecution().getType())
-      .put("stageId", stage.getId())
-      .put("pinnedCapacity", stageData.capacity.toMap())
-      .put("unpinnedCapacity", stageData.sourceServerGroupCapacitySnapshot.toMap())
+      .put("expiry", expiry)
       .build();
 
     return Collections.singletonList(
       ImmutableMap.<String, Object>builder()
-        .put("name", PINNED_CAPACITY_TAG)
+        .put("name", TTL_TAG)
         .put("namespace", "spinnaker")
         .put("value", value)
         .build()
@@ -68,21 +67,11 @@ public class PinnedServerGroupTagGenerator implements ServerGroupEntityTagGenera
   }
 
   private static class StageData {
-    public Capacity capacity;
-    public Capacity sourceServerGroupCapacitySnapshot;
+    public TTL ttl;
 
-    private static class Capacity {
-      public Integer min;
-      public Integer desired;
-      public Integer max;
-
-      Map<String, Integer> toMap() {
-        return ImmutableMap.<String, Integer>builder()
-          .put("min", min)
-          .put("desired", desired)
-          .put("max", max)
-          .build();
-      }
+    private static class TTL {
+      public Integer hours;
+      public Integer minutes;
     }
   }
 }

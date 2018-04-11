@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.pollers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
@@ -37,16 +38,15 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.util.Pool;
-import retrofit.client.Response;
 import rx.Observable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -65,6 +65,8 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
   private final ExecutionLauncher executionLauncher;
   private final ExecutionRepository executionRepository;
 
+  private final PollerSupport pollerSupport;
+
   private final Counter errorsCounter;
   private final Counter triggeredCounter;
 
@@ -76,6 +78,27 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
                                          Registry registry,
                                          ExecutionLauncher executionLauncher,
                                          ExecutionRepository executionRepository) {
+    this(
+      jedisPool,
+      objectMapper,
+      oortService,
+      retrySupport,
+      registry,
+      executionLauncher,
+      executionRepository,
+      new PollerSupport(objectMapper, retrySupport, oortService)
+    );
+  }
+
+  @VisibleForTesting
+  RestorePinnedServerGroupsPoller(@Qualifier("jedisPool") Pool<Jedis> jedisPool,
+                                  ObjectMapper objectMapper,
+                                  OortService oortService,
+                                  RetrySupport retrySupport,
+                                  Registry registry,
+                                  ExecutionLauncher executionLauncher,
+                                  ExecutionRepository executionRepository,
+                                  PollerSupport pollerSupport) {
     super(jedisPool);
 
     this.objectMapper = objectMapper;
@@ -83,6 +106,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
     this.retrySupport = retrySupport;
     this.executionLauncher = executionLauncher;
     this.executionRepository = executionRepository;
+    this.pollerSupport = pollerSupport;
 
     this.errorsCounter = registry.counter("poller.restorePinnedServerGroups.errors");
     this.triggeredCounter = registry.counter("poller.restorePinnedServerGroups.triggered");
@@ -131,21 +155,23 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
 
     for (PinnedServerGroupTag pinnedServerGroupTag : pinnedServerGroupTags) {
       try {
-        ServerGroup serverGroup = fetchServerGroup(
+        List<Map<String, Object>> jobs = new ArrayList<>();
+        jobs.add(buildDeleteEntityTagsOperation(pinnedServerGroupTag));
+
+        Optional<ServerGroup> serverGroup = pollerSupport.fetchServerGroup(
           pinnedServerGroupTag.account,
           pinnedServerGroupTag.location,
           pinnedServerGroupTag.serverGroup
         );
 
-        List<Map<String, Object>> jobs = new ArrayList<>();
-        jobs.add(buildDeleteEntityTagsOperation(pinnedServerGroupTag, serverGroup));
+        serverGroup.ifPresent(s -> {
+          if (s.capacity.min.equals(pinnedServerGroupTag.pinnedCapacity.min)) {
+            jobs.add(0, buildResizeOperation(pinnedServerGroupTag, s));
 
-        if (serverGroup.capacity.min.equals(pinnedServerGroupTag.pinnedCapacity.min)) {
-          jobs.add(0, buildResizeOperation(pinnedServerGroupTag, serverGroup));
-
-          // ensure that the tag cleanup comes after the resize operation has completed
-          jobs.get(1).put("requisiteStageRefIds", Collections.singletonList(jobs.get(0).get("refId")));
-        }
+            // ensure that the tag cleanup comes after the resize operation has completed
+            jobs.get(1).put("requisiteStageRefIds", Collections.singletonList(jobs.get(0).get("refId")));
+          }
+        });
 
         Map<String, Object> cleanupOperation = buildCleanupOperation(pinnedServerGroupTag, serverGroup, jobs);
         log.info((String) cleanupOperation.get("name"));
@@ -180,7 +206,8 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
         .filter(t -> PINNED_CAPACITY_TAG.equalsIgnoreCase(t.name))
         .map(t -> {
           PinnedServerGroupTag pinnedServerGroupTag = objectMapper.convertValue(t.value, PinnedServerGroupTag.class);
-          pinnedServerGroupTag.entityTagsId = e.id;
+          pinnedServerGroupTag.id = e.id;
+          pinnedServerGroupTag.application = e.entityRef.application;
           return pinnedServerGroupTag;
         })
         .findFirst()
@@ -206,50 +233,31 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
     }
   }
 
-  ServerGroup fetchServerGroup(String account, String region, String serverGroup) {
-    return retrySupport.retry(() -> {
-      try {
-        Response response = oortService.getServerGroup(account, region, serverGroup);
-        return objectMapper.readValue(response.getBody().in(), ServerGroup.class);
-      } catch (IOException e) {
-        throw new RuntimeException(
-          format(
-            "Unable to fetch server group (account: %s, region: %s, serverGroup: %s)", account, region, serverGroup
-          ),
-          e
-        );
-      }
-    }, 5, 2000, false);
-  }
-
-
   private Map<String, Object> buildCleanupOperation(PinnedServerGroupTag pinnedServerGroupTag,
-                                                    ServerGroup serverGroup,
+                                                    Optional<ServerGroup> serverGroup,
                                                     List<Map<String, Object>> jobs) {
+    String name = serverGroup.map(s -> format(
+      "Unpin Server Group: %s to %s/%s/%s",
+      pinnedServerGroupTag.serverGroup,
+      pinnedServerGroupTag.unpinnedCapacity.min,
+      s.capacity.desired,
+      s.capacity.max
+    )).orElseGet(() -> "Deleting tags on '" + pinnedServerGroupTag.id + "'");
+
     return ImmutableMap.<String, Object>builder()
-      .put("application", serverGroup.moniker.app)
-      .put(
-        "name",
-        format(
-          "Unpin Server Group: %s to %s/%s/%s",
-          pinnedServerGroupTag.serverGroup,
-          pinnedServerGroupTag.unpinnedCapacity.min,
-          serverGroup.capacity.desired,
-          serverGroup.capacity.max
-        )
-      )
-      .put("trigger", Collections.emptyMap())
-      .put("user", "Spinnaker")
+      .put("application", pinnedServerGroupTag.application)
+      .put("name", name)
+      .put("user", "spinnaker")
       .put("stages", jobs)
       .build();
   }
 
-  private Map<String, Object> buildDeleteEntityTagsOperation(PinnedServerGroupTag pinnedServerGroupTag, ServerGroup serverGroup) {
+  private Map<String, Object> buildDeleteEntityTagsOperation(PinnedServerGroupTag pinnedServerGroupTag) {
     Map<String, Object> operation = new HashMap<>();
 
-    operation.put("application", serverGroup.moniker.app);
+    operation.put("application", pinnedServerGroupTag.application);
     operation.put("type", "deleteEntityTags");
-    operation.put("id", pinnedServerGroupTag.entityTagsId);
+    operation.put("id", pinnedServerGroupTag.id);
     operation.put("tags", Collections.singletonList(PINNED_CAPACITY_TAG));
 
     return operation;
@@ -280,43 +288,20 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
       .build();
   }
 
-  private static class EntityTags {
-    public String id;
-    public List<Tag> tags;
-
-    private static class Tag {
-      public String name;
-      public Object value;
-    }
-  }
-
   private static class PinnedServerGroupTag {
-    public String entityTagsId;
-    public String serverGroup;
+    public String id;
+
+    public String cloudProvider;
+    public String application;
     public String account;
     public String location;
-    public String cloudProvider;
+    public String serverGroup;
 
     public Execution.ExecutionType executionType;
     public String executionId;
     public String stageId;
 
-    public Capacity pinnedCapacity;
-    public Capacity unpinnedCapacity;
-  }
-
-  private static class ServerGroup {
-    public Capacity capacity;
-    public Moniker moniker;
-
-    private static class Moniker {
-      public String app;
-    }
-  }
-
-  private static class Capacity {
-    public Integer min;
-    public Integer desired;
-    public Integer max;
+    public ServerGroup.Capacity pinnedCapacity;
+    public ServerGroup.Capacity unpinnedCapacity;
   }
 }

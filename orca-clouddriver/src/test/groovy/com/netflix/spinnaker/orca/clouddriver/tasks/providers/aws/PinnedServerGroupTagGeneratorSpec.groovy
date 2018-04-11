@@ -67,6 +67,7 @@ class PinnedServerGroupTagGeneratorSpec extends Specification {
     tags == [
       [
         name : "spinnaker:pinned_capacity",
+        namespace: "spinnaker",
         value: [
           serverGroup: "app-stack-details-v001",
           account: "test",

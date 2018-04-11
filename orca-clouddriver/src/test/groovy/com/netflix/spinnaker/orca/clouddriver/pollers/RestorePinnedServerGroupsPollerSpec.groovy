@@ -35,6 +35,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
   def oortService = Mock(OortService)
   def executionLauncher = Mock(ExecutionLauncher)
   def executionRepository = Mock(ExecutionRepository)
+  def pollerSupport = Mock(PollerSupport)
   def retrySupport = Spy(RetrySupport) {
     _ * sleep(_) >> { /* do nothing */ }
   }
@@ -44,34 +45,49 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
   }
 
   def pinnedServerGroupTag1 = new RestorePinnedServerGroupsPoller.PinnedServerGroupTag(
-    serverGroup: "app-stack-details-v001",
-    entityTagsId: "entity-tags-id-1",
+    id: "entity-tags-id-1",
+
+    cloudProvider: "aws",
+    application: "app",
     account: "test",
     location: "us-east-1",
-    cloudProvider: "aws",
+    serverGroup: "app-stack-details-v001",
+
     executionType: Execution.ExecutionType.PIPELINE,
     executionId: "execution-id-1",
-    pinnedCapacity: new RestorePinnedServerGroupsPoller.Capacity(min: 3, max: 5, desired: 3),
-    unpinnedCapacity: new RestorePinnedServerGroupsPoller.Capacity(min: 2, max: 5, desired: 3)
+
+    pinnedCapacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3),
+    unpinnedCapacity: new ServerGroup.Capacity(min: 2, max: 5, desired: 3)
   )
 
   def pinnedServerGroupTag2 = new RestorePinnedServerGroupsPoller.PinnedServerGroupTag(
-    serverGroup: "app-stack-details-v002",
-    entityTagsId: "entity-tags-id-2",
+    id: "entity-tags-id-2",
+
+    cloudProvider: "aws",
+    application: "app",
     account: "test",
     location: "us-east-1",
-    cloudProvider: "aws",
+    serverGroup: "app-stack-details-v002",
+
     executionType: Execution.ExecutionType.PIPELINE,
     executionId: "execution-id-2",
-    pinnedCapacity: new RestorePinnedServerGroupsPoller.Capacity(min: 3, max: 5, desired: 3),
-    unpinnedCapacity: new RestorePinnedServerGroupsPoller.Capacity(min: 2, max: 5, desired: 3)
+
+    pinnedCapacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3),
+    unpinnedCapacity: new ServerGroup.Capacity(min: 2, max: 5, desired: 3)
   )
 
   @Subject
   def restorePinnedServerGroupsAgent = Spy(
     RestorePinnedServerGroupsPoller,
     constructorArgs: [
-      jedisPool, objectMapper, oortService, retrySupport, registry, executionLauncher, executionRepository
+      jedisPool,
+      objectMapper,
+      oortService,
+      retrySupport,
+      registry,
+      executionLauncher,
+      executionRepository,
+      pollerSupport
     ]
   )
 
@@ -85,10 +101,12 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
     }
     1 * restorePinnedServerGroupsAgent.hasCompletedExecution(pinnedServerGroupTag1) >> { return true }
     1 * restorePinnedServerGroupsAgent.hasCompletedExecution(pinnedServerGroupTag2) >> { return false }
-    1 * restorePinnedServerGroupsAgent.fetchServerGroup("test", "us-east-1", "app-stack-details-v001") >> {
-      return new RestorePinnedServerGroupsPoller.ServerGroup(
-        moniker: [app: "app"],
-        capacity: new RestorePinnedServerGroupsPoller.Capacity(min: 3, max: 5, desired: 3)
+    1 * pollerSupport.fetchServerGroup("test", "us-east-1", "app-stack-details-v001") >> {
+      return Optional.of(
+        new ServerGroup(
+          moniker: [app: "app"],
+          capacity: new ServerGroup.Capacity(min: 3, max: 5, desired: 3)
+        )
       )
     }
     1 * executionLauncher.start(Execution.ExecutionType.ORCHESTRATION, { String configJson ->
@@ -111,11 +129,13 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
       return [pinnedServerGroupTag1]
     }
     1 * restorePinnedServerGroupsAgent.hasCompletedExecution(pinnedServerGroupTag1) >> { return true }
-    1 * restorePinnedServerGroupsAgent.fetchServerGroup("test", "us-east-1", "app-stack-details-v001") >> {
-      return new RestorePinnedServerGroupsPoller.ServerGroup(
-        moniker: [app: "app"],
-        // current 'min' capacity no longer matches the pinned 'min' capacity, assume something else resized!
-        capacity: new RestorePinnedServerGroupsPoller.Capacity(min: 2, max: 5, desired: 3)
+    1 * pollerSupport.fetchServerGroup("test", "us-east-1", "app-stack-details-v001") >> {
+      return Optional.of(
+        new ServerGroup(
+          moniker: [app: "app"],
+          // current 'min' capacity no longer matches the pinned 'min' capacity, assume something else resized!
+          capacity: new ServerGroup.Capacity(min: 2, max: 5, desired: 3)
+        )
       )
     }
     1 * executionLauncher.start(Execution.ExecutionType.ORCHESTRATION, { String configJson ->

@@ -67,6 +67,7 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
     then:
     tags == [[
                name : "spinnaker:metadata",
+               namespace: "spinnaker",
                value: [
                  executionId     : pipeline.id,
                  pipelineConfigId: "configId",
@@ -107,7 +108,8 @@ class SpinnakerMetadataServerGroupTagGeneratorSpec extends Specification {
 
     then:
     tags == [[
-               name : "spinnaker:metadata",
+               name     : "spinnaker:metadata",
+               namespace: "spinnaker",
                value: [
                  executionId  : orchestration.id,
                  application  : "application",
