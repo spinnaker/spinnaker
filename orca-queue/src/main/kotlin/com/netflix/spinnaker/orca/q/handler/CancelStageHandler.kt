@@ -20,8 +20,10 @@ import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelStage
+import com.netflix.spinnaker.orca.q.RescheduleExecution
 import com.netflix.spinnaker.orca.q.RunTask
 import com.netflix.spinnaker.q.Queue
 import org.springframework.beans.factory.annotation.Qualifier
@@ -81,6 +83,15 @@ class CancelStageHandler(
             // time out.
             executor.execute {
               builder.cancel(stage)
+              // Special case for PipelineStage to ensure prompt cancellation of
+              // child pipelines and deployment strategies regardless of task backoff
+              if (stage.type.equals("pipeline", true) && stage.context.containsKey("executionId")) {
+                val childId = stage.context["executionId"] as? String
+                if (childId != null) {
+                  val child = repository.retrieve(PIPELINE, childId)
+                  queue.push(RescheduleExecution(child))
+                }
+              }
             }
           }
         }

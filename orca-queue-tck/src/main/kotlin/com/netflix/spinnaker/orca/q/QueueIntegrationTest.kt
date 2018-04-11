@@ -26,6 +26,7 @@ import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
+import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
@@ -421,6 +422,47 @@ class QueueIntegrationTest {
       assertThat(stageByRef("2b1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2b2").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("3").status).isEqualTo(NOT_STARTED)
+    }
+  }
+
+  @Test
+  fun `child pipeline is prompty cancelled with the parent regardless of task backoff time`() {
+    val childPipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "wait"
+        type = "wait"
+        context = mapOf("waitTime" to 60)
+      }
+    }
+    val parentPipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "pipeline"
+        context = mapOf("executionId" to childPipeline.id)
+      }
+    }
+
+    repository.store(childPipeline)
+    repository.store(parentPipeline)
+
+    whenever(dummyTask.execute(argThat { refId == "1" })) doReturn TaskResult(CANCELED)
+    context.runParentToCompletion(parentPipeline, childPipeline, runner::start, repository)
+
+    repository.retrieve(PIPELINE, parentPipeline.id).apply {
+      assertThat(status == CANCELED)
+    }
+    repository.retrieve(PIPELINE, childPipeline.id).apply {
+      assertThat(stageByRef("wait").status == RUNNING)
+    }
+
+    context.runToCompletion(childPipeline, runner::start, repository)
+
+    repository.retrieve(PIPELINE, childPipeline.id).apply {
+      assertThat(isCanceled).isTrue()
+      assertThat(stageByRef("wait").wasShorterThan(10000L)).isTrue()
+      assertThat(stageByRef("wait").status == CANCELED)
     }
   }
 
@@ -839,6 +881,21 @@ class TestConfig {
   }
 
   @Bean
+  fun pipelineStage(@Autowired repository: ExecutionRepository): StageDefinitionBuilder =
+    object : CancellableStage, StageDefinitionBuilder {
+      override fun taskGraph(stage: Stage, builder: Builder) {
+        builder.withTask<DummyTask>("dummy")
+      }
+
+      override fun getType() = "pipeline"
+
+      override fun cancel(stage: Stage?): CancellableStage.Result {
+        repository.cancel(stage!!.context["executionId"] as String)
+        return CancellableStage.Result(stage, mapOf("foo" to "bar"))
+      }
+    }
+
+  @Bean
   fun currentInstanceId() = "localhost"
 
   @Bean
@@ -863,7 +920,8 @@ class TestConfig {
       publisher = publisher
     )
 
-  @Bean fun redisClientSelector(redisClientDelegates: List<RedisClientDelegate>) =
+  @Bean
+  fun redisClientSelector(redisClientDelegates: List<RedisClientDelegate>) =
     RedisClientSelector(redisClientDelegates)
 }
 

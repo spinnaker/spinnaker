@@ -57,6 +57,30 @@ fun ConfigurableApplicationContext.runToCompletion(execution: Execution, launche
   repository.waitForAllStagesToComplete(execution)
 }
 
+/**
+ * Given parent and child pipelines:
+ * 1) Start child pipeline
+ * 2) Invoke parent pipeline and continue until completion
+ *
+ * Useful for testing failure interactions between pipelines. Child pipeline can be inspected prior to
+ * completion, and subsequently completed via [runToCompletion].
+ */
+fun ConfigurableApplicationContext.runParentToCompletion(parent: Execution,
+                                                         child: Execution,
+                                                         launcher: (Execution) -> Unit,
+                                                         repository: ExecutionRepository) {
+  val latch = ExecutionLatch(Predicate {
+    it.executionId == parent.id
+  })
+
+  addApplicationListener(latch)
+  launcher.invoke(child)
+  launcher.invoke(parent)
+  assert(latch.await()) { "Pipeline did not complete" }
+
+  repository.waitForAllStagesToComplete(parent)
+}
+
 fun ConfigurableApplicationContext.restartAndRunToCompletion(stage: Stage, launcher: (Execution, String) -> Unit, repository: ExecutionRepository) {
   val execution = stage.execution
   val latch = ExecutionLatch(Predicate {
