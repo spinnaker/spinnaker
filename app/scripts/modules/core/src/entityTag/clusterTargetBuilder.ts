@@ -1,12 +1,10 @@
-import { module } from 'angular';
-
 import { IServerGroup } from 'core/domain';
 import { NameUtils } from 'core/naming';
 
 import { IOwnerOption } from './EntityTagEditor';
 
 export class ClusterTargetBuilder {
-  public buildClusterTargets(serverGroup: IServerGroup): IOwnerOption[] {
+  public static buildClusterTargets(serverGroup: IServerGroup): IOwnerOption[] {
     const clusterName = NameUtils.getClusterNameFromServerGroupName(serverGroup.name);
     return [
       {
@@ -40,6 +38,3 @@ export class ClusterTargetBuilder {
     ];
   }
 }
-
-export const CLUSTER_TARGET_BUILDER = 'spinnaker.core.entityTag.clusterTargetBuilder';
-module(CLUSTER_TARGET_BUILDER, []).service('clusterTargetBuilder', ClusterTargetBuilder);

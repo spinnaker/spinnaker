@@ -4,6 +4,7 @@ import { Dropdown, Tooltip } from 'react-bootstrap';
 import { get, find, filter, orderBy } from 'lodash';
 
 import {
+  ClusterTargetBuilder,
   IOwnerOption,
   IServerGroupActionsProps,
   IServerGroupJob,
@@ -285,7 +286,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
     const { AddEntityTagLinks } = NgReact;
     const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
-    const entityTagTargets: IOwnerOption[] = ReactInjector.clusterTargetBuilder.buildClusterTargets(serverGroup);
+    const entityTagTargets: IOwnerOption[] = ClusterTargetBuilder.buildClusterTargets(serverGroup);
 
     return (
       <Dropdown className="dropdown" id="server-group-actions-dropdown">

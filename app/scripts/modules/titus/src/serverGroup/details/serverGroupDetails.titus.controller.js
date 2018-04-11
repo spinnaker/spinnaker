@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
-  CLUSTER_TARGET_BUILDER,
+  ClusterTargetBuilder,
   CONFIRMATION_MODAL_SERVICE,
   NameUtils,
   SERVER_GROUP_READER,
@@ -31,7 +31,6 @@ module.exports = angular
     SERVER_GROUP_WRITER,
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
-    CLUSTER_TARGET_BUILDER,
     SCALING_POLICY_MODULE,
   ])
   .controller('titusServerGroupDetailsCtrl', function(
@@ -46,7 +45,6 @@ module.exports = angular
     $uibModal,
     confirmationModalService,
     serverGroupWriter,
-    clusterTargetBuilder,
     awsServerGroupTransformer,
     serverGroupWarningMessageService,
     accountService,
@@ -217,7 +215,7 @@ module.exports = angular
     });
 
     let configureEntityTagTargets = () => {
-      this.entityTagTargets = clusterTargetBuilder.buildClusterTargets($scope.serverGroup);
+      this.entityTagTargets = ClusterTargetBuilder.buildClusterTargets($scope.serverGroup);
     };
 
     this.destroyServerGroup = function destroyServerGroup() {

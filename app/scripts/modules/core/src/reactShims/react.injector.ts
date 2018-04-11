@@ -15,7 +15,6 @@ import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
 import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
-import { ClusterTargetBuilder } from '../entityTag/clusterTargetBuilder.service';
 import { CollapsibleSectionStateCache } from '../cache/collapsibleSectionStateCache';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { EntityTagWriter } from '../entityTag';
@@ -98,7 +97,6 @@ export class CoreReactInject extends ReactInject {
   public get cloudProviderRegistry() { return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry; }
   public get clusterFilterModel() { return this.$injector.get('clusterFilterModel') as ClusterFilterModel; }
   public get clusterFilterService() { return this.$injector.get('clusterFilterService') as ClusterFilterService; }
-  public get clusterTargetBuilder() { return this.$injector.get('clusterTargetBuilder') as ClusterTargetBuilder; }
   public get collapsibleSectionStateCache() { return this.$injector.get('collapsibleSectionStateCache') as CollapsibleSectionStateCache; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get entityTagWriter() { return this.$injector.get('entityTagWriter') as EntityTagWriter; }

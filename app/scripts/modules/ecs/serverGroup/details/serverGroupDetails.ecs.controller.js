@@ -7,7 +7,6 @@ import { ECS_SERVER_GROUP_TRANSFORMER } from '../serverGroup.transformer';
 
 import {
   ACCOUNT_SERVICE,
-  CLUSTER_TARGET_BUILDER,
   CONFIRMATION_MODAL_SERVICE,
   OVERRIDE_REGISTRY,
   SERVER_GROUP_READER,
@@ -20,7 +19,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     ACCOUNT_SERVICE,
     ECS_SERVER_GROUP_TRANSFORMER,
-    CLUSTER_TARGET_BUILDER,
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
     SERVER_GROUP_READER,
@@ -41,7 +39,6 @@ module.exports = angular
     confirmationModalService,
     serverGroupWriter,
     subnetReader,
-    clusterTargetBuilder,
     ecsServerGroupTransformer,
     accountService,
     serverGroupWarningMessageService,

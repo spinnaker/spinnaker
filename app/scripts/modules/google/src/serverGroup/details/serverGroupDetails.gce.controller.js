@@ -4,8 +4,8 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  CLUSTER_TARGET_BUILDER,
   CONFIRMATION_MODAL_SERVICE,
+  ClusterTargetBuilder,
   NETWORK_READ_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
@@ -26,7 +26,6 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     NETWORK_READ_SERVICE,
     SERVER_GROUP_WRITER,
-    CLUSTER_TARGET_BUILDER,
     require('google/common/xpnNaming.gce.service.js').name,
     require('./resize/resizeServerGroup.controller').name,
     require('./rollback/rollbackServerGroup.controller').name,
@@ -47,7 +46,6 @@ module.exports = angular
     serverGroupWriter,
     serverGroupWarningMessageService,
     networkReader,
-    clusterTargetBuilder,
     gceXpnNamingService,
   ) {
     this.state = {
@@ -540,6 +538,6 @@ module.exports = angular
     };
 
     let configureEntityTagTargets = () => {
-      this.entityTagTargets = clusterTargetBuilder.buildClusterTargets(this.serverGroup);
+      this.entityTagTargets = ClusterTargetBuilder.buildClusterTargets(this.serverGroup);
     };
   });
