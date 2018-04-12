@@ -92,6 +92,11 @@ public class SavePipelineTask implements RetryableTask {
     outputs.put("application", pipeline.get("application"));
     outputs.put("pipeline.name", pipeline.get("name"));
 
+    if (pipeline.containsKey("id")) {
+      // a newly created pipeline will not yet have an `id`
+      outputs.put("pipeline.id", pipeline.get("id"));
+    }
+
     return new TaskResult(
       (response.getStatus() == HttpStatus.OK.value()) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL,
       outputs

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.front50.pipeline;
 
+import com.netflix.spinnaker.orca.front50.tasks.MonitorFront50Task;
 import com.netflix.spinnaker.orca.front50.tasks.SavePipelineTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
@@ -27,6 +28,7 @@ public class SavePipelineStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, Builder builder) {
     builder
-      .withTask("savePipeline", SavePipelineTask.class);
+      .withTask("savePipeline", SavePipelineTask.class)
+      .withTask("waitForPipelineSave", MonitorFront50Task.class);
   }
 }
