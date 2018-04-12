@@ -113,10 +113,9 @@ abstract class CloudProviderBakeHandler {
   def Artifact produceArtifactDecorationFrom(BakeRequest bakeRequest, BakeRecipe bakeRecipe, Bake bakeDetails, String cloudProvider, String region) {
     Artifact bakedArtifact = new Artifact(
       name: bakeRecipe?.name,
-      version: bakeRecipe?.version,
       type: "${cloudProvider}/image",
       location: region,
-      reference: bakeDetails.ami ?: bakeDetails.image_name,
+      reference: getArtifactReference(bakeRequest, bakeDetails),
       metadata: [
         build_info_url: bakeRequest?.build_info_url,
         build_number: bakeRequest?.build_number
@@ -125,6 +124,10 @@ abstract class CloudProviderBakeHandler {
     )
 
     return bakedArtifact
+  }
+
+  def String getArtifactReference(BakeRequest bakeRequest, Bake bakeDetails) {
+    return bakeDetails.ami ?: bakeDetails.image_name
   }
 
   /**

@@ -174,4 +174,15 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
     return managedGoogleAccount
   }
 
+  @Override
+  String getArtifactReference(BakeRequest bakeRequest, Bake bakeDetails) {
+    RoscoGoogleConfiguration.ManagedGoogleAccount managedGoogleAccount = resolveAccount(bakeRequest)
+    def project = managedGoogleAccount.getProject()
+    def imageName = bakeDetails.image_name
+
+    // TODO(ezimanyi): Remove hard-coding of image URI
+    // Either get packer to directly return the generated URI (preferred) or send a request to
+    // clouddriver to convert the project/image combination into a URI using the Google compute API
+    return "https://www.googleapis.com/compute/v1/projects/$project/global/images/$imageName"
+  }
 }

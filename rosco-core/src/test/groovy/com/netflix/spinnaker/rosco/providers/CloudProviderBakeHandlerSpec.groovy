@@ -29,7 +29,7 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
     setup:
       def expectedArtifact = new Artifact (
         name: SOME_BAKE_RECIPE.name,
-        version: SOME_BAKE_RECIPE.version,
+        version: null,
         location: SOME_REGION,
         type: "${SOME_CLOUD_PROVIDER}/image",
         reference: SOME_BAKE_DETAILS.ami,
@@ -64,8 +64,8 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
     where:
       bakeRequest       | bakeRecipe       | expectedName          | expectedVersion      | expectedReference | expectedMetadata
       null              | null             | null                  | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | SOME_APP_VERSION_STR | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
-      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | SOME_APP_VERSION_STR | SOME_AMI_ID       | ["build_info_url": SOME_BUILD_INFO_URL, "build_number": SOME_BUILD_NR]
+      null              | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": null, "build_number": null]
+      SOME_BAKE_REQUEST | SOME_BAKE_RECIPE | SOME_BAKE_RECIPE_NAME | null                 | SOME_AMI_ID       | ["build_info_url": SOME_BUILD_INFO_URL, "build_number": SOME_BUILD_NR]
 
   }
 
