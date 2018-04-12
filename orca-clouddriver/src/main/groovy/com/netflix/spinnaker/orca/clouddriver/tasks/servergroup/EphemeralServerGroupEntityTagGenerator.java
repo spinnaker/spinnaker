@@ -67,7 +67,7 @@ public class EphemeralServerGroupEntityTagGenerator implements ServerGroupEntity
   }
 
   private static class StageData {
-    public TTL ttl;
+    public TTL ttl = new TTL();
 
     private static class TTL {
       public Integer hours;
