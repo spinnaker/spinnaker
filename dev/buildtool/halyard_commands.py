@@ -18,6 +18,7 @@ import copy
 import datetime
 import logging
 import os
+import re
 import shutil
 import textwrap
 import yaml
@@ -134,14 +135,16 @@ class BuildHalyardCommand(GradleCommandProcessor):
     cmd = './release/all.sh {version} nightly'.format(
         version=self.__build_version)
     env = dict(os.environ)
+    env.update({
+        'PUBLISH_HALYARD_BUCKET_BASE_URL': options.halyard_bucket_base_url,
+        'PUBLISH_HALYARD_DOCKER_IMAGE_BASE': options.halyard_docker_image_base
+    })
     logging.info(
         'Preparing the environment variables for release/all.sh:\n'
         '    PUBLISH_HALYARD_DOCKER_IMAGE_BASE=%s\n'
         '    PUBLISH_HALYARD_BUCKET_BASE_URL=%s',
         options.halyard_docker_image_base,
         options.halyard_bucket_base_url)
-    env['PUBLISH_HALYARD_DOCKER_IMAGE_BASE'] = options.halyard_docker_image_base
-    env['PUBLISH_HALYARD_BUCKET_BASE_URL'] = options.halyard_bucket_base_url
 
     logfile = self.get_logfile_path('jar-build')
     check_subprocesses_to_logfile(
@@ -285,6 +288,10 @@ class PublishHalyardCommandFactory(CommandFactory):
              ' --halyard_bucket_base_url.'.format(
                  filename=BuildHalyardCommand.HALYARD_VERSIONS_BASENAME))
     self.add_argument(
+        parser, 'halyard_docker_image_base',
+        defaults, None,
+        help='Base Docker image name for writing halyard builds.')
+    self.add_argument(
         parser, 'halyard_bucket_base_url',
         defaults, None,
         help='Base Google Cloud Storage URL for writing halyard builds.')
@@ -314,6 +321,13 @@ class PublishHalyardCommand(CommandProcessor):
     super(PublishHalyardCommand, self).__init__(factory, options_copy, **kwargs)
 
     check_options_set(options, ['halyard_version'])
+    match = re.match(r'(\d+)\.(\d+)\.(\d+)-\d+', options.halyard_version)
+    if match is None:
+      raise_and_log_error(
+          ConfigError('--halyard_version={version} is not X.Y.Z-<buildnum>'
+                      .format(version=options.halyard_version)))
+    self.__stable_version = '{major}.{minor}.{patch}'.format(
+        major=match.group(1), minor=match.group(2), patch=match.group(3))
 
     self.__scm = BranchSourceCodeManager(options_copy, self.get_input_dir())
     self.__hal = HalRunner(options_copy)
@@ -378,11 +392,37 @@ class PublishHalyardCommand(CommandProcessor):
     git.clone_repository_to_path(repository, commit=commit)
     return repository
 
+  def _promote_halyard(self, repository):
+    """Promote an existing build to become the halyard stable version."""
+    options = self.options
+    logfile = self.get_logfile_path('promote-all')
+    env = dict(os.environ)
+    env.update({
+        'PUBLISH_HALYARD_BUCKET_BASE_URL': options.halyard_bucket_base_url,
+        'PUBLISH_HALYARD_DOCKER_IMAGE_BASE': options.halyard_docker_image_base
+    })
+    check_subprocesses_to_logfile(
+        'Promote Halyard', logfile,
+        ['gcloud docker -a',  # if repo is private it needs authenticated
+         './release/promote-all.sh {candidate} {stable}'.format(
+             candidate=options.halyard_version,
+             stable=self.__stable_version),
+         './release/promote-all.sh {candidate} stable'.format(
+             candidate=options.halyard_version)],
+        env=env,
+        cwd=repository.git_dir)
+
   def _build_release(self, repository):
-    """Rebuild the actual release.
+    """Rebuild the actual release debian package.
 
     We dont necessarily need to rebuild here. We just need to push as
-    debian to the "-stable".
+    debian to the "-stable". However there isnt an easy way to do this.
+
+    Note that this is not the promoted version. For safety[*] and simplicity
+    we'll promote the candidate whose version was used to build this.
+    Ideally this function can go away.
+
+    [*] Safety because the candidate was tested whereas this build was not.
     """
     # Ideally we would just modify the existing bintray version to add
     # trusty-stable to the distributions, however it does not appear possible
@@ -458,22 +498,25 @@ class PublishHalyardCommand(CommandProcessor):
         'checkout {flag} {branch}'.format(
             flag=branch_flag, branch=head_branch),
         'add ' + target_rel_path,
-        'commit -m "{msg}" {path}'.format(msg=message, path=target_rel_path),
     ]
 
     logging.debug('Commiting changes into local repository "%s" branch=%s',
                   target_repository.git_dir, head_branch)
     git = self.__scm.git
     git.check_run_sequence(git_dir, local_git_commands)
+    git.check_commit_or_no_changes(
+        git_dir, '-m "{msg}" {path}'.format(msg=message, path=target_rel_path))
 
     logging.info('Pushing halyard docs to %s branch="%s"',
                  target_repository.origin, head_branch)
-    git.push_branch_to_origin(target_repository.git_dir, branch=head_branch)
+    git.push_branch_to_origin(
+        target_repository.git_dir, branch=head_branch, force=True)
 
   def _do_command(self):
     """Implements CommandProcessor interface."""
     repository = self._prepare_repository()
     self._build_release(repository)
+    self._promote_halyard(repository)
     build_halyard_docs(self, repository)
     self.push_docs(repository)
     self.push_tag_and_branch(repository)
@@ -486,7 +529,16 @@ class PublishHalyardCommand(CommandProcessor):
 
     release_url = repository.origin
     logging.info('Pushing branch=%s and tag=%s to %s',
-                 self.__release_tag, self.__release_branch, release_url)
+                 self.__release_branch, self.__release_tag, release_url)
+
+    existing_commit = git.query_commit_at_tag(git_dir, self.__release_tag)
+    if existing_commit:
+      want_commit = git.query_local_repository_commit_id(git_dir)
+      if want_commit == existing_commit:
+        logging.debug('Already have "%s" at %s',
+                      self.__release_tag, want_commit)
+        return
+
     git.check_run_sequence(
         git_dir,
         [
