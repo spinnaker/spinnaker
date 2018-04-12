@@ -351,6 +351,8 @@ module.exports = angular
         buttonText: 'Reboot ' + instance.instanceId,
         account: instance.account,
         provider: 'aws',
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Amazon',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
