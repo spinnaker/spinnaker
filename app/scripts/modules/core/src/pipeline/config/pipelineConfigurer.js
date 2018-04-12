@@ -2,6 +2,8 @@
 
 import * as _ from 'lodash';
 
+import { ViewStateCache } from 'core/cache';
+
 const angular = require('angular');
 
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
@@ -45,7 +47,6 @@ module.exports = angular
     executionService,
     executionsTransformer,
     pipelineConfigService,
-    viewStateCache,
     overrideRegistry,
     $location,
   ) {
@@ -71,7 +72,7 @@ module.exports = angular
       })
       .finally(() => this.setViewState({ loadingHistory: false }));
 
-    var configViewStateCache = viewStateCache.get('pipelineConfig');
+    var configViewStateCache = ViewStateCache.get('pipelineConfig');
 
     function buildCacheKey() {
       return pipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.id);
