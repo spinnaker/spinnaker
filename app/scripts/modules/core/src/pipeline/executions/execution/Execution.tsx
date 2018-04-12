@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { clone } from 'lodash';
+import { clone, isEqual } from 'lodash';
 import { $location } from 'ngimport';
 import { Subscription } from 'rxjs';
 import { BindAll } from 'lodash-decorators';
@@ -78,7 +78,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     const restartedStage = execution.stages.find(stage => stage.context.restartDetails !== undefined);
 
     this.state = {
-      showingDetails: this.invalidateShowingDetails(),
+      showingDetails: this.invalidateShowingDetails(props),
       pipelinesUrl: [SETTINGS.gateUrl, 'pipelines/'].join('/'),
       viewState: initialViewState,
       sortFilter: executionFilterModel.asFilterModel.sortFilter,
@@ -89,22 +89,31 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   private updateViewStateDetails(): void {
     const { $stateParams } = ReactInjector;
-    const newViewState = clone(this.state.viewState);
+    const { viewState } = this.state;
+    const newViewState = clone(viewState);
     newViewState.activeStageId = Number($stateParams.stage);
     newViewState.activeSubStageId = Number($stateParams.subStage);
     newViewState.executionId = $stateParams.executionId;
-    this.setState({
-      viewState: newViewState,
-      showingDetails: this.invalidateShowingDetails(),
-    });
+    if (!isEqual(viewState, newViewState)) {
+      this.setState({
+        viewState: newViewState,
+        showingDetails: this.invalidateShowingDetails(),
+      });
+    }
   }
 
-  private invalidateShowingDetails(): boolean {
-    const { $state, $stateParams } = ReactInjector;
-    return (
-      this.props.standalone === true ||
-      (this.props.execution.id === $stateParams.executionId && $state.includes('**.execution.**'))
-    );
+  private invalidateShowingDetails(props = this.props): boolean {
+    const { $state, $stateParams, executionService } = ReactInjector;
+    const { execution, application, standalone } = props;
+    const showing =
+      standalone === true || (execution.id === $stateParams.executionId && $state.includes('**.execution.**'));
+    if (showing && !execution.hydrated) {
+      executionService.hydrate(application, execution).then(() => {
+        this.setState({ showingDetails: true });
+      });
+      return false;
+    }
+    return showing;
   }
 
   public isActive(stageIndex: number): boolean {
@@ -232,7 +241,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       this.configureActiveRefresh();
       this.runningTime.checkStatus(nextProps.execution);
       this.setState({
-        showingDetails: this.invalidateShowingDetails(),
+        showingDetails: this.invalidateShowingDetails(nextProps),
       });
     }
   }
@@ -423,12 +432,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         </div>
         {showingDetails && (
           <div className="execution-graph">
-            <PipelineGraph
-              execution={execution}
-              application={application}
-              onNodeClick={this.handleNodeClick}
-              viewState={viewState}
-            />
+            <PipelineGraph execution={execution} onNodeClick={this.handleNodeClick} viewState={viewState} />
           </div>
         )}
         {showingDetails && (

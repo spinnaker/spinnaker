@@ -502,9 +502,13 @@ export class ExecutionService {
       hydrated.stages.forEach(s => {
         const toHydrate = unhydrated.stages.find(s2 => s2.id === s.id);
         if (toHydrate) {
-          toHydrate.context = s.context;
-          toHydrate.outputs = s.outputs;
-          toHydrate.tasks = s.tasks;
+          Object.assign(toHydrate, s);
+        }
+      });
+      hydrated.stageSummaries.forEach(s => {
+        const toHydrate = unhydrated.stageSummaries.find(s2 => s2.id === s.id);
+        if (toHydrate) {
+          Object.assign(toHydrate, s);
         }
       });
       unhydrated.hydrated = true;

@@ -141,7 +141,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
     }
 
     const stateStage = parseInt($stateParams.stage, 10);
-    const stateSubStage = parseInt($stateParams.subStage, 10);
+    const stateSubStage = $stateParams.subStage !== undefined ? parseInt($stateParams.subStage, 10) : undefined;
     const { stage, subStage } = this.validateStageExists(summaries, stateStage, stateSubStage);
     if (stage !== stateStage || subStage !== stateSubStage) {
       $state.go('.', { stage, subStage }, { location: 'replace' });
