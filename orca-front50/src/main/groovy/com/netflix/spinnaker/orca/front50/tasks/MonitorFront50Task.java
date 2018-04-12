@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class MonitorFront50Task implements RetryableTask {
+  private final Logger log = LoggerFactory.getLogger(getClass());
   private final Front50Service front50Service;
 
   @Autowired
@@ -73,6 +76,12 @@ public class MonitorFront50Task implements RetryableTask {
         Long lastModifiedTime = Long.valueOf(pipeline.get().get("updateTs").toString());
         return (lastModifiedTime > stage.getStartTime()) ? TaskResult.SUCCEEDED : TaskResult.RUNNING;
       } catch (Exception e) {
+        log.error(
+          "Unable to verify that pipeline has been updated (executionId: {}, pipeline: {})",
+          stage.getExecution().getId(),
+          stageData.pipelineName,
+          e
+        );
         return TaskResult.RUNNING;
       }
     }
@@ -85,5 +94,8 @@ public class MonitorFront50Task implements RetryableTask {
 
     @JsonProperty("pipeline.id")
     public String pipelineId;
+
+    @JsonProperty("pipeline.name")
+    public String pipelineName;
   }
 }
