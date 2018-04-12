@@ -9,8 +9,6 @@ import {
   Application,
   IAccount,
   ICredentials,
-  INFRASTRUCTURE_CACHE_SERVICE,
-  InfrastructureCacheService,
   IRegion,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
@@ -103,10 +101,9 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     private gceXpnNamingService: any,
     private taskMonitorBuilder: TaskMonitorBuilder,
     $state: StateService,
-    infrastructureCaches: InfrastructureCacheService,
   ) {
     'ngInject';
-    super($scope, application, $uibModalInstance, $state, infrastructureCaches);
+    super($scope, application, $uibModalInstance, $state);
   }
 
   public $onInit(): void {
@@ -273,7 +270,6 @@ module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   ACCOUNT_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
   require('google/common/xpnNaming.gce.service.js').name,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,

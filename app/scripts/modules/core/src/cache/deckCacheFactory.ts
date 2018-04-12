@@ -1,5 +1,5 @@
+import { Cache, CacheFactory, CacheOptions, ItemInfo } from 'cachefactory';
 import * as moment from 'moment';
-import { module } from 'angular';
 
 import { SETTINGS } from 'core/config/settings';
 
@@ -14,7 +14,7 @@ export interface ICacheProxy {
 }
 
 class SelfClearingLocalStorage implements ILocalStorage {
-  constructor(private $log: ng.ILogService, private cacheProxy: ICacheProxy) {}
+  constructor(private cacheProxy: ICacheProxy) {}
 
   public setItem(k: string, v: any) {
     try {
@@ -36,7 +36,8 @@ class SelfClearingLocalStorage implements ILocalStorage {
       window.localStorage.setItem(k, v);
       this.cacheProxy[k] = v;
     } catch (e) {
-      this.$log.warn('Local Storage Error! Clearing caches and trying again.\nException:', e);
+      const Console = console;
+      Console.warn('Local Storage Error! Clearing caches and trying again.\nException:', e);
       this.cacheProxy = Object.create(null);
       window.localStorage.clear();
       window.localStorage.setItem(k, v);
@@ -60,33 +61,24 @@ class SelfClearingLocalStorage implements ILocalStorage {
   }
 }
 
-export interface IInfo {
-  created?: number;
-}
-
 export interface IStats {
   ageMax: number;
   ageMin: number;
   keys: number;
 }
 
-export interface ICacheConfigOptions {
-  deleteOnExpire?: string;
-  disabled?: boolean;
-  maxAge?: number;
-  recycleFreq?: number;
-  storageImpl?: ILocalStorage;
-  storageMode: string;
-  storagePrefix: string;
+export interface ICacheOptions extends CacheOptions {
+  onReset?: Function[];
 }
 
-export interface ICacheFactory {
-  createCache: (key: string, options: ICacheConfig | ICacheConfigOptions) => void;
-  get: (key: string) => ICache;
+export interface ICache extends Cache {
+  config: ICacheOptions;
+  getStats: () => IStats;
+  onReset?: Function[];
 }
 
 export interface ICacheConfig {
-  cacheFactory?: ICacheFactory;
+  cacheFactory?: CacheFactory;
   disabled?: boolean;
   get?: (key: string) => string;
   initializers?: Function[];
@@ -95,26 +87,14 @@ export interface ICacheConfig {
   version?: number;
 }
 
-export interface ICache {
-  config?: ICacheConfig;
-  destroy: () => void;
-  get?: (key: string) => any;
-  getStats?: () => IStats;
-  info?: (key: string) => IInfo;
-  keys: () => string[];
-  onReset?: Function[];
-  put?: (key: string, value: any) => string;
-  remove: (key: string) => void;
-  removeAll: () => void;
-}
-
 export interface ICacheMap {
   [key: string]: ICache;
 }
 
-export class DeckCacheService {
-  private caches: ICacheMap = Object.create(null);
-  private cacheProxy: ICacheProxy = Object.create(null);
+export class DeckCacheFactory {
+  private static cacheFactory: CacheFactory = new CacheFactory();
+  private static caches: ICacheMap = Object.create(null);
+  private static cacheProxy: ICacheProxy = Object.create(null);
 
   public static getStoragePrefix(key: string, version: number): string {
     return `angular-cache.caches.${key}:${version}.`;
@@ -134,8 +114,8 @@ export class DeckCacheService {
   private static bombCorruptedCache(namespace: string, cacheId: string, currentVersion: number): void {
     // if the "meta-key" (the key that represents the cached keys) somehow got deleted or emptied
     // but the data did not, we need to remove the data or the cache will always return the old stale data
-    const basekey: string = DeckCacheService.buildCacheKey(namespace, cacheId);
-    const indexKey = `${DeckCacheService.getStoragePrefix(basekey, currentVersion)}${basekey}`;
+    const basekey: string = DeckCacheFactory.buildCacheKey(namespace, cacheId);
+    const indexKey = `${DeckCacheFactory.getStoragePrefix(basekey, currentVersion)}${basekey}`;
     if (!window.localStorage[`${indexKey}.keys`] || window.localStorage[`${indexKey}.keys`] === '[]') {
       Object.keys(window.localStorage)
         .filter((key: string) => key.includes(indexKey))
@@ -147,21 +127,21 @@ export class DeckCacheService {
     namespace: string,
     cacheId: string,
     currentVersion: number,
-    cacheFactory: ICacheFactory,
+    cacheFactory: CacheFactory,
   ): void {
     if (currentVersion) {
-      DeckCacheService.bombCorruptedCache(namespace, cacheId, currentVersion);
+      DeckCacheFactory.bombCorruptedCache(namespace, cacheId, currentVersion);
 
       // clear previous versions
       for (let i = 0; i < currentVersion; i++) {
-        const key = DeckCacheService.buildCacheKey(namespace, cacheId);
-        if (cacheFactory.get(key)) {
+        const key = DeckCacheFactory.buildCacheKey(namespace, cacheId);
+        if (cacheFactory.exists(key)) {
           cacheFactory.get(key).destroy();
         }
 
         cacheFactory.createCache(key, {
           storageMode: 'localStorage',
-          storagePrefix: DeckCacheService.getStoragePrefix(key, i),
+          storagePrefix: DeckCacheFactory.getStoragePrefix(key, i),
         });
         cacheFactory.get(key).removeAll();
         cacheFactory.get(key).destroy();
@@ -169,13 +149,13 @@ export class DeckCacheService {
     }
   }
 
-  private static getStats(cache: ICache): IStats {
-    const keys: string[] = cache.keys();
+  private static getStats(cache: Cache): IStats {
+    const keys = cache.keys();
     let ageMin = moment.now(),
       ageMax = 0;
 
     keys.forEach((key: string) => {
-      const info: IInfo = cache.info(key) || {};
+      const info: ItemInfo = (cache.info(key) || {}) as ItemInfo;
       ageMin = Math.min(ageMin, info.created);
       ageMax = Math.max(ageMax, info.created);
     });
@@ -187,45 +167,37 @@ export class DeckCacheService {
     };
   }
 
-  private addLocalStorageCache(namespace: string, cacheId: string, cacheConfig: ICacheConfig): void {
-    const key: string = DeckCacheService.buildCacheKey(namespace, cacheId);
-    const cacheFactory: ICacheFactory = cacheConfig.cacheFactory || this.CacheFactory;
+  private static addLocalStorageCache(namespace: string, cacheId: string, cacheConfig: ICacheConfig): void {
+    const key: string = DeckCacheFactory.buildCacheKey(namespace, cacheId);
+    const cacheFactory: CacheFactory = cacheConfig.cacheFactory || this.cacheFactory;
     const currentVersion: number = cacheConfig.version || 1;
 
-    DeckCacheService.clearPreviousVersions(namespace, cacheId, currentVersion, cacheFactory);
+    DeckCacheFactory.clearPreviousVersions(namespace, cacheId, currentVersion, cacheFactory);
     cacheFactory.createCache(key, {
       deleteOnExpire: 'aggressive',
-      disabled: cacheConfig.disabled,
       maxAge: cacheConfig.maxAge || moment.duration(2, 'days').asMilliseconds(),
       recycleFreq: moment.duration(5, 'seconds').asMilliseconds(),
-      storageImpl: new SelfClearingLocalStorage(this.$log, this.cacheProxy),
+      storageImpl: new SelfClearingLocalStorage(this.cacheProxy),
       storageMode: 'localStorage',
-      storagePrefix: DeckCacheService.getStoragePrefix(key, currentVersion),
+      storagePrefix: DeckCacheFactory.getStoragePrefix(key, currentVersion),
     });
-    this.caches[key] = cacheFactory.get(key);
-    this.caches[key].getStats = DeckCacheService.getStats.bind(null, this.caches[key]);
+    this.caches[key] = cacheFactory.get(key) as ICache;
+    this.caches[key].getStats = DeckCacheFactory.getStats.bind(null, this.caches[key]);
     this.caches[key].config = cacheConfig;
   }
 
-  constructor(private $log: ng.ILogService, private CacheFactory: any) {
-    'ngInject';
-  }
-
-  public clearCache(namespace: string, key: string): void {
+  public static clearCache(namespace: string, key: string): void {
     if (this.caches[key] && this.caches[key].destroy) {
       this.caches[key].destroy();
       this.createCache(namespace, key, this.caches[key].config);
     }
   }
 
-  public createCache(namespace: string, cacheId: string, config: ICacheConfig): void {
+  public static createCache(namespace: string, cacheId: string, config: ICacheConfig): void {
     this.addLocalStorageCache(namespace, cacheId, config);
   }
 
-  public getCache(namespace: string = null, cacheId: string = null): ICache {
-    return this.caches[DeckCacheService.buildCacheKey(namespace, cacheId)];
+  public static getCache(namespace: string = null, cacheId: string = null): ICache {
+    return this.caches[DeckCacheFactory.buildCacheKey(namespace, cacheId)];
   }
 }
-
-export const DECK_CACHE_SERVICE = 'spinnaker.core.cache.deckCacheService';
-module(DECK_CACHE_SERVICE, [require('angular-cache')]).service('deckCacheFactory', DeckCacheService);

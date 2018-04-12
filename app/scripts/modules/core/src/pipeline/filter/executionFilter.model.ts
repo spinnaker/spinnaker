@@ -3,8 +3,7 @@ import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 import { extend } from 'lodash';
 import { Subject } from 'rxjs';
 
-import { ICache } from 'core/cache/deckCache.service';
-import { VIEW_STATE_CACHE_SERVICE, ViewStateCacheService } from 'core/cache/viewStateCache.service';
+import { ICache, ViewStateCache } from 'core/cache';
 import { IExecutionGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 import { FILTER_MODEL_SERVICE } from 'core/filterModel';
@@ -34,9 +33,9 @@ export class ExecutionFilterModel {
   // mechanism for now.
   public expandSubject: Subject<boolean> = new Subject<boolean>();
 
-  constructor($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) {
+  constructor($rootScope: IRootScopeService, filterModelService: any) {
     'ngInject';
-    this.configViewStateCache = viewStateCache.createCache('executionFilters', {
+    this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
       version: 1,
       maxAge: 180 * 24 * 60 * 60 * 1000,
     });
@@ -170,8 +169,7 @@ export class ExecutionFilterModel {
 }
 
 export const EXECUTION_FILTER_MODEL = 'spinnaker.core.pipeline.filter.executionFilter.model';
-module(EXECUTION_FILTER_MODEL, [FILTER_MODEL_SERVICE, VIEW_STATE_CACHE_SERVICE]).factory(
+module(EXECUTION_FILTER_MODEL, [FILTER_MODEL_SERVICE]).factory(
   'executionFilterModel',
-  ($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) =>
-    new ExecutionFilterModel($rootScope, filterModelService, viewStateCache),
+  ($rootScope: IRootScopeService, filterModelService: any) => new ExecutionFilterModel($rootScope, filterModelService),
 );

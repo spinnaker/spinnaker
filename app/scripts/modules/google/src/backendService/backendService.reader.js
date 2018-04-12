@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.deck.gce.backendService.reader.service', [API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
-  .factory('gceBackendServiceReader', function(API, infrastructureCaches) {
+  .module('spinnaker.deck.gce.backendService.reader.service', [API_SERVICE])
+  .factory('gceBackendServiceReader', function(API) {
     function listBackendServices(kind) {
       if (kind) {
         return listBackendServices().then(([services]) => {
@@ -18,7 +18,7 @@ module.exports = angular
         });
       } else {
         return API.all('search')
-          .useCache(infrastructureCaches.get('backendServices'))
+          .useCache(InfrastructureCaches.get('backendServices'))
           .getList({ q: '', type: 'backendServices', allowShortQuery: 'true' });
       }
     }

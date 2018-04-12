@@ -3,7 +3,7 @@
 const angular = require('angular');
 import * as momentTimezone from 'moment-timezone';
 
-import { SETTINGS, TIME_FORMATTERS } from '@spinnaker/core';
+import { InfrastructureCaches, SETTINGS, TIME_FORMATTERS } from '@spinnaker/core';
 
 require('./loadBalancerSelector.directive.html');
 
@@ -20,12 +20,12 @@ describe('Directive: GCE Load Balancers Selector', function() {
   var selector, element, gceServerGroupConfigurationService, expectedTime;
 
   beforeEach(
-    window.inject(function(_gceServerGroupConfigurationService_, _cacheInitializer_, _infrastructureCaches_) {
+    window.inject(function(_gceServerGroupConfigurationService_, _cacheInitializer_) {
       gceServerGroupConfigurationService = _gceServerGroupConfigurationService_;
 
       const lastRefreshed = new Date('2015-01-01T00:00:00').getTime();
       _cacheInitializer_.refreshCache('loadBalancers');
-      _infrastructureCaches_.get('loadBalancers').getStats = function() {
+      InfrastructureCaches.get('loadBalancers').getStats = function() {
         return { ageMax: lastRefreshed };
       };
       var m = momentTimezone.tz(lastRefreshed, SETTINGS.defaultTimeZone);

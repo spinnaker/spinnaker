@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
+  InfrastructureCaches,
   LOAD_BALANCER_WRITE_SERVICE,
   NameUtils,
   NETWORK_READ_SERVICE,
@@ -21,7 +21,6 @@ module.exports = angular
     require('../loadBalancer.transformer.js').name,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
-    INFRASTRUCTURE_CACHE_SERVICE,
     NETWORK_READ_SERVICE,
   ])
   .controller('azureCreateLoadBalancerCtrl', function(
@@ -30,7 +29,6 @@ module.exports = angular
     $state,
     accountService,
     azureLoadBalancerTransformer,
-    infrastructureCaches,
     networkReader,
     v2modalWizardService,
     loadBalancerWriter,
@@ -171,7 +169,7 @@ module.exports = angular
       $scope.loadBalancer.vnet = null;
       $scope.loadBalancer.vnetResourceGroup = null;
       ctrl.selectedVnets = [];
-      infrastructureCaches.clearCache('networks');
+      InfrastructureCaches.clearCache('networks');
 
       networkReader.listNetworks().then(function(vnets) {
         if (vnets.azure) {

@@ -5,7 +5,7 @@ const angular = require('angular');
 import {
   ACCOUNT_SERVICE,
   CACHE_INITIALIZER_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
+  InfrastructureCaches,
   SECURITY_GROUP_READER,
   TASK_MONITOR_BUILDER,
 } from '@spinnaker/core';
@@ -14,7 +14,6 @@ module.exports = angular
   .module('spinnaker.azure.securityGroup.azure.edit.controller', [
     require('@uirouter/angularjs').default,
     ACCOUNT_SERVICE,
-    INFRASTRUCTURE_CACHE_SERVICE,
     CACHE_INITIALIZER_SERVICE,
     SECURITY_GROUP_READER,
     TASK_MONITOR_BUILDER,
@@ -29,7 +28,6 @@ module.exports = angular
     securityGroupReader,
     taskMonitorBuilder,
     cacheInitializer,
-    infrastructureCaches,
     application,
     securityGroup,
     azureSecurityGroupWriter,
@@ -59,7 +57,7 @@ module.exports = angular
     });
 
     this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.get('securityGroups').getStats().ageMax;
+      return InfrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.refreshSecurityGroups = function() {

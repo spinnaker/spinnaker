@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { COLLAPSIBLE_SECTION_STATE_CACHE } from 'core/cache/collapsibleSectionStateCache';
+import { CollapsibleSectionStateCache } from 'core/cache';
 import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
 import { HEALTH_COUNTS_COMPONENT } from 'core/healthCounts/healthCounts.component';
 import { URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
@@ -14,7 +14,6 @@ import './projectCluster.less';
 module.exports = angular
   .module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
     URL_BUILDER_SERVICE,
-    COLLAPSIBLE_SECTION_STATE_CACHE,
     CLUSTER_FILTER_SERVICE,
     TIME_FORMATTERS,
     HEALTH_COUNTS_COMPONENT,
@@ -33,14 +32,8 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ProjectClusterCtrl', function(
-    $scope,
-    urlBuilderService,
-    collapsibleSectionStateCache,
-    clusterFilterService,
-    regionFilterService,
-  ) {
-    let stateCache = collapsibleSectionStateCache;
+  .controller('ProjectClusterCtrl', function($scope, urlBuilderService, clusterFilterService, regionFilterService) {
+    let stateCache = CollapsibleSectionStateCache;
 
     let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
 

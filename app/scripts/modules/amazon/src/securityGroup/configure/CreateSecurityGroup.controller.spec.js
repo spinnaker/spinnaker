@@ -2,6 +2,8 @@
 
 import { map } from 'lodash';
 
+import { InfrastructureCaches } from '@spinnaker/core';
+
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
 describe('Controller: CreateSecurityGroup', function() {
@@ -15,6 +17,21 @@ describe('Controller: CreateSecurityGroup', function() {
   afterEach(AWSProviderSettings.resetToOriginal);
 
   describe('filtering', function() {
+    this.oldGet = InfrastructureCaches.get;
+
+    beforeEach(() => {
+      InfrastructureCaches.get = () => {
+        return {
+          getStats: () => {
+            return { ageMax: 0 };
+          },
+        };
+      };
+    });
+    afterEach(() => {
+      InfrastructureCaches.get = this.oldGet;
+    });
+
     // Initialize the controller and a mock scope
     beforeEach(
       window.inject(function(
@@ -94,15 +111,6 @@ describe('Controller: CreateSecurityGroup', function() {
             vpcReader: this.vpcReader,
             application: this.application || { attributes: {} },
             securityGroup: { regions: [], securityGroupIngress: [] },
-            infrastructureCaches: {
-              get: () => {
-                return {
-                  getStats: () => {
-                    return {};
-                  },
-                };
-              },
-            },
           });
           this.$scope.$digest();
         };

@@ -1,16 +1,17 @@
 'use strict';
 
+import { ViewStateCache } from 'core/cache';
+
 describe('Directives: whatsNew', function() {
   require('./whatsNew.directive.html');
 
   beforeEach(window.module(require('./whatsNew.directive').name, require('angular-ui-bootstrap')));
 
   beforeEach(
-    window.inject(function($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $uibModal) {
+    window.inject(function($rootScope, $compile, whatsNewReader, $q, $filter, $uibModal) {
       this.scope = $rootScope.$new();
       this.compile = $compile;
       this.whatsNewReader = whatsNewReader;
-      this.viewStateCache = viewStateCache;
       this.$filter = $filter;
       this.$q = $q;
       this.$uibModal = $uibModal;
@@ -59,7 +60,7 @@ describe('Directives: whatsNew', function() {
     it('should show updated label when view state has different lastUpdated value than file', function() {
       var domNode;
 
-      this.viewStateCache.whatsNew = {
+      ViewStateCache.whatsNew = {
         get: function() {
           return {
             updateLastViewed: 'something else',
@@ -76,7 +77,7 @@ describe('Directives: whatsNew', function() {
       var lastUpdated, domNode;
 
       lastUpdated = this.lastUpdated;
-      this.viewStateCache.whatsNew = {
+      ViewStateCache.whatsNew = {
         get: function() {
           return {
             updateLastViewed: lastUpdated,
@@ -93,7 +94,7 @@ describe('Directives: whatsNew', function() {
       var writtenToCache, domNode;
 
       writtenToCache = null;
-      this.viewStateCache.whatsNew = {
+      ViewStateCache.whatsNew = {
         get: function() {
           return {
             updateLastViewed: null,

@@ -1,14 +1,16 @@
-import { mock, noop } from 'angular';
+import { CacheFactory, CacheOptions } from 'cachefactory';
 
-import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from './infrastructureCaches.service';
-import { DeckCacheService, ICacheFactory, ICacheConfig, ICache, ICacheConfigOptions } from './deckCache.service';
+import { noop } from '../utils';
+
+import { InfrastructureCaches } from './infrastructureCaches';
+import { DeckCacheFactory, ICacheConfig, ICache } from './deckCacheFactory';
 
 interface ICacheInstantiation {
   cacheId: string;
-  config: ICacheConfig | ICacheConfigOptions;
+  config: ICacheConfig;
 }
 
-interface ITestCacheFactory extends ICacheFactory {
+interface ITestCacheFactory extends CacheFactory {
   getCacheInstantiations(): ICacheInstantiation[];
   getKeys(): string[];
   getRemoveCalls(): string[];
@@ -17,11 +19,11 @@ interface ITestCacheFactory extends ICacheFactory {
 
 class TestCacheFactory implements ITestCacheFactory {
   private cacheInstantiations: ICacheInstantiation[] = [];
-  private keys: string[] = [];
+  private allKeys: any = [];
   private removeCalls: string[] = [];
   private removeAllCalls: string[] = [];
 
-  public createCache(cacheId: string, config: ICacheConfig) {
+  public createCache(cacheId: string, config: ICacheConfig): any {
     this.cacheInstantiations.push({ cacheId, config });
   }
 
@@ -29,7 +31,7 @@ class TestCacheFactory implements ITestCacheFactory {
     return {
       destroy: noop,
       keys: (): string[] => {
-        return this.keys;
+        return this.allKeys;
       },
       remove: (key: string): void => {
         this.removeCalls.push(key);
@@ -37,15 +39,30 @@ class TestCacheFactory implements ITestCacheFactory {
       removeAll: (): void => {
         this.removeAllCalls.push(cacheId);
       },
-    };
+    } as ICache;
   }
+
+  // stubs to satisfy extends CacheFactory
+  public clearAll(): void {}
+  public exists(_id: string): boolean {
+    return false;
+  }
+  public info(): any {}
+  public destroy(): any {}
+  public destroyAll(): any {}
+  public disableAll(): any {}
+  public enabledAll(): any {}
+  public keySet(): any {}
+  public removeExpiredFromAll(): any {}
+  public touchAll(): any {}
+  public keys(): any {}
 
   public getCacheInstantiations(): ICacheInstantiation[] {
     return this.cacheInstantiations;
   }
 
   public getKeys(): string[] {
-    return this.keys;
+    return this.allKeys;
   }
 
   public getRemoveCalls(): string[] {
@@ -58,21 +75,6 @@ class TestCacheFactory implements ITestCacheFactory {
 }
 
 describe('spinnaker.core.cache.infrastructure', function() {
-  let deckCacheService: DeckCacheService, infrastructureCacheService: InfrastructureCacheService;
-
-  beforeEach(mock.module(INFRASTRUCTURE_CACHE_SERVICE));
-  beforeEach(
-    mock.inject(function(_infrastructureCaches_: InfrastructureCacheService, _deckCacheFactory_: DeckCacheService) {
-      infrastructureCacheService = _infrastructureCaches_;
-      deckCacheService = _deckCacheFactory_;
-    }),
-  );
-
-  it('should inject defined objects', function() {
-    expect(infrastructureCacheService).toBeDefined();
-    expect(deckCacheService).toBeDefined();
-  });
-
   describe('cache initialization', function() {
     let cacheFactory: TestCacheFactory;
     beforeEach(() => {
@@ -83,14 +85,14 @@ describe('spinnaker.core.cache.infrastructure', function() {
       const config: ICacheConfig = {
         version: 2,
         cacheFactory,
-      };
+      } as any;
 
-      infrastructureCacheService.createCache('myCache', config);
+      InfrastructureCaches.createCache('myCache', config);
 
       expect(cacheFactory.getCacheInstantiations().length).toBe(3);
       for (let i = 0; i < 3; i++) {
-        expect((cacheFactory.getCacheInstantiations()[i].config as ICacheConfigOptions).storagePrefix).toBe(
-          DeckCacheService.getStoragePrefix('infrastructure:myCache', i),
+        expect((cacheFactory.getCacheInstantiations()[i].config as CacheOptions).storagePrefix).toBe(
+          DeckCacheFactory.getStoragePrefix('infrastructure:myCache', i),
         );
       }
       expect(cacheFactory.getRemoveAllCalls().length).toBe(2);
@@ -100,15 +102,15 @@ describe('spinnaker.core.cache.infrastructure', function() {
     it('should remove non-versioned, even if version not explicitly specified, and use version 1', function() {
       const config: ICacheConfig = {
         cacheFactory,
-      };
-      infrastructureCacheService.createCache('myCache', config);
+      } as any;
+      InfrastructureCaches.createCache('myCache', config);
 
       expect(cacheFactory.getCacheInstantiations().length).toBe(2);
-      expect((cacheFactory.getCacheInstantiations()[0].config as ICacheConfigOptions).storagePrefix).toBe(
-        DeckCacheService.getStoragePrefix('infrastructure:myCache', 0),
+      expect((cacheFactory.getCacheInstantiations()[0].config as CacheOptions).storagePrefix).toBe(
+        DeckCacheFactory.getStoragePrefix('infrastructure:myCache', 0),
       );
-      expect((cacheFactory.getCacheInstantiations()[1].config as ICacheConfigOptions).storagePrefix).toBe(
-        DeckCacheService.getStoragePrefix('infrastructure:myCache', 1),
+      expect((cacheFactory.getCacheInstantiations()[1].config as CacheOptions).storagePrefix).toBe(
+        DeckCacheFactory.getStoragePrefix('infrastructure:myCache', 1),
       );
       expect(cacheFactory.getRemoveAllCalls().length).toBe(1);
       expect(cacheFactory.getRemoveAllCalls()).toEqual(['infrastructure:myCache']);
@@ -119,14 +121,14 @@ describe('spinnaker.core.cache.infrastructure', function() {
         cacheFactory,
         onReset: [],
         version: 0,
-      };
-      infrastructureCacheService.createCache('someBadCache', config);
+      } as any;
+      InfrastructureCaches.createCache('someBadCache', config);
 
       cacheFactory.getKeys().push('a');
       cacheFactory.getKeys().push('b');
 
       const removalCallsAfterInitialization = cacheFactory.getRemoveAllCalls().length;
-      infrastructureCacheService.clearCache('someBadCache');
+      InfrastructureCaches.clearCache('someBadCache');
       expect(cacheFactory.getRemoveAllCalls().length).toBe(removalCallsAfterInitialization);
       expect(cacheFactory.getRemoveCalls()).toEqual(['a', 'b']);
     });

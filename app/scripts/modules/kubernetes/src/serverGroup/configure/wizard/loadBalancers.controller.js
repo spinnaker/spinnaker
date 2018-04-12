@@ -2,13 +2,14 @@
 
 const angular = require('angular');
 
+import { InfrastructureCaches } from '@spinnaker/core';
+
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroup.configure.loadBalancers.controller', [
     require('../configuration.service.js').name,
   ])
   .controller('kubernetesServerGroupLoadBalancersController', function(
     kubernetesServerGroupConfigurationService,
-    infrastructureCaches,
     $scope,
   ) {
     this.refreshLoadBalancers = function() {
@@ -16,6 +17,6 @@ module.exports = angular
     };
 
     this.getLoadBalancerRefreshTime = function() {
-      return infrastructureCaches.get('loadBalancers').getStats().ageMax;
+      return InfrastructureCaches.get('loadBalancers').getStats().ageMax;
     };
   });

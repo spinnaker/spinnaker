@@ -1,6 +1,5 @@
 'use strict';
 
-import { INFRASTRUCTURE_CACHE_SERVICE } from 'core/cache/infrastructureCaches.service';
 import { INSTANCE_TYPE_SERVICE } from 'core/instance/instanceType.service';
 import { SERVER_GROUP_CONFIGURATION_SERVICE } from 'core/serverGroup/configure/common/serverGroupConfiguration.service';
 
@@ -17,28 +16,19 @@ describe('Controller: Instance Archetype Selector', function() {
   beforeEach(
     window.module(
       require('./instanceArchetypeSelector.js').name,
-      INFRASTRUCTURE_CACHE_SERVICE,
       INSTANCE_TYPE_SERVICE,
       SERVER_GROUP_CONFIGURATION_SERVICE,
     ),
   );
 
   beforeEach(
-    window.inject(function(
-      $controller,
-      $rootScope,
-      instanceTypeService,
-      infrastructureCaches,
-      serverGroupConfigurationService,
-      $q,
-    ) {
+    window.inject(function($controller, $rootScope, instanceTypeService, serverGroupConfigurationService, $q) {
       this.$scope = $rootScope.$new();
       this.$scope.command = { viewState: { instanceProfile: null } };
       this.$controller = $controller;
       this.controllerDeps = {
         $scope: this.$scope,
         instanceTypeService: instanceTypeService,
-        infrastructureCaches: infrastructureCaches,
         serverGroupConfigurationService: serverGroupConfigurationService,
       };
       spyOn(instanceTypeService, 'getCategories').and.returnValue($q.when(categories));

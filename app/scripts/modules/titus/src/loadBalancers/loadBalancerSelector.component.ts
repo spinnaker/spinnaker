@@ -7,8 +7,7 @@ import {
   CacheInitializerService,
   IAccountDetails,
   IAggregatedAccounts,
-  INFRASTRUCTURE_CACHE_SERVICE,
-  InfrastructureCacheService,
+  InfrastructureCaches,
   LoadBalancerReader,
 } from '@spinnaker/core';
 
@@ -29,7 +28,6 @@ class LoadBalancerSelectorController implements IController {
 
   constructor(
     private $q: ng.IQService,
-    private infrastructureCaches: InfrastructureCacheService,
     private accountService: AccountService,
     private cacheInitializer: CacheInitializerService,
     private loadBalancerReader: LoadBalancerReader,
@@ -110,7 +108,7 @@ class LoadBalancerSelectorController implements IController {
   }
 
   public setLoadBalancerRefreshTime(): void {
-    this.refreshTime = this.infrastructureCaches.get('loadBalancers').getStats().ageMax;
+    this.refreshTime = InfrastructureCaches.get('loadBalancers').getStats().ageMax;
   }
 
   public refreshLoadBalancers(): void {
@@ -134,7 +132,4 @@ export class LoadBalancerSelectorComponent implements IComponentOptions {
 
 export const TITUS_LOAD_BALANCER_SELECTOR =
   'spinnaker.titus.serverGroup.configure.wizard.loadBalancers.selector.component';
-module(TITUS_LOAD_BALANCER_SELECTOR, [INFRASTRUCTURE_CACHE_SERVICE]).component(
-  'titusLoadBalancerSelector',
-  new LoadBalancerSelectorComponent(),
-);
+module(TITUS_LOAD_BALANCER_SELECTOR, []).component('titusLoadBalancerSelector', new LoadBalancerSelectorComponent());

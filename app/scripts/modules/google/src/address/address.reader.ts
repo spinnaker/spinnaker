@@ -1,12 +1,6 @@
 import { IPromise, module } from 'angular';
 
-import {
-  INFRASTRUCTURE_CACHE_SERVICE,
-  InfrastructureCacheService,
-  ISearchResults,
-  SEARCH_SERVICE,
-  SearchService,
-} from '@spinnaker/core';
+import { InfrastructureCaches, ISearchResults, SEARCH_SERVICE, SearchService } from '@spinnaker/core';
 
 interface IAddressSearchResults {
   account: string;
@@ -33,7 +27,7 @@ export interface IGceAddress {
 }
 
 class GceAddressReader {
-  constructor(private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) {
+  constructor(private searchService: SearchService) {
     'ngInject';
   }
 
@@ -46,7 +40,7 @@ class GceAddressReader {
       return this.searchService
         .search<IAddressSearchResults>(
           { q: '', type: 'addresses', allowShortQuery: 'true' },
-          this.infrastructureCaches.get('addresses'),
+          InfrastructureCaches.get('addresses'),
         )
         .then((searchResults: ISearchResults<IAddressSearchResults>) => {
           if (searchResults && searchResults.results) {
@@ -66,7 +60,4 @@ class GceAddressReader {
 }
 
 export const GCE_ADDRESS_READER = 'spinnaker.gce.addressReader.service';
-module(GCE_ADDRESS_READER, [SEARCH_SERVICE, INFRASTRUCTURE_CACHE_SERVICE]).service(
-  'gceAddressReader',
-  GceAddressReader,
-);
+module(GCE_ADDRESS_READER, [SEARCH_SERVICE]).service('gceAddressReader', GceAddressReader);

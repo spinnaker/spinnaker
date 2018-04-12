@@ -1,12 +1,12 @@
 'use strict';
 
-import { COLLAPSIBLE_SECTION_STATE_CACHE } from 'core/cache/collapsibleSectionStateCache';
-
 const angular = require('angular');
 
+import { CollapsibleSectionStateCache } from 'core/cache';
+
 module.exports = angular
-  .module('spinnaker.core.presentation.collapsibleSection.directive', [COLLAPSIBLE_SECTION_STATE_CACHE])
-  .directive('collapsibleSection', function(collapsibleSectionStateCache) {
+  .module('spinnaker.core.presentation.collapsibleSection.directive', [])
+  .directive('collapsibleSection', function() {
     return {
       restrict: 'E',
       replace: true,
@@ -27,8 +27,8 @@ module.exports = angular
         let cacheKey = scope.cacheKey || scope.heading;
         let expanded = true;
         if (cacheKey) {
-          expanded = collapsibleSectionStateCache.isSet(cacheKey)
-            ? collapsibleSectionStateCache.isExpanded(cacheKey)
+          expanded = CollapsibleSectionStateCache.isSet(cacheKey)
+            ? CollapsibleSectionStateCache.isExpanded(cacheKey)
             : scope.expanded === 'true';
         }
         scope.state = { expanded: expanded };
@@ -43,7 +43,7 @@ module.exports = angular
         scope.toggle = function() {
           scope.state.expanded = !scope.state.expanded;
           if (cacheKey) {
-            collapsibleSectionStateCache.setExpanded(cacheKey, scope.state.expanded);
+            CollapsibleSectionStateCache.setExpanded(cacheKey, scope.state.expanded);
           }
         };
       },

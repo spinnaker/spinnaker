@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 
 import {
   ACCOUNT_SERVICE,
+  InfrastructureCaches,
   NameUtils,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -38,7 +39,6 @@ module.exports = angular
     accountService,
     v2modalWizardService,
     cacheInitializer,
-    infrastructureCaches,
     vpcReader,
   ) {
     var ctrl = this;
@@ -262,7 +262,7 @@ module.exports = angular
     };
 
     function setSecurityGroupRefreshTime() {
-      $scope.state.refreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
+      $scope.state.refreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
     }
 
     var allSecurityGroups = {};

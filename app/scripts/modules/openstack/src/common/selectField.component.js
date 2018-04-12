@@ -4,6 +4,8 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
+import { InfrastructureCaches } from '@spinnaker/core';
+
 module.exports = angular.module('spinnaker.openstack.common.selectField', []).component('selectField', {
   templateUrl: require('./selectField.component.html'),
   controller: SelectFieldController,
@@ -24,16 +26,7 @@ module.exports = angular.module('spinnaker.openstack.common.selectField', []).co
   },
 });
 
-function SelectFieldController(
-  $scope,
-  $element,
-  $attrs,
-  $timeout,
-  $q,
-  $rootScope,
-  infrastructureCaches,
-  cacheInitializer,
-) {
+function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScope, cacheInitializer) {
   var ctrl = this;
   var coveredThreshold = 0;
 
@@ -70,8 +63,8 @@ function SelectFieldController(
   }
 
   function updateDone() {
-    if (ctrl.backingCache && infrastructureCaches.get(ctrl.backingCache)) {
-      coveredThreshold = infrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
+    if (ctrl.backingCache && InfrastructureCaches.get(ctrl.backingCache)) {
+      coveredThreshold = InfrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
     }
     ctrl.updatingOptions = false;
   }
@@ -88,7 +81,7 @@ function SelectFieldController(
   var stopWatchingRefreshTime = ctrl.backingCache
     ? $rootScope.$watch(
         function() {
-          return infrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
+          return InfrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
         },
         function(ageMax) {
           if (ageMax) {

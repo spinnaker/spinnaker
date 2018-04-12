@@ -1,20 +1,19 @@
 import { mock } from 'angular';
 import { range, some } from 'lodash';
 
-import { RECENT_HISTORY_SERVICE, RecentHistoryService } from 'core/history/recentHistory.service';
-import { DeckCacheService, ICache } from '../cache/deckCache.service';
+import { RECENT_HISTORY_SERVICE, RecentHistoryService } from '../history/recentHistory.service';
+import { DeckCacheFactory, ICache } from '../cache/deckCacheFactory';
 
 describe('recent history service', () => {
-  let service: RecentHistoryService, deckCacheFactory: DeckCacheService, backingCache: ICache;
+  let service: RecentHistoryService, backingCache: ICache;
 
   beforeEach(mock.module(RECENT_HISTORY_SERVICE));
 
   beforeEach(
-    mock.inject((recentHistoryService: RecentHistoryService, _deckCacheFactory_: DeckCacheService) => {
+    mock.inject((recentHistoryService: RecentHistoryService) => {
       service = recentHistoryService;
-      deckCacheFactory = _deckCacheFactory_;
-      deckCacheFactory.clearCache('history', 'user');
-      backingCache = deckCacheFactory.getCache('history', 'user');
+      DeckCacheFactory.clearCache('history', 'user');
+      backingCache = DeckCacheFactory.getCache('history', 'user');
     }),
   );
 

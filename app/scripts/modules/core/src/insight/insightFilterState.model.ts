@@ -1,25 +1,22 @@
 import { module } from 'angular';
 
-import { COLLAPSIBLE_SECTION_STATE_CACHE } from 'core/cache/collapsibleSectionStateCache';
+import { CollapsibleSectionStateCache } from 'core/cache';
 
 export class InsightFilterStateModel {
   public filtersExpanded: boolean;
 
-  public constructor(private collapsibleSectionStateCache: any) {
+  public constructor() {
     'ngInject';
     this.filtersExpanded =
-      !collapsibleSectionStateCache.isSet('insightFilters') ||
-      collapsibleSectionStateCache.isExpanded('insightFilters');
+      !CollapsibleSectionStateCache.isSet('insightFilters') ||
+      CollapsibleSectionStateCache.isExpanded('insightFilters');
   }
 
   public pinFilters(shouldPin: boolean): void {
     this.filtersExpanded = shouldPin;
-    this.collapsibleSectionStateCache.setExpanded('insightFilters', shouldPin);
+    CollapsibleSectionStateCache.setExpanded('insightFilters', shouldPin);
   }
 }
 
 export const INSIGHT_FILTER_STATE_MODEL = 'spinnaker.core.insight.insightFilterState.model';
-module(INSIGHT_FILTER_STATE_MODEL, [COLLAPSIBLE_SECTION_STATE_CACHE]).service(
-  'insightFilterStateModel',
-  InsightFilterStateModel,
-);
+module(INSIGHT_FILTER_STATE_MODEL, []).service('insightFilterStateModel', InsightFilterStateModel);

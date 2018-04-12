@@ -3,7 +3,7 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import { trimEnd } from 'lodash';
 
-import { Application, InfrastructureCacheService } from '@spinnaker/core';
+import { Application, InfrastructureCaches } from '@spinnaker/core';
 
 import { IGceLoadBalancer } from 'google/domain/loadBalancer';
 
@@ -13,11 +13,10 @@ export class CommonGceLoadBalancerCtrl {
     public application: Application,
     public $uibModalInstance: IModalInstanceService,
     private $state: StateService,
-    private infrastructureCaches: InfrastructureCacheService,
   ) {}
 
   public onTaskComplete(loadBalancer: IGceLoadBalancer): void {
-    this.infrastructureCaches.clearCache('healthCheck');
+    InfrastructureCaches.clearCache('healthCheck');
     this.application.getDataSource('loadBalancers').refresh();
     this.application
       .getDataSource('loadBalancers')

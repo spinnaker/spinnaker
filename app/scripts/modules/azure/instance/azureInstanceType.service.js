@@ -3,11 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.instanceType.service', [API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
-  .factory('azureInstanceTypeService', function($http, $q, API, infrastructureCaches) {
+  .module('spinnaker.azure.instanceType.service', [API_SERVICE])
+  .factory('azureInstanceTypeService', function($http, $q, API) {
     var m3 = {
       type: 'M3',
       description:
@@ -257,7 +257,7 @@ module.exports = angular
     }
 
     var getAllTypesByRegion = function getAllTypesByRegion() {
-      var cached = infrastructureCaches.get('instanceTypes').get('azure');
+      var cached = InfrastructureCaches.get('instanceTypes').get('azure');
       if (cached) {
         return $q.when(cached);
       }
@@ -276,7 +276,7 @@ module.exports = angular
             .uniqBy('key')
             .groupBy('region')
             .value();
-          infrastructureCaches.get('instanceTypes').put('azure', result);
+          InfrastructureCaches.get('instanceTypes').put('azure', result);
           return result;
         });
     };

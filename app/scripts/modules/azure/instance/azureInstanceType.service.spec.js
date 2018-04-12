@@ -1,6 +1,6 @@
 'use strict';
 
-import { API_SERVICE } from '@spinnaker/core';
+import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
 
 describe('Service: InstanceType', function() {
   let API;
@@ -10,7 +10,7 @@ describe('Service: InstanceType', function() {
   });
 
   beforeEach(
-    window.inject(function(_azureInstanceTypeService_, _$httpBackend_, infrastructureCaches, _API_) {
+    window.inject(function(_azureInstanceTypeService_, _$httpBackend_, _API_) {
       API = _API_;
       this.azureInstanceTypeService = _azureInstanceTypeService_;
       this.$httpBackend = _$httpBackend_;
@@ -22,9 +22,9 @@ describe('Service: InstanceType', function() {
         { account: 'test', region: 'eu-west-1', name: 'm2.xlarge', availabilityZone: 'eu-west-1c' },
       ];
 
-      infrastructureCaches.createCache('instanceTypes', {});
-      if (infrastructureCaches.get('instanceTypes')) {
-        infrastructureCaches.get('instanceTypes').removeAll();
+      InfrastructureCaches.createCache('instanceTypes', {});
+      if (InfrastructureCaches.get('instanceTypes')) {
+        InfrastructureCaches.get('instanceTypes').removeAll();
       }
     }),
   );

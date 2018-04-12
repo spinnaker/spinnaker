@@ -5,7 +5,7 @@ import { SelectCallback } from 'react-bootstrap';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { IAccount } from 'core/account';
-import { ICache } from 'core/cache';
+import { ICache, ViewStateCache } from 'core/cache';
 import { IApplicationSummary } from 'core/application';
 import { ApplicationTable } from './ApplicationsTable';
 import { PaginationControls } from './PaginationControls';
@@ -53,9 +53,8 @@ export class Applications extends React.Component<{}, IApplicationsState> {
   }
 
   private applyCachedViewState() {
-    const { viewStateCache } = ReactInjector;
     this.applicationsCache =
-      viewStateCache.get('applications') || viewStateCache.createCache('applications', { version: 2 });
+      ViewStateCache.get('applications') || ViewStateCache.createCache('applications', { version: 2 });
     const viewState: IViewState = this.applicationsCache.get('#global') || { filter: '', sort: '+name' };
     this.filter$.next(viewState.filter);
     this.sort$.next(viewState.sort);

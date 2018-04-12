@@ -3,8 +3,7 @@ import { sortBy, uniq } from 'lodash';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { AUTHENTICATION_SERVICE, AuthenticationService } from 'core/authentication/authentication.service';
-import { VIEW_STATE_CACHE_SERVICE, ViewStateCacheService } from 'core/cache/viewStateCache.service';
-import { ICache } from 'core/cache/deckCache.service';
+import { ICache, ViewStateCache } from 'core/cache';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
 
@@ -14,14 +13,9 @@ export interface ITriggerPipelineResponse {
 export class PipelineConfigService {
   private configViewStateCache: ICache;
 
-  public constructor(
-    private $q: IQService,
-    private API: Api,
-    private authenticationService: AuthenticationService,
-    viewStateCache: ViewStateCacheService,
-  ) {
+  public constructor(private $q: IQService, private API: Api, private authenticationService: AuthenticationService) {
     'ngInject';
-    this.configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 2 });
+    this.configViewStateCache = ViewStateCache.createCache('pipelineConfig', { version: 2 });
   }
 
   private buildViewStateCacheKey(applicationName: string, pipelineName: string): string {
@@ -176,7 +170,7 @@ export class PipelineConfigService {
 }
 
 export const PIPELINE_CONFIG_SERVICE = 'spinnaker.core.pipeline.config.service';
-module(PIPELINE_CONFIG_SERVICE, [API_SERVICE, AUTHENTICATION_SERVICE, VIEW_STATE_CACHE_SERVICE]).service(
+module(PIPELINE_CONFIG_SERVICE, [API_SERVICE, AUTHENTICATION_SERVICE]).service(
   'pipelineConfigService',
   PipelineConfigService,
 );

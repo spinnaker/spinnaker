@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { omit, omitBy, isUndefined, sortBy, find } from 'lodash';
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
-import { DECK_CACHE_SERVICE, ICache, DeckCacheService } from 'core/cache/deckCache.service';
+import { ICache, DeckCacheFactory } from 'core/cache';
 import { Ng1StateDeclaration } from '@uirouter/angularjs';
 import IAngularEvent = angular.IAngularEvent;
 
@@ -27,13 +27,12 @@ const MAX_ITEMS = 5;
 export class RecentHistoryService {
   private cache: ICache;
 
-  constructor(deckCacheFactory: DeckCacheService) {
-    'ngInject';
-    deckCacheFactory.createCache('history', 'user', {
+  constructor() {
+    DeckCacheFactory.createCache('history', 'user', {
       version: 3,
       maxAge: moment.duration(90, 'days').asMilliseconds(),
     });
-    this.cache = deckCacheFactory.getCache('history', 'user');
+    this.cache = DeckCacheFactory.getCache('history', 'user');
   }
 
   public getItems(type: any): IRecentHistoryEntry[] {
@@ -130,7 +129,7 @@ export class RecentHistoryService {
 }
 
 export const RECENT_HISTORY_SERVICE = 'spinnaker.core.history.recentHistory.service';
-module(RECENT_HISTORY_SERVICE, [DECK_CACHE_SERVICE])
+module(RECENT_HISTORY_SERVICE, [])
   .service('recentHistoryService', RecentHistoryService)
   .run(($rootScope: ng.IRootScopeService, recentHistoryService: RecentHistoryService) => {
     $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {

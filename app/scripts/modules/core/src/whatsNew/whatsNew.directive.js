@@ -4,15 +4,15 @@ const angular = require('angular');
 
 import { HtmlRenderer, Parser } from 'commonmark';
 
-import { VIEW_STATE_CACHE_SERVICE } from 'core/cache/viewStateCache.service';
+import { ViewStateCache } from 'core/cache';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 import { WHATS_NEW_READ_SERVICE } from './whatsNew.read.service';
 
 import './whatsNew.less';
 
 module.exports = angular
-  .module('spinnaker.core.whatsNew.directive', [VIEW_STATE_CACHE_SERVICE, WHATS_NEW_READ_SERVICE, TIME_FORMATTERS])
-  .directive('whatsNew', function(whatsNewReader, viewStateCache) {
+  .module('spinnaker.core.whatsNew.directive', [WHATS_NEW_READ_SERVICE, TIME_FORMATTERS])
+  .directive('whatsNew', function(whatsNewReader) {
     return {
       restrict: 'E',
       replace: true,
@@ -24,7 +24,7 @@ module.exports = angular
         // single cache, so we will use the cache name as the key, also
         var cacheId = 'whatsNew';
 
-        var whatsNewViewStateCache = viewStateCache[cacheId] || viewStateCache.createCache(cacheId, { version: 1 });
+        var whatsNewViewStateCache = ViewStateCache[cacheId] || ViewStateCache.createCache(cacheId, { version: 1 });
 
         $scope.viewState = whatsNewViewStateCache.get(cacheId) || {
           updateLastViewed: null,

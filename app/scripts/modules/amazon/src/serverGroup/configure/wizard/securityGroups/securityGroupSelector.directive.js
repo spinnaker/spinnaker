@@ -2,13 +2,12 @@
 
 const angular = require('angular');
 
-import { INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+import { InfrastructureCaches } from '@spinnaker/core';
 
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.securityGroups.selector.directive', [
-    INFRASTRUCTURE_CACHE_SERVICE,
     AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
   .directive('serverGroupSecurityGroupSelector', function() {
@@ -28,12 +27,9 @@ module.exports = angular
       controller: 'awsServerGroupSecurityGroupsSelectorCtrl',
     };
   })
-  .controller('awsServerGroupSecurityGroupsSelectorCtrl', function(
-    awsServerGroupConfigurationService,
-    infrastructureCaches,
-  ) {
+  .controller('awsServerGroupSecurityGroupsSelectorCtrl', function(awsServerGroupConfigurationService) {
     let setSecurityGroupRefreshTime = () => {
-      this.refreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
+      this.refreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.addItems = () => (this.currentItems += 25);

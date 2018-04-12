@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { SECURITY_GROUP_READER } from '@spinnaker/core';
+import { InfrastructureCaches, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.securityGroup.configure.openstack.ports', [
@@ -13,7 +13,6 @@ module.exports = angular
   .controller('openstackSecurityGroupRulesController', function(
     $scope,
     openstackSecurityGroupTransformer,
-    infrastructureCaches,
     securityGroupReader,
     cacheInitializer,
   ) {
@@ -38,7 +37,7 @@ module.exports = angular
     };
 
     this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.get('securityGroups').getStats().ageMax;
+      return InfrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     $scope.initializeSecurityGroups = function() {

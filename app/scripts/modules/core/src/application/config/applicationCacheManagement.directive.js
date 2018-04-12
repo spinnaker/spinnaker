@@ -2,14 +2,12 @@
 
 const angular = require('angular');
 
-import { INFRASTRUCTURE_CACHE_SERVICE } from 'core/cache/infrastructureCaches.service';
-import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
+import { CACHE_INITIALIZER_SERVICE, InfrastructureCaches } from 'core/cache';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 
 module.exports = angular
   .module('spinnaker.core.application.config.cache.management.directive', [
     CACHE_INITIALIZER_SERVICE,
-    INFRASTRUCTURE_CACHE_SERVICE,
     OVERRIDE_REGISTRY,
   ])
   .directive('applicationCacheManagement', function(overrideRegistry) {
@@ -27,7 +25,7 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ApplicationCacheManagementCtrl', function($log, infrastructureCaches, cacheInitializer) {
+  .controller('ApplicationCacheManagementCtrl', function($log, cacheInitializer) {
     this.refreshCaches = () => {
       this.clearingCaches = true;
       cacheInitializer.refreshCaches().then(
@@ -42,11 +40,11 @@ module.exports = angular
     };
 
     this.hasCache = cache => {
-      return infrastructureCaches.get(cache) !== undefined;
+      return InfrastructureCaches.get(cache) !== undefined;
     };
 
     this.getCacheInfo = cache => {
-      return infrastructureCaches.get(cache).getStats();
+      return InfrastructureCaches.get(cache).getStats();
     };
 
     this.refreshCache = function(key) {

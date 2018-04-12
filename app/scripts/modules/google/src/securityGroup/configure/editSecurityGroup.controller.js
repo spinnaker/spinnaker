@@ -2,18 +2,12 @@
 
 const angular = require('angular');
 
-import {
-  ACCOUNT_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
-  SECURITY_GROUP_WRITER,
-  TASK_MONITOR_BUILDER,
-} from '@spinnaker/core';
+import { ACCOUNT_SERVICE, InfrastructureCaches, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.edit.controller', [
     require('@uirouter/angularjs').default,
     ACCOUNT_SERVICE,
-    INFRASTRUCTURE_CACHE_SERVICE,
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_WRITER,
   ])
@@ -23,7 +17,6 @@ module.exports = angular
     $state,
     accountService,
     taskMonitorBuilder,
-    infrastructureCaches,
     application,
     securityGroup,
     securityGroupWriter,
@@ -89,7 +82,7 @@ module.exports = angular
     securityGroup.sourceTags = securityGroup.sourceTags || [];
 
     this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.get('securityGroups').getStats().ageMax;
+      return InfrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.addSourceCIDR = function(sourceRanges) {

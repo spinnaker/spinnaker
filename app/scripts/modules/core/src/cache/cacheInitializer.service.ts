@@ -6,8 +6,8 @@ import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/se
 import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
 import { INFRASTRUCTURE_CACHE_CONFIG, IInfrastructureCacheConfig } from './infrastructureCacheConfig';
-import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from './infrastructureCaches.service';
-import { ICacheConfig } from './deckCache.service';
+import { InfrastructureCaches } from './infrastructureCaches';
+import { ICacheConfig } from './deckCacheFactory';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 import { IGOR_SERVICE, IgorService } from 'core/ci/igor.service';
 
@@ -67,7 +67,7 @@ export class CacheInitializerService {
   }
 
   private initializeCache(key: string): ng.IPromise<any[]> {
-    this.infrastructureCaches.createCache(key, this.cacheConfig[key]);
+    InfrastructureCaches.createCache(key, this.cacheConfig[key]);
     if (this.cacheConfig[key].initializers) {
       const initializer: any = this.cacheConfig[key].initializers;
       const all: Array<ng.IPromise<any>> = [];
@@ -84,7 +84,6 @@ export class CacheInitializerService {
   constructor(
     private $q: ng.IQService,
     private applicationReader: ApplicationReader,
-    private infrastructureCaches: InfrastructureCacheService,
     private accountService: AccountService,
     private securityGroupReader: SecurityGroupReader,
     private cloudProviderRegistry: CloudProviderRegistry,
@@ -104,7 +103,7 @@ export class CacheInitializerService {
   }
 
   public refreshCache(key: string): ng.IPromise<any[]> {
-    this.infrastructureCaches.clearCache(key);
+    InfrastructureCaches.clearCache(key);
     return this.initializeCache(key);
   }
 
@@ -124,6 +123,5 @@ module(CACHE_INITIALIZER_SERVICE, [
   SECURITY_GROUP_READER,
   APPLICATION_READ_SERVICE,
   IGOR_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
 ]).service('cacheInitializer', CacheInitializerService);

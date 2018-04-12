@@ -9,7 +9,7 @@ import {
   CacheInitializerService,
   IAccount,
   ISecurityGroupsByAccountSourceData,
-  InfrastructureCacheService,
+  InfrastructureCaches,
   IMoniker,
   IRegion,
   ISecurityGroup,
@@ -76,7 +76,6 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     protected securityGroupReader: SecurityGroupReader,
     protected amazonCertificateReader: AmazonCertificateReader,
     protected cacheInitializer: CacheInitializerService,
-    protected infrastructureCaches: InfrastructureCacheService,
     protected v2modalWizardService: any,
     protected loadBalancerWriter: LoadBalancerWriter,
     protected taskMonitorBuilder: TaskMonitorBuilder,
@@ -101,7 +100,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       internalFlagToggled: false,
       refreshingSecurityGroups: false,
       removedSecurityGroups: [],
-      securityGroupRefreshTime: this.infrastructureCaches.get('securityGroups').getStats().ageMax,
+      securityGroupRefreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
       securityGroupsLoaded: false,
       submitButtonLabel: this.forPipelineConfig ? (this.isNew ? 'Add' : 'Done') : this.isNew ? 'Create' : 'Update',
       submitting: false,
@@ -378,7 +377,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   private setSecurityGroupRefreshTime(): void {
-    this.viewState.securityGroupRefreshTime = this.infrastructureCaches.get('securityGroups').getStats().ageMax;
+    this.viewState.securityGroupRefreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
   }
 
   public addItems(): void {

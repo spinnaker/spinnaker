@@ -15,7 +15,6 @@ import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
 import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
-import { CollapsibleSectionStateCache } from '../cache/collapsibleSectionStateCache';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { EntityTagWriter } from '../entityTag';
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
@@ -24,7 +23,6 @@ import { ExecutionFilterService } from '../pipeline/filter/executionFilter.servi
 import { ExecutionService } from '../pipeline/service/execution.service';
 import { ExecutionsTransformerService } from '../pipeline/service/executions.transformer.service';
 import { HelpContentsRegistry, IHelpContents } from 'core/help';
-import { InfrastructureCacheService } from '../cache/infrastructureCaches.service';
 import { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import { InfrastructureSearchServiceV2 } from 'core/search/infrastructure/infrastructureSearchV2.service';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
@@ -60,7 +58,6 @@ import { VariableInputService } from '../pipeline/config/templates/inputs/variab
 import { VariableValidatorService } from '../pipeline/config/templates/validators/variableValidator.service';
 import { SkinSelectionService } from '../cloudProvider/skinSelection/skinSelection.service';
 import { SkinService } from '../cloudProvider/skin.service';
-import { ViewStateCacheService } from '../cache/viewStateCache.service';
 import { WaypointService } from '../utils/waypoints/waypoint.service';
 
 export abstract class ReactInject {
@@ -97,7 +94,6 @@ export class CoreReactInject extends ReactInject {
   public get cloudProviderRegistry() { return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry; }
   public get clusterFilterModel() { return this.$injector.get('clusterFilterModel') as ClusterFilterModel; }
   public get clusterFilterService() { return this.$injector.get('clusterFilterService') as ClusterFilterService; }
-  public get collapsibleSectionStateCache() { return this.$injector.get('collapsibleSectionStateCache') as CollapsibleSectionStateCache; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get entityTagWriter() { return this.$injector.get('entityTagWriter') as EntityTagWriter; }
   public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }
@@ -107,7 +103,6 @@ export class CoreReactInject extends ReactInject {
   public get executionsTransformer() { return this.$injector.get('executionsTransformer') as ExecutionsTransformerService; }
   public get helpContents() { return this.$injector.get('helpContents') as IHelpContents }
   public get helpContentsRegistry() { return this.$injector.get('helpContentsRegistry') as HelpContentsRegistry; }
-  public get infrastructureCaches() { return this.$injector.get('infrastructureCaches') as InfrastructureCacheService; }
   public get infrastructureSearchService() { return this.$injector.get('infrastructureSearchService') as InfrastructureSearchService; }
   public get infrastructureSearchServiceV2() { return this.$injector.get('infrastructureSearchServiceV2') as InfrastructureSearchServiceV2; }
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
@@ -145,7 +140,6 @@ export class CoreReactInject extends ReactInject {
   public get variableValidatorService() { return this.$injector.get('variableValidatorService') as VariableValidatorService; }
   public get skinSelectionService() { return this.$injector.get('skinSelectionService') as SkinSelectionService; }
   public get skinService() { return this.$injector.get('skinService') as SkinService; }
-  public get viewStateCache() { return this.$injector.get('viewStateCache') as ViewStateCacheService; }
   public get waypointService() { return this.$injector.get('waypointService') as WaypointService; }
 
   private createStateService(): StateService {

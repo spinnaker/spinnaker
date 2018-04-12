@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 
+import { InfrastructureCaches } from 'core/cache';
 import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
 import { V2_MODAL_WIZARD_SERVICE } from 'core/modal/wizard/v2modalWizard.service';
 
@@ -28,7 +29,6 @@ module.exports = angular
   .controller('v2InstanceArchetypeSelectorCtrl', function(
     $scope,
     instanceTypeService,
-    infrastructureCaches,
     serverGroupConfigurationService,
     v2modalWizardService,
     $log,
@@ -94,7 +94,7 @@ module.exports = angular
     }
 
     let setInstanceTypeRefreshTime = () => {
-      this.refreshTime = infrastructureCaches.get('instanceTypes').getStats().ageMax;
+      this.refreshTime = InfrastructureCaches.get('instanceTypes').getStats().ageMax;
     };
 
     this.refreshInstanceTypes = function() {

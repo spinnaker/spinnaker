@@ -7,6 +7,7 @@ import VirtualizedSelect from 'react-virtualized-select';
 import { Observable, Subject } from 'rxjs';
 
 import {
+  InfrastructureCaches,
   ISecurityGroup,
   ISecurityGroupsByAccountSourceData,
   IWizardPageProps,
@@ -47,7 +48,7 @@ class SecurityGroupsImpl extends React.Component<
       loaded: false,
       refreshing: false,
       removed: [],
-      refreshTime: ReactInjector.infrastructureCaches.get('securityGroups').getStats().ageMax,
+      refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
     };
   }
 
@@ -146,7 +147,7 @@ class SecurityGroupsImpl extends React.Component<
       .subscribe(() => {
         this.setState({
           refreshing: false,
-          refreshTime: ReactInjector.infrastructureCaches.get('securityGroups').getStats().ageMax,
+          refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
         });
         this.props.setWaiting(SecurityGroups.label, false);
 

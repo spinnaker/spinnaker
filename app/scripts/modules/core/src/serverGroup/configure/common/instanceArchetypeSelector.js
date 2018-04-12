@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+import { InfrastructureCaches } from 'core/cache';
+
 module.exports = angular
   .module('spinnaker.core.serverGroup.configure.common.instanceArchetypeSelector', [
     require('./costFactor.js').name,
@@ -19,12 +21,7 @@ module.exports = angular
       controllerAs: 'instanceArchetypeCtrl',
     };
   })
-  .controller('InstanceArchetypeSelectorCtrl', function(
-    $scope,
-    instanceTypeService,
-    infrastructureCaches,
-    serverGroupConfigurationService,
-  ) {
+  .controller('InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService, serverGroupConfigurationService) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
@@ -66,7 +63,7 @@ module.exports = angular
     }
 
     this.getInstanceTypeRefreshTime = function() {
-      return infrastructureCaches.get('instanceTypes').getStats().ageMax;
+      return InfrastructureCaches.get('instanceTypes').getStats().ageMax;
     };
 
     this.refreshInstanceTypes = function() {
@@ -86,7 +83,7 @@ module.exports = angular
     });
 
     this.getInstanceTypeRefreshTime = function() {
-      return infrastructureCaches.get('instanceTypes').getStats().ageMax;
+      return InfrastructureCaches.get('instanceTypes').getStats().ageMax;
     };
 
     this.refreshInstanceTypes = function() {

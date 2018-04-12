@@ -1,6 +1,6 @@
 import { module, ILogService, IHttpPromiseCallbackArg, IPromise } from 'angular';
 import { API_SERVICE, Api } from 'core/api/api.service';
-import { ICache } from 'core/cache/deckCache.service';
+import { ICache } from 'core/cache';
 
 export interface ISearchParams {
   [key: string]: any;

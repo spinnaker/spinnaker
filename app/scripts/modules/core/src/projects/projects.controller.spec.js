@@ -40,6 +40,7 @@ describe('Controller: Projects', function() {
           $timeout: $timeout,
         });
 
+        this.$scope.viewState.projectFilter = '';
         this.$scope.viewState.sortModel.key = 'name';
       }),
     );

@@ -11,8 +11,6 @@ import {
   ICredentials,
   ILoadBalancerUpsertCommand,
   IInstance,
-  INFRASTRUCTURE_CACHE_SERVICE,
-  InfrastructureCacheService,
   IRegion,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
@@ -104,10 +102,9 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     private wizardSubFormValidation: any,
     private taskMonitorBuilder: TaskMonitorBuilder,
     $state: StateService,
-    infrastructureCaches: InfrastructureCacheService,
   ) {
     'ngInject';
-    super($scope, application, $uibModalInstance, $state, infrastructureCaches);
+    super($scope, application, $uibModalInstance, $state);
   }
 
   public $onInit(): void {
@@ -237,7 +234,6 @@ module(GCE_SSL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   ACCOUNT_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
 ]).controller('gceSslLoadBalancerCtrl', SslLoadBalancerCtrl);

@@ -1,9 +1,9 @@
 export * from './cacheInitializer.service';
 export * from './collapsibleSectionStateCache';
 
-export * from './deckCache.service';
+export * from './deckCacheFactory';
 
-export * from './infrastructureCaches.service';
+export * from './infrastructureCaches';
 export * from './infrastructureCacheConfig';
 
-export * from './viewStateCache.service';
+export * from './viewStateCache';

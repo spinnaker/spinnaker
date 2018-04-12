@@ -821,10 +821,6 @@ amqplib@^0.5.2:
     readable-stream "1.x >=1.1.9"
     safe-buffer "^5.0.1"
 
-angular-cache@^4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/angular-cache/-/angular-cache-4.6.0.tgz#5cc90ad1273fb150205dc1c71b8141ae39e48bff"
-
 angular-cron-gen@0.0.21:
   version "0.0.21"
   resolved "https://registry.yarnpkg.com/angular-cron-gen/-/angular-cron-gen-0.0.21.tgz#faa2bb35252a77892244dc895255b34dd6f734bf"
@@ -2628,6 +2624,10 @@ cacheable-request@^2.1.1:
 cached-path-relative@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/cached-path-relative/-/cached-path-relative-1.0.1.tgz#d09c4b52800aa4c078e2dd81a869aac90d2e54e7"
+
+cachefactory@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/cachefactory/-/cachefactory-3.0.0.tgz#4a020a337e82f8fb8d88f1fddf3d6527c27a2ae8"
 
 call-matcher@^1.0.1:
   version "1.0.1"

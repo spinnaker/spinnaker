@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
+import { CollapsibleSectionStateCache } from 'core/cache';
 import { HelpField } from 'core/help/HelpField';
-import { ReactInjector } from 'core/reactShims';
 
 export interface ICollapsibleSectionProps {
   bodyClassName?: string;
@@ -29,8 +29,8 @@ export class CollapsibleSection extends React.Component<ICollapsibleSectionProps
     this.state = {
       cacheKey,
       headingIsString,
-      expanded: ReactInjector.collapsibleSectionStateCache.isSet(cacheKey)
-        ? ReactInjector.collapsibleSectionStateCache.isExpanded(cacheKey)
+      expanded: CollapsibleSectionStateCache.isSet(cacheKey)
+        ? CollapsibleSectionStateCache.isExpanded(cacheKey)
         : props.defaultExpanded,
     };
   }
@@ -38,7 +38,7 @@ export class CollapsibleSection extends React.Component<ICollapsibleSectionProps
   public toggle(): void {
     const { cacheKey, expanded } = this.state;
     this.setState({ expanded: !expanded });
-    ReactInjector.collapsibleSectionStateCache.setExpanded(cacheKey, !expanded);
+    CollapsibleSectionStateCache.setExpanded(cacheKey, !expanded);
   }
 
   public render() {

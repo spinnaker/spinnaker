@@ -3,7 +3,7 @@ import { module, IPromise, ILogService, IQService } from 'angular';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { IComponentName, NameUtils } from 'core/naming';
-import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
+import { InfrastructureCaches } from 'core/cache';
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, ILoadBalancer, IServerGroup, IServerGroupUsage } from 'core/domain';
 import {
@@ -207,7 +207,7 @@ export class SecurityGroupReader {
     application: Application,
     nameBasedSecurityGroups: ISecurityGroup[],
   ): IPromise<any[]> {
-    this.infrastructureCaches.clearCache('securityGroups');
+    InfrastructureCaches.clearCache('securityGroups');
     return this.loadSecurityGroups().then((refreshedSecurityGroups: ISecurityGroupsByAccount) => {
       application['securityGroupsIndex'] = refreshedSecurityGroups;
 
@@ -278,7 +278,6 @@ export class SecurityGroupReader {
     private $q: IQService,
     private searchService: SearchService,
     private API: Api,
-    private infrastructureCaches: InfrastructureCacheService,
     private securityGroupTransformer: SecurityGroupTransformerService,
     private providerServiceDelegate: ProviderServiceDelegate,
     private entityTagsReader: EntityTagsReader,
@@ -289,7 +288,7 @@ export class SecurityGroupReader {
   public getAllSecurityGroups(): IPromise<ISecurityGroupsByAccountSourceData> {
     // Because these are cached in local storage, we unfortunately need to remove the moniker, as it triples the size
     // of the object being stored, which blows out our LS quota for a sufficiently large footprint
-    const cache = this.infrastructureCaches.get('securityGroups');
+    const cache = InfrastructureCaches.get('securityGroups');
     const cached = !!cache ? cache.get('allGroups') : null;
     if (cached) {
       return this.$q.resolve(cached);
@@ -436,7 +435,6 @@ export class SecurityGroupReader {
 export const SECURITY_GROUP_READER = 'spinnaker.core.securityGroup.read.service';
 module(SECURITY_GROUP_READER, [
   SEARCH_SERVICE,
-  INFRASTRUCTURE_CACHE_SERVICE,
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   PROVIDER_SERVICE_DELEGATE,
   API_SERVICE,

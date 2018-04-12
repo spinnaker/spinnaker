@@ -1,12 +1,6 @@
 import { IPromise, module } from 'angular';
 
-import {
-  INFRASTRUCTURE_CACHE_SERVICE,
-  InfrastructureCacheService,
-  ISearchResults,
-  SEARCH_SERVICE,
-  SearchService,
-} from '@spinnaker/core';
+import { InfrastructureCaches, ISearchResults, SEARCH_SERVICE, SearchService } from '@spinnaker/core';
 
 export interface IGceCertificate {
   account: string;
@@ -16,7 +10,7 @@ export interface IGceCertificate {
 }
 
 export class GceCertificateReader {
-  constructor(private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) {
+  constructor(private searchService: SearchService) {
     'ngInject';
   }
 
@@ -24,7 +18,7 @@ export class GceCertificateReader {
     return this.searchService
       .search<IGceCertificate>(
         { q: '', type: 'sslCertificates', allowShortQuery: 'true' },
-        this.infrastructureCaches.get('certificates'),
+        InfrastructureCaches.get('certificates'),
       )
       .then((searchResults: ISearchResults<IGceCertificate>) => {
         if (searchResults && searchResults.results) {
@@ -38,7 +32,4 @@ export class GceCertificateReader {
 }
 
 export const GCE_CERTIFICATE_READER = 'spinnaker.gce.certificateReader.service';
-module(GCE_CERTIFICATE_READER, [SEARCH_SERVICE, INFRASTRUCTURE_CACHE_SERVICE]).service(
-  'gceCertificateReader',
-  GceCertificateReader,
-);
+module(GCE_CERTIFICATE_READER, [SEARCH_SERVICE]).service('gceCertificateReader', GceCertificateReader);

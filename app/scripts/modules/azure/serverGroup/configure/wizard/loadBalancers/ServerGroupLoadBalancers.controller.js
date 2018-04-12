@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  INFRASTRUCTURE_CACHE_SERVICE,
+  InfrastructureCaches,
   LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
@@ -11,14 +11,12 @@ import {
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.loadBalancer.controller', [
-    INFRASTRUCTURE_CACHE_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     NETWORK_READ_SERVICE,
   ])
   .controller('azureServerGroupLoadBalancersCtrl', function(
     $scope,
-    infrastructureCaches,
     loadBalancerReader,
     networkReader,
     v2modalWizardService,
@@ -29,7 +27,7 @@ module.exports = angular
       $scope.command.viewState.networkSettingsConfigured = true;
       v2modalWizardService.markComplete('load-balancers');
       $scope.command.selectedVnetSubnets = [];
-      infrastructureCaches.clearCache('networks');
+      InfrastructureCaches.clearCache('networks');
 
       loadBalancerReader
         .getLoadBalancerDetails('azure', $scope.command.credentials, $scope.command.region, item)

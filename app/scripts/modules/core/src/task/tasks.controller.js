@@ -5,7 +5,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
-import { VIEW_STATE_CACHE_SERVICE } from 'core/cache/viewStateCache.service';
+import { ViewStateCache } from 'core/cache';
 import { DISPLAYABLE_TASKS_FILTER } from './displayableTasks.filter';
 import { SETTINGS } from 'core/config/settings';
 import { TASK_WRITE_SERVICE } from './task.write.service';
@@ -14,21 +14,11 @@ module.exports = angular
   .module('spinnaker.core.task.controller', [
     require('@uirouter/angularjs').default,
     require('./taskProgressBar.directive.js').name,
-    VIEW_STATE_CACHE_SERVICE,
     TASK_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     DISPLAYABLE_TASKS_FILTER,
   ])
-  .controller('TasksCtrl', function(
-    $scope,
-    $state,
-    $stateParams,
-    $q,
-    app,
-    viewStateCache,
-    taskWriter,
-    confirmationModalService,
-  ) {
+  .controller('TasksCtrl', function($scope, $state, $stateParams, $q, app, taskWriter, confirmationModalService) {
     if (app.notFound) {
       return;
     }
@@ -38,7 +28,7 @@ module.exports = angular
 
     $scope.$state = $state;
 
-    var tasksViewStateCache = viewStateCache.get('tasks') || viewStateCache.createCache('tasks', { version: 1 });
+    var tasksViewStateCache = ViewStateCache.get('tasks') || ViewStateCache.createCache('tasks', { version: 1 });
 
     function cacheViewState() {
       tasksViewStateCache.put(application.name, $scope.viewState);

@@ -2,12 +2,11 @@
 
 const angular = require('angular');
 
-import { CACHE_INITIALIZER_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+import { CACHE_INITIALIZER_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.create.controller', [
     require('@uirouter/angularjs').default,
-    INFRASTRUCTURE_CACHE_SERVICE,
     CACHE_INITIALIZER_SERVICE,
   ])
   .controller('awsCreateSecurityGroupCtrl', function(
@@ -16,7 +15,6 @@ module.exports = angular
     $state,
     $controller,
     cacheInitializer,
-    infrastructureCaches,
     application,
     securityGroup,
   ) {
@@ -32,7 +30,6 @@ module.exports = angular
       $controller('awsConfigSecurityGroupMixin', {
         $scope: $scope,
         $uibModalInstance: $uibModalInstance,
-        infrastructureCaches: infrastructureCaches,
         application: application,
         securityGroup: securityGroup,
       }),

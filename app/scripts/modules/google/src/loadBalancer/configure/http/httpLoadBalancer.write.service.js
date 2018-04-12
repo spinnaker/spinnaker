@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { INFRASTRUCTURE_CACHE_SERVICE, TASK_EXECUTOR } from '@spinnaker/core';
+import { InfrastructureCaches, TASK_EXECUTOR } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.deck.gce.httpLoadBalancer.write.service', [TASK_EXECUTOR, INFRASTRUCTURE_CACHE_SERVICE])
-  .factory('gceHttpLoadBalancerWriter', function(taskExecutor, infrastructureCaches) {
+  .module('spinnaker.deck.gce.httpLoadBalancer.write.service', [TASK_EXECUTOR])
+  .factory('gceHttpLoadBalancerWriter', function(taskExecutor) {
     function upsertLoadBalancers(loadBalancers, application, descriptor) {
       loadBalancers.forEach(lb => {
         angular.extend(lb, {
@@ -16,9 +16,9 @@ module.exports = angular
         });
       });
 
-      infrastructureCaches.clearCache('loadBalancers');
-      infrastructureCaches.clearCache('backendServices');
-      infrastructureCaches.clearCache('healthChecks');
+      InfrastructureCaches.clearCache('loadBalancers');
+      InfrastructureCaches.clearCache('backendServices');
+      InfrastructureCaches.clearCache('healthChecks');
 
       return taskExecutor.executeTask({
         job: loadBalancers,
@@ -40,9 +40,9 @@ module.exports = angular
 
       angular.extend(job, params);
 
-      infrastructureCaches.clearCache('loadBalancers');
-      infrastructureCaches.clearCache('backendServices');
-      infrastructureCaches.clearCache('healthChecks');
+      InfrastructureCaches.clearCache('loadBalancers');
+      InfrastructureCaches.clearCache('backendServices');
+      InfrastructureCaches.clearCache('healthChecks');
 
       return taskExecutor.executeTask({
         job: [job],

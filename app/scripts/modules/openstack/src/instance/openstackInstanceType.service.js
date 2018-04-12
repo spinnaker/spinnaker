@@ -3,11 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.instanceType.service', [API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE])
-  .factory('openstackInstanceTypeService', function($http, $q, API, infrastructureCaches) {
+  .module('spinnaker.openstack.instanceType.service', [API_SERVICE])
+  .factory('openstackInstanceTypeService', function($http, $q, API) {
     var categories = [
       {
         type: 'custom',
@@ -22,7 +22,7 @@ module.exports = angular
     }
 
     var getAllTypesByRegion = function getAllTypesByRegion() {
-      var cached = infrastructureCaches.get('instanceTypes').get('openstack');
+      var cached = InfrastructureCaches.get('instanceTypes').get('openstack');
       if (cached) {
         return $q.when(cached);
       }
@@ -41,7 +41,7 @@ module.exports = angular
             .uniqBy('key')
             .groupBy('region')
             .value();
-          infrastructureCaches.get('instanceTypes').put('openstack', result);
+          InfrastructureCaches.get('instanceTypes').put('openstack', result);
           return result;
         });
     };

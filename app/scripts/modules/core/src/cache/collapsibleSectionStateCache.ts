@@ -1,16 +1,13 @@
-import { module } from 'angular';
+import { Cache, CacheFactory } from 'cachefactory';
 
-import { ICache, ICacheFactory } from './deckCache.service';
+export class CollapsibleSectionStateCacheInternal {
+  private cacheFactory = new CacheFactory();
+  private cacheId = 'collapsibleSectionStateCache';
+  private stateCache: Cache;
 
-export class CollapsibleSectionStateCache {
-  private stateCache: ICache;
-
-  constructor(private CacheFactory: ICacheFactory) {
-    'ngInject';
-    const cacheId = 'collapsibleSectionStateCache';
-
+  constructor() {
     try {
-      this.CacheFactory.createCache(cacheId, {
+      this.cacheFactory.createCache(this.cacheId, {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         deleteOnExpire: 'aggressive',
         storageMode: 'localStorage',
@@ -19,7 +16,7 @@ export class CollapsibleSectionStateCache {
       // trying to create a cache multiple times throws and Error
     }
 
-    this.stateCache = CacheFactory.get(cacheId);
+    this.stateCache = this.cacheFactory.get(this.cacheId);
   }
 
   public isSet(heading: string): boolean {
@@ -35,8 +32,4 @@ export class CollapsibleSectionStateCache {
   }
 }
 
-export const COLLAPSIBLE_SECTION_STATE_CACHE = 'spinnaker.core.cache.collapsibleSectionState';
-module(COLLAPSIBLE_SECTION_STATE_CACHE, [require('angular-cache')]).service(
-  'collapsibleSectionStateCache',
-  CollapsibleSectionStateCache,
-);
+export const CollapsibleSectionStateCache = new CollapsibleSectionStateCacheInternal();

@@ -4,8 +4,7 @@ import { mock } from 'angular';
 import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from './cacheInitializer.service';
 import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
-import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
-import { ICache } from 'core/cache/deckCache.service';
+import { InfrastructureCaches } from 'core/cache';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 import { IGOR_SERVICE, IgorService } from 'core/ci/igor.service';
 
@@ -25,7 +24,6 @@ describe('Service: cacheInitializer', function() {
   let $q: ng.IQService;
   let $root: ng.IRootScopeService;
   let cacheInitializer: CacheInitializerService;
-  let infrastructureCache: InfrastructureCacheService;
   let accountService: AccountService;
   let securityGroupReader: SecurityGroupReader;
   let applicationReader: ApplicationReader;
@@ -34,7 +32,6 @@ describe('Service: cacheInitializer', function() {
   beforeEach(
     mock.module(
       CACHE_INITIALIZER_SERVICE,
-      INFRASTRUCTURE_CACHE_SERVICE,
       ACCOUNT_SERVICE,
       SECURITY_GROUP_READER,
       APPLICATION_READ_SERVICE,
@@ -46,7 +43,6 @@ describe('Service: cacheInitializer', function() {
       _$q_: ng.IQService,
       _$rootScope_: ng.IRootScopeService,
       _cacheInitializer_: CacheInitializerService,
-      _infrastructureCaches_: InfrastructureCacheService,
       _accountService_: AccountService,
       _securityGroupReader_: SecurityGroupReader,
       _applicationReader_: ApplicationReader,
@@ -55,13 +51,15 @@ describe('Service: cacheInitializer', function() {
       $q = _$q_;
       $root = _$rootScope_;
       cacheInitializer = _cacheInitializer_;
-      infrastructureCache = _infrastructureCaches_;
       accountService = _accountService_;
       securityGroupReader = _securityGroupReader_;
       applicationReader = _applicationReader_;
       igorService = _igorService_;
     }),
   );
+  beforeEach(() => {
+    InfrastructureCaches.destroyCaches();
+  });
 
   it('should initialize injected dependencies', function() {
     expect($q).toBeDefined();
@@ -136,11 +134,11 @@ describe('Service: cacheInitializer', function() {
     });
 
     it('should remove all items from the specified cache', () => {
-      let cache: ICache = infrastructureCache.get('credentials');
+      let cache = InfrastructureCaches.get('credentials');
       expect(cache).toBeUndefined();
 
       cacheInitializer.initialize().then(() => {
-        cache = infrastructureCache.get('credentials');
+        cache = InfrastructureCaches.get('credentials');
         expect(cache).toBeDefined();
         expect(cache.keys().length).toBe(0);
 
@@ -153,7 +151,7 @@ describe('Service: cacheInitializer', function() {
 
         cacheInitializer.refreshCache('credentials').then((result: any[]) => {
           expect(flatten(result)).toEqual(keys.account);
-          cache = infrastructureCache.get('credentials');
+          cache = InfrastructureCaches.get('credentials');
           expect(cache.keys().length).toBe(0);
         });
         initialized = true;

@@ -9,7 +9,7 @@ import { SECURITY_GROUP_READER, SecurityGroupReader, ISecurityGroupDetail } from
 import { ISecurityGroup } from 'core/domain';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { Application } from 'core/application/application.model';
-import { InfrastructureCacheService } from 'core';
+import { InfrastructureCaches } from 'core/cache';
 
 describe('Service: securityGroupReader', function() {
   let $q: ng.IQService,
@@ -31,7 +31,6 @@ describe('Service: securityGroupReader', function() {
       _applicationModelBuilder_: ApplicationModelBuilder,
       _providerServiceDelegate_: any,
       securityGroupTransformer: SecurityGroupTransformerService,
-      infrastructureCaches: InfrastructureCacheService,
       _securityGroupReader_: SecurityGroupReader,
     ) {
       reader = _securityGroupReader_;
@@ -45,7 +44,7 @@ describe('Service: securityGroupReader', function() {
         get: () => null as any,
         put: () => {},
       };
-      spyOn(infrastructureCaches, 'get').and.returnValue(cacheStub);
+      spyOn(InfrastructureCaches, 'get').and.returnValue(cacheStub);
 
       spyOn(securityGroupTransformer, 'normalizeSecurityGroup').and.callFake((securityGroup: ISecurityGroup) => {
         return $q.when(securityGroup);

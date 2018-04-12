@@ -2,11 +2,10 @@
 
 const angular = require('angular');
 
-import { INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+import { InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.securityGroups.selector.directive', [
-    INFRASTRUCTURE_CACHE_SERVICE,
     require('../../serverGroupConfiguration.service.js').name,
     require('./tagSelectorGenerator.component.js').name,
     require('./tagManager.service.js').name,
@@ -23,13 +22,9 @@ module.exports = angular
       controller: 'gceServerGroupSecurityGroupsSelectorCtrl',
     };
   })
-  .controller('gceServerGroupSecurityGroupsSelectorCtrl', function(
-    gceServerGroupConfigurationService,
-    gceTagManager,
-    infrastructureCaches,
-  ) {
+  .controller('gceServerGroupSecurityGroupsSelectorCtrl', function(gceServerGroupConfigurationService, gceTagManager) {
     this.getSecurityGroupRefreshTime = () => {
-      return infrastructureCaches.get('securityGroups').getStats().ageMax;
+      return InfrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
     this.refreshSecurityGroups = () => {

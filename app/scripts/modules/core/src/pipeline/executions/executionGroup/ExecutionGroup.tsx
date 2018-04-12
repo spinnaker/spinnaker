@@ -7,6 +7,7 @@ import { find, flatten, uniq, without } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
+import { CollapsibleSectionStateCache } from 'core/cache';
 import { Execution } from '../execution/Execution';
 import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
@@ -43,7 +44,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
   constructor(props: IExecutionGroupProps) {
     super(props);
-    const { collapsibleSectionStateCache, executionFilterModel } = ReactInjector;
+    const { executionFilterModel } = ReactInjector;
 
     this.strategyConfig = find(this.props.application.strategyConfigs.data, {
       name: this.props.group.heading,
@@ -59,8 +60,8 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
       triggeringExecution: false,
       open:
         this.isShowingDetails() ||
-        !collapsibleSectionStateCache.isSet(sectionCacheKey) ||
-        collapsibleSectionStateCache.isExpanded(sectionCacheKey),
+        !CollapsibleSectionStateCache.isSet(sectionCacheKey) ||
+        CollapsibleSectionStateCache.isExpanded(sectionCacheKey),
       poll: null,
       canTriggerPipelineManually: !!pipelineConfig,
       canConfigure: !!(pipelineConfig || this.strategyConfig),
@@ -103,7 +104,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     if (this.isShowingDetails()) {
       this.hideDetails();
     }
-    ReactInjector.collapsibleSectionStateCache.setExpanded(this.getSectionCacheKey(), open);
+    CollapsibleSectionStateCache.setExpanded(this.getSectionCacheKey(), open);
     this.setState({ open });
   }
 
@@ -300,6 +301,8 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   }
 
   private getDeploymentAccounts(): string[] {
-    return uniq(flatten<string>(this.props.group.executions.map((e: IExecution) => e.deploymentTargets))).sort().filter(a => !!a);
+    return uniq(flatten<string>(this.props.group.executions.map((e: IExecution) => e.deploymentTargets)))
+      .sort()
+      .filter(a => !!a);
   }
 }
