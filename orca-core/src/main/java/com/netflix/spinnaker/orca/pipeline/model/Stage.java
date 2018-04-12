@@ -85,7 +85,8 @@ public class Stage implements Serializable {
 
     this.refId = (String) context.remove("refId");
     this.startTimeExpiry = Optional
-      .ofNullable((Long) context.remove("startTimeExpiry"))
+      .ofNullable(context.remove("startTimeExpiry"))
+      .map(expiry -> Long.valueOf((String) expiry))
       .orElse(null);
     this.requisiteStageRefIds = Optional
       .ofNullable((Collection<String>) context.remove("requisiteStageRefIds"))
