@@ -1,6 +1,6 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
-[ui-view="pipelines"] {
+[ui-view='pipelines'] {
   padding-top: 0 !important;
 }
 .executions-section {
@@ -97,7 +97,8 @@
 }
 
 // overrides
-.execution-status-executing, .execution-status-running {
+.execution-status-executing,
+.execution-status-running {
   color: var(--color-accent);
 }
 .execution-status-terminal {
@@ -110,6 +111,7 @@
 .execution-marker {
   fill: var(--color-alto);
   background-color: var(--color-alto);
+  overflow: hidden;
   &.execution-marker-terminal {
     fill: var(--color-danger);
     background-color: var(--color-danger);
@@ -130,7 +132,8 @@
     fill: var(--color-danger-light);
     background-color: var(--color-danger-light);
   }
-  &.execution-marker-not_started, &.execution-marker-canceled {
+  &.execution-marker-not_started,
+  &.execution-marker-canceled {
     fill: var(--color-alto);
     background-color: var(--color-alto);
   }
@@ -147,7 +150,8 @@
     background-color: var(--color-danger-light);
   }
   &.execution-marker-stopped {
-    &.stage-type-checkpreconditions, &.stage-type-manualjudgment {
+    &.stage-type-checkpreconditions,
+    &.stage-type-manualjudgment {
       fill: var(--color-titanium);
       background-color: var(--color-titanium);
     }

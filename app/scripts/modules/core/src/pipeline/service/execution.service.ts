@@ -442,7 +442,8 @@ export class ExecutionService {
       } else {
         // if the stage is active, update it in place if it has changed to save Angular
         // from removing, then re-rendering every DOM node
-        if (updatedSummary.isActive || currentSummary.isActive) {
+        // also, don't dehydrate
+        if ((updatedSummary.isActive || currentSummary.isActive) && (!current.hydrated || updated.hydrated)) {
           if (this.stringify(currentSummary) !== this.stringify(updatedSummary)) {
             Object.assign(currentSummary, updatedSummary);
           }

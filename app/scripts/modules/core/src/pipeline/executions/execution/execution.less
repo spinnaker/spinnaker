@@ -1,4 +1,4 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) '~core/presentation/less/imports/commonImports.less';
 
 .execution {
   .label {
@@ -12,25 +12,26 @@
     &.label-succeeded {
       background-color: var(--color-success);
     }
-    &.label-terminal, &.label-terminated {
+    &.label-terminal,
+    &.label-terminated {
       background-color: var(--color-danger);
     }
     &.label-failed_continue {
       background-color: var(--color-alert);
       color: var(--color-mineshaft);
     }
-    &.label-running, &.label-launched {
+    &.label-running,
+    &.label-launched {
       background-color: var(--color-accent);
     }
     &.label-stopped {
       background-color: var(--color-danger-light);
       color: var(--color-mineshaft);
     }
-
   }
   .timestamp {
     color: var(--color-dovegray);
-    font-size: .8em;
+    font-size: 0.8em;
     padding-top: 22px;
   }
   .panel {
@@ -52,7 +53,6 @@
         background-color: var(--color-accent-g1);
       }
     }
-
   }
 }
 
@@ -85,10 +85,11 @@ execution-details-section-nav {
 
 .execution-bar {
   display: inline-block;
-  width: calc(~"100% - 235px");
+  width: calc(~'100% - 235px');
   vertical-align: top;
   .stage {
-    .fa { // .fa is "font-awesome" - the only icon set we're using for custom stage icons
+    .fa {
+      // .fa is "font-awesome" - the only icon set we're using for custom stage icons
       display: inline-block;
     }
     .duration {
@@ -97,6 +98,7 @@ execution-details-section-nav {
       visibility: hidden;
       width: 0;
       display: inline-block;
+      overflow: hidden;
     }
   }
 }

@@ -93,8 +93,10 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     const MarkerIcon = stage.markerIcon;
     const stageContents = (
       <div className={markerClassName} style={{ width, backgroundColor: stage.color }} onClick={this.handleStageClick}>
-        <MarkerIcon stage={stage} />
-        <span className="duration">{this.state.duration}</span>
+        <span className="horizontal center middle">
+          <MarkerIcon stage={stage} />
+          <span className="duration">{this.state.duration}</span>
+        </span>
       </div>
     );
     if (stage.useCustomTooltip) {
