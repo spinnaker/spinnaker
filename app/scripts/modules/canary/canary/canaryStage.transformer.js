@@ -124,6 +124,10 @@ module.exports = angular.module('spinnaker.canary.transformer', []).service('can
 
   this.transform = function(application, execution) {
     var syntheticStagesToAdd = [];
+    if (!execution.hydrated) {
+      // don't bother trying to transform if it isn't hydrated
+      return;
+    }
     execution.stages.forEach(function(stage) {
       if (stage.type === 'canary') {
         OrchestratedItemTransformer.defineProperties(stage);

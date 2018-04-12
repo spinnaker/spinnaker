@@ -440,12 +440,9 @@ export class ExecutionService {
       if (!currentSummary) {
         current.stageSummaries.push(updatedSummary);
       } else {
-        // if the stage was not already completed, update it in place if it has changed to save Angular
+        // if the stage is active, update it in place if it has changed to save Angular
         // from removing, then re-rendering every DOM node
-        if (
-          (!updatedSummary.isCompleted || !currentSummary.isCompleted) &&
-          (!updatedSummary.hasNotStarted || !currentSummary.hasNotStarted)
-        ) {
+        if (updatedSummary.isActive || currentSummary.isActive) {
           if (this.stringify(currentSummary) !== this.stringify(updatedSummary)) {
             Object.assign(currentSummary, updatedSummary);
           }
@@ -453,6 +450,7 @@ export class ExecutionService {
       }
     });
     current.stringVal = updated.stringVal;
+    current.hydrated = updated.hydrated;
     current.graphStatusHash = this.calculateGraphStatusHash(current);
   }
 
@@ -502,13 +500,9 @@ export class ExecutionService {
       hydrated.stages.forEach(s => {
         const toHydrate = unhydrated.stages.find(s2 => s2.id === s.id);
         if (toHydrate) {
-          Object.assign(toHydrate, s);
-        }
-      });
-      hydrated.stageSummaries.forEach(s => {
-        const toHydrate = unhydrated.stageSummaries.find(s2 => s2.id === s.id);
-        if (toHydrate) {
-          Object.assign(toHydrate, s);
+          toHydrate.context = s.context;
+          toHydrate.outputs = s.outputs;
+          toHydrate.tasks = s.tasks;
         }
       });
       unhydrated.hydrated = true;

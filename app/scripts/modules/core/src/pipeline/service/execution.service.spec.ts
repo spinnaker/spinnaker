@@ -361,7 +361,7 @@ describe('Service: executionService', () => {
       ];
       const updatedStages = [
         { id: 'a', status: 'COMPLETED' },
-        { id: 'b', status: 'RUNNING', newField: 'x' },
+        { id: 'b', status: 'RUNNING', newField: 'x', isActive: true },
         { id: 'c', status: 'RUNNING' },
         { id: 'd', status: 'NOT_STARTED' },
       ];
@@ -370,12 +370,14 @@ describe('Service: executionService', () => {
         stringVal: 'ac',
         stageSummaries: originalStages.slice(),
         graphStatusHash: 'COMPLETED:RUNNING:RUNNING:NOT_STARTED',
+        hydrated: false,
       };
       const updated = {
         id: 1,
         stringVal: 'ab',
         stageSummaries: updatedStages.slice(),
         graphStatusHash: 'COMPLETED:RUNNING:RUNNING:NOT_STARTED',
+        hydrated: false,
       };
       const execs: IExecution[] = [updated] as any;
       application.executions.data = [original];
