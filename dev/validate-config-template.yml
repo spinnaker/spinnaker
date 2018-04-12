@@ -200,6 +200,16 @@
 # docker_account_repositories
 
 
+#############
+# Canary
+#############
+# canary_aws: false
+# canary_google: false
+# canary_prometheus_account: my-prometheus-account
+# canary_prometheus_url:
+# canary_stackdriver: false
+
+
 ################
 # Jenkins
 ################

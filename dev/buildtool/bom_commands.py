@@ -406,9 +406,6 @@ class PublishBomCommand(RepositoryCommandProcessor):
 
     config_path = os.path.join(config_root, 'halconfig')
     logging.info('Copying configs from %s...', config_path)
-    if not os.path.exists(config_path) and repository.name == 'kayenta':
-      logging.warning('Kayenta does not yet have a halconfig.')
-      return
     for profile in os.listdir(config_path):
       profile_path = os.path.join(config_path, profile)
       if os.path.isfile(profile_path):
