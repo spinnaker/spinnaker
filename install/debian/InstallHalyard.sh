@@ -29,6 +29,10 @@ function process_args() {
         HALYARD_BUCKET_BASE_URL="$1"
         shift
         ;;
+      --download-with-gsutil)
+        echo "download-with-gsutil"
+        DOWNLOAD_WITH_GSUTIL=true
+        ;;
       --spinnaker-repository)
         echo "spinnaker-repo"
         SPINNAKER_REPOSITORY_URL="$1"
@@ -195,6 +199,11 @@ usage: $0 [-y] [--version=<version>] [--user=<user>]
     --halyard-bucket <name>         The bucket the Halyard JAR to be installed
                                     is stored in.
 
+    --download-with-gsutil          If specifying a GCS bucket using
+                                    --halyard-bucket, this flag causes the 
+                                    install script to rely on gsutil and its 
+                                    authentication to fetch the Halyard JAR.
+
     --config-bucket <name>          The bucket the your Bill of Materials and
                                     base profiles are stored in.
 
@@ -267,17 +276,22 @@ function install_java() {
 function install_halyard() {
   TEMPDIR=$(mktemp -d installhalyard.XXXX)
   pushd $TEMPDIR
-  local gcs_bucket_path
+  local gcs_bucket_and_file
 
   if [[ "$HALYARD_BUCKET_BASE_URL" != gs://* ]]; then
     >&2 echo "Currently installing halyard is only supported from a GCS bucket."
     >&2 echo "The --halyard-install-url parameter must start with 'gs://'."
     exit 1
   else
-    gcs_bucket_path=${HALYARD_BUCKET_BASE_URL:5}
+    gcs_bucket_and_file=${HALYARD_BUCKET_BASE_URL:5}/$HALYARD_VERSION/debian/halyard.tar.gz
   fi
 
-  curl -O https://storage.googleapis.com/$gcs_bucket_path/$HALYARD_VERSION/debian/halyard.tar.gz
+  if [ -n "$DOWNLOAD_WITH_GSUTIL" ]; then
+    gsutil cp gs://$gcs_bucket_and_file halyard.tar.gz
+  else
+    curl -O https://storage.googleapis.com/$gcs_bucket_and_file
+  fi
+
   tar -xvf halyard.tar.gz -C /opt
 
   groupadd halyard || true
