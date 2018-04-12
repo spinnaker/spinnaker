@@ -28,10 +28,9 @@ import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.singleTaskStage
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.*
-import com.netflix.spinnaker.time.fixedClock
 import com.netflix.spinnaker.spek.and
-import org.assertj.core.api.Assertions.assertThat
+import com.netflix.spinnaker.time.fixedClock
+import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -229,7 +228,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         stage {
           type = singleTaskStage.type
         }
-        startTimeTtl = clock.instant().minusSeconds(30)
+        startTimeExpiry = clock.instant().minusSeconds(30).toEpochMilli()
       }
       val message = StartExecution(pipeline)
 
@@ -247,7 +246,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
         verify(queue).push(CancelExecution(
           pipeline,
           "spinnaker",
-          "Could not begin execution before start time TTL"
+          "Could not begin execution before start time expiry"
         ))
       }
     }

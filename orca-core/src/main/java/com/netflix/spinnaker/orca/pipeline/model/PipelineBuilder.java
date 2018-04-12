@@ -83,5 +83,12 @@ public class PipelineBuilder {
     return this;
   }
 
+  public PipelineBuilder withStartTimeExpiry(String startTimeExpiry) {
+    if (startTimeExpiry != null) {
+      pipeline.setStartTimeExpiry(Long.valueOf(startTimeExpiry));
+    }
+    return this;
+  }
+
   private final Execution pipeline;
 }

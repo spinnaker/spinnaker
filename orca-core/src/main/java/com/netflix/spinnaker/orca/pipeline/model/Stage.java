@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -85,6 +84,9 @@ public class Stage implements Serializable {
     this.context.putAll(context);
 
     this.refId = (String) context.remove("refId");
+    this.startTimeExpiry = Optional
+      .ofNullable((Long) context.remove("startTimeExpiry"))
+      .orElse(null);
     this.requisiteStageRefIds = Optional
       .ofNullable((Collection<String>) context.remove("requisiteStageRefIds"))
       .orElse(emptySet());
@@ -190,18 +192,17 @@ public class Stage implements Serializable {
   }
 
   /**
-   * Gets the start ttl timestamp for this stage. If the stage has not started
-   * before this timestamp, the stage will fail.
+   * Gets the start expiry timestamp for this stage. If the stage has not started
+   * before this timestamp, the stage will be skipped.
    */
-  private Instant startTimeTtl;
+  private Long startTimeExpiry;
 
-  public @Nullable
-  Instant getStartTimeTtl() {
-    return startTimeTtl;
+  public @Nullable Long getStartTimeExpiry() {
+    return startTimeExpiry;
   }
 
-  public void setStartTimeTtl(@Nullable Instant startTimeTtl) {
-    this.startTimeTtl = startTimeTtl;
+  public void setStartTimeExpiry(@Nullable Long startTimeExpiry) {
+    this.startTimeExpiry = startTimeExpiry;
   }
 
   /**

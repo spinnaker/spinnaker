@@ -41,6 +41,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 import kotlin.collections.set
 
 @Component
@@ -71,10 +72,9 @@ class StartStageHandler(
           log.warn("Ignoring $message as stage is already ${stage.status}")
         } else if (stage.shouldSkip()) {
           queue.push(SkipStage(message))
-        } else if (stage.isAfterStartTimeCutoff()) {
-          log.warn("Stage (${stage.id}) is being canceled because its start time is after TTL " +
-            "(executionId: ${message.executionId}")
-          queue.push(CancelStage(stage))
+        } else if (stage.isAfterStartTimeExpiry()) {
+          log.warn("Stage is being skipped because its start time is after TTL (stageId: ${stage.id}, executionId: ${message.executionId})")
+          queue.push(SkipStage(stage))
         } else {
           try {
             stage.withAuth {
@@ -184,6 +184,6 @@ class StartStageHandler(
     return OptionalStageSupport.isOptional(clonedStage.withMergedContext(), contextParameterProcessor)
   }
 
-  private fun Stage.isAfterStartTimeCutoff(): Boolean =
-    startTimeTtl?.isBefore(clock.instant()) ?: false
+  private fun Stage.isAfterStartTimeExpiry(): Boolean =
+    startTimeExpiry?.let { Instant.ofEpochMilli(it) }?.isBefore(clock.instant()) ?: false
 }

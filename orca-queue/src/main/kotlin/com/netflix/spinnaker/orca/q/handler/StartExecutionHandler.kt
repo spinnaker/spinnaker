@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
+import java.time.Instant
 
 @Component
 class StartExecutionHandler(
@@ -62,9 +63,9 @@ class StartExecutionHandler(
   }
 
   private fun start(execution: Execution) {
-    if (execution.isAfterStartTimeCutoff()) {
+    if (execution.isAfterStartTimeExpiry()) {
       log.warn("Execution (type ${execution.type}, id {}, application: {}) start was canceled because" +
-        "start time would be after defined start time TTL (now: ${clock.millis()}, ttl: ${execution.startTimeTtl})",
+        "start time would be after defined start time expiry (now: ${clock.millis()}, expiry: ${execution.startTimeExpiry})",
         value("executionId", execution.id),
         value("application", execution.application))
       queue.push(CancelExecution(
@@ -72,7 +73,7 @@ class StartExecutionHandler(
         execution.id,
         execution.application,
         "spinnaker",
-        "Could not begin execution before start time TTL"
+        "Could not begin execution before start time expiry"
       ))
     } else {
       val initialStages = execution.initialStages()
@@ -113,6 +114,8 @@ class StartExecutionHandler(
     } == true
   }
 
-  private fun Execution.isAfterStartTimeCutoff() =
-    startTimeTtl?.isBefore(clock.instant()) ?: false
+  private fun Execution.isAfterStartTimeExpiry() =
+    startTimeExpiry
+      ?.let { Instant.ofEpochMilli(it) }
+      ?.isBefore(clock.instant()) ?: false
 }

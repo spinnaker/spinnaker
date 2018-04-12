@@ -16,12 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.time.Clock;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -35,6 +29,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.time.Clock;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
@@ -176,6 +178,7 @@ public class ExecutionLauncher {
       .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
       .withNotifications((List<Map<String, Object>>) config.get("notifications"))
       .withOrigin(getString(config, "origin"))
+      .withStartTimeExpiry(getString(config, "startTimeExpiry"))
       .build();
   }
 
@@ -210,6 +213,7 @@ public class ExecutionLauncher {
     orchestration.setBuildTime(clock.millis());
     orchestration.setAuthentication(AuthenticationDetails.build().orElse(new AuthenticationDetails()));
     orchestration.setOrigin((String) config.getOrDefault("origin", "unknown"));
+    orchestration.setStartTimeExpiry((Long) config.get("startTimeExpiry"));
 
     return orchestration;
   }
