@@ -22,5 +22,7 @@
       "value": "{{ value }}"
     } {% if not loop.last %} , {% endif %}
     {% endfor %}
-  ]
+  ],
+
+  "resources":  {{ resources }}
 }

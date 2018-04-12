@@ -21,6 +21,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
@@ -136,6 +137,16 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       probe.addBinding("port", settings.getPort());
     }
 
+    Integer targetSize = settings.getTargetSize();
+    CustomSizing customSizing = details.getDeploymentConfiguration().getDeploymentEnvironment().getCustomSizing();
+    TemplatedResource resources = new JinjaJarResource("/kubernetes/manifests/resources.yml");
+    if (customSizing != null) {
+      Map componentSizing = customSizing.getOrDefault(getService().getServiceName(), new HashMap());
+      resources.addBinding("requests", componentSizing.getOrDefault("requests", new HashMap()));
+      resources.addBinding("limits", componentSizing.getOrDefault("limits", new HashMap()));
+      targetSize = (Integer) componentSizing.getOrDefault("replicas", targetSize);
+    }
+
     TemplatedResource container = new JinjaJarResource("/kubernetes/manifests/container.yml");
     container.addBinding("name", getService().getCanonicalName());
     container.addBinding("imageId", settings.getArtifactId());
@@ -143,6 +154,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     container.addBinding("volumeMounts", volumeMounts);
     container.addBinding("probe", probe.toString());
     container.addBinding("env", env);
+    container.addBinding("resources", resources.toString());
 
     List<String> containers = Collections.singletonList(container.toString());
     TemplatedResource podSpec = new JinjaJarResource("/kubernetes/manifests/podSpec.yml")
@@ -152,7 +164,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     return new JinjaJarResource("/kubernetes/manifests/deployment.yml")
         .addBinding("name", getService().getCanonicalName())
         .addBinding("namespace", namespace)
-        .addBinding("replicas", settings.getTargetSize())
+        .addBinding("replicas", targetSize)
         .addBinding("podAnnotations", settings.getKubernetes().getPodAnnotations())
         .addBinding("podSpec", podSpec.toString())
         .toString();
