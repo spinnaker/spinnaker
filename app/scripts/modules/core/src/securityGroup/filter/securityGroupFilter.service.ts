@@ -1,13 +1,13 @@
 import { module } from 'angular';
-import { FilterModelService } from 'core/filterModel/filter.model.service';
 import { chain, find, forOwn, groupBy, map, sortBy } from 'lodash';
 import { Subject } from 'rxjs';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, ISecurityGroupGroup } from 'core/domain';
+import { FilterModelService } from 'core/filterModel';
+
 import { SECURITY_GROUP_FILTER_MODEL, SecurityGroupFilterModel } from './securityGroupFilter.model';
-import { FILTER_MODEL_SERVICE } from 'core/filterModel';
 
 @BindAll()
 export class SecurityGroupFilterService {
@@ -15,10 +15,7 @@ export class SecurityGroupFilterService {
 
   private lastApplication: Application;
 
-  constructor(
-    private securityGroupFilterModel: SecurityGroupFilterModel,
-    private filterModelService: FilterModelService,
-  ) {
+  constructor(private securityGroupFilterModel: SecurityGroupFilterModel) {
     'ngInject';
   }
 
@@ -55,7 +52,7 @@ export class SecurityGroupFilterService {
   }
 
   public filterSecurityGroupsForDisplay(securityGroups: ISecurityGroup[]): ISecurityGroup[] {
-    const service = this.filterModelService;
+    const service = FilterModelService;
     const model = this.securityGroupFilterModel.asFilterModel;
     return chain(securityGroups)
       .filter(sg => this.checkSearchTextFilter(sg))
@@ -156,7 +153,7 @@ export class SecurityGroupFilterService {
 }
 
 export const SECURITY_GROUP_FILTER_SERVICE = 'spinnaker.core.securityGroup.filter.service';
-module(SECURITY_GROUP_FILTER_SERVICE, [SECURITY_GROUP_FILTER_MODEL, FILTER_MODEL_SERVICE]).service(
+module(SECURITY_GROUP_FILTER_SERVICE, [SECURITY_GROUP_FILTER_MODEL]).service(
   'securityGroupFilterService',
   SecurityGroupFilterService,
 );

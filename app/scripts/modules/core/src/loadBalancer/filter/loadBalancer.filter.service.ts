@@ -5,7 +5,7 @@ import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
-import { FILTER_MODEL_SERVICE, ISortFilter } from 'core/filterModel';
+import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalancerFilter.model';
 
 @BindAll()
@@ -16,14 +16,10 @@ export class LoadBalancerFilterService {
   private getCheckValues: (object: any) => string[];
   private lastApplication: Application;
 
-  constructor(
-    private loadBalancerFilterModel: LoadBalancerFilterModel,
-    private filterModelService: any,
-    private $log: ILogService,
-  ) {
+  constructor(private loadBalancerFilterModel: LoadBalancerFilterModel, private $log: ILogService) {
     'ngInject';
-    this.isFilterable = filterModelService.isFilterable;
-    this.getCheckValues = filterModelService.getCheckValues;
+    this.isFilterable = FilterModelService.isFilterable;
+    this.getCheckValues = FilterModelService.getCheckValues;
   }
 
   private addSearchFields(loadBalancer: ILoadBalancer): void {
@@ -57,12 +53,12 @@ export class LoadBalancerFilterService {
   public filterLoadBalancersForDisplay(loadBalancers: ILoadBalancer[]): ILoadBalancer[] {
     return chain(loadBalancers)
       .filter(lb => this.checkSearchTextFilter(lb))
-      .filter(lb => this.filterModelService.checkAccountFilters(this.loadBalancerFilterModel)(lb))
-      .filter(lb => this.filterModelService.checkRegionFilters(this.loadBalancerFilterModel)(lb))
-      .filter(lb => this.filterModelService.checkStackFilters(this.loadBalancerFilterModel)(lb))
-      .filter(lb => this.filterModelService.checkDetailFilters(this.loadBalancerFilterModel)(lb))
-      .filter(lb => this.filterModelService.checkStatusFilters(this.loadBalancerFilterModel)(lb))
-      .filter(lb => this.filterModelService.checkProviderFilters(this.loadBalancerFilterModel)(lb))
+      .filter(lb => FilterModelService.checkAccountFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkRegionFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkStackFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkDetailFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkStatusFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkProviderFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
       .filter(lb => this.instanceFilters(lb))
       .value();
   }
@@ -262,8 +258,8 @@ export class LoadBalancerFilterService {
 }
 
 export const LOAD_BALANCER_FILTER_SERVICE = 'spinnaker.core.loadBalancer.filter.service';
-module(LOAD_BALANCER_FILTER_SERVICE, [LOAD_BALANCER_FILTER_MODEL, FILTER_MODEL_SERVICE]).factory(
+module(LOAD_BALANCER_FILTER_SERVICE, [LOAD_BALANCER_FILTER_MODEL]).factory(
   'loadBalancerFilterService',
-  (loadBalancerFilterModel: LoadBalancerFilterModel, filterModelService: any, $log: ILogService) =>
-    new LoadBalancerFilterService(loadBalancerFilterModel, filterModelService, $log),
+  (loadBalancerFilterModel: LoadBalancerFilterModel, $log: ILogService) =>
+    new LoadBalancerFilterService(loadBalancerFilterModel, $log),
 );

@@ -1,267 +1,13 @@
-import { ILocationService, ITimeoutService, extend, copy, module } from 'angular';
-import { StateService, StateParams } from '@uirouter/core';
+import { StateParams } from '@uirouter/core';
 import { cloneDeep, size, some, reduce, forOwn, includes, chain } from 'lodash';
+import { $location, $timeout } from 'ngimport';
 
 import { IFilterModel, IFilterConfig, ISortFilter } from './IFilterModel';
+import { ReactInjector } from 'core/reactShims';
 
 export interface IParamConverter {
   toParam: (filterModel: IFilterModel, property: IFilterConfig) => any;
   toModel: (filterModel: IFilterModel, property: IFilterConfig) => any;
-}
-
-export class FilterModelService {
-  private converters = new FilterModelServiceConverters(this.$location);
-
-  constructor(
-    private $location: ILocationService,
-    private $state: StateService,
-    private $stateParams: StateParams,
-    private $timeout: ITimeoutService,
-  ) {
-    'ngInject';
-  }
-
-  public configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {
-    const { converters, $location, $timeout, $stateParams, $state } = this;
-
-    filterModel.groups = [];
-    filterModel.tags = [];
-    filterModel.displayOptions = {};
-    filterModel.savedState = {};
-    filterModel.sortFilter = {} as ISortFilter;
-
-    filterModelConfig.forEach(property => (property.param = property.param || property.model));
-
-    filterModel.addTags = () => {
-      filterModel.tags = [];
-      filterModelConfig
-        .filter(property => !property.displayOption)
-        .forEach(property => this.addTagsForSection(filterModel, property));
-    };
-
-    filterModel.saveState = (state, params, filters) => {
-      if (params.application) {
-        filters = filters || $location.search();
-        filterModel.savedState[params.application] = {
-          filters: copy(filters),
-          state,
-          params,
-        };
-      }
-    };
-
-    filterModel.restoreState = toParams => {
-      const application = toParams.application;
-      const savedState = filterModel.savedState[application];
-      if (savedState) {
-        copy(savedState.params, $stateParams);
-        const currentParams = $location.search();
-        // clear any shared params between states, e.g. previous state set 'acct', which this state also uses,
-        // but this state does not have that field set, so angular.extend will not overwrite it
-        forOwn(currentParams, function(_val, key) {
-          if (savedState.filters.hasOwnProperty(key)) {
-            delete currentParams[key];
-          }
-        });
-        $timeout(function() {
-          $location.search(extend(currentParams, savedState.filters));
-          filterModel.activate();
-          $location.replace();
-        });
-      }
-    };
-
-    filterModel.hasSavedState = toParams => {
-      const application = toParams.application;
-      return (
-        filterModel.savedState[application] !== undefined && filterModel.savedState[application].params !== undefined
-      );
-    };
-
-    filterModel.clearFilters = () => {
-      filterModelConfig.forEach(function(property) {
-        if (!property.displayOption) {
-          filterModel.sortFilter[property.model] = property.clearValue;
-        }
-      });
-    };
-
-    filterModel.activate = () => {
-      filterModelConfig.forEach(function(property) {
-        filterModel.sortFilter[property.model] = converters[property.type].toModel(filterModel, property);
-      });
-    };
-
-    filterModel.applyParamsToUrl = () => {
-      const newFilters = Object.keys($stateParams).reduce(
-        (acc, paramName) => {
-          const modelConfig = filterModelConfig.find(c => c.param === paramName);
-          if (modelConfig) {
-            const converted = converters[modelConfig.type].toParam(filterModel, modelConfig);
-            if (converted === null || converted === undefined) {
-              acc[paramName] = null;
-            } else {
-              acc[paramName] = cloneDeep(filterModel.sortFilter[modelConfig.model]);
-            }
-          } else {
-            acc[paramName] = cloneDeep($stateParams[paramName]);
-          }
-          return acc;
-        },
-        {} as StateParams,
-      );
-
-      $state.go('.', newFilters, { inherit: false });
-    };
-
-    return filterModel;
-  }
-
-  public isFilterable(sortFilterModel: { [key: string]: boolean }): boolean {
-    return size(sortFilterModel) > 0 && some(sortFilterModel);
-  }
-
-  public getCheckValues(sortFilterModel: { [key: string]: boolean }) {
-    return reduce(
-      sortFilterModel,
-      function(acc, val, key) {
-        if (val) {
-          acc.push(key);
-        }
-        return acc;
-      },
-      [],
-    ).sort();
-  }
-
-  public checkAccountFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.account)) {
-        const checkedAccounts = this.getCheckValues(model.sortFilter.account);
-        return includes(checkedAccounts, target.account);
-      } else {
-        return true;
-      }
-    };
-  }
-
-  public checkRegionFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.region)) {
-        const checkedRegions = this.getCheckValues(model.sortFilter.region);
-        return includes(checkedRegions, target.region);
-      } else {
-        return true;
-      }
-    };
-  }
-
-  public checkStackFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.stack)) {
-        const checkedStacks = this.getCheckValues(model.sortFilter.stack);
-        if (checkedStacks.includes('(none)')) {
-          checkedStacks.push(''); // TODO: remove when moniker is source of truth for naming
-          checkedStacks.push(null);
-        }
-        return includes(checkedStacks, target.stack);
-      } else {
-        return true;
-      }
-    };
-  }
-
-  public checkDetailFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.detail)) {
-        const checkedDetails = this.getCheckValues(model.sortFilter.detail);
-        if (checkedDetails.includes('(none)')) {
-          checkedDetails.push(''); // TODO: remove when moniker is source of truth for naming
-          checkedDetails.push(null);
-        }
-        return includes(checkedDetails, target.detail);
-      } else {
-        return true;
-      }
-    };
-  }
-
-  public checkStatusFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.status)) {
-        const checkedStatus = this.getCheckValues(model.sortFilter.status);
-        return (
-          (includes(checkedStatus, 'Up') && target.instanceCounts.down === 0) ||
-          (includes(checkedStatus, 'Down') && target.instanceCounts.down > 0) ||
-          (includes(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0) ||
-          (includes(checkedStatus, 'Starting') && target.instanceCounts.starting > 0) ||
-          (includes(checkedStatus, 'Disabled') && target.isDisabled) ||
-          (includes(checkedStatus, 'Unknown') && target.instanceCounts.unknown > 0)
-        );
-      }
-      return true;
-    };
-  }
-
-  public checkProviderFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.providerType)) {
-        const checkedProviderTypes = this.getCheckValues(model.sortFilter.providerType);
-        return includes(checkedProviderTypes, target.type) || includes(checkedProviderTypes, target.provider);
-      } else {
-        return true;
-      }
-    };
-  }
-
-  public checkCategoryFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.category)) {
-        const checkedCategories = this.getCheckValues(model.sortFilter.category);
-        return includes(checkedCategories, target.type) || includes(checkedCategories, target.category);
-      } else {
-        return true;
-      }
-    };
-  }
-
-  private addTagsForSection(model: IFilterModel, property: IFilterConfig) {
-    const key = property.model;
-    const label = property.filterLabel || property.model;
-    const translator = property.filterTranslator || {};
-    const clearValue = property.clearValue;
-    const tags = model.tags;
-    const modelVal = model.sortFilter[key];
-
-    if (property.type === 'trueKeyObject') {
-      forOwn(modelVal, (isActive, value) => {
-        if (isActive) {
-          tags.push({
-            key,
-            label,
-            value: translator[value] || value,
-            clear() {
-              delete (modelVal as any)[value];
-              model.applyParamsToUrl();
-            },
-          });
-        }
-      });
-    } else {
-      if (modelVal !== null && modelVal !== undefined && modelVal !== '' && modelVal !== false) {
-        tags.push({
-          key,
-          label,
-          value: translator[modelVal as string] || modelVal,
-          clear() {
-            model.sortFilter[key] = clearValue;
-            model.applyParamsToUrl();
-          },
-        });
-      }
-    }
-    return tags;
-  }
 }
 
 export class FilterModelServiceConverters {
@@ -347,15 +93,254 @@ export class FilterModelServiceConverters {
     },
   };
 
-  constructor(private $location: ILocationService) {}
-
   private getParamVal(property: IFilterConfig) {
-    return this.$location.search()[property.param] || property.defaultValue;
+    return $location.search()[property.param] || property.defaultValue;
   }
 }
 
-export const FILTER_MODEL_SERVICE = 'spinnaker.core.filterModel.service';
-module(FILTER_MODEL_SERVICE, [require('@uirouter/angularjs').default]).service(
-  'filterModelService',
-  FilterModelService,
-);
+export class FilterModelService {
+  private static converters = new FilterModelServiceConverters();
+
+  public static configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {
+    const { converters } = this;
+
+    filterModel.groups = [];
+    filterModel.tags = [];
+    filterModel.displayOptions = {};
+    filterModel.savedState = {};
+    filterModel.sortFilter = {} as ISortFilter;
+
+    filterModelConfig.forEach(property => (property.param = property.param || property.model));
+
+    filterModel.addTags = () => {
+      filterModel.tags = [];
+      filterModelConfig
+        .filter(property => !property.displayOption)
+        .forEach(property => this.addTagsForSection(filterModel, property));
+    };
+
+    filterModel.saveState = (state, params, filters) => {
+      if (params.application) {
+        filters = filters || $location.search();
+        filterModel.savedState[params.application] = {
+          filters: cloneDeep(filters),
+          state,
+          params,
+        };
+      }
+    };
+
+    filterModel.restoreState = toParams => {
+      const application = toParams.application;
+      const savedState = filterModel.savedState[application];
+      if (savedState) {
+        Object.assign(ReactInjector.$stateParams, cloneDeep(savedState.params));
+        const currentParams = $location.search();
+        // clear any shared params between states, e.g. previous state set 'acct', which this state also uses,
+        // but this state does not have that field set, so angular.extend will not overwrite it
+        forOwn(currentParams, function(_val, key) {
+          if (savedState.filters.hasOwnProperty(key)) {
+            delete currentParams[key];
+          }
+        });
+        $timeout(function() {
+          Object.assign(currentParams, savedState.filters);
+          $location.search(currentParams);
+          filterModel.activate();
+          $location.replace();
+        });
+      }
+    };
+
+    filterModel.hasSavedState = toParams => {
+      const application = toParams.application;
+      return (
+        filterModel.savedState[application] !== undefined && filterModel.savedState[application].params !== undefined
+      );
+    };
+
+    filterModel.clearFilters = () => {
+      filterModelConfig.forEach(function(property) {
+        if (!property.displayOption) {
+          filterModel.sortFilter[property.model] = property.clearValue;
+        }
+      });
+    };
+
+    filterModel.activate = () => {
+      filterModelConfig.forEach(function(property) {
+        filterModel.sortFilter[property.model] = converters[property.type].toModel(filterModel, property);
+      });
+    };
+
+    filterModel.applyParamsToUrl = () => {
+      const newFilters = Object.keys(ReactInjector.$stateParams).reduce(
+        (acc, paramName) => {
+          const modelConfig = filterModelConfig.find(c => c.param === paramName);
+          if (modelConfig) {
+            const converted = converters[modelConfig.type].toParam(filterModel, modelConfig);
+            if (converted === null || converted === undefined) {
+              acc[paramName] = null;
+            } else {
+              acc[paramName] = cloneDeep(filterModel.sortFilter[modelConfig.model]);
+            }
+          } else {
+            acc[paramName] = cloneDeep(ReactInjector.$stateParams[paramName]);
+          }
+          return acc;
+        },
+        {} as StateParams,
+      );
+
+      ReactInjector.$state.go('.', newFilters, { inherit: false });
+    };
+
+    return filterModel;
+  }
+
+  public static isFilterable(sortFilterModel: { [key: string]: boolean }): boolean {
+    return size(sortFilterModel) > 0 && some(sortFilterModel);
+  }
+
+  public static getCheckValues(sortFilterModel: { [key: string]: boolean }) {
+    return reduce(
+      sortFilterModel,
+      function(acc, val, key) {
+        if (val) {
+          acc.push(key);
+        }
+        return acc;
+      },
+      [],
+    ).sort();
+  }
+
+  public static checkAccountFilters(model: IFilterModel) {
+    return (target: any) => {
+      if (this.isFilterable(model.sortFilter.account)) {
+        const checkedAccounts = this.getCheckValues(model.sortFilter.account);
+        return includes(checkedAccounts, target.account);
+      } else {
+        return true;
+      }
+    };
+  }
+
+  public static checkRegionFilters(model: IFilterModel) {
+    return (target: any) => {
+      if (this.isFilterable(model.sortFilter.region)) {
+        const checkedRegions = this.getCheckValues(model.sortFilter.region);
+        return includes(checkedRegions, target.region);
+      } else {
+        return true;
+      }
+    };
+  }
+
+  public static checkStackFilters(model: IFilterModel) {
+    return (target: any) => {
+      if (this.isFilterable(model.sortFilter.stack)) {
+        const checkedStacks = this.getCheckValues(model.sortFilter.stack);
+        if (checkedStacks.includes('(none)')) {
+          checkedStacks.push(''); // TODO: remove when moniker is source of truth for naming
+          checkedStacks.push(null);
+        }
+        return includes(checkedStacks, target.stack);
+      } else {
+        return true;
+      }
+    };
+  }
+
+  public static checkDetailFilters(model: IFilterModel) {
+    return (target: any) => {
+      if (this.isFilterable(model.sortFilter.detail)) {
+        const checkedDetails = this.getCheckValues(model.sortFilter.detail);
+        if (checkedDetails.includes('(none)')) {
+          checkedDetails.push(''); // TODO: remove when moniker is source of truth for naming
+          checkedDetails.push(null);
+        }
+        return includes(checkedDetails, target.detail);
+      } else {
+        return true;
+      }
+    };
+  }
+
+  public static checkStatusFilters(model: IFilterModel) {
+    return (target: any) => {
+      if (this.isFilterable(model.sortFilter.status)) {
+        const checkedStatus = this.getCheckValues(model.sortFilter.status);
+        return (
+          (includes(checkedStatus, 'Up') && target.instanceCounts.down === 0) ||
+          (includes(checkedStatus, 'Down') && target.instanceCounts.down > 0) ||
+          (includes(checkedStatus, 'OutOfService') && target.instanceCounts.outOfService > 0) ||
+          (includes(checkedStatus, 'Starting') && target.instanceCounts.starting > 0) ||
+          (includes(checkedStatus, 'Disabled') && target.isDisabled) ||
+          (includes(checkedStatus, 'Unknown') && target.instanceCounts.unknown > 0)
+        );
+      }
+      return true;
+    };
+  }
+
+  public static checkProviderFilters(model: IFilterModel) {
+    return (target: any) => {
+      if (this.isFilterable(model.sortFilter.providerType)) {
+        const checkedProviderTypes = this.getCheckValues(model.sortFilter.providerType);
+        return includes(checkedProviderTypes, target.type) || includes(checkedProviderTypes, target.provider);
+      } else {
+        return true;
+      }
+    };
+  }
+
+  public static checkCategoryFilters(model: IFilterModel) {
+    return (target: any) => {
+      if (this.isFilterable(model.sortFilter.category)) {
+        const checkedCategories = this.getCheckValues(model.sortFilter.category);
+        return includes(checkedCategories, target.type) || includes(checkedCategories, target.category);
+      } else {
+        return true;
+      }
+    };
+  }
+
+  private static addTagsForSection(model: IFilterModel, property: IFilterConfig) {
+    const key = property.model;
+    const label = property.filterLabel || property.model;
+    const translator = property.filterTranslator || {};
+    const clearValue = property.clearValue;
+    const tags = model.tags;
+    const modelVal = model.sortFilter[key];
+
+    if (property.type === 'trueKeyObject') {
+      forOwn(modelVal, (isActive, value) => {
+        if (isActive) {
+          tags.push({
+            key,
+            label,
+            value: translator[value] || value,
+            clear() {
+              delete (modelVal as any)[value];
+              model.applyParamsToUrl();
+            },
+          });
+        }
+      });
+    } else {
+      if (modelVal !== null && modelVal !== undefined && modelVal !== '' && modelVal !== false) {
+        tags.push({
+          key,
+          label,
+          value: translator[modelVal as string] || modelVal,
+          clear() {
+            model.sortFilter[key] = clearValue;
+            model.applyParamsToUrl();
+          },
+        });
+      }
+    }
+    return tags;
+  }
+}

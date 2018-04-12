@@ -7,7 +7,7 @@ import { Subject } from 'rxjs';
 import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IServerGroup } from 'core/domain';
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
-import { FILTER_MODEL_SERVICE, ISortFilter } from 'core/filterModel';
+import { FilterModelService, ISortFilter } from 'core/filterModel';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -46,14 +46,13 @@ export class ClusterFilterService {
 
   private lastApplication: Application;
 
-  private isFilterable: (sortFilter: any) => boolean = this.filterModelService.isFilterable;
+  private isFilterable: (sortFilter: any) => boolean = FilterModelService.isFilterable;
 
   public constructor(
     private clusterFilterModel: ClusterFilterModel,
     private MultiselectModel: any,
     private $log: ILogService,
     private $stateParams: StateParams,
-    private filterModelService: any,
   ) {
     'ngInject';
   }
@@ -134,13 +133,13 @@ export class ClusterFilterService {
   public shouldShowInstance(instance: IInstance): boolean {
     const sortFilter: ISortFilter = this.clusterFilterModel.asFilterModel.sortFilter;
     if (this.isFilterable(sortFilter.availabilityZone)) {
-      const checkedAvailabilityZones: string[] = this.filterModelService.getCheckValues(sortFilter.availabilityZone);
+      const checkedAvailabilityZones: string[] = FilterModelService.getCheckValues(sortFilter.availabilityZone);
       if (!checkedAvailabilityZones.includes(instance.availabilityZone)) {
         return false;
       }
     }
     if (this.isFilterable(sortFilter.status)) {
-      const allCheckedValues: string[] = this.filterModelService.getCheckValues(sortFilter.status);
+      const allCheckedValues: string[] = FilterModelService.getCheckValues(sortFilter.status);
       const checkedStatus = allCheckedValues.filter(s => s !== 'Disabled');
       if (!checkedStatus.length) {
         return true;
@@ -194,12 +193,12 @@ export class ClusterFilterService {
     const filtered: IServerGroup[] = serverGroups
       .filter(g => this.textFilter(g))
       .filter(g => this.instanceCountFilter(g))
-      .filter(g => this.filterModelService.checkAccountFilters(this.clusterFilterModel)(g))
-      .filter(g => this.filterModelService.checkRegionFilters(this.clusterFilterModel)(g))
-      .filter(g => this.filterModelService.checkStackFilters(this.clusterFilterModel)(g))
-      .filter(g => this.filterModelService.checkDetailFilters(this.clusterFilterModel)(g))
-      .filter(g => this.filterModelService.checkStatusFilters(this.clusterFilterModel)(g))
-      .filter(g => this.filterModelService.checkProviderFilters(this.clusterFilterModel)(g))
+      .filter(g => FilterModelService.checkAccountFilters(this.clusterFilterModel.asFilterModel)(g))
+      .filter(g => FilterModelService.checkRegionFilters(this.clusterFilterModel.asFilterModel)(g))
+      .filter(g => FilterModelService.checkStackFilters(this.clusterFilterModel.asFilterModel)(g))
+      .filter(g => FilterModelService.checkDetailFilters(this.clusterFilterModel.asFilterModel)(g))
+      .filter(g => FilterModelService.checkStatusFilters(this.clusterFilterModel.asFilterModel)(g))
+      .filter(g => FilterModelService.checkProviderFilters(this.clusterFilterModel.asFilterModel)(g))
       .filter(g => this.instanceTypeFilters(g))
       .filter(g => this.instanceFilters(g));
 
@@ -265,7 +264,7 @@ export class ClusterFilterService {
   private instanceTypeFilters(serverGroup: IServerGroup): boolean {
     const sortFilter: ISortFilter = this.clusterFilterModel.asFilterModel.sortFilter;
     if (this.isFilterable(sortFilter.instanceType)) {
-      const checkedInstanceTypes: string[] = this.filterModelService.getCheckValues(sortFilter.instanceType);
+      const checkedInstanceTypes: string[] = FilterModelService.getCheckValues(sortFilter.instanceType);
       return checkedInstanceTypes.includes(serverGroup.instanceType);
     } else {
       return true;
@@ -505,5 +504,4 @@ module(CLUSTER_FILTER_SERVICE, [
   require('@uirouter/angularjs').default,
   CLUSTER_FILTER_MODEL,
   require('./multiselect.model').name,
-  FILTER_MODEL_SERVICE,
 ]).service('clusterFilterService', ClusterFilterService);

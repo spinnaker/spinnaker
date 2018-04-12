@@ -1,15 +1,14 @@
 import { IPromise, IQService, module } from 'angular';
 import { forOwn, get, groupBy, has, head, keys, values } from 'lodash';
 
-import { Api, API_SERVICE } from '../api/api.service';
-import { NameUtils } from 'core/naming';
-import { taskMatcher } from './task.matcher';
-import { IServerGroup } from 'core/domain';
+import { Api, API_SERVICE } from 'core/api/api.service';
 import { Application } from 'core/application/application.model';
-import { ICluster, IClusterSummary } from '../domain/ICluster';
-import { IExecutionStage } from '../domain/IExecutionStage';
-import { IExecution } from '../domain/IExecution';
+import { NameUtils } from 'core/naming';
+import { FilterModelService } from 'core/filterModel';
+import { ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
+
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './filter/clusterFilter.model';
+import { taskMatcher } from './task.matcher';
 
 export class ClusterService {
   public static ON_DEMAND_THRESHOLD = 350;
@@ -19,7 +18,6 @@ export class ClusterService {
     private API: Api,
     private serverGroupTransformer: any,
     private clusterFilterModel: ClusterFilterModel,
-    private filterModelService: any,
   ) {
     'ngInject';
   }
@@ -36,9 +34,7 @@ export class ClusterService {
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
         serverGroupLoader.withParams({
-          clusters: this.filterModelService
-            .getCheckValues(this.clusterFilterModel.asFilterModel.sortFilter.clusters)
-            .join(),
+          clusters: FilterModelService.getCheckValues(this.clusterFilterModel.asFilterModel.sortFilter.clusters).join(),
         });
       } else {
         this.reconcileClusterDeepLink();
@@ -56,7 +52,7 @@ export class ClusterService {
   // if the application is deep linked via "clusters:", but the app is not "fetchOnDemand" sized, convert the parameters
   // to the normal, filterable structure
   private reconcileClusterDeepLink() {
-    const selectedClusters: string[] = this.filterModelService.getCheckValues(
+    const selectedClusters: string[] = FilterModelService.getCheckValues(
       this.clusterFilterModel.asFilterModel.sortFilter.clusters,
     );
     if (selectedClusters && selectedClusters.length) {

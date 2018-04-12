@@ -7,7 +7,7 @@ import * as moment from 'moment';
 import { Application } from 'core/application/application.model';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/pipeline';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
-import { FILTER_MODEL_SERVICE, ISortFilter } from 'core/filterModel';
+import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
 
 const boundaries = [
@@ -41,11 +41,10 @@ export class ExecutionFilterService {
   constructor(
     private executionFilterModel: ExecutionFilterModel,
     private $log: ILogService,
-    private filterModelService: any,
     private pipelineConfig: PipelineConfigProvider,
   ) {
     'ngInject';
-    this.isFilterable = filterModelService.isFilterable;
+    this.isFilterable = FilterModelService.isFilterable;
   }
 
   private groupByTimeBoundary(executions: IExecution[]): { [boundaryName: string]: IExecution[] } {
@@ -82,7 +81,7 @@ export class ExecutionFilterService {
   private pipelineNameFilter(execution: IExecution): boolean {
     const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
     if (this.isFilterable(sortFilter.pipeline)) {
-      const checkedPipelineNames = this.filterModelService.getCheckValues(sortFilter.pipeline);
+      const checkedPipelineNames = FilterModelService.getCheckValues(sortFilter.pipeline);
       return includes(checkedPipelineNames, execution.name);
     } else {
       return true;
@@ -138,7 +137,7 @@ export class ExecutionFilterService {
   private statusFilter(execution: IExecution): boolean {
     const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
     if (this.isFilterable(sortFilter.status)) {
-      const checkedStatus = this.filterModelService.getCheckValues(sortFilter.status);
+      const checkedStatus = FilterModelService.getCheckValues(sortFilter.status);
       return includes(checkedStatus, execution.status);
     } else {
       return true;
@@ -365,8 +364,8 @@ export class ExecutionFilterService {
 }
 
 export const EXECUTION_FILTER_SERVICE = 'spinnaker.core.pipeline.filter.executionFilter.service';
-module(EXECUTION_FILTER_SERVICE, [EXECUTION_FILTER_MODEL, FILTER_MODEL_SERVICE, PIPELINE_CONFIG_PROVIDER]).factory(
+module(EXECUTION_FILTER_SERVICE, [EXECUTION_FILTER_MODEL, PIPELINE_CONFIG_PROVIDER]).factory(
   'executionFilterService',
-  (executionFilterModel: ExecutionFilterModel, $log: ILogService, filterModelService: any, pipelineConfig: any) =>
-    new ExecutionFilterService(executionFilterModel, $log, filterModelService, pipelineConfig),
+  (executionFilterModel: ExecutionFilterModel, $log: ILogService, pipelineConfig: any) =>
+    new ExecutionFilterService(executionFilterModel, $log, pipelineConfig),
 );

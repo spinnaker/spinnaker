@@ -1,7 +1,7 @@
 import { IAngularEvent, IRootScopeService, module } from 'angular';
 import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 
-import { FILTER_MODEL_SERVICE, IFilterConfig, IFilterModel } from 'core/filterModel';
+import { FilterModelService, IFilterConfig, IFilterModel } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
 
 export const CLUSTER_FILTER_MODEL = 'cluster.filter.model';
@@ -33,9 +33,9 @@ export class ClusterFilterModel {
   private mostRecentParams: any;
   public asFilterModel: IFilterModel;
 
-  constructor(private $rootScope: IRootScopeService, private filterModelService: any) {
+  constructor(private $rootScope: IRootScopeService) {
     'ngInject';
-    this.asFilterModel = this.filterModelService.configureFilterModel(this, filterModelConfig);
+    this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     this.bindEvents();
     this.asFilterModel.activate();
   }
@@ -122,4 +122,4 @@ export class ClusterFilterModel {
   }
 }
 
-module(CLUSTER_FILTER_MODEL, [FILTER_MODEL_SERVICE]).service('clusterFilterModel', ClusterFilterModel);
+module(CLUSTER_FILTER_MODEL, []).service('clusterFilterModel', ClusterFilterModel);

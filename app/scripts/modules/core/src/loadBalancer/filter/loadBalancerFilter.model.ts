@@ -3,7 +3,7 @@ import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 
 import { ILoadBalancerGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
-import { FILTER_MODEL_SERVICE } from 'core/filterModel';
+import { FilterModelService } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
@@ -31,9 +31,9 @@ export class LoadBalancerFilterModel {
   private mostRecentParams: any;
   public asFilterModel: ILoadBalancerFilterModel;
 
-  constructor(private $rootScope: IRootScopeService, private filterModelService: any) {
+  constructor(private $rootScope: IRootScopeService) {
     'ngInject';
-    this.asFilterModel = this.filterModelService.configureFilterModel(this, filterModelConfig);
+    this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     this.bindEvents();
     this.asFilterModel.activate();
   }
@@ -122,4 +122,4 @@ export class LoadBalancerFilterModel {
 }
 
 export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
-module(LOAD_BALANCER_FILTER_MODEL, [FILTER_MODEL_SERVICE]).service('loadBalancerFilterModel', LoadBalancerFilterModel);
+module(LOAD_BALANCER_FILTER_MODEL, []).service('loadBalancerFilterModel', LoadBalancerFilterModel);

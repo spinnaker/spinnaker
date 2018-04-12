@@ -1,17 +1,17 @@
 'use strict';
 
 import _ from 'lodash';
-import { FILTER_MODEL_SERVICE } from 'core/filterModel';
+import { FilterModelService } from 'core/filterModel';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.deck.projects.dashboard.regionFilter.service', [FILTER_MODEL_SERVICE])
-  .factory('regionFilterService', function(filterModelService) {
+  .module('spinnaker.deck.projects.dashboard.regionFilter.service', [])
+  .factory('regionFilterService', function() {
     let callbacks = [];
 
     let filterModelConfig = [{ model: 'region', param: 'reg', type: 'trueKeyObject' }];
-    filterModelService.configureFilterModel(this, filterModelConfig);
+    FilterModelService.configureFilterModel(this, filterModelConfig);
 
     this.registerCallback = cb => callbacks.push(cb);
 

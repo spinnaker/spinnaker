@@ -1,8 +1,7 @@
 'use strict';
-import { FILTER_MODEL_SERVICE } from './filter.model.service';
+import { FilterModelService } from './FilterModelService';
 
 describe('Service: FilterModelService', function() {
-  var service;
   var $location;
   var $state;
   var $stateParams;
@@ -11,15 +10,12 @@ describe('Service: FilterModelService', function() {
   var filterModelConfig;
 
   function configure() {
-    service.configureFilterModel(filterModel, filterModelConfig);
+    FilterModelService.configureFilterModel(filterModel, filterModelConfig);
     filterModel.activate();
   }
 
-  beforeEach(window.module(FILTER_MODEL_SERVICE));
-
   beforeEach(
-    window.inject(function(filterModelService, _$location_, _$stateParams_, _$state_) {
-      service = filterModelService;
+    window.inject(function(_$location_, _$stateParams_, _$state_) {
       $location = _$location_;
       $stateParams = _$stateParams_;
       spyOn($location, 'search').and.callFake(function(key, val) {
@@ -41,23 +37,23 @@ describe('Service: FilterModelService', function() {
 
   describe('isFilterable', function() {
     it('returns true if there are any properties with a value of true', function() {
-      expect(service.isFilterable(null)).toBe(false);
-      expect(service.isFilterable({})).toBe(false);
-      expect(service.isFilterable({ a: false })).toBe(false);
-      expect(service.isFilterable({ a: false, b: true })).toBe(true);
+      expect(FilterModelService.isFilterable(null)).toBe(false);
+      expect(FilterModelService.isFilterable({})).toBe(false);
+      expect(FilterModelService.isFilterable({ a: false })).toBe(false);
+      expect(FilterModelService.isFilterable({ a: false, b: true })).toBe(true);
     });
   });
 
   describe('getCheckValues', function() {
     it('returns an array of keys with truthy value', function() {
-      expect(service.getCheckValues(null)).toEqual([]);
-      expect(service.getCheckValues({})).toEqual([]);
-      expect(service.getCheckValues({ a: false })).toEqual([]);
-      expect(service.getCheckValues({ a: '' })).toEqual([]);
-      expect(service.getCheckValues({ a: null })).toEqual([]);
-      expect(service.getCheckValues({ a: undefined })).toEqual([]);
-      expect(service.getCheckValues({ a: true, b: false })).toEqual(['a']);
-      expect(service.getCheckValues({ a: true, b: true })).toEqual(['a', 'b']);
+      expect(FilterModelService.getCheckValues(null)).toEqual([]);
+      expect(FilterModelService.getCheckValues({})).toEqual([]);
+      expect(FilterModelService.getCheckValues({ a: false })).toEqual([]);
+      expect(FilterModelService.getCheckValues({ a: '' })).toEqual([]);
+      expect(FilterModelService.getCheckValues({ a: null })).toEqual([]);
+      expect(FilterModelService.getCheckValues({ a: undefined })).toEqual([]);
+      expect(FilterModelService.getCheckValues({ a: true, b: false })).toEqual(['a']);
+      expect(FilterModelService.getCheckValues({ a: true, b: true })).toEqual(['a', 'b']);
     });
   });
 
@@ -66,7 +62,7 @@ describe('Service: FilterModelService', function() {
     it('returns true for all items if no accounts selected', function() {
       var items = [{ account: 'test' }, { account: 'prod' }, {}];
       items.forEach(function(item) {
-        expect(service.checkAccountFilters(filterModel)(item)).toBe(true);
+        expect(FilterModelService.checkAccountFilters(filterModel)(item)).toBe(true);
       });
     });
 
@@ -76,7 +72,7 @@ describe('Service: FilterModelService', function() {
         test: true,
       };
       items.forEach(function(item) {
-        expect(service.checkAccountFilters(filterModel)(item)).toBe(true);
+        expect(FilterModelService.checkAccountFilters(filterModel)(item)).toBe(true);
       });
     });
 
@@ -86,7 +82,7 @@ describe('Service: FilterModelService', function() {
         prod: true,
       };
       items.forEach(function(item) {
-        expect(service.checkAccountFilters(filterModel)(item)).toBe(false);
+        expect(FilterModelService.checkAccountFilters(filterModel)(item)).toBe(false);
       });
     });
   });
@@ -96,7 +92,7 @@ describe('Service: FilterModelService', function() {
     it('returns true for all items if no stacks selected', function() {
       var items = [{ stack: 'a' }, { stack: 'b' }, {}];
       items.forEach(function(item) {
-        expect(service.checkStackFilters(filterModel)(item)).toBe(true);
+        expect(FilterModelService.checkStackFilters(filterModel)(item)).toBe(true);
       });
     });
 
@@ -105,9 +101,9 @@ describe('Service: FilterModelService', function() {
       filterModel.sortFilter.stack = {
         a: true,
       };
-      expect(service.checkStackFilters(filterModel)(items[0])).toBe(true);
-      expect(service.checkStackFilters(filterModel)(items[1])).toBe(false);
-      expect(service.checkStackFilters(filterModel)(items[2])).toBe(false);
+      expect(FilterModelService.checkStackFilters(filterModel)(items[0])).toBe(true);
+      expect(FilterModelService.checkStackFilters(filterModel)(items[1])).toBe(false);
+      expect(FilterModelService.checkStackFilters(filterModel)(items[2])).toBe(false);
     });
 
     it('includes items without a stack if (none) is selected', function() {
@@ -116,9 +112,9 @@ describe('Service: FilterModelService', function() {
         a: true,
         '(none)': true,
       };
-      expect(service.checkStackFilters(filterModel)(items[0])).toBe(true);
-      expect(service.checkStackFilters(filterModel)(items[1])).toBe(false);
-      expect(service.checkStackFilters(filterModel)(items[2])).toBe(true);
+      expect(FilterModelService.checkStackFilters(filterModel)(items[0])).toBe(true);
+      expect(FilterModelService.checkStackFilters(filterModel)(items[1])).toBe(false);
+      expect(FilterModelService.checkStackFilters(filterModel)(items[2])).toBe(true);
     });
   });
 
@@ -127,7 +123,7 @@ describe('Service: FilterModelService', function() {
     it('returns true for all items if no regions selected', function() {
       var items = [{ region: 'us-east-1' }, { region: 'us-west-1' }, {}];
       items.forEach(function(item) {
-        expect(service.checkRegionFilters(filterModel)(item)).toBe(true);
+        expect(FilterModelService.checkRegionFilters(filterModel)(item)).toBe(true);
       });
     });
 
@@ -137,7 +133,7 @@ describe('Service: FilterModelService', function() {
         'us-east-1': true,
       };
       items.forEach(function(item) {
-        expect(service.checkRegionFilters(filterModel)(item)).toBe(true);
+        expect(FilterModelService.checkRegionFilters(filterModel)(item)).toBe(true);
       });
     });
 
@@ -147,7 +143,7 @@ describe('Service: FilterModelService', function() {
         'us-west-1': true,
       };
       items.forEach(function(item) {
-        expect(service.checkRegionFilters(filterModel)(item)).toBe(false);
+        expect(FilterModelService.checkRegionFilters(filterModel)(item)).toBe(false);
       });
     });
   });
@@ -157,7 +153,7 @@ describe('Service: FilterModelService', function() {
     it('returns true for all items if no providerTypes selected', function() {
       var items = [{ type: 'aws' }, { type: 'gce' }, {}];
       items.forEach(function(item) {
-        expect(service.checkProviderFilters(filterModel)(item)).toBe(true);
+        expect(FilterModelService.checkProviderFilters(filterModel)(item)).toBe(true);
       });
     });
 
@@ -167,7 +163,7 @@ describe('Service: FilterModelService', function() {
         aws: true,
       };
       items.forEach(function(item) {
-        expect(service.checkProviderFilters(filterModel)(item)).toBe(true);
+        expect(FilterModelService.checkProviderFilters(filterModel)(item)).toBe(true);
       });
     });
 
@@ -177,7 +173,7 @@ describe('Service: FilterModelService', function() {
         gce: true,
       };
       items.forEach(function(item) {
-        expect(service.checkProviderFilters(filterModel)(item)).toBe(false);
+        expect(FilterModelService.checkProviderFilters(filterModel)(item)).toBe(false);
       });
     });
   });
@@ -187,49 +183,49 @@ describe('Service: FilterModelService', function() {
     it('returns true if Up is selected and down count is zero', function() {
       var target = { instanceCounts: { down: 0 } };
       filterModel.sortFilter.status = { Up: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it('returns false if Up is selected and down count is greater than zero', function() {
       var target = { instanceCounts: { down: 1 } };
       filterModel.sortFilter.status = { Up: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(false);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(false);
     });
 
     it('returns true if Down is selected and down count is greater than zero', function() {
       var target = { instanceCounts: { down: 1 } };
       filterModel.sortFilter.status = { Down: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it('returns false if Down is selected and down count is zero', function() {
       var target = { instanceCounts: { down: 0 } };
       filterModel.sortFilter.status = { Down: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(false);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(false);
     });
 
     it('returns true if OutOfService is selected and out of service count is greater than zero', function() {
       var target = { instanceCounts: { outOfService: 1 } };
       filterModel.sortFilter.status = { OutOfService: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it('returns true if Starting is selected and starting count is greater than zero', function() {
       var target = { instanceCounts: { starting: 1 } };
       filterModel.sortFilter.status = { Starting: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it('returns true if Disabled is selected and target is disabled', function() {
       var target = { instanceCounts: { down: 1 }, isDisabled: true };
       filterModel.sortFilter.status = { Disabled: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
 
     it('returns true if any of the above conditions is true', function() {
       var target = { instanceCounts: { down: 1 }, isDisabled: true };
       filterModel.sortFilter.status = { Down: false, Disabled: true };
-      expect(service.checkStatusFilters(filterModel)(target)).toBe(true);
+      expect(FilterModelService.checkStatusFilters(filterModel)(target)).toBe(true);
     });
   });
 

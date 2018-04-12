@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 import { ICache, ViewStateCache } from 'core/cache';
 import { IExecutionGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
-import { FILTER_MODEL_SERVICE } from 'core/filterModel';
+import { FilterModelService } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
@@ -33,7 +33,7 @@ export class ExecutionFilterModel {
   // mechanism for now.
   public expandSubject: Subject<boolean> = new Subject<boolean>();
 
-  constructor($rootScope: IRootScopeService, filterModelService: any) {
+  constructor($rootScope: IRootScopeService) {
     'ngInject';
     this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
       version: 1,
@@ -43,7 +43,7 @@ export class ExecutionFilterModel {
     this.groupBy = this.getCachedViewState().groupBy;
     this.showStageDuration = this.getCachedViewState().showStageDuration;
 
-    this.asFilterModel = filterModelService.configureFilterModel(this, filterModelConfig);
+    this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
 
     let mostRecentParams: any = null;
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query
@@ -169,7 +169,7 @@ export class ExecutionFilterModel {
 }
 
 export const EXECUTION_FILTER_MODEL = 'spinnaker.core.pipeline.filter.executionFilter.model';
-module(EXECUTION_FILTER_MODEL, [FILTER_MODEL_SERVICE]).factory(
+module(EXECUTION_FILTER_MODEL, []).factory(
   'executionFilterModel',
-  ($rootScope: IRootScopeService, filterModelService: any) => new ExecutionFilterModel($rootScope, filterModelService),
+  ($rootScope: IRootScopeService) => new ExecutionFilterModel($rootScope),
 );
