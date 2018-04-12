@@ -180,6 +180,9 @@ export class ExecutionFilterService {
   }
 
   private extractAccounts(config: IPipeline): string[] {
+    if (!config) {
+      return [];
+    }
     const configAccounts: string[] = [];
     (config.stages || []).forEach(stage => {
       const stageConfig = this.pipelineConfig.getStageConfig(stage);
@@ -225,6 +228,7 @@ export class ExecutionFilterService {
           config: config || null,
           executions: groupExecutions,
           runningExecutions: groupExecutions.filter((execution: IExecution) => execution.isActive),
+          targetAccounts: this.extractAccounts(config),
           fromTemplate: config.type === 'templatedPipeline',
         });
       });
