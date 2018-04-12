@@ -23,4 +23,5 @@ interface JobExecutor {
   boolean jobExists(String jobId)
   BakeStatus updateJob(String jobId)
   void cancelJob(String jobId)
+  int runningJobCount()
 }

@@ -21,17 +21,22 @@ import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.jobs.JobRequest
 import groovy.util.logging.Slf4j
-import org.apache.commons.exec.*
+import org.apache.commons.exec.CommandLine
+import org.apache.commons.exec.DefaultExecuteResultHandler
+import org.apache.commons.exec.DefaultExecutor
+import org.apache.commons.exec.ExecuteWatchdog
+import org.apache.commons.exec.Executor
+import org.apache.commons.exec.PumpStreamHandler
+import org.apache.commons.exec.Watchdog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import rx.Scheduler
 import rx.functions.Action0
 import rx.schedulers.Schedulers
 
+import javax.annotation.PostConstruct
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.ToDoubleFunction
-
-import javax.annotation.PostConstruct
 
 @Slf4j
 class JobExecutorLocal implements JobExecutor {
@@ -180,6 +185,11 @@ class JobExecutorLocal implements JobExecutor {
     canceledJob?.watchdog?.destroyProcess()
 
     // The next polling interval will be unable to retrieve the job status and will mark the bake as canceled.
+  }
+
+  @Override
+  int runningJobCount() {
+    return jobIdToHandlerMap.keySet().size()
   }
 
   @PostConstruct

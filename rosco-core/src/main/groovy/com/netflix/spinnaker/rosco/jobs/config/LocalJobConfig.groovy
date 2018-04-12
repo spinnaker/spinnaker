@@ -19,6 +19,7 @@ package com.netflix.spinnaker.rosco.jobs.config
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.jobs.local.JobExecutorLocal
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -30,6 +31,21 @@ class LocalJobConfig {
   @Bean
   @ConditionalOnMissingBean(JobExecutor)
   JobExecutor jobExecutorLocal() {
-    new JobExecutorLocal()
+    JobExecutor jobExecutor = new JobExecutorLocal()
+
+    Runtime.runtime.addShutdownHook(new Thread(new Runnable() {
+      @Override
+      void run() {
+        log.info("Running job executor shutdown hook...")
+        int jobCount = jobExecutor.runningJobCount()
+        while (jobCount > 0) {
+          log.info("Waiting on $jobCount jobs before shutting down...")
+          sleep(1000)
+          jobCount = jobExecutor.runningJobCount()
+        }
+      }
+    }))
+
+    return jobExecutor
   }
 }
