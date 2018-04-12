@@ -53,7 +53,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
   protected TaskResult emptyClusterResult(Stage stage,
                                           AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection,
                                           Map cluster) {
-    throw new IllegalStateException("No ServerGroups found in cluster $clusterSelection")
+    throw new IllegalStateException("no server groups found in cluster $clusterSelection")
   }
 
   boolean isServerGroupOperationInProgress(Stage stage,
