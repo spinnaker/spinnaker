@@ -918,6 +918,77 @@ class DockerConfigurator(Configurator):
       file_set.add(options.docker_account_credentials)
 
 
+class CanaryConfigurator(Configurator):
+  """Controls hal config canary configuration."""
+
+  def init_argument_parser(self, parser, defaults):
+    """Implements interface."""
+    add_parser_argument(
+        parser, 'canary_aws', defaults, False, type=bool,
+        help='Whether or not to canary aws account deployments.'
+             ' If so, this will use the aws account.')
+    add_parser_argument(
+        parser, 'canary_google', defaults, False, type=bool,
+        help='Whether or not to canary google account deployments.'
+             ' If so, this will use the google account, project, credentials.')
+    add_parser_argument(
+        parser, 'canary_prometheus_account', defaults, 'my-prometheus-account',
+        help='The name of the prometheus account to configure when applicable.')
+    add_parser_argument(
+        parser, 'canary_prometheus_url', defaults, None,
+        help='The prometheus server URL to use, if canarying with prometheus.')
+    add_parser_argument(
+        parser, 'canary_stackdriver', defaults, True, type=bool,
+        help='Use stackdriver where applicable.')
+
+  def validate_options(self, options):
+    """Implements interface."""
+    options.canary_enabled = options.canary_google or options.canary_aws
+
+    if not options.canary_enabled:
+      return
+
+    if options.canary_prometheus_url:
+      check_options_set(options, ['canary_prometheus_account'])
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if not options.canary_enabled:
+      return
+
+    if options.canary_prometheus_url:
+      script.append('hal -q --log=info config canary prometheus account'
+                    ' add {account} --base-url {url}'
+                    .format(account=options.canary_prometheus_account,
+                            url=options.canary_prometheus_url))
+      script.append('hal -q --log=info config canary prometheus enable')
+
+    if options.canary_aws:
+      script.append('hal -q --log=info config canary aws account add {account}'
+                    .format(account=options.aws_account_name))
+      script.append('hal -q --log=info config canary aws enable')
+
+    if options.canary_google:
+      script.append(
+          'hal -q --log=info config canary google account add {account}'
+          ' --project {project} --json-path {json}'
+          .format(account=options.google_account_name,
+                  project=options.google_account_project,
+                  json=os.path.basename(options.google_account_credentials)))
+
+      if options.deploy_hal_platform == 'gce' and options.canary_stackdriver:
+        script.append('hal -q --log=info config canary google edit'
+                      ' --stackdriver-enabled true')
+      script.append('hal -q --log=info config canary google enable')
+
+    script.append('hal -q --log=info config canary enable')
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    if not options.canary_enabled:
+      return
+
+
 class GooglePubsubConfigurator(Configurator):
   """Controls hal config google pub/sub configuration."""
 
@@ -988,6 +1059,7 @@ class GooglePubsubConfigurator(Configurator):
       file_set.add(options.pubsub_google_credentials_path)
     if options.pubsub_google_template_path:
       file_set.add(options.pubsub_google_template_path)
+
 
 class GcsPubsubNotficationConfigurator(Configurator):
   """Controls external (to Spinnaker) GCS -> Google Pubsub config."""
@@ -1344,6 +1416,7 @@ CONFIGURATOR_LIST = [
     JenkinsConfigurator(),
     NotificationConfigurator(),
     SecurityConfigurator(),
+    CanaryConfigurator(),
     GcsPubsubNotficationConfigurator(),
     GooglePubsubConfigurator()
 ]
