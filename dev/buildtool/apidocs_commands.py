@@ -277,16 +277,16 @@ class PublishApiDocsCommand(CommandProcessor):
         'checkout {flag} {branch}'.format(
             flag=branch_flag, branch=head_branch),
         'add ' + ' '.join([os.path.abspath(path) for path in files_added]),
-        'commit -m "{msg}"'.format(msg=message),
     ]
     logging.debug('Commiting changes into local repository "%s" branch=%s',
                   self.__docs_repository.git_dir, head_branch)
     git = self.__scm.git
     git.check_run_sequence(git_dir, local_git_commands)
+    git.check_commit_or_no_changes(git_dir, '-m "{msg}"'.format(msg=message))
 
     logging.info('Pushing branch="%s" into "%s"',
                  head_branch, self.__docs_repository.origin)
-    git.push_branch_to_origin(git_dir, branch=head_branch)
+    git.push_branch_to_origin(git_dir, branch=head_branch, force=True)
 
   def _prepare_local_repository_files(self):
     """Implements CommandProcessor interface."""

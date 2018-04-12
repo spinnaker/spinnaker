@@ -397,12 +397,12 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
         'checkout {flag} {branch}'.format(
             flag=branch_flag, branch=head_branch),
         'add ' + ' '.join([os.path.abspath(path) for path in files_added]),
-        'commit -m "{msg}"'.format(msg=message),
     ]
     logging.debug('Commiting changes into local repository "%s" branch=%s',
                   repository.git_dir, head_branch)
     git = self.git
     git.check_run_sequence(git_dir, local_git_commands)
+    git.check_commit_or_no_changes(git_dir, '-m "{msg}"'.format(msg=message))
 
     logging.info('Pushing branch="%s" into "%s"',
                  head_branch, repository.origin)
@@ -507,8 +507,8 @@ class PushChangelogCommand(CommandProcessor):
     shutil.copyfile(options.changelog_path, dest_path)
 
     self.__git.check_run(git_dir, 'add ' + os.path.basename(dest_path))
-    self.__git.check_run(
-        git_dir, 'commit -a -m "Updated %s"' % os.path.basename(dest_path))
+    self.__git.check_commit_or_no_changes(
+        git_dir, '-a -m "Updated %s"' % os.path.basename(dest_path))
 
     logging.debug('Pushing back gist')
     self.__git.check_run(git_dir, 'push -f origin master')

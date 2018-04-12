@@ -35,6 +35,7 @@ from buildtool import (
     check_kwargs_empty,
     check_subprocess,
     ensure_dir_exists,
+    log_embedded_output,
     run_subprocess,
     raise_and_log_error,
     ConfigError,
@@ -718,6 +719,19 @@ class GitRunner(object):
     for cmd in commands:
       self.check_run(git_dir, cmd)
 
+  def check_commit_or_no_changes(self, git_dir, commit_commandline_args):
+    """A variant of check_run 'commit' that tolerates 'no changes' errors."""
+    retcode, stdout = self.run_git(
+        git_dir, 'commit ' + commit_commandline_args)
+    if retcode == 1:
+      last_line = stdout.split('\n')[-1]
+      if last_line.lower().find('nothing to commit') >= 0:
+        logging.debug('No changes to commit -- raw changelog is unchanged.')
+        return stdout
+      log_embedded_output(logging.ERROR, 'command output', stdout)
+      raise_and_log_error(ExecutionError('git failed.'))
+    return stdout
+
   def find_newest_tag_and_common_commit_from_id(
       self, git_dir, commit_id, commit_tags):
     """Returns most recent tag and common commit to a given commit_id.
@@ -861,7 +875,7 @@ class GitRunner(object):
     logging.warning('Deleting origin branch="%s" for %s', branch, git_dir)
     self.check_run(git_dir, 'push origin --delete ' + branch)
 
-  def push_branch_to_origin(self, git_dir, branch):
+  def push_branch_to_origin(self, git_dir, branch, force=False):
     """Push the given local repository back up to the origin.
 
     This has no effect if the repository is not in the given branch.
@@ -879,7 +893,9 @@ class GitRunner(object):
       logging.warning('Skipping push %s "%s" to origin because branch is "%s".',
                       git_dir, branch, in_branch)
       return
-    self.check_run(git_dir, 'push origin ' + branch)
+
+    force_flag = ' -f' if force else ''
+    self.check_run(git_dir, 'push origin ' + branch + force_flag)
 
   def push_tag_to_origin(self, git_dir, tag):
     """Push the given tag back up to the origin."""
