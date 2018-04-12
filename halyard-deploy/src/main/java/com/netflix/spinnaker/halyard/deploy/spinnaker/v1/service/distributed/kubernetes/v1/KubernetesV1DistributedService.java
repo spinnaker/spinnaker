@@ -726,7 +726,7 @@ public interface KubernetesV1DistributedService<T> extends DistributedService<T,
     String namespace = getNamespace(settings);
 
     List<Instance> latestInstances = instances.get(latest);
-    if (latestInstances.isEmpty()) {
+    if (latestInstances == null || latestInstances.isEmpty()) {
       throw new HalException(Problem.Severity.FATAL, "No instances running in latest server group for service " + getServiceName() + " in namespace " + namespace);
     }
 
