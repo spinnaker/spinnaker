@@ -2,5 +2,3 @@ yalc.*
 .*
 tsconfig.json
 webpack.config.js
-!history
-!changes
