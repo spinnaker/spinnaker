@@ -22,10 +22,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +69,11 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
 
   @Override
   public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    throw new UnsupportedOperationException("todo(lwander)");
+    DaemonTaskHandler.newStage("Invoking kubectl");
+    DaemonTaskHandler.message("Deleting all 'svc,deploy,secret' resources with label 'app=spin'...");
+    KubernetesSharedServiceSettings kubernetesSharedServiceSettings = new KubernetesSharedServiceSettings(details.getDeploymentConfiguration());
+    KubernetesV2Utils.deleteSpinnaker(details.getAccount(), kubernetesSharedServiceSettings.getDeployLocation());
+    return new RemoteAction();
   }
 
   public List<KubernetesV2Service> getServicesByPriority(List<SpinnakerService.Type> serviceTypes) {

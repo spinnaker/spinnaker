@@ -104,6 +104,42 @@ public class KubernetesV2Utils {
     }
   }
 
+  static public void deleteSpinnaker(KubernetesAccount account, String namespace) {
+    List<String> command = kubectlPrefix(account);
+    if (StringUtils.isNotEmpty(namespace)) {
+      command.add("-n=" + namespace);
+    }
+
+    command.add("delete");
+    command.add("deploy,svc,secret");
+    command.add("-l=app=spin");
+
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+    String jobId = DaemonTaskHandler.getJobExecutor().startJob(request);
+
+    JobStatus status;
+    try {
+      status = DaemonTaskHandler.getJobExecutor().backoffWait(jobId);
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+
+    if (status.getState() != JobStatus.State.COMPLETED) {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Deleting spinnaker never completed in " + namespace,
+          status.getStdErr(),
+          status.getStdOut()));
+    }
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new HalException(Problem.Severity.FATAL, String.join("\n",
+          "Deleting spinnaker failed in " + namespace,
+          status.getStdErr(),
+          status.getStdOut()));
+    }
+  }
+
   static public void apply(KubernetesAccount account, String manifest) {
     manifest = prettify(manifest);
     List<String> command = kubectlPrefix(account);
