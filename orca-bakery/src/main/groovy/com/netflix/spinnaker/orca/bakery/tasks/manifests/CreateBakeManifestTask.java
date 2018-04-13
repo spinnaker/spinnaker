@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -75,6 +76,7 @@ public class CreateBakeManifestTask implements RetryableTask {
     request.setInputArtifact(artifact);
     request.setTemplateRenderer((String) context.get("templateRenderer"));
     request.setOutputName((String) context.get("outputName"));
+    request.setOverrides(objectMapper.convertValue(context.get("overrides"), new TypeReference<Map<String, Object>>() { }));
 
     log.info("Requesting {}", request);
     Artifact result = bakery.bakeManifest(request);

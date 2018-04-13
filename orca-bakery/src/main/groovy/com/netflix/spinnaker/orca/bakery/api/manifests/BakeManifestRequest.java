@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class BakeManifestRequest {
@@ -32,4 +33,6 @@ public class BakeManifestRequest {
   List<Artifact> values;
   @JsonProperty("outputName")
   String outputName;
+  @JsonProperty("overrides")
+  Map<String, Object> overrides;
 }
