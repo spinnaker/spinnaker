@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class HelmTemplateUtils extends TemplateUtils {
@@ -28,6 +29,14 @@ public class HelmTemplateUtils extends TemplateUtils {
     command.add(templatePath.toString());
     command.add("--name");
     command.add(request.getOutputName());
+
+    Map<String, Object> overrides = request.getOverrides();
+    if (overrides != null) {
+      for (Map.Entry<String, Object> entry : overrides.entrySet()) {
+        command.add("--set");
+        command.add("'" + entry.getKey() + "=" + entry.getValue().toString() + "'");
+      }
+    }
 
     result.setCommand(command);
 
