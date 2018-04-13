@@ -22,7 +22,7 @@ import org.apache.commons.math3.stat.StatUtils
 
 case class MannWhitneyResult(lowerConfidence: Double, upperConfidence: Double, estimate: Double)
 
-class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95) extends BaseMetricClassifier{
+class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) extends BaseMetricClassifier{
 
   /**
     * Mann-Whitney U Test
@@ -48,7 +48,7 @@ class MannWhitneyClassifier(fraction: Double=0.25, confLevel: Double=0.95) exten
     */
   def calculateBounds(testResult: MannWhitneyResult): (Double, Double) = {
     val estimate = math.abs(testResult.estimate)
-    val criticalValue = fraction * estimate
+    val criticalValue = tolerance * estimate
 
     val lowerBound = -1 * criticalValue
     val upperBound = criticalValue

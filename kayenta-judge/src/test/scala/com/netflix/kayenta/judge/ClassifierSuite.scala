@@ -49,7 +49,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("pass-metric", experimentData, "canary")
     val controlMetric = Metric("pass-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
 
     assert(result.classification == Pass)
@@ -81,7 +81,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("high-metric", experimentData, "canary")
     val controlMetric = Metric("high-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
 
     assert(result.classification == High)
@@ -113,7 +113,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("low-metric", experimentData, "canary")
     val controlMetric = Metric("low-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
 
     assert(result.classification == Low)
@@ -145,7 +145,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("pass-metric", experimentData, "canary")
     val controlMetric = Metric("pass-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Increase)
 
     assert(result.classification == Pass)
@@ -177,7 +177,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("pass-metric", experimentData, "canary")
     val controlMetric = Metric("pass-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
 
     assert(result.classification == Pass)
@@ -209,7 +209,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("high-metric", experimentData, "canary")
     val controlMetric = Metric("high-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Increase)
 
     assert(result.classification == High)
@@ -241,7 +241,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("low-metric", experimentData, "canary")
     val controlMetric = Metric("low-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
 
     assert(result.classification == Low)
@@ -303,7 +303,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("pass-metric", experimentData, "canary")
     val controlMetric = Metric("pass-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Either)
 
     assert(result.classification == High)
@@ -316,7 +316,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("test-metric", experimentData, "canary")
     val controlMetric = Metric("test-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
 
     assert(result.classification == Pass)
@@ -329,7 +329,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("test-metric", experimentData, "canary")
     val controlMetric = Metric("test-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
 
     assert(result.classification == Pass)
@@ -342,7 +342,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("test-metric", experimentData, "canary")
     val controlMetric = Metric("test-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
 
     assert(result.classification == Pass)
@@ -355,7 +355,7 @@ class ClassifierSuite extends FunSuite{
     val experimentMetric = Metric("test-metric", experimentData, "canary")
     val controlMetric = Metric("test-metric", controlData, "baseline")
 
-    val classifier = new MannWhitneyClassifier(fraction = 0.10, confLevel = 0.95)
+    val classifier = new MannWhitneyClassifier(tolerance = 0.10, confLevel = 0.95)
     val result = classifier.classify(controlMetric, experimentMetric, MetricDirection.Decrease)
 
     assert(result.classification == Nodata)

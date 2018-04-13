@@ -152,7 +152,7 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Classification
     // ============================================
-    val mannWhitney = new MannWhitneyClassifier(fraction = 0.25, confLevel = 0.98)
+    val mannWhitney = new MannWhitneyClassifier(tolerance = 0.25, confLevel = 0.98)
 
     val resultBuilder = CanaryAnalysisResult.builder()
       .name(metric.getName)
