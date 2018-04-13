@@ -3,7 +3,7 @@
 describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
   var $scope, executionService, executionsTransformer, ctrl, $q, command;
 
-  beforeEach(window.module(require('./pipelineTriggerOptions.directive.js').name));
+  beforeEach(window.module(require('./pipelineTriggerOptions.directive.js').name, 'ui.router'));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
   beforeEach(

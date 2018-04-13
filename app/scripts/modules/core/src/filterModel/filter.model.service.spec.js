@@ -1,10 +1,9 @@
 'use strict';
 import { FilterModelService } from './FilterModelService';
+import { ReactInjector } from 'core/reactShims';
+import { $location } from 'ngimport';
 
 describe('Service: FilterModelService', function() {
-  var $location;
-  var $state;
-  var $stateParams;
   var searchParams;
   var filterModel;
   var filterModelConfig;
@@ -14,10 +13,10 @@ describe('Service: FilterModelService', function() {
     filterModel.activate();
   }
 
+  beforeEach(window.module('ui.router'));
+
   beforeEach(
-    window.inject(function(_$location_, _$stateParams_, _$state_) {
-      $location = _$location_;
-      $stateParams = _$stateParams_;
+    window.inject(function() {
       spyOn($location, 'search').and.callFake(function(key, val) {
         if (key) {
           searchParams[key] = val;
@@ -25,8 +24,7 @@ describe('Service: FilterModelService', function() {
           return searchParams;
         }
       });
-      $state = _$state_;
-      spyOn($state, 'go').and.callFake(function(state, params) {
+      spyOn(ReactInjector.$state, 'go').and.callFake(function(state, params) {
         Object.keys(params).forEach(k => (searchParams[k] = params[k]));
       });
       searchParams = {};
@@ -438,14 +436,14 @@ describe('Service: FilterModelService', function() {
         cluster: 'deck-prestaging',
         region: 'us-west-1',
       });
-      $stateParams.application = 'deck';
-      $stateParams.account = 'prod';
-      $stateParams.cluster = 'deck-main';
+      ReactInjector.$stateParams.application = 'deck';
+      ReactInjector.$stateParams.account = 'prod';
+      ReactInjector.$stateParams.cluster = 'deck-main';
       filterModel.restoreState({ application: 'deck' });
 
-      expect($stateParams.application).toBe('deck');
-      expect($stateParams.account).toBeUndefined();
-      expect($stateParams.region).toBe('us-west-1');
+      expect(ReactInjector.$stateParams.application).toBe('deck');
+      expect(ReactInjector.$stateParams.account).toBeUndefined();
+      expect(ReactInjector.$stateParams.region).toBe('us-west-1');
     });
 
     it('should remove current params if they are configured for model but not saved', function() {
@@ -506,8 +504,8 @@ describe('Service: FilterModelService', function() {
           { model: 'showInstances', type: 'boolean', displayOption: true },
           { model: 'search', type: 'string' },
         ];
-        $stateParams.search = {};
-        $stateParams.showInstances = {};
+        ReactInjector.$stateParams.search = {};
+        ReactInjector.$stateParams.showInstances = {};
         configure();
         filterModel.sortFilter.search = 'deck';
         filterModel.sortFilter.showInstances = true;
@@ -519,8 +517,8 @@ describe('Service: FilterModelService', function() {
 
       it('should set numeric values, including zero', function() {
         filterModelConfig = [{ model: 'min', type: 'int' }, { model: 'max', type: 'int' }];
-        $stateParams.min = {};
-        $stateParams.max = {};
+        ReactInjector.$stateParams.min = {};
+        ReactInjector.$stateParams.max = {};
         configure();
         filterModel.sortFilter.min = 0;
         filterModel.sortFilter.max = 3;
@@ -532,7 +530,7 @@ describe('Service: FilterModelService', function() {
 
       it('should not set numeric fields if they are not numbers', function() {
         filterModelConfig = [{ model: 'min', type: 'int' }];
-        $stateParams.min = {};
+        ReactInjector.$stateParams.min = {};
         configure();
         filterModel.sortFilter.min = 'boo';
 
@@ -542,7 +540,7 @@ describe('Service: FilterModelService', function() {
 
       it('should not set an empty string', function() {
         filterModelConfig = [{ model: 'search', type: 'string' }];
-        $stateParams.search = {};
+        ReactInjector.$stateParams.search = {};
         configure();
         filterModel.sortFilter.search = '';
 

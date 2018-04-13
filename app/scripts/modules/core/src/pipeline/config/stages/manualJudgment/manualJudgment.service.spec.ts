@@ -11,7 +11,7 @@ describe('Service: manualJudgment', () => {
     $q: IQService,
     executionService: ExecutionService;
 
-  beforeEach(mock.module(MANUAL_JUDGMENT_SERVICE));
+  beforeEach(mock.module(MANUAL_JUDGMENT_SERVICE, 'ui.router'));
 
   beforeEach(
     mock.inject(

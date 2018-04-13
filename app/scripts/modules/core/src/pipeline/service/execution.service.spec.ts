@@ -12,7 +12,7 @@ describe('Service: executionService', () => {
   let timeout: ITimeoutService;
   let $q: IQService;
 
-  beforeEach(mock.module(EXECUTION_FILTER_MODEL, EXECUTION_SERVICE));
+  beforeEach(mock.module(EXECUTION_FILTER_MODEL, EXECUTION_SERVICE, 'ui.router'));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
   beforeEach(
