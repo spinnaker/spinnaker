@@ -34,12 +34,14 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetwor
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Component
+@Slf4j
 class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
   @Autowired
   GoogleCloudProvider googleCloudProvider
@@ -164,9 +166,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
 
     def serverGroupKeys = cacheData.relationships[SERVER_GROUPS.ns]
     if (serverGroupKeys) {
+      log.debug("Server group keys from cluster relationships: ${serverGroupKeys}")
       def filter = RelationshipCacheFilter.include(LOAD_BALANCERS.ns)
 
       def serverGroupData = cacheView.getAll(SERVER_GROUPS.ns, serverGroupKeys, filter)
+      log.debug("Retrieved cache data for server groups: ${serverGroupData?.collect { it?.attributes?.name }}")
 
       def securityGroups = securityGroupProvider.getAllByAccount(false, clusterView.accountName)
 
@@ -185,6 +189,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
         clusterView.serverGroups << serverGroup.view
         clusterView.loadBalancers.addAll(serverGroup.loadBalancers*.view)
       }
+      log.debug("Server groups added to cluster: ${clusterView?.serverGroups?.collect { it?.name }}")
     }
 
     clusterView

@@ -206,7 +206,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       evictions[SERVER_GROUPS.ns].add(serverGroupKey)
     }
 
-    log.info("On demand cache refresh succeeded. Data: ${data}. Added ${serverGroup ? 1 : 0} items to the cache. Evicted ${serverGroupKey}.")
+    log.info("On demand cache refresh succeeded. Data: ${data}. Added ${serverGroup ? 1 : 0} items to the cache. Evicted ${evictions[SERVER_GROUPS.ns]}.")
 
     return new OnDemandAgent.OnDemandResult(
         sourceAgentType: getOnDemandAgentType(),
@@ -266,6 +266,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
         relationships[APPLICATIONS.ns].add(appKey)
         relationships[SERVER_GROUPS.ns].add(serverGroupKey)
       }
+      log.debug("Writing cache entry for cluster key ${clusterKey} adding relationships for application ${appKey} and server group ${serverGroupKey}")
 
       GoogleZonalServerGroupCachingAgent.populateLoadBalancerKeys(serverGroup, loadBalancerKeys, accountName, region)
 
