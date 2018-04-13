@@ -431,7 +431,7 @@ module.exports = angular
 
     this.getPipelineExecutions = () => {
       executionService
-        .getExecutionsForConfigIds($scope.pipeline.id, {
+        .getExecutionsForConfigIds([$scope.pipeline.id], {
           limit: 5,
           transform: true,
           application: $scope.pipeline.application,
