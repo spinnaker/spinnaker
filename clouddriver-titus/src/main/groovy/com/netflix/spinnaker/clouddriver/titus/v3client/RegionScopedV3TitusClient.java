@@ -221,18 +221,22 @@ public class RegionScopedV3TitusClient implements TitusClient {
   }
 
   private List<Job> getJobs(JobQuery.Builder jobQuery) {
-    int currentPage = 0;
-    int totalPages;
     List<Job> jobs = new ArrayList<>();
     List<com.netflix.titus.grpc.protogen.Job> grpcJobs = new ArrayList<>();
+    String cursor = "";
+    boolean hasMore;
     do {
-      jobQuery.setPage(Page.newBuilder().setPageNumber(currentPage).setPageSize(100));
+      Page.Builder jobPage = Page.newBuilder().setPageSize(100);
+      if (!cursor.isEmpty()) {
+        jobPage.setCursor(cursor);
+      }
+      jobQuery.setPage(jobPage);
       JobQuery criteria = jobQuery.build();
       JobQueryResult resultPage = grpcBlockingStub.findJobs(criteria);
       grpcJobs.addAll(resultPage.getItemsList());
-      totalPages = resultPage.getPagination().getTotalPages();
-      currentPage++;
-    } while (totalPages > currentPage);
+      cursor = resultPage.getPagination().getCursor();
+      hasMore = resultPage.getPagination().getHasMore();
+    } while (hasMore);
     List<String> jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
       Collectors.toList()
     );
@@ -243,10 +247,15 @@ public class RegionScopedV3TitusClient implements TitusClient {
   private Map<String, List<com.netflix.titus.grpc.protogen.Task>> getTasks(List<String> jobIds, boolean includeDoneJobs) {
     List<com.netflix.titus.grpc.protogen.Task> tasks = new ArrayList<>();
     TaskQueryResult taskResults;
-    int currentTaskPage = 0;
+    String cursor = "";
+    boolean hasMore;
     do {
+      Page.Builder taskPage = Page.newBuilder().setPageSize(100);
+      if (!cursor.isEmpty()) {
+        taskPage.setCursor(cursor);
+      }
       TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
-      taskQueryBuilder.setPage(Page.newBuilder().setPageNumber(currentTaskPage).setPageSize(100));
+      taskQueryBuilder.setPage(taskPage);
       taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
       String filterByStates = "Accepted,Launched,StartInitiated,Started";
       if (includeDoneJobs) {
@@ -257,8 +266,9 @@ public class RegionScopedV3TitusClient implements TitusClient {
         taskQueryBuilder.build()
       );
       tasks.addAll(taskResults.getItemsList());
-      currentTaskPage++;
-    } while (taskResults.getPagination().getHasMore());
+      cursor = taskResults.getPagination().getCursor();
+      hasMore = taskResults.getPagination().getHasMore();
+    } while (hasMore);
     return tasks.stream().collect(Collectors.groupingBy(task -> task.getJobId()));
   }
 
