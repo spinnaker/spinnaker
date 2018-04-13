@@ -150,6 +150,8 @@
  * [**hal config provider aws account edit**](#hal-config-provider-aws-account-edit)
  * [**hal config provider aws account get**](#hal-config-provider-aws-account-get)
  * [**hal config provider aws account list**](#hal-config-provider-aws-account-list)
+ * [**hal config provider aws bakery**](#hal-config-provider-aws-bakery)
+ * [**hal config provider aws bakery edit**](#hal-config-provider-aws-bakery-edit)
  * [**hal config provider aws disable**](#hal-config-provider-aws-disable)
  * [**hal config provider aws edit**](#hal-config-provider-aws-edit)
  * [**hal config provider aws enable**](#hal-config-provider-aws-enable)
@@ -2784,6 +2786,7 @@ hal config provider aws [parameters] [subcommands]
 
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the aws provider's account
+ * `bakery`: Manage and view Spinnaker configuration for the aws provider's image bakery configuration.
  * `disable`: Set the aws provider as disabled
  * `edit`: Set provider-wide properties for the AWS provider
  * `enable`: Set the aws provider as enabled
@@ -2922,6 +2925,45 @@ hal config provider aws account list [parameters]
 
 
 ---
+## hal config provider aws bakery
+
+Manage and view Spinnaker configuration for the aws provider's image bakery configuration.
+
+#### Usage
+```
+hal config provider aws bakery [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `edit`: Edit the aws provider's bakery default options.
+
+---
+## hal config provider aws bakery edit
+
+Edit the aws provider's bakery default options.
+
+#### Usage
+```
+hal config provider aws bakery edit [parameters]
+```
+
+#### Parameters
+ * `--aws-access-key`: The default access key used to communicate with AWS.
+ * `--aws-associate-public-ip-address`: If using a non-default VPC, public IP addresses are not provided by default. If this is enabled, your new instance will get a Public IP.
+ * `--aws-secret-key`: (*Sensitive data* - user will be prompted on standard input) The secret key used to communicate with AWS.
+ * `--aws-subnet-id`: If using VPC, the default ID of the subnet, such as subnet-12345def, where Packer will launch the EC2 instance. This field is required if you are using a non-default VPC.
+ * `--aws-vpc-id`: If launching into a VPC subnet, Packer needs the VPC ID in order to create a temporary security group within the VPC. Requires subnet_id to be set. If this default value is left blank, Packer will try to get the VPC ID from the subnet_id.
+ * `--default-virtualization-type`: The default type of virtualization for the AMI you are building. This option must match the supported virtualization type of source_ami. Can be pv or hvm.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
+
+
+---
 ## hal config provider aws disable
 
 Set the aws provider as disabled
@@ -2947,10 +2989,10 @@ hal config provider aws edit [parameters]
 ```
 
 #### Parameters
- * `--access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
+ * `--access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default. Note that if you are baking AMI's via Rosco, you may also need to set the access key on the AWS bakery default options.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
+ * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.. Note that if you are baking AMI's via Rosco, you may also need to set the secret key on the AWS bakery default options.
 
 
 ---
@@ -4063,6 +4105,7 @@ hal config provider google bakery edit [parameters]
  * `--network`: Set the default network your images will be baked in.
  * `--network-project-id`: Set the default project id for the network and subnet to use for the VM baking your image.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
  * `--use-internal-ip`: Use the internal rather than external IP of the VM baking your image.
  * `--zone`: Set the default zone your images will be baked in.
 
@@ -4645,6 +4688,7 @@ hal config provider openstack bakery edit [parameters]
  * `--password`: (*Required*) Set the default password your images will be baked with.
  * `--project-name`: (*Required*) Set the default project name your images will be baked in.
  * `--security-groups`: (*Required*) Set the default security group your images will be baked in.
+ * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
  * `--username`: (*Required*) Set the default username your images will be baked with.
 
 

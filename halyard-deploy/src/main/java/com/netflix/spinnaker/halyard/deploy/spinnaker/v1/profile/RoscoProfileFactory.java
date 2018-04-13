@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
@@ -33,9 +34,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Component
 @Slf4j
@@ -49,30 +56,62 @@ public class RoscoProfileFactory extends SpringProfileFactory {
   ProfileRegistry profileRegistry;
 
   @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
+
+  @Autowired
   Yaml yamlParser;
 
   @Autowired
   ObjectMapper objectMapper;
 
-  protected Providers getImageProviders(String version) {
-    InputStream is;
-    try {
-      is = profileRegistry.readProfile(getArtifact().getName(), version, "images.yml");
+  protected Providers getImageProviders(String version, String deploymentName) {
+    Providers providers;
+
+    try (InputStream is = profileRegistry.readProfile(getArtifact().getName(), version, "images.yml")) {
+      Object obj = yamlParser.load(is);
+
+      providers = objectMapper.convertValue(obj, Providers.class);
     } catch (IOException e) {
       throw new HalException(Problem.Severity.FATAL, "Unable to read images.yml for rosco: " + e.getMessage(), e);
     }
 
-    Object obj = yamlParser.load(is);
-    return objectMapper.convertValue(obj, Providers.class);
+    File f = halconfigDirectoryStructure.getUserProfilePath(deploymentName).resolve("images-local.yml").toFile();
+    Providers localProviders = null;
+
+    if (f.exists()) {
+      // Need just the $PROVIDER.bakeryDefaults.baseImages list items to merge in with the content from rosco/halconfig/images.yml.
+      try (FileInputStream fis = new FileInputStream(f)) {
+        Object localObj = yamlParser.load(fis);
+
+        localProviders = objectMapper.convertValue(localObj, Providers.class);
+      } catch (IOException e) {
+        throw new HalException(Problem.Severity.FATAL, "Unable to read images-local.yml for rosco: " + e.getMessage(), e);
+      }
+    }
+
+    if (localProviders != null) {
+      augmentProvidersBaseImages(providers, localProviders);
+    }
+
+    return providers;
   }
 
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
+
     Providers providers = deploymentConfiguration.getProviders();
+    Providers otherProviders = getImageProviders(profile.getVersion(), deploymentConfiguration.getName());
 
-    Providers otherProviders = getImageProviders(profile.getVersion());
+    augmentProvidersBaseImages(providers, otherProviders);
 
+    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
+    profile.appendContents(yamlToString(providers))
+        .appendContents(profile.getBaseContents())
+        .setRequiredFiles(files);
+  }
+
+  private void augmentProvidersBaseImages(Providers providers, Providers otherProviders) {
     NodeIterator iterator = providers.getChildren();
     Provider child = (Provider) iterator.getNext();
     while (child != null) {
@@ -90,11 +129,5 @@ public class RoscoProfileFactory extends SpringProfileFactory {
 
       child = (Provider) iterator.getNext();
     }
-
-
-    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
-    profile.appendContents(yamlToString(providers))
-        .appendContents(profile.getBaseContents())
-        .setRequiredFiles(files);
   }
 }

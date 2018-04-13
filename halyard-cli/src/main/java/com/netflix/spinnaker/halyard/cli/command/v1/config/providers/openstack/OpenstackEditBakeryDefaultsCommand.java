@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.openstack;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.BakeryCommandProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackBakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.AbstractEditBakeryDefaultsCommand;
@@ -95,6 +96,12 @@ public class OpenstackEditBakeryDefaultsCommand extends AbstractEditBakeryDefaul
     )
     private Boolean insecure;
 
+    @Parameter(
+        names = "--template-file",
+        description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION
+    )
+    private String templateFile;
+
     @Override
     protected BakeryDefaults editBakeryDefaults(OpenstackBakeryDefaults bakeryDefaults) {
         bakeryDefaults.setAuthUrl(isSet(authUrl) ? authUrl : bakeryDefaults.getAuthUrl());
@@ -106,6 +113,7 @@ public class OpenstackEditBakeryDefaultsCommand extends AbstractEditBakeryDefaul
         bakeryDefaults.setUsername(isSet(username) ? username : bakeryDefaults.getUsername());
         bakeryDefaults.setPassword(isSet(password) ? password : bakeryDefaults.getPassword());
         bakeryDefaults.setInsecure(isSet(insecure) ? insecure : bakeryDefaults.getInsecure());
+        bakeryDefaults.setTemplateFile(isSet(templateFile) ? templateFile : bakeryDefaults.getTemplateFile());
 
         return bakeryDefaults;
     }

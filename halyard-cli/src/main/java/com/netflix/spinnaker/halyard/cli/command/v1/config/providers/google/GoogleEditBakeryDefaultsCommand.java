@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.AbstractEditBakeryDefaultsCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.BakeryCommandProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBakeryDefaults;
 
@@ -55,7 +56,13 @@ public class GoogleEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsC
       description = "Use the internal rather than external IP of the VM baking your image.",
       arity = 1
   )
-  private Boolean useInternalIp = null;
+  private Boolean useInternalIp;
+
+  @Parameter(
+      names = "--template-file",
+      description = BakeryCommandProperties.TEMPLATE_FILE_DESCRIPTION
+  )
+  private String templateFile;
 
   @Override
   protected BakeryDefaults editBakeryDefaults(GoogleBakeryDefaults bakeryDefaults) {
@@ -63,6 +70,7 @@ public class GoogleEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsC
     bakeryDefaults.setNetwork(isSet(network) ? network : bakeryDefaults.getNetwork());
     bakeryDefaults.setNetworkProjectId(isSet(networkProjectId) ? networkProjectId : bakeryDefaults.getNetworkProjectId());
     bakeryDefaults.setUseInternalIp(isSet(useInternalIp) ? useInternalIp : bakeryDefaults.isUseInternalIp());
+    bakeryDefaults.setTemplateFile(isSet(templateFile) ? templateFile : bakeryDefaults.getTemplateFile());
 
     return bakeryDefaults;
   }

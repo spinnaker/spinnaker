@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2018 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,54 +12,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Collections;
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class AwsProvider extends HasImageProvider<AwsAccount, AwsBakeryDefaults> implements Cloneable {
-  private String accessKeyId;
-  private String secretAccessKey;
-
-  private String defaultAssumeRole;
-  private String defaultKeyPairTemplate = "{{name}}-keypair";
-
-  private List<AwsRegion> defaultRegions = Collections.singletonList(new AwsRegion().setName("us-west-2"));
-  private AwsDefaults defaults = new AwsDefaults();
-
-  @Data
-  public static class AwsRegion {
-    String name;
-  }
-
-  @Data
-  public static class AwsDefaults {
-    String iamRole = "BaseIAMRole";
-  }
-
-  @Override
-  public ProviderType providerType() {
-    return ProviderType.AWS;
-  }
-
+public class AwsBakeryDefaults extends BakeryDefaults<AwsBaseImage> {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 
-  @Override
-  public AwsBakeryDefaults emptyBakeryDefaults() {
-    return new AwsBakeryDefaults();
-  }
+  private String awsAccessKey;
+  private String awsSecretKey;
+  private String awsSubnetId;
+  private String awsVpcId;
+  private Boolean awsAssociatePublicIpAddress;
+  private AwsBaseImage.AwsVirtualizationSettings.VmType defaultVirtualizationType;
 }

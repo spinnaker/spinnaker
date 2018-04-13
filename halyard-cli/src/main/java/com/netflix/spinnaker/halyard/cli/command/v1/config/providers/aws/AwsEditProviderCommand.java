@@ -39,13 +39,15 @@ public class AwsEditProviderCommand extends AbstractEditProviderCommand<AwsAccou
 
   @Parameter(
       names = "--access-key-id",
-      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
+      description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION + ". Note that if you are baking AMI's via Rosco, you may "
+          + "also need to set the access key on the AWS bakery default options."
   )
   private String accessKeyId;
 
   @Parameter(
       names = "--secret-access-key",
-      description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
+      description = AwsCommandProperties.SECRET_KEY_DESCRIPTION + ". Note that if you are baking AMI's via Rosco, you may "
+          + "also need to set the secret key on the AWS bakery default options.",
       password = true
   )
   private String secretAccessKey;
