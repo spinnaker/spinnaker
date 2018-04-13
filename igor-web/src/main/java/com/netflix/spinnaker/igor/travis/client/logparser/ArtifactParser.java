@@ -35,7 +35,7 @@ public class ArtifactParser {
 
     private static final List<String> DEFAULT_REGEXES = Collections.unmodifiableList(Arrays.asList(
         "Uploading artifact: https?:\\/\\/.+\\/(.+\\.(deb|rpm)).*$",
-        "Successfully pushed (.+\\\\.(deb|rpm)) to .*"));
+        "Successfully pushed (.+\\.(deb|rpm)) to .*"));
 
     /**
      * Parse the build log using the given regular expressions.  If they are

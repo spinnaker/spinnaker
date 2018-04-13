@@ -61,8 +61,11 @@ class ArtifactParserTest extends Specification {
 
     @Unroll
     def "get single deb or rpm from log using default regexes"() {
-        expect:
+        when:
         List<GenericArtifact> artifacts = ArtifactParser.getArtifactsFromLog(buildLog, Collections.emptyList())
+
+        then:
+        artifacts.first().fileName == packageName
 
         where:
         buildLog                     || packageName
