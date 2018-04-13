@@ -1,4 +1,4 @@
-<div class="form-horizontal" xmlns="http://www.w3.org/1999/html">
+<div class="form-horizontal clearfix" xmlns="http://www.w3.org/1999/html">
   <div class="alert alert-warning">
     <strong>Warning!</strong> This stage is under active development and is subject to change.
   </div>
@@ -37,4 +37,12 @@
                               expected-artifacts="ctrl.expectedArtifacts"
                               help-field-key="pipeline.config.bake.manifest.expectedArtifact">
   </expected-artifact-selector>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right">
+      Overrides
+    </div>
+    <div class="col-md-6">
+      <map-editor model="ctrl.$scope.stage.overrides" add-button-label="Add override"></map-editor>
+    </div>
+  </div>
 </div>
