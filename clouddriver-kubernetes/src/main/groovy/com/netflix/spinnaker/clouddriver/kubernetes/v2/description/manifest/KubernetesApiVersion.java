@@ -61,11 +61,13 @@ public class KubernetesApiVersion {
       return null;
     }
 
-    Optional<KubernetesApiVersion> versionOptional = values.stream()
-        .filter(v -> v.name.equalsIgnoreCase(name))
-        .findAny();
+    synchronized (values) {
+      Optional<KubernetesApiVersion> versionOptional = values.stream()
+          .filter(v -> v.name.equalsIgnoreCase(name))
+          .findAny();
 
-    // separate from the above chain to avoid concurrent modification of the values list
-    return versionOptional.orElseGet(() -> new KubernetesApiVersion(name));
+      // separate from the above chain to avoid concurrent modification of the values list
+      return versionOptional.orElseGet(() -> new KubernetesApiVersion(name));
+    }
   }
 }

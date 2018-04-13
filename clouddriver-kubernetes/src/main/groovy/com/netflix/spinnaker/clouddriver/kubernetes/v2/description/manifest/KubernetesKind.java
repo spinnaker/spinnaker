@@ -95,13 +95,15 @@ public class KubernetesKind {
     if (StringUtils.isEmpty(name)) {
       return null;
     }
-    
-    Optional<KubernetesKind> kindOptional = values.stream()
-        .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
-        .findAny();
 
-    // separate from the above chain to avoid concurrent modification of the values list
-    return kindOptional.orElseGet(() -> new KubernetesKind(name));
+    synchronized (values) {
+      Optional<KubernetesKind> kindOptional = values.stream()
+          .filter(v -> v.name.equalsIgnoreCase(name) || (v.alias != null && v.alias.equalsIgnoreCase(name)))
+          .findAny();
+
+      // separate from the above chain to avoid concurrent modification of the values list
+      return kindOptional.orElseGet(() -> new KubernetesKind(name));
+    }
   }
 
   public static List<KubernetesKind> fromStringList(List<String> names) {
