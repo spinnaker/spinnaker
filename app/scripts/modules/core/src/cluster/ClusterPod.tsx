@@ -2,7 +2,7 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 import { orderBy } from 'lodash';
 
-import { ReactInjector } from 'core/reactShims';
+import { ClusterState } from 'core/state';
 import { ServerGroup } from 'core/serverGroup/ServerGroup';
 import { Application } from 'core/application';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
@@ -34,11 +34,10 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
   }
 
   public close(): void {
-    const { clusterFilterModel } = ReactInjector;
     const { parentHeading, grouping, application } = this.props;
 
-    delete clusterFilterModel.asFilterModel.sortFilter.clusters[`${parentHeading}:${grouping.heading}`];
-    clusterFilterModel.asFilterModel.applyParamsToUrl();
+    delete ClusterState.filterModel.asFilterModel.sortFilter.clusters[`${parentHeading}:${grouping.heading}`];
+    ClusterState.filterModel.asFilterModel.applyParamsToUrl();
     application.getDataSource('serverGroups').refresh();
   }
 

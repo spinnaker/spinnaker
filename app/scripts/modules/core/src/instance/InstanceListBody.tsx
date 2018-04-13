@@ -7,6 +7,7 @@ import { IServerGroup, IInstance, ILoadBalancerHealth } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { timestamp } from 'core/utils/timeFormatters';
 import { Tooltip } from 'core/presentation';
+import { ClusterState } from 'core/state';
 
 export interface IInstanceListBodyProps {
   serverGroup: IServerGroup;
@@ -23,7 +24,7 @@ export interface IInstanceListBodyState {
 
 @BindAll()
 export class InstanceListBody extends React.Component<IInstanceListBodyProps, IInstanceListBodyState> {
-  private clusterFilterModel = ReactInjector.clusterFilterModel.asFilterModel;
+  private clusterFilterModel = ClusterState.filterModel.asFilterModel;
   private MultiselectModel = ReactInjector.MultiselectModel;
   private $uiRouter = ReactInjector.$uiRouter;
   private $state = ReactInjector.$state;

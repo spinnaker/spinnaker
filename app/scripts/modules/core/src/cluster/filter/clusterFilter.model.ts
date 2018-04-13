@@ -1,10 +1,9 @@
-import { IAngularEvent, IRootScopeService, module } from 'angular';
 import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
+import { $rootScope } from 'ngimport';
 
 import { FilterModelService, IFilterConfig, IFilterModel } from 'core/filterModel';
 import { UrlParser } from 'core/navigation/urlParser';
 
-export const CLUSTER_FILTER_MODEL = 'cluster.filter.model';
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'account', param: 'acct', type: 'trueKeyObject' },
@@ -33,8 +32,7 @@ export class ClusterFilterModel {
   private mostRecentParams: any;
   public asFilterModel: IFilterModel;
 
-  constructor(private $rootScope: IRootScopeService) {
-    'ngInject';
+  constructor() {
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     this.bindEvents();
     this.asFilterModel.activate();
@@ -76,7 +74,7 @@ export class ClusterFilterModel {
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
     // come back to this application's clusters view, we'll get whatever that search was.
-    this.$rootScope.$on('$locationChangeStart', (_event: IAngularEvent, toUrl: string, fromUrl: string) => {
+    $rootScope.$on('$locationChangeStart', (_event, toUrl: string, fromUrl: string) => {
       const [oldBase, oldQuery] = fromUrl.split('?'),
         [newBase, newQuery] = toUrl.split('?');
 
@@ -87,10 +85,10 @@ export class ClusterFilterModel {
       }
     });
 
-    this.$rootScope.$on(
+    $rootScope.$on(
       '$stateChangeStart',
       (
-        _event: IAngularEvent,
+        _event,
         toState: Ng1StateDeclaration,
         _toParams: StateParams,
         fromState: Ng1StateDeclaration,
@@ -102,9 +100,9 @@ export class ClusterFilterModel {
       },
     );
 
-    this.$rootScope.$on(
+    $rootScope.$on(
       '$stateChangeSuccess',
-      (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+      (_event, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
         if (this.movingToClusterState(toState) && this.isClusterStateOrChild(fromState.name)) {
           this.asFilterModel.applyParamsToUrl();
           return;
@@ -121,5 +119,3 @@ export class ClusterFilterModel {
     );
   }
 }
-
-module(CLUSTER_FILTER_MODEL, []).service('clusterFilterModel', ClusterFilterModel);

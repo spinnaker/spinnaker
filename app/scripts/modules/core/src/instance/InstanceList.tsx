@@ -7,6 +7,7 @@ import { InstanceListBody } from 'core/instance/InstanceListBody';
 import { SortToggle } from 'core/presentation/sortToggle/SortToggle';
 import { ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
+import { ClusterState } from 'core/state';
 
 export interface IInstanceListProps {
   hasDiscovery: boolean;
@@ -41,7 +42,7 @@ interface IColumnWidths {
 @BindAll()
 export class InstanceList extends React.Component<IInstanceListProps, IInstanceListState> {
   private instanceGroup: any;
-  private clusterFilterModel = ReactInjector.clusterFilterModel.asFilterModel;
+  private clusterFilterModel = ClusterState.filterModel.asFilterModel;
   private MultiselectModel = ReactInjector.MultiselectModel;
   private $state = ReactInjector.$state;
   private $uiRouter = ReactInjector.$uiRouter;

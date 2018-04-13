@@ -6,19 +6,14 @@ import { Application } from 'core/application/application.model';
 import { NameUtils } from 'core/naming';
 import { FilterModelService } from 'core/filterModel';
 import { ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
+import { ClusterState } from 'core/state';
 
-import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './filter/clusterFilter.model';
 import { taskMatcher } from './task.matcher';
 
 export class ClusterService {
   public static ON_DEMAND_THRESHOLD = 350;
 
-  constructor(
-    private $q: IQService,
-    private API: Api,
-    private serverGroupTransformer: any,
-    private clusterFilterModel: ClusterFilterModel,
-  ) {
+  constructor(private $q: IQService, private API: Api, private serverGroupTransformer: any) {
     'ngInject';
   }
 
@@ -34,7 +29,9 @@ export class ClusterService {
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
         serverGroupLoader.withParams({
-          clusters: FilterModelService.getCheckValues(this.clusterFilterModel.asFilterModel.sortFilter.clusters).join(),
+          clusters: FilterModelService.getCheckValues(
+            ClusterState.filterModel.asFilterModel.sortFilter.clusters,
+          ).join(),
         });
       } else {
         this.reconcileClusterDeepLink();
@@ -53,7 +50,7 @@ export class ClusterService {
   // to the normal, filterable structure
   private reconcileClusterDeepLink() {
     const selectedClusters: string[] = FilterModelService.getCheckValues(
-      this.clusterFilterModel.asFilterModel.sortFilter.clusters,
+      ClusterState.filterModel.asFilterModel.sortFilter.clusters,
     );
     if (selectedClusters && selectedClusters.length) {
       const clusterNames: string[] = [];
@@ -66,10 +63,10 @@ export class ClusterService {
         }
       });
       if (clusterNames.length) {
-        accountNames.forEach(account => (this.clusterFilterModel.asFilterModel.sortFilter.account[account] = true));
-        this.clusterFilterModel.asFilterModel.sortFilter.filter = `clusters:${clusterNames.join()}`;
-        this.clusterFilterModel.asFilterModel.sortFilter.clusters = {};
-        this.clusterFilterModel.asFilterModel.applyParamsToUrl();
+        accountNames.forEach(account => (ClusterState.filterModel.asFilterModel.sortFilter.account[account] = true));
+        ClusterState.filterModel.asFilterModel.sortFilter.filter = `clusters:${clusterNames.join()}`;
+        ClusterState.filterModel.asFilterModel.sortFilter.clusters = {};
+        ClusterState.filterModel.asFilterModel.applyParamsToUrl();
       }
     }
   }
@@ -287,8 +284,7 @@ export class ClusterService {
 }
 
 export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
-module(CLUSTER_SERVICE, [
-  API_SERVICE,
-  CLUSTER_FILTER_MODEL,
-  require('../serverGroup/serverGroup.transformer.js').name,
-]).service('clusterService', ClusterService);
+module(CLUSTER_SERVICE, [API_SERVICE, require('../serverGroup/serverGroup.transformer.js').name]).service(
+  'clusterService',
+  ClusterService,
+);

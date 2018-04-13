@@ -1,5 +1,6 @@
 import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
+import { ClusterState } from 'core/state';
 
 describe('Controller: MultipleServerGroups', function() {
   var controller;
@@ -15,17 +16,10 @@ describe('Controller: MultipleServerGroups', function() {
   );
 
   beforeEach(
-    window.inject(function(
-      $rootScope,
-      $controller,
-      _$q_,
-      _MultiselectModel_,
-      clusterFilterModel,
-      applicationModelBuilder,
-    ) {
+    window.inject(function($rootScope, $controller, _$q_, _MultiselectModel_, applicationModelBuilder) {
       scope = $rootScope.$new();
       MultiselectModel = _MultiselectModel_;
-      clusterFilterModel.sortFilter.multiselect = true;
+      ClusterState.filterModel.sortFilter.multiselect = true;
 
       this.createController = function(serverGroups) {
         let application = applicationModelBuilder.createApplication('app', { key: 'serverGroups', lazy: true });

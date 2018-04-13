@@ -1,18 +1,20 @@
 import { IHttpBackendService, mock } from 'angular';
 import { find } from 'lodash';
 
-import { ClusterFilterModel } from './filter/clusterFilter.model';
-import { CLUSTER_SERVICE, ClusterService } from './cluster.service';
+import * as State from 'core/state';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { IInstanceCounts, IServerGroup } from 'core/domain';
 import { Application } from 'core/application/application.model';
+
+import { CLUSTER_SERVICE, ClusterService } from './cluster.service';
 import { Api } from '../api/api.service';
+
+const ClusterState = State.ClusterState;
 
 describe('Service: Cluster', function() {
   beforeEach(mock.module(CLUSTER_SERVICE, APPLICATION_MODEL_BUILDER));
 
   let clusterService: ClusterService;
-  let clusterFilterModel: ClusterFilterModel;
   let $http: IHttpBackendService;
   let API: Api;
   let application: Application;
@@ -26,19 +28,21 @@ describe('Service: Cluster', function() {
     };
   }
 
+  beforeEach(() => {
+    State.initialize();
+  });
+
   beforeEach(
     mock.inject(
       (
         $httpBackend: IHttpBackendService,
         _API_: Api,
-        _clusterFilterModel_: ClusterFilterModel,
         _clusterService_: ClusterService,
         applicationModelBuilder: ApplicationModelBuilder,
       ) => {
         $http = $httpBackend;
         API = _API_;
         clusterService = _clusterService_;
-        clusterFilterModel = _clusterFilterModel_;
 
         application = applicationModelBuilder.createApplication(
           'app',
@@ -81,17 +85,17 @@ describe('Service: Cluster', function() {
     });
 
     it('converts clusters parameter to q and account params when there are fewer than 251 clusters', () => {
-      spyOn(clusterFilterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
+      spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       const clusters = Array(250);
-      clusterFilterModel.asFilterModel.sortFilter.clusters = { 'test:myapp': true };
+      ClusterState.filterModel.asFilterModel.sortFilter.clusters = { 'test:myapp': true };
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, { test: clusters });
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: IServerGroup[] = null;
       clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
       $http.flush();
       expect(application.serverGroups.fetchOnDemand).toBe(false);
-      expect(clusterFilterModel.asFilterModel.sortFilter.filter).toEqual('clusters:myapp');
-      expect(clusterFilterModel.asFilterModel.sortFilter.account.test).toBe(true);
+      expect(ClusterState.filterModel.asFilterModel.sortFilter.filter).toEqual('clusters:myapp');
+      expect(ClusterState.filterModel.asFilterModel.sortFilter.account.test).toBe(true);
     });
   });
 

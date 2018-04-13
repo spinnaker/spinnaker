@@ -5,19 +5,19 @@ const angular = require('angular');
 import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
 import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import { CLUSTER_FILTER } from './filter/clusterFilter.component';
 import { INSIGHT_NGMODULE } from 'core/insight/insight.module';
-import { CLUSTER_FILTER_MODEL } from '../cluster/filter/clusterFilter.model';
-import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
+import { ClusterState } from 'core/state';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
+
+import { CLUSTER_FILTER } from './filter/clusterFilter.component';
+import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 
 import './rollups.less';
 
 module.exports = angular
   .module('spinnaker.core.cluster.allClusters.controller', [
     CLUSTER_FILTER_SERVICE,
-    CLUSTER_FILTER_MODEL,
     require('../cluster/filter/multiselect.model').name,
     CLUSTER_FILTER,
     require('../account/account.module').name,
@@ -37,7 +37,6 @@ module.exports = angular
     $timeout,
     providerSelectionService,
     clusterFilterService,
-    clusterFilterModel,
     MultiselectModel,
     insightFilterStateModel,
     serverGroupCommandBuilder,
@@ -50,12 +49,12 @@ module.exports = angular
         clusterGroupsUpdated(),
       );
       this.application = app;
-      clusterFilterModel.activate();
+      ClusterState.filterModel.activate();
       this.initialized = false;
       this.dataSource = app.getDataSource('serverGroups');
       this.application = app;
 
-      $scope.sortFilter = clusterFilterModel.sortFilter;
+      $scope.sortFilter = ClusterState.filterModel.sortFilter;
 
       this.createLabel = 'Create Server Group';
 
@@ -94,13 +93,13 @@ module.exports = angular
 
     let clusterGroupsUpdated = () => {
       $scope.$applyAsync(() => {
-        $scope.groups = clusterFilterModel.groups;
-        $scope.tags = clusterFilterModel.tags;
+        $scope.groups = ClusterState.filterModel.groups;
+        $scope.tags = ClusterState.filterModel.tags;
       });
     };
 
     this.toggleMultiselect = () => {
-      clusterFilterModel.sortFilter.multiselect = !clusterFilterModel.sortFilter.multiselect;
+      ClusterState.filterModel.sortFilter.multiselect = !ClusterState.filterModel.sortFilter.multiselect;
       MultiselectModel.syncNavigation();
       updateClusterGroups();
     };

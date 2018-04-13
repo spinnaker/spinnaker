@@ -1,17 +1,16 @@
 import { mock } from 'angular';
 import { StateService } from '@uirouter/core';
 
-import { ClusterFilterModel } from './clusterFilter.model';
+import { ClusterState } from 'core/state';
 
 describe('Multiselect Model', () => {
-  let MultiselectModel: any, clusterFilterModel: ClusterFilterModel, $state: StateService;
+  let MultiselectModel: any, $state: StateService;
 
   beforeEach(mock.module(require('./multiselect.model').name));
 
   beforeEach(
-    mock.inject((_MultiselectModel_: any, _$state_: StateService, _clusterFilterModel_: ClusterFilterModel) => {
+    mock.inject((_MultiselectModel_: any, _$state_: StateService) => {
       MultiselectModel = _MultiselectModel_;
-      clusterFilterModel = _clusterFilterModel_;
       $state = _$state_;
     }),
   );
@@ -19,7 +18,7 @@ describe('Multiselect Model', () => {
   describe('navigation management', () => {
     let result: any, currentStates: any[], currentParams: any;
     beforeEach(() => {
-      clusterFilterModel.asFilterModel.sortFilter.multiselect = true;
+      ClusterState.filterModel.asFilterModel.sortFilter.multiselect = true;
       result = null;
       currentStates = [];
       currentParams = {};
@@ -132,14 +131,14 @@ describe('Multiselect Model', () => {
       });
 
       it('navigates to details child view when multiselect is not enabled and not in clusters child view', () => {
-        clusterFilterModel.asFilterModel.sortFilter.multiselect = false;
+        ClusterState.filterModel.asFilterModel.sortFilter.multiselect = false;
         currentStates.push('.clusters');
         MultiselectModel.toggleServerGroup(serverGroup);
         expect(result).toBe('.serverGroup');
       });
 
       it('navigates to details sibling view when multiselect is not enabled and in clusters child view', () => {
-        clusterFilterModel.asFilterModel.sortFilter.multiselect = false;
+        ClusterState.filterModel.asFilterModel.sortFilter.multiselect = false;
         currentStates = ['**.clusters.*'];
         MultiselectModel.toggleServerGroup(serverGroup);
         expect(result).toBe('^.serverGroup');

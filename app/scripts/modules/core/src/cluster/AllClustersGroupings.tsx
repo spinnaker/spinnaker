@@ -12,6 +12,7 @@ import { ClusterPod } from 'core/cluster/ClusterPod';
 import { IClusterGroup } from './filter/clusterFilter.service';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ISortFilter } from 'core/filterModel';
+import { ClusterState } from 'core/state';
 
 export interface IAllClustersGroupingsProps {
   app: Application;
@@ -28,7 +29,7 @@ export interface IAllClustersGroupingsState {
 @BindAll()
 export class AllClustersGroupings extends React.Component<IAllClustersGroupingsProps, IAllClustersGroupingsState> {
   private clusterFilterService = ReactInjector.clusterFilterService;
-  private clusterFilterModel = ReactInjector.clusterFilterModel;
+  private clusterFilterModel = ClusterState.filterModel;
 
   private groupsSubscription: Subscription;
   private unwatchSortFilter: Function;

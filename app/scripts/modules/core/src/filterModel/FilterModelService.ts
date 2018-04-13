@@ -134,6 +134,7 @@ export class FilterModelService {
       const application = toParams.application;
       const savedState = filterModel.savedState[application];
       if (savedState) {
+        Object.keys(ReactInjector.$stateParams).forEach(k => delete ReactInjector.$stateParams[k]);
         Object.assign(ReactInjector.$stateParams, cloneDeep(savedState.params));
         const currentParams = $location.search();
         // clear any shared params between states, e.g. previous state set 'acct', which this state also uses,
