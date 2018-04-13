@@ -61,6 +61,8 @@ import { SUBNET_MODULE } from './subnet/subnet.module';
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 
+import * as State from './state';
+
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -139,4 +141,7 @@ module(CORE_MODULE, [
 
   require('./validation/validation.module').name,
   STYLEGUIDE_MODULE,
-]);
+]).run(() => {
+  // initialize all the stateful services
+  State.initialize();
+});

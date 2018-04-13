@@ -1,5 +1,5 @@
-import { IAngularEvent, IRootScopeService, module } from 'angular';
 import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
+import { $rootScope } from 'ngimport';
 
 import { ILoadBalancerGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
@@ -31,8 +31,7 @@ export class LoadBalancerFilterModel {
   private mostRecentParams: any;
   public asFilterModel: ILoadBalancerFilterModel;
 
-  constructor(private $rootScope: IRootScopeService) {
-    'ngInject';
+  constructor() {
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     this.bindEvents();
     this.asFilterModel.activate();
@@ -74,7 +73,7 @@ export class LoadBalancerFilterModel {
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
     // come back to this application, we'll get whatever that search was.
-    this.$rootScope.$on('$locationChangeStart', (_event: IAngularEvent, toUrl: string, fromUrl: string) => {
+    $rootScope.$on('$locationChangeStart', (_event, toUrl: string, fromUrl: string) => {
       const [oldBase, oldQuery] = fromUrl.split('?'),
         [newBase, newQuery] = toUrl.split('?');
 
@@ -85,10 +84,10 @@ export class LoadBalancerFilterModel {
       }
     });
 
-    this.$rootScope.$on(
+    $rootScope.$on(
       '$stateChangeStart',
       (
-        _event: IAngularEvent,
+        _event,
         toState: Ng1StateDeclaration,
         _toParams: StateParams,
         fromState: Ng1StateDeclaration,
@@ -100,9 +99,9 @@ export class LoadBalancerFilterModel {
       },
     );
 
-    this.$rootScope.$on(
+    $rootScope.$on(
       '$stateChangeSuccess',
-      (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+      (_event, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
         if (this.isLoadBalancerStateOrChild(toState.name) && this.isLoadBalancerStateOrChild(fromState.name)) {
           this.asFilterModel.applyParamsToUrl();
           return;
@@ -120,6 +119,3 @@ export class LoadBalancerFilterModel {
     );
   }
 }
-
-export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
-module(LOAD_BALANCER_FILTER_MODEL, []).service('loadBalancerFilterModel', LoadBalancerFilterModel);

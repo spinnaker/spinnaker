@@ -3,7 +3,7 @@ import { StateParams } from '@uirouter/angularjs';
 
 import { INestedState, StateConfigProvider } from 'core/navigation';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
-import { filterModelConfig } from 'core/loadBalancer/filter/loadBalancerFilter.model';
+import { filterModelConfig } from 'core/loadBalancer/filter/LoadBalancerFilterModel';
 import { LoadBalancers } from 'core/loadBalancer/LoadBalancers';
 import { SKIN_SERVICE } from 'core/cloudProvider';
 

@@ -4,9 +4,9 @@ import { Debounce, BindAll } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalancerFilter.model';
+import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
+import { LoadBalancerState } from 'core/state';
 
 @BindAll()
 export class LoadBalancerFilterService {
@@ -16,7 +16,7 @@ export class LoadBalancerFilterService {
   private getCheckValues: (object: any) => string[];
   private lastApplication: Application;
 
-  constructor(private loadBalancerFilterModel: LoadBalancerFilterModel, private $log: ILogService) {
+  constructor(private $log: ILogService) {
     'ngInject';
     this.isFilterable = FilterModelService.isFilterable;
     this.getCheckValues = FilterModelService.getCheckValues;
@@ -35,7 +35,7 @@ export class LoadBalancerFilterService {
   }
 
   private checkSearchTextFilter(loadBalancer: ILoadBalancer): boolean {
-    const filter = this.loadBalancerFilterModel.asFilterModel.sortFilter.filter;
+    const filter = LoadBalancerState.filterModel.asFilterModel.sortFilter.filter;
     if (!filter) {
       return true;
     }
@@ -53,12 +53,12 @@ export class LoadBalancerFilterService {
   public filterLoadBalancersForDisplay(loadBalancers: ILoadBalancer[]): ILoadBalancer[] {
     return chain(loadBalancers)
       .filter(lb => this.checkSearchTextFilter(lb))
-      .filter(lb => FilterModelService.checkAccountFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkRegionFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkStackFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkDetailFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkStatusFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
-      .filter(lb => FilterModelService.checkProviderFilters(this.loadBalancerFilterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkAccountFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkRegionFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkStackFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkDetailFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkStatusFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
+      .filter(lb => FilterModelService.checkProviderFilters(LoadBalancerState.filterModel.asFilterModel)(lb))
       .filter(lb => this.instanceFilters(lb))
       .value();
   }
@@ -68,12 +68,12 @@ export class LoadBalancerFilterService {
   }
 
   private shouldFilterInstances(): boolean {
-    const sortFilter: ISortFilter = this.loadBalancerFilterModel.asFilterModel.sortFilter;
+    const sortFilter: ISortFilter = LoadBalancerState.filterModel.asFilterModel.sortFilter;
     return this.isFilterable(sortFilter.status) || this.isFilterable(sortFilter.availabilityZone);
   }
 
   public shouldShowInstance(instance: IInstance): boolean {
-    const sortFilter: ISortFilter = this.loadBalancerFilterModel.asFilterModel.sortFilter;
+    const sortFilter: ISortFilter = LoadBalancerState.filterModel.asFilterModel.sortFilter;
     if (this.isFilterable(sortFilter.availabilityZone)) {
       const checkedAvailabilityZones = this.getCheckValues(sortFilter.availabilityZone);
       if (!checkedAvailabilityZones.includes(instance.zone)) {
@@ -168,10 +168,10 @@ export class LoadBalancerFilterService {
   }
 
   public sortGroupsByHeading(groups: ILoadBalancerGroup[]): void {
-    this.diffSubgroups(this.loadBalancerFilterModel.asFilterModel.groups, groups);
+    this.diffSubgroups(LoadBalancerState.filterModel.asFilterModel.groups, groups);
 
     // sort groups in place so Angular doesn't try to update the world
-    this.loadBalancerFilterModel.asFilterModel.groups.sort((a, b) => {
+    LoadBalancerState.filterModel.asFilterModel.groups.sort((a, b) => {
       if (a.heading < b.heading) {
         return -1;
       }
@@ -183,8 +183,8 @@ export class LoadBalancerFilterService {
   }
 
   public clearFilters(): void {
-    this.loadBalancerFilterModel.asFilterModel.clearFilters();
-    this.loadBalancerFilterModel.asFilterModel.applyParamsToUrl();
+    LoadBalancerState.filterModel.asFilterModel.clearFilters();
+    LoadBalancerState.filterModel.asFilterModel.applyParamsToUrl();
   }
 
   private filterServerGroups(loadBalancer: ILoadBalancer): IServerGroup[] {
@@ -251,15 +251,14 @@ export class LoadBalancerFilterService {
     });
 
     this.sortGroupsByHeading(groups);
-    this.loadBalancerFilterModel.asFilterModel.addTags();
+    LoadBalancerState.filterModel.asFilterModel.addTags();
     this.lastApplication = application;
     this.groupsUpdatedStream.next(groups);
   }
 }
 
 export const LOAD_BALANCER_FILTER_SERVICE = 'spinnaker.core.loadBalancer.filter.service';
-module(LOAD_BALANCER_FILTER_SERVICE, [LOAD_BALANCER_FILTER_MODEL]).factory(
+module(LOAD_BALANCER_FILTER_SERVICE, []).factory(
   'loadBalancerFilterService',
-  (loadBalancerFilterModel: LoadBalancerFilterModel, $log: ILogService) =>
-    new LoadBalancerFilterService(loadBalancerFilterModel, $log),
+  ($log: ILogService) => new LoadBalancerFilterService($log),
 );

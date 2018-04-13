@@ -6,6 +6,7 @@ import { Application } from 'core/application/application.model';
 import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
 import { ISortFilter } from 'core/filterModel/IFilterModel';
 import { ILoadBalancerGroup } from 'core/domain';
+import { LoadBalancerState } from 'core/state';
 import { LoadBalancerPod } from './LoadBalancerPod';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
@@ -42,11 +43,11 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   public componentDidMount(): void {
-    const { loadBalancerFilterModel, loadBalancerFilterService } = ReactInjector;
+    const { loadBalancerFilterService } = ReactInjector;
     const { app } = this.props;
 
     this.groupsUpdatedListener = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
-    loadBalancerFilterModel.asFilterModel.activate();
+    LoadBalancerState.filterModel.asFilterModel.activate();
     this.loadBalancersRefreshUnsubscribe = app
       .getDataSource('loadBalancers')
       .onRefresh(null, () => this.updateLoadBalancerGroups());
@@ -60,17 +61,16 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   private groupsUpdated(): void {
-    const { loadBalancerFilterModel } = ReactInjector;
     this.setState({
-      groups: loadBalancerFilterModel.asFilterModel.groups,
-      tags: loadBalancerFilterModel.asFilterModel.tags,
+      groups: LoadBalancerState.filterModel.asFilterModel.groups,
+      tags: LoadBalancerState.filterModel.asFilterModel.tags,
     });
   }
 
   @Debounce(200)
   private updateLoadBalancerGroups(): void {
-    const { loadBalancerFilterModel, loadBalancerFilterService } = ReactInjector;
-    loadBalancerFilterModel.asFilterModel.applyParamsToUrl();
+    const { loadBalancerFilterService } = ReactInjector;
+    LoadBalancerState.filterModel.asFilterModel.applyParamsToUrl();
     loadBalancerFilterService.updateLoadBalancerGroups(this.props.app);
     this.groupsUpdated();
 
@@ -103,7 +103,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name: keyof ISortFilter = target.name;
 
-    ReactInjector.loadBalancerFilterModel.asFilterModel.sortFilter[name] = value;
+    LoadBalancerState.filterModel.asFilterModel.sortFilter[name] = value;
 
     const state: any = {}; // Use any type since we can't infer the property name
     state[name] = value;

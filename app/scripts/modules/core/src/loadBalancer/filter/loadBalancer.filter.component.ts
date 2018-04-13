@@ -3,7 +3,8 @@ import { IScope, module } from 'angular';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalancerFilter.model';
+import { LoadBalancerState } from 'core/state';
+
 import { LOAD_BALANCER_FILTER_SERVICE } from './loadBalancer.filter.service';
 import { IFilterTag } from '../../filterModel/FilterTags';
 
@@ -11,7 +12,6 @@ export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controll
 
 const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
   LOAD_BALANCER_FILTER_SERVICE,
-  LOAD_BALANCER_FILTER_MODEL,
   require('../../filterModel/dependentFilter/dependentFilter.service').name,
   require('./loadBalancerDependentFilterHelper.service').name,
 ]);
@@ -32,18 +32,17 @@ class LoadBalancerFilterCtrl {
   constructor(
     private $scope: IScope,
     private loadBalancerFilterService: any,
-    private loadBalancerFilterModel: LoadBalancerFilterModel,
     private $rootScope: IScope,
     private loadBalancerDependentFilterHelper: any,
     private dependentFilterService: any,
   ) {
     'ngInject';
-    this.sortFilter = loadBalancerFilterModel.asFilterModel.sortFilter;
+    this.sortFilter = LoadBalancerState.filterModel.asFilterModel.sortFilter;
   }
 
   public $onInit(): void {
-    const { loadBalancerFilterModel, loadBalancerFilterService, app, $scope, $rootScope } = this;
-    const filterModel = loadBalancerFilterModel.asFilterModel;
+    const { loadBalancerFilterService, app, $scope, $rootScope } = this;
+    const filterModel = LoadBalancerState.filterModel.asFilterModel;
 
     this.tags = filterModel.tags;
     this.groupsUpdatedSubscription = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => {
@@ -69,16 +68,10 @@ class LoadBalancerFilterCtrl {
   }
 
   public updateLoadBalancerGroups(applyParamsToUrl = true): void {
-    const {
-      dependentFilterService,
-      loadBalancerFilterModel,
-      loadBalancerFilterService,
-      loadBalancerDependentFilterHelper,
-      app,
-    } = this;
+    const { dependentFilterService, loadBalancerFilterService, loadBalancerDependentFilterHelper, app } = this;
 
     const { availabilityZone, region, account } = dependentFilterService.digestDependentFilters({
-      sortFilter: loadBalancerFilterModel.asFilterModel.sortFilter,
+      sortFilter: LoadBalancerState.filterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone'],
       pool: loadBalancerDependentFilterHelper.poolBuilder(app.loadBalancers.data),
     });
@@ -88,7 +81,7 @@ class LoadBalancerFilterCtrl {
     this.availabilityZoneHeadings = availabilityZone;
 
     if (applyParamsToUrl) {
-      loadBalancerFilterModel.asFilterModel.applyParamsToUrl();
+      LoadBalancerState.filterModel.asFilterModel.applyParamsToUrl();
     }
     loadBalancerFilterService.updateLoadBalancerGroups(app);
   }
