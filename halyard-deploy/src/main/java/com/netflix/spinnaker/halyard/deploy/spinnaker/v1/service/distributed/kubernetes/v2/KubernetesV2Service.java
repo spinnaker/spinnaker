@@ -114,9 +114,12 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     env.putAll(settings.getEnv());
 
     List<String> volumes = configSources.stream()
-        .map(c -> {
+        .map(ConfigSource::getId)
+        .collect(Collectors.toSet())
+        .stream()
+        .map(id -> {
           TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/volume.yml");
-          volume.addBinding("name", c.getId());
+          volume.addBinding("name", id);
           return volume.toString();
         }).collect(Collectors.toList());
 
