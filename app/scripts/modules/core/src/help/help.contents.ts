@@ -263,6 +263,11 @@ module(HELP_CONTENTS, [])
         <p><b>Optional</b>: indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>
         <p>If you wish to destroy all server groups except the newly created one, select "Highlander" as the strategy.</p>
         <p><strong>Minimum value:</strong> 2</p>`,
+    'strategy.redblack.rollback': `
+      <p>Disable the new server group and ensure that the previous server group is restored to its original capacity.</p>
+      <p>The rollback <strong>will only be</strong> initiated if instances in the new server group fail to launch and become healthy.</p>
+      <p>Should an error occur disabling or destroying other server groups in the cluster, the new server group <strong>will not be</strong> rolled back.</p>
+    `,
     'strategy.rollingPush.relaunchAll': '<p>Incrementally terminates each instance in the server group, waiting for a new one to come up before terminating the next one.</p>',
     'strategy.rollingPush.totalRelaunches': '<p>Total number of instances to terminate and relaunch.</p>',
     'strategy.rollingPush.concurrentRelaunches': '<p>Number of instances to terminate and relaunch at a time.</p>',
