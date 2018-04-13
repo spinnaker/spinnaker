@@ -77,6 +77,7 @@ abstract public class Front50Service extends SpringService<Front50Service.Front5
   }
 
   protected Optional<Profile> generateAwsProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints, String spinnakerHome) {
+    String name = "aws/front50-credentials" + spinnakerHome.replace("/", "_");
     PersistentStore.PersistentStoreType type = deploymentConfiguration.getPersistentStorage().getPersistentStoreType();
     S3PersistentStore store = deploymentConfiguration.getPersistentStorage().getS3();
     if (type == PersistentStore.PersistentStoreType.S3
@@ -88,7 +89,7 @@ abstract public class Front50Service extends SpringService<Front50Service.Front5
           .setAccessKeyId(store.getAccessKeyId())
           .setSecretAccessKey(store.getSecretAccessKey())
           .build()
-          .getProfile("aws/front50-credentials", outputFile, deploymentConfiguration, endpoints));
+          .getProfile(name, outputFile, deploymentConfiguration, endpoints));
     } else {
       return Optional.empty();
     }

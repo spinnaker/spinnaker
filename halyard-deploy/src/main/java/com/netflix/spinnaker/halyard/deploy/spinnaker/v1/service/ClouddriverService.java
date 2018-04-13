@@ -86,6 +86,7 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
   }
 
   protected Optional<Profile> generateAwsProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints, String spinnakerHome) {
+    String name = "aws/clouddriver-credentials" + spinnakerHome.replace("/", "_");
     AwsProvider awsProvider = deploymentConfiguration.getProviders().getAws();
     if (awsProvider.isEnabled()
         && !StringUtils.isEmpty(awsProvider.getAccessKeyId())
@@ -96,7 +97,7 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
           .setAccessKeyId(awsProvider.getAccessKeyId())
           .setSecretAccessKey(awsProvider.getSecretAccessKey())
           .build()
-          .getProfile("aws/clouddriver-credentials", outputFile, deploymentConfiguration, endpoints));
+          .getProfile(name, outputFile, deploymentConfiguration, endpoints));
     } else {
       return Optional.empty();
     }
