@@ -5,6 +5,7 @@ import com.netflix.spinnaker.rosco.api.BakeStatus;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
 import com.netflix.spinnaker.rosco.jobs.JobRequest;
+import com.netflix.spinnaker.rosco.manifests.TemplateUtils.BakeManifestEnvironment;
 import com.netflix.spinnaker.rosco.manifests.helm.HelmTemplateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,24 +36,30 @@ public class BakeManifestService {
 
   public Artifact bake(BakeManifestRequest request) {
     TemplateUtils utils = templateUtils(request);
-    BakeRecipe recipe = utils.buildBakeRecipe(request);
+    BakeManifestEnvironment env = new BakeManifestEnvironment();
+    BakeRecipe recipe = utils.buildBakeRecipe(env, request);
+    BakeStatus bakeStatus;
 
-    JobRequest jobRequest = new JobRequest(recipe.getCommand(), new ArrayList<>(), UUID.randomUUID().toString());
-    String jobId = jobExecutor.startJob(jobRequest);
-
-    BakeStatus bakeStatus = jobExecutor.updateJob(jobId);
-
-    while (bakeStatus == null || bakeStatus.getState() == BakeStatus.State.RUNNING) {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException ignored) {
-      }
+    try {
+      JobRequest jobRequest = new JobRequest(recipe.getCommand(), new ArrayList<>(), UUID.randomUUID().toString());
+      String jobId = jobExecutor.startJob(jobRequest);
 
       bakeStatus = jobExecutor.updateJob(jobId);
-    }
 
-    if (bakeStatus.getResult() != BakeStatus.Result.SUCCESS) {
-      throw new IllegalStateException("Bake of " + request + " failed: " + bakeStatus.getLogsContent());
+      while (bakeStatus == null || bakeStatus.getState() == BakeStatus.State.RUNNING) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
+
+        bakeStatus = jobExecutor.updateJob(jobId);
+      }
+
+      if (bakeStatus.getResult() != BakeStatus.Result.SUCCESS) {
+        throw new IllegalStateException("Bake of " + request + " failed: " + bakeStatus.getLogsContent());
+      }
+    } finally {
+      env.cleanup();
     }
 
     return Artifact.builder()

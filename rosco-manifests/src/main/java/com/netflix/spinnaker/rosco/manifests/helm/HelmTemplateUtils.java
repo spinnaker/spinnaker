@@ -14,11 +14,11 @@ import java.util.Map;
 @Component
 public class HelmTemplateUtils extends TemplateUtils {
   @Override
-  public BakeRecipe buildBakeRecipe(BakeManifestRequest request) {
-    BakeRecipe result = super.buildBakeRecipe(request);
+  public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, BakeManifestRequest request) {
+    BakeRecipe result = super.buildBakeRecipe(env, request);
     Path templatePath;
     try {
-      templatePath = downloadArtifactToTmpFile(request.getInputArtifact());
+      templatePath = downloadArtifactToTmpFile(env, request.getInputArtifact());
     } catch (IOException e) {
       throw new IllegalStateException("Failed to fetch helm template: " + e.getMessage(), e);
     }

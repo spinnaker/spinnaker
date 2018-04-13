@@ -17,10 +17,6 @@ public class BakeManifestRequest {
   List<Artifact> values;
   Map<String, Object> overrides;
 
-  public BakeRecipe convertToRecipe(TemplateUtils utils) {
-    return utils.buildBakeRecipe(this);
-  }
-
   enum TemplateRenderer {
     HELM2;
 
