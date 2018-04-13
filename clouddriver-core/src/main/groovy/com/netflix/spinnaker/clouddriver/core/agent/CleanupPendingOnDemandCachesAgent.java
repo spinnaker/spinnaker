@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.core.agent;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.cats.provider.Provider;
@@ -26,12 +28,16 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -88,24 +94,28 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
        .filter(s -> !s.equals("_ALL_"))
        .collect(Collectors.toList());
 
-     List existingOnDemandKeys;
+     Map<String, Response<Boolean>> existingOnDemandKeys = new HashMap<>();
      if (redisClientDelegate.supportsMultiKeyPipelines()) {
-       existingOnDemandKeys = redisClientDelegate.withMultiKeyPipeline(pipeline -> {
-         onDemandKeys.forEach(k -> pipeline.get(provider.getProviderName() + ":onDemand:attributes:" + k));
-         return pipeline.syncAndReturnAll();
+       redisClientDelegate.withMultiKeyPipeline(pipeline -> {
+         for (List<String> partition : Iterables.partition(onDemandKeys, redisCacheOptions.getMaxDelSize())) {
+           for (String id : partition) {
+             existingOnDemandKeys.put(id, pipeline.exists(provider.getProviderName() + ":onDemand:attributes:" + id));
+           }
+         }
+         pipeline.sync();
        });
      } else {
-       existingOnDemandKeys = redisClientDelegate.withCommandsClient(client -> {
-         return onDemandKeys.stream()
-           .map(k -> client.get(provider.getProviderName() + "onDemand:attributes:" + k))
-           .collect(Collectors.toList());
+       redisClientDelegate.withCommandsClient(client -> {
+         onDemandKeys.stream()
+           .filter(k -> client.exists(provider.getProviderName() + "onDemand:attributes:" + k))
+           .forEach(k -> existingOnDemandKeys.put(k, new StaticResponse(Boolean.TRUE)));
        });
      }
 
-     Set<String> onDemandKeysToRemove = new HashSet<>();
-     for (int i = 0; i < onDemandKeys.size(); i++) {
-       if (existingOnDemandKeys.get(i) == null) {
-         onDemandKeysToRemove.add(onDemandKeys.get(i));
+     List<String> onDemandKeysToRemove = new ArrayList<>();
+     for (String onDemandKey : onDemandKeys) {
+       if (!existingOnDemandKeys.containsKey(onDemandKey) || !existingOnDemandKeys.get(onDemandKey).get()) {
+         onDemandKeysToRemove.add(onDemandKey);
        }
      }
 
@@ -113,8 +123,14 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
        log.info("Removing {} from {}", onDemandKeysToRemove.size(), onDemandSetName);
        log.debug("Removing {} from {}", onDemandKeysToRemove, onDemandSetName);
 
-       redisClientDelegate.withCommandsClient(client -> {
-         client.srem(onDemandSetName, onDemandKeysToRemove.toArray(new String[onDemandKeysToRemove.size()]));
+
+       redisClientDelegate.withMultiKeyPipeline(pipeline -> {
+         for (List<String> idPartition : Lists.partition(onDemandKeysToRemove, redisCacheOptions.getMaxDelSize())) {
+           String[] ids = idPartition.toArray(new String[idPartition.size()]);
+           pipeline.srem(onDemandSetName, ids);
+         }
+
+         pipeline.sync();
        });
      }
     });
@@ -146,5 +162,19 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
 
   private CatsModule getCatsModule() {
     return applicationContext.getBean(CatsModule.class);
+  }
+
+  private static class StaticResponse extends Response<Boolean> {
+    private final Boolean value;
+
+    StaticResponse(Boolean value) {
+      super(null);
+      this.value = value;
+    }
+
+    @Override
+    public Boolean get() {
+      return value;
+    }
   }
 }
