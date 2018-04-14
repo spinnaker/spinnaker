@@ -3,7 +3,7 @@
 const angular = require('angular');
 import * as _ from 'lodash';
 
-import { NameUtils } from 'core/naming';
+import { NameUtils } from '@spinnaker/core';
 
 import { sessionAffinityModelToViewMap, sessionAffinityViewToModelMap } from '../common/sessionAffinityNameMaps';
 

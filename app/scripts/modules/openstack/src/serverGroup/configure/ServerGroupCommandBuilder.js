@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import { NameUtils } from 'core/naming';
+import { NameUtils } from '@spinnaker/core';
 
 import { OpenStackProviderSettings } from '../../openstack.settings';
 
