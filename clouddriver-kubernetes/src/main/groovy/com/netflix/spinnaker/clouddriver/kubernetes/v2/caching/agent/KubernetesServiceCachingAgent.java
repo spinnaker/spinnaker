@@ -68,7 +68,7 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
   }
 
   @Override
-  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> services) {
+  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> services) {
     Map<String, Set<KubernetesManifest>> mapLabelToManifest = new HashMap<>();
 
     // TODO perf - this might be excessive when only a small number of services are specified. We could consider
@@ -82,7 +82,7 @@ public class KubernetesServiceCachingAgent extends KubernetesV2OnDemandCachingAg
 
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
 
-    for (KubernetesManifest service : services) {
+    for (KubernetesManifest service : services.getOrDefault(primaryKind(), new ArrayList<>())) {
       result.put(service, getRelatedManifests(service, mapLabelToManifest));
     }
 

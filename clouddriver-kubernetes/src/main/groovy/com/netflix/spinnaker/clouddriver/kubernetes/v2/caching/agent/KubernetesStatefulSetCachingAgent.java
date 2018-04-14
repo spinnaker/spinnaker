@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,7 +70,7 @@ public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachi
   }
 
   @Override
-  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> primaryResourceList) {
+  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> primaryResourceList) {
     BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
 
     Map<String, KubernetesManifest> services = namespaces.stream()
@@ -79,7 +80,7 @@ public class KubernetesStatefulSetCachingAgent extends KubernetesV2OnDemandCachi
 
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
 
-    for (KubernetesManifest manifest : primaryResourceList) {
+    for (KubernetesManifest manifest : primaryResourceList.getOrDefault(primaryKind(), new ArrayList<>())) {
       String serviceName = KubernetesStatefulSetHandler.serviceName(manifest);
       if (StringUtils.isEmpty(serviceName)) {
         continue;

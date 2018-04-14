@@ -69,7 +69,7 @@ public class KubernetesIngressCachingAgent extends KubernetesV2OnDemandCachingAg
   }
 
   @Override
-  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> ingresses) {
+  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> ingresses) {
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
 
     BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
@@ -79,7 +79,7 @@ public class KubernetesIngressCachingAgent extends KubernetesV2OnDemandCachingAg
         .flatMap(Collection::stream)
         .collect(Collectors.toMap((m) -> manifestName.apply(m.getNamespace(), m.getName()), (m) -> m));
 
-    for (KubernetesManifest ingress : ingresses) {
+    for (KubernetesManifest ingress : ingresses.getOrDefault(primaryKind(), new ArrayList<>())) {
       List<KubernetesManifest> attachedServices = new ArrayList<>();
       try {
         attachedServices = KubernetesIngressHandler.attachedServices(ingress)

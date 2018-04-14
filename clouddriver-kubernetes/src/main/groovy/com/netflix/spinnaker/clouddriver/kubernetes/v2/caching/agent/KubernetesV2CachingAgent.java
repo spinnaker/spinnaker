@@ -59,28 +59,32 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
 
   protected abstract KubernetesKind primaryKind();
 
+  protected List<KubernetesKind> primaryKinds() {
+    return Collections.singletonList(primaryKind());
+  }
+
   // Cache types can choose to have relationships with Spinnaker 'clusters'
   protected boolean hasClusterRelationship() {
     return false;
   }
 
-  protected List<KubernetesManifest> loadPrimaryResourceList() {
+  protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
     return namespaces.stream()
         .map(n -> {
           try {
-            return credentials.list(primaryKind(), n);
+            return credentials.list(primaryKinds(), n);
           } catch (KubectlException e) {
-            log.warn("Failed to read kind {} from namespace {}: {}", primaryKind(), n, e.getMessage());
+            log.warn("Failed to read kind {} from namespace {}: {}", primaryKinds(), n, e.getMessage());
             return null;
           }
         })
         .filter(Objects::nonNull)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .collect(Collectors.groupingBy(KubernetesManifest::getKind));
   }
 
-  protected KubernetesManifest loadPrimaryResource(String namespace, String name) {
-    return credentials.get(primaryKind(), namespace, name);
+  protected KubernetesManifest loadPrimaryResource(KubernetesKind kind, String namespace, String name) {
+    return credentials.get(kind, namespace, name);
   }
 
   @Override
@@ -97,13 +101,15 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   }
 
   protected CacheResult buildCacheResult(KubernetesManifest resource) {
-    return buildCacheResult(Collections.singletonList(resource));
+    return buildCacheResult(Collections.singletonMap(resource.getKind(), Collections.singletonList(resource)));
   }
 
-  protected CacheResult buildCacheResult(List<KubernetesManifest> resources) {
+  protected CacheResult buildCacheResult(Map<KubernetesKind, List<KubernetesManifest>> resources) {
     Map<KubernetesManifest, List<KubernetesManifest>> relationships = loadSecondaryResourceRelationships(resources);
 
-    List<CacheData> resourceData = resources.stream()
+    List<CacheData> resourceData = resources.values()
+        .stream()
+        .flatMap(Collection::stream)
         .map(rs -> KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs), hasClusterRelationship()))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
@@ -113,7 +119,9 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-    resourceData.addAll(resources.stream()
+    resourceData.addAll(resources.values()
+        .stream()
+        .flatMap(Collection::stream)
         .map(rs -> KubernetesCacheDataConverter.convertAsArtifact(accountName, rs))
         .filter(Objects::nonNull)
         .collect(Collectors.toList()));
@@ -126,7 +134,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     return new DefaultCacheResult(entries);
   }
 
-  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(List<KubernetesManifest> primaryResourceList) {
+  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> primaryResourceList) {
     return new HashMap<>();
   }
 }

@@ -62,7 +62,7 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
     def credentials = Mock(KubernetesV2Credentials)
     credentials.getDeclaredNamespaces() >> [NAMESPACE]
 
-    credentials.list(KubernetesKind.REPLICA_SET, NAMESPACE) >> [new ObjectMapper().convertValue(replicaSet, KubernetesManifest.class)]
+    credentials.list([KubernetesKind.REPLICA_SET], NAMESPACE) >> [new ObjectMapper().convertValue(replicaSet, KubernetesManifest.class)]
 
     def namedAccountCredentials = Mock(KubernetesNamedAccountCredentials)
     namedAccountCredentials.getCredentials() >> credentials

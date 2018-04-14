@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -291,7 +292,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.kinds = kinds;
     this.omitKinds = omitKinds;
 
-    this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, KubernetesKind.NAMESPACE, "")
+    this.liveNamespaceSupplier = Suppliers.memoizeWithExpiration(() -> jobExecutor.list(this, Collections.singletonList(KubernetesKind.NAMESPACE), "")
         .stream()
         .map(KubernetesManifest::getName)
         .collect(Collectors.toList()), namespaceExpirySeconds, TimeUnit.SECONDS);
@@ -325,7 +326,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   public List<KubernetesManifest> list(KubernetesKind kind, String namespace) {
-    return runAndRecordMetrics("list", kind, namespace, () -> jobExecutor.list(this, kind, namespace));
+    return runAndRecordMetrics("list", kind, namespace, () -> jobExecutor.list(this, Collections.singletonList(kind), namespace));
+  }
+
+  public List<KubernetesManifest> list(List<KubernetesKind> kinds, String namespace) {
+    return runAndRecordMetrics("list", kinds, namespace, () -> jobExecutor.list(this, kinds, namespace));
   }
 
   public String logs(String namespace, String podName, String containerName) {
@@ -361,6 +366,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   private <T> T runAndRecordMetrics(String action, KubernetesKind kind, String namespace, Supplier<T> op) {
+    return runAndRecordMetrics(action, Collections.singletonList(kind), namespace, op);
+  }
+
+  private <T> T runAndRecordMetrics(String action, List<KubernetesKind> kinds, String namespace, Supplier<T> op) {
     T result = null;
     Throwable failure = null;
     KubectlException apiException = null;
@@ -374,7 +383,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     } finally {
       Map<String, String> tags = new HashMap<>();
       tags.put("action", action);
-      tags.put("kind", kind.toString());
+      if (kinds.size() == 1) {
+        tags.put("kind", kinds.get(0).toString());
+      } else {
+        tags.put("kinds", String.join(",", kinds.stream().map(KubernetesKind::toString).collect(Collectors.toList())));
+      }
       tags.put("account", accountName);
       tags.put("namespace", StringUtils.isEmpty(namespace) ? "none" : namespace);
       if (failure == null) {
@@ -388,7 +401,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           .record(clock.monotonicTime() - startTime, TimeUnit.NANOSECONDS);
 
       if (failure != null) {
-        throw new KubectlJobExecutor.KubectlException("Failure running " + action + " on " + kind + ": " + failure.getMessage(), failure);
+        throw new KubectlJobExecutor.KubectlException("Failure running " + action + " on " + kinds + ": " + failure.getMessage(), failure);
       } else if (apiException != null) {
         throw apiException;
       } else {

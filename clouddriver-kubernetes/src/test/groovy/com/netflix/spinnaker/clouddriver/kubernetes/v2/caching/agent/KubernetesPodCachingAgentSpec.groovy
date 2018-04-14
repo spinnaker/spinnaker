@@ -58,7 +58,7 @@ class KubernetesPodCachingAgentSpec extends Specification {
     def credentials = Mock(KubernetesV2Credentials)
     credentials.getDeclaredNamespaces() >> [NAMESPACE]
 
-    credentials.list(KubernetesKind.POD, NAMESPACE) >> [new ObjectMapper().convertValue(pod, KubernetesManifest.class)]
+    credentials.list([KubernetesKind.POD], NAMESPACE) >> [new ObjectMapper().convertValue(pod, KubernetesManifest.class)]
 
     def namedAccountCredentials = Mock(KubernetesNamedAccountCredentials)
     namedAccountCredentials.getCredentials() >> credentials

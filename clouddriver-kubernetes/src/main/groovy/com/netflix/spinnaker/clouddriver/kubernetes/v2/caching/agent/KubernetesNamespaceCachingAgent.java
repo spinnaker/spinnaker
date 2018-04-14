@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,15 +51,16 @@ public class KubernetesNamespaceCachingAgent extends KubernetesV2CachingAgent {
   }
 
   @Override
-  protected List<KubernetesManifest> loadPrimaryResourceList() {
+  protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
     reloadNamespaces();
 
     // TODO perf: Only load desired namespaces rather than filter all.
     Set<String> desired = new HashSet<>(this.namespaces);
-    return super.loadPrimaryResourceList()
+    return Collections.singletonMap(KubernetesKind.NAMESPACE, super.loadPrimaryResourceList()
+        .get(KubernetesKind.NAMESPACE)
         .stream()
         .filter(ns -> desired.contains(ns.getName()))
-        .collect(Collectors.toList());
+        .collect(Collectors.toList()));
   }
 
   @Override

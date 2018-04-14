@@ -91,7 +91,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     reloadNamespaces();
 
     Long start = System.currentTimeMillis();
-    List<KubernetesManifest> primaryResource;
+    Map<KubernetesKind, List<KubernetesManifest>> primaryResource;
     try {
       primaryResource = loadPrimaryResourceList();
     } catch (KubectlJobExecutor.NoResourceTypeException e) {
@@ -99,7 +99,9 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       return new DefaultCacheResult(new HashMap<>());
     }
 
-    List<String> primaryKeys = primaryResource.stream()
+    List<String> primaryKeys = primaryResource.values()
+        .stream()
+        .flatMap(Collection::stream)
         .map(rs -> objectMapper.convertValue(rs, KubernetesManifest.class))
         .map(mf -> Keys.infrastructure(mf, accountName))
         .collect(Collectors.toList());
@@ -194,13 +196,13 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     return cacheTime >= lastFullRefresh || processedCount == 0;
   }
 
-  private OnDemandAgent.OnDemandResult evictEntry(ProviderCache providerCache, String key) {
+  private OnDemandAgent.OnDemandResult evictEntry(ProviderCache providerCache, KubernetesKind kind, String key) {
     Map<String, Collection<String>> evictions = new HashMap<>();
     CacheResult cacheResult = new DefaultCacheResult(new HashMap<>());
 
     log.info("Evicting on demand '{}'", key);
     providerCache.evictDeletedItems(ON_DEMAND_TYPE, Collections.singletonList(key));
-    evictions.put(primaryKind().toString(), Collections.singletonList(key));
+    evictions.put(kind.toString(), Collections.singletonList(key));
 
     return new OnDemandAgent.OnDemandResult(getOnDemandAgentType(), cacheResult, evictions);
   }
@@ -234,10 +236,12 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     String namespace = (String) data.get("location");
     String fullName = (String) data.get("name");
     String name;
+    KubernetesKind kind;
 
     try {
       Pair<KubernetesKind, String> parsedName = KubernetesManifest.fromFullResourceName(fullName);
-      if (parsedName.getLeft() != primaryKind()) {
+      kind = parsedName.getLeft();
+      if (!primaryKinds().contains(kind)) {
         return null;
       }
 
@@ -256,10 +260,10 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
 
     log.info("Accepted on demand refresh of '{}'", data);
     OnDemandAgent.OnDemandResult result;
-    KubernetesManifest manifest = loadPrimaryResource(namespace, name);
-    String resourceKey = Keys.infrastructure(primaryKind(), account, namespace, name);
+    KubernetesManifest manifest = loadPrimaryResource(kind, namespace, name);
+    String resourceKey = Keys.infrastructure(kind, account, namespace, name);
     try {
-      result = manifest == null ? evictEntry(providerCache, resourceKey) : addEntry(providerCache, resourceKey, manifest);
+      result = manifest == null ? evictEntry(providerCache, kind, resourceKey) : addEntry(providerCache, resourceKey, manifest);
     } catch (Exception e) {
       log.error("Failed to process update of '{}'", resourceKey, e);
       return null;
@@ -292,7 +296,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     List<String> matchingKeys = infraKeys.stream()
         .filter(i -> i.getAccount().equals(getAccountName())
             && (StringUtils.isEmpty(i.getNamespace())) || namespaces.contains(i.getNamespace())
-            && i.getKubernetesKind().equals(primaryKind()))
+            && primaryKinds().contains(i.getKubernetesKind()))
         .map(Keys.InfrastructureCacheKey::toString)
         .collect(Collectors.toList());
 

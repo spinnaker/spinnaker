@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -303,7 +304,7 @@ public class KubectlJobExecutor {
 
 
   public KubernetesManifest get(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
-    List<String> command = kubectlNamespacedGet(credentials, kind, namespace);
+    List<String> command = kubectlNamespacedGet(credentials, Collections.singletonList(kind), namespace);
     command.add(name);
 
     String jobId = jobExecutor.startJob(new JobRequest(command),
@@ -329,8 +330,8 @@ public class KubectlJobExecutor {
     }
   }
 
-  public List<KubernetesManifest> list(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace) {
-    String jobId = jobExecutor.startJob(new JobRequest(kubectlNamespacedGet(credentials, kind, namespace)),
+  public List<KubernetesManifest> list(KubernetesV2Credentials credentials, List<KubernetesKind> kinds, String namespace) {
+    String jobId = jobExecutor.startJob(new JobRequest(kubectlNamespacedGet(credentials, kinds, namespace)),
         System.getenv(),
         new ByteArrayInputStream(new byte[0]));
 
@@ -340,7 +341,7 @@ public class KubectlJobExecutor {
       if (status.getStdErr().contains(NO_RESOURCE_TYPE_ERROR)) {
         throw new NoResourceTypeException(status.getStdErr());
       } else {
-        throw new KubectlException("Failed to read " + kind + " from " + namespace + ": " + status.getStdErr());
+        throw new KubectlException("Failed to read " + kinds + " from " + namespace + ": " + status.getStdErr());
       }
     }
 
@@ -481,13 +482,13 @@ public class KubectlJobExecutor {
     return command;
   }
 
-  private List<String> kubectlNamespacedGet(KubernetesV2Credentials credentials, KubernetesKind kind, String namespace) {
+  private List<String> kubectlNamespacedGet(KubernetesV2Credentials credentials, List<KubernetesKind> kind, String namespace) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
     command.add("-o");
     command.add("json");
 
     command.add("get");
-    command.add(kind.toString());
+    command.add(String.join(",", kind.stream().map(KubernetesKind::toString).collect(Collectors.toList())));
 
     return command;
   }
