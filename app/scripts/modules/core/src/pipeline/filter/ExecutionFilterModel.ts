@@ -1,7 +1,7 @@
-import { IAngularEvent, IRootScopeService, module } from 'angular';
 import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 import { extend } from 'lodash';
 import { Subject } from 'rxjs';
+import { $rootScope } from 'ngimport';
 
 import { ICache, ViewStateCache } from 'core/cache';
 import { IExecutionGroup } from 'core/domain';
@@ -33,8 +33,7 @@ export class ExecutionFilterModel {
   // mechanism for now.
   public expandSubject: Subject<boolean> = new Subject<boolean>();
 
-  constructor($rootScope: IRootScopeService) {
-    'ngInject';
+  constructor() {
     this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
       version: 1,
       maxAge: 180 * 24 * 60 * 60 * 1000,
@@ -50,7 +49,7 @@ export class ExecutionFilterModel {
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
     // come back to this application's clusters view, we'll get whatever that search was.
-    $rootScope.$on('$locationChangeStart', (_event: IAngularEvent, toUrl: string, fromUrl: string) => {
+    $rootScope.$on('$locationChangeStart', (_event, toUrl: string, fromUrl: string) => {
       const [oldBase, oldQuery] = fromUrl.split('?'),
         [newBase, newQuery] = toUrl.split('?');
 
@@ -64,7 +63,7 @@ export class ExecutionFilterModel {
     $rootScope.$on(
       '$stateChangeStart',
       (
-        _event: IAngularEvent,
+        _event,
         toState: Ng1StateDeclaration,
         _toParams: StateParams,
         fromState: Ng1StateDeclaration,
@@ -78,7 +77,7 @@ export class ExecutionFilterModel {
 
     $rootScope.$on(
       '$stateChangeSuccess',
-      (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+      (_event, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
         if (this.movingToExecutionsState(toState) && this.isExecutionStateOrChild(fromState.name)) {
           this.asFilterModel.applyParamsToUrl();
           return;
@@ -167,9 +166,3 @@ export class ExecutionFilterModel {
     return this.asFilterModel.hasSavedState(toParams) && !this.isExecutionStateOrChild(fromState.name);
   }
 }
-
-export const EXECUTION_FILTER_MODEL = 'spinnaker.core.pipeline.filter.executionFilter.model';
-module(EXECUTION_FILTER_MODEL, []).factory(
-  'executionFilterModel',
-  ($rootScope: IRootScopeService) => new ExecutionFilterModel($rootScope),
-);

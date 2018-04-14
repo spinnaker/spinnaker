@@ -4,7 +4,7 @@ import { StateParams } from '@uirouter/angularjs';
 import { STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { Application } from 'core/application/application.model';
-import { filterModelConfig } from 'core/cluster/filter/clusterFilter.model';
+import { filterModelConfig } from 'core/cluster/filter/ClusterFilterModel';
 
 import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
 

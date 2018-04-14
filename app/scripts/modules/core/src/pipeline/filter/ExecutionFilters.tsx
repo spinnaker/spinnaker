@@ -11,6 +11,7 @@ import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { IFilterTag } from 'core/filterModel';
 import { IPipeline } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
+import { ExecutionState } from 'core/state';
 
 import './executionFilters.less';
 
@@ -36,25 +37,24 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   private pipelineConfigsRefreshUnsubscribe: () => void;
 
   constructor(props: IExecutionFiltersProps) {
-    const { executionFilterModel } = ReactInjector;
     super(props);
 
     this.state = {
       pipelineNames: this.getPipelineNames(),
       pipelineReorderEnabled: false,
-      tags: executionFilterModel.asFilterModel.tags,
+      tags: ExecutionState.filterModel.asFilterModel.tags,
     };
   }
 
   public componentDidMount(): void {
     const { application } = this.props;
-    const { executionFilterModel, executionFilterService } = ReactInjector;
+    const { executionFilterService } = ReactInjector;
 
     this.executionsRefreshUnsubscribe = application.executions.onRefresh(null, () => {
       this.refreshPipelines();
     });
     this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() =>
-      this.setState({ tags: executionFilterModel.asFilterModel.tags }),
+      this.setState({ tags: ExecutionState.filterModel.asFilterModel.tags }),
     );
     this.pipelineConfigsRefreshUnsubscribe = application.pipelineConfigs.onRefresh(null, () => {
       this.refreshPipelines();
@@ -62,7 +62,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
     this.initialize();
     this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => {
-      executionFilterModel.asFilterModel.activate();
+      ExecutionState.filterModel.asFilterModel.activate();
       executionFilterService.updateExecutionGroups(application);
     });
   }
@@ -78,12 +78,12 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
   }
 
   private updateExecutionGroups(): void {
-    ReactInjector.executionFilterModel.asFilterModel.applyParamsToUrl();
+    ExecutionState.filterModel.asFilterModel.applyParamsToUrl();
     ReactInjector.executionFilterService.updateExecutionGroups(this.props.application);
   }
 
   private refreshExecutions(): void {
-    ReactInjector.executionFilterModel.asFilterModel.applyParamsToUrl();
+    ExecutionState.filterModel.asFilterModel.applyParamsToUrl();
     this.props.application.executions.refresh(true);
     this.props.application.executions.reloadingForFilters = true;
   }
@@ -130,7 +130,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
 
   @Debounce(300)
   private updateFilterSearch(searchString: string): void {
-    const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
+    const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     sortFilter.filter = searchString;
     ReactGA.event({ category: 'Pipelines', action: 'Filter: search', label: sortFilter.filter });
     this.updateExecutionGroups();
@@ -240,7 +240,7 @@ const FilterCheckbox = (props: {
   update: () => void;
 }): JSX.Element => {
   const { pipeline, tag, update, visible } = props;
-  const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
+  const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
   const changeHandler = () => {
     ReactGA.event({ category: 'Pipelines', action: 'Filter: pipeline', label: pipeline });
     if (tag) {
@@ -303,7 +303,7 @@ const Pipelines = SortableContainer(
 );
 
 const FilterStatus = (props: { status: string; label: string; refresh: () => void }): JSX.Element => {
-  const sortFilter = ReactInjector.executionFilterModel.asFilterModel.sortFilter;
+  const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
   const changed = () => {
     ReactGA.event({ category: 'Pipelines', action: 'Filter: status', label: props.label.toUpperCase() });
     sortFilter.status[props.status] = !sortFilter.status[props.status];

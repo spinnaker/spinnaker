@@ -11,6 +11,7 @@ import { IScheduler } from 'core/scheduler';
 import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
 import { ISortFilter } from 'core/filterModel';
+import { ExecutionState } from 'core/state';
 
 import './singleExecutionDetails.less';
 
@@ -46,11 +47,9 @@ export class SingleExecutionDetails extends React.Component<
   constructor(props: ISingleExecutionDetailsProps) {
     super(props);
 
-    const { executionFilterModel } = ReactInjector;
-
     this.state = {
       execution: null,
-      sortFilter: executionFilterModel.asFilterModel.sortFilter,
+      sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
       stateNotFound: false,
     };
   }

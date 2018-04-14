@@ -1,10 +1,10 @@
 import { IHttpBackendService, IQProvider, IQService, ITimeoutService, mock, noop } from 'angular';
 
-import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from '../filter/executionFilter.model';
 import { EXECUTION_SERVICE, ExecutionService } from './execution.service';
 import { IExecution } from 'core/domain';
 import { Application } from 'core/application';
 import { SETTINGS } from 'core/config/settings';
+import * as State from 'core/state';
 
 describe('Service: executionService', () => {
   let executionService: ExecutionService;
@@ -12,7 +12,8 @@ describe('Service: executionService', () => {
   let timeout: ITimeoutService;
   let $q: IQService;
 
-  beforeEach(mock.module(EXECUTION_FILTER_MODEL, EXECUTION_SERVICE, 'ui.router'));
+  beforeEach(() => State.initialize());
+  beforeEach(mock.module(EXECUTION_SERVICE, 'ui.router'));
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
   beforeEach(
@@ -28,13 +29,12 @@ describe('Service: executionService', () => {
         _$httpBackend_: IHttpBackendService,
         _$timeout_: ITimeoutService,
         _$q_: IQService,
-        executionFilterModel: ExecutionFilterModel,
       ) => {
         executionService = _executionService_;
         $httpBackend = _$httpBackend_;
         timeout = _$timeout_;
         $q = _$q_;
-        executionFilterModel.asFilterModel.sortFilter.count = 3;
+        State.ExecutionState.filterModel.asFilterModel.sortFilter.count = 3;
       },
     ),
   );

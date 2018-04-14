@@ -12,6 +12,7 @@ import { Execution } from '../execution/Execution';
 import { IExecution, IExecutionGroup, IExecutionTrigger, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
+import { ExecutionState } from 'core/state';
 
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
@@ -44,7 +45,6 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
 
   constructor(props: IExecutionGroupProps) {
     super(props);
-    const { executionFilterModel } = ReactInjector;
 
     this.strategyConfig = find(this.props.application.strategyConfigs.data, {
       name: this.props.group.heading,
@@ -65,7 +65,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
       poll: null,
       canTriggerPipelineManually: !!pipelineConfig,
       canConfigure: !!(pipelineConfig || this.strategyConfig),
-      showAccounts: executionFilterModel.asFilterModel.sortFilter.groupBy === 'name',
+      showAccounts: ExecutionState.filterModel.asFilterModel.sortFilter.groupBy === 'name',
       pipelineConfig,
     };
   }
@@ -91,9 +91,9 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   }
 
   private getSectionCacheKey(): string {
-    const { executionService, executionFilterModel } = ReactInjector;
+    const { executionService } = ReactInjector;
     return executionService.getSectionCacheKey(
-      executionFilterModel.asFilterModel.sortFilter.groupBy,
+      ExecutionState.filterModel.asFilterModel.sortFilter.groupBy,
       this.props.application.name,
       this.props.group.heading,
     );
@@ -144,8 +144,8 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   }
 
   public componentDidMount(): void {
-    const { executionFilterModel, stateEvents } = ReactInjector;
-    this.expandUpdatedSubscription = executionFilterModel.expandSubject.subscribe(expanded => {
+    const { stateEvents } = ReactInjector;
+    this.expandUpdatedSubscription = ExecutionState.filterModel.expandSubject.subscribe(expanded => {
       if (this.state.open !== expanded) {
         this.toggle();
       }

@@ -2,7 +2,6 @@ import * as React from 'react';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { mock, noop } from 'angular';
 
-import { EXECUTION_FILTER_MODEL } from 'core/pipeline/filter/executionFilter.model';
 import { REACT_MODULE } from 'core/reactShims';
 import { SCHEDULER_FACTORY } from 'core/scheduler/scheduler.factory';
 
@@ -13,7 +12,7 @@ import { IExecutionStatusProps, IExecutionStatusState, ExecutionStatus } from '.
 describe('<ExecutionStatus/>', () => {
   let component: ShallowWrapper<IExecutionStatusProps, IExecutionStatusState>;
 
-  beforeEach(mock.module(EXECUTION_FILTER_MODEL, REACT_MODULE, SCHEDULER_FACTORY));
+  beforeEach(mock.module(REACT_MODULE, SCHEDULER_FACTORY));
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 
   function getNewExecutionStatus(execution: IExecution): ShallowWrapper<IExecutionStatusProps, IExecutionStatusState> {

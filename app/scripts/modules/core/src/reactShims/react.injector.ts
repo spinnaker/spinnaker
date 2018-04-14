@@ -17,7 +17,6 @@ import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { EntityTagWriter } from '../entityTag';
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
-import { ExecutionFilterModel } from '../pipeline/filter/executionFilter.model';
 import { ExecutionFilterService } from '../pipeline/filter/executionFilter.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
 import { ExecutionsTransformerService } from '../pipeline/service/executions.transformer.service';
@@ -94,7 +93,6 @@ export class CoreReactInject extends ReactInject {
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get entityTagWriter() { return this.$injector.get('entityTagWriter') as EntityTagWriter; }
   public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }
-  public get executionFilterModel() { return this.$injector.get('executionFilterModel') as ExecutionFilterModel; }
   public get executionFilterService() { return this.$injector.get('executionFilterService') as ExecutionFilterService; }
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }
   public get executionsTransformer() { return this.$injector.get('executionsTransformer') as ExecutionsTransformerService; }

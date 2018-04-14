@@ -4,7 +4,6 @@ import { StateService } from '@uirouter/core';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { Application } from 'core/application/application.model';
-import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/pipeline/filter/executionFilter.model';
 import {
   EXECUTIONS_TRANSFORMER_SERVICE,
   ExecutionsTransformerService,
@@ -17,6 +16,7 @@ import { ApplicationDataSource } from 'core/application/service/applicationDataS
 import { DebugWindow } from 'core/utils/consoleDebug';
 import { IPipeline } from 'core/domain/IPipeline';
 import { ISortFilter } from 'core/filterModel';
+import { ExecutionState } from 'core/state';
 
 export class ExecutionService {
   public get activeStatuses(): string[] {
@@ -42,7 +42,6 @@ export class ExecutionService {
     private $state: StateService,
     private $timeout: ITimeoutService,
     private API: Api,
-    private executionFilterModel: ExecutionFilterModel,
     private executionsTransformer: ExecutionsTransformerService,
     private pipelineConfig: PipelineConfigProvider,
     private jsonUtilityService: JsonUtilityService,
@@ -106,7 +105,7 @@ export class ExecutionService {
     application: Application = null,
     expand = false,
   ): IPromise<IExecution[]> {
-    const sortFilter: ISortFilter = this.executionFilterModel.asFilterModel.sortFilter;
+    const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     const pipelines = Object.keys(sortFilter.pipeline);
     const statuses = Object.keys(pickBy(sortFilter.status || {}, identity));
     const limit = sortFilter.count;
@@ -148,7 +147,7 @@ export class ExecutionService {
   }
 
   private getConfigIdsFromFilterModel(application: Application): IPromise<string[]> {
-    const pipelines = Object.keys(this.executionFilterModel.asFilterModel.sortFilter.pipeline);
+    const pipelines = Object.keys(ExecutionState.filterModel.asFilterModel.sortFilter.pipeline);
     application.pipelineConfigs.activate();
     return application.pipelineConfigs.ready().then(() => {
       const data = application.pipelineConfigs.data.concat(application.strategyConfigs.data);
@@ -578,7 +577,6 @@ export class ExecutionService {
 
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
 module(EXECUTION_SERVICE, [
-  EXECUTION_FILTER_MODEL,
   EXECUTIONS_TRANSFORMER_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
   API_SERVICE,
@@ -591,22 +589,11 @@ module(EXECUTION_SERVICE, [
     $state: StateService,
     $timeout: ITimeoutService,
     API: Api,
-    executionFilterModel: any,
     executionsTransformer: any,
     pipelineConfig: any,
     jsonUtilityService: JsonUtilityService,
   ) =>
-    new ExecutionService(
-      $http,
-      $q,
-      $state,
-      $timeout,
-      API,
-      executionFilterModel,
-      executionsTransformer,
-      pipelineConfig,
-      jsonUtilityService,
-    ),
+    new ExecutionService($http, $q, $state, $timeout, API, executionsTransformer, pipelineConfig, jsonUtilityService),
 );
 
 DebugWindow.addInjectable('executionService');

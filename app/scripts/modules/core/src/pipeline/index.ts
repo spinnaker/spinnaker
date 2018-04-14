@@ -6,5 +6,5 @@ export * from './config/stages/templates';
 export * from './config/services/pipelineConfig.service';
 export * from './details/executionDetailsSection.service';
 export * from './executions/execution/Execution';
-export * from './filter/executionFilter.model';
+export * from './filter/ExecutionFilterModel';
 export * from './service/execution.service';

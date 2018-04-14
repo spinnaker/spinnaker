@@ -5,6 +5,7 @@ import { Application } from 'core/application/application.model';
 import { ExecutionGroup } from './ExecutionGroup';
 import { IExecutionGroup } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
+import { ExecutionState } from 'core/state';
 
 import './executionGroups.less';
 
@@ -24,9 +25,9 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
 
   constructor(props: IExecutionGroupsProps) {
     super(props);
-    const { executionFilterModel, executionFilterService, stateEvents } = ReactInjector;
+    const { executionFilterService, stateEvents } = ReactInjector;
     this.state = {
-      groups: executionFilterModel.asFilterModel.groups.slice(),
+      groups: ExecutionState.filterModel.asFilterModel.groups.slice(),
       showingDetails: this.showingDetails(),
     };
 
@@ -34,7 +35,7 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
       this.forceUpdate();
     });
     this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => {
-      this.setState({ groups: executionFilterModel.asFilterModel.groups.slice() });
+      this.setState({ groups: ExecutionState.filterModel.asFilterModel.groups.slice() });
     });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
       const detailsShown = this.showingDetails();

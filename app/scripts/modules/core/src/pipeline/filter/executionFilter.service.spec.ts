@@ -1,18 +1,19 @@
 import { mock } from 'angular';
 
-import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/pipeline/filter/executionFilter.model';
 import { EXECUTION_FILTER_SERVICE, ExecutionFilterService } from './executionFilter.service';
+import { ExecutionFilterModel } from 'core/pipeline/filter/ExecutionFilterModel';
+import { ExecutionState } from 'core/state';
 
 describe('Service: executionFilterService', function() {
   let service: ExecutionFilterService;
   let model: ExecutionFilterModel;
 
   beforeEach(function() {
-    mock.module(EXECUTION_FILTER_SERVICE, EXECUTION_FILTER_MODEL);
-    mock.inject(function(executionFilterService: ExecutionFilterService, executionFilterModel: ExecutionFilterModel) {
+    mock.module(EXECUTION_FILTER_SERVICE);
+    mock.inject(function(executionFilterService: ExecutionFilterService) {
       service = executionFilterService;
-      model = executionFilterModel;
-      executionFilterModel.asFilterModel.groups = [];
+      model = ExecutionState.filterModel;
+      model.asFilterModel.groups = [];
       spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
     });
   });

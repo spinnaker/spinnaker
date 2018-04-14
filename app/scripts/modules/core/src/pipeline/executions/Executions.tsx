@@ -18,6 +18,7 @@ import { ExecutionFilters } from 'core/pipeline/filter/ExecutionFilters';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
 import { FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
 import { Spinner } from 'core/widgets/spinners/Spinner';
+import { ExecutionState } from 'core/state';
 
 import './executions.less';
 
@@ -46,11 +47,10 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   constructor(props: IExecutionsProps) {
     super(props);
 
-    const { executionFilterModel } = ReactInjector;
     this.state = {
       filtersExpanded: this.insightFilterStateModel.filtersExpanded,
       loading: true,
-      sortFilter: executionFilterModel.asFilterModel.sortFilter,
+      sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
       tags: [],
       triggeringExecution: false,
     };
@@ -58,10 +58,9 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   public componentWillMount(): void {
     const { app } = this.props;
-    const { executionFilterModel } = ReactInjector;
-    if (executionFilterModel.mostRecentApplication !== app.name) {
-      executionFilterModel.asFilterModel.groups = [];
-      executionFilterModel.mostRecentApplication = app.name;
+    if (ExecutionState.filterModel.mostRecentApplication !== app.name) {
+      ExecutionState.filterModel.asFilterModel.groups = [];
+      ExecutionState.filterModel.mostRecentApplication = app.name;
     }
 
     if (app.notFound) {
@@ -98,7 +97,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private groupsUpdated(): void {
-    this.setState({ tags: ReactInjector.executionFilterModel.asFilterModel.tags });
+    this.setState({ tags: ExecutionState.filterModel.asFilterModel.tags });
   }
 
   private dataInitializationFailure(): void {
@@ -124,12 +123,12 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private expand(): void {
     ReactGA.event({ category: 'Pipelines', action: 'Expand All' });
-    ReactInjector.executionFilterModel.expandSubject.next(true);
+    ExecutionState.filterModel.expandSubject.next(true);
   }
 
   private collapse(): void {
     ReactGA.event({ category: 'Pipelines', action: 'Collapse All' });
-    ReactInjector.executionFilterModel.expandSubject.next(false);
+    ExecutionState.filterModel.expandSubject.next(false);
   }
 
   private startPipeline(command: IPipelineCommand): IPromise<void> {

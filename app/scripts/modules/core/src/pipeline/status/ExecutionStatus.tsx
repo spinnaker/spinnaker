@@ -9,6 +9,7 @@ import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { ReactInjector } from 'core/reactShims';
 import { relativeTime, timestamp } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
+import { ExecutionState } from 'core/state';
 
 import { buildDisplayName } from '../executionBuild/buildDisplayName.filter';
 import { ExecutionBuildLink } from '../executionBuild/ExecutionBuildLink';
@@ -52,7 +53,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     }
 
     this.state = {
-      sortFilter: ReactInjector.executionFilterModel.asFilterModel.sortFilter,
+      sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
       parameters,
       timestamp: relativeTime(this.props.execution.startTime),
     };

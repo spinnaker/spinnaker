@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
-import { filterModelConfig } from './filter/executionFilter.model';
+import { filterModelConfig } from './filter/ExecutionFilterModel';
 
 import { Executions } from 'core/pipeline/executions/Executions';
 import { SingleExecutionDetails } from 'core/pipeline/details/SingleExecutionDetails';

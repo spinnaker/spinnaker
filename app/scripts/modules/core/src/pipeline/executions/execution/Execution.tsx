@@ -18,6 +18,7 @@ import { AccountTag } from 'core/account';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { duration, timestamp } from 'core/utils/timeFormatters';
 import { ISortFilter } from 'core/filterModel';
+import { ExecutionState } from 'core/state';
 
 // react components
 import { ExecutionMarker } from './ExecutionMarker';
@@ -65,7 +66,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   constructor(props: IExecutionProps) {
     super(props);
     const { execution } = this.props;
-    const { $stateParams, executionFilterModel } = ReactInjector;
+    const { $stateParams } = ReactInjector;
 
     const initialViewState = {
       activeStageId: Number($stateParams.stage),
@@ -81,7 +82,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       showingDetails: this.invalidateShowingDetails(props),
       pipelinesUrl: [SETTINGS.gateUrl, 'pipelines/'].join('/'),
       viewState: initialViewState,
-      sortFilter: executionFilterModel.asFilterModel.sortFilter,
+      sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
       restartDetails: restartedStage ? restartedStage.context.restartDetails : null,
       runningTimeInMs: props.execution.runningTimeInMs,
     };
