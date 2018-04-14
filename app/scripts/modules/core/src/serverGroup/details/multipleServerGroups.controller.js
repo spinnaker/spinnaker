@@ -5,13 +5,14 @@ const angular = require('angular');
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { SERVER_GROUP_WRITER } from 'core/serverGroup/serverGroupWriter.service';
+import { MULTISELECT_MODEL } from 'core/cluster/filter/multiselect.model';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.details.multipleServerGroups.controller', [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
-    require('../../cluster/filter/multiselect.model').name,
+    MULTISELECT_MODEL,
     PROVIDER_SERVICE_DELEGATE,
     require('./multipleServerGroup.component').name,
   ])

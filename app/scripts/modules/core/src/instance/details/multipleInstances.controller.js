@@ -2,6 +2,7 @@
 
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { INSTANCE_WRITE_SERVICE } from 'core/instance/instance.write.service';
+import { MULTISELECT_MODEL } from 'core/cluster/filter/multiselect.model';
 
 const angular = require('angular');
 
@@ -10,7 +11,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    require('../../cluster/filter/multiselect.model').name,
+    MULTISELECT_MODEL,
     require('./multipleInstanceServerGroup.directive').name,
   ])
   .controller('MultipleInstancesCtrl', function(

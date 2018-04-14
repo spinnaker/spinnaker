@@ -1,17 +1,18 @@
 import { mock } from 'angular';
-import { StateService } from '@uirouter/core';
+import { ReactInjector } from 'core/reactShims';
+import * as State from 'core/state';
+const { ClusterState } = State;
 
-import { ClusterState } from 'core/state';
+import { MULTISELECT_MODEL, MultiselectModel as MSM } from './multiselect.model';
 
 describe('Multiselect Model', () => {
-  let MultiselectModel: any, $state: StateService;
+  let MultiselectModel: MSM;
 
-  beforeEach(mock.module(require('./multiselect.model').name));
+  beforeEach(mock.module(MULTISELECT_MODEL));
 
   beforeEach(
-    mock.inject((_MultiselectModel_: any, _$state_: StateService) => {
+    mock.inject((_MultiselectModel_: MSM) => {
       MultiselectModel = _MultiselectModel_;
-      $state = _$state_;
     }),
   );
 
@@ -23,10 +24,10 @@ describe('Multiselect Model', () => {
       currentStates = [];
       currentParams = {};
 
-      spyOn($state, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
-      spyOn($state, 'go').and.callFake((newState: any) => (result = newState));
-      spyOnProperty($state, 'params', 'get').and.callFake(() => currentParams);
-      spyOnProperty($state, '$current', 'get').and.callFake(() => {
+      spyOn(ReactInjector.$state, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
+      spyOn(ReactInjector.$state, 'go').and.callFake((newState: any) => (result = newState));
+      spyOnProperty(ReactInjector.$state, 'params', 'get').and.callFake(() => currentParams);
+      spyOnProperty(ReactInjector.$state, '$current', 'get').and.callFake(() => {
         if (currentStates.length) {
           return { name: currentStates[currentStates.length - 1] };
         }
@@ -43,7 +44,7 @@ describe('Multiselect Model', () => {
             account: 'prod',
             region: 'us-east-1',
             type: 'aws',
-          });
+          } as any);
         });
 
         it('navigates to multipleInstances child view when not already there and instances are selected', () => {
@@ -178,7 +179,7 @@ describe('Multiselect Model', () => {
           region: 'us-east-1',
           type: 'aws',
           category: 'serverGroup',
-        };
+        } as any;
 
         expect(MultiselectModel.serverGroups.length).toBe(0);
         MultiselectModel.toggleServerGroup(serverGroup);
@@ -260,7 +261,7 @@ describe('Multiselect Model', () => {
         MultiselectModel.toggleInstance(serverGroup, 'i-1234');
 
         expect(instanceGroup.instanceIds).toEqual(['i-1234']);
-        expect(MultiselectModel.syncNavigation.calls.count()).toBe(1);
+        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
 
       it('removes instance id if present and sets selectAll flag to false', () => {
@@ -271,7 +272,7 @@ describe('Multiselect Model', () => {
 
         expect(instanceGroup.instanceIds).toEqual([]);
         expect(instanceGroup.selectAll).toBe(false);
-        expect(MultiselectModel.syncNavigation.calls.count()).toBe(1);
+        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
 
       it('clears server groups', () => {
@@ -310,7 +311,7 @@ describe('Multiselect Model', () => {
 
         expect(instanceGroup.selectAll).toBe(true);
         expect(instanceGroup.instanceIds).toBe(instanceIds);
-        expect(MultiselectModel.syncNavigation.calls.count()).toBe(1);
+        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
 
       it('sets selectAll flag to false and clears supplied instanceIds when selectAll is true', () => {
@@ -321,7 +322,7 @@ describe('Multiselect Model', () => {
 
         expect(instanceGroup.selectAll).toBe(false);
         expect(instanceGroup.instanceIds).toEqual([]);
-        expect(MultiselectModel.syncNavigation.calls.count()).toBe(1);
+        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
     });
 
@@ -332,7 +333,7 @@ describe('Multiselect Model', () => {
           account: 'prod',
           region: 'us-east-1',
           type: 'aws',
-        };
+        } as any;
 
         const instanceId = 'i-1234';
 

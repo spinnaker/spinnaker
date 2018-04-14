@@ -8,6 +8,7 @@ import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
+import { MULTISELECT_MODEL } from './multiselect.model';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -495,7 +496,7 @@ export class ClusterFilterService {
 }
 
 export const CLUSTER_FILTER_SERVICE = 'spinnaker.core.cluster.filter.service';
-module(CLUSTER_FILTER_SERVICE, [require('@uirouter/angularjs').default, require('./multiselect.model').name]).service(
+module(CLUSTER_FILTER_SERVICE, [require('@uirouter/angularjs').default, MULTISELECT_MODEL]).service(
   'clusterFilterService',
   ClusterFilterService,
 );

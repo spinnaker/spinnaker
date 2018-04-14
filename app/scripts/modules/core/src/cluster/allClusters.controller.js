@@ -12,13 +12,14 @@ import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSel
 
 import { CLUSTER_FILTER } from './filter/clusterFilter.component';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
+import { MULTISELECT_MODEL } from './filter/multiselect.model';
 
 import './rollups.less';
 
 module.exports = angular
   .module('spinnaker.core.cluster.allClusters.controller', [
     CLUSTER_FILTER_SERVICE,
-    require('../cluster/filter/multiselect.model').name,
+    MULTISELECT_MODEL,
     CLUSTER_FILTER,
     require('../account/account.module').name,
     PROVIDER_SELECTION_SERVICE,

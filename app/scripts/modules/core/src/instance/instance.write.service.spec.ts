@@ -4,8 +4,10 @@ import { IMultiInstanceGroup, INSTANCE_WRITE_SERVICE, InstanceWriter } from 'cor
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { IInstance, IServerGroup } from 'core/domain';
+
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';
+import { MULTISELECT_MODEL } from '../cluster/filter/multiselect.model';
 
 describe('Service: instance writer', function() {
   let service: InstanceWriter,
@@ -16,9 +18,7 @@ describe('Service: instance writer', function() {
     applicationModelBuilder: ApplicationModelBuilder,
     MultiselectModel: any;
 
-  beforeEach(
-    mock.module(INSTANCE_WRITE_SERVICE, APPLICATION_MODEL_BUILDER, require('../cluster/filter/multiselect.model').name),
-  );
+  beforeEach(mock.module(INSTANCE_WRITE_SERVICE, APPLICATION_MODEL_BUILDER, MULTISELECT_MODEL));
 
   beforeEach(
     mock.inject(
