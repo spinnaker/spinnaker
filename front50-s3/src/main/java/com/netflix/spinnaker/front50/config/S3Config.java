@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.model.EventingS3ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.S3StorageService;
 import com.netflix.spinnaker.front50.model.TemporarySQSQueue;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -63,7 +64,7 @@ public class S3Config extends CommonStorageServiceDAOConfig {
 
     AmazonS3Client client = new AmazonS3Client(awsCredentialsProvider, clientConfiguration);
 
-    if (s3Properties.getEndpoint() != null) {
+    if (!StringUtils.isEmpty(s3Properties.getEndpoint())) {
       client.setEndpoint(s3Properties.getEndpoint());
       client.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
     } else {
