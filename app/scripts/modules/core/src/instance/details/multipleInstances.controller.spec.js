@@ -1,16 +1,17 @@
 import { APPLICATION_MODEL_BUILDER } from 'core/application/applicationModel.builder';
+import * as State from 'core/state';
 
 describe('Controller: MultipleInstances', function() {
   var controller;
   var scope;
-  var MultiselectModel;
+
+  beforeEach(() => State.initialize());
 
   beforeEach(window.module(require('./multipleInstances.controller').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _$q_, _MultiselectModel_, applicationModelBuilder) {
+    window.inject(function($rootScope, $controller, _$q_, applicationModelBuilder) {
       scope = $rootScope.$new();
-      MultiselectModel = _MultiselectModel_;
 
       this.createController = function(serverGroups) {
         let application = applicationModelBuilder.createApplication('app', { key: 'serverGroups', lazy: true });
@@ -53,7 +54,7 @@ describe('Controller: MultipleInstances', function() {
     };
 
     this.getInstanceGroup = serverGroup => {
-      return MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+      return State.ClusterState.multiselectModel.getOrCreateInstanceGroup(serverGroup);
     };
 
     this.addInstance = (serverGroup, instanceId) => {
@@ -70,7 +71,7 @@ describe('Controller: MultipleInstances', function() {
       this.getInstanceGroup(this.serverGroupC);
       this.createController([this.serverGroupA, this.serverGroupB, this.serverGroupC]);
 
-      expect(MultiselectModel.instanceGroups.length).toBe(3);
+      expect(State.ClusterState.multiselectModel.instanceGroups.length).toBe(3);
       expect(controller.selectedGroups.length).toBe(2);
 
       let groupA = controller.selectedGroups[0],
@@ -109,7 +110,7 @@ describe('Controller: MultipleInstances', function() {
       // unchanged as stream hasn't emitted new value yet
       expect(controller.selectedGroups[0].instances.length).toBe(1);
 
-      MultiselectModel.instancesStream.next();
+      State.ClusterState.multiselectModel.instancesStream.next();
 
       expect(controller.selectedGroups[0].instances.length).toBe(2);
     });

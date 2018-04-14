@@ -105,7 +105,6 @@ export class CoreReactInject extends ReactInject {
   public get loadBalancerWriter() { return this.$injector.get('loadBalancerWriter') as LoadBalancerWriter; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get modalService(): IModalService { return this.$injector.get('$uibModal') as IModalService; }
-  public get MultiselectModel() { return this.$injector.get('MultiselectModel') as any; }
   public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pagerDutyReader() { return this.$injector.get('pagerDutyReader') as PagerDutyReader; }

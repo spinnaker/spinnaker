@@ -8,7 +8,6 @@ import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
-import { MULTISELECT_MODEL } from './multiselect.model';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -49,7 +48,7 @@ export class ClusterFilterService {
 
   private isFilterable: (sortFilter: any) => boolean = FilterModelService.isFilterable;
 
-  public constructor(private MultiselectModel: any, private $log: ILogService, private $stateParams: StateParams) {
+  public constructor(private $log: ILogService, private $stateParams: StateParams) {
     'ngInject';
   }
 
@@ -209,7 +208,7 @@ export class ClusterFilterService {
     // adds new instance ids if selectAll is enabled for an instance group
     const sortFilter: ISortFilter = ClusterState.filterModel.asFilterModel.sortFilter;
     if (sortFilter.listInstances && sortFilter.multiselect) {
-      this.MultiselectModel.instanceGroups.forEach((instanceGroup: any) => {
+      ClusterState.multiselectModel.instanceGroups.forEach((instanceGroup: any) => {
         const match = serverGroups.find(serverGroup => {
           return (
             serverGroup.name === instanceGroup.serverGroup &&
@@ -233,27 +232,27 @@ export class ClusterFilterService {
           }
         }
       });
-      this.MultiselectModel.instancesStream.next();
-      this.MultiselectModel.syncNavigation();
+      ClusterState.multiselectModel.instancesStream.next();
+      ClusterState.multiselectModel.syncNavigation();
     } else {
-      this.MultiselectModel.instanceGroups.length = 0;
+      ClusterState.multiselectModel.instanceGroups.length = 0;
     }
   }
 
   private updateMultiselectServerGroups(serverGroups: IServerGroup[]): void {
     if (ClusterState.filterModel.asFilterModel.sortFilter.multiselect) {
-      if (this.MultiselectModel.serverGroups.length) {
-        const remainingKeys = serverGroups.map(s => this.MultiselectModel.makeServerGroupKey(s));
+      if (ClusterState.multiselectModel.serverGroups.length) {
+        const remainingKeys = serverGroups.map(s => ClusterState.multiselectModel.makeServerGroupKey(s));
         const toRemove: number[] = [];
-        this.MultiselectModel.serverGroups.forEach((group: any, index: number) => {
+        ClusterState.multiselectModel.serverGroups.forEach((group: any, index: number) => {
           if (!remainingKeys.includes(group.key)) {
             toRemove.push(index);
           }
         });
-        toRemove.reverse().forEach(index => this.MultiselectModel.serverGroups.splice(index, 1));
+        toRemove.reverse().forEach(index => ClusterState.multiselectModel.serverGroups.splice(index, 1));
       }
-      this.MultiselectModel.serverGroupsStream.next();
-      this.MultiselectModel.syncNavigation();
+      ClusterState.multiselectModel.serverGroupsStream.next();
+      ClusterState.multiselectModel.syncNavigation();
     }
   }
 
@@ -496,7 +495,7 @@ export class ClusterFilterService {
 }
 
 export const CLUSTER_FILTER_SERVICE = 'spinnaker.core.cluster.filter.service';
-module(CLUSTER_FILTER_SERVICE, [require('@uirouter/angularjs').default, MULTISELECT_MODEL]).service(
+module(CLUSTER_FILTER_SERVICE, [require('@uirouter/angularjs').default]).service(
   'clusterFilterService',
   ClusterFilterService,
 );

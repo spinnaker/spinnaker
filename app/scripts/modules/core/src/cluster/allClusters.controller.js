@@ -12,14 +12,12 @@ import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSel
 
 import { CLUSTER_FILTER } from './filter/clusterFilter.component';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
-import { MULTISELECT_MODEL } from './filter/multiselect.model';
 
 import './rollups.less';
 
 module.exports = angular
   .module('spinnaker.core.cluster.allClusters.controller', [
     CLUSTER_FILTER_SERVICE,
-    MULTISELECT_MODEL,
     CLUSTER_FILTER,
     require('../account/account.module').name,
     PROVIDER_SELECTION_SERVICE,
@@ -38,7 +36,6 @@ module.exports = angular
     $timeout,
     providerSelectionService,
     clusterFilterService,
-    MultiselectModel,
     insightFilterStateModel,
     serverGroupCommandBuilder,
     cloudProviderRegistry,
@@ -74,7 +71,7 @@ module.exports = angular
       app.serverGroups.onRefresh($scope, updateClusterGroups);
       $scope.$on('$destroy', () => {
         app.setActiveState();
-        MultiselectModel.clearAll();
+        ClusterState.multiselectModel.clearAll();
         insightFilterStateModel.filtersHidden = false;
         groupsUpdatedSubscription.unsubscribe();
       });
@@ -101,7 +98,7 @@ module.exports = angular
 
     this.toggleMultiselect = () => {
       ClusterState.filterModel.sortFilter.multiselect = !ClusterState.filterModel.sortFilter.multiselect;
-      MultiselectModel.syncNavigation();
+      ClusterState.multiselectModel.syncNavigation();
       updateClusterGroups();
     };
 

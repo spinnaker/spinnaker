@@ -1,21 +1,10 @@
-import { module } from 'angular';
-
 import { Subject } from 'rxjs';
 
 import { IMoniker } from 'core/naming';
+import { IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { ReactInjector } from 'core/reactShims';
-import { IServerGroup } from '../..';
-
-export interface IMultiselectInstanceGroup {
-  serverGroup: string;
-  account: string;
-  region: string;
-  cloudProvider: string;
-  instanceIds: string[];
-  instances: any[];
-  selectAll: boolean;
-}
+import { IMultiInstanceGroup } from 'core/instance/instance.write.service';
 
 export interface IMultiselectServerGroup {
   key: string;
@@ -27,8 +16,8 @@ export interface IMultiselectServerGroup {
 }
 
 export class MultiselectModel {
-  private instanceGroups: IMultiselectInstanceGroup[];
-  private instancesStream: Subject<void>;
+  public instanceGroups: IMultiInstanceGroup[];
+  public instancesStream: Subject<void>;
   public serverGroups: IMultiselectServerGroup[];
   public serverGroupsStream: Subject<void>;
 
@@ -109,7 +98,7 @@ export class MultiselectModel {
     this.clearAllServerGroups();
   }
 
-  public getOrCreateInstanceGroup(serverGroup: IServerGroup): IMultiselectInstanceGroup {
+  public getOrCreateInstanceGroup(serverGroup: IServerGroup): IMultiInstanceGroup {
     const serverGroupName = serverGroup.name,
       account = serverGroup.account,
       region = serverGroup.region,
@@ -240,8 +229,3 @@ export class MultiselectModel {
     return ReactInjector.$state.$current.name.split('.').pop() !== 'clusters';
   }
 }
-export const MULTISELECT_MODEL = 'spinnaker.core.cluster.filter.multiselect.model';
-module(MULTISELECT_MODEL, [require('@uirouter/angularjs').default]).factory(
-  'MultiselectModel',
-  () => new MultiselectModel(),
-);

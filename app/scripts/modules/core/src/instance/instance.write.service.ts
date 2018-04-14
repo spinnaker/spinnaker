@@ -12,8 +12,9 @@ export interface IMultiInstanceGroup {
   region: string;
   serverGroup: string;
   instanceIds: string[];
-  loadBalancers: string[];
+  loadBalancers?: string[];
   instances: IInstance[];
+  selectAll?: boolean;
 }
 
 export interface IMultiInstanceJob {

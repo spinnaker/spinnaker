@@ -1,20 +1,12 @@
-import { mock } from 'angular';
 import { ReactInjector } from 'core/reactShims';
 import * as State from 'core/state';
 const { ClusterState } = State;
 
-import { MULTISELECT_MODEL, MultiselectModel as MSM } from './multiselect.model';
+import { MultiselectModel } from './MultiselectModel';
 
 describe('Multiselect Model', () => {
-  let MultiselectModel: MSM;
-
-  beforeEach(mock.module(MULTISELECT_MODEL));
-
-  beforeEach(
-    mock.inject((_MultiselectModel_: MSM) => {
-      MultiselectModel = _MultiselectModel_;
-    }),
-  );
+  let multiselectModel: MultiselectModel;
+  beforeEach(() => (multiselectModel = new MultiselectModel()));
 
   describe('navigation management', () => {
     let result: any, currentStates: any[], currentParams: any;
@@ -39,7 +31,7 @@ describe('Multiselect Model', () => {
       describe('instance selection', () => {
         let instanceGroup: any;
         beforeEach(() => {
-          instanceGroup = MultiselectModel.getOrCreateInstanceGroup({
+          instanceGroup = multiselectModel.getOrCreateInstanceGroup({
             name: 'a',
             account: 'prod',
             region: 'us-east-1',
@@ -51,14 +43,14 @@ describe('Multiselect Model', () => {
           instanceGroup.instanceIds.push('i-123');
           instanceGroup.instanceIds.push('i-124');
           currentStates.push('.clusters');
-          MultiselectModel.syncNavigation();
+          multiselectModel.syncNavigation();
           expect(result).toBe('.multipleInstances');
         });
 
         it('navigates to multipleInstances child view when not already there and an instance is selected', () => {
           instanceGroup.instanceIds.push('i-123');
           currentStates.push('.clusters');
-          MultiselectModel.syncNavigation();
+          multiselectModel.syncNavigation();
           expect(result).toBe('.multipleInstances');
         });
 
@@ -66,7 +58,7 @@ describe('Multiselect Model', () => {
           instanceGroup.instanceIds.push('i-123');
           instanceGroup.instanceIds.push('i-124');
           currentStates.push('.clusters.instanceDetails');
-          MultiselectModel.syncNavigation();
+          multiselectModel.syncNavigation();
           expect(result).toBe('^.multipleInstances');
         });
 
@@ -75,13 +67,13 @@ describe('Multiselect Model', () => {
           instanceGroup.instanceIds.push('i-123');
           instanceGroup.instanceIds.push('i-124');
           currentStates = ['**.clusters.*', '**.multipleInstances'];
-          MultiselectModel.syncNavigation();
+          multiselectModel.syncNavigation();
           expect(result).toBe(null);
         });
 
         it('navigates away from multipleInstances view when no instances are selected', () => {
           currentStates = ['**.clusters.*', '**.multipleInstances'];
-          MultiselectModel.syncNavigation();
+          multiselectModel.syncNavigation();
           expect(result).toBe('^');
         });
       });
@@ -94,26 +86,26 @@ describe('Multiselect Model', () => {
 
         it('navigates to multipleServerGroups child view when not already there and group is selected', () => {
           currentStates.push('.clusters');
-          MultiselectModel.toggleServerGroup(serverGroup);
+          multiselectModel.toggleServerGroup(serverGroup);
           expect(result).toBe('.multipleServerGroups');
         });
 
         it('navigates to multipleServerGroups sibling view when not already there and group is selected', () => {
           currentStates = ['**.clusters.*', '**.clusters.serverGroup'];
-          MultiselectModel.toggleServerGroup(serverGroup);
+          multiselectModel.toggleServerGroup(serverGroup);
           expect(result).toBe('^.multipleServerGroups');
         });
 
         it('does not navigate when already in multipleServerGroups view', () => {
           currentParams.multiselect = true;
           currentStates = ['**.clusters.*', '**.multipleServerGroups'];
-          MultiselectModel.toggleServerGroup(serverGroup);
+          multiselectModel.toggleServerGroup(serverGroup);
           expect(result).toBe(null);
         });
 
         it('navigates away from multipleServerGroups view when no server groups are selected', () => {
           currentStates = ['**.clusters.*', '**.multipleServerGroups'];
-          MultiselectModel.syncNavigation();
+          multiselectModel.syncNavigation();
           expect(result).toBe('^');
         });
       });
@@ -134,41 +126,41 @@ describe('Multiselect Model', () => {
       it('navigates to details child view when multiselect is not enabled and not in clusters child view', () => {
         ClusterState.filterModel.asFilterModel.sortFilter.multiselect = false;
         currentStates.push('.clusters');
-        MultiselectModel.toggleServerGroup(serverGroup);
+        multiselectModel.toggleServerGroup(serverGroup);
         expect(result).toBe('.serverGroup');
       });
 
       it('navigates to details sibling view when multiselect is not enabled and in clusters child view', () => {
         ClusterState.filterModel.asFilterModel.sortFilter.multiselect = false;
         currentStates = ['**.clusters.*'];
-        MultiselectModel.toggleServerGroup(serverGroup);
+        multiselectModel.toggleServerGroup(serverGroup);
         expect(result).toBe('^.serverGroup');
       });
 
       it('deselects all instances when toggling', () => {
-        const instanceGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const instanceGroup = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         instanceGroup.instanceIds.push('i-124');
-        MultiselectModel.toggleServerGroup(serverGroup);
+        multiselectModel.toggleServerGroup(serverGroup);
         expect(instanceGroup.instanceIds).toEqual([]);
       });
 
       it('toggles server group, creates model when added, always calls next', () => {
-        expect(MultiselectModel.serverGroups.length).toBe(0);
+        expect(multiselectModel.serverGroups.length).toBe(0);
         let nextCalls = 0;
-        MultiselectModel.serverGroupsStream.subscribe(() => nextCalls++);
+        multiselectModel.serverGroupsStream.subscribe(() => nextCalls++);
 
-        MultiselectModel.toggleServerGroup(serverGroup);
+        multiselectModel.toggleServerGroup(serverGroup);
         expect(nextCalls).toBe(1);
-        expect(MultiselectModel.serverGroups.length).toBe(1);
+        expect(multiselectModel.serverGroups.length).toBe(1);
 
-        const model = MultiselectModel.serverGroups[0];
+        const model = multiselectModel.serverGroups[0];
         expect(model.name).toBe('asg-v001');
         expect(model.account).toBe('prod');
         expect(model.region).toBe('us-east-1');
         expect(model.provider).toBe('aws');
 
-        MultiselectModel.toggleServerGroup(serverGroup);
-        expect(MultiselectModel.serverGroups.length).toBe(0);
+        multiselectModel.toggleServerGroup(serverGroup);
+        expect(multiselectModel.serverGroups.length).toBe(0);
         expect(nextCalls).toBe(2);
       });
 
@@ -181,14 +173,14 @@ describe('Multiselect Model', () => {
           category: 'serverGroup',
         } as any;
 
-        expect(MultiselectModel.serverGroups.length).toBe(0);
-        MultiselectModel.toggleServerGroup(serverGroup);
-        MultiselectModel.toggleServerGroup(otherServerGroup);
-        expect(MultiselectModel.serverGroups.length).toBe(2);
+        expect(multiselectModel.serverGroups.length).toBe(0);
+        multiselectModel.toggleServerGroup(serverGroup);
+        multiselectModel.toggleServerGroup(otherServerGroup);
+        expect(multiselectModel.serverGroups.length).toBe(2);
 
-        MultiselectModel.toggleServerGroup(serverGroup);
-        expect(MultiselectModel.serverGroups.length).toBe(1);
-        expect(MultiselectModel.serverGroups[0].name).toBe('asg-v002');
+        multiselectModel.toggleServerGroup(serverGroup);
+        expect(multiselectModel.serverGroups.length).toBe(1);
+        expect(multiselectModel.serverGroups[0].name).toBe('asg-v002');
       });
     });
 
@@ -201,35 +193,35 @@ describe('Multiselect Model', () => {
           region: 'us-east-1',
           type: 'aws',
         };
-        original = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        original = multiselectModel.getOrCreateInstanceGroup(serverGroup);
       });
 
       it('reuses existing instance group', () => {
-        const test = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const test = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         expect(test).toBe(original);
       });
 
       it('creates new instance group if name does not match', () => {
         serverGroup.name += 'a';
-        const test = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const test = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         expect(test).not.toBe(original);
       });
 
       it('creates new instance group if region does not match', () => {
         serverGroup.region += 'a';
-        const test = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const test = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         expect(test).not.toBe(original);
       });
 
       it('creates new instance group if account does not match', () => {
         serverGroup.account += 'a';
-        const test = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const test = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         expect(test).not.toBe(original);
       });
 
       it('creates new instance group if type does not match', () => {
         serverGroup.type += 'a';
-        const test = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const test = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         expect(test).not.toBe(original);
       });
 
@@ -237,7 +229,7 @@ describe('Multiselect Model', () => {
         currentParams = { provider: 'aws', instanceId: 'i-123' };
         serverGroup.instances = [{ id: 'i-123', provider: 'aws' }];
         serverGroup.name = 'asg-v002';
-        const test = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const test = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         expect(test.instanceIds).toEqual(['i-123']);
       });
     });
@@ -252,35 +244,35 @@ describe('Multiselect Model', () => {
           type: 'aws',
         };
 
-        instanceGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        instanceGroup = multiselectModel.getOrCreateInstanceGroup(serverGroup);
 
-        spyOn(MultiselectModel, 'syncNavigation');
+        spyOn(multiselectModel, 'syncNavigation');
       });
 
       it('adds instance id if not present', () => {
-        MultiselectModel.toggleInstance(serverGroup, 'i-1234');
+        multiselectModel.toggleInstance(serverGroup, 'i-1234');
 
         expect(instanceGroup.instanceIds).toEqual(['i-1234']);
-        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
 
       it('removes instance id if present and sets selectAll flag to false', () => {
         instanceGroup.instanceIds.push('i-1234');
         instanceGroup.selectAll = true;
 
-        MultiselectModel.toggleInstance(serverGroup, 'i-1234');
+        multiselectModel.toggleInstance(serverGroup, 'i-1234');
 
         expect(instanceGroup.instanceIds).toEqual([]);
         expect(instanceGroup.selectAll).toBe(false);
-        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
 
       it('clears server groups', () => {
-        MultiselectModel.toggleServerGroup(serverGroup);
-        expect(MultiselectModel.serverGroups.length).toBe(1);
+        multiselectModel.toggleServerGroup(serverGroup);
+        expect(multiselectModel.serverGroups.length).toBe(1);
 
-        MultiselectModel.toggleInstance(serverGroup, 'i-1234');
-        expect(MultiselectModel.serverGroups.length).toBe(0);
+        multiselectModel.toggleInstance(serverGroup, 'i-1234');
+        expect(multiselectModel.serverGroups.length).toBe(0);
       });
     });
 
@@ -294,35 +286,35 @@ describe('Multiselect Model', () => {
           type: 'aws',
         };
 
-        instanceGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        instanceGroup = multiselectModel.getOrCreateInstanceGroup(serverGroup);
 
-        spyOn(MultiselectModel, 'syncNavigation');
+        spyOn(multiselectModel, 'syncNavigation');
       });
 
       it('clears server groups', () => {
-        MultiselectModel.toggleServerGroup(serverGroup);
-        MultiselectModel.toggleSelectAll(serverGroup);
-        expect(MultiselectModel.serverGroups.length).toBe(0);
+        multiselectModel.toggleServerGroup(serverGroup);
+        multiselectModel.toggleSelectAll(serverGroup);
+        expect(multiselectModel.serverGroups.length).toBe(0);
       });
 
       it('sets selectAll flag to true and adds supplied instanceIds when selectAll is false', () => {
         const instanceIds = ['i-1234', 'i-2345'];
-        MultiselectModel.toggleSelectAll(serverGroup, instanceIds);
+        multiselectModel.toggleSelectAll(serverGroup, instanceIds);
 
         expect(instanceGroup.selectAll).toBe(true);
         expect(instanceGroup.instanceIds).toBe(instanceIds);
-        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
 
       it('sets selectAll flag to false and clears supplied instanceIds when selectAll is true', () => {
         const instanceIds = ['i-1234', 'i-2345'];
         instanceGroup.selectAll = true;
         instanceGroup.instanceIds = instanceIds;
-        MultiselectModel.toggleSelectAll(serverGroup, instanceIds);
+        multiselectModel.toggleSelectAll(serverGroup, instanceIds);
 
         expect(instanceGroup.selectAll).toBe(false);
         expect(instanceGroup.instanceIds).toEqual([]);
-        expect((MultiselectModel.syncNavigation as any).calls.count()).toBe(1);
+        expect((multiselectModel.syncNavigation as any).calls.count()).toBe(1);
       });
     });
 
@@ -337,11 +329,11 @@ describe('Multiselect Model', () => {
 
         const instanceId = 'i-1234';
 
-        const instanceGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+        const instanceGroup = multiselectModel.getOrCreateInstanceGroup(serverGroup);
         instanceGroup.instanceIds.push(instanceId);
 
-        expect(MultiselectModel.instanceIsSelected(serverGroup, instanceId)).toBe(true);
-        expect(MultiselectModel.instanceIsSelected(serverGroup, instanceId + 'a')).toBe(false);
+        expect(multiselectModel.instanceIsSelected(serverGroup, instanceId)).toBe(true);
+        expect(multiselectModel.instanceIsSelected(serverGroup, instanceId + 'a')).toBe(false);
       });
     });
   });

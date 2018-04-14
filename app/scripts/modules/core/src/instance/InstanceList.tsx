@@ -43,14 +43,13 @@ interface IColumnWidths {
 export class InstanceList extends React.Component<IInstanceListProps, IInstanceListState> {
   private instanceGroup: any;
   private clusterFilterModel = ClusterState.filterModel.asFilterModel;
-  private MultiselectModel = ReactInjector.MultiselectModel;
   private $state = ReactInjector.$state;
   private $uiRouter = ReactInjector.$uiRouter;
   private destroy$ = new Subject();
 
   constructor(props: IInstanceListProps) {
     super(props);
-    this.instanceGroup = this.MultiselectModel.getOrCreateInstanceGroup(props.serverGroup);
+    this.instanceGroup = ClusterState.multiselectModel.getOrCreateInstanceGroup(props.serverGroup);
     this.state = {
       multiselect: this.$state.params.multiselect,
       allSelected: this.instanceGroup.selectAll,
@@ -58,7 +57,7 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
   }
 
   public componentDidMount() {
-    this.MultiselectModel.instancesStream.takeUntil(this.destroy$).subscribe(() => {
+    ClusterState.multiselectModel.instancesStream.takeUntil(this.destroy$).subscribe(() => {
       this.setState({ allSelected: this.instanceGroup.selectAll });
     });
 
@@ -81,7 +80,7 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     event.stopPropagation();
     const { instances, serverGroup } = this.props;
     const selectedInstances = instances.map(i => i.id);
-    this.MultiselectModel.toggleSelectAll(serverGroup, selectedInstances);
+    ClusterState.multiselectModel.toggleSelectAll(serverGroup, selectedInstances);
     this.setState({ allSelected: !this.state.allSelected });
   }
 

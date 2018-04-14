@@ -4,10 +4,10 @@ import { IMultiInstanceGroup, INSTANCE_WRITE_SERVICE, InstanceWriter } from 'cor
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { IInstance, IServerGroup } from 'core/domain';
+import * as State from 'core/state';
 
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';
-import { MULTISELECT_MODEL } from '../cluster/filter/multiselect.model';
 
 describe('Service: instance writer', function() {
   let service: InstanceWriter,
@@ -15,10 +15,11 @@ describe('Service: instance writer', function() {
     taskExecutor: TaskExecutor,
     $q: ng.IQService,
     $scope: ng.IScope,
-    applicationModelBuilder: ApplicationModelBuilder,
-    MultiselectModel: any;
+    applicationModelBuilder: ApplicationModelBuilder;
 
-  beforeEach(mock.module(INSTANCE_WRITE_SERVICE, APPLICATION_MODEL_BUILDER, MULTISELECT_MODEL));
+  beforeEach(() => State.initialize());
+
+  beforeEach(mock.module(INSTANCE_WRITE_SERVICE, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
     mock.inject(
@@ -29,7 +30,6 @@ describe('Service: instance writer', function() {
         _$q_: ng.IQService,
         $rootScope: ng.IRootScopeService,
         _applicationModelBuilder_: ApplicationModelBuilder,
-        _MultiselectModel_: any,
       ) => {
         service = instanceWriter;
         taskExecutor = _taskExecutor_;
@@ -37,7 +37,6 @@ describe('Service: instance writer', function() {
         $q = _$q_;
         $scope = $rootScope.$new();
         applicationModelBuilder = _applicationModelBuilder_;
-        MultiselectModel = _MultiselectModel_;
       },
     ),
   );
@@ -84,7 +83,7 @@ describe('Service: instance writer', function() {
     let task: ITaskCommand, serverGroupA: IServerGroup, serverGroupB: IServerGroup;
 
     function getInstanceGroup(serverGroup: IServerGroup): IMultiInstanceGroup {
-      return MultiselectModel.getOrCreateInstanceGroup(serverGroup);
+      return State.ClusterState.multiselectModel.getOrCreateInstanceGroup(serverGroup);
     }
 
     function addInstance(serverGroup: IServerGroup, instance: IInstance) {

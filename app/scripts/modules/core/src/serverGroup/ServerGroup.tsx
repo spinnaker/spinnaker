@@ -12,6 +12,7 @@ import { InstanceList } from 'core/instance/InstanceList';
 import { Instances } from 'core/instance/Instances';
 import { ScrollToService } from 'core/utils';
 import { ISortFilter } from 'core/filterModel';
+import { ClusterState } from 'core/state';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
 import { SETTINGS } from 'core';
@@ -111,7 +112,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   private isMultiSelected(multiselect: boolean, serverGroup: IServerGroup) {
-    return multiselect && ReactInjector.MultiselectModel.serverGroupIsSelected(serverGroup);
+    return multiselect && ClusterState.multiselectModel.serverGroupIsSelected(serverGroup);
   }
 
   private onServerGroupsChanged() {
@@ -126,7 +127,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   }
 
   public componentDidMount(): void {
-    const { serverGroupsStream, instancesStream } = ReactInjector.MultiselectModel;
+    const { serverGroupsStream, instancesStream } = ClusterState.multiselectModel;
 
     this.serverGroupsSubscription = serverGroupsStream.merge(instancesStream).subscribe(this.onServerGroupsChanged);
     this.stateChangeSubscription = ReactInjector.$uiRouter.globals.success$.subscribe(this.onStateChanged);
@@ -149,7 +150,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       if (event.isDefaultPrevented() || event.nativeEvent.defaultPrevented) {
         return;
       }
-      ReactInjector.MultiselectModel.toggleServerGroup(this.props.serverGroup);
+      ClusterState.multiselectModel.toggleServerGroup(this.props.serverGroup);
       event.preventDefault();
     });
   }
