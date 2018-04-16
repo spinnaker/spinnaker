@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -252,7 +253,8 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     return cacheData ? cacheData.attributes.cacheTime >= cacheResultBuilder.startTime : false
   }
 
-  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, Firewall firewall) {
+  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder,
+                                   Firewall firewall) {
     def securityGroupKey = Keys.getSecurityGroupKey(
       firewall.getName(),
       deriveFirewallId(firewall),
@@ -263,9 +265,9 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
       new TypeReference<Map<String, List<MutableCacheData>>>() {})
     onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
       cacheDatas.each { MutableCacheData cacheData ->
-        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with {
-          attributes = cacheData.attributes
-          relationships = cacheData.relationships
+        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with { it ->
+          it.attributes = cacheData.attributes
+          it.relationships = Utils.mergeOnDemandCacheRelationships(cacheData.relationships, it.relationships)
         }
         cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }

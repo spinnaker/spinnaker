@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.model.callbacks
 
-import com.google.api.services.compute.model.*
+import com.google.api.services.compute.model.Metadata
+import com.google.api.services.compute.model.PathMatcher
+import com.google.api.services.compute.model.PathRule
+import com.google.api.services.compute.model.UrlMap
+import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
@@ -329,5 +333,31 @@ class Utils {
       .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
       .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
     return loadBalancer.name in globalLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
+  }
+
+  /**
+   * Merge relationships to prevent overwrites from onDemand cache data.
+   *
+   * @param onDemandRelationships onDemand cache relationships.
+   * @param existingRelationships existing relationships (from the cache result builder).
+   * @return Map of merged relationships.
+   */
+  static Map<String, Collection<String>> mergeOnDemandCacheRelationships(Map<String, Collection<String>> onDemandRelationships, Map<String, Collection<String>> existingRelationships) {
+    log.debug("Merging onDemand relationships: ${onDemandRelationships} with existing relationships: ${existingRelationships}")
+    Set<String> relationshipKeys = existingRelationships.keySet() + onDemandRelationships.keySet()
+    return relationshipKeys.collectEntries { String key ->
+      if (onDemandRelationships.containsKey(key) && existingRelationships.containsKey(key)) {
+        Set<String> ret = new HashSet<>()
+        ret.addAll(onDemandRelationships.getOrDefault(key, []))
+        ret.addAll(existingRelationships.getOrDefault(key, []))
+        return new MapEntry(key, ret)
+      } else if (onDemandRelationships.containsKey(key)) {
+        return new MapEntry(key, onDemandRelationships.getOrDefault(key, []))
+      } else if (existingRelationships.containsKey(key)) {
+        return new MapEntry(key, existingRelationships.getOrDefault(key, []))
+      }
+      log.warn("Attempted to merge relationship key ${key} that neither exists in onDemand cache data nor existing cache data.")
+      return null
+    }
   }
 }

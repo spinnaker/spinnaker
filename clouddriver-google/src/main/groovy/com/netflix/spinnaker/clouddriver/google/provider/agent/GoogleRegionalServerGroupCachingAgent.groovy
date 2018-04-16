@@ -298,17 +298,18 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     cacheResultBuilder.build()
   }
 
-  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, GoogleServerGroup googleServerGroup) {
+  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder,
+                                   GoogleServerGroup googleServerGroup) {
     def serverGroupKey = getServerGroupKey(googleServerGroup)
     Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
-        cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults as String,
-        new TypeReference<Map<String, List<MutableCacheData>>>() {})
+      cacheResultBuilder.onDemand.toKeep[serverGroupKey].attributes.cacheResults as String,
+      new TypeReference<Map<String, List<MutableCacheData>>>() {})
 
     onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
       cacheDatas.each { MutableCacheData cacheData ->
-        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with {
-          attributes = cacheData.attributes
-          relationships = cacheData.relationships
+        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with { it ->
+          it.attributes = cacheData.attributes
+          it.relationships = Utils.mergeOnDemandCacheRelationships(cacheData.relationships, it.relationships)
         }
         cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }

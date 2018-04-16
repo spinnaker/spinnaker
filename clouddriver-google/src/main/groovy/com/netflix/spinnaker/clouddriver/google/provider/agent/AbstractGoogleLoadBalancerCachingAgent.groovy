@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -39,9 +40,7 @@ import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.ON_DEMAND
+import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
 
 @Slf4j
 abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
@@ -257,7 +256,8 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
     return cacheData ? cacheData.attributes.cacheTime >= cacheResultBuilder.startTime : false
   }
 
-  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, GoogleLoadBalancer googleLoadBalancer) {
+  void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder,
+                                   GoogleLoadBalancer googleLoadBalancer) {
     def loadBalancerKey = Keys.getLoadBalancerKey(region, accountName, googleLoadBalancer.name)
     Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
       cacheResultBuilder.onDemand.toKeep[loadBalancerKey].attributes.cacheResults as String,
@@ -265,9 +265,9 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
 
     onDemandData.each { String namespace, List<MutableCacheData> cacheDatas ->
       cacheDatas.each { MutableCacheData cacheData ->
-        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with {
-          attributes = cacheData.attributes
-          relationships = cacheData.relationships
+        cacheResultBuilder.namespace(namespace).keep(cacheData.id).with { it ->
+          it.attributes = cacheData.attributes
+          it.relationships = Utils.mergeOnDemandCacheRelationships(cacheData.relationships, it.relationships)
         }
         cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }
