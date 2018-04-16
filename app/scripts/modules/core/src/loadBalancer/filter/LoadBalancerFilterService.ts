@@ -1,6 +1,6 @@
-import { ILogService, module } from 'angular';
 import { chain, find, forOwn, groupBy, includes, intersection, map, some, sortBy, values, without } from 'lodash';
 import { Debounce, BindAll } from 'lodash-decorators';
+import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -16,8 +16,7 @@ export class LoadBalancerFilterService {
   private getCheckValues: (object: any) => string[];
   private lastApplication: Application;
 
-  constructor(private $log: ILogService) {
-    'ngInject';
+  constructor() {
     this.isFilterable = FilterModelService.isFilterable;
     this.getCheckValues = FilterModelService.getCheckValues;
   }
@@ -131,7 +130,7 @@ export class LoadBalancerFilterService {
         region: serverGroup.region,
       });
       if (!newServerGroup) {
-        this.$log.debug(
+        $log.debug(
           'server group no longer found, removing:',
           serverGroup.name,
           serverGroup.account,
@@ -141,7 +140,7 @@ export class LoadBalancerFilterService {
       } else {
         newServerGroup.stringVal = newServerGroup.stringVal || JSON.stringify(newServerGroup, this.jsonReplacer);
         if (serverGroup.stringVal !== newServerGroup.stringVal) {
-          this.$log.debug(
+          $log.debug(
             'change detected, updating server group:',
             serverGroup.name,
             serverGroup.account,
@@ -161,7 +160,7 @@ export class LoadBalancerFilterService {
         region: serverGroup.region,
       });
       if (!oldServerGroup) {
-        this.$log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
+        $log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
         oldGroup.serverGroups.push(serverGroup);
       }
     });
@@ -256,9 +255,3 @@ export class LoadBalancerFilterService {
     this.groupsUpdatedStream.next(groups);
   }
 }
-
-export const LOAD_BALANCER_FILTER_SERVICE = 'spinnaker.core.loadBalancer.filter.service';
-module(LOAD_BALANCER_FILTER_SERVICE, []).factory(
-  'loadBalancerFilterService',
-  ($log: ILogService) => new LoadBalancerFilterService($log),
-);

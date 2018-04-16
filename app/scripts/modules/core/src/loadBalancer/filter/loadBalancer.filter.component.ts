@@ -5,13 +5,11 @@ import { Subscription } from 'rxjs';
 import { Application } from 'core/application/application.model';
 import { LoadBalancerState } from 'core/state';
 
-import { LOAD_BALANCER_FILTER_SERVICE } from './loadBalancer.filter.service';
 import { IFilterTag } from '../../filterModel/FilterTags';
 
 export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controller';
 
 const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
-  LOAD_BALANCER_FILTER_SERVICE,
   require('../../filterModel/dependentFilter/dependentFilter.service').name,
   require('./loadBalancerDependentFilterHelper.service').name,
 ]);
@@ -31,7 +29,6 @@ class LoadBalancerFilterCtrl {
 
   constructor(
     private $scope: IScope,
-    private loadBalancerFilterService: any,
     private $rootScope: IScope,
     private loadBalancerDependentFilterHelper: any,
     private dependentFilterService: any,
@@ -41,11 +38,11 @@ class LoadBalancerFilterCtrl {
   }
 
   public $onInit(): void {
-    const { loadBalancerFilterService, app, $scope, $rootScope } = this;
+    const { app, $scope, $rootScope } = this;
     const filterModel = LoadBalancerState.filterModel.asFilterModel;
 
     this.tags = filterModel.tags;
-    this.groupsUpdatedSubscription = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => {
+    this.groupsUpdatedSubscription = LoadBalancerState.filterService.groupsUpdatedStream.subscribe(() => {
       // need to applyAsync because everything else is happening in React now; will replicate when converting clusters, etc.
       $scope.$applyAsync(() => (this.tags = filterModel.tags));
     });
@@ -58,7 +55,7 @@ class LoadBalancerFilterCtrl {
 
     this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
       filterModel.activate();
-      loadBalancerFilterService.updateLoadBalancerGroups(app);
+      LoadBalancerState.filterService.updateLoadBalancerGroups(app);
     });
 
     $scope.$on('$destroy', () => {
@@ -68,7 +65,7 @@ class LoadBalancerFilterCtrl {
   }
 
   public updateLoadBalancerGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, loadBalancerFilterService, loadBalancerDependentFilterHelper, app } = this;
+    const { dependentFilterService, loadBalancerDependentFilterHelper, app } = this;
 
     const { availabilityZone, region, account } = dependentFilterService.digestDependentFilters({
       sortFilter: LoadBalancerState.filterModel.asFilterModel.sortFilter,
@@ -83,7 +80,7 @@ class LoadBalancerFilterCtrl {
     if (applyParamsToUrl) {
       LoadBalancerState.filterModel.asFilterModel.applyParamsToUrl();
     }
-    loadBalancerFilterService.updateLoadBalancerGroups(app);
+    LoadBalancerState.filterService.updateLoadBalancerGroups(app);
   }
 
   private getHeadingsForOption(option: string): string[] {
@@ -91,10 +88,10 @@ class LoadBalancerFilterCtrl {
   }
 
   public clearFilters(): void {
-    const { loadBalancerFilterService, app } = this;
+    const { app } = this;
 
-    loadBalancerFilterService.clearFilters();
-    loadBalancerFilterService.updateLoadBalancerGroups(app);
+    LoadBalancerState.filterService.clearFilters();
+    LoadBalancerState.filterService.updateLoadBalancerGroups(app);
     this.updateLoadBalancerGroups(false);
   }
 

@@ -2,6 +2,7 @@ import { ClusterFilterModel } from 'core/cluster/filter/ClusterFilterModel';
 import { ClusterFilterService } from 'core/cluster/filter/ClusterFilterService';
 import { ExecutionFilterModel } from 'core/pipeline/filter/ExecutionFilterModel';
 import { LoadBalancerFilterModel } from 'core/loadBalancer/filter/LoadBalancerFilterModel';
+import { LoadBalancerFilterService } from 'core/loadBalancer/filter/LoadBalancerFilterService';
 import { MultiselectModel } from 'core/cluster/filter/MultiselectModel';
 import { SecurityGroupFilterModel } from 'core/securityGroup/filter/SecurityGroupFilterModel';
 
@@ -17,6 +18,7 @@ export interface IExecutionState {
 
 export interface ILoadBalancersState {
   filterModel: LoadBalancerFilterModel;
+  filterService: LoadBalancerFilterService;
 }
 
 export interface ISecurityGroupState {
@@ -32,7 +34,11 @@ export function initialize(): void {
   ClusterState.filterModel = new ClusterFilterModel();
   ClusterState.filterService = new ClusterFilterService();
   ClusterState.multiselectModel = new MultiselectModel();
+
   ExecutionState.filterModel = new ExecutionFilterModel();
+
   LoadBalancerState.filterModel = new LoadBalancerFilterModel();
+  LoadBalancerState.filterService = new LoadBalancerFilterService();
+
   SecurityGroupState.filterModel = new SecurityGroupFilterModel();
 }

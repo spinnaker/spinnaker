@@ -43,10 +43,11 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   public componentDidMount(): void {
-    const { loadBalancerFilterService } = ReactInjector;
     const { app } = this.props;
 
-    this.groupsUpdatedListener = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
+    this.groupsUpdatedListener = LoadBalancerState.filterService.groupsUpdatedStream.subscribe(() =>
+      this.groupsUpdated(),
+    );
     LoadBalancerState.filterModel.asFilterModel.activate();
     this.loadBalancersRefreshUnsubscribe = app
       .getDataSource('loadBalancers')
@@ -69,9 +70,8 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
 
   @Debounce(200)
   private updateLoadBalancerGroups(): void {
-    const { loadBalancerFilterService } = ReactInjector;
     LoadBalancerState.filterModel.asFilterModel.applyParamsToUrl();
-    loadBalancerFilterService.updateLoadBalancerGroups(this.props.app);
+    LoadBalancerState.filterService.updateLoadBalancerGroups(this.props.app);
     this.groupsUpdated();
 
     if (this.props.app.getDataSource('loadBalancers').loaded) {
@@ -80,7 +80,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   private clearFilters(): void {
-    ReactInjector.loadBalancerFilterService.clearFilters();
+    LoadBalancerState.filterService.clearFilters();
     this.updateLoadBalancerGroups();
   }
 
