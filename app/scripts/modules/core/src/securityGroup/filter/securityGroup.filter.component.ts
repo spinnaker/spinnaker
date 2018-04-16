@@ -6,12 +6,9 @@ import { Application } from 'core/application/application.model';
 import { IFilterTag, ISortFilter } from 'core/filterModel';
 import { SecurityGroupState } from 'core/state';
 
-import { SECURITY_GROUP_FILTER_SERVICE } from './securityGroupFilter.service';
-
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
 const ngmodule = module(SECURITY_GROUP_FILTER, [
-  SECURITY_GROUP_FILTER_SERVICE,
   require('core/filterModel/dependentFilter/dependentFilter.service').name,
   require('./securityGroupDependentFilterHelper.service').name,
 ]);
@@ -29,7 +26,6 @@ export class SecurityGroupFilterCtrl {
   private locationChangeUnsubscribe: () => void;
 
   constructor(
-    private securityGroupFilterService: any,
     private dependentFilterService: any,
     private securityGroupDependentFilterHelper: any,
     private $scope: IScope,
@@ -39,12 +35,12 @@ export class SecurityGroupFilterCtrl {
   }
 
   public $onInit(): void {
-    const { $scope, $rootScope, app, securityGroupFilterService } = this;
+    const { $scope, $rootScope, app } = this;
 
     this.sortFilter = SecurityGroupState.filterModel.asFilterModel.sortFilter;
     this.tags = SecurityGroupState.filterModel.asFilterModel.tags;
 
-    this.groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream.subscribe(
+    this.groupsUpdatedSubscription = SecurityGroupState.filterService.groupsUpdatedStream.subscribe(
       () => (this.tags = SecurityGroupState.filterModel.asFilterModel.tags),
     );
 
@@ -53,7 +49,7 @@ export class SecurityGroupFilterCtrl {
 
     this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
       SecurityGroupState.filterModel.asFilterModel.activate();
-      securityGroupFilterService.updateSecurityGroups(app);
+      SecurityGroupState.filterService.updateSecurityGroups(app);
     });
 
     $scope.$on('$destroy', () => {
@@ -84,9 +80,8 @@ export class SecurityGroupFilterCtrl {
   }
 
   public clearFilters(): void {
-    const { securityGroupFilterService } = this;
-    securityGroupFilterService.clearFilters();
-    securityGroupFilterService.updateSecurityGroups(this.app);
+    SecurityGroupState.filterService.clearFilters();
+    SecurityGroupState.filterService.updateSecurityGroups(this.app);
     this.updateSecurityGroups(false);
   }
 

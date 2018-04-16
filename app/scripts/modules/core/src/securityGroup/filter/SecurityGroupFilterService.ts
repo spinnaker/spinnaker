@@ -46,6 +46,11 @@ export class SecurityGroupFilterService {
     });
   }
 
+  public clearFilters(): void {
+    SecurityGroupState.filterModel.asFilterModel.clearFilters();
+    SecurityGroupState.filterModel.asFilterModel.applyParamsToUrl();
+  }
+
   public filterSecurityGroupsForDisplay(securityGroups: ISecurityGroup[]): ISecurityGroup[] {
     const service = FilterModelService;
     const model = SecurityGroupState.filterModel.asFilterModel;
@@ -146,6 +151,3 @@ export class SecurityGroupFilterService {
     this.groupsUpdatedStream.next(groups);
   }
 }
-
-export const SECURITY_GROUP_FILTER_SERVICE = 'spinnaker.core.securityGroup.filter.service';
-module(SECURITY_GROUP_FILTER_SERVICE, []).service('securityGroupFilterService', SecurityGroupFilterService);

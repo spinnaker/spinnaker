@@ -5,6 +5,7 @@ import { LoadBalancerFilterModel } from 'core/loadBalancer/filter/LoadBalancerFi
 import { LoadBalancerFilterService } from 'core/loadBalancer/filter/LoadBalancerFilterService';
 import { MultiselectModel } from 'core/cluster/filter/MultiselectModel';
 import { SecurityGroupFilterModel } from 'core/securityGroup/filter/SecurityGroupFilterModel';
+import { SecurityGroupFilterService } from 'core/securityGroup/filter/SecurityGroupFilterService';
 
 export interface IClusterState {
   filterModel: ClusterFilterModel;
@@ -23,6 +24,7 @@ export interface ILoadBalancersState {
 
 export interface ISecurityGroupState {
   filterModel: SecurityGroupFilterModel;
+  filterService: SecurityGroupFilterService;
 }
 
 export const ClusterState: IClusterState = {} as any;
@@ -41,4 +43,5 @@ export function initialize(): void {
   LoadBalancerState.filterService = new LoadBalancerFilterService();
 
   SecurityGroupState.filterModel = new SecurityGroupFilterModel();
+  SecurityGroupState.filterService = new SecurityGroupFilterService();
 }
