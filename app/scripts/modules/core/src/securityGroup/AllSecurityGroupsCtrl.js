@@ -6,15 +6,14 @@ import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.regist
 import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
-import { SECURITY_GROUP_FILTER_MODEL } from './filter/securityGroupFilter.model';
 import { SECURITY_GROUP_FILTER_SERVICE } from './filter/securityGroupFilter.service';
+import { SecurityGroupState } from 'core/state';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.securityGroup.all.controller', [
     SECURITY_GROUP_FILTER_SERVICE,
-    SECURITY_GROUP_FILTER_MODEL,
     PROVIDER_SELECTION_SERVICE,
     SKIN_SELECTION_SERVICE,
     require('angular-ui-bootstrap'),
@@ -28,19 +27,18 @@ module.exports = angular
     skinSelectionService,
     providerSelectionService,
     cloudProviderRegistry,
-    securityGroupFilterModel,
     securityGroupFilterService,
   ) {
     this.$onInit = () => {
       const groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream.subscribe(() => groupsUpdated());
 
-      securityGroupFilterModel.activate();
+      SecurityGroupState.filterModel.activate();
 
       this.initialized = false;
 
       $scope.application = app;
 
-      $scope.sortFilter = securityGroupFilterModel.sortFilter;
+      $scope.sortFilter = SecurityGroupState.filterModel.sortFilter;
 
       app.setActiveState(app.securityGroups);
       $scope.$on('$destroy', () => {
@@ -63,8 +61,8 @@ module.exports = angular
 
     let groupsUpdated = () => {
       $scope.$applyAsync(() => {
-        $scope.groups = securityGroupFilterModel.groups;
-        $scope.tags = securityGroupFilterModel.tags;
+        $scope.groups = SecurityGroupState.filterModel.groups;
+        $scope.tags = SecurityGroupState.filterModel.tags;
         this.initialized = this.initialized || app.securityGroups.loaded;
       });
     };

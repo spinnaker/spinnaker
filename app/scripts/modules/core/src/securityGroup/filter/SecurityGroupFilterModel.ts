@@ -1,5 +1,6 @@
-import { IAngularEvent, IRootScopeService, module } from 'angular';
+import { IAngularEvent, module } from 'angular';
 import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
+import { $rootScope } from 'ngimport';
 
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 import { UrlParser } from 'core/navigation/urlParser';
@@ -21,7 +22,7 @@ export class SecurityGroupFilterModel {
   private mostRecentParams: any;
   public asFilterModel: IFilterModel;
 
-  constructor(private $rootScope: IRootScopeService) {
+  constructor() {
     'ngInject';
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     this.bindEvents();
@@ -64,7 +65,7 @@ export class SecurityGroupFilterModel {
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
     // come back to this application, we'll get whatever that search was.
-    this.$rootScope.$on('$locationChangeStart', (_event: IAngularEvent, toUrl: string, fromUrl: string) => {
+    $rootScope.$on('$locationChangeStart', (_event: IAngularEvent, toUrl: string, fromUrl: string) => {
       const [oldBase, oldQuery] = fromUrl.split('?'),
         [newBase, newQuery] = toUrl.split('?');
 
@@ -75,7 +76,7 @@ export class SecurityGroupFilterModel {
       }
     });
 
-    this.$rootScope.$on(
+    $rootScope.$on(
       '$stateChangeStart',
       (
         _event: IAngularEvent,
@@ -90,7 +91,7 @@ export class SecurityGroupFilterModel {
       },
     );
 
-    this.$rootScope.$on(
+    $rootScope.$on(
       '$stateChangeSuccess',
       (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
         if (this.isSecurityGroupStateOrChild(toState.name) && this.isSecurityGroupStateOrChild(fromState.name)) {

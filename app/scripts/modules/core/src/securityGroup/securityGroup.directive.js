@@ -2,9 +2,11 @@
 
 const angular = require('angular');
 
+import { SecurityGroupState } from 'core/state';
+
 module.exports = angular
   .module('spinnaker.core.securityGroup.directive', [])
-  .directive('securityGroup', function($rootScope, $timeout, securityGroupFilterModel) {
+  .directive('securityGroup', function($rootScope) {
     return {
       restrict: 'E',
       replace: true,
@@ -16,7 +18,7 @@ module.exports = angular
         heading: '=',
       },
       link: function(scope) {
-        scope.sortFilter = securityGroupFilterModel.sortFilter;
+        scope.sortFilter = SecurityGroupState.filterModel.asFilterModel.sortFilter;
         scope.$state = $rootScope.$state;
 
         const securityGroup = scope.securityGroup;

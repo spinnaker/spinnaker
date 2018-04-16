@@ -4,14 +4,14 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { IFilterTag, ISortFilter } from 'core/filterModel';
-import { SECURITY_GROUP_FILTER_MODEL, SecurityGroupFilterModel } from './securityGroupFilter.model';
+import { SecurityGroupState } from 'core/state';
+
 import { SECURITY_GROUP_FILTER_SERVICE } from './securityGroupFilter.service';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
 const ngmodule = module(SECURITY_GROUP_FILTER, [
   SECURITY_GROUP_FILTER_SERVICE,
-  SECURITY_GROUP_FILTER_MODEL,
   require('core/filterModel/dependentFilter/dependentFilter.service').name,
   require('./securityGroupDependentFilterHelper.service').name,
 ]);
@@ -30,7 +30,6 @@ export class SecurityGroupFilterCtrl {
 
   constructor(
     private securityGroupFilterService: any,
-    private securityGroupFilterModel: SecurityGroupFilterModel,
     private dependentFilterService: any,
     private securityGroupDependentFilterHelper: any,
     private $scope: IScope,
@@ -40,20 +39,20 @@ export class SecurityGroupFilterCtrl {
   }
 
   public $onInit(): void {
-    const { $scope, $rootScope, app, securityGroupFilterModel, securityGroupFilterService } = this;
+    const { $scope, $rootScope, app, securityGroupFilterService } = this;
 
-    this.sortFilter = securityGroupFilterModel.asFilterModel.sortFilter;
-    this.tags = securityGroupFilterModel.asFilterModel.tags;
+    this.sortFilter = SecurityGroupState.filterModel.asFilterModel.sortFilter;
+    this.tags = SecurityGroupState.filterModel.asFilterModel.tags;
 
     this.groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream.subscribe(
-      () => (this.tags = securityGroupFilterModel.asFilterModel.tags),
+      () => (this.tags = SecurityGroupState.filterModel.asFilterModel.tags),
     );
 
     this.initialize();
     app.securityGroups.onRefresh($scope, () => this.initialize());
 
     this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
-      securityGroupFilterModel.asFilterModel.activate();
+      SecurityGroupState.filterModel.asFilterModel.activate();
       securityGroupFilterService.updateSecurityGroups(app);
     });
 
@@ -64,10 +63,10 @@ export class SecurityGroupFilterCtrl {
   }
 
   private updateSecurityGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, securityGroupFilterModel, securityGroupDependentFilterHelper, app } = this;
+    const { dependentFilterService, securityGroupDependentFilterHelper, app } = this;
 
     const { account, region } = dependentFilterService.digestDependentFilters({
-      sortFilter: securityGroupFilterModel.asFilterModel.sortFilter,
+      sortFilter: SecurityGroupState.filterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region'],
       pool: securityGroupDependentFilterHelper.poolBuilder(app.securityGroups.data),
     });
@@ -76,7 +75,7 @@ export class SecurityGroupFilterCtrl {
     this.regionHeadings = region;
 
     if (applyParamsToUrl) {
-      securityGroupFilterModel.asFilterModel.applyParamsToUrl();
+      SecurityGroupState.filterModel.asFilterModel.applyParamsToUrl();
     }
   }
 

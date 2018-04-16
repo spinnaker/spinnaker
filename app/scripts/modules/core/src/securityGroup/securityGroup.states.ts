@@ -12,7 +12,7 @@ import {
 import { SKIN_SERVICE, SkinService } from 'core/cloudProvider';
 
 import { SecurityGroupReader } from './securityGroupReader.service';
-import { filterModelConfig } from './filter/securityGroupFilter.model';
+import { filterModelConfig } from './filter/SecurityGroupFilterModel';
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
