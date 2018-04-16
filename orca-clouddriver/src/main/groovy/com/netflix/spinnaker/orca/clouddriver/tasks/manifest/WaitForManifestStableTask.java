@@ -68,6 +68,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     List<String> messages = new ArrayList<>();
     boolean allStable = true;
     boolean anyFailed = false;
+    boolean anyUnknown = false;
 
     for (Map.Entry<String, List<String>> entry : deployedManifests.entrySet()) {
       String location = entry.getKey();
@@ -93,6 +94,10 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           anyFailed = true;
           messages.add(identifier + ": " + status.getFailed().getMessage());
         }
+
+        if (status.getStable() == null && status.getFailed() == null) {
+          anyUnknown = true;
+        }
       }
     }
 
@@ -100,7 +105,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
         .put("messages", messages)
         .build();
 
-    if (anyFailed) {
+    if (!anyUnknown && anyFailed) {
       return new TaskResult(ExecutionStatus.TERMINAL, context);
     } else if (allStable) {
       return new TaskResult(ExecutionStatus.SUCCEEDED, context, new HashMap<>());
