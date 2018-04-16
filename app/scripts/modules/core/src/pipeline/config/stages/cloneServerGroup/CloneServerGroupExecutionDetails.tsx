@@ -3,8 +3,9 @@ import { find, get } from 'lodash';
 
 import { AccountTag } from 'core/account';
 import { ReactInjector } from 'core/reactShims';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from 'core/pipeline/config/stages/core';
 import { StageFailureMessage } from 'core/pipeline/details';
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from '../core';
+import { ClusterState } from 'core/state';
 
 export interface IDeployResult {
   type: string;
@@ -125,7 +126,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<
 const DeployedServerGroup = (props: { result: IDeployResult }): JSX.Element => {
   const deployClicked = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.stopPropagation();
-    ReactInjector.clusterFilterService.overrideFiltersForUrl(props.result);
+    ClusterState.filterService.overrideFiltersForUrl(props.result);
   };
   return (
     <a onClick={deployClicked} href={props.result.href}>

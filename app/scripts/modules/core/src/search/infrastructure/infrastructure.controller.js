@@ -5,7 +5,6 @@ import _ from 'lodash';
 const angular = require('angular');
 
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';
-import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
@@ -15,6 +14,7 @@ import { SPINNER_COMPONENT } from 'core/widgets/spinners/spinner.component';
 import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
 import { PROJECT_SUMMARY_POD_COMPONENT } from '../infrastructure/projectSummaryPod.component';
 import { RECENTLY_VIEWED_ITEMS_COMPONENT } from '../infrastructure/recentlyViewedItems.component';
+import { ClusterState } from 'core/state';
 
 import { SearchService } from '../search.service';
 
@@ -26,7 +26,6 @@ module.exports = angular
     PAGE_TITLE_SERVICE,
     PROJECT_SUMMARY_POD_COMPONENT,
     SEARCH_RANK_FILTER,
-    CLUSTER_FILTER_SERVICE,
     CACHE_INITIALIZER_SERVICE,
     OVERRIDE_REGISTRY,
     RECENTLY_VIEWED_ITEMS_COMPONENT,
@@ -44,7 +43,6 @@ module.exports = angular
     recentHistoryService,
     $uibModal,
     $state,
-    clusterFilterService,
   ) {
     var search = infrastructureSearchService.getSearcher();
 
@@ -56,7 +54,7 @@ module.exports = angular
       minCharactersToSearch: 3,
     };
 
-    this.clearFilters = r => clusterFilterService.overrideFiltersForUrl(r);
+    this.clearFilters = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
     function updateLocation() {
       $location.search('q', $scope.query || null);

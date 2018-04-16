@@ -2,12 +2,11 @@
 
 const angular = require('angular');
 
-import { CLUSTER_FILTER_SERVICE, URL_BUILDER_SERVICE } from '@spinnaker/core';
+import { ClusterState, URL_BUILDER_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.canary.canaryDeployment.details.controller', [
     require('@uirouter/angularjs').default,
-    CLUSTER_FILTER_SERVICE,
     URL_BUILDER_SERVICE,
     require('./canaryDeploymentHistory.service.js').name,
   ])
@@ -17,7 +16,6 @@ module.exports = angular
     executionDetailsSectionService,
     canaryDeploymentHistoryService,
     urlBuilderService,
-    clusterFilterService,
   ) {
     $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
 
@@ -84,7 +82,7 @@ module.exports = angular
       }
     };
 
-    this.overrideFiltersForUrl = r => clusterFilterService.overrideFiltersForUrl(r);
+    this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
     let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

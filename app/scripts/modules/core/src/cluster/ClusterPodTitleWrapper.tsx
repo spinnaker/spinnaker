@@ -4,7 +4,7 @@ import { BindAll } from 'lodash-decorators';
 import { Application } from 'core/application/application.model';
 import { ReactInjector } from 'core/reactShims';
 import { DefaultClusterPodTitle } from './DefaultClusterPodTitle';
-import { IClusterSubgroup } from './filter/clusterFilter.service';
+import { IClusterSubgroup } from './filter/ClusterFilterService';
 
 export interface IClusterPodTitleProps {
   grouping: IClusterSubgroup;

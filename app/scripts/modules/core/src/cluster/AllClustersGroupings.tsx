@@ -1,18 +1,17 @@
 import { UIRouterContext } from '@uirouter/react-hybrid';
-import { IClusterSubgroup } from 'core/cluster/filter/clusterFilter.service';
 import { BindAll } from 'lodash-decorators';
 import * as React from 'react';
-import { Subscription } from 'rxjs';
-
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
+import { Subscription } from 'rxjs';
 
 import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
 import { ClusterPod } from 'core/cluster/ClusterPod';
-import { IClusterGroup } from './filter/clusterFilter.service';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { ISortFilter } from 'core/filterModel';
 import { ClusterState } from 'core/state';
+
+import { IClusterGroup, IClusterSubgroup } from './filter/ClusterFilterService';
 
 export interface IAllClustersGroupingsProps {
   app: Application;
@@ -28,7 +27,7 @@ export interface IAllClustersGroupingsState {
 @UIRouterContext
 @BindAll()
 export class AllClustersGroupings extends React.Component<IAllClustersGroupingsProps, IAllClustersGroupingsState> {
-  private clusterFilterService = ReactInjector.clusterFilterService;
+  private clusterFilterService = ClusterState.filterService;
   private clusterFilterModel = ClusterState.filterModel;
 
   private groupsSubscription: Subscription;

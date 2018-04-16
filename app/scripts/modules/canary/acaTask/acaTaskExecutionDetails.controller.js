@@ -2,12 +2,11 @@
 
 const angular = require('angular');
 
-import { CLUSTER_FILTER_SERVICE, SETTINGS } from '@spinnaker/core';
+import { ClusterState, SETTINGS } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.canary.acaTask.details.controller', [
     require('@uirouter/angularjs').default,
-    CLUSTER_FILTER_SERVICE,
     require('../canary/canaryDeployment/canaryDeploymentHistory.service.js').name,
   ])
   .controller('acaTaskExecutionDetailsCtrl', function(
@@ -15,7 +14,6 @@ module.exports = angular
     $stateParams,
     executionDetailsSectionService,
     canaryDeploymentHistoryService,
-    clusterFilterService,
   ) {
     $scope.configSections = ['canarySummary', 'canaryConfig', 'canaryAnalysisHistory'];
 
@@ -70,7 +68,7 @@ module.exports = angular
       }
     };
 
-    this.overrideFiltersForUrl = r => clusterFilterService.overrideFiltersForUrl(r);
+    this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
     let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

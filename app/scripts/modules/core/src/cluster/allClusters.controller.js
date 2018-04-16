@@ -3,7 +3,6 @@
 const angular = require('angular');
 
 import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
-import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { INSIGHT_NGMODULE } from 'core/insight/insight.module';
 import { ClusterState } from 'core/state';
@@ -17,7 +16,6 @@ import './rollups.less';
 
 module.exports = angular
   .module('spinnaker.core.cluster.allClusters.controller', [
-    CLUSTER_FILTER_SERVICE,
     CLUSTER_FILTER,
     require('../account/account.module').name,
     PROVIDER_SELECTION_SERVICE,
@@ -35,7 +33,6 @@ module.exports = angular
     $uibModal,
     $timeout,
     providerSelectionService,
-    clusterFilterService,
     insightFilterStateModel,
     serverGroupCommandBuilder,
     cloudProviderRegistry,
@@ -43,7 +40,7 @@ module.exports = angular
   ) {
     this.$onInit = () => {
       insightFilterStateModel.filtersHidden = true; // hidden to prevent filter flashing for on-demand apps
-      const groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() =>
+      const groupsUpdatedSubscription = ClusterState.filterService.groupsUpdatedStream.subscribe(() =>
         clusterGroupsUpdated(),
       );
       this.application = app;
@@ -81,7 +78,7 @@ module.exports = angular
       if (app.getDataSource('serverGroups').fetchOnDemand) {
         insightFilterStateModel.filtersHidden = true;
       }
-      clusterFilterService.updateClusterGroups(app);
+      ClusterState.filterService.updateClusterGroups(app);
       clusterGroupsUpdated();
       // Timeout because the updateClusterGroups method is debounced by 25ms
       $timeout(() => {
@@ -103,7 +100,7 @@ module.exports = angular
     };
 
     this.clearFilters = function() {
-      clusterFilterService.clearFilters();
+      ClusterState.filterService.clearFilters();
       updateClusterGroups();
     };
 

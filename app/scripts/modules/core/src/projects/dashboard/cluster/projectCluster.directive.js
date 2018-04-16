@@ -4,9 +4,9 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { CollapsibleSectionStateCache } from 'core/cache';
-import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
 import { HEALTH_COUNTS_COMPONENT } from 'core/healthCounts/healthCounts.component';
 import { URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
+import { ClusterState } from 'core/state';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 
 import './projectCluster.less';
@@ -14,7 +14,6 @@ import './projectCluster.less';
 module.exports = angular
   .module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
     URL_BUILDER_SERVICE,
-    CLUSTER_FILTER_SERVICE,
     TIME_FORMATTERS,
     HEALTH_COUNTS_COMPONENT,
     require('../regionFilter/regionFilter.service.js').name,
@@ -32,12 +31,12 @@ module.exports = angular
       controllerAs: 'vm',
     };
   })
-  .controller('ProjectClusterCtrl', function($scope, urlBuilderService, clusterFilterService, regionFilterService) {
+  .controller('ProjectClusterCtrl', function($scope, urlBuilderService, regionFilterService) {
     let stateCache = CollapsibleSectionStateCache;
 
     let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
 
-    this.clearFilters = r => clusterFilterService.overrideFiltersForUrl(r);
+    this.clearFilters = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
     this.refreshTooltipTemplate = require('./projectClusterRefresh.tooltip.html');
     this.inconsistentBuildsTemplate = require('./inconsistentBuilds.tooltip.html');

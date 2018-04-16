@@ -4,14 +4,12 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ClusterState } from 'core/state';
-import { CLUSTER_FILTER_SERVICE, ClusterFilterService } from 'core/cluster/filter/clusterFilter.service';
 import { IFilterTag, ISortFilter } from 'core/filterModel';
 
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [
   require('./collapsibleFilterSection.directive').name,
-  CLUSTER_FILTER_SERVICE,
   require('core/filterModel/dependentFilter/dependentFilter.service').name,
   require('./clusterDependentFilterHelper.service').name,
 ]);
@@ -33,7 +31,6 @@ class ClusterFilterCtrl {
 
   constructor(
     public $scope: IScope,
-    public clusterFilterService: ClusterFilterService,
     public $rootScope: IScope,
     public clusterDependentFilterHelper: any,
     public dependentFilterService: any,
@@ -42,12 +39,12 @@ class ClusterFilterCtrl {
   }
 
   public $onInit(): void {
-    const { $scope, $rootScope, clusterFilterService, app } = this;
+    const { $scope, $rootScope, app } = this;
     const filterModel = ClusterState.filterModel.asFilterModel;
 
     this.sortFilter = filterModel.sortFilter;
     this.tags = filterModel.tags;
-    this.groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(
+    this.groupsUpdatedSubscription = ClusterState.filterService.groupsUpdatedStream.subscribe(
       () => (this.tags = filterModel.tags),
     );
 
@@ -58,7 +55,7 @@ class ClusterFilterCtrl {
     app.serverGroups.onRefresh($scope, () => this.initialize());
     this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
       filterModel.activate();
-      clusterFilterService.updateClusterGroups(app);
+      ClusterState.filterService.updateClusterGroups(app);
     });
 
     $scope.$on('$destroy', () => {
@@ -68,7 +65,7 @@ class ClusterFilterCtrl {
   }
 
   public updateClusterGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, clusterDependentFilterHelper, clusterFilterService, app } = this;
+    const { dependentFilterService, clusterDependentFilterHelper, app } = this;
 
     const {
       providerType,
@@ -90,7 +87,7 @@ class ClusterFilterCtrl {
     if (applyParamsToUrl) {
       ClusterState.filterModel.asFilterModel.applyParamsToUrl();
     }
-    clusterFilterService.updateClusterGroups(app);
+    ClusterState.filterService.updateClusterGroups(app);
   }
 
   private getHeadingsForOption(option: string): string[] {
@@ -98,9 +95,9 @@ class ClusterFilterCtrl {
   }
 
   public clearFilters(): void {
-    const { clusterFilterService, app } = this;
-    clusterFilterService.clearFilters();
-    clusterFilterService.updateClusterGroups(app);
+    const { app } = this;
+    ClusterState.filterService.clearFilters();
+    ClusterState.filterService.updateClusterGroups(app);
     this.updateClusterGroups(false);
   }
 

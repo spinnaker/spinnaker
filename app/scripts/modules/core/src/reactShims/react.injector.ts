@@ -13,7 +13,6 @@ import { AuthenticationService } from '../authentication/authentication.service'
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
-import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { EntityTagWriter } from '../entityTag';
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
@@ -89,7 +88,6 @@ export class CoreReactInject extends ReactInject {
   public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
   public get cancelModalService() { return this.$injector.get('cancelModalService') as CancelModalService; }
   public get cloudProviderRegistry() { return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry; }
-  public get clusterFilterService() { return this.$injector.get('clusterFilterService') as ClusterFilterService; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get entityTagWriter() { return this.$injector.get('entityTagWriter') as EntityTagWriter; }
   public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }

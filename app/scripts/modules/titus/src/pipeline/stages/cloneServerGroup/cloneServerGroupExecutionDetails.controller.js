@@ -3,12 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { CLUSTER_FILTER_SERVICE, URL_BUILDER_SERVICE } from '@spinnaker/core';
+import { ClusterState, URL_BUILDER_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.cloneServerGroup.executionDetails.controller', [
     require('@uirouter/angularjs').default,
-    CLUSTER_FILTER_SERVICE,
     URL_BUILDER_SERVICE,
   ])
   .controller('titusCloneServerGroupExecutionDetailsCtrl', function(
@@ -16,7 +15,6 @@ module.exports = angular
     $stateParams,
     executionDetailsSectionService,
     urlBuilderService,
-    clusterFilterService,
   ) {
     $scope.configSections = ['cloneServerGroupConfig', 'taskStatus'];
 
@@ -57,7 +55,7 @@ module.exports = angular
       $scope.deployed = results;
     };
 
-    this.overrideFiltersForUrl = r => clusterFilterService.overrideFiltersForUrl(r);
+    this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
     let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 

@@ -3,8 +3,8 @@ import { flatten, map } from 'lodash';
 import { Subscription } from 'rxjs';
 
 import { IInstance, IServerGroup } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
 import { Instances } from 'core/instance/Instances';
+import { ClusterState } from 'core/state';
 
 export interface ILoadBalancerInstancesProps {
   serverGroups: IServerGroup[];
@@ -22,8 +22,7 @@ export class LoadBalancerInstances extends React.Component<ILoadBalancerInstance
     super(props);
     this.state = this.getState(props);
 
-    const { clusterFilterService } = ReactInjector;
-    this.clusterChangeListener = clusterFilterService.groupsUpdatedStream.subscribe(() =>
+    this.clusterChangeListener = ClusterState.filterService.groupsUpdatedStream.subscribe(() =>
       this.setState(this.getState(this.props)),
     );
   }

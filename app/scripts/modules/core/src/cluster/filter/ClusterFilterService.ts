@@ -1,13 +1,13 @@
-import { ILogService, module } from 'angular';
 import { each, forOwn, groupBy, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { StateParams } from '@uirouter/angularjs';
+import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
+import { ReactInjector } from 'core/reactShims';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -47,10 +47,6 @@ export class ClusterFilterService {
   private lastApplication: Application;
 
   private isFilterable: (sortFilter: any) => boolean = FilterModelService.isFilterable;
-
-  public constructor(private $log: ILogService, private $stateParams: StateParams) {
-    'ngInject';
-  }
 
   @Debounce(25)
   public updateClusterGroups(application?: Application): void {
@@ -178,7 +174,7 @@ export class ClusterFilterService {
         category[result.category] = true;
         sortFilter.category = category;
       }
-      if (this.$stateParams.application === result.application) {
+      if (ReactInjector.$stateParams.application === result.application) {
         this.updateClusterGroups();
       }
     }
@@ -450,7 +446,7 @@ export class ClusterFilterService {
       );
 
       if (!newServerGroup) {
-        this.$log.debug(
+        $log.debug(
           'server group no longer found, removing:',
           serverGroup.name,
           serverGroup.account,
@@ -460,7 +456,7 @@ export class ClusterFilterService {
         toRemove.push(idx);
       } else {
         if (serverGroup.stringVal !== newServerGroup.stringVal) {
-          this.$log.debug(
+          $log.debug(
             'change detected, updating server group:',
             serverGroup.name,
             serverGroup.account,
@@ -487,15 +483,9 @@ export class ClusterFilterService {
       );
 
       if (!oldServerGroup) {
-        this.$log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
+        $log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
         oldGroup.serverGroups.push(serverGroup);
       }
     });
   }
 }
-
-export const CLUSTER_FILTER_SERVICE = 'spinnaker.core.cluster.filter.service';
-module(CLUSTER_FILTER_SERVICE, [require('@uirouter/angularjs').default]).service(
-  'clusterFilterService',
-  ClusterFilterService,
-);

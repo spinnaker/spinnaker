@@ -8,7 +8,7 @@ import { Application } from 'core/application';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { IServerGroup } from 'core/domain';
 import { Tooltip } from 'core/presentation';
-import { IClusterSubgroup, IServerGroupSubgroup } from './filter/clusterFilter.service';
+import { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterService';
 import { ISortFilter } from 'core/filterModel';
 import { ClusterPodTitleWrapper } from 'core/cluster/ClusterPodTitleWrapper';
 
