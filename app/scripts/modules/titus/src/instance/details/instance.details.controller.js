@@ -23,6 +23,7 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     RECENT_HISTORY_SERVICE,
     CLOUD_PROVIDER_REGISTRY,
+    require('../../securityGroup/securityGroup.read.service').name,
   ])
   .controller('titusInstanceDetailsCtrl', function(
     $scope,
@@ -37,6 +38,7 @@ module.exports = angular
     instanceReader,
     instance,
     app,
+    titusSecurityGroupReader,
   ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
@@ -104,6 +106,18 @@ module.exports = angular
           $scope.instance.loadBalancers = loadBalancers;
           $scope.baseIpAddress = $scope.instance.placement.containerIp || $scope.instance.placement.host;
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
+          if (details.securityGroups) {
+            $scope.securityGroups = _.chain(details.securityGroups)
+              .map(function(securityGroupId) {
+                return titusSecurityGroupReader.resolveIndexedSecurityGroup(
+                  app['securityGroupsIndex'],
+                  extraData,
+                  securityGroupId,
+                );
+              })
+              .compact()
+              .value();
+          }
           getBastionAddressForAccount($scope.instance.account, $scope.instance.region);
         }, autoClose);
       }

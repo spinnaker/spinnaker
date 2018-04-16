@@ -151,10 +151,10 @@
     </collapsible-section>
     <collapsible-section heading="Security Groups">
       <ul>
-        <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
+        <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
           <a
-            ui-sref="^.securityGroupDetails({name: securityGroup.groupName, accountId: securityGroup.awsAccount, region: instance.placement.region, vpcId: securityGroup.awsVpcId, provider: 'aws'})">
-            {{securityGroup.groupName}} ({{securityGroup.groupId}})
+            ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.account, region: instance.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
+            {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>
       </ul>

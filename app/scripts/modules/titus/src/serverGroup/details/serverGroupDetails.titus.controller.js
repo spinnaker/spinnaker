@@ -21,6 +21,7 @@ import { CONFIG_BIN_LINK_COMPONENT } from './scalingPolicy/configBin/configBinLi
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.titus.controller', [
+    require('../../securityGroup/securityGroup.read.service').name,
     require('@uirouter/angularjs').default,
     ACCOUNT_SERVICE,
     require('../configure/ServerGroupCommandBuilder.js').name,
@@ -48,6 +49,7 @@ module.exports = angular
     awsServerGroupTransformer,
     serverGroupWarningMessageService,
     accountService,
+    titusSecurityGroupReader,
   ) {
     let application = app;
     this.application = app;
@@ -100,17 +102,10 @@ module.exports = angular
             if (details.securityGroups) {
               $scope.securityGroups = _.chain(details.securityGroups)
                 .map(function(id) {
-                  return (
-                    _.find(application.securityGroups.data, {
-                      accountName: serverGroup.accountId,
-                      region: 'global',
-                      id: id,
-                    }) ||
-                    _.find(application.securityGroups.data, {
-                      accountName: serverGroup.accountId,
-                      region: 'global',
-                      name: id,
-                    })
+                  return titusSecurityGroupReader.resolveIndexedSecurityGroup(
+                    application['securityGroupsIndex'],
+                    details,
+                    id,
                   );
                 })
                 .compact()
