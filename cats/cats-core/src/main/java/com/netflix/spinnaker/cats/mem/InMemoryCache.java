@@ -248,7 +248,7 @@ public class InMemoryCache implements WriteableCache {
         }
     }
 
-    static class Glob {
+    public static class Glob {
         private static final String TOKENS = "*?[]\\";
 
         private static enum State {

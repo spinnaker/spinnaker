@@ -33,14 +33,9 @@ class GoogleNamedImageLookupControllerSpec extends Specification {
 
   void "should support filtering on 1..* tags"() {
     given:
-      def namedImage1 = new GoogleNamedImageLookupController.NamedImage(
-        imageName: "image-123",
-        tags: [state: "released"]
-      )
-      def namedImage2 = new GoogleNamedImageLookupController.NamedImage(
-        imageName: "image-456",
-        tags: [state: "released", engine: "spinnaker"]
-      )
+      def namedImage1 = new GoogleNamedImageLookupController.NamedImage(null, "image-123", null, [state: "released"])
+
+      def namedImage2 = new GoogleNamedImageLookupController.NamedImage(null, "image-456", null, [state: "released", engine: "spinnaker"])
 
     and:
       def controller = new GoogleNamedImageLookupController(null)
@@ -81,6 +76,9 @@ class GoogleNamedImageLookupControllerSpec extends Specification {
                                                                                                                           build_host: "http://somebuildhost:8080",
                                                                                                                           state: "released",
                                                                                                                           engine: "spinnaker"
+                                                                                                                        ]
+      "appversion: version1, appversion: version2"                        |  null                                    || [
+                                                                                                                          appversion: "version2"
                                                                                                                         ]
       null                                                                | [state: "released", engine: "spinnaker"] || [
                                                                                                                           state: "released",
