@@ -187,19 +187,19 @@
         <dd>{{serverGroup.resources.networkMbps}} Mbps</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Environment">
-      <div ng-if="!serverGroup.env">No environment parameters associated with this
-        server group</div>
-      <dl ng-if="serverGroup.env">
-        <dt ng-repeat-start="(key, val) in serverGroup.env">{{key}}</dt>
-        <dd ng-repeat-end>{{val}}</dd>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Labels">
-      <div ng-if="!serverGroup.labels">No labels associated with this
+    <collapsible-section heading="Job Attributes">
+      <div ng-if="!serverGroup.labels">No job attributes associated with this
         server group</div>
       <dl ng-if="labels">
         <dt ng-repeat-start="(key, val) in labels">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Environment Variables">
+      <div ng-if="!serverGroup.env">No environment variables associated with this
+        server group</div>
+      <dl ng-if="serverGroup.env">
+        <dt ng-repeat-start="(key, val) in serverGroup.env">{{key}}</dt>
         <dd ng-repeat-end>{{val}}</dd>
       </dl>
     </collapsible-section>
