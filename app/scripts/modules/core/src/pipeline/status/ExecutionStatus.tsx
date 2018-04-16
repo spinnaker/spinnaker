@@ -4,6 +4,7 @@ import { has } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 
 import { IBuildTrigger, ICronTrigger, IDockerTrigger, IExecution, IArtifact } from 'core/domain';
+import { HoverablePopover } from 'core/presentation';
 import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { ReactInjector } from 'core/reactShims';
 import { relativeTime, timestamp } from 'core/utils';
@@ -135,7 +136,11 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
               {execution.trigger.type === 'jenkins' && (execution.trigger as IBuildTrigger).job}
               {['manual', 'pipeline'].includes(execution.trigger.type) && this.executionUser(execution)}
             </li>
-            <li title={timestamp(execution.startTime)}>{this.state.timestamp}</li>
+            <li>
+              <HoverablePopover delayShow={100} delayHide={0} template={<span>{timestamp(execution.startTime)}</span>}>
+                {this.state.timestamp}
+              </HoverablePopover>
+            </li>
           </span>
           {this.state.parameters.map(p => (
             <li key={p.key} className="break-word">
