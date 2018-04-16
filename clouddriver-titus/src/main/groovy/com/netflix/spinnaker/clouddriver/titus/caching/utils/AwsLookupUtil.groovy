@@ -63,52 +63,6 @@ class AwsLookupUtil {
   @Autowired
   AmazonLoadBalancerProvider amazonLoadBalancerProvider
 
-  Set<TitusSecurityGroup> lookupSecurityGroupNames(Map<String, TitusSecurityGroup> titusSecurityGroupLookupCache,
-                                                   String account,
-                                                   String region,
-                                                   List<String> securityGroups) {
-    Set<TitusSecurityGroup> expandedGroups = new LinkedHashSet<TitusSecurityGroup>()
-    Set<String> missingSecurityGroupIds = []
-
-    securityGroups.each { securityGroupId ->
-      def titusSecurityGroupLookupCacheId = "${account}-${region}-${securityGroupId}".toString()
-      TitusSecurityGroup titusSecurityGroup = titusSecurityGroupLookupCache.get(titusSecurityGroupLookupCacheId)
-
-      if (!titusSecurityGroup) {
-        missingSecurityGroupIds << securityGroupId
-      } else {
-        expandedGroups << titusSecurityGroup
-      }
-    }
-
-    if (missingSecurityGroupIds) {
-      def securityGroupNamesByIdentifier = awsSecurityGroupProvider.cacheView.getIdentifiers(
-        SECURITY_GROUPS.ns
-      ).collectEntries {
-        def key = Keys.parse(it)
-        [key.id, key.name]
-      }
-
-      Map awsDetails = awsAccountLookup.find {
-        it.titusAccount == account && it.region == region
-      }
-
-      expandedGroups.addAll(missingSecurityGroupIds.collect {
-        def titusSecurityGroup = new TitusSecurityGroup(groupId: it)
-        titusSecurityGroup.groupName = securityGroupNamesByIdentifier[it]
-        titusSecurityGroup.awsAccount = awsDetails.awsAccount
-        titusSecurityGroup.awsVpcId = awsDetails.vpcId
-
-        def titusSecurityGroupLookupCacheId = "${account}-${region}-${it}".toString()
-        titusSecurityGroupLookupCache.put(titusSecurityGroupLookupCacheId, titusSecurityGroup)
-
-        return titusSecurityGroup
-      })
-    }
-
-    expandedGroups
-  }
-
   Boolean securityGroupIdExists(String account, String region, String securityGroupId) {
     getSecurityGroupDetails(account, region, securityGroupId)?.name != null
   }

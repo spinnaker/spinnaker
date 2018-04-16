@@ -42,7 +42,6 @@ class TitusServerGroup implements ServerGroup, Serializable {
   List<String> hardConstraints
   List<String> softConstraints
   List<String> targetGroups = []
-  Set<TitusSecurityGroup> securityGroupDetails
   Map env
   Long submittedAt
   String application
@@ -66,7 +65,6 @@ class TitusServerGroup implements ServerGroup, Serializable {
   TitusServerGroup(Job job, String account, String region) {
     id = job.id
     name = job.name
-    securityGroupDetails = job.securityGroupDetails
     image << [dockerImageName: job.applicationName]
     image << [dockerImageVersion: job.version]
     entryPoint = job.entryPoint

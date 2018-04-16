@@ -42,7 +42,7 @@ class TitusInstance implements Instance {
   List<Map<String, Object>> health
   TitusInstanceResources resources = new TitusInstanceResources()
   TitusInstancePlacement placement = new TitusInstancePlacement()
-  Set<TitusSecurityGroup> securityGroups
+  List<String> securityGroups
   final String providerType = TitusCloudProvider.ID
   final String cloudProvider = TitusCloudProvider.ID
 
@@ -51,7 +51,7 @@ class TitusInstance implements Instance {
   TitusInstance(Job job, Job.TaskSummary task) {
     id = task.id
     instanceId = task.instanceId
-    securityGroups = job.securityGroupDetails
+    securityGroups = job.securityGroups
     jobId = job.id
     jobName = job.name
     application = Names.parseName(job.name).app

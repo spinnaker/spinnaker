@@ -240,7 +240,6 @@ public class Job {
   private List<TaskSummary> tasks;
   private Map<String, String> labels;
   private List<String> securityGroups;
-  private Set<TitusSecurityGroup> securityGroupDetails;
   private String jobGroupStack;
   private String jobGroupDetail;
   private String jobGroupSequence;
@@ -599,14 +598,6 @@ public class Job {
 
   public void setEfs(Efs efs) {
     this.efs = efs;
-  }
-
-  public Set getSecurityGroupDetails() {
-    return securityGroupDetails;
-  }
-
-  public void setSecurityGroupDetails(Set securityGroupDetails) {
-    this.securityGroupDetails = securityGroupDetails;
   }
 
   public MigrationPolicy getMigrationPolicy() {

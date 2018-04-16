@@ -337,7 +337,6 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
                                  Map<String, CacheData> instances,
                                  Map titusSecurityGroupCache) {
     def allJobs = datas*.job
-    resolveAwsDetails(titusSecurityGroupCache, allJobs)
 
     datas.each { data ->
       serverGroups[data.serverGroup].with {
@@ -459,18 +458,6 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
         com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(it, getAwsAccountId(account, region), region, getAwsVpcId(account, region))
       } as Set).asImmutable()
 
-    }
-  }
-
-  private void resolveAwsDetails(Map<String, TitusSecurityGroup> titusSecurityGroupCache,
-                                 List<Job> jobs) {
-    def allSecurityGroupIds = jobs*.securityGroups.flatten() as List<String>
-    def allSecurityGroupsById = awsLookupUtil.get().lookupSecurityGroupNames(
-      titusSecurityGroupCache, account.name, region, allSecurityGroupIds
-    ).collectEntries { [it.groupId, it] }
-
-    jobs.each {
-      it.securityGroupDetails = it.securityGroups.collect { allSecurityGroupsById[it] } as Set<TitusSecurityGroup>
     }
   }
 
