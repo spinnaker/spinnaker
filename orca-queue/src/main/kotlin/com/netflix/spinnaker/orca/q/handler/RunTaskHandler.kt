@@ -131,6 +131,7 @@ class RunTaskHandler(
     val id = registry.createId("task.invocations")
       .withTag("status", status.toString())
       .withTag("executionType", stage.execution.type.name.capitalize())
+      .withTag("taskType", taskModel.implementingClass)
       .withTag("isComplete", status.isComplete.toString())
       .withTag("application", stage.execution.application)
       .let { id ->
