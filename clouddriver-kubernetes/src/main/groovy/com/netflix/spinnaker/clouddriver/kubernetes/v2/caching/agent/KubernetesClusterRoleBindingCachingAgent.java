@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
@@ -36,11 +37,12 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 
 public class KubernetesClusterRoleBindingCachingAgent extends KubernetesV2OnDemandCachingAgent {
   KubernetesClusterRoleBindingCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-                                           ObjectMapper objectMapper,
-                                           Registry registry,
-                                           int agentIndex,
-                                           int agentCount) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+      KubernetesResourcePropertyRegistry propertyRegistry,
+      ObjectMapper objectMapper,
+      Registry registry,
+      int agentIndex,
+      int agentCount) {
+    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount);
   }
 
   @Getter

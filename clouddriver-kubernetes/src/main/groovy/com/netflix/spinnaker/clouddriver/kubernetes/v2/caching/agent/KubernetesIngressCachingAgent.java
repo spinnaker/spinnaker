@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesIngressHandler;
@@ -47,11 +48,12 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 @Slf4j
 public class KubernetesIngressCachingAgent extends KubernetesV2OnDemandCachingAgent {
   protected KubernetesIngressCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount);
   }
 
   @Getter

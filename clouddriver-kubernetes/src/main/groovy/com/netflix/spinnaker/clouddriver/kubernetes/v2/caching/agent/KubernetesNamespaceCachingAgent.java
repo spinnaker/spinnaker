@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -43,11 +44,12 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 @Slf4j
 public class KubernetesNamespaceCachingAgent extends KubernetesV2CachingAgent {
   KubernetesNamespaceCachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    super(namedAccountCredentials, propertyRegistry, objectMapper, registry, agentIndex, agentCount);
   }
 
   @Override

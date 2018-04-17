@@ -164,6 +164,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     }
 
     result.getBoundArtifacts().addAll(boundArtifacts);
+    result.removeSensitiveKeys(registry, accountName);
     return result;
   }
 

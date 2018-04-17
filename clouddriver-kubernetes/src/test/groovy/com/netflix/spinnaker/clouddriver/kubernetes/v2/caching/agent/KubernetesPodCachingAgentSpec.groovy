@@ -20,9 +20,12 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesPodHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import io.kubernetes.client.models.V1ObjectMeta
 import io.kubernetes.client.models.V1Pod
@@ -63,8 +66,9 @@ class KubernetesPodCachingAgentSpec extends Specification {
     def namedAccountCredentials = Mock(KubernetesNamedAccountCredentials)
     namedAccountCredentials.getCredentials() >> credentials
     namedAccountCredentials.getName() >> ACCOUNT
+    def propertyRegistry = new KubernetesResourcePropertyRegistry([new KubernetesPodHandler()], new KubernetesSpinnakerKindMap())
 
-    def cachingAgent = new KubernetesPodCachingAgent(namedAccountCredentials, new ObjectMapper(), null, 0, 1)
+    def cachingAgent = new KubernetesPodCachingAgent(namedAccountCredentials, propertyRegistry, new ObjectMapper(), null, 0, 1)
 
     when:
     def result = cachingAgent.loadData(null)

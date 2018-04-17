@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op;
 
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.RegistryUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.AllArgsConstructor;
@@ -38,6 +40,10 @@ public class OperationResult {
   Set<KubernetesManifest> manifests = new HashSet<>();
   Set<Artifact> createdArtifacts = new HashSet<>();
   Set<Artifact> boundArtifacts = new HashSet<>();
+
+  public void removeSensitiveKeys(KubernetesResourcePropertyRegistry propertyRegistry, String accountName) {
+    manifests.forEach(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m));
+  }
 
   public OperationResult addManifest(KubernetesManifest manifest) {
     manifests.add(manifest);

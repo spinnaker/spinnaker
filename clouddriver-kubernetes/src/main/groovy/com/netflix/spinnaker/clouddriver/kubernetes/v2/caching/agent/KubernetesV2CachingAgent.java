@@ -26,6 +26,8 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.RegistryUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
@@ -49,12 +51,16 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
   @Getter
   protected String providerName = KubernetesCloudProvider.getID();
 
+  private final KubernetesResourcePropertyRegistry propertyRegistry;
+
   protected KubernetesV2CachingAgent(KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    this.propertyRegistry = propertyRegistry;
   }
 
   protected abstract KubernetesKind primaryKind();
@@ -110,6 +116,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     List<CacheData> resourceData = resources.values()
         .stream()
         .flatMap(Collection::stream)
+        .peek(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m))
         .map(rs -> KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs), hasClusterRelationship()))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

@@ -25,6 +25,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
+
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.MOUNTABLE_DATA_PRIORITY;
 
 @Component
@@ -37,6 +40,11 @@ public class KubernetesSecretHandler extends KubernetesHandler implements CanDel
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.SECRET;
+  }
+
+  @Override
+  public List<String> sensitiveKeys() {
+    return Collections.singletonList("data");
   }
 
   @Override

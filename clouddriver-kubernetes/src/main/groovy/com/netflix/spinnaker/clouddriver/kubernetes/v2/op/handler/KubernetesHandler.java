@@ -38,8 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +55,10 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
   abstract public boolean versioned();
   abstract public SpinnakerKind spinnakerKind();
   abstract public Status status(KubernetesManifest manifest);
+
+  public List<String> sensitiveKeys() {
+    return new ArrayList<>();
+  }
 
   protected void registerReplacer(ArtifactReplacer.Replacer replacer) {
     artifactReplacer.addReplacer(replacer);
@@ -74,6 +78,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
 
   public KubernetesV2CachingAgent buildCachingAgent(
       KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+      KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
@@ -89,6 +94,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
     try {
       constructor = clazz.getDeclaredConstructor(
           KubernetesNamedAccountCredentials.class,
+          KubernetesResourcePropertyRegistry.class,
           ObjectMapper.class,
           Registry.class,
           int.class,
@@ -103,6 +109,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
       constructor.setAccessible(true);
       return (KubernetesV2CachingAgent) constructor.newInstance(
           namedAccountCredentials,
+          propertyRegistry,
           objectMapper,
           registry,
           agentIndex,
@@ -114,6 +121,11 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
     }
   }
 
+  // used for stripping sensitive values
+  public void removeSensitiveKeys(KubernetesManifest manifest) {
+    List<String> sensitiveKeys = sensitiveKeys();
+    sensitiveKeys.forEach(manifest::remove);
+  }
 
   public Map<String, Object> hydrateSearchResult(Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
     Map<String, Object> result = objectMapper.convertValue(key, new TypeReference<Map<String, Object>>() {});

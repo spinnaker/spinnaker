@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.Manife
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupManagerCacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -82,6 +83,7 @@ public class CustomKubernetesHandlerFactory {
     @Override
     public KubernetesV2CachingAgent buildCachingAgent(
         KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
+        KubernetesResourcePropertyRegistry propertyRegistry,
         ObjectMapper objectMapper,
         Registry registry,
         int agentIndex,
@@ -90,6 +92,7 @@ public class CustomKubernetesHandlerFactory {
       return CustomKubernetesCachingAgentFactory.create(
           kubernetesKind,
           namedAccountCredentials,
+          propertyRegistry,
           objectMapper,
           registry,
           agentIndex,
