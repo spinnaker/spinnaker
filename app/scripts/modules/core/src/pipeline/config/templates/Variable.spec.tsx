@@ -3,8 +3,6 @@ import * as React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
 
 import { REACT_MODULE } from 'core/reactShims/react.module';
-import { HELP_CONTENTS } from 'core/help/help.contents';
-import { HELP_CONTENTS_REGISTRY } from 'core/help/helpContents.registry';
 import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
 import { Variable } from './Variable';
 import { IVariableError, IVariableProps } from './inputs/variableInput.service';
@@ -27,7 +25,7 @@ describe('Variable component', () => {
     };
   };
 
-  beforeEach(mock.module(PIPELINE_TEMPLATE_MODULE, HELP_CONTENTS_REGISTRY, HELP_CONTENTS, REACT_MODULE));
+  beforeEach(mock.module(PIPELINE_TEMPLATE_MODULE, REACT_MODULE));
 
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 

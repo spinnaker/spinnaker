@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'titus.deploy.runtimeLimitSecs': '<p>Maximum amount of time (in seconds) a batch job is allowed to run</p>',
@@ -86,7 +85,4 @@ const helpContents: { [key: string]: string } = {
   `,
 };
 
-export const TITUS_HELP = 'spinnaker.titus.help.contents';
-module(TITUS_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

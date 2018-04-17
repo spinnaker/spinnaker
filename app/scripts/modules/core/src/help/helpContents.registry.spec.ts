@@ -1,31 +1,24 @@
-import { mock } from 'angular';
-
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from './helpContents.registry';
+import { HelpContentsRegistry } from './helpContents.registry';
 
 describe('Help contents registry', () => {
-  let registry: HelpContentsRegistry;
-
-  beforeEach(mock.module(HELP_CONTENTS_REGISTRY));
-  beforeEach(mock.inject((helpContentsRegistry: HelpContentsRegistry) => (registry = helpContentsRegistry)));
-
   describe('Override functionality', () => {
     it('overrides existing value', () => {
-      registry.register('a', 'a');
-      expect(registry.getHelpField('a')).toBe('a');
+      HelpContentsRegistry.register('a', 'a');
+      expect(HelpContentsRegistry.getHelpField('a')).toBe('a');
 
-      registry.registerOverride('a', 'b');
-      expect(registry.getHelpField('a')).toBe('b');
+      HelpContentsRegistry.registerOverride('a', 'b');
+      expect(HelpContentsRegistry.getHelpField('a')).toBe('b');
     });
 
     it('ignores subsequent registration or override registration once an override has been set', () => {
-      registry.registerOverride('a', 'b');
-      expect(registry.getHelpField('a')).toBe('b');
+      HelpContentsRegistry.registerOverride('a', 'b');
+      expect(HelpContentsRegistry.getHelpField('a')).toBe('b');
 
-      registry.register('a', 'a');
-      expect(registry.getHelpField('a')).toBe('b');
+      HelpContentsRegistry.register('a', 'a');
+      expect(HelpContentsRegistry.getHelpField('a')).toBe('b');
 
-      registry.registerOverride('a', 'c');
-      expect(registry.getHelpField('a')).toBe('b');
+      HelpContentsRegistry.registerOverride('a', 'c');
+      expect(HelpContentsRegistry.getHelpField('a')).toBe('b');
     });
   });
 });

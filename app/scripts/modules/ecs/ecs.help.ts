@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from 'core/help/helpContents.registry';
+import { HelpContentsRegistry } from 'core/help/helpContents.registry';
 
 const helpContents: { [key: string]: string } = {
   'ecs.loadBalancer.targetGroup':
@@ -31,7 +30,4 @@ const helpContents: { [key: string]: string } = {
     '<p>A predefined MetricAlarm and Autoscaling policy with an Action must exist.</p><p>There is a delay in MetricAlarm recognizing the Autoscaling policy.</p>',
 };
 
-export const ECS_HELP = 'spinnaker.ecs.help.contents';
-module(ECS_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

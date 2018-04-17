@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from 'core/help/helpContents.registry';
+import { HelpContentsRegistry } from 'core/help/helpContents.registry';
 
 const helpContents: any[] = [
   {
@@ -18,7 +17,4 @@ const helpContents: any[] = [
   },
 ];
 
-export const TRAFFIC_GUARD_CONFIG_HELP = 'spinnaker.core.application.config.trafficGuard.help.contents';
-module(TRAFFIC_GUARD_CONFIG_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  helpContents.forEach((entry: any) => helpContentsRegistry.register(entry.key, entry.contents));
-});
+helpContents.forEach((entry: any) => HelpContentsRegistry.register(entry.key, entry.contents));

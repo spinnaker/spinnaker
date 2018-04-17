@@ -5,7 +5,7 @@ import { HelpContentsRegistry } from './helpContents.registry';
 import IProvideService = angular.auto.IProvideService;
 
 describe('Component: helpField', () => {
-  let helpContentsRegistry: HelpContentsRegistry, $scope: ng.IScope, $compile: ng.ICompileService;
+  let $scope: ng.IScope, $compile: ng.ICompileService;
 
   const executeTest = (htmlString: string, expected: string, attr = 'uib-popover-html') => {
     const helpField: JQuery = $compile(htmlString)($scope);
@@ -26,17 +26,10 @@ describe('Component: helpField', () => {
   });
 
   beforeEach(
-    mock.inject(
-      (
-        $rootScope: ng.IRootScopeService,
-        _$compile_: ng.ICompileService,
-        _helpContentsRegistry_: HelpContentsRegistry,
-      ) => {
-        helpContentsRegistry = _helpContentsRegistry_;
-        $compile = _$compile_;
-        $scope = $rootScope.$new();
-      },
-    ),
+    mock.inject(($rootScope: ng.IRootScopeService, _$compile_: ng.ICompileService) => {
+      $compile = _$compile_;
+      $scope = $rootScope.$new();
+    }),
   );
 
   it('uses provided content if supplied', () => {
@@ -44,12 +37,8 @@ describe('Component: helpField', () => {
   });
 
   it('uses key to look up content if supplied', () => {
-    testContent('<help-field key="aws.serverGroup.stack"></help-field>', 'expected stack help');
-  });
-
-  it('prefers overrides', () => {
-    spyOn(helpContentsRegistry, 'getHelpField').and.returnValue('override content');
-    testContent('<help-field key="aws.serverGroup.stack"></help-field>', 'override content');
+    HelpContentsRegistry.register('some.random.key.here', 'expected stack help');
+    testContent('<help-field key="some.random.key.here"></help-field>', 'expected stack help');
   });
 
   it('uses fallback if key not present', () => {

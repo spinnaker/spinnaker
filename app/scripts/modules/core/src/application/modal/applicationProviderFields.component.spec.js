@@ -65,7 +65,7 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
       });
     });
 
-    it("accommodates typeof application.cloudProviders === 'string'", function() {
+    it(`accommodates typeof application.cloudProviders === 'string'`, function() {
       spyOn(controller, 'getRelevantProviderFieldsTemplates').and.callThrough();
 
       controller.application.cloudProviders = 'gce,aws';

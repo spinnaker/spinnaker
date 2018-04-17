@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'openstack.loadBalancer.detail':
@@ -35,7 +34,4 @@ const helpContents: { [key: string]: string } = {
   'openstack.serverGroup.schedulerHints': '<p>Key-value pairs for server scheduling hints</p>',
 };
 
-export const OPENSTACK_HELP = 'spinnaker.openstack.help.contents';
-module(OPENSTACK_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

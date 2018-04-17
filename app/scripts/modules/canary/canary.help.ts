@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from 'core/help/helpContents.registry';
+import { HelpContentsRegistry } from 'core/help/helpContents.registry';
 
 const helpContents: { [key: string]: string } = {
   'pipeline.config.canary.clusterPairs': `
@@ -34,7 +33,4 @@ const helpContents: { [key: string]: string } = {
     '<p>Uses the global atlas dataset instead of the region specific dataset for ACA</p>',
 };
 
-export const CANARY_HELP = 'spinnaker.core.canary.help.contents';
-module(CANARY_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

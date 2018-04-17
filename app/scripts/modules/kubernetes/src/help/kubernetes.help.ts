@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'kubernetes.serverGroup.stack':
@@ -201,7 +200,4 @@ const helpContents: { [key: string]: string } = {
   `,
 };
 
-export const KUBERNETES_HELP = 'spinnaker.kubernetes.help.contents';
-module(KUBERNETES_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

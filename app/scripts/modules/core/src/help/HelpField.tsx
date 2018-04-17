@@ -2,9 +2,8 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import * as DOMPurify from 'dompurify';
 import { BindAll } from 'lodash-decorators';
-import { $injector } from 'ngimport';
 
-import { HelpContentsRegistry, IHelpContents } from 'core/help';
+import { HelpContentsRegistry } from 'core/help';
 import { HoverablePopover, Placement } from 'core/presentation';
 
 export interface IHelpFieldProps {
@@ -26,14 +25,10 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
     placement: 'top',
   };
 
-  private helpContentsRegistry: HelpContentsRegistry;
-  private helpContents: IHelpContents;
   private popoverShownStart: number;
 
   constructor(props: IHelpFieldProps) {
     super(props);
-    this.helpContentsRegistry = $injector.get('helpContentsRegistry') as any;
-    this.helpContents = $injector.get('helpContents') as any;
 
     this.state = this.getState();
   }
@@ -42,7 +37,7 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
     const { id, fallback, content } = this.props;
     let contentString = content;
     if (id && !contentString) {
-      contentString = this.helpContentsRegistry.getHelpField(id) || this.helpContents[id] || fallback;
+      contentString = HelpContentsRegistry.getHelpField(id) || fallback;
     }
 
     const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"

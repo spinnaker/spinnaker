@@ -18,13 +18,12 @@ describe('Directives: overrideTimeout', function() {
   );
 
   beforeEach(
-    window.inject(function($rootScope, $compile, $controller, pipelineConfig, helpContents) {
+    window.inject(function($rootScope, $compile, $controller, pipelineConfig) {
       this.scope = $rootScope.$new();
       this.scope.stage = {};
       this.compile = $compile;
       this.$controller = $controller;
       this.pipelineConfig = pipelineConfig;
-      this.helpContents = helpContents;
       stageConfig = { defaultTimeoutMs: 90 * 60 * 1000 };
     }),
   );
@@ -82,7 +81,6 @@ describe('Directives: overrideTimeout', function() {
       this.$controller('OverrideTimeoutCtrl', {
         $scope: this.scope,
         pipelineConfig: this.pipelineConfig,
-        helpContents: this.helpContents,
       });
       this.scope.$digest();
       expect(this.scope.vm.minutes).toBe(30);
@@ -94,7 +92,6 @@ describe('Directives: overrideTimeout', function() {
       var ctrl = this.$controller('OverrideTimeoutCtrl', {
         $scope: this.scope,
         pipelineConfig: this.pipelineConfig,
-        helpContents: this.helpContents,
       });
       this.scope.$digest();
       expect(this.scope.vm.minutes).toBe(35);

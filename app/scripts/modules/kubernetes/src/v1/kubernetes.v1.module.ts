@@ -4,7 +4,7 @@ import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegis
 
 import { KUBERNETES_KEY_VALUE_DETAILS } from '../common/keyValueDetails.component';
 import { KUBERNETES_SECURITY_CONTEXT_SELECTOR } from '../container/securityContext/securityContextSelector.component';
-import { KUBERNETES_HELP } from '../help/kubernetes.help';
+import '../help/kubernetes.help';
 import { KubernetesProviderSettings } from '../kubernetes.settings';
 
 import '../logo/kubernetes.logo.less';
@@ -27,7 +27,6 @@ module(KUBERNETES_V1_MODULE, [
   CLOUD_PROVIDER_REGISTRY,
   KUBERNETES_KEY_VALUE_DETAILS,
   KUBERNETES_SECURITY_CONTEXT_SELECTOR,
-  KUBERNETES_HELP,
   require('../loadBalancer/configure/configure.kubernetes.module.js').name,
   require('../loadBalancer/details/details.kubernetes.module.js').name,
   require('../loadBalancer/transformer.js').name,

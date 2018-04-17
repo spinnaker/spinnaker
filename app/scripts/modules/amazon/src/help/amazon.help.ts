@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'aws.associateElasticIp.elasticIp': `<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.</p>
@@ -113,7 +112,4 @@ const helpContents: { [key: string]: string } = {
       <p>If the capacity has changed, this resize operation will be rejected.</p>`,
 };
 
-export const AMAZON_HELP = 'spinnaker.amazon.help.contents';
-module(AMAZON_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

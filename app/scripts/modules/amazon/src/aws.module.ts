@@ -12,7 +12,7 @@ import { SUBNET_RENDERER } from './subnet/subnet.renderer';
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { SERVER_GROUP_CONFIGURE_MODULE } from './serverGroup/configure/serverGroup.configure.aws.module';
 import { COMMON_MODULE } from './common/common.module';
-import { AMAZON_HELP } from './help/amazon.help';
+import './help/amazon.help';
 
 import { AmazonLoadBalancerClusterContainer } from './loadBalancer/AmazonLoadBalancerClusterContainer';
 import { AmazonLoadBalancersTag } from './loadBalancer/AmazonLoadBalancersTag';
@@ -50,7 +50,6 @@ export const AMAZON_MODULE = 'spinnaker.amazon';
 module(AMAZON_MODULE, [
   AWS_REACT_MODULE,
   CLOUD_PROVIDER_REGISTRY,
-  AMAZON_HELP,
   AMAZON_APPLICATION_NAME_VALIDATOR,
   require('./pipeline/stages/bake/awsBakeStage').name,
   require('./pipeline/stages/cloneServerGroup/awsCloneServerGroupStage').name,

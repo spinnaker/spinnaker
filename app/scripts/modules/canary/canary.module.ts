@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CANARY_HELP } from './canary.help';
+import './canary.help';
 
 import './canary.less';
 
@@ -11,8 +11,4 @@ templates.keys().forEach(function(key) {
 });
 
 export const CANARY_MODULE = 'spinnaker.canary';
-module(CANARY_MODULE, [
-  require('./acaTask/acaTaskStage.module').name,
-  require('./canary/canaryStage.module').name,
-  CANARY_HELP,
-]);
+module(CANARY_MODULE, [require('./acaTask/acaTaskStage.module').name, require('./canary/canaryStage.module').name]);

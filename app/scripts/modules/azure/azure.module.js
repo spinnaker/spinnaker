@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 
-import { AZURE_HELP } from './help/azure.help';
+import './help/azure.help';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
@@ -19,7 +19,6 @@ module.exports = angular
     require('./pipeline/stages/disableAsg/azureDisableAsgStage.js').name,
     require('./pipeline/stages/bake/azureBakeStage.js').name,
     CLOUD_PROVIDER_REGISTRY,
-    AZURE_HELP,
     require('./serverGroup/details/serverGroup.details.module.js').name,
     require('./serverGroup/serverGroup.transformer.js').name,
     require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller.js').name,

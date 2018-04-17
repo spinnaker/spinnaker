@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'gce.httpLoadBalancer.certificate':
@@ -180,7 +179,4 @@ const helpContents: { [key: string]: string } = {
     '<p>(Optional) A GCE image name. For example: ubuntu-1204-precise-v20150910.</p>',
 };
 
-export const GCE_HELP = 'spinnaker.google.help.contents';
-module(GCE_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

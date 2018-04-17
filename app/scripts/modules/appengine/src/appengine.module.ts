@@ -6,7 +6,7 @@ import { APPENGINE_CACHE_CONFIGURER } from './cache/cacheConfigurer.service';
 import { APPENGINE_COMPONENT_URL_DETAILS } from './common/componentUrlDetails.component';
 import { APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM } from './common/conditionalDescriptionListItem.component';
 import { APPENGINE_LOAD_BALANCER_CREATE_MESSAGE } from './common/loadBalancerMessage.component';
-import { APPENGINE_HELP_CONTENTS_REGISTRY } from './helpContents/appengineHelpContents';
+import './helpContents/appengineHelpContents';
 import { APPENGINE_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
 import { APPENGINE_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { APPENGINE_PIPELINE_MODULE } from './pipeline/pipeline.module';
@@ -33,7 +33,6 @@ module(APPENGINE_MODULE, [
   APPENGINE_CLONE_SERVER_GROUP_CTRL,
   APPENGINE_COMPONENT_URL_DETAILS,
   APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM,
-  APPENGINE_HELP_CONTENTS_REGISTRY,
   APPENGINE_INSTANCE_DETAILS_CTRL,
   APPENGINE_LOAD_BALANCER_CREATE_MESSAGE,
   APPENGINE_LOAD_BALANCER_MODULE,

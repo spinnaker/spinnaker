@@ -2,7 +2,7 @@ import { IController, IComponentOptions, module } from 'angular';
 
 import { Application, IEntityTag } from 'core';
 import { EntityTagEditor, IEntityTagEditorProps, IOwnerOption } from './EntityTagEditor';
-import { ENTITY_TAGS_HELP } from './entityTags.help';
+import './entityTags.help';
 
 class AddEntityTagLinksCtrl implements IController {
   public application: Application;
@@ -85,6 +85,6 @@ export class AddEntityTagLinksWrapperComponent implements IComponentOptions {
 }
 
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';
-module(ADD_ENTITY_TAG_LINKS_COMPONENT, [ENTITY_TAGS_HELP])
+module(ADD_ENTITY_TAG_LINKS_COMPONENT, [])
   .component('addEntityTagLinks', new AddEntityTagLinksComponent())
   .component('addEntityTagLinksWrapper', new AddEntityTagLinksWrapperComponent());

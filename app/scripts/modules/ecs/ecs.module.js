@@ -11,7 +11,7 @@ import { IAM_ROLE_READ_SERVICE } from './iamRoles/iamRole.read.service';
 import { ECS_CLUSTER_READ_SERVICE } from './ecsCluster/ecsCluster.read.service';
 import { METRIC_ALARM_READ_SERVICE } from './metricAlarm/metricAlarm.read.service';
 import { PLACEMENT_STRATEGY_SERVICE } from './placementStrategy/placementStrategy.service';
-import { ECS_HELP } from './ecs.help';
+import './ecs.help';
 import { COMMON_MODULE } from './common/common.module';
 
 import './logo/ecs.logo.less';
@@ -39,7 +39,6 @@ module.exports = angular
     ECS_CLUSTER_READ_SERVICE,
     METRIC_ALARM_READ_SERVICE,
     PLACEMENT_STRATEGY_SERVICE,
-    ECS_HELP,
     COMMON_MODULE,
     require('./serverGroup/configure/wizard/location/ServerGroupBasicSettings.controller').name,
     require('./serverGroup/configure/serverGroupCommandBuilder.service').name,

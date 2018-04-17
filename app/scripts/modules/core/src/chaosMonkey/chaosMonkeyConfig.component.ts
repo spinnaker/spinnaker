@@ -5,7 +5,7 @@ import { SETTINGS } from 'core/config/settings';
 
 import { CLUSTER_MATCHES_COMPONENT } from 'core/widgets/cluster/clusterMatches.component';
 import { Application, CONFIG_SECTION_FOOTER, IConfigSectionFooterViewState } from 'core/application';
-import { CHAOS_MONKEY_HELP } from './chaosMonkey.help';
+import './chaosMonkey.help';
 import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT } from './chaosMonkeyExceptions.component';
 
 import './chaosMonkeyConfig.component.less';
@@ -79,6 +79,5 @@ export const CHAOS_MONKEY_CONFIG_COMPONENT = 'spinnaker.core.chaosMonkey.config.
 module(CHAOS_MONKEY_CONFIG_COMPONENT, [
   CLUSTER_MATCHES_COMPONENT,
   CHAOS_MONKEY_EXCEPTIONS_COMPONENT,
-  CHAOS_MONKEY_HELP,
   CONFIG_SECTION_FOOTER,
 ]).component('chaosMonkeyConfig', new ChaosMonkeyConfigComponent());

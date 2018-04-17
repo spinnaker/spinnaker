@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'azure.securityGroup.ingress.description': 'Friendly description of the rule you want to enable (limit 80 chars.)',
@@ -27,7 +26,4 @@ const helpContents: { [key: string]: string } = {
   'azure.serverGroup.customData': 'Script or metadata to be injected into each instances.',
 };
 
-export const AZURE_HELP = 'spinnaker.azure.help.contents';
-module(AZURE_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

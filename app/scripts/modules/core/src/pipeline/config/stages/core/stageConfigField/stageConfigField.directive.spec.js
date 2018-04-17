@@ -1,7 +1,9 @@
 'use strict';
 
+import { HelpContentsRegistry } from 'core/help';
+
 describe('Directives: stageConfigField', function() {
-  var scope, compile, helpContents;
+  var scope, compile;
 
   require('./stageConfigField.directive.html');
 
@@ -15,10 +17,9 @@ describe('Directives: stageConfigField', function() {
   );
 
   beforeEach(
-    window.inject(function($rootScope, $compile, _helpContents_) {
+    window.inject(function($rootScope, $compile) {
       scope = $rootScope.$new();
       compile = $compile;
-      helpContents = _helpContents_;
     }),
   );
 
@@ -33,7 +34,7 @@ describe('Directives: stageConfigField', function() {
   it('updates label', function() {
     scope.foo = true;
 
-    var field = compile("<stage-config-field label=\"{{foo ? 'foo' : 'bar'}}\"></stage-config-field>")(scope);
+    var field = compile(`<stage-config-field label="{{foo ? 'foo' : 'bar'}}"></stage-config-field>`)(scope);
 
     scope.$digest();
     expect(field.find('.label-text').html()).toEqual('foo');
@@ -44,7 +45,7 @@ describe('Directives: stageConfigField', function() {
   });
 
   it('includes help text if provided', function() {
-    helpContents['foo.bar'] = 'Some help';
+    HelpContentsRegistry.register('foo.bar', 'Some help');
 
     var field = compile('<stage-config-field label="Label" help-key="foo.bar"></stage-config-field>')(scope);
     scope.$digest();

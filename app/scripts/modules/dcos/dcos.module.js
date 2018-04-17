@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 import { DCOS_KEY_VALUE_DETAILS } from './common/keyValueDetails.component';
-import { DCOS_HELP } from './help/dcos.help';
+import './help/dcos.help';
 
 require('./logo/dcos.logo.less');
 
@@ -18,7 +18,6 @@ module.exports = angular
   .module('spinnaker.dcos', [
     CLOUD_PROVIDER_REGISTRY,
     DCOS_KEY_VALUE_DETAILS,
-    DCOS_HELP,
     require('./instance/details/details.dcos.module.js').name,
     require('./loadBalancer/configure/configure.dcos.module.js').name,
     require('./loadBalancer/details/details.dcos.module.js').name,

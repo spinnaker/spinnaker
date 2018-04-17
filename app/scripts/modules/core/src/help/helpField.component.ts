@@ -1,7 +1,6 @@
 import { IController, IComponentOptions, IPromise, ITimeoutService, module } from 'angular';
 
-import { HELP_CONTENTS } from './help.contents';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from './helpContents.registry';
+import { HelpContentsRegistry } from './helpContents.registry';
 
 export interface IHelpFieldContents {
   content: string;
@@ -22,18 +21,13 @@ export class HelpFieldCtrl implements IController {
   private popoverShownStart: number;
   private popoverClose: IPromise<void>;
 
-  constructor(
-    private $timeout: ITimeoutService,
-    private $analytics: any,
-    private helpContents: any,
-    private helpContentsRegistry: HelpContentsRegistry,
-  ) {
+  constructor(private $timeout: ITimeoutService, private $analytics: any) {
     'ngInject';
   }
 
   public $onInit(): void {
     if (!this.content && this.key) {
-      this.content = this.helpContentsRegistry.getHelpField(this.key) || this.helpContents[this.key] || this.fallback;
+      this.content = HelpContentsRegistry.getHelpField(this.key) || this.fallback;
     }
     this.contents = {
       content: this.content,
@@ -138,6 +132,6 @@ export class HelpFieldWrapperComponent implements IComponentOptions {
 }
 
 export const HELP_FIELD_COMPONENT = 'spinnaker.core.help.helpField.component';
-module(HELP_FIELD_COMPONENT, [HELP_CONTENTS, HELP_CONTENTS_REGISTRY, require('angulartics')])
+module(HELP_FIELD_COMPONENT, [require('angulartics')])
   .component('helpField', new HelpFieldComponent())
   .component('helpFieldWrapper', new HelpFieldWrapperComponent());

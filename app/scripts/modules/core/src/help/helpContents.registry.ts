@@ -1,15 +1,13 @@
-import { module } from 'angular';
-
 export class HelpContentsRegistry {
-  private helpFields: Map<string, string> = new Map<string, string>();
-  private overrides: Set<string> = new Set<string>();
+  private static helpFields: Map<string, string> = new Map<string, string>();
+  private static overrides: Set<string> = new Set<string>();
 
   /**
    * Returns the configured help value, or null if nothing is configured
    * @param key the key
    * @returns the configured help value, or null
    */
-  public getHelpField(key: string): string {
+  public static getHelpField(key: string): string {
     return this.helpFields.get(key) || null;
   }
 
@@ -19,7 +17,7 @@ export class HelpContentsRegistry {
    * @param key the key
    * @param val the value
    */
-  public register(key: string, val: string): void {
+  public static register(key: string, val: string): void {
     if (!this.overrides.has(key)) {
       this.helpFields.set(key, val);
     }
@@ -32,11 +30,8 @@ export class HelpContentsRegistry {
    * @param key the key
    * @param val the value
    */
-  public registerOverride(key: string, val: string): void {
+  public static registerOverride(key: string, val: string): void {
     this.register(key, val);
     this.overrides.add(key);
   }
 }
-
-export const HELP_CONTENTS_REGISTRY = 'spinnaker.core.help.registry';
-module(HELP_CONTENTS_REGISTRY, []).service('helpContentsRegistry', HelpContentsRegistry);

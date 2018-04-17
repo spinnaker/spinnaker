@@ -1,5 +1,4 @@
-import { module } from 'angular';
-import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'dcos.loadBalancer.group':
@@ -47,7 +46,4 @@ const helpContents: { [key: string]: string } = {
     'This can be used to forcefully stop an existing deployment currently running for this server group in DC/OS (as deployments within DC/OS will block anymore from starting for that app).',
 };
 
-export const DCOS_HELP = 'spinnaker.dcos.help.contents';
-module(DCOS_HELP, [HELP_CONTENTS_REGISTRY]).run((helpContentsRegistry: HelpContentsRegistry) => {
-  Object.keys(helpContents).forEach(key => helpContentsRegistry.register(key, helpContents[key]));
-});
+Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

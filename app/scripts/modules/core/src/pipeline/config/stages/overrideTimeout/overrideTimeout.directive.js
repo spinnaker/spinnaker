@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { HELP_CONTENTS } from 'core/help/help.contents';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { HelpContentsRegistry } from 'core/help';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.overrideTimeout', [HELP_CONTENTS, PIPELINE_CONFIG_PROVIDER])
+  .module('spinnaker.core.pipeline.stage.overrideTimeout', [PIPELINE_CONFIG_PROVIDER])
   .directive('overrideTimeout', function() {
     return {
       restrict: 'E',
@@ -18,7 +18,7 @@ module.exports = angular
       controllerAs: 'overrideTimeoutCtrl',
     };
   })
-  .controller('OverrideTimeoutCtrl', function($scope, pipelineConfig, helpContents) {
+  .controller('OverrideTimeoutCtrl', function($scope, pipelineConfig) {
     function toHoursAndMinutes(ms) {
       if (!ms) {
         return { hours: 0, minutes: 0 };
@@ -40,7 +40,7 @@ module.exports = angular
         configurable: !!stageDefaults,
       };
 
-      $scope.vm.helpContent = helpContents['pipeline.config.timeout'];
+      $scope.vm.helpContent = HelpContentsRegistry.getHelpField('pipeline.config.timeout');
       $scope.vm.defaults = toHoursAndMinutes(stageDefaults);
 
       if (stage.overrideTimeout) {

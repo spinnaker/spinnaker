@@ -5,7 +5,7 @@ import './nav/defaultCategories';
 import { APPLICATION_STATE_PROVIDER } from './application.state.provider';
 import { APPLICATIONS_STATE_PROVIDER } from './applications.state.provider';
 import { PERMISSIONS_CONFIGURER_COMPONENT } from './modal/permissionsConfigurer.component';
-import { UPSERT_APPLICATION_HELP } from './modal/upsertApplication.help';
+import './modal/upsertApplication.help';
 
 export const APPLICATION_MODULE = 'spinnaker.core.application';
 module(APPLICATION_MODULE, [
@@ -16,5 +16,4 @@ module(APPLICATION_MODULE, [
   require('./modal/platformHealthOverride.directive').name,
   require('./config/appConfig.dataSource').name,
   PERMISSIONS_CONFIGURER_COMPONENT,
-  UPSERT_APPLICATION_HELP,
 ]);

@@ -10,7 +10,7 @@ import {
 } from 'core/account/account.service';
 import { Application, IConfigSectionFooterViewState } from 'core/application';
 import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
-import { TRAFFIC_GUARD_CONFIG_HELP } from './trafficGuardConfig.help';
+import './trafficGuardConfig.help';
 import { ClusterMatcher, IClusterMatchRule } from 'core/cluster/ClusterRuleMatcher';
 
 export class TrafficGuardConfigController {
@@ -124,8 +124,7 @@ class TrafficGuardConfigComponent implements ng.IComponentOptions {
 }
 
 export const TRAFFIC_GUARD_CONFIG_COMPONENT = 'spinnaker.core.application.config.trafficGuard.component';
-module(TRAFFIC_GUARD_CONFIG_COMPONENT, [
-  ACCOUNT_SERVICE,
-  CLUSTER_MATCHES_COMPONENT,
-  TRAFFIC_GUARD_CONFIG_HELP,
-]).component('trafficGuardConfig', new TrafficGuardConfigComponent());
+module(TRAFFIC_GUARD_CONFIG_COMPONENT, [ACCOUNT_SERVICE, CLUSTER_MATCHES_COMPONENT]).component(
+  'trafficGuardConfig',
+  new TrafficGuardConfigComponent(),
+);
