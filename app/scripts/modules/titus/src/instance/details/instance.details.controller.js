@@ -108,11 +108,11 @@ module.exports = angular
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
           if (details.securityGroups) {
             $scope.securityGroups = _.chain(details.securityGroups)
-              .map(function(securityGroupId) {
+              .map(function(securityGroup) {
                 return titusSecurityGroupReader.resolveIndexedSecurityGroup(
                   app['securityGroupsIndex'],
                   extraData,
-                  securityGroupId,
+                  securityGroup.groupId,
                 );
               })
               .compact()
