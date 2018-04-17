@@ -22,8 +22,8 @@ export class ExecutionBuildTitle extends React.Component<IExecutionBuildTitlePro
 
   constructor(props: IExecutionBuildTitleProps) {
     super(props);
-    this.hasParentPipeline = !!props.execution.trigger.parentPipelineName;
-    this.hasBuildNumber = !!(props.execution.buildInfo && props.execution.buildInfo.number);
+    this.hasParentPipeline = !!props.execution && !!props.execution.trigger.parentPipelineName;
+    this.hasBuildNumber = !!props.execution && !!(props.execution.buildInfo && props.execution.buildInfo.number);
   }
 
   public render() {
