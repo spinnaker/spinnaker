@@ -22,4 +22,8 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/${KUBECTL
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
+RUN useradd spinnaker
+
+USER spinnaker
+
 CMD "/opt/halyard/bin/halyard"
