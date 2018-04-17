@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.Kubern
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesContainerDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesDnsPolicy
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSource
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesToleration
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
@@ -40,5 +41,5 @@ class RunKubernetesJobDescription extends KubernetesKindAtomicOperationDescripti
   Map<String, String> annotations
   String serviceAccountName
   KubernetesDnsPolicy dnsPolicy
-
+  List<KubernetesToleration> tolerations
 }

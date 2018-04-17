@@ -56,6 +56,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesKindAtomicOpe
   KubernetesDnsPolicy dnsPolicy
   Source source
   List<KubernetesPersistentVolumeClaimDescription> volumeClaims
+  List<KubernetesToleration> tolerations
 
   @JsonIgnore
   Set<String> imagePullSecrets
@@ -516,5 +517,34 @@ class KubernetesLabelSelectorRequirements {
   String key
   String operator
   List<String> values
+}
+
+enum KubernetesTolerationEffect {
+  @JsonProperty("NoSchedule")
+  NoSchedule,
+
+  @JsonProperty("PreferNoSchedule")
+  PreferNoSchedule,
+
+  @JsonProperty("NoExecute")
+  NoExecute
+}
+
+enum KubernetesTolerationOperator {
+  @JsonProperty("Exists")
+  Exists,
+
+  @JsonProperty("Equal")
+  Equal
+}
+
+@AutoClone
+@Canonical
+class KubernetesToleration {
+  KubernetesTolerationEffect effect
+  String key
+  KubernetesTolerationOperator operator
+  Long tolerationSeconds
+  String value
 }
 

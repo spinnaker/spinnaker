@@ -67,6 +67,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesStorageMediumType
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesStrategy
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesTcpSocketAction
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesToleration
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeMount
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSource
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesVolumeSourceType
@@ -99,6 +100,7 @@ import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder
 import io.fabric8.kubernetes.api.model.Service
 import io.fabric8.kubernetes.api.model.TCPSocketAction
 import io.fabric8.kubernetes.api.model.TCPSocketActionBuilder
+import io.fabric8.kubernetes.api.model.Toleration
 import io.fabric8.kubernetes.api.model.Volume
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder
 import io.fabric8.kubernetes.api.model.extensions.Deployment
@@ -790,6 +792,10 @@ class KubernetesApiConverter {
     deployDescription.nodeSelector = replicaSet?.spec?.template?.spec?.nodeSelector
     deployDescription.dnsPolicy = replicaSet?.spec?.template?.spec?.dnsPolicy
 
+    deployDescription.tolerations = replicaSet?.spec?.template?.spec?.tolerations?.collect {
+      fromToleration(it)
+    } ?: []
+
     return deployDescription
   }
 
@@ -1064,6 +1070,26 @@ class KubernetesApiConverter {
     return kubernetesDeployment
   }
 
+  static KubernetesToleration fromToleration(Toleration toleration) {
+    def t = new KubernetesToleration()
+    t.effect = toleration.effect
+    t.key = toleration.key
+    t.operator = toleration.operator
+    t.tolerationSeconds = toleration.tolerationSeconds
+    t.value = toleration.value
+    return t
+  }
+
+  static Toleration toToleration(KubernetesToleration toleration) {
+    return new Toleration(
+      toleration.effect.toString(),
+      toleration.key,
+      toleration.operator.toString(),
+      toleration.tolerationSeconds,
+      toleration.value
+    )
+  }
+
   static PodTemplateSpec toPodTemplateSpec(DeployKubernetesAtomicOperationDescription description, String name) {
     def podTemplateSpecBuilder = new PodTemplateSpecBuilder()
       .withNewMetadata()
@@ -1122,6 +1148,13 @@ class KubernetesApiConverter {
     }
 
     podTemplateSpecBuilder = podTemplateSpecBuilder.withInitContainers(initContainers)
+
+
+    def tolerations = description.tolerations.collect { toleration -> 
+      toToleration(toleration)
+    }
+
+    podTemplateSpecBuilder = podTemplateSpecBuilder.withTolerations(tolerations)
 
     return podTemplateSpecBuilder.endSpec().build()
   }

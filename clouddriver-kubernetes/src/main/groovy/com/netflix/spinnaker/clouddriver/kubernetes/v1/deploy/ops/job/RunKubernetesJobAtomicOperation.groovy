@@ -108,6 +108,12 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     
     podBuilder = podBuilder.withContainers(containers)
 
+    def tolerations = description.tolerations.collect { toleration -> 
+      KubernetesApiConverter.toToleration(toleration)
+    }
+
+    podBuilder = podBuilder.withTolerations(tolerations)
+
     podBuilder = podBuilder.endSpec()
 
     task.updateStatus BASE_PHASE, "Sending pod spec to the Kubernetes master."
