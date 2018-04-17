@@ -45,8 +45,9 @@ describe('Service: manualJudgment', () => {
 
       $http.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
+      spyOn(executionService, 'updateExecution').and.stub();
 
-      service.provideJudgment(execution, stage, 'continue').then(() => (succeeded = true));
+      service.provideJudgment(null, execution, stage, 'continue').then(() => (succeeded = true));
 
       $http.flush();
       expect(succeeded).toBe(false);
@@ -66,7 +67,7 @@ describe('Service: manualJudgment', () => {
       $http.expectPATCH(requestUrl).respond(200, '');
       spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise);
 
-      service.provideJudgment(execution, stage, 'continue').then(() => (succeeded = true), () => (failed = true));
+      service.provideJudgment(null, execution, stage, 'continue').then(() => (succeeded = true), () => (failed = true));
 
       $http.flush();
       expect(succeeded).toBe(false);
@@ -86,7 +87,7 @@ describe('Service: manualJudgment', () => {
 
       $http.expectPATCH(requestUrl).respond(503, '');
 
-      service.provideJudgment(execution, stage, 'continue').then(() => (succeeded = true), () => (failed = true));
+      service.provideJudgment(null, execution, stage, 'continue').then(() => (succeeded = true), () => (failed = true));
 
       $http.flush();
       expect(succeeded).toBe(false);

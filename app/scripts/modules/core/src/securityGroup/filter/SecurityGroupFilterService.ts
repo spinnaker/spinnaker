@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { chain, find, forOwn, groupBy, map, sortBy } from 'lodash';
 import { Subject } from 'rxjs';
 import { BindAll } from 'lodash-decorators';

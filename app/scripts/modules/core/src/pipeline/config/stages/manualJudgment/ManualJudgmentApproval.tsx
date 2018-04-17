@@ -1,4 +1,3 @@
-import { IPromise } from 'angular';
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 import 'react-select/dist/react-select.css';
@@ -37,24 +36,11 @@ export class ManualJudgmentApproval extends React.Component<
     };
   }
 
-  private provideJudgment(judgmentDecision: string): IPromise<void> {
+  private provideJudgment(judgmentDecision: string): void {
+    const { application, execution, stage } = this.props;
     const judgmentInput: string = this.state.judgmentInput ? this.state.judgmentInput.value : null;
     this.setState({ submitting: true, error: false, judgmentDecision });
-    return ReactInjector.manualJudgmentService
-      .provideJudgment(this.props.execution, this.props.stage, judgmentDecision, judgmentInput)
-      .then(() => this.judgmentMade())
-      .catch(() => this.judgmentFailure());
-  }
-
-  private judgmentMade(): void {
-    // do not update the submitting state - the reload of the executions will clear it out; otherwise,
-    // there is a flash on the screen when we go from submitting to not submitting to the buttons not being there.
-    this.props.application.activeState.refresh(true);
-    this.setState({ submitting: false });
-  }
-
-  private judgmentFailure(): void {
-    this.setState({ submitting: false, error: true });
+    ReactInjector.manualJudgmentService.provideJudgment(application, execution, stage, judgmentDecision, judgmentInput);
   }
 
   private isSubmitting(decision: string): boolean {
@@ -118,7 +104,11 @@ export class ManualJudgmentApproval extends React.Component<
             <div className="action-buttons">
               <button
                 className="btn btn-primary"
-                disabled={this.state.submitting || stage.context.judgmentStatus}
+                disabled={
+                  this.state.submitting ||
+                  stage.context.judgmentStatus ||
+                  (options.length && !this.state.judgmentInput.value)
+                }
                 onClick={this.handleContinueClick}
               >
                 {this.isSubmitting('continue') && <ButtonBusyIndicator />}
@@ -127,7 +117,11 @@ export class ManualJudgmentApproval extends React.Component<
               <button
                 className="btn btn-danger"
                 onClick={this.handleStopClick}
-                disabled={this.state.submitting || stage.context.judgmentStatus}
+                disabled={
+                  this.state.submitting ||
+                  stage.context.judgmentStatus ||
+                  (options.length && !this.state.judgmentInput.value)
+                }
               >
                 {this.isSubmitting('stop') && <ButtonBusyIndicator />}
                 {stage.context.stopButtonLabel || 'Stop'}

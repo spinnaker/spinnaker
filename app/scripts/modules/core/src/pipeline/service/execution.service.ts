@@ -450,7 +450,7 @@ export class ExecutionService {
       }
     });
     current.stringVal = updated.stringVal;
-    current.hydrated = updated.hydrated;
+    current.hydrated = current.hydrated || updated.hydrated;
     current.graphStatusHash = this.calculateGraphStatusHash(current);
   }
 
