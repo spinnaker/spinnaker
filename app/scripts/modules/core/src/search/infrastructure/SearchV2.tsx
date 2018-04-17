@@ -94,6 +94,17 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
       .takeUntil(this.destroy$)
       .subscribe(
         resultSets => {
+          // auto-navigation only happens via shortcut links, and we only do it if there is exactly one result, e.g
+          // when searching for an instance ID
+          const autoNavigate = window.location.href.endsWith('route=true');
+          const finishedSearching = resultSets.map(r => r.status).every(s => s === SearchStatus.FINISHED);
+          if (finishedSearching && autoNavigate) {
+            const allResults = resultSets.reduce((acc, rs) => acc.concat(rs.results), []);
+            if (allResults.length === 1) {
+              window.location.href = allResults[0].href;
+              return;
+            }
+          }
           if (!this.state.selectedTab) {
             this.selectTab(resultSets);
           }
