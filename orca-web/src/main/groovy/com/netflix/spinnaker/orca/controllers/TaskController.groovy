@@ -339,7 +339,13 @@ class TaskController {
       allPipelines.each { pipeline ->
         clearTriggerStages(pipeline.trigger.other) // remove from the "other" field - that is what Jackson works against
         pipeline.getStages().each { stage ->
-          stage.context = [:]
+          if (stage.context?.group) {
+            // TODO: consider making "group" a top-level field on the Stage model
+            // for now, retain group in the context, as it is needed for collapsing templated pipelines in the UI
+            stage.context = [ group: stage.context.group ]
+          } else {
+            stage.context = [:]
+          }
           stage.outputs = [:]
           stage.tasks = []
         }
