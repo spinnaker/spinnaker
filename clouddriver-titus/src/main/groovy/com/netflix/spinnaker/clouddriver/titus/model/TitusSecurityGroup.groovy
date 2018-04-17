@@ -17,10 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus.model
 
 class TitusSecurityGroup implements Serializable {
-
   String groupId
   String groupName
-  String awsAccount
-  String awsVpcId
-
 }
