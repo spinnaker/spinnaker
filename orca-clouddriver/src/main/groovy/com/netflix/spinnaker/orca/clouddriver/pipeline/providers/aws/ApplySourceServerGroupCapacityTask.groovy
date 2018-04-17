@@ -71,7 +71,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
         // aws is the only cloud provider supporting partial resizes
         // updating anything other than 'min' could result in instances being
         // unnecessarily destroyed or created if autoscaling has occurred
-        context.capacity = [ min: minCapacity ]
+        context.capacity = [min: minCapacity]
       } else {
         context.capacity = targetServerGroup.capacity + [
           min: minCapacity
@@ -81,6 +81,9 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
       log.info("Restoring min capacity of ${context.region}/${targetServerGroup.name} to ${minCapacity} (currentMin: ${targetServerGroup.capacity.min}, snapshotMin: ${sourceServerGroupCapacitySnapshot.min})")
 
       return context
+    } catch (CannotFindAncestorStage e) {
+      log.warn("Unable to apply source server group capacity (executionId: ${stage.execution.id})")
+      return null
     } catch (Exception e) {
       log.error("Unable to apply source server group capacity (executionId: ${stage.execution.id})", e)
       return null
