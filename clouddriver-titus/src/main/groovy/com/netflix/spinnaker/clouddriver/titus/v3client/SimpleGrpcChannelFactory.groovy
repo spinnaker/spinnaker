@@ -20,11 +20,17 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
+import io.grpc.netty.shaded.io.grpc.netty.NegotiationType
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder
 
 class SimpleGrpcChannelFactory implements GrpcChannelFactory {
   @Override
   ManagedChannel build(TitusRegion titusRegion, String environment, String eurekaName, long defaultConnectTimeOut, Registry registry) {
-    return ManagedChannelBuilder.forAddress(titusRegion.endpoint, 7104).usePlaintext(true).build();
+    return NettyChannelBuilder
+      .forAddress(titusRegion.endpoint, 7104)
+      .negotiationType(NegotiationType.TLS)
+      .maxHeaderListSize(65536)
+      .maxInboundMessageSize(65536)
+      .build()
   }
 }
