@@ -1,5 +1,6 @@
 import { IPromise } from 'angular';
 import { CreatePipelineButton } from 'core/pipeline/create/CreatePipelineButton';
+import { IScheduler } from 'core/scheduler/scheduler.factory';
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { Transition } from '@uirouter/core';
@@ -41,6 +42,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: Function;
   private insightFilterStateModel = ReactInjector.insightFilterStateModel;
+  private activeRefresher: IScheduler;
 
   private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50];
 
@@ -69,6 +71,10 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     app.setActiveState(app.executions);
     app.executions.activate();
     app.pipelineConfigs.activate();
+    this.activeRefresher = ReactInjector.schedulerFactory.createScheduler(5000);
+    this.activeRefresher.subscribe(() => {
+      app.getDataSource('runningExecutions').refresh();
+    });
   }
 
   private clearFilters(): void {
@@ -260,6 +266,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     this.executionsRefreshUnsubscribe();
     this.groupsUpdatedSubscription.unsubscribe();
     this.locationChangeUnsubscribe();
+    this.activeRefresher && this.activeRefresher.unsubscribe();
   }
 
   private showFilters(): void {

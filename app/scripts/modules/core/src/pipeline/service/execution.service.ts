@@ -415,6 +415,13 @@ export class ExecutionService {
         application.executions.data.push(re);
       }
     });
+    application.executions.data.forEach((execution: IExecution) => {
+      if (execution.isActive && application.runningExecutions.data.every((e: IExecution) => e.id !== execution.id)) {
+        this.getExecution(execution.id).then(updatedExecution => {
+          this.updateExecution(application, updatedExecution);
+        });
+      }
+    });
     if (updated && !application.executions.reloadingForFilters) {
       application.executions.dataUpdated();
     }

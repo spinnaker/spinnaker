@@ -11,7 +11,6 @@ import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetai
 import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
 import { IExecution, IRestartDetails } from 'core/domain';
 import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
-import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
 import { AccountTag } from 'core/account';
@@ -53,15 +52,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     dataSourceKey: 'executions',
   };
 
-  private activeRefresher: IScheduler;
-  private dataUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
   private runningTime: OrchestratedItemRunningTime;
-
-  // Since executionService.getExecution is a promise, we cannot short circuit the .then()
-  // callback, set a mounted flag to handle inside the then callback.
-  // TODO: Convert executionService.updateExecution() to an Observable and subscribe/unsubscribe
-  private mounted: boolean;
 
   constructor(props: IExecutionProps) {
     super(props);
@@ -186,60 +178,17 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public componentDidMount(): void {
-    this.mounted = true;
-    const { application, execution } = this.props;
+    const { execution } = this.props;
     this.runningTime = new OrchestratedItemRunningTime(execution, (time: number) =>
       this.setState({ runningTimeInMs: time }),
     );
     this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() =>
       this.updateViewStateDetails(),
     );
-    this.configureActiveRefresh();
-    if (this.props.execution.isActive && !this.shouldRefresh(execution)) {
-      // we should not refresh now, but we might want to refresh later...
-      this.dataUpdatedSubscription = application.getDataSource(this.props.dataSourceKey).refresh$.subscribe(() => {
-        this.configureActiveRefresh();
-      });
-    }
-  }
-
-  // TODO: This component should not be handling the refreshing itself; it should just be listening.
-  private configureActiveRefresh(): void {
-    const { execution, application, standalone } = this.props;
-    const { executionService, schedulerFactory } = ReactInjector;
-    this.activeRefresher && this.activeRefresher.unsubscribe();
-    if (!standalone && this.shouldRefresh(execution)) {
-      this.dataUpdatedSubscription && this.dataUpdatedSubscription.unsubscribe();
-      this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(execution.stages.length / 10));
-      let refreshing = false;
-      this.activeRefresher.subscribe(() => {
-        const currentExecution = this.props.execution;
-        if (refreshing || !this.shouldRefresh(currentExecution)) {
-          return;
-        }
-        refreshing = true;
-        executionService
-          .getExecution(currentExecution.id)
-          .then((updated: IExecution) => {
-            if (this.mounted) {
-              const dataSource = application.getDataSource(this.props.dataSourceKey);
-              // if we are already in the middle of a refresh, leave the running execution alone,
-              // lest we trigger a dataUpdated event and clear the reloadingForFilters flag
-              if (!this.props.application.executions.reloadingForFilters) {
-                executionService.updateExecution(application, updated, dataSource);
-              }
-              executionService.removeCompletedExecutionsFromRunningData(application);
-            }
-            refreshing = false;
-          })
-          .catch(() => (refreshing = false));
-      });
-    }
   }
 
   public componentWillReceiveProps(nextProps: IExecutionProps): void {
     if (nextProps.execution !== this.props.execution) {
-      this.configureActiveRefresh();
       this.runningTime.checkStatus(nextProps.execution);
       this.setState({
         showingDetails: this.invalidateShowingDetails(nextProps),
@@ -248,15 +197,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public componentWillUnmount(): void {
-    this.mounted = false;
     this.runningTime.reset();
-    this.activeRefresher && this.activeRefresher.unsubscribe();
-    this.dataUpdatedSubscription && this.dataUpdatedSubscription.unsubscribe();
     this.stateChangeSuccessSubscription.unsubscribe();
-  }
-
-  private shouldRefresh(execution: IExecution): boolean {
-    return execution.isRunning && execution.stages.some(s => s.isRunning && s.type !== 'manualJudgment');
   }
 
   private handleNodeClick(node: IPipelineGraphNode, subIndex: number): void {
