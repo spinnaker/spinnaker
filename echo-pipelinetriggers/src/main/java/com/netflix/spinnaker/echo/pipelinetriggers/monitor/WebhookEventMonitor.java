@@ -129,7 +129,7 @@ public class WebhookEventMonitor extends TriggerMonitor {
   protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
-      .withTag("name", pipeline.getName());
+      .withTag("monitor", getClass().getSimpleName());
     id.withTag("type", pipeline.getTrigger().getType());
     registry.counter(id).increment();
   }

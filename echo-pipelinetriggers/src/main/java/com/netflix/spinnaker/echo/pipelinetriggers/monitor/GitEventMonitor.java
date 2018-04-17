@@ -125,10 +125,7 @@ public class GitEventMonitor extends TriggerMonitor {
   protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
-      .withTag("name", pipeline.getName());
-
-    id.withTag("repository", pipeline.getTrigger().getProject() + ' ' + pipeline.getTrigger().getSlug());
-
+      .withTag("monitor", getClass().getSimpleName());
     registry.counter(id).increment();
   }
 

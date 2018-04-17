@@ -116,7 +116,7 @@ public class PubsubEventMonitor extends TriggerMonitor {
   protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
-      .withTag("name", pipeline.getName());
+      .withTag("monitor", getClass().getSimpleName());
 
     if (isPubsubTrigger(pipeline.getTrigger())) {
       id.withTag("pubsubSystem", pipeline.getTrigger().getPubsubSystem());

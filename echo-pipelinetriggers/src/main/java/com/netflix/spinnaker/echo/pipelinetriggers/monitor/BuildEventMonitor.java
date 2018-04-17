@@ -112,11 +112,8 @@ public class BuildEventMonitor extends TriggerMonitor {
   @Override
   protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
     val id = registry.createId("pipelines.triggered")
-      .withTag("application", pipeline.getApplication())
-      .withTag("name", pipeline.getName());
-    if (isBuildTrigger(pipeline.getTrigger())) {
-      id.withTag("job", pipeline.getTrigger().getJob());
-    }
+      .withTag("monitor", getClass().getSimpleName())
+      .withTag("application", pipeline.getApplication());
     registry.counter(id).increment();
   }
 

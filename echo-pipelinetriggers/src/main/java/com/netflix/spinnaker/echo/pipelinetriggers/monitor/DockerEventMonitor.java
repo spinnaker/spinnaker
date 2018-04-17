@@ -143,11 +143,8 @@ public class DockerEventMonitor extends TriggerMonitor {
   @Override
   protected void emitMetricsOnMatchingPipeline(Pipeline pipeline) {
     val id = registry.createId("pipelines.triggered")
-      .withTag("application", pipeline.getApplication())
-      .withTag("name", pipeline.getName());
-    id.withTag("imageId", pipeline.getTrigger().getAccount() + "/" +
-      pipeline.getTrigger().getRepository() + ":" +
-      pipeline.getTrigger().getTag());
+      .withTag("monitor", getClass().getSimpleName())
+      .withTag("application", pipeline.getApplication());
     registry.counter(id).increment();
   }
 }
