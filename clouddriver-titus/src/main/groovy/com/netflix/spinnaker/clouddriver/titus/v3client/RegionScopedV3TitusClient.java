@@ -226,7 +226,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     String cursor = "";
     boolean hasMore;
     do {
-      Page.Builder jobPage = Page.newBuilder().setPageSize(100);
+      Page.Builder jobPage = Page.newBuilder().setPageSize(1000);
       if (!cursor.isEmpty()) {
         jobPage.setCursor(cursor);
       }
@@ -250,7 +250,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
     String cursor = "";
     boolean hasMore;
     do {
-      Page.Builder taskPage = Page.newBuilder().setPageSize(100);
+      Page.Builder taskPage = Page.newBuilder().setPageSize(1000);
       if (!cursor.isEmpty()) {
         taskPage.setCursor(cursor);
       }
