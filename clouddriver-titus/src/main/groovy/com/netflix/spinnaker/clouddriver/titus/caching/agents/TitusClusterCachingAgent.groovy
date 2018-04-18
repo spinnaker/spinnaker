@@ -59,7 +59,7 @@ import javax.inject.Provider
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*
 
 class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, OnDemandAgent {
@@ -280,7 +280,12 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     Map<String, CacheData> targetGroups = createCache()
     List<ScalingPolicyResult> allScalingPolicies = titusAutoscalingClient ? titusAutoscalingClient.getAllScalingPolicies() : []
     // Ignore policies in a Deleted state (may need to revisit)
-    Map<String, String> allLoadBalancers = titusLoadBalancerClient ? titusLoadBalancerClient.allLoadBalancers : [:]
+    Map<String, String> allLoadBalancers = [:]
+    try {
+      allLoadBalancers = titusLoadBalancerClient ? titusLoadBalancerClient.allLoadBalancers : [:]
+    } catch (Exception e) {
+      log.error("Failed to load load balancers for ${account.name}:${region}", e)
+    }
     List cacheablePolicyStates = [ScalingPolicyState.Pending, ScalingPolicyState.Applied, ScalingPolicyState.Deleting]
     Map<String, TitusSecurityGroup> titusSecurityGroupCache = [:]
 
