@@ -22,7 +22,6 @@ import yaml
 
 import buildtool.container_commands
 import buildtool.debian_commands
-import buildtool.image_commands
 
 from buildtool import (
     DEFAULT_BUILD_NUMBER,
@@ -294,7 +293,10 @@ class BuildBomCommandFactory(RepositoryCommandFactory):
     HalRunner.add_parser_args(parser, defaults)
     buildtool.container_commands.add_bom_parser_args(parser, defaults)
     buildtool.debian_commands.add_bom_parser_args(parser, defaults)
-    buildtool.image_commands.add_bom_parser_args(parser, defaults)
+
+    self.add_argument(
+        parser, 'publish_gce_image_project', defaults, None,
+        help='Project to publish images to.')
 
     self.add_argument(
         parser, 'build_number', defaults, DEFAULT_BUILD_NUMBER,
