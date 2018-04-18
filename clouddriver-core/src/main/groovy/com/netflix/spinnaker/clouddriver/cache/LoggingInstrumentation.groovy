@@ -38,6 +38,6 @@ class LoggingInstrumentation implements ExecutionInstrumentation {
 
   @Override
   void executionFailed(Agent agent, Throwable cause) {
-    logger.warn("${agent.providerName}:${agent.agentType} completed", cause)
+    logger.warn("${agent.providerName}:${agent.agentType} completed with one or more failures", cause)
   }
 }
