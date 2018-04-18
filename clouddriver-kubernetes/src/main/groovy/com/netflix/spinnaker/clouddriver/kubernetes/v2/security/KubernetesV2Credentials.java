@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -118,13 +117,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     String namespace = defaultNamespace;
     try {
       Optional<String> serviceAccountNamespace = Files.lines(serviceAccountNamespacePath, StandardCharsets.UTF_8).findFirst();
-      namespace = serviceAccountNamespace.get();
-    } catch (IOException | NoSuchElementException e) {
+      namespace = serviceAccountNamespace.orElse("");
+    } catch (IOException e) {
       try {
         namespace = jobExecutor.defaultNamespace(this);
       } catch (KubectlException ke) {
-        log.warn("Failure looking up desired namespace, defaulting to {}", namespace);
+        log.warn("Failure looking up desired namespace, defaulting to {}", defaultNamespace, ke);
       }
+    } catch (Exception e) {
+      log.warn("Error encountered looking up default namespace, defaulting to {}", defaultNamespace, e);
     }
     if (StringUtils.isEmpty(namespace)) {
       namespace = defaultNamespace;
