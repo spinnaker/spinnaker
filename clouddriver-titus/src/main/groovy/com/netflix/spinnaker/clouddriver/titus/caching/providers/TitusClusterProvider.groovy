@@ -159,6 +159,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     serverGroup.scalingPolicies = serverGroupData.attributes.scalingPolicies
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
     serverGroup.targetGroups = serverGroupData.attributes.targetGroups
+    serverGroup.accountId = awsLookupUtil.awsAccountId(account, region)
     serverGroup.awsAccount = awsLookupUtil.lookupAccount(account, region)?.awsAccount
     serverGroup
   }

@@ -75,6 +75,7 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
     Job.TaskSummary task = objectMapper.convertValue(instanceEntry.attributes.task, Job.TaskSummary)
     Job job = objectMapper.convertValue(instanceEntry.attributes.job, Job)
     TitusInstance instance = new TitusInstance(job, task)
+    instance.accountId = awsAccount
     instance.health = instance.health ?: []
     if (instanceEntry.attributes[HEALTH.ns]) {
       instance.health.addAll(instanceEntry.attributes[HEALTH.ns])

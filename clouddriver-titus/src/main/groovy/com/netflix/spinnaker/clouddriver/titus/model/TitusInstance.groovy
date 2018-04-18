@@ -28,6 +28,7 @@ class TitusInstance implements Instance {
   String application
   String id
   String instanceId
+  String accountId
   String jobId
   String jobName
   String stdoutLive
