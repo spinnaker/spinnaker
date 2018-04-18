@@ -65,6 +65,7 @@ public class KubernetesAccount extends ContainerAccount implements Cloneable {
   @JsonProperty("oAuthScopes") List<String> oAuthScopes;
   String namingStrategy;
   String skin;
+  Boolean debug;
 
   public boolean usesServiceAccount() {
     return serviceAccount != null && serviceAccount;
