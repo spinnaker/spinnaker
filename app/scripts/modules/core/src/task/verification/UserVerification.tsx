@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { HelpField } from 'core/help';
+import { HelpField } from 'core/help/HelpField';
 
 export interface IUserVerificationProps {
   label?: string;

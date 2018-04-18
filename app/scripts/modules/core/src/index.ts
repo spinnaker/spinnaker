@@ -33,6 +33,9 @@ export * from './forms';
 
 export * from './healthCounts';
 export * from './help';
+// TODO: same as above: try pushing this export back down; for some unknown reason, it causes grief with the library
+// (the export is found by the TS compiler, but not at runtime)
+export * from './help/HelpField';
 export * from './history';
 
 export * from './image';
