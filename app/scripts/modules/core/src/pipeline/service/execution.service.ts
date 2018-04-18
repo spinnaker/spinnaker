@@ -71,18 +71,6 @@ export class ExecutionService {
       if (data) {
         data.forEach((execution: IExecution) => {
           execution.hydrated = expand;
-          // TODO: remove this code once the filtering takes place on Orca
-          if (!expand) {
-            execution.stages.forEach(s => {
-              s.context = {};
-              s.outputs = {};
-              s.tasks = [];
-            });
-          }
-          // TODO: Remove this, too, once the filtering takes place on Orca
-          if (execution.trigger.parentExecution) {
-            execution.trigger.parentExecution.stages = [];
-          }
           return this.cleanExecutionForDiffing(execution);
         });
         return data;
