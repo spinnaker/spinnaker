@@ -66,6 +66,8 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     String account = getCredentials(stage);
     Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
     List<String> messages = new ArrayList<>();
+    List<Map<String, String>> stableManifests = new ArrayList<>();
+    List<Map<String, String>> failedManifests = new ArrayList<>();
     boolean allStable = true;
     boolean anyFailed = false;
     boolean anyUnknown = false;
@@ -90,19 +92,32 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
           messages.add(identifier + ": " + status.getStable().getMessage());
         }
 
+        Map<String, String> manifestNameAndLocation = ImmutableMap.<String, String>builder().
+          put("manifestName", name).
+          put("location", location).
+          build();
+
         if (status.getFailed() != null && status.getFailed().isState()) {
           anyFailed = true;
+          failedManifests.add(manifestNameAndLocation);
           messages.add(identifier + ": " + status.getFailed().getMessage());
         }
 
         if (status.getStable() == null && status.getFailed() == null) {
           anyUnknown = true;
         }
+
+        if (status.getStable() != null && status.getStable().isState()
+          && (status.getFailed() == null || !status.getFailed().isState())) {
+          stableManifests.add(manifestNameAndLocation);
+        }
       }
     }
 
     Map<String, Object> context = new ImmutableMap.Builder<String, Object>()
         .put("messages", messages)
+        .put("stableManifests", stableManifests)
+        .put("failedManifests", failedManifests)
         .build();
 
     if (!anyUnknown && anyFailed) {
