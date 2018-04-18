@@ -40,7 +40,7 @@ class DelegatingApplicationEventMulticaster(
 
   override fun multicastEvent(event: ApplicationEvent?, eventType: ResolvableType?) {
     asyncApplicationEventMulticaster.multicastEvent(event, eventType)
-    asyncApplicationEventMulticaster.multicastEvent(event, eventType)
+    syncApplicationEventMulticaster.multicastEvent(event, eventType)
   }
 
   override fun addApplicationListener(listener: ApplicationListener<*>) {

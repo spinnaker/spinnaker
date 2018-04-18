@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.EventListener
+import org.springframework.core.ResolvableType
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -55,6 +56,22 @@ class DelegatingApplicationEventMulticasterSpec extends Specification {
       new ClassSyncListener(),
       new InspectableApplicationListenerMethodAdapter("methodSyncListener", MethodSyncListener, MethodSyncListener.class.getMethod("onEvent", TestEvent))
     ]
+  }
+
+  def "should send event to both listeners"() {
+    when:
+    subject.multicastEvent(new TestEvent("hello"))
+
+    then:
+    1 * async.multicastEvent(_)
+    1 * sync.multicastEvent(_)
+
+    when:
+    subject.multicastEvent(new TestEvent("hello"), ResolvableType.NONE)
+
+    then:
+    1 * async.multicastEvent(_, _)
+    1 * sync.multicastEvent(_, _)
   }
 
   private static class TestEvent extends ApplicationEvent {
