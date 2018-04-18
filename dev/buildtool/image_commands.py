@@ -33,7 +33,6 @@ from buildtool import (
     GitRunner,
     HalRunner,
 
-    add_parser_argument,
     check_subprocess,
     check_subprocesses_to_logfile,
     check_options_set,
@@ -72,11 +71,15 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
     check_options_set(
         options,
         ['build_gce_service_account',
-         'build_gce_project',
-         'publish_gce_image_project'])
+         'build_gce_project'])
 
     options.github_disable_upstream_push = True
     super(BuildGceComponentImages, self).__init__(factory, options, **kwargs)
+    artifact_sources = self.source_code_manager.bom['artifactSources']
+    self.__image_project = artifact_sources['googleImageProject']
+    if not self.__image_project:
+      raise_and_log_error(
+          ConfigError('BOM has no artifactSources.googleImageProject'))
 
   def __determine_repo_install_args(self, repository):
     """Determine --spinnaker_dev-github_[owner|user] args for install script."""
@@ -118,7 +121,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
         version=build_version.replace('.', '-').replace(':', '-'))
     lookup_command = ['gcloud', '--account', options.build_gce_service_account,
                       'compute', 'images', 'list', '--filter', image_name,
-                      '--project', options.build_gce_project,
+                      '--project', self.__image_project,
                       '--quiet', '--format=json']
     logging.debug('Checking for existing image for "%s"', repository.name)
     got = check_subprocess(' '.join(lookup_command))
@@ -174,7 +177,7 @@ class BuildGceComponentImages(RepositoryCommandProcessor):
         '--hal_daemon_endpoint', 'http://' + options.halyard_daemon,
         '--build_project', options.build_gce_project,
         '--install_script', options.install_image_script,
-        '--publish_project', options.publish_gce_image_project,
+        '--publish_project', self.__image_project,
         '--publish_script', options.publish_gce_image_script,
         '--version', bom_version,
         '--zone', options.build_gce_zone]
@@ -215,22 +218,10 @@ class BuildGceComponentImagesFactory(RepositoryCommandFactory):
         'Build Google Compute Engine VM Images For Each Service.',
         BomSourceCodeManager)
 
-  @staticmethod
-  def add_bom_parser_args(parser, defaults):
-    """Adds arguments shared with creating boms."""
-    if hasattr(parser, 'added_gce_image_project'):
-      return
-    parser.added_gce_image_project = True
-
-    add_parser_argument(
-        parser, 'publish_gce_image_project', defaults, None,
-        help='Project to publish images to.')
-
   def init_argparser(self, parser, defaults):
     super(BuildGceComponentImagesFactory, self).init_argparser(
         parser, defaults)
     HalRunner.add_parser_args(parser, defaults)
-    self.add_bom_parser_args(parser, defaults)
 
     self.add_argument(
         parser, 'halyard_release_track', defaults, 'stable',
@@ -279,11 +270,6 @@ class BuildGceComponentImagesFactory(RepositoryCommandFactory):
     self.add_argument(
         parser, 'halyard_bom_bucket', defaults, 'halconfig',
         help='The bucket manaing halyard BOMs and config profiles.')
-
-
-def add_bom_parser_args(parser, defaults):
-  """Adds parser arguments pertaining to publishing boms."""
-  BuildGceComponentImagesFactory.add_bom_parser_args(parser, defaults)
 
 
 def register_commands(registry, subparsers, defaults):
