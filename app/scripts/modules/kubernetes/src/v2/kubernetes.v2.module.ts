@@ -39,6 +39,7 @@ import { KUBERNETES_SHOW_MANIFEST_YAML } from './manifest/showManifestYaml.compo
 import { KUBERNETES_SHOW_MANIFEST_DETAILS } from './manifest/showManifestDetails.component';
 import { KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER } from './loadBalancer/transformer';
 import { KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
+import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -88,6 +89,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_EVENTS,
   KUBERNETES_SHOW_MANIFEST_YAML,
   KUBERNETES_SHOW_MANIFEST_DETAILS,
+  KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
 ]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
   cloudProviderRegistryProvider.registerProvider('kubernetes', {
     name: 'Kubernetes',

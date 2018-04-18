@@ -73,6 +73,8 @@
       <health-counts class="pull-left" container="ctrl.loadBalancer.instanceCounts"></health-counts>
     </collapsible-section>
 
+    <kubernetes-annotation-custom-sections manifest="ctrl.loadBalancer.manifest" resource="ctrl.loadBalancer"></kubernetes-annotation-custom-sections>
+
     <collapsible-section heading="Events" expanded="true">
       <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
     </collapsible-section>
