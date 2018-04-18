@@ -181,13 +181,12 @@ class BaseValidateBomDeployer(object):
     logging.info('Deploying with hal on %s...', platform)
     script = list(init_script)
     self.add_install_hal_script_statements(script)
-    self.add_platform_deploy_script_statements(script)
     if self.options.halyard_config_bucket_credentials:
       files_to_upload.add(self.options.halyard_config_bucket_credentials)
       self.add_inject_halyard_application_default_credentials(
           self.options.halyard_config_bucket_credentials, script)
-    self.add_platform_deploy_script_statements(script)
 
+    self.add_platform_deploy_script_statements(script)
     # Add the version first to avoid warnings or facilitate checks
     # with the configuration commands
     script.append('hal -q --log=info config version edit'
@@ -282,7 +281,6 @@ class BaseValidateBomDeployer(object):
   def add_inject_halyard_application_default_credentials(
       self, local_path, script):
     """Inject google application credentials into halyards startup script.
-
     This is only so we can install halyard against a halyard test repo.
     We're doing this injection because halyard does not explicitly support this
     use case from installation, though does support the use of application
@@ -290,16 +288,25 @@ class BaseValidateBomDeployer(object):
     """
     script.append('first=$(head -1 /opt/halyard/bin/halyard)')
     script.append(
-        'inject="export GOOGLE_APPLICATION_DEFAULT_CREDENTIALS={path}"'
+        'inject="export GOOGLE_APPLICATION_CREDENTIALS={path}"'
         .format(path='$(pwd)/' + os.path.basename(local_path)))
     script.append('remaining=$(tail -n +2 /opt/halyard/bin/halyard)')
     script.append('cat <<EOF | sudo tee /opt/halyard/bin/halyard\n'
                   '$first\n$inject\n$remaining\n'
                   'EOF')
     script.append('sudo chmod 755 /opt/halyard/bin/halyard')
-    script.append('sudo service halyard restart')
+
+    # Kill running halyard so it restarts with credentials.
+    # This method awaiting support in halyard to terminate the job.
+    # In the meantime, we'll kill all the java processes. Since this
+    # is run on a newly provisioned VM, it should only be halyard.
+    script.append('echo "Using nuclear option to stop existing halyard"')
+    script.append('killall java || true') # hack
+    script.append('echo "Restarting halyard..."')
+    script.append('sudo su -c "hal -v" -s /bin/bash {user}'
+                  .format(user=self.options.deploy_hal_user))
     script.append('for i in `seq 1 30`; do'
-                  ' if nc localhost 8064 -w 1; then break; fi;'
+                  ' if hal --ready &> /dev/null; then break; fi;'
                   ' sleep 1; done')
 
   def add_install_hal_script_statements(self, script):
@@ -575,7 +582,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
                   ip=self.instance_ip,
                   ssh_key=self.__ssh_key_path))
       if retcode == 0:
-        logging.info('ssh is ready.')
+        logging.info('%s is ready', self.instance_ip)
         break
       time.sleep(1)
 
@@ -901,7 +908,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
                 ip=self.instance_ip,
                 ssh_key=self.ssh_key_path))
     if retcode == 0:
-      logging.info('READY')
+      logging.info('%s is ready', self.instance_ip)
       return True
 
     # Sometimes ssh accepts but authentication still fails
