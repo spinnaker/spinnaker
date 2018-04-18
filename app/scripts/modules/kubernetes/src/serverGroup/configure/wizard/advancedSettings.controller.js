@@ -10,4 +10,9 @@ module.exports = angular
     }
 
     this.policies = ['ClusterFirst', 'Default', 'ClusterFirstWithHostNet'];
+
+    this.onTolerationChange = tolerations => {
+      $scope.command.tolerations = tolerations;
+      $scope.$applyAsync();
+    };
   });

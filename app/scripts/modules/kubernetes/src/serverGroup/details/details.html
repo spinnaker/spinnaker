@@ -176,6 +176,19 @@
         </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Toleration - {{toleration.key}}"
+                         ng-repeat="toleration in serverGroup.deployDescription.tolerations">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Value</dt>
+        <dd>{{toleration.value}}</dd>
+        <dt>Operator</dt>
+        <dd>{{toleration.operator}}</dd>
+        <dt>Effect</dt>
+        <dd>{{toleration.effect}}</dd>
+        <dt ng-if="toleration.tolerationSeconds">Toleration Seconds</dt>
+        <dd ng-if="toleration.tolerationSeconds">{{toleration.tolerationSeconds}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Events">
       <div ng-if="serverGroup.events && serverGroup.events.length > 0">
         <kubernetes-event ng-repeat="event in serverGroup.events" event="event"/>

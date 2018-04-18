@@ -61,5 +61,11 @@
                   labels-left="true"></map-editor>
     </div>
 
+    <div class="col-md-12">
+      <kubernetes-tolerations tolerations="command.tolerations"
+                              on-toleration-change="advancedController.onTolerationChange">
+      </kubernetes-tolerations>
+    </div>
+
   </div>
 </ng-form>

@@ -168,6 +168,11 @@ module.exports = angular
       this.stage.containers[index].lifecycle.preStop = handler;
     };
 
+    this.onTolerationChange = tolerations => {
+      this.stage.tolerations = tolerations;
+      $scope.$applyAsync();
+    };
+
     this.submit = () => {
       $uibModalInstance.close(this.stage);
     };
