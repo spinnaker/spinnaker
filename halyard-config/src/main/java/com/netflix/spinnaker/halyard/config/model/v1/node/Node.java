@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jgit.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -421,6 +422,13 @@ abstract public class Node implements Validatable {
       try {
         f.setAccessible(true);
         String fPath = (String) f.get(n);
+        if (fPath == null) {
+          try {
+            fPath = (String) n.getClass().getMethod("get" + StringUtils.capitalize(f.getName())).invoke(n);
+          } catch (NoSuchMethodException | InvocationTargetException ignored) {
+          }
+        }
+
         if (fPath == null) {
           return null;
         }
