@@ -38,7 +38,7 @@ export class KubernetesTolerations extends React.Component<IKubernetesToleration
   }
 
   private addTolerations(): void {
-    const tolerations = cloneDeep(this.props.tolerations);
+    const tolerations = cloneDeep(this.props.tolerations) || [];
     tolerations.push({ key: '', value: '', operator: 'Exists', effect: 'NoSchedule' });
     this.props.onTolerationChange(tolerations);
   }
@@ -76,12 +76,13 @@ export class KubernetesTolerations extends React.Component<IKubernetesToleration
   }
 
   public render() {
+    const tolerations = this.props.tolerations || [];
     return (
       <div>
         <div className="sm-label-left">Tolerations</div>
         <table className="table table-condensed">
           <tbody>
-            {this.props.tolerations.map((row, i) => {
+            {tolerations.map((row, i) => {
               return (
                 <tr key={i}>
                   <td>
