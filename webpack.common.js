@@ -111,7 +111,7 @@ function configure(IS_TEST) {
         'react2angular', 'react-bootstrap', 'react-dom', 'react-ga', 'ui-router-visualizer', 'ui-select',
         '@uirouter/angularjs'
       ],
-      spinnaker: ['@spinnaker/core', '@spinnaker/google', '@spinnaker/amazon', '@spinnaker/kubernetes']
+      spinnaker: ['@spinnaker/core']
     };
 
     config.plugins.push(...[
@@ -119,8 +119,6 @@ function configure(IS_TEST) {
       new CopyWebpackPlugin(
         [
           { from: 'node_modules/@spinnaker/core/lib' },
-          { from: 'node_modules/@spinnaker/amazon/lib' },
-          { from: 'node_modules/@spinnaker/google/lib' },
         ],
         { copyUnmodified: false, ignore: ['*.js', '*.ts', '*.map', 'index.html'] }
       ),

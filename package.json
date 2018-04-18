@@ -34,6 +34,7 @@
     "angular-ui-router": "1.0.0",
     "angular-ui-sortable": "^0.17.0",
     "bootstrap": "3.3.7",
+    "cachefactory": "^3.0.0",
     "chart.js": "^2.7.0",
     "class-autobind-decorator": "^2.2.1",
     "classnames": "^2.2.5",
@@ -73,10 +74,7 @@
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
-    "@spinnaker/amazon": "0.0.81",
     "@spinnaker/core": "0.0.196",
-    "@spinnaker/google": "^0.0.1",
-    "@spinnaker/kubernetes": "^0.0.4",
     "@spinnaker/styleguide": "^1.0.1",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",
@@ -146,6 +144,7 @@
     "jquery": "2.1.4",
     "jquery-textcomplete": "1.6.1",
     "jquery-ui": "~1.10.5",
+    "js-worker-search": "^1.2.1",
     "json-loader": "^0.5.4",
     "karma": "^2.0.0",
     "karma-chrome-launcher": "^2.2.0",

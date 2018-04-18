@@ -73,21 +73,9 @@
     d3-collection "1"
     d3-interpolate "1"
 
-"@spinnaker/amazon@0.0.81":
-  version "0.0.81"
-  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.81.tgz#e3ac6a14ce86e07427d0c7a4aafa5b7ec020fd25"
-
 "@spinnaker/core@0.0.196":
   version "0.0.196"
   resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.196.tgz#d81945f7612b81d2dadc77c102b7a7af4d593a6c"
-
-"@spinnaker/google@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@spinnaker/google/-/google-0.0.1.tgz#206e0f6c3d74eca3c35f192b8b8ef98b4ea9e538"
-
-"@spinnaker/kubernetes@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kubernetes/-/kubernetes-0.0.4.tgz#13d126f80494d270e4f9a1e12c89fabee25cdab7"
 
 "@spinnaker/styleguide@^1.0.1":
   version "1.0.1"
@@ -2124,6 +2112,10 @@ cache-loader@^1.0.3:
 cached-path-relative@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/cached-path-relative/-/cached-path-relative-1.0.1.tgz#d09c4b52800aa4c078e2dd81a869aac90d2e54e7"
+
+cachefactory@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/cachefactory/-/cachefactory-3.0.0.tgz#4a020a337e82f8fb8d88f1fddf3d6527c27a2ae8"
 
 call-matcher@^1.0.1:
   version "1.0.1"
@@ -4413,6 +4405,10 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
+flow-bin@^0.50.0:
+  version "0.50.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.50.0.tgz#d4cdb2430dee1a3599f0eb6fe551146e3027256a"
+
 flow-remove-types@^1.1.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/flow-remove-types/-/flow-remove-types-1.2.3.tgz#6131aefc7da43364bb8b479758c9dec7735d1a18"
@@ -6346,6 +6342,13 @@ js-base64@^2.1.9:
 js-tokens@^3.0.0:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
+
+js-worker-search@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/js-worker-search/-/js-worker-search-1.2.1.tgz#c3a8b826ef90d1ed40ed4d202c992e182e370a6f"
+  dependencies:
+    flow-bin "^0.50.0"
+    uuid "^2.0.1"
 
 js-yaml@^3.10.0:
   version "3.11.0"
@@ -11571,7 +11574,7 @@ utils-merge@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.0.tgz#0294fb922bb9375153541c4f7096231f287c8af8"
 
-uuid@^2.0.2:
+uuid@^2.0.1, uuid@^2.0.2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-2.0.3.tgz#67e2e863797215530dff318e5bf9dcebfd47b21a"
 
