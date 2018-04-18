@@ -122,7 +122,7 @@ class CollectBomVersions(CommandProcessor):
           ConfigError('Either neither or both "bintray_org"'
                       ' and "bintray_debian_repository" should be specified'))
     self.__bad_files = {}
-    self.__non_standard_boms = []
+    self.__non_standard_boms = {}
 
     # We're going to have a bunch of threads each writing into different keys
     # in order to deconflict with one another lockless. Then we'll aggregate
@@ -174,7 +174,10 @@ class CollectBomVersions(CommandProcessor):
     add_if_nonstandard('dockerRegistry', self.__expect_docker_registry)
     add_if_nonstandard('debianRepository', self.__expect_debian_repository)
     if len(info) > 2:
-      self.__non_standard_boms.append(info)
+      problems = dict(info)
+      del problems['bom_version']
+      del problems['bom_timestamp']
+      self.__non_standard_boms[bom['version']] = problems
 
     return info
 
@@ -494,7 +497,7 @@ class CollectArtifactVersions(CommandProcessor):
   def query_bintray_package_versions(self, package_path):
     path = 'packages/' + package_path
     url = 'https://api.bintray.com/' + path
-    headers, content = self.fetch_bintray_url(url)
+    _, content = self.fetch_bintray_url(url)
     # logging.debug('Bintray responded with headers\n%s', headers)
     package_name = package_path[package_path.rfind('/') + 1:]
     return (package_name, content['versions'])
@@ -860,6 +863,14 @@ class AuditArtifactVersions(CommandProcessor):
           path)
 
     confirmed_boms = self.__all_bom_versions - set(self.__invalid_boms.keys())
+    invalid_releases = {
+        key: bom
+        for key, bom in self.__invalid_boms.items()
+        if CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)}
+    confirmed_releases = [
+        key
+        for key in confirmed_boms
+        if CollectBomVersions.RELEASED_VERSION_MATCHER.match(key)]
     maybe_write_log('missing_debians', self.__missing_debians)
     maybe_write_log('missing_jars', self.__missing_jars)
     maybe_write_log('missing_containers', self.__missing_containers)
@@ -874,7 +885,9 @@ class AuditArtifactVersions(CommandProcessor):
     maybe_write_log('unused_images', self.__unused_gce_images)
     maybe_write_log('invalid_boms', self.__invalid_boms)
     maybe_write_log('confirmed_boms', sorted(list(confirmed_boms)))
+    maybe_write_log('confirmed_releases', sorted(list(confirmed_releases)))
     maybe_write_log('invalid_versions', self.__invalid_versions)
+    maybe_write_log('invalid_releases', invalid_releases)
 
   def most_recent_version(self, name, versions):
     """Find the most recent version built."""
@@ -964,7 +977,6 @@ class AuditArtifactVersions(CommandProcessor):
     with open(path, 'r') as stream:
       art_config = yaml.load(stream.read())
 
-    urls = []
     if self.__prune_boms:
       path = os.path.join(self.get_output_dir(), 'prune_boms.txt')
       logging.info('Writing to %s', path)
