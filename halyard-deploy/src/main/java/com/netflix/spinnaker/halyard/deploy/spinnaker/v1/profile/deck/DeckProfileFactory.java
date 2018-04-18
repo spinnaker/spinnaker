@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotifica
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
@@ -136,6 +137,10 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
       String firstRegion = openstackAccount.getRegions().get(0);
       bindings.put("openstack.default.region", firstRegion);
     }
+
+    // Configure ECS
+    EcsProvider ecsProvider = deploymentConfiguration.getProviders().getEcs();
+    bindings.put("ecs.default.account", ecsProvider.getPrimaryAccount());
 
     // Configure notifications
     bindings.put("notifications.enabled", notifications.isEnabled() + "");

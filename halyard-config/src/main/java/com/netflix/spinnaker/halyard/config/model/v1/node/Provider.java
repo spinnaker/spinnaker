@@ -76,6 +76,7 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
   public enum ProviderType {
     APPENGINE("appengine"),
     AWS("aws"),
+    ECS("ecs"),
     AZURE("azure"),
     DCOS("dcos"),
     DOCKERREGISTRY("dockerRegistry"),

@@ -196,6 +196,15 @@
  * [**hal config provider docker-registry account list**](#hal-config-provider-docker-registry-account-list)
  * [**hal config provider docker-registry disable**](#hal-config-provider-docker-registry-disable)
  * [**hal config provider docker-registry enable**](#hal-config-provider-docker-registry-enable)
+ * [**hal config provider ecs**](#hal-config-provider-ecs)
+ * [**hal config provider ecs account**](#hal-config-provider-ecs-account)
+ * [**hal config provider ecs account add**](#hal-config-provider-ecs-account-add)
+ * [**hal config provider ecs account delete**](#hal-config-provider-ecs-account-delete)
+ * [**hal config provider ecs account edit**](#hal-config-provider-ecs-account-edit)
+ * [**hal config provider ecs account get**](#hal-config-provider-ecs-account-get)
+ * [**hal config provider ecs account list**](#hal-config-provider-ecs-account-list)
+ * [**hal config provider ecs disable**](#hal-config-provider-ecs-disable)
+ * [**hal config provider ecs enable**](#hal-config-provider-ecs-enable)
  * [**hal config provider google**](#hal-config-provider-google)
  * [**hal config provider google account**](#hal-config-provider-google-account)
  * [**hal config provider google account add**](#hal-config-provider-google-account-add)
@@ -2587,6 +2596,7 @@ hal config provider [subcommands]
  * `azure`: Manage and view Spinnaker configuration for the azure provider
  * `dcos`: Manage and view Spinnaker configuration for the dcos provider
  * `docker-registry`: Manage and view Spinnaker configuration for the dockerRegistry provider
+ * `ecs`: Manage and view Spinnaker configuration for the ecs provider
  * `google`: Manage and view Spinnaker configuration for the google provider
  * `kubernetes`: Manage and view Spinnaker configuration for the kubernetes provider
  * `openstack`: Manage and view Spinnaker configuration for the openstack provider
@@ -3806,6 +3816,164 @@ Set the dockerRegistry provider as enabled
 #### Usage
 ```
 hal config provider docker-registry enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider ecs
+
+Manage and view Spinnaker configuration for the ecs provider
+
+#### Usage
+```
+hal config provider ecs [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the ecs provider's account
+ * `disable`: Set the ecs provider as disabled
+ * `enable`: Set the ecs provider as enabled
+
+---
+## hal config provider ecs account
+
+Manage and view Spinnaker configuration for the ecs provider's account
+
+#### Usage
+```
+hal config provider ecs account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an account to the ecs provider.
+ * `delete`: Delete a specific ecs account by name.
+ * `edit`: Edit an account in the ecs provider.
+ * `get`: Get the specified account details for the ecs provider.
+ * `list`: List the account names for the ecs provider.
+
+---
+## hal config provider ecs account add
+
+Add an account to the ecs provider.
+
+#### Usage
+```
+hal config provider ecs account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--aws-account`: (*Required*) Provide the name of the AWS account associated with this ECS account.See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-ecs/README.md for more information.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+
+
+---
+## hal config provider ecs account delete
+
+Delete a specific ecs account by name.
+
+#### Usage
+```
+hal config provider ecs account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider ecs account edit
+
+Edit an account in the ecs provider.
+
+#### Usage
+```
+hal config provider ecs account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
+ * `--aws-account`: Provide the name of the AWS account associated with this ECS account.See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-ecs/README.md for more information.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+
+
+---
+## hal config provider ecs account get
+
+Get the specified account details for the ecs provider.
+
+#### Usage
+```
+hal config provider ecs account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider ecs account list
+
+List the account names for the ecs provider.
+
+#### Usage
+```
+hal config provider ecs account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider ecs disable
+
+Set the ecs provider as disabled
+
+#### Usage
+```
+hal config provider ecs disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider ecs enable
+
+Set the ecs provider as enabled
+
+#### Usage
+```
+hal config provider ecs enable [parameters]
 ```
 
 #### Parameters

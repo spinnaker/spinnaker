@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws.AwsComm
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.azure.AzureCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dcos.DCOSCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dockerRegistry.DockerRegistryCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ecs.EcsCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.GoogleCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.kubernetes.KubernetesCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.openstack.OpenstackCommand;
@@ -49,6 +50,7 @@ public class ProviderCommand extends NestableCommand {
     registerSubcommand(new AzureCommand());
     registerSubcommand(new DCOSCommand());
     registerSubcommand(new DockerRegistryCommand());
+    registerSubcommand(new EcsCommand());
     registerSubcommand(new GoogleCommand());
     registerSubcommand(new KubernetesCommand());
     registerSubcommand(new OpenstackCommand());
