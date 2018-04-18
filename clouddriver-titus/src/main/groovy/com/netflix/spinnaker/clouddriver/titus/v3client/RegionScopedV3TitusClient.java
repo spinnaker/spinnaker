@@ -181,8 +181,8 @@ public class RegionScopedV3TitusClient implements TitusClient {
       JobProcessesUpdate.newBuilder()
         .setServiceJobProcesses(
           ServiceJobSpec.ServiceJobProcesses.newBuilder()
-            .setDisableDecreaseDesired(shouldEnable)
-            .setDisableIncreaseDesired(shouldEnable)
+            .setDisableDecreaseDesired(!shouldEnable)
+            .setDisableIncreaseDesired(!shouldEnable)
             .build()
         )
         .setJobId(jobId)
