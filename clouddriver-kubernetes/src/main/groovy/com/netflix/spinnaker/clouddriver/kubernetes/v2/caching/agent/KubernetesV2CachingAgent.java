@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -63,15 +64,12 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     this.propertyRegistry = propertyRegistry;
   }
 
-  protected abstract KubernetesKind primaryKind();
+  protected KubernetesKind primaryKind() {
+    throw new NotImplementedException("No primary kind registered, this is an implementation error.");
+  }
 
   protected List<KubernetesKind> primaryKinds() {
     return Collections.singletonList(primaryKind());
-  }
-
-  // Cache types can choose to have relationships with Spinnaker 'clusters'
-  protected boolean hasClusterRelationship() {
-    return false;
   }
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
@@ -117,7 +115,7 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
         .stream()
         .flatMap(Collection::stream)
         .peek(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m))
-        .map(rs -> KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs), hasClusterRelationship()))
+        .map(rs -> KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs)))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
@@ -141,7 +139,9 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
     return new DefaultCacheResult(entries);
   }
 
-  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> primaryResourceList) {
-    return new HashMap<>();
+  protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources) {
+    Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
+    allResources.keySet().forEach(k -> RegistryUtils.addRelationships(propertyRegistry, accountName, k, allResources, result));
+    return result;
   }
 }

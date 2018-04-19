@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesIngressCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
@@ -30,18 +30,25 @@ import io.kubernetes.client.models.V1beta1HTTPIngressPath;
 import io.kubernetes.client.models.V1beta1Ingress;
 import io.kubernetes.client.models.V1beta1IngressBackend;
 import io.kubernetes.client.models.V1beta1IngressRule;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.INGRESS;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
 @Component
+@Slf4j
 public class KubernetesIngressHandler extends KubernetesHandler implements CanDelete {
   @Override
   public int deployPriority() {
@@ -70,7 +77,33 @@ public class KubernetesIngressHandler extends KubernetesHandler implements CanDe
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesIngressCachingAgent.class;
+    return KubernetesCoreCachingAgent.class;
+  }
+
+  @Override
+  public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
+    Map<KubernetesManifest, List<KubernetesManifest>> result;
+
+    BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
+
+    Map<String, KubernetesManifest> services = allResources.getOrDefault(SERVICE, new ArrayList<>())
+        .stream()
+        .collect(Collectors.toMap((m) -> manifestName.apply(m.getNamespace(), m.getName()), (m) -> m));
+
+    for (KubernetesManifest ingress : allResources.getOrDefault(INGRESS, new ArrayList<>())) {
+      List<KubernetesManifest> attachedServices = new ArrayList<>();
+      try {
+        attachedServices = KubernetesIngressHandler.attachedServices(ingress)
+            .stream()
+            .map(s -> services.get(manifestName.apply(ingress.getNamespace(), s)))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+      } catch (Exception e) {
+        log.warn("Failure getting services attached to {}", ingress.getName(), e);
+      }
+
+      relationshipMap.put(ingress, attachedServices);
+    }
   }
 
   public static List<String> attachedServices(KubernetesManifest manifest) {

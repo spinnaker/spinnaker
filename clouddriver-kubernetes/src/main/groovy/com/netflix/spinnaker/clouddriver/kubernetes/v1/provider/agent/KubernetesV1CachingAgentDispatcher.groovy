@@ -34,7 +34,7 @@ class KubernetesV1CachingAgentDispatcher implements KubernetesCachingAgentDispat
   Registry registry
 
   @Override
-  List<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
+  Collection<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
     def agents = []
     for (def index = 0; index < credentials.cacheThreads; index++) {
       agents << new KubernetesInstanceCachingAgent(credentials, objectMapper, registry, index, credentials.cacheThreads)

@@ -134,6 +134,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete {
     return result;
   }
 
+  public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) { }
+
   // lower "value" is deployed before higher "value"
   public enum DeployPriority {
     WORKLOAD_CONTROLLER_PRIORITY(100),

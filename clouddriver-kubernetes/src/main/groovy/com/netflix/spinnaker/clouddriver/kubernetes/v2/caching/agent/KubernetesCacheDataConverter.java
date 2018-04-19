@@ -146,8 +146,7 @@ public class KubernetesCacheDataConverter {
 
   public static CacheData convertAsResource(String account,
       KubernetesManifest manifest,
-      List<KubernetesManifest> resourceRelationships,
-      boolean hasClusterRelationship) {
+      List<KubernetesManifest> resourceRelationships) {
     KubernetesCachingProperties cachingProperties = KubernetesManifestAnnotater.getCachingProperties(manifest);
     if (cachingProperties.isIgnore()) {
       return null;
@@ -156,6 +155,13 @@ public class KubernetesCacheDataConverter {
     logMalformedManifest(() -> "Converting " + manifest + " to a cached resource", manifest);
 
     KubernetesKind kind = manifest.getKind();
+    boolean hasClusterRelationship = false;
+    boolean isNamespaced = true;
+    if (kind != null) {
+      hasClusterRelationship = kind.hasClusterRelationship();
+      isNamespaced = kind.isNamespaced();
+    }
+
     KubernetesApiVersion apiVersion = manifest.getApiVersion();
     String name = manifest.getName();
     String namespace = manifest.getNamespace();
@@ -198,8 +204,7 @@ public class KubernetesCacheDataConverter {
     cacheRelationships.putAll(ownerReferenceRelationships(account, namespace, manifest.getOwnerReferences()));
     cacheRelationships.putAll(implicitRelationships(manifest, account, resourceRelationships));
 
-    // Namespaces aren't namespaced
-    if (kind != NAMESPACE) {
+    if (isNamespaced) {
       cacheRelationships.putAll(namespaceRelationship(account, namespace));
     }
 

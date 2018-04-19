@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -32,32 +33,35 @@ public class KubernetesKind {
   public static KubernetesKind CLUSTER_ROLE_BINDING = new KubernetesKind("clusterRoleBinding", false);
   public static KubernetesKind CONFIG_MAP = new KubernetesKind("configMap", "cm");
   public static KubernetesKind CONTROLLER_REVISION = new KubernetesKind("controllerRevision");
-  public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds");
-  public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy");
+  public static KubernetesKind DAEMON_SET = new KubernetesKind("daemonSet", "ds", true, true);
+  public static KubernetesKind DEPLOYMENT = new KubernetesKind("deployment", "deploy", true, true);
   public static KubernetesKind EVENT = new KubernetesKind("event");
   public static KubernetesKind HORIZONTAL_POD_AUTOSCALER = new KubernetesKind("horizontalpodautoscaler", "hpa");
   public static KubernetesKind INGRESS = new KubernetesKind("ingress", "ing");
   public static KubernetesKind JOB = new KubernetesKind("job");
-  public static KubernetesKind POD = new KubernetesKind("pod", "po");
-  public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs");
+  public static KubernetesKind POD = new KubernetesKind("pod", "po", true, true);
+  public static KubernetesKind REPLICA_SET = new KubernetesKind("replicaSet", "rs", true, true);
   public static KubernetesKind ROLE = new KubernetesKind("role", false);
   public static KubernetesKind ROLE_BINDING = new KubernetesKind("roleBinding", false);
-  public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false);
+  public static KubernetesKind NAMESPACE = new KubernetesKind("namespace", "ns", false, false);
   public static KubernetesKind NETWORK_POLICY = new KubernetesKind("networkPolicy", "netpol");
-  public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false);
+  public static KubernetesKind PERSISTENT_VOLUME = new KubernetesKind("persistentVolume", "pv", false, false);
   public static KubernetesKind PERSISTENT_VOLUME_CLAIM = new KubernetesKind("persistentVolumeClaim", "pvc");
   public static KubernetesKind SECRET = new KubernetesKind("secret");
   public static KubernetesKind SERVICE = new KubernetesKind("service", "svc");
   public static KubernetesKind SERVICE_ACCOUNT = new KubernetesKind("serviceAccount", "sa");
-  public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet");
+  public static KubernetesKind STATEFUL_SET = new KubernetesKind("statefulSet", null, true, true);
 
   private final String name;
   private final String alias;
   private final boolean isNamespaced;
+  private final boolean hasClusterRelationship;
+  private boolean isDynamic;
 
+  @Getter
   private static List<KubernetesKind> values;
 
-  protected KubernetesKind(String name, String alias, boolean isNamespaced) {
+  protected KubernetesKind(String name, String alias, boolean isNamespaced, boolean hasClusterRelationship) {
     if (values == null) {
       values = Collections.synchronizedList(new ArrayList<>());
     }
@@ -65,23 +69,33 @@ public class KubernetesKind {
     this.name = name;
     this.alias = alias;
     this.isNamespaced = isNamespaced;
+    this.hasClusterRelationship = hasClusterRelationship;
+    this.isDynamic = false;
     values.add(this);
   }
 
   protected KubernetesKind(String name) {
-    this(name, null, true);
+    this(name, null, true, false);
   }
 
   protected KubernetesKind(String name, String alias) {
-    this(name, alias, true);
+    this(name, alias, true, false);
   }
 
   protected KubernetesKind(String name, boolean isNamespaced) {
-    this(name, null, isNamespaced);
+    this(name, null, isNamespaced, false);
   }
 
   public boolean isNamespaced() {
     return this.isNamespaced;
+  }
+
+  public boolean hasClusterRelationship() {
+    return this.hasClusterRelationship;
+  }
+
+  public boolean isDynamic() {
+    return this.isDynamic;
   }
 
   @Override
@@ -102,7 +116,11 @@ public class KubernetesKind {
           .findAny();
 
       // separate from the above chain to avoid concurrent modification of the values list
-      return kindOptional.orElseGet(() -> new KubernetesKind(name));
+      return kindOptional.orElseGet(() -> {
+        KubernetesKind result = new KubernetesKind(name);
+        result.isDynamic = true;
+        return result;
+      });
     }
   }
 

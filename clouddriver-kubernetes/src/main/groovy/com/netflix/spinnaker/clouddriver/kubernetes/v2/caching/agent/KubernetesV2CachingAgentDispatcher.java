@@ -30,8 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Component
@@ -47,7 +49,7 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
   private KubernetesResourcePropertyRegistry propertyRegistry;
 
   @Override
-  public List<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
+  public Collection<KubernetesCachingAgent> buildAllCachingAgents(KubernetesNamedAccountCredentials credentials) {
     KubernetesV2Credentials v2Credentials = (KubernetesV2Credentials) credentials.getCredentials();
     List<KubernetesCachingAgent> result = new ArrayList<>();
     IntStream.range(0, credentials.getCacheThreads())
@@ -62,6 +64,8 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
             .forEach(c -> result.add((KubernetesCachingAgent) c))
         );
 
-    return result;
+    return result.stream()
+        .collect(Collectors.toMap(KubernetesCachingAgent::getAgentType, c -> c, (a, b) -> b))
+        .values();
   }
 }

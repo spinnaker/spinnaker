@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesStatefulSetCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
@@ -30,10 +30,18 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1beta2RollingUpdateStatefulSetStrategy;
 import io.kubernetes.client.models.V1beta2StatefulSet;
 import io.kubernetes.client.models.V1beta2StatefulSetStatus;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.STATEFUL_SET;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 @Component
@@ -61,7 +69,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
 
   @Override
   public KubernetesKind kind() {
-    return KubernetesKind.STATEFUL_SET;
+    return STATEFUL_SET;
   }
 
   @Override
@@ -76,7 +84,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
 
   @Override
   public Class<? extends KubernetesV2CachingAgent> cachingAgentClass() {
-    return KubernetesStatefulSetCachingAgent.class;
+    return KubernetesCoreCachingAgent.class;
   }
 
   @Override
@@ -137,5 +145,30 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
     }
 
     return result;
+  }
+
+  @Override
+  public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
+    BiFunction<String, String, String> manifestName = (namespace, name) -> namespace + ":" + name;
+
+    Map<String, KubernetesManifest> services = allResources.getOrDefault(SERVICE, new ArrayList<>())
+        .stream()
+        .collect(Collectors.toMap((m) -> manifestName.apply(m.getNamespace(), m.getName()), (m) -> m));
+
+    for (KubernetesManifest manifest : allResources.getOrDefault(STATEFUL_SET, new ArrayList<>())) {
+      String serviceName = KubernetesStatefulSetHandler.serviceName(manifest);
+      if (StringUtils.isEmpty(serviceName)) {
+        continue;
+      }
+
+      String key = manifestName.apply(manifest.getNamespace(), serviceName);
+
+      if (!services.containsKey(key)) {
+        continue;
+      }
+
+      KubernetesManifest service = services.get(key);
+      relationshipMap.put(manifest, Collections.singletonList(service));
+    }
   }
 }

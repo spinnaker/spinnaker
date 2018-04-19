@@ -122,10 +122,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       try {
         namespace = jobExecutor.defaultNamespace(this);
       } catch (KubectlException ke) {
-        log.warn("Failure looking up desired namespace, defaulting to {}", defaultNamespace, ke);
+        log.debug("Failure looking up desired namespace, defaulting to {}", defaultNamespace, ke);
       }
     } catch (Exception e) {
-      log.warn("Error encountered looking up default namespace, defaulting to {}", defaultNamespace, e);
+      log.debug("Error encountered looking up default namespace, defaulting to {}", defaultNamespace, e);
     }
     if (StringUtils.isEmpty(namespace)) {
       namespace = defaultNamespace;

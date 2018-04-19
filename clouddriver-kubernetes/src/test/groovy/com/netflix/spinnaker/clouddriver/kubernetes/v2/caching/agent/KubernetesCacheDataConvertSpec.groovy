@@ -72,7 +72,7 @@ metadata:
     KubernetesManifestAnnotater.annotateManifest(manifest, moniker)
 
     when:
-    def cacheData = KubernetesCacheDataConverter.convertAsResource(account, manifest, [], true)
+    def cacheData = KubernetesCacheDataConverter.convertAsResource(account, manifest, [])
 
     then:
     if (application == null) {

@@ -17,22 +17,10 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesReplicaSetHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
-import io.kubernetes.client.models.V1ObjectMeta
-import io.kubernetes.client.models.V1beta1ReplicaSet
-import org.joda.time.DateTime
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -42,54 +30,6 @@ class KubernetesReplicaSetCachingAgentSpec extends Specification {
   def APPLICATION = "my-application"
   def NAME = "the-name"
   def NAMESPACE = "your-namespace"
-
-  void "invokes caching agent on output replica set"() {
-    setup:
-    def replicaSet = new V1beta1ReplicaSet()
-    def annotations = [
-        'moniker.spinnaker.io/cluster': '"' + CLUSTER + '"',
-        'moniker.spinnaker.io/application': '"' + APPLICATION + '"',
-        'artifact.spinnaker.io/type': '"' + "replicaSet" + '"',
-        'artifact.spinnaker.io/name': '"' + NAME + '"'
-    ]
-
-    def metadata = new V1ObjectMeta()
-    metadata.setAnnotations(annotations)
-    metadata.setName(NAME)
-    metadata.setNamespace(NAMESPACE)
-    metadata.setCreationTimestamp(DateTime.now())
-    replicaSet.setMetadata(metadata)
-    replicaSet.setKind(KubernetesKind.REPLICA_SET.name)
-    replicaSet.setApiVersion(KubernetesApiVersion.EXTENSIONS_V1BETA1.name)
-
-    def credentials = Mock(KubernetesV2Credentials)
-    credentials.getDeclaredNamespaces() >> [NAMESPACE]
-
-    credentials.list([KubernetesKind.REPLICA_SET], NAMESPACE) >> [new ObjectMapper().convertValue(replicaSet, KubernetesManifest.class)]
-
-    def namedAccountCredentials = Mock(KubernetesNamedAccountCredentials)
-    namedAccountCredentials.getCredentials() >> credentials
-    namedAccountCredentials.getName() >> ACCOUNT
-    def propertyRegistry = new KubernetesResourcePropertyRegistry([new KubernetesReplicaSetHandler()], new KubernetesSpinnakerKindMap())
-
-    def registryMock = Mock(Registry)
-    registryMock.timer(_) >> null
-    def cachingAgent = new KubernetesReplicaSetCachingAgent(namedAccountCredentials, propertyRegistry, new ObjectMapper(), registryMock, 0, 1)
-    def providerCacheMock = Mock(ProviderCache)
-    providerCacheMock.getAll(_, _) >> []
-
-    when:
-    def result = cachingAgent.loadData(providerCacheMock)
-
-    then:
-    result.cacheResults[KubernetesKind.REPLICA_SET.name].size() == 1
-    result.cacheResults[KubernetesKind.REPLICA_SET.name].find { cacheData ->
-      cacheData.relationships.get(Keys.LogicalKind.CLUSTERS.toString()) == [Keys.cluster(ACCOUNT, APPLICATION, CLUSTER)]
-      cacheData.relationships.get(Keys.LogicalKind.APPLICATIONS.toString()) == [Keys.application(APPLICATION)]
-      cacheData.attributes.get("name") == NAME
-      cacheData.attributes.get("namespace") == NAMESPACE
-    } != null
-  }
 
   @Unroll
   void "merges two cache data"() {

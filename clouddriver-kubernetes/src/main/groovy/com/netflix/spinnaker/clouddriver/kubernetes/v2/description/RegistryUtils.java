@@ -22,27 +22,25 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 public class RegistryUtils {
-  static public Optional<KubernetesHandler> lookupHandler(KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesManifest manifest) {
-    KubernetesKind kind = manifest.getKind();
+  private static Optional<KubernetesHandler> lookupHandler(KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesKind kind) {
     if (kind == null) {
-      log.warn("Manifest {} has no kind...", manifest);
       return Optional.empty();
     }
 
     KubernetesResourceProperties properties = propertyRegistry.get(account, kind);
     if (properties == null) {
-      log.warn("Manifest {} has no properties...", manifest);
       return Optional.empty();
     }
 
     KubernetesHandler handler = properties.getHandler();
 
     if (handler == null) {
-      log.warn("Resource properties for manifest {} has no handler...", manifest);
       return Optional.empty();
     }
 
@@ -50,6 +48,10 @@ public class RegistryUtils {
   }
 
   static public void removeSensitiveKeys(KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesManifest manifest) {
-    lookupHandler(propertyRegistry, account, manifest).ifPresent(h -> h.removeSensitiveKeys(manifest));
+    lookupHandler(propertyRegistry, account, manifest.getKind()).ifPresent(h -> h.removeSensitiveKeys(manifest));
+  }
+
+  static public void addRelationships(KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesKind kind, Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
+    lookupHandler(propertyRegistry, account, kind).ifPresent(h -> h.addRelationships(allResources, relationshipMap));
   }
 }
