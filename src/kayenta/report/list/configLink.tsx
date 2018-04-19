@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { ICanaryState } from 'kayenta/reducers';
-import { resolveConfigIdFromNameAndApplication } from 'kayenta/selectors';
+import { resolveConfigIdFromExecutionId } from 'kayenta/selectors';
 import { Link } from './link';
 
 interface IConfigLinkOwnProps {
   configName: string;
+  executionId: string;
   application: string;
 }
 
@@ -27,7 +28,7 @@ export const ConfigLink = ({ configId, configName }: IConfigLinkOwnProps & IConf
 
 const mapStateToProps = (state: ICanaryState, ownProps: IConfigLinkOwnProps): IConfigLinkStateProps & IConfigLinkOwnProps => {
   return {
-    configId: resolveConfigIdFromNameAndApplication(state, ownProps.configName, ownProps.application),
+    configId: resolveConfigIdFromExecutionId(state, ownProps.executionId),
     ...ownProps,
   };
 };

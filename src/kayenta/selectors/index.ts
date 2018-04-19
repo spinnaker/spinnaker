@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { get } from 'lodash';
 
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from 'kayenta/domain/index';
@@ -56,9 +57,8 @@ export const configTemplatesSelector = createSelector(
 
 export const editingTemplateSelector = (state: ICanaryState) => state.selectedConfig.editingTemplate;
 
-// TODO(dpeach): temporary workaround because a config doesn't return with its own ID.
-export const resolveConfigIdFromNameAndApplication = (state: ICanaryState, configName: string, application: string): string => {
-  const config = state.data.configSummaries.find(summary =>
-    summary.name === configName && summary.applications.includes(application));
-  return config && config.id;
+export const resolveConfigIdFromExecutionId = (state: ICanaryState, executionId: string): string => {
+  const executions = get(state, ['data', 'executions', 'data'], [])
+  const execution = executions.find(ex => ex.pipelineId === executionId);
+  return execution.canaryConfigId;
 };

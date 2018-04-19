@@ -18,6 +18,7 @@ const columns: ITableColumn<ICanaryExecutionStatusResult>[] = [
     getContent: execution => (
       <ConfigLink
         configName={execution.config ? execution.config.name : execution.result.config.name}
+        executionId={execution.pipelineId}
         application={execution.application}
       />
     ),
