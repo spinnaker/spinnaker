@@ -24,6 +24,7 @@ import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
+import com.google.api.services.storage.StorageScopes;
 import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 
 @Component
 @Slf4j
@@ -57,7 +59,12 @@ public class GoogleProfileReader implements ProfileReader {
     String applicationName = "Spinnaker/Halyard";
     HttpRequestInitializer requestInitializer;
     try {
-      requestInitializer = GoogleCredentials.setHttpTimeout(GoogleCredential.getApplicationDefault());
+      GoogleCredential credential = GoogleCredential.getApplicationDefault();
+      if (credential.createScopedRequired()) {
+        credential = credential.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+      }
+      requestInitializer = GoogleCredentials.setHttpTimeout(credential);
+      
       log.info("Loaded application default credential for reading BOMs & profiles.");
     } catch (Exception e) {
       requestInitializer = GoogleCredentials.retryRequestInitializer();
