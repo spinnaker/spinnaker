@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties
 import com.netflix.spinnaker.clouddriver.docker.registry.health.DockerRegistryHealthIndicator
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentialsInitializer
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -45,7 +47,7 @@ class DockerRegistryConfiguration {
   }
 
   @Bean
-  DockerRegistryHealthIndicator dockerRegistryHealthIndicator() {
-    new DockerRegistryHealthIndicator()
+  DockerRegistryHealthIndicator dockerRegistryHealthIndicator(Registry registry, AccountCredentialsProvider accountCredentialsProvider) {
+    new DockerRegistryHealthIndicator(registry, accountCredentialsProvider)
   }
 }

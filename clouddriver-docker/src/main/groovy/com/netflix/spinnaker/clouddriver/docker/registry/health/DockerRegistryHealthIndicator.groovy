@@ -16,47 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.health
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.core.AlwaysUpHealthIndicator
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryCredentials
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.transform.InheritConstructors
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.actuate.health.Health
-import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.ResponseStatus
-import retrofit.RetrofitError
 
-import java.util.concurrent.atomic.AtomicReference
+class DockerRegistryHealthIndicator extends AlwaysUpHealthIndicator {
 
-@Component
-class DockerRegistryHealthIndicator implements HealthIndicator {
-
-  private static final Logger LOG = LoggerFactory.getLogger(DockerRegistryHealthIndicator)
-
-  @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
-  private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
-
-  @Override
-  Health health() {
-    def ex = lastException.get()
-
-    if (ex) {
-      throw ex
-    }
-
-    new Health.Builder().up().build()
+  DockerRegistryHealthIndicator(Registry registry, AccountCredentialsProvider accountCredentialsProvider) {
+    super(registry, "docker")
+    this.accountCredentialsProvider = accountCredentialsProvider
   }
 
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
-    try {
+    updateHealth {
       Set<DockerRegistryNamedAccountCredentials> dockerRegistryCredentialsSet = accountCredentialsProvider.all.findAll {
         it instanceof DockerRegistryNamedAccountCredentials
       } as Set<DockerRegistryNamedAccountCredentials>
@@ -66,12 +47,6 @@ class DockerRegistryHealthIndicator implements HealthIndicator {
 
         dockerRegistryCredentials.client.checkV2Availability()
       }
-
-      lastException.set(null)
-    } catch (Exception ex) {
-      LOG.warn "Unhealthy", ex
-
-      lastException.set(ex)
     }
   }
 
