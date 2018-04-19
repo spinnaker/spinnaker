@@ -4,7 +4,7 @@ MAINTAINER delivery-engineering@netflix.com
 
 COPY ./front50-web/build/install/front50 /opt/front50
 
-RUN apk --nocache add --update bash
+RUN apk --no-cache add --update bash
 
 RUN adduser -D -S spinnaker
 
