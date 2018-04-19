@@ -58,7 +58,7 @@ logging:
 #      # The following properties are all optional:
 #      enabled: true # default true
 #      url: https://my.webhook.com/event
-#      headers:
+#      customHeaders:
 #        Accept:
 #          - application/json
 #        AnotherHeader:
