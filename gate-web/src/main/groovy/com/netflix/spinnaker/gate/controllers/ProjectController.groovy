@@ -18,17 +18,10 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ProjectService
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RequestMapping("/projects")
 @RestController
@@ -37,22 +30,26 @@ class ProjectController {
   @Autowired
   ProjectService projectService
 
+  @ApiOperation(value = "Get all projects", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
   List<Map> all() {
     return projectService.getAll()
   }
 
+  @ApiOperation(value = "Get a project", response = HashMap.class)
   @RequestMapping(value = "/{id:.+}", method = RequestMethod.GET)
   Map get(@PathVariable("id") String projectId) {
     return projectService.get(projectId)
   }
 
+  @ApiOperation(value = "Get a project's clusters", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/{id}/clusters", method = RequestMethod.GET)
   List<Map> getClusters(@PathVariable("id") String projectId,
                         @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return projectService.getClusters(projectId, sourceApp)
   }
 
+  @ApiOperation(value = "Get all pipelines for project", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/{id:.+}/pipelines", method = RequestMethod.GET)
   List<Map> allPipelinesForProject(@PathVariable("id") String projectId,
                                    @RequestParam(value = "limit", defaultValue = "5") int limit,

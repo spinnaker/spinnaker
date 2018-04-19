@@ -107,7 +107,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Update a pipeline definition")
+  @ApiOperation(value = "Update a pipeline definition", response = HashMap.class)
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   Map updatePipeline(@PathVariable("id") String id, @RequestBody Map pipeline) {
     def operation = [
@@ -135,7 +135,7 @@ class PipelineController {
     return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"), true)?.find { id == (String) it.get("id") }
   }
 
-  @ApiOperation(value = "Retrieve pipeline execution logs")
+  @ApiOperation(value = "Retrieve pipeline execution logs", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "{id}/logs", method = RequestMethod.GET)
   List<Map> getPipelineLogs(@PathVariable("id") String id) {
     try {
@@ -147,7 +147,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Cancel a pipeline execution")
+  @ApiOperation(value = "Cancel a pipeline execution", response = HashMap.class)
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
   Map cancelPipeline(@PathVariable("id") String id,
                      @RequestParam(required = false) String reason,
@@ -155,31 +155,31 @@ class PipelineController {
     pipelineService.cancelPipeline(id, reason, force)
   }
 
-  @ApiOperation(value = "Pause a pipeline execution")
+  @ApiOperation(value = "Pause a pipeline execution", response = HashMap.class)
   @RequestMapping(value = "{id}/pause", method = RequestMethod.PUT)
   Map pausePipeline(@PathVariable("id") String id) {
     pipelineService.pausePipeline(id)
   }
 
-  @ApiOperation(value = "Resume a pipeline execution")
+  @ApiOperation(value = "Resume a pipeline execution", response = HashMap.class)
   @RequestMapping(value = "{id}/resume", method = RequestMethod.PUT)
   Map resumePipeline(@PathVariable("id") String id) {
     pipelineService.resumePipeline(id)
   }
 
-  @ApiOperation(value = "Update a stage execution")
+  @ApiOperation(value = "Update a stage execution", response = HashMap.class)
   @RequestMapping(value = "/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
     pipelineService.updatePipelineStage(id, stageId, context)
   }
 
-  @ApiOperation(value = "Restart a stage execution")
+  @ApiOperation(value = "Restart a stage execution", response = HashMap.class)
   @RequestMapping(value = "/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
     pipelineService.restartPipelineStage(id, stageId, context)
   }
 
-  @ApiOperation(value = "Delete a pipeline execution")
+  @ApiOperation(value = "Delete a pipeline execution", response = HashMap.class)
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   Map deletePipeline(@PathVariable("id") String id) {
     pipelineService.deletePipeline(id);
@@ -215,7 +215,7 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context")
+  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context", response = HashMap.class)
   @RequestMapping(value = "{id}/evaluateExpression")
   Map evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression") String pipelineExpression) {

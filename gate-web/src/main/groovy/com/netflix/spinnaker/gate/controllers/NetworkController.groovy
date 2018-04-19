@@ -32,13 +32,13 @@ class NetworkController {
   @Autowired
   NetworkService networkService
 
-  @ApiOperation(value = "Retrieve a list of networks, grouped by cloud provider")
+  @ApiOperation(value = "Retrieve a list of networks, grouped by cloud provider", response = HashMap.class)
   @RequestMapping(method = RequestMethod.GET)
   Map all(@RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     networkService.getNetworks(sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a list of networks for a given cloud provider")
+  @ApiOperation(value = "Retrieve a list of networks for a given cloud provider", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
   List<Map> allByCloudProvider(@PathVariable String cloudProvider,
                                @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {

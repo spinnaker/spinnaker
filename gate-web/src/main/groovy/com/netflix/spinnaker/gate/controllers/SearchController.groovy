@@ -18,13 +18,9 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.SearchService
-import groovy.transform.CompileStatic
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 import javax.servlet.http.HttpServletRequest
 
@@ -33,6 +29,7 @@ class SearchController {
   @Autowired
   SearchService searchService
 
+  @ApiOperation(value = "Search infrastructure", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/search", method = RequestMethod.GET)
   List<Map> search(@RequestParam(value = "q", defaultValue = "", required = false) String query,
                    @RequestParam(value = "type") String type,

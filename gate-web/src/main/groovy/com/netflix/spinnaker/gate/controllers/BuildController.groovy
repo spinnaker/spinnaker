@@ -19,13 +19,15 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.BuildService
 import groovy.transform.CompileStatic
-import javax.servlet.http.HttpServletRequest
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.HandlerMapping
+
+import javax.servlet.http.HttpServletRequest
 
 @CompileStatic
 @RestController
@@ -37,28 +39,33 @@ class BuildController {
   @Autowired
   BuildService buildService
 
+  @ApiOperation(value = "Get build masters", response = List.class)
   @RequestMapping(value = "v2/builds", method = RequestMethod.GET)
   List<String> getBuildMasters() {
     buildService.getBuildMasters()
   }
 
+  @ApiOperation(value = "Get jobs for build master", response = List.class)
   @RequestMapping(value = "/v2/builds/{buildMaster}/jobs", method = RequestMethod.GET)
   List<String> getJobsForBuildMaster(@PathVariable("buildMaster") String buildMaster) {
     buildService.getJobsForBuildMaster(buildMaster)
   }
 
+  @ApiOperation(value = "Get job config", response = HashMap.class)
   @RequestMapping(value = "/v2/builds/{buildMaster}/jobs/**", method = RequestMethod.GET)
   Map getJobConfig(@PathVariable("buildMaster") String buildMaster, HttpServletRequest request) {
     def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString().split('/').drop(5).join('/')
     buildService.getJobConfig(buildMaster, job)
   }
 
+  @ApiOperation(value = "Get builds for build master", response = List.class)
   @RequestMapping(value = "/v2/builds/{buildMaster}/builds/**", method = RequestMethod.GET)
   List getBuilds(@PathVariable("buildMaster") String buildMaster, HttpServletRequest request) {
     def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString().split('/').drop(5).join('/')
     buildService.getBuilds(buildMaster, job)
   }
 
+  @ApiOperation(value = "Get build for build master", response = HashMap.class)
   @RequestMapping(value = "/v2/builds/{buildMaster}/build/{number}/**", method = RequestMethod.GET)
   Map getBuild(@PathVariable("buildMaster") String buildMaster, @PathVariable("number") String number, HttpServletRequest request) {
     def job = request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).toString().split('/').drop(6).join('/')

@@ -18,14 +18,14 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.ArtifactService;
 import io.swagger.annotations.ApiOperation;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/artifacts")
@@ -34,7 +34,7 @@ public class ArtifactController {
   @Autowired
   private ArtifactService artifactService;
 
-  @ApiOperation(value = "Retrieve the list of artifact accounts configured in Clouddriver.")
+  @ApiOperation(value = "Retrieve the list of artifact accounts configured in Clouddriver.", response = HashMap.class, responseContainer = "List")
   @RequestMapping(method = RequestMethod.GET, value = "/credentials")
   List<Map> all(@RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     return artifactService.getArtifactCredentials(sourceApp);

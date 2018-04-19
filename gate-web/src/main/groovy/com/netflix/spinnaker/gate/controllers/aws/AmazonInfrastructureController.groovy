@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers.aws
 
 import com.netflix.spinnaker.gate.services.aws.InfrastructureService
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -28,22 +29,26 @@ class AmazonInfrastructureController {
   @Autowired
   InfrastructureService infrastructureService
 
+  @ApiOperation(value = "Get instance types", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/instanceTypes", method = RequestMethod.GET)
   List<Map> instanceTypes() {
     infrastructureService.instanceTypes
   }
 
+  @ApiOperation(value = "Get key pairs", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/keyPairs", method = RequestMethod.GET)
   List<Map> keyPairs() {
     infrastructureService.keyPairs
   }
 
+  @ApiOperation(value = "Get subnets", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/subnets", method = RequestMethod.GET)
   List<Map> subnets() {
     infrastructureService.subnets
   }
 
   @Deprecated
+  @ApiOperation(value = "Get VPCs", response = HashMap.class, responseContainer = "List")
   @RequestMapping(value = "/vpcs", method = RequestMethod.GET)
   List<Map> vpcs() {
     infrastructureService.vpcs

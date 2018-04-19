@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
+import io.swagger.annotations.ApiOperation
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -65,6 +66,7 @@ class AuthController {
     }
   }
 
+  @ApiOperation(value = "Get user", response = User.class)
   @RequestMapping(value = "/user", method = RequestMethod.GET)
   User user(@ApiIgnore @SpinnakerUser User user) {
     if (!user) {
@@ -78,11 +80,13 @@ class AuthController {
     return user
   }
 
+  @ApiOperation(value = "Get service accounts", response = List.class)
   @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
   List<String> getServiceAccounts(@ApiIgnore @SpinnakerUser User user) {
     permissionService.getServiceAccounts(user)
   }
 
+  @ApiOperation(value = "Get logged out message", response = String.class)
   @RequestMapping(value = "/loggedOut", method = RequestMethod.GET)
   String loggedOut() {
     return LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size()+1)]
@@ -92,11 +96,13 @@ class AuthController {
    * On-demand endpoint to sync the user roles, in case
    * waiting for the periodic refresh won't work.
    */
+  @ApiOperation(value = "Sync user roles")
   @RequestMapping(value = "/roles/sync", method = RequestMethod.POST)
   void sync() {
     permissionService.sync()
   }
 
+  @ApiOperation(value = "Redirect to Deck")
   @RequestMapping(value = "/redirect", method = RequestMethod.GET)
   void redirect(HttpServletResponse response, @RequestParam String to) {
     validDeckRedirect(to) ?

@@ -15,16 +15,12 @@
  */
 
 package com.netflix.spinnaker.gate.controllers
+
 import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @CompileStatic
 @RequestMapping("/tasks")
@@ -34,31 +30,37 @@ class TaskController {
   @Autowired
   TaskService taskService
 
+  @ApiOperation(value = "Get task", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   Map getTask(@PathVariable("id") String id) {
     taskService.getTask(id)
   }
 
+  @ApiOperation(value = "Delete task", response = HashMap.class)
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   Map deleteTask(@PathVariable("id") String id) {
     taskService.deleteTask(id)
   }
 
+  @ApiOperation(value = "Create task", response = HashMap.class)
   @RequestMapping(method = RequestMethod.POST)
   Map task(@RequestBody Map map) {
     taskService.createAppTask(map)
   }
 
+  @ApiOperation(value = "Cancel task", response = HashMap.class)
   @RequestMapping(value = "/{id}/cancel", method = RequestMethod.PUT)
   Map cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
   }
 
+  @ApiOperation(value = "Cancel tasks", response = HashMap.class)
   @RequestMapping(value = "/cancel", method = RequestMethod.PUT)
   Map cancelTasks(@RequestParam List<String> ids) {
     taskService.cancelTasks(ids)
   }
 
+  @ApiOperation(value = "Get task details", response = HashMap.class)
   @RequestMapping(value = "/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
   Map getTaskDetails(@PathVariable("id") String id,
                      @PathVariable("taskDetailsId") String taskDetailsId,

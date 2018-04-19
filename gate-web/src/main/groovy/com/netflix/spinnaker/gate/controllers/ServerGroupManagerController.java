@@ -18,14 +18,14 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.ServerGroupManagerService;
 import io.swagger.annotations.ApiOperation;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/applications/{application}/serverGroupManagers")
@@ -37,7 +37,7 @@ public class ServerGroupManagerController {
     this.serverGroupManagerService = serverGroupManagerService;
   }
 
-  @ApiOperation("Retrieve a list of server group managers for an application")
+  @ApiOperation(value = "Retrieve a list of server group managers for an application", response = HashMap.class, responseContainer = "List")
   @RequestMapping(method = RequestMethod.GET)
   public List<Map> getServerGroupManagersForApplication(@PathVariable String application) {
     return this.serverGroupManagerService.getServerGroupManagersForApplication(application);

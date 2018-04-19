@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.JobService
 import groovy.transform.CompileStatic
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -28,6 +29,7 @@ class JobController {
   @Autowired
   JobService jobService
 
+  @ApiOperation(value = "Get jobs", response = List.class)
   @RequestMapping(value = "/applications/{applicationName}/jobs", method = RequestMethod.GET)
   List getJobs(@PathVariable String applicationName,
                @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
@@ -35,6 +37,7 @@ class JobController {
     jobService.getForApplication(applicationName, expand, sourceApp)
   }
 
+  @ApiOperation(value = "Get job", response = HashMap.class)
   @RequestMapping(value = "/applications/{applicationName}/jobs/{account}/{region}/{name}", method = RequestMethod.GET)
   Map getJob(@PathVariable String applicationName, @PathVariable String account,
              @PathVariable String region,
