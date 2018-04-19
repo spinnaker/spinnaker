@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spectator.api.BasicTag
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.TaskComplete
@@ -25,11 +27,13 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.metrics.MetricsTagHelper
 import com.netflix.spinnaker.q.Queue
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
+import java.util.concurrent.TimeUnit
 
 @Component
 class CompleteTaskHandler(
@@ -37,7 +41,8 @@ class CompleteTaskHandler(
   override val repository: ExecutionRepository,
   override val contextParameterProcessor: ContextParameterProcessor,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
-  private val clock: Clock
+  private val clock: Clock,
+  private val registry: Registry
 ) : OrcaMessageHandler<CompleteTask>, ExpressionAware {
 
   override fun handle(message: CompleteTask) {
@@ -45,6 +50,7 @@ class CompleteTaskHandler(
       task.status = message.status
       task.endTime = clock.millis()
       val mergedContextStage = stage.withMergedContext()
+      trackResult(stage, task, message.status)
 
       if (message.status == REDIRECT) {
         mergedContextStage.handleRedirect()
@@ -95,6 +101,21 @@ class CompleteTaskHandler(
       }
       repository.storeStage(this)
       queue.push(StartTask(execution.type, execution.id, execution.application, id, tasks[start].id))
+    }
+  }
+
+  private fun trackResult(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
+    val commonTags = MetricsTagHelper.commonTags(stage, taskModel, status)
+    val detailedTags = MetricsTagHelper.detailedTaskTags(stage, taskModel, status)
+
+    // we are looking at the time it took to complete the whole execution, not just one invocation
+    val elapsedMillis = clock.millis() - (taskModel.startTime ?: 0)
+
+    hashMapOf(
+      "task.completions.duration" to commonTags + BasicTag("application", stage.execution.application),
+      "task.completions.duration.withType" to commonTags + detailedTags
+    ).forEach {
+      name, tags -> registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
     }
   }
 }

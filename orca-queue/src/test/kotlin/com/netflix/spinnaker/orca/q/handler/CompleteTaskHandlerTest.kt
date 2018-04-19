@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.TaskComplete
 import com.netflix.spinnaker.orca.fixture.pipeline
@@ -45,7 +47,7 @@ object CompleteTaskHandlerTest : SubjectSpek<CompleteTaskHandler>({
   val clock = fixedClock()
 
   subject(GROUP) {
-    CompleteTaskHandler(queue, repository, ContextParameterProcessor(), publisher, clock)
+    CompleteTaskHandler(queue, repository, ContextParameterProcessor(), publisher, clock, NoopRegistry())
   }
 
   fun resetMocks() = reset(queue, repository, publisher)

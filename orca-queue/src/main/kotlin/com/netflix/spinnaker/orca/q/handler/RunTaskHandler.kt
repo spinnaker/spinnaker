@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.BucketCounter
 import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.q.CompleteTask
 import com.netflix.spinnaker.orca.q.InvalidTaskType
 import com.netflix.spinnaker.orca.q.PauseTask
 import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.metrics.MetricsTagHelper
 import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.q.Message
@@ -62,6 +63,8 @@ class RunTaskHandler(
   override fun handle(message: RunTask) {
     message.withTask { stage, taskModel, task ->
       val execution = stage.execution
+      val thisInvocationStartTimeMs = clock.millis()
+
       try {
         if (execution.isCanceled) {
           task.onCancel(stage)
@@ -85,22 +88,22 @@ class RunTaskHandler(
               when (result.status) {
                 RUNNING                              -> {
                   queue.push(message, task.backoffPeriod(taskModel, stage))
-                  trackResult(stage, taskModel, result.status)
+                  trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
                 }
                 SUCCEEDED, REDIRECT, FAILED_CONTINUE -> {
                   queue.push(CompleteTask(message, result.status))
-                  trackResult(stage, taskModel, result.status)
+                  trackResult(stage, thisInvocationStartTimeMs, taskModel, result.status)
                 }
                 CANCELED                             -> {
                   task.onCancel(stage)
                   val status = stage.failureStatus(default = result.status)
                   queue.push(CompleteTask(message, status, result.status))
-                  trackResult(stage, taskModel, status)
+                  trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
                 }
                 TERMINAL                             -> {
                   val status = stage.failureStatus(default = result.status)
                   queue.push(CompleteTask(message, status, result.status))
-                  trackResult(stage, taskModel, status)
+                  trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
                 }
                 else                                 ->
                   TODO("Unhandled task status ${result.status}")
@@ -113,7 +116,7 @@ class RunTaskHandler(
         if (exceptionDetails?.shouldRetry == true) {
           log.warn("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]")
           queue.push(message, task.backoffPeriod(taskModel, stage))
-          trackResult(stage, taskModel, RUNNING)
+          trackResult(stage, thisInvocationStartTimeMs, taskModel, RUNNING)
         } else if (e is TimeoutException && stage.context["markSuccessfulOnTimeout"] == true) {
           queue.push(CompleteTask(message, SUCCEEDED))
         } else {
@@ -121,43 +124,25 @@ class RunTaskHandler(
           stage.context["exception"] = exceptionDetails
           repository.storeStage(stage)
           queue.push(CompleteTask(message, stage.failureStatus()))
-          trackResult(stage, taskModel, stage.failureStatus())
+          trackResult(stage, thisInvocationStartTimeMs, taskModel, stage.failureStatus())
         }
       }
     }
   }
 
-  private fun trackResult(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
-    val id = registry.createId("task.invocations")
-      .withTag("status", status.toString())
-      .withTag("executionType", stage.execution.type.name.capitalize())
-      .withTag("taskType", taskModel.implementingClass)
-      .withTag("isComplete", status.isComplete.toString())
-      .withTag("application", stage.execution.application)
-      .let { id ->
-        stage.context["cloudProvider"]?.let {
-          id.withTag("cloudProvider", it.toString())
-        } ?: id
-      }
-    registry.counter(id).increment()
+  private fun trackResult(stage: Stage, thisInvocationStartTimeMs: Long, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
+    val commonTags = MetricsTagHelper.commonTags(stage, taskModel, status)
+    val detailedTags = MetricsTagHelper.detailedTaskTags(stage, taskModel, status)
 
-    val distributionId = registry.createId("task.invocations.duration").withTags(id.tags())
-    BucketCounter
-      .get(registry, distributionId, { v -> bucketDuration(v) })
-      .record(System.currentTimeMillis() - (taskModel.startTime ?: 0))
-  }
+    val elapsedMillis = clock.millis() - thisInvocationStartTimeMs
 
-  fun bucketDuration(duration: Long): String {
-    return if (duration > TimeUnit.MINUTES.toMillis(60)) {
-      "gt60m"
-    } else if (duration > TimeUnit.MINUTES.toMillis(30)) {
-      "gt30m"
-    } else if (duration > TimeUnit.MINUTES.toMillis(15)) {
-      "gt15m"
-    } else if (duration > TimeUnit.MINUTES.toMillis(5)) {
-      "gt5m"
-    } else {
-      "lt5m"
+    hashMapOf(
+      "task.invocations.duration" to commonTags + BasicTag("application", stage.execution.application),
+      "task.invocations.duration.withType" to commonTags + detailedTags
+    ).forEach {
+      name, tags ->
+        val id = registry.createId(name).withTags(tags)
+        registry.timer(name, tags).record(elapsedMillis, TimeUnit.MILLISECONDS)
     }
   }
 

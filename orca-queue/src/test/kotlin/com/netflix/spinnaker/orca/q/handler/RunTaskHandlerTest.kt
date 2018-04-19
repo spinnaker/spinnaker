@@ -1184,21 +1184,4 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       verify(queue).push(isA<InvalidTaskType>())
     }
   }
-
-  describe("should bucket task durations") {
-    mapOf(
-      0 to "lt5m",
-      1 to "lt5m",
-      7 to "gt5m",
-      16 to "gt15m",
-      31 to "gt30m",
-      61 to "gt60m",
-      120 to "gt60m"
-    ).forEach { minutes, expectedBucket ->
-      given("a task that is ${minutes} minutes old") {
-        val millis = TimeUnit.MINUTES.toMillis(minutes.toLong())
-        assertThat(subject.bucketDuration(millis)).isEqualTo(expectedBucket)
-      }
-    }
-  }
 })
