@@ -893,7 +893,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       return c.exists(key);
     });
     if (!exists) {
-      throw new ExecutionNotFoundException("No ${type} found for $id");
+      throw new ExecutionNotFoundException("No " + type + " found for " + id);
     }
 
     final Map<String, String> map = new HashMap<>();
