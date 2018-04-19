@@ -74,7 +74,7 @@
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
-    "@spinnaker/core": "0.0.196",
+    "@spinnaker/core": "0.0.198",
     "@spinnaker/styleguide": "^1.0.1",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",
