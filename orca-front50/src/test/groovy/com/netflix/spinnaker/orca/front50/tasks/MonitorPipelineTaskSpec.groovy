@@ -70,6 +70,35 @@ class MonitorPipelineTaskSpec extends Specification {
     ExecutionStatus.REDIRECT    || ExecutionStatus.RUNNING
   }
 
+  def "propagates artifacts from child pipeline"() {
+    given:
+    def pipeline = pipeline {
+      application = "orca"
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "pipeline"
+        outputs = [
+                artifacts: [
+                  [type: "docker/image",
+                   reference: "gcr.io/project/my-image@sha256:28f82eba",
+                   name: "gcr.io/project/my-image",
+                   version: "sha256:28f82eba"],
+                ]
+        ]
+      }
+      status = ExecutionStatus.SUCCEEDED
+    }
+
+    repo.retrieve(*_) >> pipeline
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.containsKey("artifacts")
+    result.outputs["artifacts"].size == 1
+  }
+
   def "propagates pipeline exceptions"() {
     def katoTasks = [
       [status: [failed: false], messages: ["should not appear"]],

@@ -151,7 +151,6 @@ public class Execution implements Serializable {
     this.keepWaitingPipelines = keepWaitingPipelines;
   }
 
-  @Deprecated
   @JsonIgnore
   public @Nonnull Map<String, Object> getContext() {
     return Stage.topologicalSort(stages)

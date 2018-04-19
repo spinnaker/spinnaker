@@ -24,10 +24,13 @@ import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
@@ -49,7 +52,11 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().toLowerCase().equals("false")) {
       builder.withTask("monitorPipeline", MonitorPipelineTask.class);
-  }
+    }
+
+    if (stage.getContext().containsKey("expectedArtifacts")) {
+      builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
+    }
   }
 
   @Override
@@ -62,7 +69,7 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
   @Override
   public CancellableStage.Result cancel(Stage stage) {
     String readableStageDetails = format("(stageId: %s, executionId: %s, context: %s)", stage.getId(), stage.getExecution().getId(), stage.getContext());
-    log.info(format("Cancelling stage %s", readableStageDetails) );
+    log.info(format("Cancelling stage %s", readableStageDetails));
 
     try {
       String executionId = (String) stage.getContext().get("executionId");
