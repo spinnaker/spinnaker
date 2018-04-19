@@ -17,15 +17,15 @@ titus:
       loadBalancingEnabled: false # load balancing will be released at a later date
       regions:
         - name: us-east-1
-          endpoint: https://myTitus.us-east-1.company.com/
+          url: https://myTitus.us-east-1.company.com/
+          port: 7104 
           autoscalingEnabled: true
           loadBalancingEnabled: false 
-          apiVersion: 3
         - name: eu-west-1
-          endpoint: https://myTitus.eu-west-1.company.com/
+          url: https://myTitus.eu-west-1.company.com/
+          port: 7104
           autoscalingEnabled: true
           loadBalancingEnabled: false
-          apiVersion: 3
 ```
 
 By default, Titus will try to create a grpc connection to port 7104. 

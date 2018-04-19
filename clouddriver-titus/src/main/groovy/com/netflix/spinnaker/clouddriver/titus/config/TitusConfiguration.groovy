@@ -21,10 +21,10 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
+import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
-import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.health.TitusHealthIndicator
 import com.netflix.spinnaker.clouddriver.titus.v3client.SimpleGrpcChannelFactory
 import groovy.util.logging.Slf4j
@@ -56,7 +56,9 @@ class TitusConfiguration {
                                                         AccountCredentialsRepository repository) {
     List<NetflixTitusCredentials> accounts = new ArrayList<>()
     for (TitusCredentialsConfig.Account account in titusCredentialsConfig.accounts) {
-      List<TitusRegion> regions = account.regions.collect { new TitusRegion(it.name, account.name, it.endpoint, it.autoscalingEnabled, it.loadBalancingEnabled, it.apiVersion) }
+      List<TitusRegion> regions = account.regions.collect {
+        new TitusRegion(it.name, account.name, it.endpoint, it.autoscalingEnabled, it.loadBalancingEnabled, it.apiVersion, it.applicationName, it.url, it.port)
+      }
       if (!account.bastionHost && titusCredentialsConfig.defaultBastionHostTemplate) {
         account.bastionHost = titusCredentialsConfig.defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
       }
@@ -84,8 +86,7 @@ class TitusConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(GrpcChannelFactory)
-  GrpcChannelFactory simpleGrpcChannelFactory()
-  {
+  GrpcChannelFactory simpleGrpcChannelFactory() {
     new SimpleGrpcChannelFactory()
   }
 
@@ -117,6 +118,9 @@ class TitusConfiguration {
       Boolean autoscalingEnabled
       Boolean loadBalancingEnabled
       String apiVersion
+      String applicationName
+      String url
+      Integer port
     }
   }
 }

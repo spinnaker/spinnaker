@@ -27,7 +27,7 @@ class SimpleGrpcChannelFactory implements GrpcChannelFactory {
   @Override
   ManagedChannel build(TitusRegion titusRegion, String environment, String eurekaName, long defaultConnectTimeOut, Registry registry) {
     return NettyChannelBuilder
-      .forAddress(titusRegion.endpoint, 7104)
+      .forAddress(titusRegion.url, titusRegion.port)
       .negotiationType(NegotiationType.TLS)
       .maxHeaderListSize(65536)
       .maxInboundMessageSize(65536)
