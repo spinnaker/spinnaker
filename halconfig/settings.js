@@ -74,6 +74,11 @@ var dcos = {
     account: '{%dcos.default.account%}'
   }
 };
+var ecs = {
+  defaults: {
+    account: '{%ecs.default.account%}'
+  }
+};
 var entityTagsEnabled = false;
 var netflixMode = false;
 var notificationsEnabled = '{%notifications.enabled%}' === 'true';
@@ -85,7 +90,7 @@ var slack = {
 window.spinnakerSettings = {
   version: version,
   checkForUpdates: false,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack', 'oraclebmcs', 'dcos'],
+  defaultProviders: ['aws', 'ecs', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack', 'oraclebmcs', 'dcos'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
@@ -110,6 +115,7 @@ window.spinnakerSettings = {
       },
       useAmiBlockDeviceMappings: false,
     },
+    ecs: ecs,
     gce: gce,
     titus: {
       defaults: {
