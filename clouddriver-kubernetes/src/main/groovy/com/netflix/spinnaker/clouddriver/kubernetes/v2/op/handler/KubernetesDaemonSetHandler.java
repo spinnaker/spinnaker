@@ -79,6 +79,9 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
 
   @Override
   public Status status(KubernetesManifest manifest) {
+    if (!manifest.isNewerThanObservedGeneration()) {
+      return (new Status()).unknown();
+    }
     V1beta2DaemonSet v1beta2DaemonSet = KubernetesCacheDataConverter.getResource(manifest, V1beta2DaemonSet.class);
     return status(v1beta2DaemonSet);
   }
@@ -98,6 +101,10 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler implements
     if (status == null) {
       result.unstable("No status reported yet")
           .unavailable("No availability reported");
+      return result;
+    }
+
+    if (!daemonSet.getSpec().getUpdateStrategy().getType().equalsIgnoreCase("rollingupdate")) {
       return result;
     }
 

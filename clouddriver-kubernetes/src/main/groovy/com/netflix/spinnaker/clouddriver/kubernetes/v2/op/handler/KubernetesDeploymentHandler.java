@@ -78,6 +78,9 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
     if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)
         || manifest.getApiVersion().equals(APPS_V1BETA1)
         || manifest.getApiVersion().equals(APPS_V1BETA2)) {
+      if (!manifest.isNewerThanObservedGeneration()) {
+        return (new Status()).unknown();
+      }
       V1beta2Deployment appsV1beta2Deployment = KubernetesCacheDataConverter.getResource(manifest, V1beta2Deployment.class);
       return status(appsV1beta2Deployment);
     } else {
@@ -119,14 +122,26 @@ public class KubernetesDeploymentHandler extends KubernetesHandler implements
       result.unavailable(available.getMessage());
     }
 
-    int desiredReplicas = deployment.getSpec().getReplicas();
+    V1beta2DeploymentCondition condition = status.getConditions()
+      .stream()
+      .filter(c -> c.getType().equalsIgnoreCase("progressing"))
+      .findAny()
+      .orElse(null);
+    if (condition != null && condition.getReason().equalsIgnoreCase("progressdeadlineexceeded")) {
+      return result.failed("Deployment exceeded its progress deadline");
+    }
+
+    Integer desiredReplicas = deployment.getSpec().getReplicas();
     Integer existing = status.getUpdatedReplicas();
-    if (existing == null || desiredReplicas > existing) {
+    if (existing == null || (desiredReplicas != null && desiredReplicas > existing)) {
       return result.unstable("Waiting for all replicas to be updated");
     }
 
-    existing = status.getAvailableReplicas();
-    if (existing == null || desiredReplicas > existing) {
+    if (status.getReplicas() > existing) {
+      return result.unstable("Waiting for old replicas to finish termination");
+    }
+
+    if (status.getAvailableReplicas() < existing) {
       return result.unstable("Waiting for all replicas to be available");
     }
 

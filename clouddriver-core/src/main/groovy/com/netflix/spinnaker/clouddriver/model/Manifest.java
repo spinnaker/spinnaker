@@ -36,6 +36,13 @@ public interface Manifest {
     Condition available = Condition.builder().state(true).build();
     Condition failed = Condition.builder().state(false).build();
 
+    public Status unknown() {
+      stable = null;
+      failed = null;
+
+      return this;
+    }
+
     public Status failed(String message) {
       failed.setMessage(message);
       failed.setState(true);

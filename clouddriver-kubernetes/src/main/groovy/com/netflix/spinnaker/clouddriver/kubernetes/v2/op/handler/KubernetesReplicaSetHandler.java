@@ -98,6 +98,11 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler implements
       return result;
     }
 
+    Long observedGeneration = status.getObservedGeneration();
+    if (observedGeneration != null && observedGeneration != replicaSet.getMetadata().getGeneration()) {
+      result.unstable("Waiting for replicaset spec update to be observed");
+    }
+
     Integer existing = status.getFullyLabeledReplicas();
     if (existing == null || desiredReplicas > existing) {
       return result.unstable("Waiting for all replicas to be fully-labeled")

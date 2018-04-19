@@ -163,6 +163,17 @@ public class KubernetesManifest extends HashMap<String, Object> {
     return String.join(" ", kind.toString(), name);
   }
 
+  public boolean isNewerThanObservedGeneration() {
+    try {
+      Long generation = (Long) getMetadata().get("generation");
+      Long observedGeneration = ((Map<String, Long>) getStatus()).get("observedGeneration");
+      if (observedGeneration == null || (generation != null && generation > observedGeneration)) {
+        return false;
+      }
+    } catch (ClassCastException e) {
+    }
+    return true;
+  }
   /*
    * The reasoning behind removing metadata for comparison is that it shouldn't affect the runtime behavior
    * of the resource we are creating.
