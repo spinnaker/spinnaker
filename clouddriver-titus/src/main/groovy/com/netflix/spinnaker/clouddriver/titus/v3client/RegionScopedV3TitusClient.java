@@ -33,10 +33,7 @@ import com.netflix.titus.grpc.protogen.*;
 import groovy.util.logging.Log;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Log
@@ -237,10 +234,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
       cursor = resultPage.getPagination().getCursor();
       hasMore = resultPage.getPagination().getHasMore();
     } while (hasMore);
-    List<String> jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
-      Collectors.toList()
-    );
-    Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks = getTasks(jobIds, false);
+    Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks = getTasks(Collections.emptyList(), false);
     return grpcJobs.stream().map(grpcJob -> new Job(grpcJob, tasks.get(grpcJob.getId()))).collect(Collectors.toList());
   }
 
@@ -256,7 +250,10 @@ public class RegionScopedV3TitusClient implements TitusClient {
       }
       TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
       taskQueryBuilder.setPage(taskPage);
-      taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+      if (!jobIds.isEmpty()) {
+        taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+      }
+      taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
       String filterByStates = "Accepted,Launched,StartInitiated,Started";
       if (includeDoneJobs) {
         filterByStates = filterByStates + ",KillInitiated,Finished";
