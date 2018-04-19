@@ -57,17 +57,17 @@ export class KayentaStageTransformer implements ITransformer {
         // If we made it through the final scheduled canary run, this should
         // be the same as the value returned from `getLastCanaryRunScore`,
         // but this is also how Orca determines the overall score.
-        kayentaStage.overallScore = last(kayentaStage.getValueFor('canaryScores'));
+        kayentaStage.context.overallScore = last(kayentaStage.getValueFor('canaryScores'));
       } else {
-        kayentaStage.overallScore = this.getLastCanaryRunScore(runCanaryStages);
+        kayentaStage.context.overallScore = this.getLastCanaryRunScore(runCanaryStages);
       }
-      kayentaStage.overallScore = round(kayentaStage.overallScore, 2);
+      kayentaStage.context.overallScore = round(kayentaStage.context.overallScore, 2);
 
       if (!kayentaStage.isCanceled) {
         if (kayentaStage.status === 'SUCCEEDED') {
-          kayentaStage.overallResult = 'success';
+          kayentaStage.context.overallResult = 'success';
         } else {
-          kayentaStage.overallHealth = 'unhealthy';
+          kayentaStage.context.overallHealth = 'unhealthy';
         }
       }
     }
