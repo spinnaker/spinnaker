@@ -4,7 +4,7 @@ MAINTAINER delivery-engineering@netflix.com
 
 COPY ./fiat-web/build/install/fiat /opt/fiat
 
-RUN apk --nocache add --update bash
+RUN apk --no-cache add --update bash
 
 RUN adduser -D -S spinnaker
 
