@@ -184,7 +184,7 @@ public class DistributedDeployer<T extends Account> implements
         .getPrioritizedDistributedServices(serviceTypes)) {
       SpinnakerService service = distributedService.getService();
       ServiceSettings settings = resolvedConfiguration.getServiceSettings(service);
-      if (!settings.getEnabled() || settings.getSkipLifeCycleManagement()) {
+      if (settings == null || !settings.getEnabled() || settings.getSkipLifeCycleManagement()) {
         continue;
       }
 

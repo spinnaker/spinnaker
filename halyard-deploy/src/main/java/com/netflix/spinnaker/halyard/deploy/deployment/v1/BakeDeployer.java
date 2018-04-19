@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
@@ -43,7 +44,10 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       List<SpinnakerService.Type> serviceTypes) {
     List<BakeService> enabledServices = serviceProvider.getPrioritizedBakeableServices(serviceTypes)
         .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
+        .filter(i -> {
+          ServiceSettings serviceSettings = resolvedConfiguration.getServiceSettings(i.getService());
+          return serviceSettings != null && serviceSettings.getEnabled();
+        })
         .collect(Collectors.toList());
 
     Map<String, String> installCommands = enabledServices.stream().reduce(new HashMap<>(), (commands, installable) -> {

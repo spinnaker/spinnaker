@@ -98,6 +98,11 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     }
   }
 
+  public boolean isInBillOfMaterials(DeploymentConfiguration deployment) {
+    String version = getArtifactService().getArtifactVersion(deployment.getName(), getArtifact());
+    return (version != null);
+  }
+
   abstract public Type getType();
   abstract public Class<T> getEndpointClass();
   abstract public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
@@ -46,7 +47,11 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       List<SpinnakerService.Type> serviceTypes) {
     List<LocalService> enabledServices = serviceProvider.getLocalServices(serviceTypes)
         .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
+        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()) != null)
+        .filter(i -> {
+          ServiceSettings serviceSettings = resolvedConfiguration.getServiceSettings(i.getService());
+          return serviceSettings != null && serviceSettings.getEnabled();
+        })
         .collect(Collectors.toList());
 
     Map<String, String> installCommands = enabledServices.stream()
