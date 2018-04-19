@@ -4,7 +4,7 @@ MAINTAINER delivery-engineering@netflix.com
 
 COPY ./echo-web/build/install/echo /opt/echo
 
-RUN apk --nocache add --update bash
+RUN apk --no-cache add --update bash
 
 RUN useradd -m spinnaker -U
 
