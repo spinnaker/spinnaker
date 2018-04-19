@@ -25,14 +25,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-// TODO(duftler): Remove this once the kayenta repo is public.
-@ConditionalOnExpression("${canary.enabled:false}")
 public class LocalGitKayentaService extends KayentaService implements LocalGitService<KayentaService.Kayenta> {
 
   String startCommand = "./gradlew";

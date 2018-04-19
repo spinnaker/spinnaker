@@ -63,7 +63,7 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
   @Autowired
   LocalGitIgorService igorService;
 
-  @Autowired(required = false)
+  @Autowired
   LocalGitKayentaService kayentaService;
 
   @Autowired
