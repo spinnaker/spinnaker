@@ -4,7 +4,7 @@ buildscript {
       maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.6.0'
+        classpath 'com.netflix.nebula:gradle-netflixoss-project-plugin:5.0.0'
     }
 }
 
@@ -41,9 +41,8 @@ repositories {
 dependencies {
   compile gradleApi()
   compile localGroovy()
-  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:3.6.0'
-  compile 'com.netflix.nebula:gradle-ospackage-plugin:3.4.0'
-  compile 'com.netflix.nebula:nebula-ospackage-plugin:3.1.1'
-  compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+  compile 'com.netflix.nebula:gradle-netflixoss-project-plugin:5.0.0'
+  compile 'com.netflix.nebula:gradle-ospackage-plugin:4.8.0'
+  compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
   compile 'org.yaml:snakeyaml:1.17'
 }

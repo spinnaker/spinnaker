@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.gradle.ospackage
 
+import com.netflix.gradle.plugins.application.OspackageApplicationPlugin
 import com.netflix.gradle.plugins.packaging.ProjectPackagingExtension
-import nebula.plugin.ospackage.application.OspackageApplicationPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ApplicationPluginConvention

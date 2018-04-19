@@ -154,7 +154,7 @@ class SpinnakerDependency {
             return templates.putIfAbsent(name, template) ?: template
         }
 
-        public Object buildDependencyFromTemplate(String name) {
+        Object buildDependencyFromTemplate(String name) {
             String depTemplate = configuration.dependencies[name]
 
             if (!depTemplate) {
