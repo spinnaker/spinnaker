@@ -16,7 +16,8 @@
     "package_type": "",
     "packages": "",
     "upgrade": "",
-    "configDir": null
+    "configDir": null,
+    "manifestFile": null
   },
   "builders": [{
     "type": "googlecompute",
@@ -45,5 +46,9 @@
       "upgrade={{user `upgrade`}}"
     ],
     "pause_before": "30s"
+  }],
+  "post-processors": [{
+      "type": "manifest",
+      "output": "{{user `manifestFile`}}"
   }]
 }

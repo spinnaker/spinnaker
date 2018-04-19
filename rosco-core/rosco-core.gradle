@@ -9,4 +9,5 @@ dependencies {
   compile spinnaker.dependency('jedis')
   compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency('korkArtifacts')
+  compileOnly spinnaker.dependency("lombok")
 }

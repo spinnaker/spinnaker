@@ -22,9 +22,13 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackerManifest
+import com.netflix.spinnaker.rosco.providers.util.PackerManifestService
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 public class GCEBakeHandler extends CloudProviderBakeHandler {
 
@@ -34,6 +38,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
 
+  PackerManifestService packerManifestService = new PackerManifestService()
 
   @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
@@ -138,6 +143,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       parameterMap.appversion = appVersionStr
     }
 
+    parameterMap.manifestFile = packerManifestService.getManifestFileName(bakeRequest.request_id)
+
     return parameterMap
   }
 
@@ -150,11 +157,18 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   Bake scrapeCompletedBakeResults(String region, String bakeId, String logsContent) {
     String imageName
 
-    // TODO(duftler): Presently scraping the logs for the image name. Would be better to not be reliant on the log
-    // format not changing. Resolve this by storing bake details in redis.
-    logsContent.eachLine { String line ->
-      if (line =~ IMAGE_NAME_TOKEN) {
-        imageName = line.split(" ").last()
+    if (packerManifestService.manifestExists(bakeId)) {
+      log.info("Using manifest file to determine baked artifact for bake $bakeId")
+      PackerManifest.PackerBuild packerBuild = packerManifestService.getBuild(bakeId)
+      imageName = packerBuild.getArtifactId()
+    } else {
+      // TODO(duftler): Presently scraping the logs for the image name. Would be better to not be reliant on the log
+      // format not changing. Resolve this by storing bake details in redis.
+      log.info("Scraping logs to determine baked artifact for bake $bakeId")
+      logsContent.eachLine { String line ->
+        if (line =~ IMAGE_NAME_TOKEN) {
+          imageName = line.split(" ").last()
+        }
       }
     }
 
