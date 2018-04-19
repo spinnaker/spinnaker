@@ -923,7 +923,7 @@ class TestConfig {
   ) =
     InMemoryQueue(
       clock = clock,
-      deadMessageHandler = deadMessageHandler,
+      deadMessageHandlers = listOf(deadMessageHandler),
       publisher = publisher
     )
 

@@ -46,7 +46,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
     afterGroup(::resetMocks)
 
     on("receiving a message") {
-      subject.handle(queue, message)
+      subject.invoke(queue, message)
     }
 
     it("terminates the execution") {
@@ -60,7 +60,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
     afterGroup(::resetMocks)
 
     on("receiving a message") {
-      subject.handle(queue, message)
+      subject.invoke(queue, message)
     }
 
     it("aborts the stage") {
@@ -74,7 +74,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
     afterGroup(::resetMocks)
 
     on("receiving a message") {
-      subject.handle(queue, message)
+      subject.invoke(queue, message)
     }
 
     it("terminates the task") {
@@ -90,7 +90,7 @@ object DeadMessageHandlerTest : SubjectSpek<DeadMessageHandler>({
     afterGroup(::resetMocks)
 
     on("receiving a message") {
-      subject.handle(queue, message)
+      subject.invoke(queue, message)
     }
 
     it("does nothing") {

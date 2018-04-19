@@ -72,7 +72,7 @@ class RedisQueueShovelConfiguration {
       queueName = redisQueueProperties.queueName,
       pool = redisPool,
       clock = clock,
-      deadMessageHandler = deadMessageHandler,
+      deadMessageHandlers = listOf(deadMessageHandler),
       publisher = publisher,
       ackTimeout = Duration.ofSeconds(redisQueueProperties.ackTimeoutSeconds.toLong()),
       mapper = redisQueueObjectMapper,

@@ -25,15 +25,16 @@ import com.netflix.spinnaker.orca.q.ExecutionLevel
 import com.netflix.spinnaker.orca.q.StageLevel
 import com.netflix.spinnaker.orca.q.TaskLevel
 import com.netflix.spinnaker.q.Attribute
+import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
-@Component class DeadMessageHandler {
+@Component class DeadMessageHandler : DeadMessageCallback {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun handle(queue: Queue, message: Message) {
+  override fun invoke(queue: Queue, message: Message) {
     log.error("Dead message: $message")
     terminationMessageFor(message)
       ?.let {
