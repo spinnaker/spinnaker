@@ -1,5 +1,5 @@
 import { IScope, module } from 'angular';
-import { compact, uniq, map } from 'lodash';
+import { chain, compact, uniq, map } from 'lodash';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -10,8 +10,19 @@ export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
 const ngmodule = module(SECURITY_GROUP_FILTER, [
   require('core/filterModel/dependentFilter/dependentFilter.service').name,
-  require('./securityGroupDependentFilterHelper.service').name,
 ]);
+
+interface IPoolItem {
+  providerType: string;
+  account: string;
+  region: string;
+}
+
+const poolValueCoordinates = [
+  { filterField: 'providerType', on: 'securityGroup', localField: 'provider' },
+  { filterField: 'account', on: 'securityGroup', localField: 'account' },
+  { filterField: 'region', on: 'securityGroup', localField: 'region' },
+];
 
 export class SecurityGroupFilterCtrl {
   public app: Application;
@@ -25,12 +36,7 @@ export class SecurityGroupFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(
-    private dependentFilterService: any,
-    private securityGroupDependentFilterHelper: any,
-    private $scope: IScope,
-    private $rootScope: IScope,
-  ) {
+  constructor(private dependentFilterService: any, private $scope: IScope, private $rootScope: IScope) {
     'ngInject';
   }
 
@@ -58,13 +64,29 @@ export class SecurityGroupFilterCtrl {
     });
   }
 
+  private poolBuilder(securityGroups: any[]): IPoolItem[] {
+    const pool = securityGroups.map(sg => {
+      const poolUnit = chain(poolValueCoordinates)
+        .filter({ on: 'securityGroup' })
+        .reduce((poolUnitTemplate: any, coordinate) => {
+          poolUnitTemplate[coordinate.filterField] = sg[coordinate.localField];
+          return poolUnitTemplate;
+        }, {})
+        .value();
+
+      return poolUnit;
+    });
+
+    return pool;
+  }
+
   private updateSecurityGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, securityGroupDependentFilterHelper, app } = this;
+    const { dependentFilterService, app } = this;
 
     const { account, region } = dependentFilterService.digestDependentFilters({
       sortFilter: SecurityGroupState.filterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region'],
-      pool: securityGroupDependentFilterHelper.poolBuilder(app.securityGroups.data),
+      pool: this.poolBuilder(app.securityGroups.data),
     });
 
     this.accountHeadings = account;
