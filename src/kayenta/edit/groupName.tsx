@@ -29,7 +29,7 @@ export interface IGroupNameOwnProps {
 function GroupName({ editing, edit, group, onClick, handleUpdate, handleSubmit, defaultGroup }: IGroupNameStateProps & IGroupNameDispatchProps & IGroupNameOwnProps) {
   if (editing) {
     return (
-      <form onSubmit={handleSubmit} data-group={group} data-edit={edit}>
+      <form onSubmit={handleSubmit} onBlur={handleSubmit} data-group={group} data-edit={edit}>
         <DisableableInput
           autoFocus={true}
           value={edit}
@@ -58,7 +58,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IGroupNam
       dispatch(Creators.editGroupUpdate({ edit: event.target.value }));
     },
     handleSubmit: (event: any) => {
-      dispatch(Creators.editGroupConfirm({ ...event.target.dataset }));
+      dispatch(Creators.editGroupConfirm({ ...event.currentTarget.dataset }));
       event.stopPropagation();
       event.preventDefault();
     },
