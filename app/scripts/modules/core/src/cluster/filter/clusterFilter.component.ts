@@ -1,4 +1,4 @@
-import { IScope, module } from 'angular';
+import { IScope, ITimeoutService, module } from 'angular';
 import { compact, uniq, map } from 'lodash';
 import { Subscription } from 'rxjs';
 
@@ -32,6 +32,7 @@ class ClusterFilterCtrl {
   constructor(
     public $scope: IScope,
     public $rootScope: IScope,
+    public $timeout: ITimeoutService,
     public clusterDependentFilterHelper: any,
     public dependentFilterService: any,
   ) {
@@ -39,7 +40,7 @@ class ClusterFilterCtrl {
   }
 
   public $onInit(): void {
-    const { $scope, $rootScope, app } = this;
+    const { $scope, $rootScope, $timeout, app } = this;
     const filterModel = ClusterState.filterModel.asFilterModel;
 
     this.sortFilter = filterModel.sortFilter;
@@ -54,8 +55,10 @@ class ClusterFilterCtrl {
 
     app.serverGroups.onRefresh($scope, () => this.initialize());
     this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
-      filterModel.activate();
-      ClusterState.filterService.updateClusterGroups(app);
+      $timeout(() => {
+        filterModel.activate();
+        ClusterState.filterService.updateClusterGroups(app);
+      });
     });
 
     $scope.$on('$destroy', () => {
