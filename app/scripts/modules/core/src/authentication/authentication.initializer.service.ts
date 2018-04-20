@@ -2,6 +2,7 @@ import { module } from 'angular';
 import { Observable, Subscription } from 'rxjs';
 import { $location, $rootScope, $http } from 'ngimport';
 
+import { LoggedOutModal } from 'core/authentication/LoggedOutModal';
 import { ModalInjector } from 'core/reactShims/modal.injector';
 import { SETTINGS } from 'core/config/settings';
 
@@ -46,11 +47,7 @@ export class AuthenticationInitializer {
   }
 
   private openLoggedOutModal(): void {
-    ModalInjector.modalService.open({
-      templateUrl: require('./loggedOut.modal.html'),
-      controller: 'LoggedOutModalCtrl as ctrl',
-      size: 'squared',
-    });
+    LoggedOutModal.show();
   }
 
   private loginRedirect(): void {
@@ -118,7 +115,4 @@ export class AuthenticationInitializer {
 }
 
 export const AUTHENTICATION_INITIALIZER_SERVICE = 'spinnaker.authentication.initializer.service';
-module(AUTHENTICATION_INITIALIZER_SERVICE, [require('./loggedOut.modal.controller').name]).service(
-  'authenticationInitializer',
-  AuthenticationInitializer,
-);
+module(AUTHENTICATION_INITIALIZER_SERVICE, []).service('authenticationInitializer', AuthenticationInitializer);
