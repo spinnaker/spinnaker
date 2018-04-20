@@ -19,13 +19,14 @@ package com.netflix.spinnaker.gate.config
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.interceptors.RequestIdInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestLoggingInterceptor
-import com.netflix.spinnaker.gate.ratelimit.RateLimiter
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider
+import com.netflix.spinnaker.gate.ratelimit.RateLimiter
 import com.netflix.spinnaker.gate.ratelimit.RateLimitingInterceptor
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -37,6 +38,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector
 import retrofit.RetrofitError
 
 import javax.servlet.Filter
@@ -80,6 +82,11 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
     if (rateLimiter != null) {
       registry.addInterceptor(new RateLimitingInterceptor(rateLimiter, spectatorRegistry, rateLimiterPrincipalProvider))
     }
+  }
+
+  @Bean
+  HandlerMappingIntrospector mvcHandlerMappingIntrospector(ApplicationContext context) {
+    return new HandlerMappingIntrospector(context)
   }
 
   @Bean
