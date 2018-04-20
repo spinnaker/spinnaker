@@ -4,7 +4,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import {
   ACCOUNT_SERVICE,
-  CLOUD_PROVIDER_REGISTRY, IPipeline,
+  IPipeline,
   PipelineConfigProvider
 } from '@spinnaker/core';
 
@@ -295,7 +295,6 @@ export const KAYENTA_CANARY_STAGE = 'spinnaker.kayenta.canaryStage';
 module(KAYENTA_CANARY_STAGE, [
     ACCOUNT_SERVICE,
     CANARY_SCORES_CONFIG_COMPONENT,
-    CLOUD_PROVIDER_REGISTRY,
     KAYENTA_STAGE_CONFIG_SECTION,
     KAYENTA_STAGE_TRANSFORMER,
     KAYENTA_STAGE_EXECUTION_DETAILS_CONTROLLER,
