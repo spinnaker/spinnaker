@@ -162,9 +162,12 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       .subscribe({
         onOrcaResponse(it, pipelines, triggers)
       }, { onOrcaError(it) })
+
+    log.info("Done searching for cron trigger misfires")
   }
 
   void onOrcaResponse(Collection<PipelineResponse> response, List<Pipeline> pipelines, List<Trigger> triggers) {
+    int misses = 0
     triggers.each { trigger ->
       Pipeline pipeline = pipelines.find { it.triggers && it.triggers*.id.contains(trigger.id) }
       List<Date> executions = response.findAll { it.pipelineConfigId == pipeline.id }.collect {
@@ -184,14 +187,13 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       def expr = new CronExpression(trigger.cronExpression)
       expr.timeZone = dateContext.timeZone
 
-      int misses = 0
       if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now)) {
         log.info('Triggering missed execution on pipeline {} {}', kv('application', pipeline.application), kv('pipelineConfigId', pipeline.id))
         pipelineInitiator.call(pipeline)
         misses++
       }
-      gauge.submit("triggers.cronMisfires", misses)
     }
+    gauge.submit("triggers.cronMisfires", misses)
   }
 
   void onOrcaError(Throwable error) {
