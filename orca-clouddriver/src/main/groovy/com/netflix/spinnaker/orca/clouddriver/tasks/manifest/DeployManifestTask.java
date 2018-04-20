@@ -39,7 +39,6 @@ import org.yaml.snakeyaml.Yaml;
 import retrofit.client.Response;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -114,7 +113,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
 
         task.put("manifests", manifestWrapper.get("manifests"));
         task.put("source", "text");
-      } catch (IOException e) {
+      } catch (Exception e) {
         throw new IllegalArgumentException("Failed to read manifest from '" + manifestArtifact + "' as '" + manifestText + "': " + e.getMessage(), e);
       }
     }
