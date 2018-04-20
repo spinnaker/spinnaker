@@ -8,7 +8,7 @@ import { TRAVIS_STAGE, TravisStage } from './travisStage';
 describe('Travis Stage Controller', () => {
   let $scope: IScope, igorService: IgorService, $q: IQService, $ctrl: IControllerService;
 
-  beforeEach(mock.module(TRAVIS_STAGE));
+  beforeEach(mock.module(TRAVIS_STAGE, require('angular-ui-bootstrap')));
 
   beforeEach(
     mock.inject(

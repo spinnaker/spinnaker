@@ -25,7 +25,14 @@ function fakeAccount(provider: string): IAccountDetails {
 }
 
 describe('providerSelectionService: API', () => {
-  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PROVIDER_SELECTION_SERVICE, ACCOUNT_SERVICE));
+  beforeEach(
+    mock.module(
+      APPLICATION_MODEL_BUILDER,
+      PROVIDER_SELECTION_SERVICE,
+      ACCOUNT_SERVICE,
+      require('angular-ui-bootstrap'),
+    ),
+  );
 
   // required to ensure registry provider is available
   let $q: IQService,
