@@ -97,7 +97,11 @@ class KubernetesShowManifestDetailsComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = trim(`
     <a href ng-if='ctrl.canOpen()' ng-click='ctrl.openDetails()'>{{ctrl.linkName}}</a>
-    <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </br>
+    </br>
+    <div class="pad-left">
+      <kubernetes-manifest-events manifest="ctrl.manifest"></kubernetes-manifest-events>
+    </div>
   `);
 }
 
