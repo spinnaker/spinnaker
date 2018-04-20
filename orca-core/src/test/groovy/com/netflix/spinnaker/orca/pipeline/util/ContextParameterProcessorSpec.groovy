@@ -76,6 +76,26 @@ class ContextParameterProcessorSpec extends Specification {
     'support partial resolution for composites' | 'a.${ENV1}.b.${replaceMe}'                                  | 'a.${ENV1}.b.newValue'
   }
 
+  def "should include evaluation summary errors on partially evaluated composite expression"() {
+    given:
+    def source = ['test': value]
+
+    when:
+    def result = contextParameterProcessor.process(source, ['replaceMe': 'newValue'], true)
+    def summary = result.getOrDefault('expressionEvaluationSummary', [:]) as Map<String, List>
+
+    then:
+    result.test == evaluatedValue
+    summary.values().size() == errorCount
+
+
+    where:
+    value                             | evaluatedValue          | errorCount
+    'a.${ENV1}.b.${ENV2}'             | 'a.${ENV1}.b.${ENV2}'   | 1
+    'a.${ENV1}.b.${replaceMe}'        | 'a.${ENV1}.b.newValue'  | 1
+    'a.${replaceMe}.b.${replaceMe}'   | 'a.newValue.b.newValue' | 0
+  }
+
   @Unroll
   def "should restrict fromUrl requests #desc"() {
     given:

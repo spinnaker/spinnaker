@@ -108,7 +108,7 @@ public class ExpressionTransform {
                                  EvaluationContext evaluationContext,
                                  ExpressionEvaluationSummary summary,
                                  Map<String, Object> additionalContext) {
-    if (source instanceof String && source.toString().contains(parserContext.getExpressionPrefix())) {
+    if (isExpression(source)) {
       String literalExpression = includeExecutionParameter(source.toString());
       Object result = null;
       String escapedExpressionString = null;
@@ -155,7 +155,7 @@ public class ExpressionTransform {
           );
 
           result = source;
-        } else if (result == null) {
+        } else if (result == null || isExpression(result)) {
           summary.add(
             escapedExpressionString,
             ExpressionEvaluationSummary.Result.Level.INFO,
@@ -163,7 +163,9 @@ public class ExpressionTransform {
             null
           );
 
-          result = source;
+          if (!isExpression(result)) {
+            result = source;
+          }
         }
 
         summary.appendAttempted(escapedExpressionString);
@@ -178,6 +180,10 @@ public class ExpressionTransform {
     }
 
     return source;
+  }
+
+  private boolean isExpression(Object obj) {
+    return (obj instanceof String && obj.toString().contains(parserContext.getExpressionPrefix()));
   }
 
   /**
