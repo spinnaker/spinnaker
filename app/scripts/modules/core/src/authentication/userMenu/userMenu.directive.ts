@@ -1,14 +1,14 @@
 const angular = require('angular');
 
-import { AUTHENTICATION_INITIALIZER_SERVICE } from '../authentication.initializer.service';
+import { AuthenticationInitializer } from '../AuthenticationInitializer';
 import { AuthenticationService } from '../AuthenticationService';
 import { SETTINGS } from 'core/config/settings';
 
 export const AUTHENTICATION_USER_MENU = 'spinnaker.core.authentication.userMenu.directive';
 
-const ngmodule = angular.module(AUTHENTICATION_USER_MENU, [AUTHENTICATION_INITIALIZER_SERVICE]);
+const ngmodule = angular.module(AUTHENTICATION_USER_MENU, []);
 
-ngmodule.directive('userMenu', function(authenticationInitializer: any) {
+ngmodule.directive('userMenu', function() {
   return {
     restrict: 'E',
     replace: true,
@@ -17,7 +17,7 @@ ngmodule.directive('userMenu', function(authenticationInitializer: any) {
       scope.authEnabled = SETTINGS.authEnabled;
       scope.user = AuthenticationService.getAuthenticatedUser();
       scope.showLogOutDropdown = () => AuthenticationService.getAuthenticatedUser().authenticated;
-      scope.logOut = () => authenticationInitializer.logOut();
+      scope.logOut = () => AuthenticationInitializer.logOut();
     },
   };
 });

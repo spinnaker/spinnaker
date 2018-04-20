@@ -1,8 +1,5 @@
 import { module, IHttpService, IPromise, IQResolveReject, IQService, IRequestConfig } from 'angular';
-import {
-  AUTHENTICATION_INITIALIZER_SERVICE,
-  AuthenticationInitializer,
-} from '../authentication/authentication.initializer.service';
+import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { SETTINGS } from 'core/config/settings';
 
 interface IDefaultParams {
@@ -28,11 +25,7 @@ export class Api {
   private gateUrl: string;
   private defaultParams: IDefaultParams;
 
-  constructor(
-    private $q: IQService,
-    private $http: IHttpService,
-    private authenticationInitializer: AuthenticationInitializer,
-  ) {
+  constructor(private $q: IQService, private $http: IHttpService) {
     'ngInject';
     this.gateUrl = SETTINGS.gateUrl;
     this.defaultParams = {
@@ -51,7 +44,7 @@ export class Api {
         const isZeroLengthHtml = contentType.includes('text/html') && result.data === '';
         const isZeroLengthText = contentType.includes('text/plain') && result.data === '';
         if (!(isJson || isZeroLengthHtml || isZeroLengthText)) {
-          this.authenticationInitializer.reauthenticateUser();
+          AuthenticationInitializer.reauthenticateUser();
           reject(result);
         }
       }
@@ -192,4 +185,4 @@ export class Api {
 }
 
 export const API_SERVICE = 'spinnaker.core.api.provider';
-module(API_SERVICE, [AUTHENTICATION_INITIALIZER_SERVICE]).service('API', Api);
+module(API_SERVICE, []).service('API', Api);

@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { Observable, Subscription } from 'rxjs';
 import { $location, $rootScope, $http } from 'ngimport';
 
@@ -14,10 +13,10 @@ interface IAuthResponse {
 }
 
 export class AuthenticationInitializer {
-  private userLoggedOut = false;
-  private visibilityWatch: Subscription = null;
+  private static userLoggedOut = false;
+  private static visibilityWatch: Subscription = null;
 
-  private checkForReauthentication(): void {
+  private static checkForReauthentication(): void {
     $http
       .get(SETTINGS.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
@@ -34,7 +33,7 @@ export class AuthenticationInitializer {
       .catch(() => {});
   }
 
-  private loginNotification(): void {
+  private static loginNotification(): void {
     AuthenticationService.authenticationExpired();
     this.userLoggedOut = true;
     this.openLoggedOutModal();
@@ -46,16 +45,16 @@ export class AuthenticationInitializer {
     });
   }
 
-  private openLoggedOutModal(): void {
+  private static openLoggedOutModal(): void {
     LoggedOutModal.show();
   }
 
-  private loginRedirect(): void {
+  public static loginRedirect(): void {
     const callback: string = encodeURIComponent($location.absUrl());
     window.location.href = `${SETTINGS.gateUrl}/auth/redirect?to=${callback}`;
   }
 
-  public authenticateUser() {
+  public static authenticateUser() {
     $rootScope.authenticating = true;
     $http
       .get(SETTINGS.authEndpoint)
@@ -74,7 +73,7 @@ export class AuthenticationInitializer {
       .catch(() => this.loginRedirect());
   }
 
-  public reauthenticateUser(): void {
+  public static reauthenticateUser(): void {
     if (!this.userLoggedOut) {
       $http
         .get(SETTINGS.authEndpoint)
@@ -94,7 +93,7 @@ export class AuthenticationInitializer {
     }
   }
 
-  public logOut(): void {
+  public static logOut(): void {
     if (!this.userLoggedOut) {
       const config = {
         headers: { 'Content-Type': 'text/plain' },
@@ -107,12 +106,9 @@ export class AuthenticationInitializer {
     }
   }
 
-  private loggedOutSequence(): void {
+  private static loggedOutSequence(): void {
     AuthenticationService.authenticationExpired();
     this.userLoggedOut = true;
     this.openLoggedOutModal();
   }
 }
-
-export const AUTHENTICATION_INITIALIZER_SERVICE = 'spinnaker.authentication.initializer.service';
-module(AUTHENTICATION_INITIALIZER_SERVICE, []).service('authenticationInitializer', AuthenticationInitializer);

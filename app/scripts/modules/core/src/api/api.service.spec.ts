@@ -1,6 +1,6 @@
 import Spy = jasmine.Spy;
 import { mock, noop } from 'angular';
-import { AuthenticationInitializer } from '../authentication/authentication.initializer.service';
+import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { API_SERVICE, Api } from './api.service';
 import { SETTINGS } from 'core/config/settings';
 
@@ -8,20 +8,14 @@ describe('API Service', function() {
   let API: Api;
   let $httpBackend: ng.IHttpBackendService;
   let baseUrl: string;
-  let authenticationInitializer: AuthenticationInitializer;
 
   beforeEach(mock.module(API_SERVICE));
 
   beforeEach(
-    mock.inject(function(
-      _API_: Api,
-      _$httpBackend_: ng.IHttpBackendService,
-      _authenticationInitializer_: AuthenticationInitializer,
-    ) {
+    mock.inject(function(_API_: Api, _$httpBackend_: ng.IHttpBackendService) {
       API = _API_;
       $httpBackend = _$httpBackend_;
       baseUrl = SETTINGS.gateUrl;
-      authenticationInitializer = _authenticationInitializer_;
     }),
   );
 
@@ -32,7 +26,7 @@ describe('API Service', function() {
 
   describe('validate response content-type header', function() {
     it('responses with non-"application/json" content types should trigger a reauthentication request and reject', function() {
-      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(noop);
+      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
       $httpBackend
         .expectGET(`${baseUrl}/bad`)
         .respond(200, '<html>this is the authentication page</html>', { 'content-type': 'text/html' });
@@ -43,12 +37,12 @@ describe('API Service', function() {
         .then(noop, () => (rejected = true));
 
       $httpBackend.flush();
-      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(1);
+      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(1);
       expect(rejected).toBe(true);
     });
 
     it('string responses starting with <html should trigger a reauthentication request and reject', function() {
-      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(noop);
+      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
       $httpBackend.expectGET(`${baseUrl}/fine`).respond(200, 'this is fine');
 
       let rejected = false;
@@ -58,13 +52,13 @@ describe('API Service', function() {
         .then(() => (succeeded = true), () => (rejected = true));
 
       $httpBackend.flush();
-      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
+      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
       expect(rejected).toBe(false);
       expect(succeeded).toBe(true);
     });
 
     it('object and array responses should pass through', function() {
-      spyOn(authenticationInitializer, 'reauthenticateUser').and.callFake(noop);
+      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
 
       let rejected = false;
       let succeeded = false;
@@ -74,7 +68,7 @@ describe('API Service', function() {
         .then(() => (succeeded = true), () => (rejected = true));
       $httpBackend.flush();
 
-      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
+      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
       expect(rejected).toBe(false);
       expect(succeeded).toBe(true);
 
@@ -87,7 +81,7 @@ describe('API Service', function() {
         .then(() => (succeeded = true), () => (rejected = true));
       $httpBackend.flush();
 
-      expect((authenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
+      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
       expect(rejected).toBe(false);
       expect(succeeded).toBe(true);
     });

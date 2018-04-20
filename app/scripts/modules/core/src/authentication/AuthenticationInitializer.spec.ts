@@ -1,23 +1,24 @@
 import { mock } from 'angular';
 
 import { IDeckRootScope } from 'core/domain';
+import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
 import { AUTHENTICATION_MODULE } from './authentication.module';
 import { SETTINGS } from 'core/config/settings';
 
 declare const window: any;
 describe('authenticationProvider: application startup', function() {
-  beforeEach(function() {
-    SETTINGS.authEnabled = true;
-  });
-
-  beforeEach(function() {
-    window.spinnakerSettings.authEnabled = true;
-  });
-
+  beforeEach(() => (SETTINGS.authEnabled = true));
+  beforeEach(() => (window.spinnakerSettings.authEnabled = true));
   beforeEach(() => AuthenticationService.reset());
-
   beforeEach(mock.module(AUTHENTICATION_MODULE));
+
+  let loginRedirect: any;
+  beforeAll(() => {
+    loginRedirect = AuthenticationInitializer.loginRedirect;
+    AuthenticationInitializer.loginRedirect = (): any => undefined;
+  });
+  afterAll(() => (AuthenticationInitializer.loginRedirect = loginRedirect));
 
   let $timeout: ng.ITimeoutService, $http: ng.IHttpBackendService, $rootScope: IDeckRootScope;
 
