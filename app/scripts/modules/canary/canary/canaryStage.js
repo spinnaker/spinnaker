@@ -4,7 +4,7 @@ const angular = require('angular');
 import { isString, toInteger } from 'lodash';
 
 import {
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   LIST_EXTRACTOR_SERVICE,
   NameUtils,
   PIPELINE_CONFIG_PROVIDER,
@@ -18,7 +18,6 @@ import { CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT } from './canaryAnalysisNameSel
 module.exports = angular
   .module('spinnaker.canary.canaryStage', [
     LIST_EXTRACTOR_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
     SERVER_GROUP_COMMAND_BUILDER_SERVICE,
     CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT,
     PIPELINE_CONFIG_PROVIDER,
@@ -187,7 +186,6 @@ module.exports = angular
     stage,
     providerSelectionService,
     authenticationService,
-    cloudProviderRegistry,
     serverGroupCommandBuilder,
     awsServerGroupTransformer,
     accountService,
@@ -422,7 +420,7 @@ module.exports = angular
     this.addClusterPair = function() {
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider($scope.application).then(function(selectedProvider) {
-        let config = cloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
+        let config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
         $uibModal
           .open({
             templateUrl: config.cloneServerGroupTemplateUrl,
@@ -471,7 +469,7 @@ module.exports = angular
 
     this.editCluster = function(cluster, index, type) {
       cluster.provider = cluster.provider || getCloudProvider() || 'aws';
-      let config = cloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
+      let config = CloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
       $uibModal
         .open({
           templateUrl: config.cloneServerGroupTemplateUrl,

@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -16,7 +16,6 @@ module.exports = angular
     CONFIRMATION_MODAL_SERVICE,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .controller('openstackSecurityGroupDetailsController', function(
     $scope,
@@ -27,13 +26,12 @@ module.exports = angular
     securityGroupWriter,
     securityGroupReader,
     $uibModal,
-    cloudProviderRegistry,
   ) {
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('openstack', 'securityGroup.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('openstack', 'securityGroup.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { API_SERVICE, Api } from 'core/api/api.service';
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from 'core/config/settings';
 
 export interface IRegion {
@@ -65,15 +65,10 @@ export class AccountService {
 
   public providers$ = this.accounts$.map((accounts: IAccountDetails[]) => {
     const providersFromAccounts: string[] = uniq(accounts.map(account => account.type));
-    return intersection(providersFromAccounts, this.cloudProviderRegistry.listRegisteredProviders());
+    return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
   });
 
-  constructor(
-    private $log: ILogService,
-    private $q: IQService,
-    private cloudProviderRegistry: CloudProviderRegistry,
-    private API: Api,
-  ) {
+  constructor(private $log: ILogService, private $q: IQService, private API: Api) {
     'ngInject';
   }
 
@@ -216,4 +211,4 @@ export class AccountService {
 }
 
 export const ACCOUNT_SERVICE = 'spinnaker.core.account.service';
-module(ACCOUNT_SERVICE, [CLOUD_PROVIDER_REGISTRY, API_SERVICE]).service('accountService', AccountService);
+module(ACCOUNT_SERVICE, [API_SERVICE]).service('accountService', AccountService);

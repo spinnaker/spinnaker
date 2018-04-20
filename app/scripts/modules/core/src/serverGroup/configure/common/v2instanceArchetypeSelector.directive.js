@@ -3,7 +3,7 @@
 import _ from 'lodash';
 
 import { InfrastructureCaches } from 'core/cache';
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { V2_MODAL_WIZARD_SERVICE } from 'core/modal/wizard/v2modalWizard.service';
 
 const angular = require('angular');
@@ -13,7 +13,6 @@ module.exports = angular
     require('./costFactor.js').name,
     require('../../../presentation/isVisible/isVisible.directive.js').name,
     V2_MODAL_WIZARD_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .directive('v2InstanceArchetypeSelector', function() {
     return {
@@ -32,7 +31,6 @@ module.exports = angular
     serverGroupConfigurationService,
     v2modalWizardService,
     $log,
-    cloudProviderRegistry,
   ) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
@@ -116,8 +114,8 @@ module.exports = angular
 
     setInstanceTypeRefreshTime();
 
-    this.getInstanceBuilderTemplate = cloudProviderRegistry.getValue.bind(
-      cloudProviderRegistry,
+    this.getInstanceBuilderTemplate = CloudProviderRegistry.getValue.bind(
+      CloudProviderRegistry,
       $scope.command.cloudProvider,
       'instance.customInstanceBuilderTemplateUrl',
     );

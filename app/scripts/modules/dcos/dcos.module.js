@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CloudProviderRegistry } from '@spinnaker/core';
 import { DCOS_KEY_VALUE_DETAILS } from './common/keyValueDetails.component';
 import './help/dcos.help';
 
@@ -16,7 +16,6 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular
   .module('spinnaker.dcos', [
-    CLOUD_PROVIDER_REGISTRY,
     DCOS_KEY_VALUE_DETAILS,
     require('./instance/details/details.dcos.module.js').name,
     require('./loadBalancer/configure/configure.dcos.module.js').name,
@@ -38,8 +37,8 @@ module.exports = angular
     require('./validation/applicationName.validator.js').name,
     require('./common/selectField.directive.js').name,
   ])
-  .config(function(cloudProviderRegistryProvider) {
-    cloudProviderRegistryProvider.registerProvider('dcos', {
+  .config(function() {
+    CloudProviderRegistry.registerProvider('dcos', {
       name: 'DC/OS',
       logo: {
         path: require('./logo/dcos.logo.png'),

@@ -41,8 +41,6 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
       this.mockSecurityGroupReader = addDeferredMock({}, 'getSecurityGroupDetails');
       this.mockSecurityGroupWriter = addDeferredMock({}, 'deleteSecurityGroup');
 
-      this.mockcloudProviderRegistry = addDeferredMock({}, 'getValue');
-
       this.createController = function(resolvedSecurityGroup) {
         this.ctrl = $controller('openstackSecurityGroupDetailsController', {
           $scope: this.$scope,
@@ -53,8 +51,6 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
 
           securityGroupReader: this.mockSecurityGroupReader,
           securityGroupWriter: this.mockSecurityGroupWriter,
-
-          cloudProviderRegistry: this.mockcloudProviderRegistry,
 
           confirmationModalService: this.mockState,
         });

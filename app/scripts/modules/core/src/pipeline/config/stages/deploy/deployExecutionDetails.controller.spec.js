@@ -1,7 +1,16 @@
 'use strict';
 
+import { CloudProviderRegistry } from 'core/cloudProvider';
+
 describe('DeployExecutionDetailsCtrl', function() {
   beforeEach(window.module(require('./deployExecutionDetails.controller').name));
+
+  let originalGetValue;
+  beforeAll(() => {
+    originalGetValue = CloudProviderRegistry.getValue;
+    CloudProviderRegistry.getValue = cp => cp === 'withScalingActivities';
+  });
+  afterAll(() => (CloudProviderRegistry.getValue = originalGetValue));
 
   beforeEach(
     window.inject(function($controller, $rootScope, $timeout) {
@@ -25,7 +34,6 @@ describe('DeployExecutionDetailsCtrl', function() {
         $stateParams: { details: 'deploymentConfig' },
         executionDetailsSectionService: { synchronizeSection: (a, fn) => fn() },
         urlBuilderService: this.urlBuilderService,
-        cloudProviderRegistry: { getValue: cp => cp === 'withScalingActivities' },
       });
     };
   });

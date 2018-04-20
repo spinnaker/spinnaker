@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import './helpContents/oracleHelpContents';
 
@@ -13,7 +13,6 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular
   .module('spinnaker.oraclebmcs', [
-    CLOUD_PROVIDER_REGISTRY,
     //Cache
     require('./cache/cacheConfigurer.service.js').name,
     // Pipeline
@@ -39,8 +38,8 @@ module.exports = angular
     require('./securityGroup/securityGroup.transformer.js').name,
     require('./securityGroup/configure/createSecurityGroup.controller.js').name,
   ])
-  .config(function(cloudProviderRegistryProvider) {
-    cloudProviderRegistryProvider.registerProvider('oraclebmcs', {
+  .config(function() {
+    CloudProviderRegistry.registerProvider('oraclebmcs', {
       name: 'Oracle',
       cache: {
         configurer: 'oraclebmcsCacheConfigurer',

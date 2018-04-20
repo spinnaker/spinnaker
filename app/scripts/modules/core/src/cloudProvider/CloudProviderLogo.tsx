@@ -2,7 +2,7 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
 import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/reactShims';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 
 import './cloudProviderLogo.less';
 
@@ -27,7 +27,7 @@ export class CloudProviderLogo extends React.Component<ICloudProviderLogoProps, 
   private getState(props: ICloudProviderLogoProps): ICloudProviderLogoState {
     if (props.showTooltip) {
       return {
-        tooltip: ReactInjector.cloudProviderRegistry.getValue(this.props.provider, 'name') || this.props.provider,
+        tooltip: CloudProviderRegistry.getValue(this.props.provider, 'name') || this.props.provider,
       };
     }
     return {};

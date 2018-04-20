@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -19,7 +19,6 @@ module.exports = angular
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .controller('kubernetesSecurityGroupDetailsController', function(
     $scope,
@@ -31,13 +30,12 @@ module.exports = angular
     securityGroupWriter,
     securityGroupReader,
     $uibModal,
-    cloudProviderRegistry,
   ) {
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('kubernetes', 'securityGroup.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('kubernetes', 'securityGroup.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

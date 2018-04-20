@@ -1,10 +1,12 @@
 'use strict';
 
 import _ from 'lodash';
+
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
 describe('Controller: ApplicationProviderFieldsCtrl', function() {
-  let controller, scope, cloudProviderRegistry;
+  let controller, scope;
 
   beforeEach(window.module(require('./applicationProviderFields.component.js').name));
 
@@ -13,8 +15,8 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
   });
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _cloudProviderRegistry_) {
-      (scope = $rootScope.$new()), (cloudProviderRegistry = _cloudProviderRegistry_);
+    window.inject(function($rootScope, $controller) {
+      scope = $rootScope.$new();
 
       let application = {
         cloudProviders: [],
@@ -22,13 +24,12 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
 
       let cloudProviders = ['aws', 'gce'];
 
-      spyOn(cloudProviderRegistry, 'getValue').and.returnValue('path/to/template');
-      spyOn(cloudProviderRegistry, 'hasValue').and.returnValue(true);
+      spyOn(CloudProviderRegistry, 'getValue').and.returnValue('path/to/template');
+      spyOn(CloudProviderRegistry, 'hasValue').and.returnValue(true);
       controller = $controller(
         'ApplicationProviderFieldsCtrl',
         {
           $scope: scope,
-          cloudProviderRegistry: cloudProviderRegistry,
         },
         {
           application,
@@ -51,13 +52,13 @@ describe('Controller: ApplicationProviderFieldsCtrl', function() {
       expect(templates.every(template => template === 'path/to/template')).toEqual(true);
     });
 
-    it('if application has selected cloud providers, it asks cloudProviderRegistry for only those templateUrls', function() {
+    it('if application has selected cloud providers, it asks CloudProviderRegistry for only those templateUrls', function() {
       controller.application.cloudProviders.push('gce');
 
       let templates = controller.getRelevantProviderFieldsTemplates();
       expect(templates.length).toEqual(1);
 
-      let [hasValueSpy, getValueSpy] = [cloudProviderRegistry.hasValue, cloudProviderRegistry.getValue];
+      let [hasValueSpy, getValueSpy] = [CloudProviderRegistry.hasValue, CloudProviderRegistry.getValue];
 
       [hasValueSpy, getValueSpy].forEach(spy => {
         expect(spy).toHaveBeenCalledWith('gce', 'applicationProviderFields.templateUrl');

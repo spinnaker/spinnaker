@@ -2,7 +2,6 @@ import { module } from 'angular';
 import { forEach } from 'lodash';
 import { StateParams } from '@uirouter/angularjs';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService,
@@ -14,7 +13,6 @@ export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
   constructor(
     public $scope: IExecutionDetailsScope,
     protected $stateParams: StateParams,
-    protected cloudProviderRegistry: CloudProviderRegistry,
     protected executionDetailsSectionService: ExecutionDetailsSectionService,
   ) {
     'ngInject';
@@ -64,5 +62,4 @@ export const CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL =
 module(CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL, [
   require('@uirouter/angularjs').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
 ]).controller('createLoadBalancerExecutionDetailsCtrl', CreateLoadBalancerDetailsCtrl);

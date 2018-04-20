@@ -3,7 +3,7 @@
 import moment from 'moment';
 import _ from 'lodash';
 
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { NameUtils } from 'core/naming';
 import { EXECUTION_DETAILS_SECTION_SERVICE } from 'core/pipeline/details/executionDetailsSection.service';
 import { SERVER_GROUP_READER } from 'core/serverGroup/serverGroupReader.service';
@@ -17,7 +17,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     EXECUTION_DETAILS_SECTION_SERVICE,
     URL_BUILDER_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
     SERVER_GROUP_READER,
   ])
   .controller('DeployExecutionDetailsCtrl', function(
@@ -25,7 +24,6 @@ module.exports = angular
     $stateParams,
     executionDetailsSectionService,
     urlBuilderService,
-    cloudProviderRegistry,
     serverGroupReader,
   ) {
     $scope.configSections = ['deploymentConfig', 'taskStatus'];
@@ -135,7 +133,7 @@ module.exports = angular
           lastCapacity.succeeded +
           lastCapacity.failed;
 
-        if (cloudProviderRegistry.getValue(stage.context.cloudProvider, 'serverGroup.scalingActivitiesEnabled')) {
+        if (CloudProviderRegistry.getValue(stage.context.cloudProvider, 'serverGroup.scalingActivitiesEnabled')) {
           // after three minutes, if desired capacity is less than total number of instances,
           // show the scaling activities link
           if (waitDurationExceeded && lastCapacity.total < stage.context.capacity.desired) {

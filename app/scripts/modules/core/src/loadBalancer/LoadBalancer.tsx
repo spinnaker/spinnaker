@@ -2,8 +2,8 @@ import * as React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
 
 import { Application } from 'core/application/application.model';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ILoadBalancer, IServerGroup } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
 
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerClusterContainer } from './LoadBalancerClusterContainer';
@@ -25,8 +25,7 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
 
   public render(): React.ReactElement<LoadBalancer> {
     const { application, loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
-    const { cloudProviderRegistry } = ReactInjector;
-    const config = cloudProviderRegistry.getValue(loadBalancer.provider || loadBalancer.cloudProvider, 'loadBalancer');
+    const config = CloudProviderRegistry.getValue(loadBalancer.provider || loadBalancer.cloudProvider, 'loadBalancer');
     const ClusterContainer = config.ClusterContainer || LoadBalancerClusterContainer;
 
     const params = {

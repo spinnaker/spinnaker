@@ -4,22 +4,13 @@ import { uniq } from 'lodash';
 
 import { IAccountDetails, ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { Application } from 'core/application/application.model';
-import {
-  CLOUD_PROVIDER_REGISTRY,
-  CloudProviderRegistry,
-  ICloudProviderConfig,
-} from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
 export type IProviderSelectionFilter = (app: Application, acc: IAccountDetails, prov: ICloudProviderConfig) => boolean;
 
 export class ProviderSelectionService {
-  constructor(
-    private $uibModal: IModalService,
-    private $q: IQService,
-    private accountService: AccountService,
-    private cloudProviderRegistry: CloudProviderRegistry,
-  ) {
+  constructor(private $uibModal: IModalService, private $q: IQService, private accountService: AccountService) {
     'ngInject';
   }
 
@@ -31,19 +22,19 @@ export class ProviderSelectionService {
     return this.accountService.applicationAccounts(application).then((accounts: IAccountDetails[]) => {
       let reducedAccounts: IAccountDetails[] = [];
       if (feature) {
-        reducedAccounts = accounts.filter(a => this.cloudProviderRegistry.hasValue(a.cloudProvider, feature));
+        reducedAccounts = accounts.filter(a => CloudProviderRegistry.hasValue(a.cloudProvider, feature));
       }
 
       if (filterFn) {
         reducedAccounts = reducedAccounts.filter((acc: IAccountDetails) => {
-          return filterFn(application, acc, this.cloudProviderRegistry.getProvider(acc.cloudProvider, acc.skin));
+          return filterFn(application, acc, CloudProviderRegistry.getProvider(acc.cloudProvider, acc.skin));
         });
       }
 
       // reduce the accounts to the smallest, unique collection taking into consideration the useProvider values
       const reducedProviders = uniq(
         reducedAccounts.map(a => {
-          const providerFeature = this.cloudProviderRegistry.getProvider(a.cloudProvider)[feature] || {};
+          const providerFeature = CloudProviderRegistry.getProvider(a.cloudProvider)[feature] || {};
           return providerFeature.useProvider || a.cloudProvider;
         }),
       );
@@ -68,7 +59,4 @@ export class ProviderSelectionService {
 }
 
 export const PROVIDER_SELECTION_SERVICE = 'spinnaker.cloudProvider.providerSelection.service';
-module(PROVIDER_SELECTION_SERVICE, [ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY]).service(
-  'providerSelectionService',
-  ProviderSelectionService,
-);
+module(PROVIDER_SELECTION_SERVICE, [ACCOUNT_SERVICE]).service('providerSelectionService', ProviderSelectionService);

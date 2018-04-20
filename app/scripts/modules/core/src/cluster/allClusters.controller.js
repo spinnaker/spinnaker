@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { INSIGHT_NGMODULE } from 'core/insight/insight.module';
 import { ClusterState } from 'core/state';
@@ -25,7 +25,6 @@ module.exports = angular
     require('../utils/waypoints/waypointContainer.directive').name,
     INSIGHT_NGMODULE.name,
     require('angular-ui-bootstrap'),
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .controller('AllClustersCtrl', function(
     $scope,
@@ -35,7 +34,6 @@ module.exports = angular
     providerSelectionService,
     insightFilterStateModel,
     serverGroupCommandBuilder,
-    cloudProviderRegistry,
     skinSelectionService,
   ) {
     this.$onInit = () => {
@@ -107,7 +105,7 @@ module.exports = angular
     this.createServerGroup = function createServerGroup() {
       providerSelectionService.selectProvider(app, 'serverGroup').then(function(selectedProvider) {
         skinSelectionService.selectSkin(selectedProvider).then(function(selectedVersion) {
-          let provider = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup', selectedVersion);
+          let provider = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup', selectedVersion);
           $uibModal.open({
             templateUrl: provider.cloneServerGroupTemplateUrl,
             controller: `${provider.cloneServerGroupController} as ctrl`,

@@ -2,13 +2,12 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY, SETTINGS } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, CloudProviderRegistry, SETTINGS } from '@spinnaker/core';
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
 module.exports = angular
   .module('spinnaker.canary.acaTaskStage', [
-    CLOUD_PROVIDER_REGISTRY,
     require('../canary/canaryExecutionSummary.controller').name,
     ACCOUNT_SERVICE,
   ])
@@ -36,7 +35,6 @@ module.exports = angular
     stage,
     providerSelectionService,
     authenticationService,
-    cloudProviderRegistry,
     awsServerGroupTransformer,
     accountService,
   ) {

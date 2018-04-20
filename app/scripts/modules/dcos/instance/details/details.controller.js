@@ -3,7 +3,7 @@
 import _ from 'lodash';
 
 import {
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
@@ -19,7 +19,6 @@ module.exports = angular
     INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     RECENT_HISTORY_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .controller('dcosInstanceDetailsController', function(
     $scope,
@@ -28,7 +27,6 @@ module.exports = angular
     instanceWriter,
     confirmationModalService,
     recentHistoryService,
-    cloudProviderRegistry,
     instanceReader,
     instance,
     app,
@@ -36,7 +34,7 @@ module.exports = angular
     $q,
   ) {
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('dcos', 'instance.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('dcos', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

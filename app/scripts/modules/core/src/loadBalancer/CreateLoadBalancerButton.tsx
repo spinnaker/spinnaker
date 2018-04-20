@@ -2,6 +2,7 @@ import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
 import { ILoadBalancerUpsertCommand } from 'core/loadBalancer';
 import { ReactInjector } from 'core/reactShims';
@@ -39,11 +40,11 @@ export class CreateLoadBalancerButton extends React.Component<
   }
 
   private createLoadBalancer(): void {
-    const { providerSelectionService, cloudProviderRegistry, skinSelectionService } = ReactInjector;
+    const { providerSelectionService, skinSelectionService } = ReactInjector;
     const { app } = this.props;
     providerSelectionService.selectProvider(app, 'loadBalancer').then(selectedProvider => {
       skinSelectionService.selectSkin(selectedProvider).then(selectedSkin => {
-        const provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
+        const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer', selectedSkin);
 
         if (provider.CreateLoadBalancerModal) {
           // react

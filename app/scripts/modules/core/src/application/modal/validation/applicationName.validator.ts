@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 
 export interface IApplicationNameValidationMessage {
@@ -28,7 +28,7 @@ export interface IApplicationNameValidator {
 export class ApplicationNameValidator {
   private providerMap: Map<string, IApplicationNameValidator[]> = new Map<string, IApplicationNameValidator[]>();
 
-  public constructor(private cloudProviderRegistry: CloudProviderRegistry, private accountService: AccountService) {
+  public constructor(private accountService: AccountService) {
     'ngInject';
   }
 
@@ -38,7 +38,7 @@ export class ApplicationNameValidator {
    * @param validator the actual validator
    */
   public registerValidator(cloudProvider: string, validator: IApplicationNameValidator) {
-    if (this.cloudProviderRegistry.getProvider(cloudProvider)) {
+    if (CloudProviderRegistry.getProvider(cloudProvider)) {
       if (!this.providerMap.has(cloudProvider)) {
         this.providerMap.set(cloudProvider, []);
       }
@@ -76,7 +76,4 @@ export class ApplicationNameValidator {
 
 export const APPLICATION_NAME_VALIDATOR = 'spinnaker.core.application.name.validator';
 
-module(APPLICATION_NAME_VALIDATOR, [CLOUD_PROVIDER_REGISTRY, ACCOUNT_SERVICE]).service(
-  'applicationNameValidator',
-  ApplicationNameValidator,
-);
+module(APPLICATION_NAME_VALIDATOR, [ACCOUNT_SERVICE]).service('applicationNameValidator', ApplicationNameValidator);

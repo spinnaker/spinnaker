@@ -1,5 +1,4 @@
 /* tslint:disable: no-console */
-import { module } from 'angular';
 import { cloneDeep, uniq, without } from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
@@ -58,27 +57,23 @@ export class CloudProviderRegistry {
   /*
   Note: Providers don't get $log, so we stick with console statements here
    */
-  private providers = new Providers();
+  private static providers = new Providers();
 
-  public $get(): CloudProviderRegistry {
-    return this;
-  }
-
-  public registerProvider(cloudProvider: string, config: ICloudProviderConfig): void {
+  public static registerProvider(cloudProvider: string, config: ICloudProviderConfig): void {
     if (SETTINGS.providers[cloudProvider]) {
       this.providers.set(cloudProvider, config);
     }
   }
 
-  public getProvider(cloudProvider: string, skin?: string): ICloudProviderConfig {
+  public static getProvider(cloudProvider: string, skin?: string): ICloudProviderConfig {
     return this.providers.has(cloudProvider, skin) ? cloneDeep(this.providers.get(cloudProvider, skin)) : null;
   }
 
-  public listRegisteredProviders(): string[] {
+  public static listRegisteredProviders(): string[] {
     return Array.from(this.providers.keys());
   }
 
-  public overrideValue(cloudProvider: string, key: string, overrideValue: any, skin?: string) {
+  public static overrideValue(cloudProvider: string, key: string, overrideValue: any, skin?: string) {
     if (!this.providers.has(cloudProvider, skin)) {
       console.warn(
         `Cannot override "${key}" for provider "${cloudProvider}${skin ? `:${skin}` : ''}" (provider not registered)`,
@@ -100,11 +95,11 @@ export class CloudProviderRegistry {
     current[lastKey] = overrideValue;
   }
 
-  public hasValue(cloudProvider: string, key: string, skin?: string) {
+  public static hasValue(cloudProvider: string, key: string, skin?: string) {
     return this.providers.has(cloudProvider, skin) && this.getValue(cloudProvider, key, skin) !== null;
   }
 
-  public getValue(cloudProvider: string, key: string, skin?: string): any {
+  public static getValue(cloudProvider: string, key: string, skin?: string): any {
     if (!key || !this.providers.has(cloudProvider, skin)) {
       return null;
     }
@@ -128,6 +123,3 @@ export class CloudProviderRegistry {
     return current;
   }
 }
-
-export const CLOUD_PROVIDER_REGISTRY = 'spinnaker.core.cloudProvider.registry';
-module(CLOUD_PROVIDER_REGISTRY, []).provider('cloudProviderRegistry', CloudProviderRegistry);

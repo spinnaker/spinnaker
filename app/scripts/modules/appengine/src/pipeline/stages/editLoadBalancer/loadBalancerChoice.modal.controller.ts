@@ -13,14 +13,13 @@ class AppengineLoadBalancerChoiceModalCtrl implements IController {
     private $uibModal: IModalService,
     private $uibModalInstance: IModalServiceInstance,
     private application: Application,
-    private cloudProviderRegistry: CloudProviderRegistry,
   ) {
     'ngInject';
     this.initialize();
   }
 
   public submit(): void {
-    const config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
+    const config = CloudProviderRegistry.getValue('appengine', 'loadBalancer');
     const updatedLoadBalancerPromise = this.$uibModal.open({
       templateUrl: config.createLoadBalancerTemplateUrl,
       controller: `${config.createLoadBalancerController} as ctrl`,

@@ -7,11 +7,7 @@ import { CloudProviderRegistry, ILoadBalancer, PipelineConfigProvider } from '@s
 import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 
 class AppengineEditLoadBalancerStageCtrl implements IController {
-  constructor(
-    public $scope: any,
-    private $uibModal: IModalService,
-    private cloudProviderRegistry: CloudProviderRegistry,
-  ) {
+  constructor(public $scope: any, private $uibModal: IModalService) {
     'ngInject';
     $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
     $scope.stage.cloudProvider = 'appengine';
@@ -33,7 +29,7 @@ class AppengineEditLoadBalancerStageCtrl implements IController {
   }
 
   public editLoadBalancer(index: number) {
-    const config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
+    const config = CloudProviderRegistry.getValue('appengine', 'loadBalancer');
     this.$uibModal
       .open({
         templateUrl: config.createLoadBalancerTemplateUrl,

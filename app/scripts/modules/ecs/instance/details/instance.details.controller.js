@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   RECENT_HISTORY_SERVICE,
@@ -18,7 +18,6 @@ module.exports = angular
     INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     RECENT_HISTORY_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .controller('ecsInstanceDetailsCtrl', function(
     $scope,
@@ -26,7 +25,6 @@ module.exports = angular
     $uibModal,
     confirmationModalService,
     recentHistoryService,
-    cloudProviderRegistry,
     instanceReader,
     instanceWriter,
     instance,
@@ -35,7 +33,7 @@ module.exports = angular
     overrides,
   ) {
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('ecs', 'instance.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('ecs', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

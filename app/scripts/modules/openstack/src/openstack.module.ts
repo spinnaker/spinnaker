@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 import './help/openstack.help';
 
 import './logo/openstack.logo.less';
@@ -27,7 +27,6 @@ module(OPENSTACK_MODULE, [
   require('./securityGroup/transformer.js').name,
   require('./validation/applicationName.validator.js').name,
   require('./cache/cacheConfigurer.service.js').name,
-  CLOUD_PROVIDER_REGISTRY,
   require('./loadBalancer/configure/configure.openstack.module.js').name,
   require('./loadBalancer/details/details.openstack.module.js').name,
   require('./loadBalancer/transformer.js').name,
@@ -45,8 +44,8 @@ module(OPENSTACK_MODULE, [
   require('./pipeline/stages/shrinkCluster/openstackShrinkClusterStage.js').name,
   require('./pipeline/stages/cloneServerGroup/openstackCloneServerGroupStage.js').name,
   require('./subnet/subnet.renderer.js').name,
-]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-  cloudProviderRegistryProvider.registerProvider('openstack', {
+]).config(() => {
+  CloudProviderRegistry.registerProvider('openstack', {
     name: 'openstack',
     logo: {
       path: require('./logo/openstack.logo.png'),

@@ -8,12 +8,7 @@ import { ILoadBalancer, IServerGroup } from 'core/domain';
 import { Application } from 'core/application';
 
 export class SkinService {
-  constructor(
-    private $log: ILogService,
-    private $q: IQService,
-    private accountService: AccountService,
-    private cloudProviderRegistry: CloudProviderRegistry,
-  ) {
+  constructor(private $log: ILogService, private $q: IQService, private accountService: AccountService) {
     'ngInject';
   }
 
@@ -21,8 +16,8 @@ export class SkinService {
     return this.getAccounts().then(accounts => {
       const account = accounts.find(a => a.name === accountName && a.cloudProvider === cloudProvider);
       return account && account.skin
-        ? this.cloudProviderRegistry.getValue(cloudProvider, key, account.skin)
-        : this.cloudProviderRegistry.getValue(cloudProvider, key);
+        ? CloudProviderRegistry.getValue(cloudProvider, key, account.skin)
+        : CloudProviderRegistry.getValue(cloudProvider, key);
     });
   }
 
@@ -36,7 +31,7 @@ export class SkinService {
       }, new Set<string>());
 
       if (skins.size === 0) {
-        // Rely on the cloudProviderRegistry to return the default skin implementation.
+        // Rely on the CloudProviderRegistry to return the default skin implementation.
         return null;
       } else if (skins.size === 1) {
         return Array.from(skins)[0];

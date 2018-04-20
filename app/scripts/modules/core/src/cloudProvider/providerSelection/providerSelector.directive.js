@@ -3,12 +3,12 @@
 const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from 'core/account/account.service';
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 
 import './providerSelection.modal.less';
 
 module.exports = angular
-  .module('spinnaker.providerSelection.directive', [ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY])
+  .module('spinnaker.providerSelection.directive', [ACCOUNT_SERVICE])
   .directive('providerSelector', function(accountService, $q) {
     return {
       restrict: 'E',
@@ -38,13 +38,13 @@ module.exports = angular
       },
     };
   })
-  .controller('ProviderSelectCtrl', function($scope, $uibModalInstance, cloudProviderRegistry, providerOptions) {
+  .controller('ProviderSelectCtrl', function($scope, $uibModalInstance, providerOptions) {
     $scope.command = {
       provider: '',
     };
 
     $scope.getImage = function(provider) {
-      return cloudProviderRegistry.getValue(provider, 'logo.path');
+      return CloudProviderRegistry.getValue(provider, 'logo.path');
     };
 
     $scope.providerOptions = providerOptions;

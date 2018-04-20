@@ -30,11 +30,9 @@ export class RegistrationQueue {
   private queue: Function[] = [];
 
   private overrideRegistry: OverrideRegistry;
-  private cloudProviderRegistry: CloudProviderRegistry;
 
-  public setRegistries(overrideRegistry: OverrideRegistry, cloudProviderRegistry: CloudProviderRegistry) {
+  public setRegistries(overrideRegistry: OverrideRegistry) {
     this.overrideRegistry = overrideRegistry;
-    this.cloudProviderRegistry = cloudProviderRegistry;
 
     this.flush();
   }
@@ -44,7 +42,7 @@ export class RegistrationQueue {
       if (!cloudProvider) {
         this.overrideRegistry.overrideComponent(key, component);
       } else {
-        this.cloudProviderRegistry.overrideValue(cloudProvider, key, component, cloudProviderVersion);
+        CloudProviderRegistry.overrideValue(cloudProvider, key, component, cloudProviderVersion);
       }
     });
 
@@ -52,7 +50,7 @@ export class RegistrationQueue {
   }
 
   private flush() {
-    if (!this.overrideRegistry || !this.cloudProviderRegistry) {
+    if (!this.overrideRegistry || !CloudProviderRegistry) {
       return;
     }
 

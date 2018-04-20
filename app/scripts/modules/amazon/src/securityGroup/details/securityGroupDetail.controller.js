@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   SECURITY_GROUP_READER,
@@ -18,7 +18,6 @@ module.exports = angular
     SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     require('../clone/cloneSecurityGroup.controller.js').name,
-    CLOUD_PROVIDER_REGISTRY,
     RECENT_HISTORY_SERVICE,
   ])
   .controller('awsSecurityGroupDetailsCtrl', function(
@@ -31,14 +30,13 @@ module.exports = angular
     securityGroupReader,
     recentHistoryService,
     $uibModal,
-    cloudProviderRegistry,
   ) {
     this.application = app;
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('aws', 'securityGroup.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'securityGroup.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

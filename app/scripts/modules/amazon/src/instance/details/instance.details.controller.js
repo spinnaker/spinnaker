@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   RECENT_HISTORY_SERVICE,
@@ -22,7 +22,6 @@ module.exports = angular
     require('../../vpc/vpcTag.directive.js').name,
     CONFIRMATION_MODAL_SERVICE,
     RECENT_HISTORY_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .controller('awsInstanceDetailsCtrl', function(
     $scope,
@@ -31,7 +30,6 @@ module.exports = angular
     amazonInstanceWriter,
     confirmationModalService,
     recentHistoryService,
-    cloudProviderRegistry,
     instanceReader,
     instance,
     app,
@@ -39,7 +37,7 @@ module.exports = angular
     overrides,
   ) {
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

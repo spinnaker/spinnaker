@@ -1,8 +1,6 @@
 import { module } from 'angular';
 import * as React from 'react';
 
-import { CloudProviderRegistry } from 'core/cloudProvider';
-
 import { overrideRegistrationQueue } from './Overrides';
 
 export class OverrideRegistry {
@@ -38,7 +36,7 @@ export class OverrideRegistry {
 export const OVERRIDE_REGISTRY = 'spinnaker.core.override.registry';
 module(OVERRIDE_REGISTRY, [])
   .service('overrideRegistry', OverrideRegistry)
-  .run((overrideRegistry: OverrideRegistry, cloudProviderRegistry: CloudProviderRegistry) => {
+  .run((overrideRegistry: OverrideRegistry) => {
     'ngInject';
-    overrideRegistrationQueue.setRegistries(overrideRegistry, cloudProviderRegistry);
+    overrideRegistrationQueue.setRegistries(overrideRegistry);
   });

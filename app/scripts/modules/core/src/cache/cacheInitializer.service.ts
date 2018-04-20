@@ -4,7 +4,7 @@ import { module, noop } from 'angular';
 
 import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
 import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { INFRASTRUCTURE_CACHE_CONFIG, IInfrastructureCacheConfig } from './infrastructureCacheConfig';
 import { InfrastructureCaches } from './infrastructureCaches';
 import { ICacheConfig } from './deckCacheFactory';
@@ -42,7 +42,7 @@ export class CacheInitializerService {
     });
 
     return this.accountService.listProviders().then((availableProviders: string[]) => {
-      return this.cloudProviderRegistry.listRegisteredProviders().forEach((provider: string) => {
+      return CloudProviderRegistry.listRegisteredProviders().forEach((provider: string) => {
         if (!availableProviders.includes(provider)) {
           return;
         }
@@ -86,7 +86,6 @@ export class CacheInitializerService {
     private applicationReader: ApplicationReader,
     private accountService: AccountService,
     private securityGroupReader: SecurityGroupReader,
-    private cloudProviderRegistry: CloudProviderRegistry,
     private igorService: IgorService,
     private providerServiceDelegate: any,
   ) {}
@@ -123,5 +122,4 @@ module(CACHE_INITIALIZER_SERVICE, [
   SECURITY_GROUP_READER,
   APPLICATION_READ_SERVICE,
   IGOR_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
 ]).service('cacheInitializer', CacheInitializerService);

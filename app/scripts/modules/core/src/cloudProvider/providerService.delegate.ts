@@ -1,20 +1,20 @@
 import { module } from 'angular';
 import IInjectorService = angular.auto.IInjectorService;
 
-import { CLOUD_PROVIDER_REGISTRY } from './cloudProvider.registry';
+import { CloudProviderRegistry } from './CloudProviderRegistry';
 
 export class ProviderServiceDelegate {
-  constructor(private $injector: IInjectorService, private cloudProviderRegistry: any) {
+  constructor(private $injector: IInjectorService) {
     'ngInject';
   }
 
   public hasDelegate(provider: string, serviceKey: string, skin?: string): boolean {
-    const service: string = this.cloudProviderRegistry.getValue(provider, serviceKey, skin);
+    const service: string = CloudProviderRegistry.getValue(provider, serviceKey, skin);
     return this.$injector.has(service);
   }
 
   public getDelegate<T>(provider: string, serviceKey: string, skin?: string): T {
-    const service = this.cloudProviderRegistry.getValue(provider, serviceKey, skin);
+    const service = CloudProviderRegistry.getValue(provider, serviceKey, skin);
     if (this.$injector.has(service)) {
       return this.$injector.get<T>(service, 'providerDelegate');
     } else {
@@ -24,7 +24,4 @@ export class ProviderServiceDelegate {
 }
 
 export const PROVIDER_SERVICE_DELEGATE = 'spinnaker.core.cloudProvider.service.delegate';
-module(PROVIDER_SERVICE_DELEGATE, [CLOUD_PROVIDER_REGISTRY]).service(
-  'providerServiceDelegate',
-  ProviderServiceDelegate,
-);
+module(PROVIDER_SERVICE_DELEGATE, []).service('providerServiceDelegate', ProviderServiceDelegate);

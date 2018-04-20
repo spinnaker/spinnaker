@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { APPENGINE_CACHE_CONFIGURER } from './cache/cacheConfigurer.service';
 import { APPENGINE_COMPONENT_URL_DETAILS } from './common/componentUrlDetails.component';
@@ -42,9 +42,8 @@ module(APPENGINE_MODULE, [
   APPENGINE_SERVER_GROUP_DETAILS_CTRL,
   APPENGINE_SERVER_GROUP_TRANSFORMER,
   APPENGINE_SERVER_GROUP_WRITER,
-  CLOUD_PROVIDER_REGISTRY,
-]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-  cloudProviderRegistryProvider.registerProvider('appengine', {
+]).config(() => {
+  CloudProviderRegistry.registerProvider('appengine', {
     name: 'App Engine',
     cache: {
       configurer: 'appengineCacheConfigurer',

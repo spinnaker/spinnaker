@@ -1,7 +1,7 @@
 'use strict';
 
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { NameUtils } from 'core/naming';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
@@ -9,12 +9,8 @@ import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.deployStage', [
-    CLOUD_PROVIDER_REGISTRY,
-    SERVER_GROUP_COMMAND_BUILDER_SERVICE,
-    CLUSTER_SERVICE,
-  ])
-  .config(function(pipelineConfigProvider, cloudProviderRegistryProvider, clusterServiceProvider) {
+  .module('spinnaker.core.pipeline.stage.deployStage', [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
+  .config(function(pipelineConfigProvider, clusterServiceProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
@@ -34,7 +30,7 @@ module.exports = angular
           skipValidation: (pipeline, stage) =>
             (stage.clusters || []).every(
               cluster =>
-                cloudProviderRegistryProvider.$get().getValue(cluster.provider, 'serverGroup.skipUpstreamStageCheck') ||
+                CloudProviderRegistry.getValue(cluster.provider, 'serverGroup.skipUpstreamStageCheck') ||
                 clusterServiceProvider.$get().isDeployingArtifact(cluster),
             ),
         },
@@ -50,7 +46,6 @@ module.exports = angular
     $uibModal,
     stage,
     providerSelectionService,
-    cloudProviderRegistry,
     serverGroupCommandBuilder,
     serverGroupTransformer,
   ) {
@@ -77,7 +72,7 @@ module.exports = angular
     this.hasSubnetDeployments = () => {
       return stage.clusters.some(cluster => {
         let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
-        return cloudProviderRegistry.hasValue(cloudProvider, 'subnet');
+        return CloudProviderRegistry.hasValue(cloudProvider, 'subnet');
       });
     };
 
@@ -89,8 +84,8 @@ module.exports = angular
 
     this.getSubnet = cluster => {
       let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
-      if (cloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
-        let subnetRenderer = cloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
+      if (CloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
+        let subnetRenderer = CloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
         if ($injector.has(subnetRenderer)) {
           return $injector.get(subnetRenderer).render(cluster);
         } else {
@@ -109,7 +104,7 @@ module.exports = angular
       providerSelectionService
         .selectProvider($scope.application, 'serverGroup', providerFilterFn)
         .then(function(selectedProvider) {
-          let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
+          let config = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
           $uibModal
             .open({
               templateUrl: config.cloneServerGroupTemplateUrl,
@@ -144,7 +139,7 @@ module.exports = angular
 
     this.editCluster = function(cluster, index) {
       cluster.provider = cluster.cloudProvider || cluster.providerType || 'aws';
-      let providerConfig = cloudProviderRegistry.getProvider(cluster.provider);
+      let providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
       return $uibModal
         .open({
           templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,

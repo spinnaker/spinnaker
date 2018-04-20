@@ -3,14 +3,10 @@ import { IPromise, module } from 'angular';
 import { isNil, uniq } from 'lodash';
 
 import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 
 export class SkinSelectionService {
-  constructor(
-    private $uibModal: IModalService,
-    private accountService: AccountService,
-    private cloudProviderRegistry: CloudProviderRegistry,
-  ) {
+  constructor(private $uibModal: IModalService, private accountService: AccountService) {
     'ngInject';
   }
 
@@ -19,7 +15,7 @@ export class SkinSelectionService {
       const skins = uniq(accounts.map(a => a.skin).filter(v => !isNil(v)));
 
       if (skins.length === 0) {
-        return this.cloudProviderRegistry.getProvider(provider).skin;
+        return CloudProviderRegistry.getProvider(provider).skin;
       } else if (skins.length === 1) {
         return skins[0];
       } else {
@@ -36,7 +32,4 @@ export class SkinSelectionService {
 }
 
 export const SKIN_SELECTION_SERVICE = 'spinnaker.core.cloudProvider.skinSelection.service';
-module(SKIN_SELECTION_SERVICE, [ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY]).service(
-  'skinSelectionService',
-  SkinSelectionService,
-);
+module(SKIN_SELECTION_SERVICE, [ACCOUNT_SERVICE]).service('skinSelectionService', SkinSelectionService);

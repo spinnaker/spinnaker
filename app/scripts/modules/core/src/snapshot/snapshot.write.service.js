@@ -2,18 +2,18 @@
 
 import _ from 'lodash';
 import { ACCOUNT_SERVICE } from 'core/account/account.service';
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { TASK_EXECUTOR } from 'core/task/taskExecutor';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.snapshot.write.service', [TASK_EXECUTOR, ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY])
-  .factory('snapshotWriter', function($q, taskExecutor, cloudProviderRegistry, accountService) {
+  .module('spinnaker.snapshot.write.service', [TASK_EXECUTOR, ACCOUNT_SERVICE])
+  .factory('snapshotWriter', function($q, taskExecutor, accountService) {
     function buildSaveSnapshotJobs(app, accountDetails) {
       let jobs = [];
       accountDetails.forEach(accountDetail => {
-        if (cloudProviderRegistry.getValue(accountDetail.cloudProvider, 'snapshotsEnabled')) {
+        if (CloudProviderRegistry.getValue(accountDetail.cloudProvider, 'snapshotsEnabled')) {
           jobs.push({
             type: 'saveSnapshot',
             credentials: accountDetail.name,
@@ -27,7 +27,7 @@ module.exports = angular
 
     function buildRestoreSnapshotJob(app, accountDetail, timestamp) {
       let jobs = [];
-      if (cloudProviderRegistry.getValue(accountDetail.cloudProvider, 'snapshotsEnabled')) {
+      if (CloudProviderRegistry.getValue(accountDetail.cloudProvider, 'snapshotsEnabled')) {
         jobs.push({
           type: 'restoreSnapshot',
           credentials: accountDetail.name,

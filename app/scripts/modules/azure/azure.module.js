@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import './help/azure.help';
 
@@ -18,7 +18,6 @@ module.exports = angular
     require('./pipeline/stages/enableAsg/azureEnableAsgStage.js').name,
     require('./pipeline/stages/disableAsg/azureDisableAsgStage.js').name,
     require('./pipeline/stages/bake/azureBakeStage.js').name,
-    CLOUD_PROVIDER_REGISTRY,
     require('./serverGroup/details/serverGroup.details.module.js').name,
     require('./serverGroup/serverGroup.transformer.js').name,
     require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller.js').name,
@@ -36,8 +35,8 @@ module.exports = angular
     require('./image/image.reader.js').name,
     require('./cache/cacheConfigurer.service.js').name,
   ])
-  .config(function(cloudProviderRegistryProvider) {
-    cloudProviderRegistryProvider.registerProvider('azure', {
+  .config(function() {
+    CloudProviderRegistry.registerProvider('azure', {
       name: 'Azure',
       logo: {
         path: require('./logo_azure.png'),

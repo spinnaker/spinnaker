@@ -2,26 +2,19 @@ import { mock } from 'angular';
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { ACCOUNT_SERVICE, AccountService, IAccount } from 'core/account/account.service';
 import { $rootScope } from 'ngimport';
-import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from '../cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
 describe('Service: accountService', () => {
   let $http: ng.IHttpBackendService;
-  let cloudProviderRegistry: CloudProviderRegistry;
   let API: Api;
   let accountService: AccountService;
 
   beforeEach(mock.module(API_SERVICE, ACCOUNT_SERVICE));
 
   beforeEach(
-    mock.inject(function(
-      $httpBackend: ng.IHttpBackendService,
-      _cloudProviderRegistry_: CloudProviderRegistry,
-      _API_: Api,
-      _accountService_: AccountService,
-    ) {
+    mock.inject(function($httpBackend: ng.IHttpBackendService, _API_: Api, _accountService_: AccountService) {
       $http = $httpBackend;
-      cloudProviderRegistry = _cloudProviderRegistry_;
       API = _API_;
       accountService = _accountService_;
     }),
@@ -87,7 +80,7 @@ describe('Service: accountService', () => {
         .whenGET(`${API.baseUrl}/credentials?expand=true`)
         .respond(200, [{ type: 'aws' }, { type: 'gce' }, { type: 'cf' }]);
 
-      spyOn(cloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders);
+      spyOn(CloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders);
     });
 
     it('should list all providers when no application provided', () => {

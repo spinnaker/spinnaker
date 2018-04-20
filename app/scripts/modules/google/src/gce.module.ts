@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry, CloudProviderRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
@@ -19,7 +19,6 @@ templates.keys().forEach(function(key) {
 
 export const GOOGLE_MODULE = 'spinnaker.gce';
 module(GOOGLE_MODULE, [
-  CLOUD_PROVIDER_REGISTRY,
   LOAD_BALANCER_SET_TRANSFORMER,
   GCE_INTERNAL_LOAD_BALANCER_CTRL,
   GCE_LOAD_BALANCER_CHOICE_MODAL,
@@ -60,8 +59,8 @@ module(GOOGLE_MODULE, [
   require('./image/image.reader.js').name,
   require('./cache/cacheConfigurer.service.js').name,
   require('./common/xpnNaming.gce.service.js').name,
-]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-  cloudProviderRegistryProvider.registerProvider('gce', {
+]).config(() => {
+  CloudProviderRegistry.registerProvider('gce', {
     name: 'Google',
     logo: {
       path: require('./logo/gce.logo.png'),

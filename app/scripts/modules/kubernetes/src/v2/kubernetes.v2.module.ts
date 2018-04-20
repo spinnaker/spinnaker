@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry } from '@spinnaker/core';
 
 import '../logo/kubernetes.logo.less';
 import { KUBERNETES_MANIFEST_COMMAND_BUILDER } from './manifest/manifestCommandBuilder.service';
@@ -50,7 +50,6 @@ templates.keys().forEach(function(key) {
 export const KUBERNETES_V2_MODULE = 'spinnaker.kubernetes.v2';
 
 module(KUBERNETES_V2_MODULE, [
-  CLOUD_PROVIDER_REGISTRY,
   KUBERNETES_V2_INSTANCE_DETAILS_CTRL,
   KUBERNETES_V2_LOAD_BALANCER_DETAILS_CTRL,
   KUBERNETES_V2_SECURITY_GROUP_DETAILS_CTRL,
@@ -90,8 +89,8 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_SHOW_MANIFEST_YAML,
   KUBERNETES_SHOW_MANIFEST_DETAILS,
   KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
-]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-  cloudProviderRegistryProvider.registerProvider('kubernetes', {
+]).config(() => {
+  CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
     skin: 'v2',
     logo: {

@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
@@ -22,7 +22,6 @@ module.exports = angular
     INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     RECENT_HISTORY_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
     GCE_HTTP_LOAD_BALANCER_UTILS,
   ])
   .controller('gceInstanceDetailsCtrl', function(
@@ -32,7 +31,6 @@ module.exports = angular
     instanceWriter,
     confirmationModalService,
     recentHistoryService,
-    cloudProviderRegistry,
     instanceReader,
     instance,
     app,
@@ -41,7 +39,7 @@ module.exports = angular
     gceXpnNamingService,
   ) {
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
@@ -15,7 +15,6 @@ module.exports = angular
     PROVIDER_SELECTION_SERVICE,
     SKIN_SELECTION_SERVICE,
     require('angular-ui-bootstrap'),
-    CLOUD_PROVIDER_REGISTRY,
   ])
   .controller('AllSecurityGroupsCtrl', function(
     $scope,
@@ -24,7 +23,6 @@ module.exports = angular
     $timeout,
     skinSelectionService,
     providerSelectionService,
-    cloudProviderRegistry,
   ) {
     this.$onInit = () => {
       const groupsUpdatedSubscription = SecurityGroupState.filterService.groupsUpdatedStream.subscribe(() =>
@@ -74,7 +72,7 @@ module.exports = angular
     this.createSecurityGroup = function createSecurityGroup() {
       providerSelectionService.selectProvider(app, 'securityGroup').then(selectedProvider => {
         skinSelectionService.selectSkin(selectedProvider).then(selectedVersion => {
-          let provider = cloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
+          let provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
           var defaultCredentials =
               app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account,
             defaultRegion =

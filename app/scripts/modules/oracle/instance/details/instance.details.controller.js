@@ -2,24 +2,15 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY, INSTANCE_READ_SERVICE, INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
+import { INSTANCE_READ_SERVICE, INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.instance.details.controller', [
     require('@uirouter/angularjs').default,
     INSTANCE_WRITE_SERVICE,
     INSTANCE_READ_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
   ])
-  .controller('oraclebmcsInstanceDetailsCtrl', function(
-    $scope,
-    $q,
-    instanceWriter,
-    instanceReader,
-    cloudProviderRegistry,
-    app,
-    instance,
-  ) {
+  .controller('oraclebmcsInstanceDetailsCtrl', function($scope, $q, instanceWriter, instanceReader, app, instance) {
     $scope.application = app;
 
     let initialize = app.isStandalone ? retrieveInstance() : $q.all([app.serverGroups.ready()]).then(retrieveInstance);

@@ -5,7 +5,7 @@ import { defaults, filter } from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
@@ -22,7 +22,6 @@ module.exports = angular
     INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     RECENT_HISTORY_SERVICE,
-    CLOUD_PROVIDER_REGISTRY,
     require('../../securityGroup/securityGroup.read.service').name,
   ])
   .controller('titusInstanceDetailsCtrl', function(
@@ -34,14 +33,13 @@ module.exports = angular
     instanceWriter,
     confirmationModalService,
     recentHistoryService,
-    cloudProviderRegistry,
     instanceReader,
     instance,
     app,
     titusSecurityGroupReader,
   ) {
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { KUBERNETES_KEY_VALUE_DETAILS } from '../common/keyValueDetails.component';
 import { KUBERNETES_TOLERATIONS } from '../common/tolerations/tolerations.component';
@@ -25,7 +25,6 @@ module(KUBERNETES_V1_MODULE, [
   require('../container/probe.directive.js').name,
   require('../event/event.directive.js').name,
   require('../instance/details/details.kubernetes.module.js').name,
-  CLOUD_PROVIDER_REGISTRY,
   KUBERNETES_KEY_VALUE_DETAILS,
   KUBERNETES_SECURITY_CONTEXT_SELECTOR,
   require('../loadBalancer/configure/configure.kubernetes.module.js').name,
@@ -55,8 +54,8 @@ module(KUBERNETES_V1_MODULE, [
   require('../serverGroup/transformer.js').name,
   require('../validation/applicationName.validator.js').name,
   KUBERNETES_TOLERATIONS,
-]).config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
-  cloudProviderRegistryProvider.registerProvider('kubernetes', {
+]).config(() => {
+  CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
     skin: 'v1',
     defaultSkin: true,

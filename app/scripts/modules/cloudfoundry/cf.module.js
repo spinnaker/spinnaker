@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import './logo/cf.logo.less';
 
@@ -14,7 +14,6 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular
   .module('spinnaker.cf', [
-    CLOUD_PROVIDER_REGISTRY,
     require('./instance/cfInstanceTypeService.js').name,
     require('./serverGroup/details/serverGroupDetails.cf.controller.js').name,
     require('./serverGroup/configure/ServerGroupCommandBuilder.js').name,
@@ -38,8 +37,8 @@ module.exports = angular
     require('./securityGroup/securityGroup.reader.js').name,
     require('./cache/cacheConfigurer.service.js').name,
   ])
-  .config(function(cloudProviderRegistryProvider) {
-    cloudProviderRegistryProvider.registerProvider('cf', {
+  .config(function() {
+    CloudProviderRegistry.registerProvider('cf', {
       name: 'Cloud Foundry',
       logo: {
         path: require('./logo/logo_cf.png'),

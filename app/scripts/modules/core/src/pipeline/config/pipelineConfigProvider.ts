@@ -11,11 +11,7 @@ import {
   IArtifactKindConfig,
   IStageOrTriggerTypeConfig,
 } from 'core/domain';
-import {
-  CLOUD_PROVIDER_REGISTRY,
-  CloudProviderRegistry,
-  ICloudProviderConfig,
-} from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
 import { IAccountDetails } from 'core/account/account.service';
@@ -32,7 +28,7 @@ export class PipelineConfigProvider implements IServiceProvider {
   private transformers: ITransformer[] = [];
   private artifactKinds: IArtifactKindConfig[] = [];
 
-  constructor(private cloudProviderRegistryProvider: CloudProviderRegistry) {
+  constructor() {
     this.getStageConfig = memoize(this.getStageConfig.bind(this), (stage: IStage) =>
       [stage ? stage.type : '', stage ? stage.cloudProvider || stage.cloudProviderType || 'aws' : ''].join(':'),
     );
@@ -134,7 +130,7 @@ export class PipelineConfigProvider implements IServiceProvider {
     providersFromStage = providersFromStage.filter((providerKey: string) => {
       const providerAccounts = accounts.filter(acc => acc.cloudProvider === providerKey);
       return !!providerAccounts.find(acc => {
-        const provider = this.cloudProviderRegistryProvider.getProvider(acc.cloudProvider, acc.skin);
+        const provider = CloudProviderRegistry.getProvider(acc.cloudProvider, acc.skin);
         return !isExcludedStageType(type, provider);
       });
     });
@@ -159,7 +155,7 @@ export class PipelineConfigProvider implements IServiceProvider {
     );
     configurableStageTypes = configurableStageTypes.filter(type => {
       return !accounts.every(a => {
-        const p = this.cloudProviderRegistryProvider.getProvider(a.cloudProvider, a.skin);
+        const p = CloudProviderRegistry.getProvider(a.cloudProvider, a.skin);
         return isExcludedStageType(type, p);
       });
     });
@@ -264,4 +260,4 @@ function isExcludedStageType(type: IStageTypeConfig, provider: ICloudProviderCon
 }
 
 export const PIPELINE_CONFIG_PROVIDER = 'spinnaker.core.pipeline.config.configProvider';
-module(PIPELINE_CONFIG_PROVIDER, [CLOUD_PROVIDER_REGISTRY]).provider('pipelineConfig', PipelineConfigProvider);
+module(PIPELINE_CONFIG_PROVIDER, []).provider('pipelineConfig', PipelineConfigProvider);

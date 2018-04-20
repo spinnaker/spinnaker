@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
 import { ECS_LOAD_BALANCER_SELECTOR } from './serverGroup/configure/wizard/loadBalancers/loadBalancerSelector.component';
@@ -28,7 +28,6 @@ module.exports = angular
   .module('spinnaker.ecs', [
     require('./serverGroup/configure/wizard/CloneServerGroup.ecs.controller').name,
     SERVER_GROUP_DETAILS_MODULE,
-    CLOUD_PROVIDER_REGISTRY,
     IAM_ROLE_READ_SERVICE,
     ECS_SERVER_GROUP_TRANSFORMER,
     // require('./pipeline/stages/cloneServerGroup/ecsCloneServerGroupStage').name,  // TODO(Bruno Carrier): We should enable this on Clouddriver before revealing this stage
@@ -52,8 +51,8 @@ module.exports = angular
     require('./pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage').name,
     require('./pipeline/stages/shrinkCluster/ecsShrinkClusterStage').name,
   ])
-  .config(function(cloudProviderRegistryProvider) {
-    cloudProviderRegistryProvider.registerProvider('ecs', {
+  .config(function() {
+    CloudProviderRegistry.registerProvider('ecs', {
       name: 'EC2 Container Service',
       logo: { path: require('./logo/ecs.logo.svg') },
       serverGroup: {

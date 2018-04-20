@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   ACCOUNT_SERVICE,
-  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -21,7 +21,6 @@ module.exports = angular
     SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     require('../clone/cloneSecurityGroup.controller.js').name,
-    CLOUD_PROVIDER_REGISTRY,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
   ])
   .controller('gceSecurityGroupDetailsCtrl', function(
@@ -34,14 +33,13 @@ module.exports = angular
     securityGroupWriter,
     securityGroupReader,
     $uibModal,
-    cloudProviderRegistry,
     gceSecurityGroupHelpTextService,
   ) {
     const application = (this.application = app);
     const securityGroup = resolvedSecurityGroup;
 
     // needed for standalone instances
-    $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'securityGroup.detailsTemplateUrl');
+    $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('gce', 'securityGroup.detailsTemplateUrl');
 
     $scope.state = {
       loading: true,

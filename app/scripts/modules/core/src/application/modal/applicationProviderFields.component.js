@@ -1,13 +1,13 @@
 'use strict';
 
 import _ from 'lodash';
-import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.application.modal.applicationProviderFields.directive', [CLOUD_PROVIDER_REGISTRY])
+  .module('spinnaker.core.application.modal.applicationProviderFields.directive', [])
   .component('applicationProviderFields', {
     templateUrl: require('./applicationProviderFields.component.html'),
     bindings: {
@@ -16,7 +16,7 @@ module.exports = angular
     },
     controller: 'ApplicationProviderFieldsCtrl',
   })
-  .controller('ApplicationProviderFieldsCtrl', function(cloudProviderRegistry) {
+  .controller('ApplicationProviderFieldsCtrl', function() {
     const templateUrlPath = 'applicationProviderFields.templateUrl';
     let defaultProviderFields = SETTINGS.providers;
 
@@ -39,7 +39,7 @@ module.exports = angular
       }
 
       return (candidateProvidersToShow || [])
-        .filter(provider => cloudProviderRegistry.hasValue(provider, templateUrlPath))
-        .map(provider => cloudProviderRegistry.getValue(provider, templateUrlPath));
+        .filter(provider => CloudProviderRegistry.hasValue(provider, templateUrlPath))
+        .map(provider => CloudProviderRegistry.getValue(provider, templateUrlPath));
     };
   });

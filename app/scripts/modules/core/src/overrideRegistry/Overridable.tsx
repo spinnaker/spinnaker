@@ -2,6 +2,7 @@ import { Spinner } from 'core';
 import * as React from 'react';
 import { Subject, Observable } from 'rxjs';
 
+import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ReactInjector, AngularJSAdapter } from 'core/reactShims';
 import { IAccountDetails } from 'core/account';
 
@@ -100,19 +101,18 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
 
     private getComponentFromCloudProvider(accountDetails: IAccountDetails): T {
       const { cloudProvider, skin } = accountDetails;
-      const { cloudProviderRegistry } = ReactInjector;
       if (!cloudProvider) {
         return null;
       }
 
-      const CloudProviderComponentOverride = cloudProviderRegistry.getValue(cloudProvider, key, skin);
+      const CloudProviderComponentOverride = CloudProviderRegistry.getValue(cloudProvider, key, skin);
       if (CloudProviderComponentOverride) {
         return CloudProviderComponentOverride as T;
       }
 
-      const cloudProviderTemplateOverride = cloudProviderRegistry.getValue(cloudProvider, key + 'TemplateUrl', skin);
+      const cloudProviderTemplateOverride = CloudProviderRegistry.getValue(cloudProvider, key + 'TemplateUrl', skin);
       if (cloudProviderTemplateOverride) {
-        const cloudProviderController = cloudProviderRegistry.getValue(cloudProvider, key + 'Controller', skin);
+        const cloudProviderController = CloudProviderRegistry.getValue(cloudProvider, key + 'Controller', skin);
         const controllerAs = cloudProviderController && cloudProviderController.includes(' as ') ? undefined : 'ctrl';
         const Component = (props: any) => (
           <AngularJSAdapter
