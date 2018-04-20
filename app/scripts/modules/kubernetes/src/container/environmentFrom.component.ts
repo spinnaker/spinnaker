@@ -65,6 +65,10 @@ class KubernetesEnvironmentFromCtrl implements IController {
         break;
     }
   }
+
+  public initOptional(source: any): boolean {
+    return (source && source.optional == null) || source.optional;
+  }
 }
 
 class KubernetesContainerEnvironmentFrom implements IComponentOptions {

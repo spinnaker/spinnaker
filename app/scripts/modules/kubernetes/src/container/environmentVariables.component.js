@@ -78,5 +78,9 @@ module.exports = angular
         let sourceType = this.envVarsSourceTypes[index];
         this.updateSourceTypeMap[sourceType](envVar);
       };
+
+      this.initOptional = source => {
+        return (source && source.optional == null) || source.optional;
+      };
     },
   });

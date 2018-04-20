@@ -43,7 +43,8 @@
           <div class="col-md-3">
             <input type="checkbox"
                    style="margin-top: 10px; margin-left: 8px;"
-                   ng-model="envFrom.configMapRef.optional"/>
+                   ng-model="envFrom.configMapRef.optional"
+                   ng-init="envFrom.configMapRef.optional = $ctrl.initOptional(envFrom.configMapRef)"/>
           </div>
         </div>
         <div class="form-group" ng-switch-when="Secret">
@@ -61,7 +62,8 @@
           <div class="col-md-3">
             <input type="checkbox"
                    style="margin-top: 10px; margin-left: 8px;"
-                   ng-model="envFrom.secretRef.optional"/>
+                   ng-model="envFrom.secretRef.optional"
+                   ng-init="envFrom.secretRef.optional = $ctrl.initOptional(envFrom.secretRef)"/>
           </div>
         </div>
       </div>
