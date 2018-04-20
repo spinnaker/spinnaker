@@ -64,27 +64,42 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAll(boolean includeRules) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', '*', '*'), includeRules)
+  Collection<AmazonSecurityGroup> getAll(boolean includeRules) {
+    if (!includeRules) {
+      def identifiers = cacheView.getIdentifiers(SECURITY_GROUPS.ns)
+      return identifiers.collect {
+        Map parts = Keys.parse(it)
+        new AmazonSecurityGroup(
+          id: parts.id,
+          name: parts.name,
+          vpcId: parts.vpcId,
+          accountName: parts.account,
+          region: parts.region,
+          cloudProvider: AmazonCloudProvider.ID
+        )
+      }
+    } else {
+      return getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', '*', '*'), includeRules)
+    }
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByRegion(boolean includeRules, String region) {
+  Collection<AmazonSecurityGroup> getAllByRegion(boolean includeRules, String region) {
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, '*', '*'), includeRules)
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByAccount(boolean includeRules, String account) {
+  Collection<AmazonSecurityGroup> getAllByAccount(boolean includeRules, String account) {
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', account, '*'), includeRules)
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
+  Collection<AmazonSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', '*', account, '*'), includeRules)
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
+  Collection<AmazonSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, account, '*'), includeRules)
   }
 
@@ -97,11 +112,11 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', securityGroupId, region, account, vpcId), true)[0]
   }
 
-  Set<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
+  Collection<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
     loadResults(includeRules, cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
   }
 
-  Set<AmazonSecurityGroup> loadResults(boolean includeRules, Collection<String> identifiers) {
+  Collection<AmazonSecurityGroup> loadResults(boolean includeRules, Collection<String> identifiers) {
     def transform = this.&fromCacheData.curry(includeRules)
     def data = cacheView.getAll(SECURITY_GROUPS.ns, identifiers, RelationshipCacheFilter.none())
     def transformed = data.collect(transform)

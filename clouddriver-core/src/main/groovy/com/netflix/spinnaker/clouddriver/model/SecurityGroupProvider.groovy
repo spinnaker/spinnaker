@@ -20,15 +20,15 @@ interface SecurityGroupProvider<T extends SecurityGroup> {
 
   String getCloudProvider()
 
-  Set<T> getAll(boolean includeRules)
+  Collection<T> getAll(boolean includeRules)
 
-  Set<T> getAllByRegion(boolean includeRules, String region)
+  Collection<T> getAllByRegion(boolean includeRules, String region)
 
-  Set<T> getAllByAccount(boolean includeRules, String account)
+  Collection<T> getAllByAccount(boolean includeRules, String account)
 
-  Set<T> getAllByAccountAndName(boolean includeRules, String account, String name)
+  Collection<T> getAllByAccountAndName(boolean includeRules, String account, String name)
 
-  Set<T> getAllByAccountAndRegion(boolean includeRule, String account, String region)
+  Collection<T> getAllByAccountAndRegion(boolean includeRule, String account, String region)
 
   T get(String account, String region, String name, String vpcId)
 
