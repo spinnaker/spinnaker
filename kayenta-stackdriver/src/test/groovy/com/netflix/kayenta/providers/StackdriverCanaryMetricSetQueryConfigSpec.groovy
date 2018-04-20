@@ -88,13 +88,15 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
     thrown IllegalArgumentException
 
     where:
-    templates                                             | customFilterTemplate | scopeParams
+    templates                                                 | customFilterTemplate | scopeParams
     ["my-template-1": 'A test: key1=${key1}.',
-     "my-template-2": 'A test: key2=${key2}.']            | "my-template-x"      | null
-    [:]                                                   | "my-template-x"      | null
-    null                                                  | "my-template-x"      | null
-    ["my-template": 'A test: key1=${key1} key2=${key2}.'] | "my-template"        | [key3: "value-3",
-                                                                                    key4: "value-4"]
+     "my-template-2": 'A test: key2=${key2}.']                | "my-template-x"      | null
+    [:]                                                       | "my-template-x"      | null
+    null                                                      | "my-template-x"      | null
+    ["my-template": 'A test: key1=${key1} key2=${key2}.']     | "my-template"        | [key3: "value-3",
+                                                                                        key4: "value-4"]
+    ["my-template": 'A test: key1=$\\{key1} key2=$\\{key2}.'] | "my-template"        | [key3: "value-3",
+                                                                                        key4: "value-4"]
   }
 
   @Unroll
@@ -116,5 +118,6 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
     ["my-template": 'A test: resourceType=${resourceType} key1=${key1}.'] || "A test: resourceType=gce_instance key1=value-1."
     ["my-template": 'A test: scope=${scope} key1=${key1}.']               || "A test: scope=myapp-dev-v001 key1=value-1."
     ["my-template": 'A test: region=${location} key1=${key1}.']           || "A test: region=us-east1 key1=value-1."
+    ["my-template": 'A test: region=$\\{location} key1=$\\{key1}.']       || "A test: region=us-east1 key1=value-1."
   }
 }

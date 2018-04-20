@@ -37,6 +37,7 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -65,7 +66,7 @@ public class QueryConfigUtils {
       }
 
       Configuration configuration = new Configuration(Configuration.VERSION_2_3_26);
-      String templateStr = templates.get(customFilterTemplate);
+      String templateStr = unescapeTemplate(templates.get(customFilterTemplate));
       Template template = new Template(customFilterTemplate, new StringReader(templateStr), configuration);
 
       try {
@@ -105,5 +106,25 @@ public class QueryConfigUtils {
     log.debug("Expanded: customFilter={}", customFilter);
 
     return customFilter;
+  }
+
+  @VisibleForTesting
+  public static CanaryConfig escapeTemplates(CanaryConfig canaryConfig) {
+    if (!CollectionUtils.isEmpty(canaryConfig.getTemplates())) {
+      Map<String, String> escapedTemplates =
+        canaryConfig.getTemplates()
+          .entrySet()
+          .stream()
+          .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().replace("${", "$\\{")));
+
+      canaryConfig = canaryConfig.toBuilder().templates(escapedTemplates).build();
+    }
+
+    return canaryConfig;
+  }
+
+  @VisibleForTesting
+  public static String unescapeTemplate(String template) {
+    return template.replace("$\\{", "${");
   }
 }

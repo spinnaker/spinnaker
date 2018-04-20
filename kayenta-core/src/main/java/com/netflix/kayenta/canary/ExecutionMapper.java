@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.netflix.kayenta.canary.orca.CanaryStageNames;
+import com.netflix.kayenta.canary.providers.QueryConfigUtils;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -44,8 +45,6 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Component
 @Slf4j
@@ -340,6 +339,8 @@ public class ExecutionMapper {
     if (StringUtils.isEmpty(parentPipelineExecutionId)) {
       parentPipelineExecutionId = "no-parent-pipeline-execution";
     }
+
+    canaryConfig = QueryConfigUtils.escapeTemplates(canaryConfig);
 
     HashMap<String, Object> setupCanaryContext =
       Maps.newHashMap(

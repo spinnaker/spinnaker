@@ -149,7 +149,7 @@ public class StackdriverMetricsService implements MetricsService {
           throw new IllegalArgumentException("Scope is required when resourceType is 'gce_instance'.");
         }
 
-        filter += " AND resource.labels.project_id=" + projectId +
+        filter += " AND project=" + projectId +
                   " AND metadata.user_labels.\"spinnaker-region\"=" + location +
                   " AND metadata.user_labels.\"spinnaker-server-group\"=" + scope;
       } else if ("aws_ec2_instance".equals(resourceType)) {
@@ -168,7 +168,7 @@ public class StackdriverMetricsService implements MetricsService {
           throw new IllegalArgumentException("Scope is required when resourceType is 'gae_app'.");
         }
 
-        filter += " AND resource.labels.project_id=" + projectId +
+        filter += " AND project=" + projectId +
                   " AND resource.labels.version_id=" + scope;
 
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
@@ -181,7 +181,7 @@ public class StackdriverMetricsService implements MetricsService {
         // and maps to the control and experiment scopes. Will probably be useful to use expressions in those fields in
         // the ui, and then map 'scope' to some user label value in a custom filter template.
         // TODO(duftler): Should cluster_name be automatically included or required?
-        filter += " AND resource.labels.project_id=" + projectId;
+        filter += " AND project=" + projectId;
         Map<String, String> extendedScopeParams = stackdriverCanaryScope.getExtendedScopeParams();
 
         if (extendedScopeParams != null) {
