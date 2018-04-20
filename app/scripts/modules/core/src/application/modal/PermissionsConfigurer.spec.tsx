@@ -2,25 +2,24 @@ import * as React from 'react';
 import { mock } from 'angular';
 import { mount } from 'enzyme';
 
-import { ReactInjector, REACT_MODULE } from 'core/reactShims';
+import { AuthenticationService } from 'core/authentication';
+import { REACT_MODULE } from 'core/reactShims';
 import {
   IPermissions,
   IPermissionsConfigurerProps,
   PermissionsConfigurer,
 } from 'core/application/modal/PermissionsConfigurer';
-import { AUTHENTICATION_SERVICE } from 'core/authentication';
 
 describe('PermissionsConfigurer', () => {
   const createComponent = (props: IPermissionsConfigurerProps) => {
     return mount(<PermissionsConfigurer {...props} />).instance() as PermissionsConfigurer;
   };
 
-  beforeEach(mock.module(AUTHENTICATION_SERVICE, REACT_MODULE));
+  beforeEach(mock.module(REACT_MODULE));
 
   beforeEach(
     mock.inject(() => {
-      const authenticationService = ReactInjector.authenticationService;
-      spyOn(authenticationService, 'getAuthenticatedUser').and.callFake(() => {
+      spyOn(AuthenticationService, 'getAuthenticatedUser').and.callFake(() => {
         return { roles: ['groupA', 'groupB', 'groupC'] };
       });
     }),

@@ -1,7 +1,7 @@
 import { IPromise, module } from 'angular';
 
 import { Application } from 'core/application';
-import { ReactInjector } from 'core/reactShims';
+import { ModalInjector } from 'core/reactShims';
 import { TASK_EXECUTOR, IJob, TaskExecutor, ITaskCommand } from 'core/task/taskExecutor';
 
 export class PagerDutyWriter {
@@ -10,7 +10,7 @@ export class PagerDutyWriter {
   }
 
   public pageApplicationOwnerModal(app: Application): void {
-    ReactInjector.modalService
+    ModalInjector.modalService
       .open({
         templateUrl: require('./pageApplicationOwner.html'),
         controller: 'PageModalCtrl as ctrl',

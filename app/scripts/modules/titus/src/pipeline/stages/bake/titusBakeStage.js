@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AuthenticationService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.titusBakeStage', [
@@ -19,11 +19,11 @@ module.exports = angular
       validators: [],
     });
   })
-  .controller('titusBakeCtrl', function($scope, authenticationService) {
+  .controller('titusBakeCtrl', function($scope) {
     let stage = $scope.stage;
 
     if (!stage.user) {
-      stage.user = authenticationService.getAuthenticatedUser().name;
+      stage.user = AuthenticationService.getAuthenticatedUser().name;
     }
 
     if (!stage.regions) {

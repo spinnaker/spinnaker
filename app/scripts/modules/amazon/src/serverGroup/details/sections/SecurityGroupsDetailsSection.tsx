@@ -3,7 +3,7 @@ import { chain, find, sortBy } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { UISref } from '@uirouter/react';
 
-import { CollapsibleSection, ISecurityGroup, ReactInjector } from '@spinnaker/core';
+import { CollapsibleSection, ISecurityGroup, ModalInjector } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
@@ -41,7 +41,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
   }
 
   private updateSecurityGroups(): void {
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: require('../securityGroup/editSecurityGroups.modal.html'),
       controller: 'EditSecurityGroupsCtrl as $ctrl',
       resolve: {

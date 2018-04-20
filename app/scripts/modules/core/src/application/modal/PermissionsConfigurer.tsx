@@ -4,7 +4,7 @@ import { intersection, uniq, without, cloneDeep, compact } from 'lodash';
 import { BindAll } from 'lodash-decorators';
 import { Button } from 'react-bootstrap';
 
-import { ReactInjector } from 'core/reactShims';
+import { AuthenticationService } from 'core/authentication';
 
 import './PermissionsConfigurer.less';
 
@@ -79,7 +79,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
   }
 
   private getRoleOptions(permissions: IPermissions): Option[] {
-    const availableRoles = ReactInjector.authenticationService.getAuthenticatedUser().roles;
+    const availableRoles = AuthenticationService.getAuthenticatedUser().roles;
     return without(
       availableRoles || [],
       ...(permissions ? (permissions.READ || []).concat(permissions.WRITE || []) : []),
@@ -126,7 +126,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
       ? (this.props.permissions.READ || []).concat(this.props.permissions.WRITE || [])
       : [];
     if (compact(configuredPermissions).length) {
-      const userRoles = ReactInjector.authenticationService.getAuthenticatedUser().roles || [];
+      const userRoles = AuthenticationService.getAuthenticatedUser().roles || [];
       return intersection(configuredPermissions, userRoles).length === 0;
     } else {
       return false;

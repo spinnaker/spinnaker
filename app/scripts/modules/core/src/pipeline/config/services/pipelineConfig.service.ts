@@ -2,7 +2,7 @@ import { IPromise, IQService, module } from 'angular';
 import { sortBy, uniq } from 'lodash';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
-import { AUTHENTICATION_SERVICE, AuthenticationService } from 'core/authentication/authentication.service';
+import { AuthenticationService } from 'core/authentication/AuthenticationService';
 import { ICache, ViewStateCache } from 'core/cache';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
@@ -13,7 +13,7 @@ export interface ITriggerPipelineResponse {
 export class PipelineConfigService {
   private configViewStateCache: ICache;
 
-  public constructor(private $q: IQService, private API: Api, private authenticationService: AuthenticationService) {
+  public constructor(private $q: IQService, private API: Api) {
     'ngInject';
     this.configViewStateCache = ViewStateCache.createCache('pipelineConfig', { version: 2 });
   }
@@ -88,7 +88,7 @@ export class PipelineConfigService {
   }
 
   public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): IPromise<string> {
-    body.user = this.authenticationService.getAuthenticatedUser().name;
+    body.user = AuthenticationService.getAuthenticatedUser().name;
     return this.API.one('pipelines')
       .one(applicationName)
       .one(pipelineName)
@@ -139,7 +139,7 @@ export class PipelineConfigService {
   }
 
   public startAdHocPipeline(body: any): IPromise<string> {
-    body.user = this.authenticationService.getAuthenticatedUser().name;
+    body.user = AuthenticationService.getAuthenticatedUser().name;
     return this.API.one('pipelines')
       .one('start')
       .data(body)
@@ -170,7 +170,4 @@ export class PipelineConfigService {
 }
 
 export const PIPELINE_CONFIG_SERVICE = 'spinnaker.core.pipeline.config.service';
-module(PIPELINE_CONFIG_SERVICE, [API_SERVICE, AUTHENTICATION_SERVICE]).service(
-  'pipelineConfigService',
-  PipelineConfigService,
-);
+module(PIPELINE_CONFIG_SERVICE, [API_SERVICE]).service('pipelineConfigService', PipelineConfigService);

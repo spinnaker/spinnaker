@@ -4,8 +4,9 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  BakeExecutionLabel,
+  AuthenticationService,
   BAKERY_SERVICE,
+  BakeExecutionLabel,
   PIPELINE_CONFIG_PROVIDER,
   PipelineTemplates,
   SETTINGS,
@@ -45,12 +46,12 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, $uibModal) {
+  .controller('openstackBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
 
     if (!$scope.stage.user) {
-      $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
     }
 
     $scope.viewState = {

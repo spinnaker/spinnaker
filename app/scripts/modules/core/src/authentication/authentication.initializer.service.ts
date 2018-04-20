@@ -1,12 +1,11 @@
 import { module } from 'angular';
-import { IModalService, IModalStackService } from 'angular-ui-bootstrap';
 import { Observable, Subscription } from 'rxjs';
+import { $location, $rootScope, $http } from 'ngimport';
 
+import { ModalInjector } from 'core/reactShims/modal.injector';
 import { SETTINGS } from 'core/config/settings';
-import { IDeckRootScope } from 'core/domain';
 
-import { AUTHENTICATION_SERVICE, AuthenticationService } from './authentication.service';
-import { REDIRECT_SERVICE, RedirectService } from './redirect.service';
+import { AuthenticationService } from './AuthenticationService';
 
 interface IAuthResponse {
   username: string;
@@ -17,29 +16,17 @@ export class AuthenticationInitializer {
   private userLoggedOut = false;
   private visibilityWatch: Subscription = null;
 
-  constructor(
-    private $location: ng.ILocationService,
-    private $rootScope: IDeckRootScope,
-    private $http: ng.IHttpService,
-    private $uibModal: IModalService,
-    private $uibModalStack: IModalStackService,
-    private redirectService: RedirectService,
-    private authenticationService: AuthenticationService,
-  ) {
-    'ngInject';
-  }
-
   private checkForReauthentication(): void {
-    this.$http
+    $http
       .get(SETTINGS.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
-          this.authenticationService.setAuthenticatedUser({
+          AuthenticationService.setAuthenticatedUser({
             name: response.data.username,
             authenticated: false,
             roles: response.data.roles,
           });
-          this.$uibModalStack.dismissAll();
+          ModalInjector.modalStackService.dismissAll();
           this.visibilityWatch.unsubscribe();
         }
       })
@@ -47,7 +34,7 @@ export class AuthenticationInitializer {
   }
 
   private loginNotification(): void {
-    this.authenticationService.authenticationExpired();
+    AuthenticationService.authenticationExpired();
     this.userLoggedOut = true;
     this.openLoggedOutModal();
 
@@ -59,7 +46,7 @@ export class AuthenticationInitializer {
   }
 
   private openLoggedOutModal(): void {
-    this.$uibModal.open({
+    ModalInjector.modalService.open({
       templateUrl: require('./loggedOut.modal.html'),
       controller: 'LoggedOutModalCtrl as ctrl',
       size: 'squared',
@@ -67,22 +54,22 @@ export class AuthenticationInitializer {
   }
 
   private loginRedirect(): void {
-    const callback: string = encodeURIComponent(this.$location.absUrl());
-    this.redirectService.redirect(`${SETTINGS.gateUrl}/auth/redirect?to=${callback}`);
+    const callback: string = encodeURIComponent($location.absUrl());
+    window.location.href = `${SETTINGS.gateUrl}/auth/redirect?to=${callback}`;
   }
 
   public authenticateUser() {
-    this.$rootScope.authenticating = true;
-    this.$http
+    $rootScope.authenticating = true;
+    $http
       .get(SETTINGS.authEndpoint)
       .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
-          this.authenticationService.setAuthenticatedUser({
+          AuthenticationService.setAuthenticatedUser({
             name: response.data.username,
             authenticated: false,
             roles: response.data.roles,
           });
-          this.$rootScope.authenticating = false;
+          $rootScope.authenticating = false;
         } else {
           this.loginRedirect();
         }
@@ -92,16 +79,16 @@ export class AuthenticationInitializer {
 
   public reauthenticateUser(): void {
     if (!this.userLoggedOut) {
-      this.$http
+      $http
         .get(SETTINGS.authEndpoint)
         .then((response: ng.IHttpPromiseCallbackArg<IAuthResponse>) => {
           if (response.data.username) {
-            this.authenticationService.setAuthenticatedUser({
+            AuthenticationService.setAuthenticatedUser({
               name: response.data.username,
               authenticated: false,
               roles: response.data.roles,
             });
-            this.$rootScope.authenticating = false;
+            $rootScope.authenticating = false;
           } else {
             this.loginNotification();
           }
@@ -117,23 +104,21 @@ export class AuthenticationInitializer {
         transformResponse: (response: string) => response,
       };
 
-      this.$http
+      $http
         .get(`${SETTINGS.gateUrl}/auth/logout`, config)
         .then(() => this.loggedOutSequence(), () => this.loggedOutSequence());
     }
   }
 
   private loggedOutSequence(): void {
-    this.authenticationService.authenticationExpired();
+    AuthenticationService.authenticationExpired();
     this.userLoggedOut = true;
     this.openLoggedOutModal();
   }
 }
 
 export const AUTHENTICATION_INITIALIZER_SERVICE = 'spinnaker.authentication.initializer.service';
-module(AUTHENTICATION_INITIALIZER_SERVICE, [
-  require('angular-ui-bootstrap'),
-  REDIRECT_SERVICE,
-  AUTHENTICATION_SERVICE,
-  require('./loggedOut.modal.controller').name,
-]).service('authenticationInitializer', AuthenticationInitializer);
+module(AUTHENTICATION_INITIALIZER_SERVICE, [require('./loggedOut.modal.controller').name]).service(
+  'authenticationInitializer',
+  AuthenticationInitializer,
+);

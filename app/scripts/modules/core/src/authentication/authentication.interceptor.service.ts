@@ -1,9 +1,9 @@
 import { IPromise, IRequestConfig, module } from 'angular';
-import { AUTHENTICATION_SERVICE, AuthenticationService } from './authentication.service';
+import { AuthenticationService } from './AuthenticationService';
 import { SETTINGS } from 'core/config/settings';
 
 export class AuthenticationInterceptor implements ng.IHttpInterceptor {
-  constructor(private $q: ng.IQService, private authenticationService: AuthenticationService) {
+  constructor(private $q: ng.IQService) {
     'ngInject';
   }
 
@@ -17,13 +17,13 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
       if (config.url === SETTINGS.authEndpoint || config.url.indexOf('http') !== 0) {
         resolve(config);
       } else {
-        const user = this.authenticationService.getAuthenticatedUser();
+        const user = AuthenticationService.getAuthenticatedUser();
 
         // only send the request if the user has authenticated within the refresh window for auth calls
         if (user.authenticated && user.lastAuthenticated + (SETTINGS.authTtl || 600000) > new Date().getTime()) {
           resolve(config);
         } else {
-          this.authenticationService.onAuthentication(() => resolve(config));
+          AuthenticationService.onAuthentication(() => resolve(config));
         }
       }
     });
@@ -31,7 +31,7 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
 }
 
 export const AUTHENTICATION_INTERCEPTOR_SERVICE = 'spinnaker.authentication.interceptor.service';
-module(AUTHENTICATION_INTERCEPTOR_SERVICE, [AUTHENTICATION_SERVICE])
+module(AUTHENTICATION_INTERCEPTOR_SERVICE, [])
   .service('authenticationInterceptor', AuthenticationInterceptor)
   .config(($httpProvider: ng.IHttpProvider) => {
     if (SETTINGS.authEnabled) {

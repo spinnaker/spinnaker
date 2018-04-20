@@ -8,6 +8,7 @@ import {
   IOwnerOption,
   IServerGroupActionsProps,
   IServerGroupJob,
+  ModalInjector,
   NgReact,
   ReactInjector,
   SETTINGS,
@@ -229,7 +230,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       previousServerGroup = allServerGroups[0];
     }
 
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: ReactInjector.overrideRegistry.getTemplate(
         'aws.rollback.modal',
         require('./rollback/rollbackServerGroup.html'),
@@ -253,7 +254,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
   }
 
   private resizeServerGroup(): void {
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: ReactInjector.overrideRegistry.getTemplate(
         'aws.resize.modal',
         require('./resize/resizeServerGroup.html'),
@@ -268,7 +269,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
   private cloneServerGroup(): void {
     const { app, serverGroup } = this.props;
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: require('../configure/wizard/serverGroupWizard.html'),
       controller: 'awsCloneServerGroupCtrl as ctrl',
       size: 'lg',

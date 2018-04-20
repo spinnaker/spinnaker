@@ -16,7 +16,7 @@ import { ExecutionState } from 'core/state';
 
 import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
 import { AccountTag } from 'core/account';
-import { ReactInjector } from 'core/reactShims';
+import { ModalInjector, ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import './executionGroup.less';
@@ -128,7 +128,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
   }
 
   public triggerPipeline(trigger: IExecutionTrigger = null): void {
-    ReactInjector.modalService
+    ModalInjector.modalService
       .open({
         templateUrl: require('../../manualExecution/manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as vm',

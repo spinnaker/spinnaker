@@ -191,6 +191,5 @@ export class Api {
   }
 }
 
-const API_SERVICE_NAME = 'API';
 export const API_SERVICE = 'spinnaker.core.api.provider';
-module(API_SERVICE, [AUTHENTICATION_INITIALIZER_SERVICE]).service(API_SERVICE_NAME, Api);
+module(API_SERVICE, [AUTHENTICATION_INITIALIZER_SERVICE]).service('API', Api);

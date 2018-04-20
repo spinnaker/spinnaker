@@ -2,19 +2,19 @@
 
 import { mock } from 'angular';
 
+import { AuthenticationService } from 'core/authentication';
 import { SETTINGS } from 'core/config/settings';
 
 describe('Directives: userMenu', function() {
-  var $scope, $compile, authenticationService;
+  var $scope, $compile;
 
   require('./userMenu.directive.html');
   beforeEach(mock.module(require('./userMenu.directive').AUTHENTICATION_USER_MENU));
 
   beforeEach(
-    mock.inject(function($rootScope, _$compile_, _authenticationService_) {
+    mock.inject(function($rootScope, _$compile_) {
       $scope = $rootScope.$new();
       $compile = _$compile_;
-      authenticationService = _authenticationService_;
     }),
   );
 
@@ -45,7 +45,7 @@ describe('Directives: userMenu', function() {
       var domNode;
 
       SETTINGS.authEnabled = true;
-      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'sam mulligan' });
+      spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'sam mulligan' });
       domNode = createUserMenu($scope);
 
       expect(domNode.length).toBe(1);
@@ -55,7 +55,7 @@ describe('Directives: userMenu', function() {
       var domNode;
 
       SETTINGS.authEnabled = true;
-      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'sam mulligan' });
+      spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'sam mulligan' });
       domNode = createUserMenu($scope);
 
       expect(domNode.find('.user-name-small').text()).toBe('sam mulligan');

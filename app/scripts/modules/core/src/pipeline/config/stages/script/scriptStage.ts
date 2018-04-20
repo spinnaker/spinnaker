@@ -5,10 +5,10 @@ import { IStage } from 'core/domain';
 
 import { ExecutionDetailsTasks } from '../core';
 import { ScriptExecutionDetails } from '../script/ScriptExecutionDetails';
-import { AUTHENTICATION_SERVICE, AuthenticationService } from 'core/authentication/authentication.service';
+import { AuthenticationService } from 'core/authentication/AuthenticationService';
 
 export const SCRIPT_STAGE = 'spinnaker.core.pipeline.stage.scriptStage';
-module(SCRIPT_STAGE, [AUTHENTICATION_SERVICE, PIPELINE_CONFIG_PROVIDER])
+module(SCRIPT_STAGE, [PIPELINE_CONFIG_PROVIDER])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       label: 'Script',
@@ -23,14 +23,14 @@ module(SCRIPT_STAGE, [AUTHENTICATION_SERVICE, PIPELINE_CONFIG_PROVIDER])
       strategy: true,
     });
   })
-  .controller('ScriptStageCtrl', ($scope: IScope, stage: IStage, authenticationService: AuthenticationService) => {
+  .controller('ScriptStageCtrl', ($scope: IScope, stage: IStage) => {
     $scope.stage = stage;
     $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
     $scope.stage.waitForCompletion =
       $scope.stage.waitForCompletion === undefined ? true : $scope.stage.waitForCompletion;
 
     if (!$scope.stage.user) {
-      $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
     }
 
     $scope.viewState = {

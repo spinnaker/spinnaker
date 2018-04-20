@@ -11,7 +11,7 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { IPipeline, IPipelineCommand } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
+import { ModalInjector, ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import { CreatePipeline } from 'core/pipeline/config/CreatePipeline';
@@ -160,7 +160,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   private triggerPipeline(pipeline: IPipeline = null): void {
     ReactGA.event({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
     // TODO: Convert the modal to react
-    ReactInjector.modalService
+    ModalInjector.modalService
       .open({
         templateUrl: require('../manualExecution/manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as vm',

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { CollapsibleSection, HelpField, ReactInjector, Tooltip, timestamp } from '@spinnaker/core';
+import { CollapsibleSection, HelpField, ModalInjector, Tooltip, timestamp } from '@spinnaker/core';
 
 import { IScalingProcess } from 'amazon/domain';
 import { AwsReactInjector } from 'amazon/reactShims';
@@ -26,7 +26,7 @@ export class ScalingProcessesDetailsSection extends React.Component<
   }
 
   private toggleScalingProcesses(): void {
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: require('../scalingProcesses/modifyScalingProcesses.html'),
       controller: 'ModifyScalingProcessesCtrl as ctrl',
       resolve: {

@@ -1,7 +1,15 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { CollapsibleSection, NgReact, Overridable, ReactInjector, Application, IServerGroup } from '@spinnaker/core';
+import {
+  CollapsibleSection,
+  NgReact,
+  Overridable,
+  ModalInjector,
+  ReactInjector,
+  Application,
+  IServerGroup,
+} from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
@@ -9,7 +17,7 @@ import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetai
 @BindAll()
 export class CapacityDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   public static resizeServerGroup(serverGroup: IServerGroup, application: Application): void {
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: ReactInjector.overrideRegistry.getTemplate(
         'aws.resize.modal',
         require('../resize/resizeServerGroup.html'),

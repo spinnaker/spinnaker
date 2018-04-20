@@ -1,24 +1,20 @@
 import { IQService, IRequestConfig, IRootScopeService, mock } from 'angular';
 
 import { AUTHENTICATION_INTERCEPTOR_SERVICE, AuthenticationInterceptor } from './authentication.interceptor.service';
-import { AuthenticationService } from './authentication.service';
+import { AuthenticationService } from './AuthenticationService';
 import { SETTINGS } from 'core/config/settings';
 
 describe('authenticationInterceptor', function() {
-  let interceptor: AuthenticationInterceptor,
-    authenticationService: AuthenticationService,
-    $rootScope: IRootScopeService;
+  let interceptor: AuthenticationInterceptor, $rootScope: IRootScopeService;
 
   beforeEach(mock.module(AUTHENTICATION_INTERCEPTOR_SERVICE));
 
   beforeEach(
     mock.inject(function(
       _$q_: IQService,
-      _authenticationService_: AuthenticationService,
       _$rootScope_: IRootScopeService,
       _authenticationInterceptor_: AuthenticationInterceptor,
     ) {
-      authenticationService = _authenticationService_;
       $rootScope = _$rootScope_;
       interceptor = _authenticationInterceptor_;
     }),
@@ -59,8 +55,8 @@ describe('authenticationInterceptor', function() {
       const request: IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
       const pendingRequests: Function[] = [];
 
-      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: false });
-      spyOn(authenticationService, 'onAuthentication').and.callFake((pendingRequest: Function) =>
+      spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: false });
+      spyOn(AuthenticationService, 'onAuthentication').and.callFake((pendingRequest: Function) =>
         pendingRequests.push(pendingRequest),
       );
 
@@ -81,7 +77,7 @@ describe('authenticationInterceptor', function() {
       let resolved: IRequestConfig = null;
       const request: IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
 
-      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({
+      spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({
         authenticated: true,
         lastAuthenticated: new Date().getTime(),
       });

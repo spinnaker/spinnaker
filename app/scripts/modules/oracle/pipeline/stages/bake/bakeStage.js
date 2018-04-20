@@ -5,6 +5,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
+  AuthenticationService,
   PIPELINE_CONFIG_PROVIDER,
   BAKERY_SERVICE,
   ACCOUNT_SERVICE,
@@ -60,7 +61,6 @@ module.exports = angular
     networkReader,
     subnetReader,
     $q,
-    authenticationService,
   ) {
     const provider = 'oraclebmcs';
 
@@ -77,7 +77,7 @@ module.exports = angular
     }
 
     if (!$scope.stage.user) {
-      $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
     }
 
     function initialize() {
@@ -111,7 +111,7 @@ module.exports = angular
             $scope.subnetOptions = results.subnets;
           }
           if (!$scope.stage.user) {
-            $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+            $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
           }
           if (!$scope.stage.account) {
             $scope.stage.account = $scope.account;

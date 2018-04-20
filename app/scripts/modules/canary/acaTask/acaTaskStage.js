@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, CloudProviderRegistry, SETTINGS } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, AuthenticationService, SETTINGS } from '@spinnaker/core';
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
@@ -34,11 +34,10 @@ module.exports = angular
     $uibModal,
     stage,
     providerSelectionService,
-    authenticationService,
     awsServerGroupTransformer,
     accountService,
   ) {
-    var user = authenticationService.getAuthenticatedUser();
+    var user = AuthenticationService.getAuthenticatedUser();
     $scope.stage = stage;
     $scope.stage.baseline = $scope.stage.baseline || {};
     $scope.stage.canary = $scope.stage.canary || {};

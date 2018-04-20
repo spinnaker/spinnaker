@@ -4,6 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
+  AuthenticationService,
   BakeExecutionLabel,
   BAKERY_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
@@ -45,12 +46,12 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('azureBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, $uibModal) {
+  .controller('azureBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
 
     if (!$scope.stage.user) {
-      $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
     }
 
     $scope.viewState = {

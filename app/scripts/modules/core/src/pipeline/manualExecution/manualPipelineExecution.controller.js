@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AUTHENTICATION_SERVICE } from 'core/authentication/authentication.service';
+import { AuthenticationService } from 'core/authentication';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 import { SETTINGS } from 'core/config/settings';
 
@@ -14,7 +14,6 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     PIPELINE_CONFIG_PROVIDER,
     require('../../notification/notification.service').name,
-    AUTHENTICATION_SERVICE,
   ])
   .controller('ManualPipelineExecutionCtrl', function(
     $uibModalInstance,
@@ -23,7 +22,6 @@ module.exports = angular
     pipelineConfig,
     trigger,
     notificationService,
-    authenticationService,
   ) {
     let applicationNotifications = [];
     let pipelineNotifications = [];
@@ -44,7 +42,7 @@ module.exports = angular
       synchronizeNotifications();
     });
 
-    let user = authenticationService.getAuthenticatedUser();
+    let user = AuthenticationService.getAuthenticatedUser();
 
     let synchronizeNotifications = () => {
       this.notifications = applicationNotifications.concat(pipelineNotifications);

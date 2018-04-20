@@ -1,8 +1,7 @@
 import { mock } from 'angular';
 
 import { IDeckRootScope } from 'core/domain';
-import { RedirectService } from './redirect.service';
-import { AuthenticationService } from './authentication.service';
+import { AuthenticationService } from './AuthenticationService';
 import { AUTHENTICATION_MODULE } from './authentication.module';
 import { SETTINGS } from 'core/config/settings';
 
@@ -16,31 +15,17 @@ describe('authenticationProvider: application startup', function() {
     window.spinnakerSettings.authEnabled = true;
   });
 
+  beforeEach(() => AuthenticationService.reset());
+
   beforeEach(mock.module(AUTHENTICATION_MODULE));
 
-  let authenticationService: AuthenticationService,
-    $timeout: ng.ITimeoutService,
-    $http: ng.IHttpBackendService,
-    redirectService: RedirectService,
-    $location: ng.ILocationService,
-    $rootScope: IDeckRootScope;
+  let $timeout: ng.ITimeoutService, $http: ng.IHttpBackendService, $rootScope: IDeckRootScope;
 
   beforeEach(
     mock.inject(
-      (
-        _authenticationService_: AuthenticationService,
-        _$timeout_: ng.ITimeoutService,
-        _$httpBackend_: ng.IHttpBackendService,
-        _redirectService_: RedirectService,
-        _$location_: ng.ILocationService,
-        _$rootScope_: IDeckRootScope,
-      ) => {
-        authenticationService = _authenticationService_;
+      (_$timeout_: ng.ITimeoutService, _$httpBackend_: ng.IHttpBackendService, _$rootScope_: IDeckRootScope) => {
         $timeout = _$timeout_;
         $http = _$httpBackend_;
-
-        redirectService = _redirectService_;
-        $location = _$location_;
         $rootScope = _$rootScope_;
       },
     ),
@@ -55,22 +40,18 @@ describe('authenticationProvider: application startup', function() {
       $http.flush();
 
       expect($rootScope.authenticating).toBe(false);
-      expect(authenticationService.getAuthenticatedUser().name).toBe('joe!');
-      expect(authenticationService.getAuthenticatedUser().authenticated).toBe(true);
+      expect(AuthenticationService.getAuthenticatedUser().name).toBe('joe!');
+      expect(AuthenticationService.getAuthenticatedUser().authenticated).toBe(true);
     });
 
     it('requests authentication from gate, then opens modal and redirects on 401', function() {
-      let redirectUrl = 'abc';
-      spyOn(redirectService, 'redirect').and.callFake((url: string) => (redirectUrl = url));
       $http.whenGET(SETTINGS.authEndpoint).respond(401, null, { 'X-AUTH-REDIRECT-URL': '/authUp' });
       $rootScope.$digest();
       $http.flush();
 
-      const callback = encodeURIComponent($location.absUrl());
       expect($rootScope.authenticating).toBe(true);
-      expect(authenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
-      expect(authenticationService.getAuthenticatedUser().authenticated).toBe(false);
-      expect(redirectUrl).toBe(`${SETTINGS.gateUrl}/auth/redirect?to=${callback}`);
+      expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
+      expect(AuthenticationService.getAuthenticatedUser().authenticated).toBe(false);
     });
   });
 });

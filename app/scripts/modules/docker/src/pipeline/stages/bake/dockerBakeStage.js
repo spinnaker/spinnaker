@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AuthenticationService, BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 /*
   This stage is just here so that we can experiment with baking Docker containers within pipelines.
@@ -33,13 +33,13 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('dockerBakeStageCtrl', function($scope, bakeryService, $q, authenticationService) {
+  .controller('dockerBakeStageCtrl', function($scope, bakeryService, $q) {
     var stage = $scope.stage;
 
     stage.region = 'global';
 
     if (!$scope.stage.user) {
-      $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
     }
 
     $scope.viewState = {

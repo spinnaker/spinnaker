@@ -7,7 +7,7 @@ import { IModalService } from 'angular-ui-bootstrap';
 
 import { Application } from 'core/application';
 import { IProject } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
+import { ModalInjector, ReactInjector } from 'core/reactShims';
 import { OverrideRegistry } from 'core/overrideRegistry';
 import { CacheInitializerService } from 'core/cache';
 
@@ -35,7 +35,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     super(props);
     this.state = {} as IInsightMenuState;
     this.$state = ReactInjector.$state;
-    this.$uibModal = ReactInjector.modalService;
+    this.$uibModal = ModalInjector.modalService;
     this.$rootScope = ReactInjector.$rootScope;
     this.overrideRegistry = ReactInjector.overrideRegistry;
     this.cacheInitializer = ReactInjector.cacheInitializer;

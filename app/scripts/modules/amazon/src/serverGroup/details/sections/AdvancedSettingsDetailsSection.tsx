@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { CollapsibleSection, ReactInjector } from '@spinnaker/core';
+import { CollapsibleSection, ModalInjector } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 @BindAll()
 export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   private editAdvancedSettings(): void {
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: require('../advancedSettings/editAsgAdvancedSettings.modal.html'),
       controller: 'EditAsgAdvancedSettingsCtrl as ctrl',
       resolve: {

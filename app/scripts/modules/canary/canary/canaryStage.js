@@ -4,6 +4,7 @@ const angular = require('angular');
 import { isString, toInteger } from 'lodash';
 
 import {
+  AuthenticationService,
   CloudProviderRegistry,
   LIST_EXTRACTOR_SERVICE,
   NameUtils,
@@ -185,7 +186,6 @@ module.exports = angular
     $uibModal,
     stage,
     providerSelectionService,
-    authenticationService,
     serverGroupCommandBuilder,
     awsServerGroupTransformer,
     accountService,
@@ -197,7 +197,7 @@ module.exports = angular
       return isString(value) && value.includes('${');
     };
 
-    const user = authenticationService.getAuthenticatedUser();
+    const user = AuthenticationService.getAuthenticatedUser();
     $scope.stage = stage;
     stage.baseline = stage.baseline || {};
     stage.scaleUp = stage.scaleUp || { enabled: false };

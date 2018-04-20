@@ -5,7 +5,7 @@ import { Application } from 'core/application';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ILoadBalancer } from 'core/domain';
 import { ILoadBalancerUpsertCommand } from 'core/loadBalancer';
-import { ReactInjector } from 'core/reactShims';
+import { ModalInjector, ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
 
 export interface ILoadBalancerModalProps {
@@ -51,7 +51,7 @@ export class CreateLoadBalancerButton extends React.Component<
           this.setState({ Modal: provider.CreateLoadBalancerModal, showModal: true });
         } else {
           // angular
-          ReactInjector.modalService
+          ModalInjector.modalService
             .open({
               templateUrl: provider.createLoadBalancerTemplateUrl,
               controller: `${provider.createLoadBalancerController} as ctrl`,

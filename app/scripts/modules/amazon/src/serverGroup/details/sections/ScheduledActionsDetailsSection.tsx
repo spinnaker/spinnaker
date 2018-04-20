@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { CollapsibleSection, ReactInjector, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
 
 import { IScalingProcess } from 'amazon/domain';
 import { AwsReactInjector } from 'amazon/reactShims';
@@ -40,7 +40,7 @@ export class ScheduledActionsDetailsSection extends React.Component<
   }
 
   private editScheduledActions(): void {
-    ReactInjector.modalService.open({
+    ModalInjector.modalService.open({
       templateUrl: require('../scheduledAction/editScheduledActions.modal.html'),
       controller: 'EditScheduledActionsCtrl as ctrl',
       resolve: {

@@ -3,6 +3,8 @@
 const angular = require('angular');
 import _ from 'lodash';
 
+import { AuthenticationService } from '@spinnaker/core';
+
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import {
@@ -47,12 +49,12 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, authenticationService, $uibModal) {
+  .controller('awsBakeStageCtrl', function($scope, bakeryService, $q, $uibModal) {
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.regions = $scope.stage.regions || [];
 
     if (!$scope.stage.user) {
-      $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+      $scope.stage.user = AuthenticationService.getAuthenticatedUser().name;
     }
 
     $scope.viewState = {
