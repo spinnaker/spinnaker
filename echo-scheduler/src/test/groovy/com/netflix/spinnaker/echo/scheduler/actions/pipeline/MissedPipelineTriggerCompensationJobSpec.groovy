@@ -24,6 +24,7 @@ import com.netflix.spinnaker.echo.pipelinetriggers.orca.PipelineInitiator
 import com.netflix.spinnaker.echo.scheduler.actions.pipeline.impl.MissedPipelineTriggerCompensationJob
 import org.quartz.CronExpression
 import org.springframework.boot.actuate.metrics.CounterService
+import org.springframework.boot.actuate.metrics.GaugeService
 import rx.schedulers.Schedulers
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -39,6 +40,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
   def orcaService = Mock(OrcaService)
   def pipelineInitiator = Mock(PipelineInitiator)
   def counterService = Stub(CounterService)
+  def gaugeService = Mock(GaugeService)
 
   def 'should trigger pipelines for all missed executions'() {
     given:
@@ -64,7 +66,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       triggerWindowFloor: getDateOffset(0),
       now: getDateOffset(50)
     )
-    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService, pipelineInitiator, counterService, 30000, 'America/Los_Angeles', dateContext)
+    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService, pipelineInitiator, counterService, gaugeService, 30000, 'America/Los_Angeles', true, dateContext)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -81,6 +83,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       ])
     }
     1 * pipelineInitiator.call((Pipeline) pipelines[0])
+    1 * gaugeService.submit(_, _)
     0 * _
   }
 
@@ -101,7 +104,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       triggerWindowFloor: getDateOffset(0),
       now: getDateOffset(0)
     )
-    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService, pipelineInitiator, counterService, 30000, 'America/Los_Angeles', dateContext)
+    def compensationJob = new MissedPipelineTriggerCompensationJob(scheduler, pipelineCache, orcaService, pipelineInitiator, counterService, gaugeService, 30000, 'America/Los_Angeles', true, dateContext)
 
     when:
     compensationJob.triggerMissedExecutions(pipelines)
@@ -113,6 +116,7 @@ class MissedPipelineTriggerCompensationJobSpec extends Specification {
       ])
     }
     0 * pipelineInitiator.call(_)
+    1 * gaugeService.submit(_, _)
     0 * _
   }
 

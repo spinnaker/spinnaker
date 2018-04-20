@@ -27,6 +27,7 @@ import org.quartz.CronExpression
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.metrics.CounterService
+import org.springframework.boot.actuate.metrics.GaugeService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -36,33 +37,42 @@ import rx.Scheduler
 import rx.Subscription
 
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
-import static net.logstash.logback.argument.StructuredArguments.*
-
+import static com.netflix.spinnaker.echo.model.Trigger.Type.CRON
+import static net.logstash.logback.argument.StructuredArguments.kv
 /**
  * Finds and executes all pipeline triggers that should have run in the last configured time window during startup.
  * This job will wait until the {@link com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache} has run prior to
  * finding any missed triggers.
+ *
+ * If enabled (`scheduler.compensationJob.enableRecurring`, default on), after the initial startup compesation job
+ * has been performed, a recurring job will be started at a less aggressive poll cycle to ensure lost triggers are
+ * re-scheduled.
  */
 @ConditionalOnExpression('${scheduler.enabled:false} && ${scheduler.compensationJob.enabled:false}')
 @Component
 @Slf4j
 class MissedPipelineTriggerCompensationJob implements ApplicationListener<ContextRefreshedEvent> {
 
-  final static int POLLING_INTERVAL_SECONDS = 5
+  final static Duration STARTUP_POLL_INTERVAL = Duration.ofSeconds(5)
+  final static Duration RECURRING_POLL_INTERVAL = Duration.ofMinutes(15)
 
   final Scheduler scheduler
   final PipelineCache pipelineCache
   final OrcaService orcaService
   final CounterService counter
+  final GaugeService gauge
   final PipelineInitiator pipelineInitiator
+  final boolean enableRecurring
   final DateContext dateContext
 
-  transient Subscription subscription
+  Subscription startupSubscription
+  Subscription recurringSubscription
 
   @Autowired
   MissedPipelineTriggerCompensationJob(Scheduler scheduler,
@@ -70,9 +80,11 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        CounterService counter,
+                                       GaugeService gauge,
                                        @Value('${scheduler.compensationJob.windowMs:1800000}') long compensationWindowMs,
-                                       @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId) {
-    this(scheduler, pipelineCache, orcaService, pipelineInitiator, counter, compensationWindowMs, timeZoneId, null)
+                                       @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
+                                       @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring) {
+    this(scheduler, pipelineCache, orcaService, pipelineInitiator, counter, gauge, compensationWindowMs, timeZoneId, enableRecurring, null)
   }
 
   MissedPipelineTriggerCompensationJob(Scheduler scheduler,
@@ -80,31 +92,53 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
                                        OrcaService orcaService,
                                        PipelineInitiator pipelineInitiator,
                                        CounterService counter,
+                                       GaugeService gauge,
                                        @Value('${scheduler.compensationJob.windowMs:1800000}') long compensationWindowMs,
                                        @Value('${scheduler.cron.timezone:America/Los_Angeles}') String timeZoneId,
+                                       @Value('${scheduler.compensationJob.enableRecurring:true}') boolean enableRecurring,
                                        DateContext dateContext) {
     this.scheduler = scheduler
     this.pipelineCache = pipelineCache
     this.orcaService = orcaService
     this.pipelineInitiator = pipelineInitiator
     this.counter = counter
+    this.gauge = gauge
+    this.enableRecurring = enableRecurring
     this.dateContext = dateContext ?: DateContext.fromCompensationWindow(timeZoneId, compensationWindowMs)
   }
 
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
-    if (subscription == null) {
-      subscription = Observable.interval(POLLING_INTERVAL_SECONDS, TimeUnit.SECONDS, scheduler)
+    if (startupSubscription == null) {
+      startupSubscription = Observable.interval(STARTUP_POLL_INTERVAL.toMillis(), TimeUnit.MILLISECONDS, scheduler)
         .doOnNext { onPipelineCacheAwait(it) }
         .flatMap { tick -> Observable.just(pipelineCache.pipelines) }
         .doOnError { onPipelineCacheError(it) }
         .retry()
         .subscribe { List<Pipeline> pipelines ->
-          if (pipelines.size() == 0) {
+          if (pipelines.isEmpty()) {
             return
           }
           triggerMissedExecutions(pipelines)
-          subscription.unsubscribe()
+          startupSubscription.unsubscribe()
+
+          scheduleRecurringCompensation()
+        }
+    }
+  }
+
+  void scheduleRecurringCompensation() {
+    if (enableRecurring && recurringSubscription == null) {
+      recurringSubscription = Observable.interval(RECURRING_POLL_INTERVAL.toMinutes(), TimeUnit.MINUTES, scheduler)
+        .doOnNext { onPipelineCacheAwait(it) }
+        .flatMap { tick -> Observable.just(pipelineCache.pipelines) }
+        .doOnError { onPipelineCacheError(it) }
+        .retry()
+        .subscribe { List<Pipeline> pipelines ->
+          if (pipelines.isEmpty()) {
+            return
+          }
+          triggerMissedExecutions(pipelines)
         }
     }
   }
@@ -138,7 +172,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
         it.startTime != null ? new Date(it.startTime) : null
       }
 
-      if (executions.size() == 0) {
+      if (executions.isEmpty()) {
         return
       }
 
@@ -150,10 +184,13 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       def expr = new CronExpression(trigger.cronExpression)
       expr.timeZone = dateContext.timeZone
 
+      int misses = 0
       if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now)) {
         log.info('Triggering missed execution on pipeline {} {}', kv('application', pipeline.application), kv('pipelineConfigId', pipeline.id))
         pipelineInitiator.call(pipeline)
+        misses++
       }
+      gauge.submit("triggers.cronMisfires", misses)
     }
   }
 
@@ -166,7 +203,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
     (List<Trigger>) pipelines
       .collect { it.triggers }
       .flatten()
-      .findAll { Trigger it -> it && it.enabled && it.type == Trigger.Type.CRON.toString() }
+      .findAll { Trigger it -> it && it.enabled && it.type == CRON.toString() }
   }
 
   /**
