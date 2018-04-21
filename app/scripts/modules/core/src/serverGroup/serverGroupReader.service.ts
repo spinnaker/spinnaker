@@ -1,15 +1,15 @@
 import { ILogService, IPromise, module } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
-  constructor(private $log: ILogService, private API: Api) {
+  constructor(private $log: ILogService) {
     'ngInject';
   }
 
   public getScalingActivities(serverGroup: IServerGroup): IPromise<any[]> {
-    return this.API.one('applications')
+    return API.one('applications')
       .one(serverGroup.app)
       .all('clusters')
       .all(serverGroup.account)
@@ -33,7 +33,7 @@ export class ServerGroupReader {
     region: string,
     serverGroupName: string,
   ): IPromise<IServerGroup> {
-    return this.API.one('applications')
+    return API.one('applications')
       .one(application)
       .all('serverGroups')
       .all(account)
@@ -44,4 +44,4 @@ export class ServerGroupReader {
 }
 
 export const SERVER_GROUP_READER = 'spinnaker.core.serverGroup.read.service';
-module(SERVER_GROUP_READER, [API_SERVICE]).service('serverGroupReader', ServerGroupReader);
+module(SERVER_GROUP_READER, []).service('serverGroupReader', ServerGroupReader);

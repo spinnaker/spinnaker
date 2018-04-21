@@ -1,6 +1,6 @@
 import { mock } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import {
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   SecurityGroupTransformerService,
@@ -15,19 +15,15 @@ describe('Service: securityGroupReader', function() {
   let $q: ng.IQService,
     $http: ng.IHttpBackendService,
     $scope: ng.IRootScopeService,
-    API: Api,
     applicationModelBuilder: ApplicationModelBuilder,
     reader: SecurityGroupReader;
 
-  beforeEach(
-    mock.module(APPLICATION_MODEL_BUILDER, SECURITY_GROUP_TRANSFORMER_SERVICE, SECURITY_GROUP_READER, API_SERVICE),
-  );
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, SECURITY_GROUP_TRANSFORMER_SERVICE, SECURITY_GROUP_READER));
   beforeEach(
     mock.inject(function(
       _$q_: ng.IQService,
       $httpBackend: ng.IHttpBackendService,
       $rootScope: ng.IRootScopeService,
-      _API_: Api,
       _applicationModelBuilder_: ApplicationModelBuilder,
       _providerServiceDelegate_: any,
       securityGroupTransformer: SecurityGroupTransformerService,
@@ -35,7 +31,6 @@ describe('Service: securityGroupReader', function() {
     ) {
       reader = _securityGroupReader_;
       $http = $httpBackend;
-      API = _API_;
       applicationModelBuilder = _applicationModelBuilder_;
       $q = _$q_;
       $scope = $rootScope.$new();

@@ -30,7 +30,6 @@ module.exports = angular
     instanceTypeService,
     serverGroupConfigurationService,
     v2modalWizardService,
-    $log,
   ) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {

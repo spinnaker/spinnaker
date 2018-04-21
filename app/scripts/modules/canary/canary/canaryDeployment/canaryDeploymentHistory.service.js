@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { API_SERVICE } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.canary.deployment.history.service', [API_SERVICE])
-  .factory('canaryDeploymentHistoryService', function(API) {
+  .module('spinnaker.canary.deployment.history.service', [])
+  .factory('canaryDeploymentHistoryService', function() {
     function getAnalysisHistory(canaryDeploymentId) {
       return API.one('canaryDeployments')
         .one(canaryDeploymentId)

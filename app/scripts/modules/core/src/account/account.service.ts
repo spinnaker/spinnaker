@@ -3,7 +3,7 @@ import { ILogService, IPromise, IQResolveReject, IQService, module } from 'angul
 import { Observable } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from 'core/config/settings';
 
@@ -54,7 +54,7 @@ export interface IAccountZone {
 
 export class AccountService {
   public accounts$: Observable<IAccountDetails[]> = Observable.defer(() => {
-    const promise = this.API.one('credentials')
+    const promise = API.one('credentials')
       .useCache()
       .withParams({ expand: true })
       .get();
@@ -68,7 +68,7 @@ export class AccountService {
     return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
   });
 
-  constructor(private $log: ILogService, private $q: IQService, private API: Api) {
+  constructor(private $log: ILogService, private $q: IQService) {
     'ngInject';
   }
 
@@ -91,7 +91,7 @@ export class AccountService {
   }
 
   public getArtifactAccounts(): IPromise<IAccount[]> {
-    return this.API.one('artifacts')
+    return API.one('artifacts')
       .one('credentials')
       .useCache()
       .get();
@@ -211,4 +211,4 @@ export class AccountService {
 }
 
 export const ACCOUNT_SERVICE = 'spinnaker.core.account.service';
-module(ACCOUNT_SERVICE, [API_SERVICE]).service('accountService', AccountService);
+module(ACCOUNT_SERVICE, []).service('accountService', AccountService);

@@ -1,6 +1,6 @@
 import { IHttpPromiseCallbackArg, IPromise, IQService, ITimeoutService, module } from 'angular';
 
-import { Api, API_SERVICE } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { TaskReader, TASK_READ_SERVICE } from './task.read.service';
 import { ITaskCommand } from './taskExecutor';
 import { DebugWindow } from 'core/utils/consoleDebug';
@@ -10,23 +10,18 @@ export interface ITaskCreateResult {
 }
 
 export class TaskWriter {
-  constructor(
-    private API: Api,
-    private taskReader: TaskReader,
-    private $q: IQService,
-    private $timeout: ITimeoutService,
-  ) {
+  constructor(private taskReader: TaskReader, private $q: IQService, private $timeout: ITimeoutService) {
     'ngInject';
   }
 
   public postTaskCommand(taskCommand: ITaskCommand): IPromise<ITaskCreateResult> {
-    return this.API.one('applications', taskCommand.application || taskCommand.project)
+    return API.one('applications', taskCommand.application || taskCommand.project)
       .all('tasks')
       .post(taskCommand);
   }
 
   public cancelTask(applicationName: string, taskId: string): IPromise<void> {
-    return this.API.one('applications', applicationName)
+    return API.one('applications', applicationName)
       .all('tasks')
       .one(taskId, 'cancel')
       .put()
@@ -38,7 +33,7 @@ export class TaskWriter {
   }
 
   public deleteTask(taskId: string): IPromise<void> {
-    return this.API.one('tasks', taskId)
+    return API.one('tasks', taskId)
       .remove()
       .then(() => this.waitUntilTaskIsDeleted(taskId));
   }
@@ -46,7 +41,7 @@ export class TaskWriter {
   private waitUntilTaskIsDeleted(taskId: string): IPromise<void> {
     // wait until the task is gone, i.e. the promise from the get() is rejected, before succeeding
     const deferred = this.$q.defer<void>();
-    this.API.one('tasks', taskId)
+    API.one('tasks', taskId)
       .get()
       .then(
         () => {
@@ -80,6 +75,6 @@ export class TaskWriter {
 }
 
 export const TASK_WRITE_SERVICE = 'spinnaker.core.task.write.service';
-module(TASK_WRITE_SERVICE, [API_SERVICE, TASK_READ_SERVICE]).service('taskWriter', TaskWriter);
+module(TASK_WRITE_SERVICE, [TASK_READ_SERVICE]).service('taskWriter', TaskWriter);
 
 DebugWindow.addInjectable('taskWriter');

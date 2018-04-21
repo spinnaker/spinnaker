@@ -1,6 +1,6 @@
 import { module, IPromise, IQService } from 'angular';
 import { flatten } from 'lodash';
-import { Api, API_SERVICE } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { IPipeline } from 'core/domain/IPipeline';
 import { BindAll } from 'lodash-decorators';
 
@@ -74,7 +74,7 @@ export interface IPipelineTemplatePlanError {
 
 @BindAll()
 export class PipelineTemplateService {
-  constructor(private API: Api, private $q: IQService) {
+  constructor(private $q: IQService) {
     'ngInject';
   }
 
@@ -83,7 +83,7 @@ export class PipelineTemplateService {
     executionId?: String,
     pipelineConfigId?: string,
   ): IPromise<IPipelineTemplate> {
-    return this.API.one('pipelineTemplates')
+    return API.one('pipelineTemplates')
       .one('resolve')
       .withParams({ source, executionId, pipelineConfigId })
       .get()
@@ -94,13 +94,13 @@ export class PipelineTemplateService {
   }
 
   public getPipelinePlan(config: IPipelineTemplateConfig, executionId?: String): IPromise<IPipeline> {
-    return this.API.one('pipelines')
+    return API.one('pipelines')
       .one('start')
       .post({ ...config, plan: true, executionId });
   }
 
   public getPipelineTemplatesByScope(scope: string): IPromise<IPipelineTemplate[]> {
-    return this.API.one('pipelineTemplates')
+    return API.one('pipelineTemplates')
       .withParams({ scope })
       .get();
   }
@@ -117,4 +117,4 @@ export class PipelineTemplateService {
 }
 
 export const PIPELINE_TEMPLATE_SERVICE = 'spinnaker.core.pipelineTemplate.service';
-module(PIPELINE_TEMPLATE_SERVICE, [API_SERVICE]).service('pipelineTemplateService', PipelineTemplateService);
+module(PIPELINE_TEMPLATE_SERVICE, []).service('pipelineTemplateService', PipelineTemplateService);

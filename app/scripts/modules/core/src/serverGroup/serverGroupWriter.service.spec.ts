@@ -1,6 +1,6 @@
 import { mock, noop } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { SERVER_GROUP_WRITER, ServerGroupWriter } from './serverGroupWriter.service';
 import {
   IServerGroupCommand,
@@ -23,16 +23,13 @@ class TestApplication extends Application {
 }
 
 describe('serverGroupWriter', function() {
-  let API: Api,
-    $httpBackend: ng.IHttpBackendService,
+  let $httpBackend: ng.IHttpBackendService,
     applicationModelBuilder: ApplicationModelBuilder,
     applicationDataSourceRegistry: ApplicationDataSourceRegistry,
     serverGroupTransformer: any,
     serverGroupWriter: ServerGroupWriter;
 
-  beforeEach(
-    mock.module(API_SERVICE, APPLICATION_DATA_SOURCE_REGISTRY, APPLICATION_MODEL_BUILDER, SERVER_GROUP_WRITER),
-  );
+  beforeEach(mock.module(APPLICATION_DATA_SOURCE_REGISTRY, APPLICATION_MODEL_BUILDER, SERVER_GROUP_WRITER));
 
   beforeEach(function() {
     mock.inject(function(
@@ -41,9 +38,7 @@ describe('serverGroupWriter', function() {
       _applicationModelBuilder_: ApplicationModelBuilder,
       _applicationDataSourceRegistry_: ApplicationDataSourceRegistry,
       _serverGroupTransformer_: any,
-      _API_: Api,
     ) {
-      API = _API_;
       serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
       applicationModelBuilder = _applicationModelBuilder_;

@@ -1,18 +1,18 @@
 import { module, IQService, IPromise } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { IEntityTags, IEntityTag, ICreationMetadataTag } from '../domain/IEntityTags';
 import { Application } from 'core/application/application.model';
 import { IServerGroup, ILoadBalancer, ISecurityGroup } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
-  constructor(private API: Api, private $q: IQService) {
+  constructor(private $q: IQService) {
     'ngInject';
   }
 
   public getAllEntityTagsForApplication(application: string): IPromise<IEntityTags[]> {
-    return this.API.one('tags')
+    return API.one('tags')
       .withParams({ application })
       .getList()
       .then((allTags: IEntityTags[]) => this.flattenTagsAndAddMetadata(allTags));
@@ -77,7 +77,7 @@ export class EntityTagsReader {
     if (!entityId) {
       return this.$q.when([]);
     }
-    return this.API.one('tags')
+    return API.one('tags')
       .withParams({
         entityType: entityType.toLowerCase(),
         entityId,
@@ -115,4 +115,4 @@ export class EntityTagsReader {
 }
 
 export const ENTITY_TAGS_READ_SERVICE = 'spinnaker.core.entityTag.read.service';
-module(ENTITY_TAGS_READ_SERVICE, [API_SERVICE]).service('entityTagsReader', EntityTagsReader);
+module(ENTITY_TAGS_READ_SERVICE, []).service('entityTagsReader', EntityTagsReader);

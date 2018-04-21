@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { API_SERVICE, RETRY_SERVICE } from '@spinnaker/core';
+import { API, RETRY_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.image.reader', [API_SERVICE, RETRY_SERVICE])
-  .factory('kubernetesImageReader', function($q, API, retryService) {
+  .module('spinnaker.kubernetes.image.reader', [RETRY_SERVICE])
+  .factory('kubernetesImageReader', function($q, retryService) {
     function findImages(params) {
       return retryService
         .buildRetrySequence(() => API.all('images/find').getList(params), results => results.length > 0, 10, 1000)

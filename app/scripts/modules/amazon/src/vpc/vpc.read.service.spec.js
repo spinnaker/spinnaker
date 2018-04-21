@@ -1,17 +1,16 @@
 'use strict';
 
-import { API_SERVICE } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
 describe('vpcReader', function() {
-  var service, $http, $scope, API;
+  var service, $http, $scope;
 
-  beforeEach(window.module(VPC_READ_SERVICE, API_SERVICE));
+  beforeEach(window.module(VPC_READ_SERVICE));
 
   beforeEach(
-    window.inject(function($httpBackend, $rootScope, _vpcReader_, _API_) {
-      API = _API_;
+    window.inject(function($httpBackend, $rootScope, _vpcReader_) {
       service = _vpcReader_;
       $http = $httpBackend;
       $scope = $rootScope.$new();

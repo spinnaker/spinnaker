@@ -3,7 +3,7 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q, $timeout } from 'ngimport';
 import Spy = jasmine.Spy;
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { ITask } from 'core/domain';
 import { TASK_MONITOR_BUILDER, TaskMonitorBuilder } from 'core/task/monitor/taskMonitor.builder';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
@@ -13,10 +13,9 @@ describe('Service: taskMonitorBuilder', () => {
   let taskMonitorBuilder: TaskMonitorBuilder,
     $scope: ng.IScope,
     $http: ng.IHttpBackendService,
-    API: Api,
     applicationModelBuilder: ApplicationModelBuilder;
 
-  beforeEach(mock.module(TASK_MONITOR_BUILDER, API_SERVICE, APPLICATION_MODEL_BUILDER));
+  beforeEach(mock.module(TASK_MONITOR_BUILDER, APPLICATION_MODEL_BUILDER));
 
   beforeEach(
     mock.inject(
@@ -25,13 +24,11 @@ describe('Service: taskMonitorBuilder', () => {
         $rootScope: ng.IRootScopeService,
         $httpBackend: ng.IHttpBackendService,
         _applicationModelBuilder_: ApplicationModelBuilder,
-        _API_: Api,
       ) => {
         taskMonitorBuilder = _taskMonitorBuilder_;
         $scope = $rootScope.$new();
         $http = $httpBackend;
         applicationModelBuilder = _applicationModelBuilder_;
-        API = _API_;
       },
     ),
   );

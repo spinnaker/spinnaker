@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { InfrastructureCaches } from 'core/cache';
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 
 export interface INetwork {
   cloudProvider: string;
@@ -13,18 +13,14 @@ export interface INetwork {
 }
 
 export class NetworkReader {
-  public constructor(private API: Api) {
-    'ngInject';
-  }
-
   public listNetworks(): INetwork[] {
-    return this.API.one('networks')
+    return API.one('networks')
       .useCache(InfrastructureCaches.get('networks'))
       .getList();
   }
 
   public listNetworksByProvider(cloudProvider: string) {
-    return this.API.one('networks')
+    return API.one('networks')
       .one(cloudProvider)
       .useCache(InfrastructureCaches.get('networks'))
       .getList();
@@ -32,4 +28,4 @@ export class NetworkReader {
 }
 
 export const NETWORK_READ_SERVICE = 'spinnaker.core.network.read.service';
-module(NETWORK_READ_SERVICE, [API_SERVICE]).service('networkReader', NetworkReader);
+module(NETWORK_READ_SERVICE, []).service('networkReader', NetworkReader);

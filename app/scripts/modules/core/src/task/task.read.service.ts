@@ -1,19 +1,15 @@
 import { module } from 'angular';
 import { $log, $q, $timeout } from 'ngimport';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { ITask } from 'core/domain';
 
 export class TaskReader {
   private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
-  public constructor(private API: Api) {
-    'ngInject';
-  }
-
   public getTasks(applicationName: string, statuses: string[] = []): ng.IPromise<ITask[]> {
-    return this.API.one('applications', applicationName)
+    return API.one('applications', applicationName)
       .all('tasks')
       .getList({ statuses: statuses.join(',') })
       .then((tasks: ITask[]) => {
@@ -27,7 +23,7 @@ export class TaskReader {
   }
 
   public getTask(taskId: string): ng.IPromise<ITask> {
-    return this.API.one('tasks', taskId)
+    return API.one('tasks', taskId)
       .get()
       .then((task: ITask) => {
         OrchestratedItemTransformer.defineProperties(task);
@@ -100,4 +96,4 @@ export class TaskReader {
 
 export const TASK_READ_SERVICE = 'spinnaker.core.task.read.service';
 
-module(TASK_READ_SERVICE, [API_SERVICE]).service('taskReader', TaskReader);
+module(TASK_READ_SERVICE, []).service('taskReader', TaskReader);

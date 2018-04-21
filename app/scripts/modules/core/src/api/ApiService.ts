@@ -1,11 +1,7 @@
-import { module, IHttpService, IPromise, IQResolveReject, IQService, IRequestConfig } from 'angular';
+import { IPromise, IRequestConfig } from 'angular';
+import { $q, $http } from 'ngimport';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { SETTINGS } from 'core/config/settings';
-
-interface IDefaultParams {
-  timeout: number;
-  headers: { [key: string]: string };
-}
 
 export interface IRequestBuilder {
   config?: IRequestConfig;
@@ -21,23 +17,16 @@ export interface IRequestBuilder {
   put?: (data: any) => IPromise<any>;
 }
 
-export class Api {
-  private gateUrl: string;
-  private defaultParams: IDefaultParams;
+export class API {
+  private static defaultParams = {
+    timeout: SETTINGS.pollSchedule * 2 + 5000,
+    headers: {
+      'X-RateLimit-App': 'deck',
+    },
+  };
 
-  constructor(private $q: IQService, private $http: IHttpService) {
-    'ngInject';
-    this.gateUrl = SETTINGS.gateUrl;
-    this.defaultParams = {
-      timeout: SETTINGS.pollSchedule * 2 + 5000,
-      headers: {
-        'X-RateLimit-App': 'deck',
-      },
-    };
-  }
-
-  private getData(result: any): IPromise<any> {
-    return this.$q((resolve: IQResolveReject<any>, reject: IQResolveReject<any>) => {
+  private static getData(result: any): IPromise<any> {
+    return $q((resolve, reject) => {
       const contentType = result.headers('content-type');
       if (contentType) {
         const isJson = contentType.includes('application/json');
@@ -53,7 +42,7 @@ export class Api {
     });
   }
 
-  private internalOne(config: IRequestConfig): (...urls: string[]) => IRequestBuilder {
+  private static internalOne(config: IRequestConfig): (...urls: string[]) => IRequestBuilder {
     return (...urls: string[]) => {
       urls.forEach((url: string) => {
         if (url) {
@@ -65,14 +54,14 @@ export class Api {
     };
   }
 
-  private useCacheFn(config: IRequestConfig): (useCache: boolean) => IRequestBuilder {
+  private static useCacheFn(config: IRequestConfig): (useCache: boolean) => IRequestBuilder {
     return (useCache = true) => {
       config.cache = useCache;
       return this.baseReturn(config);
     };
   }
 
-  private withParamsFn(config: IRequestConfig): (params: any) => IRequestBuilder {
+  private static withParamsFn(config: IRequestConfig): (params: any) => IRequestBuilder {
     return (params: any) => {
       if (params) {
         config.params = params;
@@ -83,7 +72,7 @@ export class Api {
   }
 
   // sets the data for PUT and POST operations
-  private dataFn(config: IRequestConfig): (data: any) => IRequestBuilder {
+  private static dataFn(config: IRequestConfig): (data: any) => IRequestBuilder {
     return (data: any) => {
       if (data) {
         config.data = data;
@@ -94,7 +83,7 @@ export class Api {
   }
 
   // HTTP GET operation
-  private getFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static getFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (params: any) => {
       config.method = 'get';
       Object.assign(config, this.defaultParams);
@@ -102,12 +91,12 @@ export class Api {
         config.params = params;
       }
 
-      return this.$http(config).then((result: any) => this.getData(result));
+      return $http(config).then((result: any) => this.getData(result));
     };
   }
 
   // HTTP POST operation
-  private postFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static postFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (data: any) => {
       config.method = 'post';
       if (data) {
@@ -115,12 +104,12 @@ export class Api {
       }
       Object.assign(config, this.defaultParams);
 
-      return this.$http(config).then((result: any) => this.getData(result));
+      return $http(config).then((result: any) => this.getData(result));
     };
   }
 
   // HTTP DELETE operation
-  private removeFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static removeFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (params: any) => {
       config.method = 'delete';
       if (params) {
@@ -128,12 +117,12 @@ export class Api {
       }
       Object.assign(config, this.defaultParams);
 
-      return this.$http(config).then((result: any) => this.getData(result));
+      return $http(config).then((result: any) => this.getData(result));
     };
   }
 
   // HTTP PUT operation
-  private putFn(config: IRequestConfig): (data: any) => IPromise<any> {
+  private static putFn(config: IRequestConfig): (data: any) => IPromise<any> {
     return (data: any) => {
       config.method = 'put';
       if (data) {
@@ -141,11 +130,11 @@ export class Api {
       }
       Object.assign(config, this.defaultParams);
 
-      return this.$http(config).then((result: any) => this.getData(result));
+      return $http(config).then((result: any) => this.getData(result));
     };
   }
 
-  private baseReturn(config: IRequestConfig): IRequestBuilder {
+  private static baseReturn(config: IRequestConfig): IRequestBuilder {
     return {
       config,
       one: this.internalOne(config),
@@ -161,28 +150,25 @@ export class Api {
     };
   }
 
-  private init(urls: string[]) {
+  private static init(urls: string[]) {
     const config: IRequestConfig = {
       method: '',
-      url: this.gateUrl,
+      url: SETTINGS.gateUrl,
     };
     urls.forEach((url: string) => (config.url = `${config.url}/${url}`));
 
     return this.baseReturn(config);
   }
 
-  public one(...urls: string[]): any {
+  public static one(...urls: string[]): any {
     return this.init(urls);
   }
 
-  public all(...urls: string[]): any {
+  public static all(...urls: string[]): any {
     return this.init(urls);
   }
 
-  public get baseUrl(): string {
-    return this.gateUrl;
+  public static get baseUrl(): string {
+    return SETTINGS.gateUrl;
   }
 }
-
-export const API_SERVICE = 'spinnaker.core.api.provider';
-module(API_SERVICE, []).service('API', Api);

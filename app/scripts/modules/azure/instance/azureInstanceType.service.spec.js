@@ -1,17 +1,14 @@
 'use strict';
 
-import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
+import { API, InfrastructureCaches } from '@spinnaker/core';
 
 describe('Service: InstanceType', function() {
-  let API;
-
   beforeEach(function() {
-    window.module(require('./azureInstanceType.service').name, API_SERVICE);
+    window.module(require('./azureInstanceType.service').name);
   });
 
   beforeEach(
-    window.inject(function(_azureInstanceTypeService_, _$httpBackend_, _API_) {
-      API = _API_;
+    window.inject(function(_azureInstanceTypeService_, _$httpBackend_) {
       this.azureInstanceTypeService = _azureInstanceTypeService_;
       this.$httpBackend = _$httpBackend_;
 

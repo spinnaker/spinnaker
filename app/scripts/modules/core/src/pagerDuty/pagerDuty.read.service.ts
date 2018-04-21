@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { Observable } from 'rxjs';
 
-import { Api, API_SERVICE } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 
 export interface IPagerDutyService {
   id: string;
@@ -24,18 +24,14 @@ export interface IOnCall {
 }
 
 export class PagerDutyReader {
-  public constructor(private API: Api) {
-    'ngInject';
-  }
-
   public listServices(): Observable<IPagerDutyService[]> {
-    return Observable.fromPromise(this.API.one('pagerDuty/services').getList());
+    return Observable.fromPromise(API.one('pagerDuty/services').getList());
   }
 
   public listOnCalls(): Observable<{ [id: string]: IOnCall[] }> {
-    return Observable.fromPromise(this.API.one('pagerDuty/oncalls').getList());
+    return Observable.fromPromise(API.one('pagerDuty/oncalls').getList());
   }
 }
 
 export const PAGER_DUTY_READ_SERVICE = 'spinnaker.core.pagerDuty.read.service';
-module(PAGER_DUTY_READ_SERVICE, [API_SERVICE]).service('pagerDutyReader', PagerDutyReader);
+module(PAGER_DUTY_READ_SERVICE, []).service('pagerDutyReader', PagerDutyReader);

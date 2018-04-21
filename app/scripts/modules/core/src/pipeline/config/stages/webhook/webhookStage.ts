@@ -3,7 +3,7 @@ import { IModalService } from 'angular-ui-bootstrap';
 
 import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 
 export interface IWebhookStageViewState {
   waitForCompletion?: boolean;
@@ -137,7 +137,7 @@ export class WebhookStage implements IController {
 
 export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
 
-module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER, API_SERVICE])
+module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       label: 'Webhook',
@@ -152,7 +152,7 @@ module(WEBHOOK_STAGE, [JSON_UTILITY_SERVICE, PIPELINE_CONFIG_PROVIDER, API_SERVI
       validators: [{ type: 'requiredField', fieldName: 'url' }, { type: 'requiredField', fieldName: 'method' }],
     });
   })
-  .run((pipelineConfig: PipelineConfigProvider, API: Api) => {
+  .run((pipelineConfig: PipelineConfigProvider) => {
     API.one('webhooks')
       .all('preconfigured')
       .getList()

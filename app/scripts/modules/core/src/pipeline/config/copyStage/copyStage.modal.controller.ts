@@ -2,7 +2,7 @@ import { flatten } from 'lodash';
 import { IController, IPromise, IQService, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import {
   APPLICATION_READ_SERVICE,
@@ -30,7 +30,6 @@ class CopyStageModalCtrl implements IController {
 
   constructor(
     private $q: IQService,
-    private API: Api,
     public application: Application,
     private applicationReader: ApplicationReader,
     private $uibModalInstance: IModalInstanceService,
@@ -82,7 +81,7 @@ class CopyStageModalCtrl implements IController {
   private getStagesForApplication(applicationName: string): IPromise<IStageWrapper[]> {
     const configType = this.forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
-    return this.API.one('applications')
+    return API.one('applications')
       .one(applicationName)
       .all(configType)
       .getList()
@@ -110,7 +109,7 @@ class CopyStageModalCtrl implements IController {
 
 export const COPY_STAGE_MODAL_CONTROLLER = 'spinnaker.core.copyStage.modal.controller';
 
-module(COPY_STAGE_MODAL_CONTROLLER, [API_SERVICE, COPY_STAGE_CARD_COMPONENT, APPLICATION_READ_SERVICE]).controller(
+module(COPY_STAGE_MODAL_CONTROLLER, [COPY_STAGE_CARD_COMPONENT, APPLICATION_READ_SERVICE]).controller(
   'CopyStageModalCtrl',
   CopyStageModalCtrl,
 );

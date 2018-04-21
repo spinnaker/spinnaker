@@ -3,11 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API_SERVICE } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.instanceType.service', [API_SERVICE])
-  .factory('awsInstanceTypeService', function($http, $q, API) {
+  .module('spinnaker.amazon.instanceType.service', [])
+  .factory('awsInstanceTypeService', function($http, $q) {
     var m4 = {
       type: 'm4',
       description:

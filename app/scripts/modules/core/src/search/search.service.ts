@@ -1,5 +1,5 @@
 import { module, ILogService, IHttpPromiseCallbackArg, IPromise } from 'angular';
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { ICache } from 'core/cache';
 
 export interface ISearchParams {
@@ -36,7 +36,7 @@ export class SearchService {
     return 500;
   }
 
-  constructor(private $log: ILogService, private API: Api) {
+  constructor(private $log: ILogService) {
     'ngInject';
   }
 
@@ -50,7 +50,7 @@ export class SearchService {
 
     const params = { ...searchParams, ...defaultParams };
 
-    const requestBuilder = this.API.one('search').withParams(params);
+    const requestBuilder = API.one('search').withParams(params);
 
     if (cache) {
       requestBuilder.useCache(cache);
@@ -69,4 +69,4 @@ export class SearchService {
 }
 
 export const SEARCH_SERVICE = 'spinnaker.core.search.service';
-module(SEARCH_SERVICE, [API_SERVICE]).service('searchService', SearchService);
+module(SEARCH_SERVICE, []).service('searchService', SearchService);

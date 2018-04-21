@@ -1,17 +1,13 @@
 import { module } from 'angular';
 import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { ISubnet } from 'core/domain';
 
 export class SubnetReader {
   private static NAMESPACE = 'subnets';
 
-  public constructor(private API: Api) {
-    'ngInject';
-  }
-
   public listSubnets(): ng.IPromise<ISubnet[]> {
-    return this.API.one('subnets')
+    return API.one('subnets')
       .useCache(InfrastructureCaches.get(SubnetReader.NAMESPACE))
       .getList()
       .then((subnets: ISubnet[]) => {
@@ -27,7 +23,7 @@ export class SubnetReader {
   }
 
   public listSubnetsByProvider(cloudProvider: string): ng.IPromise<ISubnet[]> {
-    return this.API.one('subnets', cloudProvider)
+    return API.one('subnets', cloudProvider)
       .useCache(InfrastructureCaches.get(SubnetReader.NAMESPACE))
       .getList();
   }
@@ -47,4 +43,4 @@ export class SubnetReader {
 }
 
 export const SUBNET_READ_SERVICE = 'spinnaker.core.subnet.read.service';
-module(SUBNET_READ_SERVICE, [API_SERVICE]).service('subnetReader', SubnetReader);
+module(SUBNET_READ_SERVICE, []).service('subnetReader', SubnetReader);

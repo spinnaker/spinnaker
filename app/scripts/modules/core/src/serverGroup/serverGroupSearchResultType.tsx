@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 
+import { API } from 'core/api';
 import { IServerGroup, IInstanceCounts } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
 import {
   AccountCell,
   BasicCell,
@@ -58,7 +58,7 @@ const makeServerGroupTuples = (sgToFetch: IServerGroupSearchResult[], fetched: I
 };
 
 const fetchServerGroups = (toFetch: IServerGroupSearchResult[]): Observable<IServerGroupTuple[]> => {
-  const fetchPromise = ReactInjector.API.one('serverGroups')
+  const fetchPromise = API.one('serverGroups')
     .withParams({ ids: toFetch.map(sg => `${sg.account}:${sg.region}:${sg.serverGroup}`) })
     .get()
     .then((fetched: IServerGroup[]) => makeServerGroupTuples(toFetch, fetched));

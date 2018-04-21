@@ -1,17 +1,14 @@
 'use strict';
 
-import { API_SERVICE } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
 describe('Service: InstanceType', function() {
-  let API;
-
   beforeEach(function() {
-    window.module(require('./awsInstanceType.service').name, API_SERVICE);
+    window.module(require('./awsInstanceType.service').name);
   });
 
   beforeEach(
-    window.inject(function(_awsInstanceTypeService_, _$httpBackend_, _API_) {
-      API = _API_;
+    window.inject(function(_awsInstanceTypeService_, _$httpBackend_) {
       this.awsInstanceTypeService = _awsInstanceTypeService_;
       this.$httpBackend = _$httpBackend_;
 

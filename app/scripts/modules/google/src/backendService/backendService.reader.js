@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
+import { API, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.deck.gce.backendService.reader.service', [API_SERVICE])
-  .factory('gceBackendServiceReader', function(API) {
+  .module('spinnaker.deck.gce.backendService.reader.service', [])
+  .factory('gceBackendServiceReader', function() {
     function listBackendServices(kind) {
       if (kind) {
         return listBackendServices().then(([services]) => {

@@ -1,8 +1,7 @@
 import { module } from 'angular';
 
 import {
-  Api,
-  API_SERVICE,
+  API,
   IFindImageParams,
   IFindTagsParams,
   IImage,
@@ -19,11 +18,11 @@ export interface IDockerImage extends IImage {
 }
 
 export class DockerImageReaderService implements IImageReader {
-  constructor(private API: Api, private retryService: RetryService) {}
+  constructor(private retryService: RetryService) {}
 
   // NB: not currently used or tested; only here to satisfy IImageReader interface
   public getImage(imageName: string, region: string, credentials: string): ng.IPromise<IDockerImage> {
-    return this.API.all('images')
+    return API.all('images')
       .one(credentials)
       .one(region)
       .one(imageName)
@@ -36,7 +35,7 @@ export class DockerImageReaderService implements IImageReader {
   public findImages(params: IFindImageParams): ng.IPromise<IDockerImage[]> {
     return this.retryService
       .buildRetrySequence<IDockerImage[]>(
-        () => this.API.all('images/find').getList(params),
+        () => API.all('images/find').getList(params),
         (results: IDockerImage[]) => results.length > 0,
         10,
         1000,
@@ -48,7 +47,7 @@ export class DockerImageReaderService implements IImageReader {
   public findTags(params: IFindTagsParams): ng.IPromise<string[]> {
     return this.retryService
       .buildRetrySequence<String[]>(
-        () => this.API.all('images/tags').getList(params),
+        () => API.all('images/tags').getList(params),
         (results: string[]) => results.length > 0,
         10,
         1000,
@@ -59,4 +58,4 @@ export class DockerImageReaderService implements IImageReader {
 }
 
 export const DOCKER_IMAGE_READER = 'spinnaker.docker.image.reader';
-module(DOCKER_IMAGE_READER, [API_SERVICE, RETRY_SERVICE]).service('dockerImageReader', DockerImageReaderService);
+module(DOCKER_IMAGE_READER, [RETRY_SERVICE]).service('dockerImageReader', DockerImageReaderService);

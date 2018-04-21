@@ -1,22 +1,20 @@
 import { mock } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { SUBNET_READ_SERVICE, SubnetReader } from 'core/subnet/subnet.read.service';
 import { ISubnet } from 'core/domain';
 
 describe('subnetReader', function() {
-  let service: SubnetReader, $http: ng.IHttpBackendService, $scope: ng.IScope, API: Api;
+  let service: SubnetReader, $http: ng.IHttpBackendService, $scope: ng.IScope;
 
-  beforeEach(mock.module(API_SERVICE, SUBNET_READ_SERVICE));
+  beforeEach(mock.module(SUBNET_READ_SERVICE));
 
   beforeEach(
     mock.inject(function(
       $httpBackend: ng.IHttpBackendService,
       $rootScope: ng.IRootScopeService,
       _subnetReader_: SubnetReader,
-      _API_: Api,
     ) {
-      API = _API_;
       service = _subnetReader_;
       $http = $httpBackend;
       $scope = $rootScope.$new();

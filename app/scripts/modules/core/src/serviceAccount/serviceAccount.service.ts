@@ -1,10 +1,10 @@
 import { module } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { SETTINGS } from 'core/config/settings';
 
 export class ServiceAccountService {
-  constructor(private $q: ng.IQService, private API: Api) {
+  constructor(private $q: ng.IQService) {
     'ngInject';
   }
 
@@ -12,7 +12,7 @@ export class ServiceAccountService {
     if (!SETTINGS.feature.fiatEnabled) {
       return this.$q.resolve([]);
     } else {
-      return this.API.one('auth')
+      return API.one('auth')
         .one('user')
         .one('serviceAccounts')
         .get();
@@ -21,4 +21,4 @@ export class ServiceAccountService {
 }
 
 export const SERVICE_ACCOUNT_SERVICE = 'spinnaker.core.serviceAccount.service';
-module(SERVICE_ACCOUNT_SERVICE, [API_SERVICE]).service('serviceAccountService', ServiceAccountService);
+module(SERVICE_ACCOUNT_SERVICE, []).service('serviceAccountService', ServiceAccountService);

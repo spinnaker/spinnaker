@@ -5,7 +5,6 @@ import { StateParams, StateService, UIRouter } from '@uirouter/core';
 import { ApplicationDataSourceRegistry } from 'core/application/service/applicationDataSource.registry';
 
 import { AccountService } from '../account/account.service';
-import { Api } from '../api/api.service';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationReader } from '../application/service/application.read.service';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
@@ -75,7 +74,6 @@ export class CoreReactInject extends ReactInject {
   public get $rootScope() { return this.$injector.get('$rootScope') as IScope; }
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
-  public get API() { return this.$injector.get('API') as Api; }
   public get accountService() { return this.$injector.get('accountService') as AccountService; }
   public get applicationDataSourceRegistry() { return this.$injector.get('applicationDataSourceRegistry') as ApplicationDataSourceRegistry; }
   public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }

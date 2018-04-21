@@ -1,6 +1,6 @@
 import { IPromise, module, IQService } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { IBuild, IJobConfig } from 'core/domain';
 
 export enum BuildServiceType {
@@ -9,12 +9,12 @@ export enum BuildServiceType {
 }
 
 export class IgorService {
-  constructor(private API: Api, private $q: IQService) {
+  constructor(private $q: IQService) {
     'ngInject';
   }
 
   public listMasters(type: BuildServiceType = null): IPromise<string[]> {
-    const allMasters: IPromise<string[]> = this.API.one('v2')
+    const allMasters: IPromise<string[]> = API.one('v2')
       .one('builds')
       .get();
     if (!allMasters) {
@@ -31,7 +31,7 @@ export class IgorService {
   }
 
   public listJobsForMaster(master: string): IPromise<string[]> {
-    return this.API.one('v2')
+    return API.one('v2')
       .one('builds')
       .one(master)
       .one('jobs')
@@ -39,7 +39,7 @@ export class IgorService {
   }
 
   public listBuildsForJob(master: string, job: string): IPromise<IBuild[]> {
-    return this.API.one('v2')
+    return API.one('v2')
       .one('builds')
       .one(master)
       .one('builds')
@@ -48,7 +48,7 @@ export class IgorService {
   }
 
   public getJobConfig(master: string, job: string): IPromise<IJobConfig> {
-    return this.API.one('v2')
+    return API.one('v2')
       .one('builds')
       .one(master)
       .one('jobs')
@@ -58,4 +58,4 @@ export class IgorService {
 }
 
 export const IGOR_SERVICE = 'spinnaker.core.ci.jenkins.igor.service';
-module(IGOR_SERVICE, [API_SERVICE]).factory('igorService', (API: Api, $q: IQService) => new IgorService(API, $q));
+module(IGOR_SERVICE, []).factory('igorService', ($q: IQService) => new IgorService($q));

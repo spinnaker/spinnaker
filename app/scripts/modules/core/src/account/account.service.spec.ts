@@ -1,5 +1,5 @@
 import { mock } from 'angular';
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { ACCOUNT_SERVICE, AccountService, IAccount } from 'core/account/account.service';
 import { $rootScope } from 'ngimport';
 import { CloudProviderRegistry } from '../cloudProvider';
@@ -7,15 +7,13 @@ import { SETTINGS } from 'core/config/settings';
 
 describe('Service: accountService', () => {
   let $http: ng.IHttpBackendService;
-  let API: Api;
   let accountService: AccountService;
 
-  beforeEach(mock.module(API_SERVICE, ACCOUNT_SERVICE));
+  beforeEach(mock.module(ACCOUNT_SERVICE));
 
   beforeEach(
-    mock.inject(function($httpBackend: ng.IHttpBackendService, _API_: Api, _accountService_: AccountService) {
+    mock.inject(function($httpBackend: ng.IHttpBackendService, _accountService_: AccountService) {
       $http = $httpBackend;
-      API = _API_;
       accountService = _accountService_;
     }),
   );

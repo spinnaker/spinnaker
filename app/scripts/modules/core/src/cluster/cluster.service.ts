@@ -1,7 +1,7 @@
 import { IPromise, IQService, module } from 'angular';
 import { forOwn, get, groupBy, has, head, keys, values } from 'lodash';
 
-import { Api, API_SERVICE } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
 import { NameUtils } from 'core/naming';
 import { FilterModelService } from 'core/filterModel';
@@ -13,7 +13,7 @@ import { taskMatcher } from './task.matcher';
 export class ClusterService {
   public static ON_DEMAND_THRESHOLD = 350;
 
-  constructor(private $q: IQService, private API: Api, private serverGroupTransformer: any) {
+  constructor(private $q: IQService, private serverGroupTransformer: any) {
     'ngInject';
   }
 
@@ -22,7 +22,7 @@ export class ClusterService {
   public loadServerGroups(application: Application): IPromise<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
-      const serverGroupLoader = this.API.one('applications')
+      const serverGroupLoader = API.one('applications')
         .one(application.name)
         .all('serverGroups');
       dataSource.fetchOnDemand = clusters.length > ClusterService.ON_DEMAND_THRESHOLD;
@@ -190,7 +190,7 @@ export class ClusterService {
   }
 
   private getClusters(application: string): IPromise<IClusterSummary[]> {
-    return this.API.one('applications')
+    return API.one('applications')
       .one(application)
       .one('clusters')
       .get()
@@ -284,7 +284,7 @@ export class ClusterService {
 }
 
 export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
-module(CLUSTER_SERVICE, [API_SERVICE, require('../serverGroup/serverGroup.transformer.js').name]).service(
+module(CLUSTER_SERVICE, [require('../serverGroup/serverGroup.transformer.js').name]).service(
   'clusterService',
   ClusterService,
 );

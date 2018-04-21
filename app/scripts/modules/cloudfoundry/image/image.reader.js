@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-import { API_SERVICE } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.cf.image.reader', [API_SERVICE]).factory('cfImageReader', function($q, API) {
+module.exports = angular.module('spinnaker.cf.image.reader', []).factory('cfImageReader', function() {
   function findImages(params) {
     return API.all('images/find')
       .getList(params)

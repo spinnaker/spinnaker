@@ -7,7 +7,7 @@ import { IInstanceCounts, IServerGroup } from 'core/domain';
 import { Application } from 'core/application/application.model';
 
 import { CLUSTER_SERVICE, ClusterService } from './cluster.service';
-import { Api } from '../api/api.service';
+import { API } from '../api/ApiService';
 
 const ClusterState = State.ClusterState;
 
@@ -16,7 +16,6 @@ describe('Service: Cluster', function() {
 
   let clusterService: ClusterService;
   let $http: IHttpBackendService;
-  let API: Api;
   let application: Application;
 
   function buildTask(config: { status: string; variables: { [key: string]: any } }) {
@@ -36,12 +35,10 @@ describe('Service: Cluster', function() {
     mock.inject(
       (
         $httpBackend: IHttpBackendService,
-        _API_: Api,
         _clusterService_: ClusterService,
         applicationModelBuilder: ApplicationModelBuilder,
       ) => {
         $http = $httpBackend;
-        API = _API_;
         clusterService = _clusterService_;
 
         application = applicationModelBuilder.createApplication(

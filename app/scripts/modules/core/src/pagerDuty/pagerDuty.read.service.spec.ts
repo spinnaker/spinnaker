@@ -1,20 +1,18 @@
 import { IHttpBackendService, mock } from 'angular';
 
-import { Api, API_SERVICE } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 
 import { IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 
 describe('PagerDutyReader', () => {
   let $http: IHttpBackendService;
-  let API: Api;
   let pagerDutyReader: PagerDutyReader;
 
-  beforeEach(mock.module(API_SERVICE));
+  beforeEach(mock.module());
   beforeEach(
-    mock.inject((_$httpBackend_: IHttpBackendService, _API_: Api) => {
+    mock.inject((_$httpBackend_: IHttpBackendService) => {
       $http = _$httpBackend_;
-      API = _API_;
-      pagerDutyReader = new PagerDutyReader(API);
+      pagerDutyReader = new PagerDutyReader();
     }),
   );
 

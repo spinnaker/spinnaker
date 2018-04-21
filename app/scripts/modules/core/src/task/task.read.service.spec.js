@@ -1,16 +1,15 @@
 'use strict';
 
-import { API_SERVICE } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { TASK_READ_SERVICE } from 'core/task/task.read.service';
 
 describe('Service: taskReader', function() {
-  var service, $http, scope, timeout, task, API;
+  var service, $http, scope, timeout, task;
 
-  beforeEach(window.module(TASK_READ_SERVICE, API_SERVICE));
+  beforeEach(window.module(TASK_READ_SERVICE));
 
   beforeEach(
-    window.inject(function(taskReader, $httpBackend, $rootScope, $timeout, _API_) {
-      API = _API_;
+    window.inject(function(taskReader, $httpBackend, $rootScope, $timeout) {
       service = taskReader;
       $http = $httpBackend;
       timeout = $timeout;

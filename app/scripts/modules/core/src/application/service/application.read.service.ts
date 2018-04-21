@@ -2,7 +2,7 @@ import { IFilterService, ILogService, IPromise, IQService, module } from 'angula
 
 import { UIRouter } from '@uirouter/core';
 
-import { Api, API_SERVICE } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
 import { Application } from '../application.model';
 import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
@@ -38,7 +38,6 @@ export class ApplicationReader {
     private $log: ILogService,
     private $filter: IFilterService,
     private $uiRouter: UIRouter,
-    private API: Api,
     private schedulerFactory: SchedulerFactory,
     private inferredApplicationWarningService: InferredApplicationWarningService,
     private applicationDataSourceRegistry: ApplicationDataSourceRegistry,
@@ -47,7 +46,7 @@ export class ApplicationReader {
   }
 
   public listApplications(populateMap = false): IPromise<IApplicationSummary[]> {
-    return this.API.all('applications')
+    return API.all('applications')
       .useCache()
       .getList()
       .then((applications: IApplicationSummary[]) => {
@@ -61,7 +60,7 @@ export class ApplicationReader {
   }
 
   public getApplication(name: string): IPromise<Application> {
-    return this.API.one('applications', name)
+    return API.one('applications', name)
       .get()
       .then((fromServer: Application) => {
         const application: Application = new Application(
@@ -152,7 +151,6 @@ export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service
 
 module(APPLICATION_READ_SERVICE, [
   SCHEDULER_FACTORY,
-  API_SERVICE,
   APPLICATION_DATA_SOURCE_REGISTRY,
   INFERRED_APPLICATION_WARNING_SERVICE,
   ROBOT_TO_HUMAN_FILTER,

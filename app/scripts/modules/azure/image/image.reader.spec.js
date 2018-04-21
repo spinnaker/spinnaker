@@ -1,15 +1,14 @@
 'use strict';
 
-import { API_SERVICE } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
 describe('Service: Azure Image Reader', function() {
-  var service, $http, API;
+  var service, $http;
 
-  beforeEach(window.module(require('./image.reader.js').name, API_SERVICE));
+  beforeEach(window.module(require('./image.reader.js').name));
 
   beforeEach(
-    window.inject(function(azureImageReader, $httpBackend, _API_) {
-      API = _API_;
+    window.inject(function(azureImageReader, $httpBackend) {
       service = azureImageReader;
       $http = $httpBackend;
     }),

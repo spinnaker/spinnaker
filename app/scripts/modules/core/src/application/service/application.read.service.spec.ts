@@ -6,7 +6,7 @@ import {
   ApplicationReader,
   APPLICATION_READ_SERVICE,
 } from './application.read.service';
-import { Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { ApplicationDataSourceRegistry } from './applicationDataSource.registry';
 import { Application } from '../application.model';
 import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
@@ -21,7 +21,6 @@ describe('Service: applicationReader', function() {
   let securityGroupReader: SecurityGroupReader;
   let loadBalancerReader: any;
   let clusterService: ClusterService;
-  let API: Api;
   let $q: ng.IQService;
   let $scope: ng.IScope;
   let applicationDataSourceRegistry: ApplicationDataSourceRegistry;
@@ -43,7 +42,6 @@ describe('Service: applicationReader', function() {
       _applicationReader_: ApplicationReader,
       _securityGroupReader_: SecurityGroupReader,
       _clusterService_: ClusterService,
-      _API_: Api,
       _$q_: ng.IQService,
       _loadBalancerReader_: LoadBalancerReader,
       $rootScope: ng.IRootScopeService,
@@ -54,7 +52,6 @@ describe('Service: applicationReader', function() {
       clusterService = _clusterService_;
       loadBalancerReader = _loadBalancerReader_;
       $q = _$q_;
-      API = _API_;
       $scope = $rootScope.$new();
       applicationDataSourceRegistry = _applicationDataSourceRegistry_;
     }),

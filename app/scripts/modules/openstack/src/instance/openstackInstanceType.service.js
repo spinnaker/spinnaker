@@ -3,11 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
+import { API, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.instanceType.service', [API_SERVICE])
-  .factory('openstackInstanceTypeService', function($http, $q, API) {
+  .module('spinnaker.openstack.instanceType.service', [])
+  .factory('openstackInstanceTypeService', function($http, $q) {
     var categories = [
       {
         type: 'custom',

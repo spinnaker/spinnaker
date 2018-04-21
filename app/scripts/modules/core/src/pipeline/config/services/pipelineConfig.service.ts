@@ -1,7 +1,7 @@
 import { IPromise, IQService, module } from 'angular';
 import { sortBy, uniq } from 'lodash';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { AuthenticationService } from 'core/authentication/AuthenticationService';
 import { ICache, ViewStateCache } from 'core/cache';
 import { IStage } from 'core/domain/IStage';
@@ -13,7 +13,7 @@ export interface ITriggerPipelineResponse {
 export class PipelineConfigService {
   private configViewStateCache: ICache;
 
-  public constructor(private $q: IQService, private API: Api) {
+  public constructor(private $q: IQService) {
     'ngInject';
     this.configViewStateCache = ViewStateCache.createCache('pipelineConfig', { version: 2 });
   }
@@ -23,7 +23,7 @@ export class PipelineConfigService {
   }
 
   public getPipelinesForApplication(applicationName: string): IPromise<IPipeline[]> {
-    return this.API.one('applications')
+    return API.one('applications')
       .one(applicationName)
       .all('pipelineConfigs')
       .getList()
@@ -34,7 +34,7 @@ export class PipelineConfigService {
   }
 
   public getStrategiesForApplication(applicationName: string): IPromise<IPipeline[]> {
-    return this.API.one('applications')
+    return API.one('applications')
       .one(applicationName)
       .all('strategyConfigs')
       .getList()
@@ -46,14 +46,14 @@ export class PipelineConfigService {
 
   public getHistory(id: string, isStrategy: boolean, count = 20): IPromise<IPipeline[]> {
     const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
-    return this.API.one(endpoint, id)
+    return API.one(endpoint, id)
       .all('history')
       .withParams({ count })
       .getList();
   }
 
   public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {
-    return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines')
+    return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
       .one(applicationName, pipelineName.trim())
       .remove();
   }
@@ -68,7 +68,7 @@ export class PipelineConfigService {
         }
       });
     }
-    return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines')
+    return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
       .data(pipeline)
       .post();
   }
@@ -81,7 +81,7 @@ export class PipelineConfigService {
   ): IPromise<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
     pipeline.name = newName;
-    return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines')
+    return API.one(pipeline.strategy ? 'strategies' : 'pipelines')
       .one(pipeline.id)
       .data(pipeline)
       .put();
@@ -89,7 +89,7 @@ export class PipelineConfigService {
 
   public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): IPromise<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
-    return this.API.one('pipelines')
+    return API.one('pipelines')
       .one(applicationName)
       .one(pipelineName)
       .data(body)
@@ -140,7 +140,7 @@ export class PipelineConfigService {
 
   public startAdHocPipeline(body: any): IPromise<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
-    return this.API.one('pipelines')
+    return API.one('pipelines')
       .one('start')
       .data(body)
       .post()
@@ -170,4 +170,4 @@ export class PipelineConfigService {
 }
 
 export const PIPELINE_CONFIG_SERVICE = 'spinnaker.core.pipeline.config.service';
-module(PIPELINE_CONFIG_SERVICE, [API_SERVICE]).service('pipelineConfigService', PipelineConfigService);
+module(PIPELINE_CONFIG_SERVICE, []).service('pipelineConfigService', PipelineConfigService);

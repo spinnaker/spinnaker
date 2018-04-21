@@ -3,11 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { API_SERVICE, InfrastructureCaches } from '@spinnaker/core';
+import { API, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.instanceType.service', [API_SERVICE])
-  .factory('azureInstanceTypeService', function($http, $q, API) {
+  .module('spinnaker.azure.instanceType.service', [])
+  .factory('azureInstanceTypeService', function($http, $q) {
     var m3 = {
       type: 'M3',
       description:

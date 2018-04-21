@@ -1,7 +1,7 @@
 import { filter, forOwn, has, uniq } from 'lodash';
 import { module, IPromise, ILogService, IQService } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { IComponentName, NameUtils } from 'core/naming';
 import { InfrastructureCaches } from 'core/cache';
 import { Application } from 'core/application/application.model';
@@ -277,7 +277,6 @@ export class SecurityGroupReader {
     private $log: ILogService,
     private $q: IQService,
     private searchService: SearchService,
-    private API: Api,
     private securityGroupTransformer: SecurityGroupTransformerService,
     private providerServiceDelegate: ProviderServiceDelegate,
     private entityTagsReader: EntityTagsReader,
@@ -293,7 +292,7 @@ export class SecurityGroupReader {
     if (cached) {
       return this.$q.resolve(cached);
     }
-    return this.API.one('securityGroups')
+    return API.one('securityGroups')
       .useCache()
       .get()
       .then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
@@ -350,7 +349,7 @@ export class SecurityGroupReader {
     vpcId: string,
     id: string,
   ): IPromise<ISecurityGroupDetail> {
-    return this.API.one('securityGroups')
+    return API.one('securityGroups')
       .one(account)
       .one(region)
       .one(id)
@@ -437,6 +436,5 @@ module(SECURITY_GROUP_READER, [
   SEARCH_SERVICE,
   SECURITY_GROUP_TRANSFORMER_SERVICE,
   PROVIDER_SERVICE_DELEGATE,
-  API_SERVICE,
   ENTITY_TAGS_READ_SERVICE,
 ]).service('securityGroupReader', SecurityGroupReader);

@@ -1,19 +1,15 @@
 import Spy = jasmine.Spy;
 import { mock, noop } from 'angular';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
-import { API_SERVICE, Api } from './api.service';
+import { API } from './ApiService';
 import { SETTINGS } from 'core/config/settings';
 
 describe('API Service', function() {
-  let API: Api;
   let $httpBackend: ng.IHttpBackendService;
   let baseUrl: string;
 
-  beforeEach(mock.module(API_SERVICE));
-
   beforeEach(
-    mock.inject(function(_API_: Api, _$httpBackend_: ng.IHttpBackendService) {
-      API = _API_;
+    mock.inject(function(_$httpBackend_: ng.IHttpBackendService) {
       $httpBackend = _$httpBackend_;
       baseUrl = SETTINGS.gateUrl;
     }),

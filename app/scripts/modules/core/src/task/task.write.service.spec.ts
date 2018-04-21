@@ -1,25 +1,21 @@
 import { mock, IHttpBackendService, ITimeoutService } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { TASK_WRITE_SERVICE, TaskWriter } from './task.write.service';
 
 describe('Service: taskWriter', () => {
   let taskWriter: TaskWriter;
   let $httpBackend: IHttpBackendService;
   let timeout: ITimeoutService;
-  let API: Api;
 
-  beforeEach(mock.module(TASK_WRITE_SERVICE, API_SERVICE));
+  beforeEach(mock.module(TASK_WRITE_SERVICE));
 
   beforeEach(
-    mock.inject(
-      (_taskWriter_: TaskWriter, _$httpBackend_: IHttpBackendService, _$timeout_: ITimeoutService, _API_: Api) => {
-        taskWriter = _taskWriter_;
-        $httpBackend = _$httpBackend_;
-        timeout = _$timeout_;
-        API = _API_;
-      },
-    ),
+    mock.inject((_taskWriter_: TaskWriter, _$httpBackend_: IHttpBackendService, _$timeout_: ITimeoutService) => {
+      taskWriter = _taskWriter_;
+      $httpBackend = _$httpBackend_;
+      timeout = _$timeout_;
+    }),
   );
 
   afterEach(() => {

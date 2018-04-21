@@ -1,12 +1,12 @@
 import { mock } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
+import { API } from 'core/api/ApiService';
 import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
 import { IStage } from 'core/domain/IStage';
 import { IPipeline } from 'core/domain/IPipeline';
 
 describe('pipelineConfigService', () => {
-  let service: PipelineConfigService, $http: ng.IHttpBackendService, $scope: ng.IScope, API: Api;
+  let service: PipelineConfigService, $http: ng.IHttpBackendService, $scope: ng.IScope;
 
   const buildStage = (base: any): IStage => {
     const stageDefaults: IStage = {
@@ -45,7 +45,7 @@ describe('pipelineConfigService', () => {
     return defaults;
   };
 
-  beforeEach(mock.module(PIPELINE_CONFIG_SERVICE, API_SERVICE));
+  beforeEach(mock.module(PIPELINE_CONFIG_SERVICE));
 
   beforeEach(
     mock.inject(
@@ -53,12 +53,10 @@ describe('pipelineConfigService', () => {
         pipelineConfigService: PipelineConfigService,
         $httpBackend: ng.IHttpBackendService,
         $rootScope: ng.IRootScopeService,
-        _API_: Api,
       ) => {
         service = pipelineConfigService;
         $http = $httpBackend;
         $scope = $rootScope.$new();
-        API = _API_;
       },
     ),
   );
