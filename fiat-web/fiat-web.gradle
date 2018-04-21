@@ -1,4 +1,4 @@
-apply plugin: 'spring-boot'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
 
 ext {
@@ -40,6 +40,3 @@ dependencies {
 
 applicationName = 'fiat'
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
-
-
-
