@@ -1,6 +1,9 @@
 'use strict';
 
 const angular = require('angular');
+
+import { AccountService } from '@spinnaker/core';
+
 import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from 'kubernetes/container/lifecycleHook.component';
 import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from 'kubernetes/container/environmentFrom.component';
 
@@ -19,7 +22,6 @@ module.exports = angular
   .controller('kubernetesConfigureJobController', function(
     $scope,
     $uibModalInstance,
-    accountService,
     kubernetesImageReader,
     pipelineConfigService,
     $filter,
@@ -31,11 +33,11 @@ module.exports = angular
     this.policies = ['ClusterFirst', 'Default', 'ClusterFirstWithHostNet'];
     this.pullPolicies = ['IFNOTPRESENT', 'ALWAYS', 'NEVER'];
 
-    accountService.getUniqueAttributeForAllAccounts('kubernetes', 'namespaces').then(namespaces => {
+    AccountService.getUniqueAttributeForAllAccounts('kubernetes', 'namespaces').then(namespaces => {
       this.namespaces = namespaces;
     });
 
-    accountService.listAccounts('kubernetes').then(accounts => {
+    AccountService.listAccounts('kubernetes').then(accounts => {
       this.accounts = accounts;
     });
 

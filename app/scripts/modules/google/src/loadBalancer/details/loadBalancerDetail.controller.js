@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, LOAD_BALANCER_READ_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_READ_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import { GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT } from '../configure/choice/loadBalancerTypeToWizardMap.constant';
 import { GCE_BACKEND_SERVICE_DETAILS_COMPONENT } from './backendService/backendService.component';
@@ -14,7 +14,6 @@ import { DELETE_MODAL_CONTROLLER } from './deleteModal/deleteModal.controller';
 module.exports = angular
   .module('spinnaker.loadBalancer.gce.details.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     require('google/common/xpnNaming.gce.service.js').name,
@@ -33,7 +32,6 @@ module.exports = angular
     $uibModal,
     loadBalancer,
     app,
-    accountService,
     gceHttpLoadBalancerUtils,
     loadBalancerWriter,
     loadBalancerReader,
@@ -68,7 +66,7 @@ module.exports = angular
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
 
-            accountService.getCredentialsKeyedByAccount('gce').then(function() {
+            AccountService.getCredentialsKeyedByAccount('gce').then(function() {
               if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
                 $scope.loadBalancer.elb.backendServices = getBackendServices($scope.loadBalancer);
                 $scope.loadBalancer.elb.healthChecks = _.chain($scope.loadBalancer.elb.backendServices)
@@ -78,7 +76,7 @@ module.exports = angular
               }
             });
           }
-          accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
+          AccountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
             let resourceTypes;
 
             if ($scope.loadBalancer.loadBalancerType === 'INTERNAL') {

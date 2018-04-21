@@ -36,14 +36,13 @@ class TargetTrackingSummaryController implements IComponentController {
     private $uibModal: IModalService,
     private confirmationModalService: ConfirmationModalService,
     private taskExecutor: TaskExecutor,
-    private accountService: AccountService,
   ) {
     'ngInject';
   }
 
   public $onInit() {
     this.config = this.policy.targetTrackingConfiguration;
-    this.accountService.getAccountDetails(this.serverGroup.account).then(details => {
+    AccountService.getAccountDetails(this.serverGroup.account).then(details => {
       // alarmServerGroup is used to trick the chart rendering into using AWS metrics
       this.alarmServerGroup = {
         type: 'aws',

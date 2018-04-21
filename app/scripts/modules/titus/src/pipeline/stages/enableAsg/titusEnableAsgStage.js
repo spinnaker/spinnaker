@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.enableAsgStage', [])
@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusEnableAsgStageCtrl', function($scope, accountService) {
+  .controller('titusEnableAsgStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -31,7 +31,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('titus').then(function(accounts) {
+    AccountService.listAccounts('titus').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

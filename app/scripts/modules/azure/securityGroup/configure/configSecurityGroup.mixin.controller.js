@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, SECURITY_GROUP_READER, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { AccountService, SECURITY_GROUP_READER, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.baseConfig.controller', [
@@ -11,7 +11,6 @@ module.exports = angular
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
-    ACCOUNT_SERVICE,
   ])
   .controller('azureConfigSecurityGroupMixin', function(
     $scope,
@@ -22,7 +21,6 @@ module.exports = angular
     securityGroup,
     securityGroupReader,
     securityGroupWriter,
-    accountService,
     modalWizardService,
     cacheInitializer,
   ) {
@@ -91,7 +89,7 @@ module.exports = angular
 
     ctrl.accountUpdated = function() {
       var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      accountService.getRegionsForAccount(account).then(function(regions) {
+      AccountService.getRegionsForAccount(account).then(function(regions) {
         $scope.regions = _.map(regions, 'name');
         clearSecurityGroups();
         ctrl.regionUpdated();

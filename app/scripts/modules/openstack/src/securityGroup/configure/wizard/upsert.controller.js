@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   NameUtils,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -15,7 +15,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
-    ACCOUNT_SERVICE,
     TASK_MONITOR_BUILDER,
     require('../../../region/regionSelectField.directive.js').name,
     require('../../transformer.js').name,
@@ -27,7 +26,6 @@ module.exports = angular
     $state,
     application,
     securityGroup,
-    accountService,
     openstackSecurityGroupTransformer,
     securityGroupReader,
     securityGroupWriter,
@@ -93,7 +91,7 @@ module.exports = angular
     function initializeCreateMode() {
       return $q
         .all({
-          accounts: accountService.listAccounts('openstack'),
+          accounts: AccountService.listAccounts('openstack'),
         })
         .then(function(backingData) {
           $scope.accounts = backingData.accounts;

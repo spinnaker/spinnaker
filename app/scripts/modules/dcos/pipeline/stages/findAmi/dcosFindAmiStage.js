@@ -1,10 +1,10 @@
 'use strict';
 
 const angular = require('angular');
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.dcos.pipeline.stage.findAmiStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.dcos.pipeline.stage.findAmiStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'findImage',
@@ -17,7 +17,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosFindAmiStageController', function($scope, accountService) {
+  .controller('dcosFindAmiStageController', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -25,7 +25,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('dcos').then(function(accounts) {
+    AccountService.listAccounts('dcos').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

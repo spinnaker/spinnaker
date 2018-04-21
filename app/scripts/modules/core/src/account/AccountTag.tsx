@@ -1,7 +1,7 @@
 import { IPromise } from 'angular';
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
-import { ReactInjector } from 'core/reactShims';
+import { AccountService } from 'core/account/AccountService';
 
 export interface IAccountTagProps {
   account: string;
@@ -35,9 +35,7 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
   private updateAccount(account: string) {
     const { cache } = AccountTag;
     if (!cache.hasOwnProperty(account)) {
-      cache[account] = ReactInjector.accountService
-        .challengeDestructiveActions(account)
-        .then(result => (cache[account] = !!result));
+      cache[account] = AccountService.challengeDestructiveActions(account).then(result => (cache[account] = !!result));
     }
 
     const cachedVal: boolean | IPromise<boolean> = cache[account];

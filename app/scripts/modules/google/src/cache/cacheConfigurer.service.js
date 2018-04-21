@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   INSTANCE_TYPE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,
@@ -16,7 +16,6 @@ import { GCE_HEALTH_CHECK_READER } from '../healthCheck/healthCheck.read.service
 module.exports = angular
   .module('spinnaker.gce.cache.initializer', [
     require('../backendService/backendService.reader.js').name,
-    ACCOUNT_SERVICE,
     GCE_ADDRESS_READER,
     GCE_HEALTH_CHECK_READER,
     INSTANCE_TYPE_SERVICE,
@@ -25,7 +24,6 @@ module.exports = angular
     SUBNET_READ_SERVICE,
   ])
   .factory('gceCacheConfigurer', function(
-    accountService,
     gceAddressReader,
     gceBackendServiceReader,
     gceCertificateReader,
@@ -50,7 +48,7 @@ module.exports = angular
     };
 
     config.credentials = {
-      initializers: [() => accountService.getCredentialsKeyedByAccount('gce')],
+      initializers: [() => AccountService.getCredentialsKeyedByAccount('gce')],
     };
 
     config.healthChecks = {

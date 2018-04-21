@@ -2,7 +2,8 @@ import * as React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
 import { BindAll } from 'lodash-decorators';
 
-import { Placement, Markdown } from 'core/presentation';
+import { Markdown } from './Markdown';
+import { Placement } from './Placement';
 
 export interface ITooltipProps {
   id?: string;

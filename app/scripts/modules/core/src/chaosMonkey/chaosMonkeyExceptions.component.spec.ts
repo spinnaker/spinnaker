@@ -1,13 +1,12 @@
 import { mock, IComponentControllerService, IScope, IQService, IRootScopeService } from 'angular';
 
 import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT, ChaosMonkeyExceptionsController } from './chaosMonkeyExceptions.component';
-import { AccountService } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ChaosMonkeyConfig } from 'core/chaosMonkey/chaosMonkeyConfig.component';
 
 describe('Controller: ChaosMonkeyExceptions', () => {
   let $componentController: IComponentControllerService,
-    accountService: AccountService,
     $ctrl: ChaosMonkeyExceptionsController,
     $scope: IScope,
     $q: IQService,
@@ -16,7 +15,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
   const initializeController = (data: any) => {
     $ctrl = $componentController(
       'chaosMonkeyExceptions',
-      { $scope: null, accountService, $q },
+      { $scope: null, $q },
       data,
     ) as ChaosMonkeyExceptionsController;
   };
@@ -29,11 +28,9 @@ describe('Controller: ChaosMonkeyExceptions', () => {
         _$componentController_: IComponentControllerService,
         _$q_: IQService,
         $rootScope: IRootScopeService,
-        _accountService_: AccountService,
         _applicationModelBuilder_: ApplicationModelBuilder,
       ) => {
         $scope = $rootScope.$new();
-        accountService = _accountService_;
         $componentController = _$componentController_;
         $q = _$q_;
         applicationBuilder = _applicationModelBuilder_;
@@ -48,7 +45,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
         { name: 'test', regions: [{ name: 'us-west-2' }, { name: 'eu-west-1' }] },
       ];
 
-      spyOn(accountService, 'listAllAccounts').and.returnValue($q.when(accounts));
+      spyOn(AccountService, 'listAllAccounts').and.returnValue($q.when(accounts));
 
       initializeController(null);
       $ctrl.application = applicationBuilder.createApplication('app', {

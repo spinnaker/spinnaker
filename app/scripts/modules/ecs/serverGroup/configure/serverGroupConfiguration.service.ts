@@ -2,7 +2,6 @@ import { module, IPromise, IQService } from 'angular';
 import { chain, extend, find, flatten, has, intersection, keys, some, xor } from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
   AccountService,
   CACHE_INITIALIZER_SERVICE,
   CacheInitializerService,
@@ -73,7 +72,6 @@ export class EcsServerGroupConfigurationService {
 
   constructor(
     private $q: IQService,
-    private accountService: AccountService,
     private cacheInitializer: CacheInitializerService,
     private subnetReader: SubnetReader,
     private loadBalancerReader: LoadBalancerReader,
@@ -123,7 +121,7 @@ export class EcsServerGroupConfigurationService {
 
     return this.$q
       .all({
-        credentialsKeyedByAccount: this.accountService.getCredentialsKeyedByAccount('ecs'),
+        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('ecs'),
         loadBalancers: this.loadBalancerReader.listLoadBalancers('ecs'),
         subnets: this.subnetReader.listSubnets(),
         iamRoles: this.iamRoleReader.listRoles('ecs'),
@@ -404,7 +402,6 @@ export class EcsServerGroupConfigurationService {
 
 export const ECS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.ecs.serverGroup.configure.service';
 module(ECS_SERVER_GROUP_CONFIGURATION_SERVICE, [
-  ACCOUNT_SERVICE,
   SUBNET_READ_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE,

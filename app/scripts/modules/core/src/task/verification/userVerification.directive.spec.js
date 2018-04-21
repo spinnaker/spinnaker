@@ -1,22 +1,22 @@
 'use strict';
 
+import { AccountService } from 'core/account/AccountService';
+
 describe('Controller: UserVerification', function() {
-  var controller, accountService, $scope, $q;
+  var controller, $scope, $q;
 
   beforeEach(window.module(require('./userVerification.directive').name));
 
   beforeEach(
-    window.inject(function($controller, $rootScope, _accountService_, _$q_) {
+    window.inject(function($controller, $rootScope, _$q_) {
       $scope = $rootScope.$new();
       $q = _$q_;
-      accountService = _accountService_;
 
       this.initialize = function(verification, account) {
         controller = $controller(
           'UserVerificationCtrl',
           {
             $scope: $scope,
-            accountService: accountService,
           },
           {
             verification: verification,
@@ -31,7 +31,7 @@ describe('Controller: UserVerification', function() {
 
   describe('initialization', function() {
     it('should set required to true, verified to false if toVerify is present', function() {
-      spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
+      spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
       let verification = {
         toVerify: 'a',
       };
@@ -41,7 +41,7 @@ describe('Controller: UserVerification', function() {
     });
 
     it('should set required to true, verified to false if account requires challenge to destructive actions', function() {
-      spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(true));
+      spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(true));
       let verification = {};
       this.initialize(verification, 'prod');
       expect(controller.required).toBe(true);
@@ -49,7 +49,7 @@ describe('Controller: UserVerification', function() {
     });
 
     it('should set required to false, verified to true if account does not require challenge to destructive actions', function() {
-      spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
+      spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
       let verification = {};
       this.initialize(verification, 'test');
       expect(controller.required).toBe(false);
@@ -57,7 +57,7 @@ describe('Controller: UserVerification', function() {
     });
 
     it('should re-initialize when account changes', function() {
-      spyOn(accountService, 'challengeDestructiveActions').and.callFake(function(account) {
+      spyOn(AccountService, 'challengeDestructiveActions').and.callFake(function(account) {
         return $q.when(account === 'prod');
       });
       let verification = {};
@@ -73,7 +73,7 @@ describe('Controller: UserVerification', function() {
     });
 
     it('should prefer account when both toVerify and account are present', function() {
-      spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
+      spyOn(AccountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
       let verification = {
         toVerify: 'a',
       };

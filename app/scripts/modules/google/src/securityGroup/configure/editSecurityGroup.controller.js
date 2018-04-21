@@ -2,12 +2,11 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, InfrastructureCaches, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { InfrastructureCaches, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.edit.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_WRITER,
   ])
@@ -15,7 +14,6 @@ module.exports = angular
     $scope,
     $uibModalInstance,
     $state,
-    accountService,
     taskMonitorBuilder,
     application,
     securityGroup,

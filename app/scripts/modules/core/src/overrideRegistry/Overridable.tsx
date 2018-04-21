@@ -4,7 +4,7 @@ import { Subject, Observable } from 'rxjs';
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ReactInjector, AngularJSAdapter } from 'core/reactShims';
-import { IAccountDetails } from 'core/account';
+import { AccountService, IAccountDetails } from 'core/account/AccountService';
 
 export interface IOverridableProps {
   accountId?: string;
@@ -61,7 +61,6 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
     constructor(props: P) {
       super(props);
 
-      const { accountService } = ReactInjector;
       let constructing = true;
 
       this.account$
@@ -70,7 +69,7 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
             return Observable.of(null);
           }
 
-          return accountService.accounts$.map(accts => accts.find(acct => acct.name === accountName));
+          return AccountService.accounts$.map(accts => accts.find(acct => acct.name === accountName));
         })
         .map((accountDetails: IAccountDetails) => this.getComponent(accountDetails))
         .takeUntil(this.destroy$)

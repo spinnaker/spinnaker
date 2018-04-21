@@ -2,11 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.cf.serverGroup.details.rollback.controller', [
-    ACCOUNT_SERVICE,
     SERVER_GROUP_WRITER,
     TASK_MONITOR_BUILDER,
     require('../../../common/footer.directive.js').name,

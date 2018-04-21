@@ -6,14 +6,14 @@ import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineAccount, IAppengineStageScope } from 'appengine/domain';
 
 export class AppengineStageCtrl implements IController {
-  constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {
+  constructor(protected $scope: IAppengineStageScope) {
     $scope.platformHealth = AppengineHealth.PLATFORM;
   }
 
   public setStageRegion(): void {
     const selected = this.$scope.accounts.find(account => account.name === this.$scope.stage.credentials);
     if (selected && selected.name) {
-      this.accountService.getAccountDetails(selected.name).then((accountDetails: IAppengineAccount) => {
+      AccountService.getAccountDetails(selected.name).then((accountDetails: IAppengineAccount) => {
         this.$scope.stage.region = accountDetails.region;
       });
     }
@@ -24,7 +24,7 @@ export class AppengineStageCtrl implements IController {
   }
 
   protected setAccounts(): IPromise<void> {
-    return this.accountService.listAccounts('appengine').then((accounts: IAppengineAccount[]) => {
+    return AccountService.listAccounts('appengine').then((accounts: IAppengineAccount[]) => {
       this.$scope.accounts = accounts;
     });
   }

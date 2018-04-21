@@ -3,7 +3,6 @@ import * as _ from 'lodash';
 import { Subject, Subscription } from 'rxjs';
 
 import {
-  ACCOUNT_SERVICE,
   AccountService,
   CACHE_INITIALIZER_SERVICE,
   CacheInitializerService,
@@ -35,7 +34,6 @@ class SecurityGroupPickerController implements ng.IComponentController {
   public constructor(
     private $q: ng.IQService,
     private securityGroupReader: any,
-    private accountService: AccountService,
     private cacheInitializer: CacheInitializerService,
     private vpcReader: any,
   ) {
@@ -43,11 +41,11 @@ class SecurityGroupPickerController implements ng.IComponentController {
   }
 
   public $onInit(): void {
-    const credentialLoader: ng.IPromise<void> = this.accountService
-      .getCredentialsKeyedByAccount('titus')
-      .then((credentials: IAggregatedAccounts) => {
+    const credentialLoader: ng.IPromise<void> = AccountService.getCredentialsKeyedByAccount('titus').then(
+      (credentials: IAggregatedAccounts) => {
         this.credentials = credentials;
-      });
+      },
+    );
     const groupLoader: ng.IPromise<void> = this.securityGroupReader.getAllSecurityGroups().then((groups: any[]) => {
       this.securityGroups = groups;
     });
@@ -170,9 +168,7 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
 }
 
 export const TITUS_SECURITY_GROUP_PICKER = 'spinnaker.titus.securityGroup.picker.component';
-module(TITUS_SECURITY_GROUP_PICKER, [
-  ACCOUNT_SERVICE,
-  SECURITY_GROUP_READER,
-  CACHE_INITIALIZER_SERVICE,
-  VPC_READ_SERVICE,
-]).component('titusSecurityGroupPicker', new SecurityGroupPickerComponent());
+module(TITUS_SECURITY_GROUP_PICKER, [SECURITY_GROUP_READER, CACHE_INITIALIZER_SERVICE, VPC_READ_SERVICE]).component(
+  'titusSecurityGroupPicker',
+  new SecurityGroupPickerComponent(),
+);

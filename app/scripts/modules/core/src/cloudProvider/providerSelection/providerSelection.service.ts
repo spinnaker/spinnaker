@@ -2,7 +2,7 @@ import { IModalService } from 'angular-ui-bootstrap';
 import { IPromise, module, IQService } from 'angular';
 import { uniq } from 'lodash';
 
-import { IAccountDetails, ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { IAccountDetails, AccountService } from 'core/account/AccountService';
 import { Application } from 'core/application/application.model';
 import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
@@ -10,7 +10,7 @@ import { SETTINGS } from 'core/config/settings';
 export type IProviderSelectionFilter = (app: Application, acc: IAccountDetails, prov: ICloudProviderConfig) => boolean;
 
 export class ProviderSelectionService {
-  constructor(private $uibModal: IModalService, private $q: IQService, private accountService: AccountService) {
+  constructor(private $uibModal: IModalService, private $q: IQService) {
     'ngInject';
   }
 
@@ -19,7 +19,7 @@ export class ProviderSelectionService {
     feature: string,
     filterFn?: IProviderSelectionFilter,
   ): IPromise<string> {
-    return this.accountService.applicationAccounts(application).then((accounts: IAccountDetails[]) => {
+    return AccountService.applicationAccounts(application).then((accounts: IAccountDetails[]) => {
       let reducedAccounts: IAccountDetails[] = [];
       if (feature) {
         reducedAccounts = accounts.filter(a => CloudProviderRegistry.hasValue(a.cloudProvider, feature));
@@ -59,4 +59,4 @@ export class ProviderSelectionService {
 }
 
 export const PROVIDER_SELECTION_SERVICE = 'spinnaker.cloudProvider.providerSelection.service';
-module(PROVIDER_SELECTION_SERVICE, [ACCOUNT_SERVICE]).service('providerSelectionService', ProviderSelectionService);
+module(PROVIDER_SELECTION_SERVICE, []).service('providerSelectionService', ProviderSelectionService);

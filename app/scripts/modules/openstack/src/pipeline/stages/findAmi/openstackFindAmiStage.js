@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+import { AccountService } from '@spinnaker/core';
+
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.findAmiStage', [])
   .config(function(pipelineConfigProvider) {
@@ -17,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackFindAmiStageCtrl', function($scope, accountService) {
+  .controller('openstackFindAmiStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -25,7 +27,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function(accounts) {
+    AccountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

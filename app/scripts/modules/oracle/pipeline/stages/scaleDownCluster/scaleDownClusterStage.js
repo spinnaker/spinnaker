@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.scaleDownClusterStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.oraclebmcs.pipeline.stage.scaleDownClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'scaleDownCluster',
@@ -24,7 +24,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('oraclebmcsScaleDownClusterStageCtrl', function($scope, accountService) {
+  .controller('oraclebmcsScaleDownClusterStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     const provider = 'oraclebmcs';
@@ -34,7 +34,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts(provider).then(function(accounts) {
+    AccountService.listAccounts(provider).then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

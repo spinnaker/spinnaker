@@ -2,11 +2,11 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, NameUtils } from '@spinnaker/core';
+import { NameUtils } from '@spinnaker/core';
 import { TitusProviderSettings } from '../../titus.settings';
 
 module.exports = angular
-  .module('spinnaker.titus.serverGroupCommandBuilder.service', [ACCOUNT_SERVICE])
+  .module('spinnaker.titus.serverGroupCommandBuilder.service', [])
   .factory('titusServerGroupCommandBuilder', function($q) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};

@@ -2,14 +2,11 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
-
 module.exports = angular
   .module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
-    ACCOUNT_SERVICE,
     require('../../cluster/cluster.kubernetes.module.js').name,
   ])
-  .factory('kubernetesServerGroupCommandBuilder', function($q, accountService, kubernetesClusterCommandBuilder) {
+  .factory('kubernetesServerGroupCommandBuilder', function($q, kubernetesClusterCommandBuilder) {
     function buildNewServerGroupCommand(application, defaults = {}) {
       var command = kubernetesClusterCommandBuilder.buildNewClusterCommand(application, defaults);
       command.targetSize = 1;

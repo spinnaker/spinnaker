@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..disableClusterStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.gce.pipeline.stage..disableClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableCluster',
@@ -23,7 +23,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceDisableClusterStageCtrl', function($scope, accountService) {
+  .controller('gceDisableClusterStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -33,7 +33,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function(accounts) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

@@ -2,14 +2,13 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { AccountService, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
     require('@uirouter/angularjs').default,
     TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js').name,
-    ACCOUNT_SERVICE,
   ])
 
   .controller('azureCreateSecurityGroupCtrl', function(
@@ -17,7 +16,6 @@ module.exports = angular
     $uibModalInstance,
     $state,
     $controller,
-    accountService,
     taskMonitorBuilder,
     application,
     securityGroup,
@@ -38,7 +36,7 @@ module.exports = angular
       },
     };
 
-    accountService.listAccounts('azure').then(function(accounts) {
+    AccountService.listAccounts('azure').then(function(accounts) {
       $scope.accounts = accounts;
       ctrl.accountUpdated();
     });
@@ -81,7 +79,7 @@ module.exports = angular
     $scope.securityGroup = securityGroup;
 
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
+      AccountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
         $scope.regions = regions;
         $scope.securityGroup.regions = regions;
         ctrl.updateName();

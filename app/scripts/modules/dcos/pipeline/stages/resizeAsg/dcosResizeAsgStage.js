@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.dcos.pipeline.stage.resizeAsgStage', [])
@@ -28,7 +28,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosResizeAsgStageCtrl', function($scope, accountService) {
+  .controller('dcosResizeAsgStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -38,7 +38,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('dcos').then(function(accounts) {
+    AccountService.listAccounts('dcos').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

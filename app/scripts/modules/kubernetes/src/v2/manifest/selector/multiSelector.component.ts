@@ -12,9 +12,8 @@ class KubernetesManifestSelectorCtrl implements IController {
   public rawKind: string;
   public rawName: string;
 
-  constructor(private accountService: AccountService) {
-    'ngInject';
-    this.accountService.getAllAccountDetailsForProvider('kubernetes', 'v2').then(accounts => {
+  constructor() {
+    AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2').then(accounts => {
       this.accounts = accounts;
       if (!this.selector.account) {
         if (this.accounts.length) {

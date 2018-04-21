@@ -1,7 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+
+import { AccountService } from 'core/account/AccountService';
 import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
 import { TASK_READ_SERVICE } from 'core/task/task.read.service';
 import { SETTINGS } from 'core/config/settings';
@@ -11,7 +12,6 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [
     APPLICATION_WRITE_SERVICE,
-    ACCOUNT_SERVICE,
     TASK_READ_SERVICE,
     require('./applicationProviderFields.component.js').name,
   ])
@@ -22,7 +22,6 @@ module.exports = angular
     $uibModalInstance,
     application,
     applicationWriter,
-    accountService,
     taskReader,
   ) {
     var vm = this;
@@ -37,7 +36,7 @@ module.exports = angular
     vm.application = application;
     vm.applicationAttributes = _.cloneDeep(application.attributes);
 
-    accountService.listProviders().then(providers => (vm.data.cloudProviders = providers));
+    AccountService.listProviders().then(providers => (vm.data.cloudProviders = providers));
 
     function closeModal() {
       $uibModalInstance.close(vm.applicationAttributes);

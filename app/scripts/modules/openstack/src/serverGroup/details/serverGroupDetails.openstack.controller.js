@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   CONFIRMATION_MODAL_SERVICE,
   OVERRIDE_REGISTRY,
   SECURITY_GROUP_READER,
@@ -23,7 +23,6 @@ module.exports = angular
     SECURITY_GROUP_READER,
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     OVERRIDE_REGISTRY,
-    ACCOUNT_SERVICE,
     SERVER_GROUP_READER,
     require('../configure/ServerGroupCommandBuilder.js').name,
     require('../serverGroup.transformer.js').name,
@@ -42,7 +41,6 @@ module.exports = angular
     networkReader,
     securityGroupReader,
     loadBalancerReader,
-    accountService,
     serverGroupWarningMessageService,
     openstackServerGroupTransformer,
     overrideRegistry,
@@ -308,7 +306,7 @@ module.exports = angular
     };
 
     this.applyAccountDetails = serverGroup => {
-      return accountService.getAccountDetails(serverGroup.account).then(details => {
+      return AccountService.getAccountDetails(serverGroup.account).then(details => {
         serverGroup.accountDetails = details;
       });
     };

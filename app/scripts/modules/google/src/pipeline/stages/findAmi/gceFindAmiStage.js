@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..findAmiStage', [PIPELINE_CONFIG_PROVIDER, ACCOUNT_SERVICE])
+  .module('spinnaker.gce.pipeline.stage..findAmiStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'findImage',
@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceFindAmiStageCtrl', function($scope, accountService) {
+  .controller('gceFindAmiStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -27,7 +27,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function(accounts) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

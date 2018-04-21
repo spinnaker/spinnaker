@@ -1,6 +1,6 @@
 'use strict';
 
-import { SECURITY_GROUP_READER } from '@spinnaker/core';
+import { AccountService, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 describe('Controller: Azure.CreateSecurityGroup', function() {
   beforeEach(window.module(SECURITY_GROUP_READER, require('./CreateSecurityGroupCtrl.js').name));
@@ -12,21 +12,19 @@ describe('Controller: Azure.CreateSecurityGroup', function() {
         $controller,
         $rootScope,
         $q,
-        accountService,
         securityGroupReader,
         taskMonitorBuilder,
         azureSecurityGroupWriter,
       ) {
         this.$scope = $rootScope.$new();
         this.$q = $q;
-        this.accountService = accountService;
         this.securityGroupReader = securityGroupReader;
         this.taskMonitorBuilder = taskMonitorBuilder;
         this.securityGroupWriter = azureSecurityGroupWriter;
 
-        spyOn(this.accountService, 'listAccounts').and.returnValue($q.when(['prod', 'test']));
+        spyOn(AccountService, 'listAccounts').and.returnValue($q.when(['prod', 'test']));
 
-        spyOn(this.accountService, 'getRegionsForAccount').and.returnValue($q.when(['us-east-1', 'us-west-1']));
+        spyOn(AccountService, 'getRegionsForAccount').and.returnValue($q.when(['us-east-1', 'us-west-1']));
 
         spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
           $q.when({
@@ -63,7 +61,6 @@ describe('Controller: Azure.CreateSecurityGroup', function() {
           this.ctrl = $controller('azureCreateSecurityGroupCtrl', {
             $scope: this.$scope,
             $uibModalInstance: { result: this.$q.when(null) },
-            accountService: this.accountService,
             securityGroupReader: this.securityGroupReader,
             taskMonitorBuilder: this.taskMonitorBuilder,
             securityGroupWriter: this.securityGroupWriter,

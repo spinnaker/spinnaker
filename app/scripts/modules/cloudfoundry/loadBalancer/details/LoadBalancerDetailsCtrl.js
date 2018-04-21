@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
@@ -12,7 +12,6 @@ import {
 module.exports = angular
   .module('spinnaker.loadBalancer.cf.details.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
@@ -24,7 +23,6 @@ module.exports = angular
     loadBalancer,
     app,
     confirmationModalService,
-    accountService,
     loadBalancerWriter,
     loadBalancerReader,
     $q,
@@ -62,13 +60,13 @@ module.exports = angular
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
 
-            accountService.getCredentialsKeyedByAccount('cf').then(function(credentialsKeyedByAccount) {
+            AccountService.getCredentialsKeyedByAccount('cf').then(function(credentialsKeyedByAccount) {
               $scope.loadBalancer.elb.availabilityZones = credentialsKeyedByAccount[loadBalancer.accountId].regions[
                 loadBalancer.region
               ].sort();
             });
           }
-          accountService.getAccountDetails(loadBalancer.accountId).then(function() {
+          AccountService.getAccountDetails(loadBalancer.accountId).then(function() {
             // TODO link to logs
           });
         }, autoClose);

@@ -1,10 +1,10 @@
 'use strict';
 
 const angular = require('angular');
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 module.exports = angular
-  .module('spinnaker.core.account.accountSelectField.directive', [ACCOUNT_SERVICE])
+  .module('spinnaker.core.account.accountSelectField.directive', [])
   .directive('accountSelectField', function() {
     return {
       restrict: 'E',
@@ -25,7 +25,7 @@ module.exports = angular
       },
     };
   })
-  .controller('AccountSelectFieldCtrl', function($scope, $q, accountService) {
+  .controller('AccountSelectFieldCtrl', function($scope, $q) {
     this.mergedAccounts = [];
 
     let groupAccounts = accounts => {
@@ -34,12 +34,12 @@ module.exports = angular
       }
       let accountsAreObjects = accounts[0].name;
       let getAccountDetails = this.provider
-        ? accountService.getAllAccountDetailsForProvider(this.provider)
+        ? AccountService.getAllAccountDetailsForProvider(this.provider)
         : $q.when([]);
       if (!this.provider && accountsAreObjects) {
         let providers = _.uniq(_.map(accounts, 'type'));
         getAccountDetails = $q
-          .all(providers.map(provider => accountService.getAllAccountDetailsForProvider(provider)))
+          .all(providers.map(provider => AccountService.getAllAccountDetailsForProvider(provider)))
           .then(details => _.flatten(details));
       }
 

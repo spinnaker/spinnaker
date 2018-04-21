@@ -2,16 +2,16 @@ import { IModalService } from 'angular-ui-bootstrap';
 import { IPromise, module } from 'angular';
 import { isNil, uniq } from 'lodash';
 
-import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 
 export class SkinSelectionService {
-  constructor(private $uibModal: IModalService, private accountService: AccountService) {
+  constructor(private $uibModal: IModalService) {
     'ngInject';
   }
 
   public selectSkin(provider: string): IPromise<string> {
-    return this.accountService.getAllAccountDetailsForProvider(provider).then(accounts => {
+    return AccountService.getAllAccountDetailsForProvider(provider).then(accounts => {
       const skins = uniq(accounts.map(a => a.skin).filter(v => !isNil(v)));
 
       if (skins.length === 0) {
@@ -32,4 +32,4 @@ export class SkinSelectionService {
 }
 
 export const SKIN_SELECTION_SERVICE = 'spinnaker.core.cloudProvider.skinSelection.service';
-module(SKIN_SELECTION_SERVICE, [ACCOUNT_SERVICE]).service('skinSelectionService', SkinSelectionService);
+module(SKIN_SELECTION_SERVICE, []).service('skinSelectionService', SkinSelectionService);

@@ -4,6 +4,7 @@ const angular = require('angular');
 import { isString, toInteger } from 'lodash';
 
 import {
+  AccountService,
   AuthenticationService,
   CloudProviderRegistry,
   LIST_EXTRACTOR_SERVICE,
@@ -188,7 +189,6 @@ module.exports = angular
     providerSelectionService,
     serverGroupCommandBuilder,
     awsServerGroupTransformer,
-    accountService,
     appListExtractorService,
   ) {
     'ngInject';
@@ -264,7 +264,7 @@ module.exports = angular
         },
       };
 
-      accountService.listProviders($scope.application).then(function(providers) {
+      AccountService.listProviders($scope.application).then(function(providers) {
         if (providers.length === 1) {
           overriddenCloudProvider = providers[0];
         } else if (!$scope.stage.cloudProviderType && $scope.stage.cloudProvider) {
@@ -319,7 +319,7 @@ module.exports = angular
     };
 
     let filterServerGroups = () => {
-      accountService.listAccounts(this.getCloudProvider()).then(accounts => ($scope.accounts = accounts));
+      AccountService.listAccounts(this.getCloudProvider()).then(accounts => ($scope.accounts = accounts));
       setClusterList();
     };
 

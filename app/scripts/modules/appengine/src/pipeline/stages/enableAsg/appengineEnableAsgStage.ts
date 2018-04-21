@@ -1,15 +1,15 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService, PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineStageScope } from 'appengine/domain';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
 class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
-  constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {
+  constructor(protected $scope: IAppengineStageScope) {
     'ngInject';
-    super($scope, accountService);
+    super($scope);
 
     super.setAccounts().then(() => {
       super.setStageRegion();
@@ -31,7 +31,7 @@ class AppengineEnableAsgStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_ENABLE_ASG_STAGE = 'spinnaker.appengine.pipeline.stage.enableAsgStage';
 
-module(APPENGINE_ENABLE_ASG_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
+module(APPENGINE_ENABLE_ASG_STAGE, [PIPELINE_CONFIG_PROVIDER])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       provides: 'enableServerGroup',

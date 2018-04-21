@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,
@@ -13,7 +13,6 @@ module.exports = angular
   .module('spinnaker.loadBalancer.cf.create.controller', [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_WRITE_SERVICE,
-    ACCOUNT_SERVICE,
     require('../loadBalancer.transformer.js').name,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
@@ -25,7 +24,6 @@ module.exports = angular
     application,
     loadBalancer,
     isNew,
-    accountService,
     cfLoadBalancerTransformer,
     v2modalWizardService,
     loadBalancerWriter,
@@ -78,7 +76,7 @@ module.exports = angular
     function initializeEditMode() {}
 
     function initializeCreateMode() {
-      accountService.listAccounts('cf').then(function(accounts) {
+      AccountService.listAccounts('cf').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -134,7 +132,7 @@ module.exports = angular
     };
 
     this.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function() {
+      AccountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function() {
         $scope.regions = [];
         ctrl.regionUpdated();
       });

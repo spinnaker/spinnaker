@@ -1,7 +1,7 @@
 import { IChangesObject, IController, IOnChangesObject, module } from 'angular';
 import { isString, trim, uniq } from 'lodash';
 
-import { ACCOUNT_SERVICE, AccountService, IAccount, IFindImageParams } from '@spinnaker/core';
+import { AccountService, IAccount, IFindImageParams } from '@spinnaker/core';
 
 import { DOCKER_IMAGE_READER, DockerImageReaderService, IDockerImage } from './docker.image.reader.service';
 
@@ -44,7 +44,7 @@ export class DockerImageAndTagSelectorController implements IController {
   public onChange: Function;
   public deferInitialization: boolean;
 
-  constructor(private accountService: AccountService, private dockerImageReader: DockerImageReaderService) {
+  constructor(private dockerImageReader: DockerImageReaderService) {
     'ngInject';
   }
 
@@ -170,7 +170,7 @@ export class DockerImageAndTagSelectorController implements IController {
   }
 
   private initializeAccounts() {
-    this.accountService.listAccounts('dockerRegistry').then((accounts: IAccount[]) => {
+    AccountService.listAccounts('dockerRegistry').then((accounts: IAccount[]) => {
       this.accounts = accounts.map((account: IAccount) => account.name);
       if (this.showRegistry && !this.account) {
         this.account = this.accounts[0];
@@ -266,7 +266,7 @@ class DockerImageAndTagSelectorComponent implements ng.IComponentOptions {
 }
 
 export const DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT = 'spinnaker.docker.imageAndTagSelector.component';
-module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [ACCOUNT_SERVICE, DOCKER_IMAGE_READER]).component(
+module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT, [DOCKER_IMAGE_READER]).component(
   'dockerImageAndTagSelector',
   new DockerImageAndTagSelectorComponent(),
 );

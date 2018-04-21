@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ModalFooter } from 'react-bootstrap';
 import { BindAll } from 'lodash-decorators';
 
-import { UserVerification, ReactInjector, IAccountDetails } from '@spinnaker/core';
+import { AccountService, UserVerification, IAccountDetails } from '@spinnaker/core';
 
 export interface IAwsModalFooterProps {
   account: string;
@@ -20,7 +20,7 @@ export class AwsModalFooter extends React.Component<IAwsModalFooterProps, IAwsMo
   public state = { verified: false, requireVerification: false };
 
   public componentDidMount() {
-    ReactInjector.accountService.accounts$
+    AccountService.accounts$
       .take(1)
       .map((accounts: IAccountDetails[]) => accounts.find(account => account.name === this.props.account))
       .subscribe((account: IAccountDetails) => {

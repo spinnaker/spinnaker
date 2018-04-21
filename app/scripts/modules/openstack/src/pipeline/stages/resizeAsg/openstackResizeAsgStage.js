@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.resizeAsgStage', [])
@@ -29,7 +29,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackResizeAsgStageCtrl', function($scope, accountService) {
+  .controller('openstackResizeAsgStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -39,7 +39,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function(accounts) {
+    AccountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

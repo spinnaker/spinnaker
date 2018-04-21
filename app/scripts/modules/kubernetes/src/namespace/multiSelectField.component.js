@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
+import { AccountService, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
-  .module('kubernetes.namespace.multiSelectField.component', [LIST_EXTRACTOR_SERVICE, ACCOUNT_SERVICE])
+  .module('kubernetes.namespace.multiSelectField.component', [LIST_EXTRACTOR_SERVICE])
   .directive('namespaceMultiSelectField', function() {
     return {
       restrict: 'E',
@@ -19,7 +19,7 @@ module.exports = angular
       },
       templateUrl: require('./multiSelectField.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService, accountService) {
+      controller: function controller(appListExtractorService) {
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
@@ -71,8 +71,7 @@ module.exports = angular
         };
 
         let init = () => {
-          accountService
-            .getUniqueRegionsForAllAccounts(vm.component.cloudProviderType)
+          AccountService.getUniqueRegionsForAllAccounts(vm.component.cloudProviderType)
             .then(allNamespaces => {
               namespaces = allNamespaces;
               return allNamespaces;

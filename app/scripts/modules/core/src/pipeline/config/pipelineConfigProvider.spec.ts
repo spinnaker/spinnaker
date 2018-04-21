@@ -2,7 +2,7 @@ import { auto, mock } from 'angular';
 import { map } from 'lodash';
 
 import { IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
-import { IRegion } from 'core/account/account.service';
+import { IRegion } from 'core/account/AccountService';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from './pipelineConfigProvider';
 
 const mockProviderAccount = {

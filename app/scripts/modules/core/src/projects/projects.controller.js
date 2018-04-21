@@ -2,7 +2,6 @@
 const angular = require('angular');
 
 import { ANY_FIELD_FILTER } from '../presentation/anyFieldFilter/anyField.filter';
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
 import { ViewStateCache } from 'core/cache';
 
 module.exports = angular
@@ -10,7 +9,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('./service/project.write.service.js').name,
     require('./service/project.read.service.js').name,
-    ACCOUNT_SERVICE,
     ANY_FIELD_FILTER,
     require('../presentation/sortToggle/sorttoggle.directive.js').name,
     require('../insight/insightmenu.directive.js').name,

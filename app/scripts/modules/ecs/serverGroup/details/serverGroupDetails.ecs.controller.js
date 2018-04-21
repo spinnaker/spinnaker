@@ -6,7 +6,7 @@ import { chain, filter, find, has, isEmpty } from 'lodash';
 import { ECS_SERVER_GROUP_TRANSFORMER } from '../serverGroup.transformer';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   CONFIRMATION_MODAL_SERVICE,
   OVERRIDE_REGISTRY,
   SERVER_GROUP_READER,
@@ -17,7 +17,6 @@ import {
 module.exports = angular
   .module('spinnaker.ecs.serverGroup.details.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     ECS_SERVER_GROUP_TRANSFORMER,
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
@@ -40,7 +39,6 @@ module.exports = angular
     serverGroupWriter,
     subnetReader,
     ecsServerGroupTransformer,
-    accountService,
     serverGroupWarningMessageService,
     overrideRegistry,
   ) {
@@ -342,7 +340,7 @@ module.exports = angular
     };
 
     this.applyAccountDetails = serverGroup => {
-      return accountService.getAccountDetails(serverGroup.account).then(details => {
+      return AccountService.getAccountDetails(serverGroup.account).then(details => {
         serverGroup.accountDetails = details;
       });
     };

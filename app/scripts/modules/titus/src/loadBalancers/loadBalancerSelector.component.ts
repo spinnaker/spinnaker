@@ -28,7 +28,6 @@ class LoadBalancerSelectorController implements IController {
 
   constructor(
     private $q: ng.IQService,
-    private accountService: AccountService,
     private cacheInitializer: CacheInitializerService,
     private loadBalancerReader: LoadBalancerReader,
   ) {
@@ -38,11 +37,11 @@ class LoadBalancerSelectorController implements IController {
   }
 
   public $onInit(): void {
-    const credentialLoader: ng.IPromise<void> = this.accountService
-      .getCredentialsKeyedByAccount('titus')
-      .then((credentials: IAggregatedAccounts) => {
+    const credentialLoader: ng.IPromise<void> = AccountService.getCredentialsKeyedByAccount('titus').then(
+      (credentials: IAggregatedAccounts) => {
         this.credentials = credentials;
-      });
+      },
+    );
     const loadBalancerLoader: ng.IPromise<void> = this.loadBalancerReader
       .listLoadBalancers('aws')
       .then((loadBalancers: any[]) => {

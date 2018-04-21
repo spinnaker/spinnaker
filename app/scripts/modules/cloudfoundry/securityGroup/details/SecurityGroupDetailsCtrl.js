@@ -3,22 +3,14 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
+import { SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.securityGroup.cf.details.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     SECURITY_GROUP_READER,
   ])
-  .controller('cfSecurityGroupDetailsCtrl', function(
-    $scope,
-    $state,
-    resolvedSecurityGroup,
-    accountService,
-    app,
-    securityGroupReader,
-  ) {
+  .controller('cfSecurityGroupDetailsCtrl', function($scope, $state, resolvedSecurityGroup, app, securityGroupReader) {
     const application = app;
     const securityGroup = resolvedSecurityGroup;
 

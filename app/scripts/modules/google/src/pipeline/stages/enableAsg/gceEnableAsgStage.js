@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
+import { AccountService, PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.gce.pipeline.stage..enableAsgStage', [PIPELINE_CONFIG_PROVIDER])
@@ -20,7 +20,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceEnableAsgStageCtrl', function($scope, accountService) {
+  .controller('gceEnableAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -28,7 +28,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function(accounts) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

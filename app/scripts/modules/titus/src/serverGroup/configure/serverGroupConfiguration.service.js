@@ -3,11 +3,11 @@
 const angular = require('angular');
 import { Subject } from 'rxjs';
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.serverGroup.configure.titus.configuration.service', [ACCOUNT_SERVICE])
-  .factory('titusServerGroupConfigurationService', function(accountService, $q) {
+  .module('spinnaker.serverGroup.configure.titus.configuration.service', [])
+  .factory('titusServerGroupConfigurationService', function($q) {
     function configureCommand(command) {
       command.viewState.accountChangedStream = new Subject();
       command.viewState.regionChangedStream = new Subject();
@@ -21,7 +21,7 @@ module.exports = angular
       command.image = command.viewState.imageId;
       return $q
         .all({
-          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
+          credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('titus'),
           images: [],
         })
         .then(backingData => {

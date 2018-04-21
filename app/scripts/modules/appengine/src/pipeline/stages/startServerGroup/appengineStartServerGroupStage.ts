@@ -1,15 +1,15 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService, PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
 import { IAppengineStageScope } from 'appengine/domain';
 import { AppengineStageCtrl } from '../appengineStage.controller';
 
 class AppengineStartServerGroupStageCtrl extends AppengineStageCtrl {
-  constructor(public $scope: IAppengineStageScope, protected accountService: AccountService) {
+  constructor(public $scope: IAppengineStageScope) {
     'ngInject';
-    super($scope, accountService);
+    super($scope);
 
     super.setAccounts().then(() => {
       super.setStageRegion();
@@ -31,7 +31,7 @@ class AppengineStartServerGroupStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_START_SERVER_GROUP_STAGE = 'spinnaker.appengine.pipeline.stage.startServerGroupStage';
 
-module(APPENGINE_START_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
+module(APPENGINE_START_SERVER_GROUP_STAGE, [PIPELINE_CONFIG_PROVIDER])
   .config((pipelineConfigProvider: PipelineConfigProvider) => {
     pipelineConfigProvider.registerStage({
       label: 'Start Server Group',

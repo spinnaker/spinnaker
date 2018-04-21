@@ -1,5 +1,7 @@
 'use strict';
 
+import { AccountService } from '@spinnaker/core';
+
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
 describe('awsServerGroupCommandBuilder', function() {
@@ -8,26 +10,19 @@ describe('awsServerGroupCommandBuilder', function() {
   beforeEach(window.module(require('./serverGroupCommandBuilder.service.js').name));
 
   beforeEach(
-    window.inject(function(
-      awsServerGroupCommandBuilder,
-      accountService,
-      $q,
-      $rootScope,
-      subnetReader,
-      instanceTypeService,
-    ) {
+    window.inject(function(awsServerGroupCommandBuilder, $q, $rootScope, subnetReader, instanceTypeService) {
       this.awsServerGroupCommandBuilder = awsServerGroupCommandBuilder;
       this.$scope = $rootScope;
       this.instanceTypeService = instanceTypeService;
       this.$q = $q;
-      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue(
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue(
         $q.when(AccountServiceFixture.preferredZonesByAccount),
       );
-      spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
         $q.when(AccountServiceFixture.credentialsKeyedByAccount),
       );
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(accountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(this.$q.when(['a', 'b', 'c']));
+      spyOn(AccountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(this.$q.when(['a', 'b', 'c']));
     }),
   );
 

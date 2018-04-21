@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IRegion } from 'core/account/account.service';
+import { IRegion } from 'core/account/AccountService';
 
 export interface IRegionSelectFieldProps {
   account: string;

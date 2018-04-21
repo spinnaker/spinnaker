@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..tagImageStage', [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
+  .module('spinnaker.gce.pipeline.stage..tagImageStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'upsertImageTags',
@@ -15,8 +15,8 @@ module.exports = angular
       executionConfigSections: ['tagImageConfig', 'taskStatus'],
     });
   })
-  .controller('gceTagImageStageCtrl', function($scope, accountService) {
-    accountService.listAccounts('gce').then(function(accounts) {
+  .controller('gceTagImageStageCtrl', function($scope) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
     });
 

@@ -72,7 +72,6 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     protected $scope: IScope,
     protected $uibModalInstance: IModalInstanceService,
     protected $state: StateService,
-    protected accountService: AccountService,
     protected securityGroupReader: SecurityGroupReader,
     protected amazonCertificateReader: AmazonCertificateReader,
     protected cacheInitializer: CacheInitializerService,
@@ -181,7 +180,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
         this.viewState.hideInternalFlag = true;
       }
     }
-    this.accountService.listAccounts('aws').then(accounts => {
+    AccountService.listAccounts('aws').then(accounts => {
       this.accounts = accounts;
       this.viewState.accountsLoaded = true;
       this.accountUpdated();
@@ -411,7 +410,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   private accountUpdated(): void {
-    this.accountService.getRegionsForAccount(this.loadBalancerCommand.credentials).then(regions => {
+    AccountService.getRegionsForAccount(this.loadBalancerCommand.credentials).then(regions => {
       this.regions = regions;
       this.clearSecurityGroups();
       this.regionUpdated();

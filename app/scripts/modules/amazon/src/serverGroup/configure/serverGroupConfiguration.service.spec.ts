@@ -13,13 +13,11 @@ import { KeyPairsReader } from 'amazon/keyPairs/keyPairs.read.service';
 import {
   AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   AwsServerGroupConfigurationService,
-  IAmazonServerGroupCommand,
 } from './serverGroupConfiguration.service';
 
 describe('Service: awsServerGroupConfiguration', function() {
   let service: AwsServerGroupConfigurationService,
     $q: IQService,
-    accountService: AccountService,
     securityGroupReader: SecurityGroupReader,
     awsInstanceTypeService: any,
     cacheInitializer: CacheInitializerService,
@@ -34,7 +32,6 @@ describe('Service: awsServerGroupConfiguration', function() {
     mock.inject(function(
       _awsServerGroupConfigurationService_: AwsServerGroupConfigurationService,
       _$q_: IQService,
-      _accountService_: AccountService,
       _securityGroupReader_: SecurityGroupReader,
       _awsInstanceTypeService_: any,
       _cacheInitializer_: CacheInitializerService,
@@ -45,7 +42,6 @@ describe('Service: awsServerGroupConfiguration', function() {
     ) {
       service = _awsServerGroupConfigurationService_;
       $q = _$q_;
-      accountService = _accountService_;
       securityGroupReader = _securityGroupReader_;
       awsInstanceTypeService = _awsInstanceTypeService_;
       cacheInitializer = _cacheInitializer_;
@@ -93,13 +89,13 @@ describe('Service: awsServerGroupConfiguration', function() {
 
   describe('configureCommand', function() {
     it('attempts to reload load balancers if some are not found on initialization, but does not set dirty flag', function() {
-      spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       const listLoadBalancersSpy = spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue(
         $q.when(this.allLoadBalancers),
       );
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
       spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
       const refreshCacheSpy = spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
@@ -113,7 +109,7 @@ describe('Service: awsServerGroupConfiguration', function() {
           disableImageSelection: true,
           dirty: {},
         },
-      } as IAmazonServerGroupCommand;
+      } as any;
 
       service.configureCommand({} as Application, command);
       $scope.$digest();
@@ -125,11 +121,11 @@ describe('Service: awsServerGroupConfiguration', function() {
     });
 
     it('attempts to reload security groups if some are not found on initialization, but does not set dirty flag', function() {
-      spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       const getAllSecurityGroupsSpy = spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
       spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
       const refreshCacheSpy = spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
@@ -143,7 +139,7 @@ describe('Service: awsServerGroupConfiguration', function() {
           disableImageSelection: true,
           dirty: {},
         },
-      } as IAmazonServerGroupCommand;
+      } as any;
 
       service.configureCommand({} as Application, command);
       $scope.$digest();
@@ -156,11 +152,11 @@ describe('Service: awsServerGroupConfiguration', function() {
     });
 
     it('attempts to reload instance types if already selected on initialization, but does not set dirty flag', function() {
-      spyOn(accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when([]));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
       const getAllTypesByRegionSpy = spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue(
         $q.when({
@@ -179,7 +175,7 @@ describe('Service: awsServerGroupConfiguration', function() {
           disableImageSelection: true,
           dirty: {},
         },
-      } as IAmazonServerGroupCommand;
+      } as any;
 
       service.configureCommand({} as Application, command);
       $scope.$digest();
@@ -204,7 +200,7 @@ describe('Service: awsServerGroupConfiguration', function() {
         credentials: 'test',
         region: 'us-east-1',
         vpcId: null,
-      } as IAmazonServerGroupCommand;
+      } as any;
     });
 
     it('matches existing load balancers based on name - no VPC', function() {

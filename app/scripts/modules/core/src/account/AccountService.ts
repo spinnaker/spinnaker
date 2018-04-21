@@ -1,5 +1,6 @@
 import { chain, intersection, zipObject, uniq } from 'lodash';
-import { ILogService, IPromise, IQResolveReject, IQService, module } from 'angular';
+import { IPromise, IQResolveReject } from 'angular';
+import { $log, $q } from 'ngimport';
 import { Observable } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -53,7 +54,7 @@ export interface IAccountZone {
 }
 
 export class AccountService {
-  public accounts$: Observable<IAccountDetails[]> = Observable.defer(() => {
+  public static accounts$: Observable<IAccountDetails[]> = Observable.defer(() => {
     const promise = API.one('credentials')
       .useCache()
       .withParams({ expand: true })
@@ -63,17 +64,13 @@ export class AccountService {
     .publishReplay(1)
     .refCount();
 
-  public providers$ = this.accounts$.map((accounts: IAccountDetails[]) => {
+  public static providers$ = AccountService.accounts$.map((accounts: IAccountDetails[]) => {
     const providersFromAccounts: string[] = uniq(accounts.map(account => account.type));
     return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
   });
 
-  constructor(private $log: ILogService, private $q: IQService) {
-    'ngInject';
-  }
-
-  public challengeDestructiveActions(account: string): IPromise<boolean> {
-    return this.$q((resolve: IQResolveReject<boolean>) => {
+  public static challengeDestructiveActions(account: string): IPromise<boolean> {
+    return $q((resolve: IQResolveReject<boolean>) => {
       if (account) {
         this.getAccountDetails(account)
           .then((details: IAccountDetails) => {
@@ -90,28 +87,28 @@ export class AccountService {
     });
   }
 
-  public getArtifactAccounts(): IPromise<IAccount[]> {
+  public static getArtifactAccounts(): IPromise<IAccount[]> {
     return API.one('artifacts')
       .one('credentials')
       .useCache()
       .get();
   }
 
-  public getAccountDetails(account: string): IPromise<IAccountDetails> {
+  public static getAccountDetails(account: string): IPromise<IAccountDetails> {
     return this.listAllAccounts().then(accounts => accounts.find(a => a.name === account));
   }
 
-  public getAllAccountDetailsForProvider(
+  public static getAllAccountDetailsForProvider(
     provider: string,
     providerVersion: string = null,
   ): IPromise<IAccountDetails[]> {
     return this.listAllAccounts(provider, providerVersion).catch((error: any) => {
-      this.$log.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
+      $log.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
       return [];
     });
   }
 
-  public getAvailabilityZonesForAccountAndRegion(
+  public static getAvailabilityZonesForAccountAndRegion(
     provider: string,
     account: string,
     region: string,
@@ -121,14 +118,14 @@ export class AccountService {
     );
   }
 
-  public getCredentialsKeyedByAccount(provider: string = null): IPromise<IAggregatedAccounts> {
+  public static getCredentialsKeyedByAccount(provider: string = null): IPromise<IAggregatedAccounts> {
     return this.listAllAccounts(provider).then((accounts: IAccountDetails[]) => {
       const names: string[] = accounts.map((account: IAccount) => account.name);
       return zipObject<IAccountDetails, IAggregatedAccounts>(names, accounts);
     });
   }
 
-  public getPreferredZonesByAccount(provider: string): IPromise<IAccountZone> {
+  public static getPreferredZonesByAccount(provider: string): IPromise<IAccountZone> {
     const preferred: IAccountZone = {};
     return this.getAllAccountDetailsForProvider(provider).then((accounts: IAccountDetails[]) => {
       accounts.forEach((account: IAccountDetails) => {
@@ -147,11 +144,11 @@ export class AccountService {
     });
   }
 
-  public getRegionsForAccount(account: string): IPromise<IRegion[]> {
+  public static getRegionsForAccount(account: string): IPromise<IRegion[]> {
     return this.getAccountDetails(account).then((details: IAccountDetails) => (details ? details.regions : []));
   }
 
-  public getUniqueAttributeForAllAccounts(provider: string, attribute: string): IPromise<string[]> {
+  public static getUniqueAttributeForAllAccounts(provider: string, attribute: string): IPromise<string[]> {
     return this.getCredentialsKeyedByAccount(provider).then((credentials: IAggregatedAccounts) => {
       return chain(credentials)
         .map(attribute)
@@ -163,8 +160,8 @@ export class AccountService {
     });
   }
 
-  public listAllAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
-    return this.$q
+  public static listAllAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
+    return $q
       .when(this.accounts$.toPromise())
       .then((accounts: IAccountDetails[]) => accounts.filter(account => !provider || account.type === provider))
       .then((accounts: IAccountDetails[]) =>
@@ -172,14 +169,14 @@ export class AccountService {
       );
   }
 
-  public listAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
+  public static listAccounts(provider: string = null, providerVersion: string = null): IPromise<IAccountDetails[]> {
     return this.listAllAccounts(provider, providerVersion).then(accounts =>
       accounts.filter(account => account.authorized !== false),
     );
   }
 
-  public applicationAccounts(application: Application = null): IPromise<IAccountDetails[]> {
-    return this.$q.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
+  public static applicationAccounts(application: Application = null): IPromise<IAccountDetails[]> {
+    return $q.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
       return providers.reduce(
         (memo, p) => {
           return memo.concat(accounts.filter(acc => acc.cloudProvider === p));
@@ -189,7 +186,7 @@ export class AccountService {
     });
   }
 
-  public listProviders$(application: Application = null): Observable<string[]> {
+  public static listProviders$(application: Application = null): Observable<string[]> {
     return this.providers$
       .map((available: string[]) => {
         if (!application) {
@@ -205,10 +202,7 @@ export class AccountService {
       .map(results => results.sort());
   }
 
-  public listProviders(application: Application = null): IPromise<string[]> {
-    return this.$q.when(this.listProviders$(application).toPromise());
+  public static listProviders(application: Application = null): IPromise<string[]> {
+    return $q.when(this.listProviders$(application).toPromise());
   }
 }
-
-export const ACCOUNT_SERVICE = 'spinnaker.core.account.service';
-module(ACCOUNT_SERVICE, []).service('accountService', AccountService);

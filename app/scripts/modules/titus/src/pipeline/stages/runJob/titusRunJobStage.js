@@ -3,6 +3,8 @@
 const angular = require('angular');
 import { Subject } from 'rxjs';
 
+import { AccountService } from '@spinnaker/core';
+
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.runJobStage', [require('./runJobExecutionDetails.controller.js').name])
   .config(function(pipelineConfigProvider) {
@@ -26,7 +28,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusRunJobStageCtrl', function($scope, accountService, $q) {
+  .controller('titusRunJobStageCtrl', function($scope, $q) {
     let stage = $scope.stage;
     let vm = this;
 
@@ -144,7 +146,7 @@ module.exports = angular
     stage.deferredInitialization = true;
     $q
       .all({
-        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('titus'),
+        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('titus'),
       })
       .then(backingData => {
         backingData.credentials = Object.keys(backingData.credentialsKeyedByAccount);

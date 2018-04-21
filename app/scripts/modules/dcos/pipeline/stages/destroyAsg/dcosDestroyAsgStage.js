@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.dcos.pipeline.stage.destroyAsgStage', [])
@@ -26,7 +26,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('dcosDestroyAsgStageCtrl', function($scope, accountService) {
+  .controller('dcosDestroyAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -34,7 +34,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('dcos').then(function(accounts) {
+    AccountService.listAccounts('dcos').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

@@ -2,11 +2,10 @@
 
 const angular = require('angular');
 
-import { StageConstants, ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.pipeline.stage.resizeAsgStage', [
-    ACCOUNT_SERVICE,
     require('core/application/modal/platformHealthOverride.directive.js').name,
   ])
   .config(function(pipelineConfigProvider) {
@@ -29,7 +28,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsResizeAsgStageCtrl', function($scope, accountService) {
+  .controller('oraclebmcsResizeAsgStageCtrl', function($scope) {
     let ctrl = this;
 
     let provider = 'oraclebmcs';
@@ -41,7 +40,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts(provider).then(function(accounts) {
+    AccountService.listAccounts(provider).then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

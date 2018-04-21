@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   LOAD_BALANCER_WRITE_SERVICE,
   SECURITY_GROUP_READER,
   TASK_MONITOR_BUILDER,
@@ -16,7 +16,6 @@ module.exports = angular
   .module('spinnaker.loadBalancer.openstack.create.controller', [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_WRITE_SERVICE,
-    ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
     require('../../transformer.js').name,
@@ -33,7 +32,6 @@ module.exports = angular
     application,
     loadBalancer,
     isNew,
-    accountService,
     openstackLoadBalancerTransformer,
     loadBalancerWriter,
     taskMonitorBuilder,
@@ -113,7 +111,7 @@ module.exports = angular
     });
 
     function finishInitialization() {
-      accountService.listAccounts('openstack').then(function(accounts) {
+      AccountService.listAccounts('openstack').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 

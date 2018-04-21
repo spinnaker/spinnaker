@@ -4,7 +4,7 @@ const angular = require('angular');
 import { defaults, filter } from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
@@ -17,7 +17,6 @@ module.exports = angular
   .module('spinnaker.instance.detail.titus.controller', [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    ACCOUNT_SERVICE,
     INSTANCE_WRITE_SERVICE,
     INSTANCE_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
@@ -29,7 +28,6 @@ module.exports = angular
     $q,
     $state,
     $uibModal,
-    accountService,
     instanceWriter,
     confirmationModalService,
     recentHistoryService,
@@ -282,7 +280,7 @@ module.exports = angular
     };
 
     let getBastionAddressForAccount = (account, region) => {
-      return accountService.getAccountDetails(account).then(details => {
+      return AccountService.getAccountDetails(account).then(details => {
         this.bastionHost = details.bastionHost || 'unknown';
 
         const discoveryHealth = $scope.instance.health.find(m => m.type === 'Discovery');

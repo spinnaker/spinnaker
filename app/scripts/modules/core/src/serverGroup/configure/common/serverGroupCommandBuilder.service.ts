@@ -6,7 +6,7 @@ import { ILoadBalancer, ISecurityGroup, ISubnet, IEntityTags } from 'core/domain
 import { ICapacity } from 'core/serverGroup/serverGroupWriter.service';
 import { IDeploymentStrategy } from 'core/deploymentStrategy';
 import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
-import { IRegion, IAggregatedAccounts } from 'core/account/account.service';
+import { IRegion, IAggregatedAccounts } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
 
 export interface IServerGroupCommandBuilderOptions {

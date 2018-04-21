@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
+import { AccountService, PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.enableAsgStage', [PIPELINE_CONFIG_PROVIDER])
@@ -22,7 +22,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesEnableAsgStageCtrl', function($scope, accountService) {
+  .controller('kubernetesEnableAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -30,7 +30,7 @@ module.exports = angular
       namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function(accounts) {
+    AccountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

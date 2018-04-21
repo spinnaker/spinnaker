@@ -3,7 +3,6 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   InfrastructureCaches,
   SECURITY_GROUP_READER,
@@ -13,7 +12,6 @@ import {
 module.exports = angular
   .module('spinnaker.azure.securityGroup.azure.edit.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     CACHE_INITIALIZER_SERVICE,
     SECURITY_GROUP_READER,
     TASK_MONITOR_BUILDER,
@@ -24,7 +22,6 @@ module.exports = angular
     $uibModalInstance,
     $exceptionHandler,
     $state,
-    accountService,
     securityGroupReader,
     taskMonitorBuilder,
     cacheInitializer,

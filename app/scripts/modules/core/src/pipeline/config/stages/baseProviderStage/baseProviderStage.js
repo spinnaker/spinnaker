@@ -2,11 +2,12 @@
 
 const angular = require('angular');
 
+import { AccountService } from 'core/account/AccountService';
 import { SETTINGS } from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.baseProviderStage', [])
-  .controller('BaseProviderStageCtrl', function($scope, stage, accountService, pipelineConfig) {
+  .controller('BaseProviderStageCtrl', function($scope, stage, pipelineConfig) {
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
     let dockerBakeEnabled = SETTINGS.feature.dockerBake && stage.type === 'bake';
 
@@ -21,8 +22,7 @@ module.exports = angular
       stageProviders.push({ cloudProvider: 'docker' });
     }
 
-    accountService
-      .listProviders$($scope.application)
+    AccountService.listProviders$($scope.application)
       .take(1)
       .subscribe(function(providers) {
         $scope.viewState.loading = false;

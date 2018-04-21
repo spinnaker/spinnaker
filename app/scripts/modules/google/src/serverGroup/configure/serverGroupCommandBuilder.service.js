@@ -3,12 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, EXPECTED_ARTIFACT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
+import { AccountService, EXPECTED_ARTIFACT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 import { GCEProviderSettings } from 'google/gce.settings';
 
 module.exports = angular
   .module('spinnaker.gce.serverGroupCommandBuilder.service', [
-    ACCOUNT_SERVICE,
     EXPECTED_ARTIFACT_SERVICE,
     INSTANCE_TYPE_SERVICE,
     require('google/common/xpnNaming.gce.service.js').name,
@@ -17,7 +16,6 @@ module.exports = angular
   ])
   .factory('gceServerGroupCommandBuilder', function(
     $q,
-    accountService,
     expectedArtifactService,
     instanceTypeService,
     gceCustomInstanceBuilderService,
@@ -285,7 +283,7 @@ module.exports = angular
     }
 
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
-      return accountService.listAccounts('gce').then(function(gceAccounts) {
+      return AccountService.listAccounts('gce').then(function(gceAccounts) {
         var gceAccountNames = _.map(gceAccounts, 'name');
         var firstGCEAccount = gceAccountNames[0];
 

@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,
@@ -13,7 +13,6 @@ module.exports = angular
   .module('spinnaker.loadBalancer.gce.create.controller', [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_WRITE_SERVICE,
-    ACCOUNT_SERVICE,
     require('../../loadBalancer.transformer.js').name,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
@@ -23,7 +22,6 @@ module.exports = angular
     $scope,
     $uibModalInstance,
     $state,
-    accountService,
     gceLoadBalancerTransformer,
     application,
     loadBalancer,
@@ -82,7 +80,7 @@ module.exports = angular
     function initializeEditMode() {}
 
     function initializeCreateMode() {
-      accountService.listAccounts('gce').then(function(accounts) {
+      AccountService.listAccounts('gce').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -146,7 +144,7 @@ module.exports = angular
     };
 
     this.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
+      AccountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
         if (_.isArray(regions)) {
           $scope.regions = _.map(regions, 'name');
         } else {

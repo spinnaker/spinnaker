@@ -10,7 +10,6 @@ import {
 
 describe('dockerImageAndTagSelector controller', () => {
   let $ctrl: DockerImageAndTagSelectorController,
-    accountService: AccountService,
     dockerImageReader: DockerImageReaderService,
     $componentController: ng.IComponentControllerService,
     $q: ng.IQService,
@@ -26,13 +25,11 @@ describe('dockerImageAndTagSelector controller', () => {
   beforeEach(
     mock.inject(
       (
-        _accountService_: AccountService,
         _dockerImageReader_: DockerImageReaderService,
         _$componentController_: ng.IComponentControllerService,
         _$q_: ng.IQService,
         $rootScope: ng.IRootScopeService,
       ) => {
-        accountService = _accountService_;
         dockerImageReader = _dockerImageReader_;
         $componentController = _$componentController_;
         $q = _$q_;
@@ -42,11 +39,11 @@ describe('dockerImageAndTagSelector controller', () => {
   );
 
   const initialize = (accounts: IAccount[], images: IDockerImage[]) => {
-    spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
+    spyOn(AccountService, 'listAccounts').and.returnValue($q.when(accounts));
     spyOn(dockerImageReader, 'findImages').and.returnValue($q.when(images));
     $ctrl = $componentController(
       'dockerImageAndTagSelector',
-      { accountService, dockerImageReader },
+      { dockerImageReader },
       { organization, registry, repository, tag, account, showRegistry },
     ) as DockerImageAndTagSelectorController;
     $ctrl.$onInit();

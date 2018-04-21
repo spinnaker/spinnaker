@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.findAmiStage', [PIPELINE_CONFIG_PROVIDER, ACCOUNT_SERVICE])
+  .module('spinnaker.kubernetes.pipeline.stage.findAmiStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'findImage',
@@ -20,7 +20,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesFindAmiStageController', function($scope, accountService) {
+  .controller('kubernetesFindAmiStageController', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -28,7 +28,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function(accounts) {
+    AccountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

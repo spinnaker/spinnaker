@@ -3,32 +3,26 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
+import { AccountService, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
 module.exports = angular
   .module('spinnaker.ecs.serverGroupCommandBuilder.service', [
-    ACCOUNT_SERVICE,
     INSTANCE_TYPE_SERVICE,
     ECS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
-  .factory('ecsServerGroupCommandBuilder', function(
-    $q,
-    accountService,
-    instanceTypeService,
-    ecsServerGroupConfigurationService,
-  ) {
+  .factory('ecsServerGroupCommandBuilder', function($q, instanceTypeService, ecsServerGroupConfigurationService) {
     const CLOUD_PROVIDER = 'ecs';
 
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
-      var credentialsLoader = accountService.getCredentialsKeyedByAccount('ecs');
+      var credentialsLoader = AccountService.getCredentialsKeyedByAccount('ecs');
 
       var defaultCredentials = defaults.account || application.defaultCredentials.ecs;
       var defaultRegion = defaults.region || application.defaultRegions.ecs;
 
-      var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion(
+      var preferredZonesLoader = AccountService.getAvailabilityZonesForAccountAndRegion(
         'ecs',
         defaultCredentials,
         defaultRegion,
@@ -145,7 +139,7 @@ module.exports = angular
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
-      var preferredZonesLoader = accountService.getPreferredZonesByAccount('ecs');
+      var preferredZonesLoader = AccountService.getPreferredZonesByAccount('ecs');
 
       var serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 

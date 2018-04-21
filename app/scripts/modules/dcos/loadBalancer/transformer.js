@@ -4,12 +4,12 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 import { DcosProviderSettings } from '../dcos.settings';
 
 module.exports = angular
-  .module('spinnaker.dcos.loadBalancer.transformer', [ACCOUNT_SERVICE])
-  .factory('dcosLoadBalancerTransformer', function(accountService, $q) {
+  .module('spinnaker.dcos.loadBalancer.transformer', [])
+  .factory('dcosLoadBalancerTransformer', function($q) {
     function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = [];
@@ -18,7 +18,7 @@ module.exports = angular
     }
 
     function attemptToSetValidAccount(defaultAccount, defaultDcosCluster, loadBalancer) {
-      return accountService.getCredentialsKeyedByAccount('dcos').then(function(dcosAccountsByName) {
+      return AccountService.getCredentialsKeyedByAccount('dcos').then(function(dcosAccountsByName) {
         var dcosAccountNames = _.keys(dcosAccountsByName);
         var firstDcosAccount = null;
 

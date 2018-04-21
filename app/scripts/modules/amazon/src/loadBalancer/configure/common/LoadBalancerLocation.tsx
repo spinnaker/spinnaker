@@ -6,6 +6,7 @@ import { BindAll } from 'lodash-decorators';
 import { Field, FormikErrors, FormikProps } from 'formik';
 
 import {
+  AccountService,
   Application,
   HelpField,
   IAccount,
@@ -130,7 +131,7 @@ class LoadBalancerLocationImpl extends React.Component<
   }
 
   private loadAccounts(): void {
-    ReactInjector.accountService.listAccounts('aws').then(accounts => {
+    AccountService.listAccounts('aws').then(accounts => {
       this.setState({ accounts });
       this.accountUpdated(this.props.values.credentials);
     });
@@ -280,7 +281,7 @@ class LoadBalancerLocationImpl extends React.Component<
 
   private accountUpdated(account: string): void {
     this.props.setFieldValue('credentials', account);
-    ReactInjector.accountService.getRegionsForAccount(this.props.values.credentials).then(regions => {
+    AccountService.getRegionsForAccount(this.props.values.credentials).then(regions => {
       const availabilityZones = this.getAvailabilityZones(regions);
       this.setState({ availabilityZones, regions });
       this.updateExistingLoadBalancerNames();

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { Application, IServerGroup, ModalInjector, ReactInjector } from '@spinnaker/core';
+import { AccountService, Application, IServerGroup, ModalInjector } from '@spinnaker/core';
 
 import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
 import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
@@ -32,7 +32,7 @@ export class CreateScalingPolicyButton extends React.Component<
       typeSelection: null,
       awsAccount: null,
     };
-    ReactInjector.accountService.getAccountDetails(props.serverGroup.account).then(details => {
+    AccountService.getAccountDetails(props.serverGroup.account).then(details => {
       this.setState({ awsAccount: details.awsAccount });
     });
   }

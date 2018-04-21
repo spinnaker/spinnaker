@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..disableAsgStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.gce.pipeline.stage..disableAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -25,7 +25,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('gceDisableAsgStageCtrl', function($scope, accountService) {
+  .controller('gceDisableAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -33,7 +33,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function(accounts) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

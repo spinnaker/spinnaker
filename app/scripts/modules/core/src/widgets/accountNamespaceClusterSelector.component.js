@@ -4,11 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { LIST_EXTRACTOR_SERVICE } from 'core/application/listExtractor/listExtractor.service';
 
 module.exports = angular
-  .module('spinnaker.core.accountNamespaceClusterSelector.directive', [LIST_EXTRACTOR_SERVICE, ACCOUNT_SERVICE])
+  .module('spinnaker.core.accountNamespaceClusterSelector.directive', [LIST_EXTRACTOR_SERVICE])
   .directive('accountNamespaceClusterSelector', function() {
     return {
       restrict: 'E',
@@ -22,7 +22,7 @@ module.exports = angular
       },
       templateUrl: require('./accountNamespaceClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService, accountService) {
+      controller: function controller(appListExtractorService) {
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
@@ -76,8 +76,7 @@ module.exports = angular
         };
 
         let init = () => {
-          accountService
-            .getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'namespaces')
+          AccountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'namespaces')
             .then(allNamespaces => {
               namespaces = allNamespaces;
               return allNamespaces;

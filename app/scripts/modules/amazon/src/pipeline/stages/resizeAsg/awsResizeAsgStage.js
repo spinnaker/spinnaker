@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.pipeline.stage.aws.resizeAsgStage', [])
@@ -29,7 +29,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsResizeAsgStageCtrl', function($scope, accountService) {
+  .controller('awsResizeAsgStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -39,7 +39,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(function(accounts) {
+    AccountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

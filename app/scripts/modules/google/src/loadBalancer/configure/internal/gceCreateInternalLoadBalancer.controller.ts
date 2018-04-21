@@ -4,7 +4,6 @@ import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
   AccountService,
   Application,
   IAccount,
@@ -95,7 +94,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     private loadBalancer: InternalLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
-    private accountService: AccountService,
     private loadBalancerWriter: LoadBalancerWriter,
     private wizardSubFormValidation: any,
     private gceXpnNamingService: any,
@@ -214,7 +212,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
       .filter((network: IGceNetwork) => network.account === this.loadBalancer.credentials)
       .map(network => network.id);
 
-    this.accountService.getRegionsForAccount(this.loadBalancer.credentials).then((regions: IRegion[]) => {
+    AccountService.getRegionsForAccount(this.loadBalancer.credentials).then((regions: IRegion[]) => {
       this.regions = regions.map((region: IRegion) => region.name);
       this.networkUpdated();
     });
@@ -269,7 +267,6 @@ export const GCE_INTERNAL_LOAD_BALANCER_CTRL = 'spinnaker.gce.internalLoadBalanc
 module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-  ACCOUNT_SERVICE,
   require('google/common/xpnNaming.gce.service.js').name,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,

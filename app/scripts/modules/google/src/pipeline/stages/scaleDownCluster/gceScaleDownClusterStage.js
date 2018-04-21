@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..scaleDownClusterStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.gce.pipeline.stage..scaleDownClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'scaleDownCluster',
@@ -26,7 +26,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('gceScaleDownClusterStageCtrl', function($scope, accountService) {
+  .controller('gceScaleDownClusterStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -36,7 +36,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(function(accounts) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

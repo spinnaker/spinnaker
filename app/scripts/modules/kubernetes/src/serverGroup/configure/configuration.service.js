@@ -3,18 +3,16 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, CACHE_INITIALIZER_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
+import { AccountService, CACHE_INITIALIZER_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
-    ACCOUNT_SERVICE,
     CACHE_INITIALIZER_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     require('../../image/image.reader.js').name,
   ])
   .factory('kubernetesServerGroupConfigurationService', function(
     $q,
-    accountService,
     kubernetesImageReader,
     loadBalancerReader,
     cacheInitializer,
@@ -56,7 +54,7 @@ module.exports = angular
 
       return $q
         .all({
-          accounts: accountService.listAccounts('kubernetes', 'v1'),
+          accounts: AccountService.listAccounts('kubernetes', 'v1'),
           loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
           allImages: imagesPromise,
         })
@@ -73,7 +71,7 @@ module.exports = angular
 
           var accountMap = _.fromPairs(
             _.map(backingData.accounts, function(account) {
-              return [account.name, accountService.getAccountDetails(account.name)];
+              return [account.name, AccountService.getAccountDetails(account.name)];
             }),
           );
 

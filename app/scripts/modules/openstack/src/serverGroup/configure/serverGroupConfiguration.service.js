@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   CACHE_INITIALIZER_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
@@ -13,7 +13,6 @@ import {
 module.exports = angular
   .module('spinnaker.openstack.serverGroup.configure.configuration.service', [
     require('../../image/image.reader.js').name,
-    ACCOUNT_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
@@ -21,7 +20,6 @@ module.exports = angular
   .factory('openstackServerGroupConfigurationService', function(
     $q,
     openstackImageReader,
-    accountService,
     securityGroupReader,
     cacheInitializer,
     loadBalancerReader,
@@ -47,7 +45,7 @@ module.exports = angular
     function configureCommand(application, command) {
       return $q
         .all({
-          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('openstack'),
+          credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('openstack'),
           securityGroups: securityGroupReader.getAllSecurityGroups(),
           loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
           userDataTypes: $q.when(angular.copy(userDataTypes)),

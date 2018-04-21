@@ -3,31 +3,19 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   INSTANCE_TYPE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   SUBNET_READ_SERVICE,
 } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.cache.initializer', [
-    ACCOUNT_SERVICE,
-    LOAD_BALANCER_READ_SERVICE,
-    INSTANCE_TYPE_SERVICE,
-    SUBNET_READ_SERVICE,
-  ])
-  .factory('azureCacheConfigurer', function(
-    $q,
-    accountService,
-    instanceTypeService,
-    subnetReader,
-    keyPairsReader,
-    loadBalancerReader,
-  ) {
+  .module('spinnaker.azure.cache.initializer', [LOAD_BALANCER_READ_SERVICE, INSTANCE_TYPE_SERVICE, SUBNET_READ_SERVICE])
+  .factory('azureCacheConfigurer', function($q, instanceTypeService, subnetReader, keyPairsReader, loadBalancerReader) {
     let config = Object.create(null);
 
     config.credentials = {
-      initializers: [() => accountService.getCredentialsKeyedByAccount('azure')],
+      initializers: [() => AccountService.getCredentialsKeyedByAccount('azure')],
     };
 
     config.instanceTypes = {

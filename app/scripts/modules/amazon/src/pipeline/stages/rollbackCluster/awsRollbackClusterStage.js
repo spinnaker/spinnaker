@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+import { AccountService } from '@spinnaker/core';
+
 module.exports = angular
   .module('spinnaker.amazon.pipeline.stage.rollbackClusterStage', [])
   .config(function(pipelineConfigProvider) {
@@ -16,7 +18,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsRollbackClusterStageCtrl', function($scope, accountService) {
+  .controller('awsRollbackClusterStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -26,7 +28,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(function(accounts) {
+    AccountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

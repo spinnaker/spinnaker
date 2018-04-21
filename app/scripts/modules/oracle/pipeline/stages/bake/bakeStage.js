@@ -5,10 +5,10 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
+  AccountService,
   AuthenticationService,
   PIPELINE_CONFIG_PROVIDER,
   BAKERY_SERVICE,
-  ACCOUNT_SERVICE,
   NETWORK_READ_SERVICE,
   SUBNET_READ_SERVICE,
 } from '@spinnaker/core';
@@ -18,7 +18,6 @@ module.exports = angular
     require('./bakeExecutionDetails.controller.js').name,
     PIPELINE_CONFIG_PROVIDER,
     BAKERY_SERVICE,
-    ACCOUNT_SERVICE,
     NETWORK_READ_SERVICE,
     SUBNET_READ_SERVICE,
   ])
@@ -54,14 +53,7 @@ module.exports = angular
       restartable: true,
     });
   })
-  .controller('oraclebmcsBakeStageCtrl', function(
-    $scope,
-    bakeryService,
-    accountService,
-    networkReader,
-    subnetReader,
-    $q,
-  ) {
+  .controller('oraclebmcsBakeStageCtrl', function($scope, bakeryService, networkReader, subnetReader, $q) {
     const provider = 'oraclebmcs';
 
     if (!$scope.stage.cloudProvider) {
@@ -140,7 +132,7 @@ module.exports = angular
     };
 
     $scope.getZones = function(provider) {
-      return accountService.getPreferredZonesByAccount(provider);
+      return AccountService.getPreferredZonesByAccount(provider);
     };
 
     $scope.getNetworks = function(provider) {

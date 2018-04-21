@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 import './userVerification.directive.less';
 
 module.exports = angular
-  .module('spinnaker.core.task.verification.userVerification.directive', [ACCOUNT_SERVICE])
+  .module('spinnaker.core.task.verification.userVerification.directive', [])
   .directive('userVerification', function() {
     /**
      * The user verification directive takes at least two arguments
@@ -26,7 +26,7 @@ module.exports = angular
       controller: 'UserVerificationCtrl',
     };
   })
-  .controller('UserVerificationCtrl', function($scope, accountService) {
+  .controller('UserVerificationCtrl', function($scope) {
     this.$onInit = () => {
       this.label =
         this.label ||
@@ -44,7 +44,7 @@ module.exports = angular
       }
       if (this.account) {
         this.verification.toVerify = this.account;
-        accountService.challengeDestructiveActions(this.account).then(challenge => {
+        AccountService.challengeDestructiveActions(this.account).then(challenge => {
           this.required = challenge;
           this.verification.verified = !challenge;
         });

@@ -3,14 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.region.regionSelectField.directive', [
-    ACCOUNT_SERVICE,
     require('../common/selectField.component.js').name,
   ])
-  .directive('osRegionSelectField', function(accountService) {
+  .directive('osRegionSelectField', function() {
     return {
       restrict: 'E',
       templateUrl: require('../common/cacheBackedSelectField.template.html'),
@@ -36,7 +35,7 @@ module.exports = angular
           filter: {},
           backingCache: 'regions',
           updateOptions: function() {
-            return accountService.getRegionsForAccount(scope.account).then(function(regions) {
+            return AccountService.getRegionsForAccount(scope.account).then(function(regions) {
               scope.options = _.chain(regions)
                 .map(r => ({ label: r, value: r }))
                 .sortBy('label')

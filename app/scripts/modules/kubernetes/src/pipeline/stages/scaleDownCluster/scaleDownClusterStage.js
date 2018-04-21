@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.scaleDownClusterStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.kubernetes.pipeline.stage.scaleDownClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'scaleDownCluster',
@@ -25,7 +25,7 @@ module.exports = angular
       strategy: true,
     });
   })
-  .controller('kubernetesScaleDownClusterStageCtrl', function($scope, accountService) {
+  .controller('kubernetesScaleDownClusterStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -35,7 +35,7 @@ module.exports = angular
       namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function(accounts) {
+    AccountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

@@ -1,5 +1,7 @@
 'use strict';
 
+import { AccountService } from '@spinnaker/core';
+
 /*
  This is more of an integration test between awsServerGroupConfigurationService and awsCloneServerGroupCtrl.
  ServerGroupConfigurationService is not mocked out to verify behavior that existed before it was refactored into
@@ -15,7 +17,6 @@ describe('Controller: awsCloneServerGroup', function() {
     window.inject(function(
       $controller,
       $rootScope,
-      accountService,
       serverGroupWriter,
       awsImageReader,
       searchService,
@@ -30,7 +31,6 @@ describe('Controller: awsCloneServerGroup', function() {
       loadBalancerReader,
     ) {
       this.$scope = $rootScope.$new();
-      this.accountService = accountService;
       this.serverGroupWriter = serverGroupWriter;
       this.awsImageReader = awsImageReader;
       this.searchService = searchService;
@@ -107,7 +107,6 @@ describe('Controller: awsCloneServerGroup', function() {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           $uibModalInstance: this.modalInstance,
-          accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsImageReader: this.awsImageReader,
           searchService: this.searchService,
@@ -126,10 +125,10 @@ describe('Controller: awsCloneServerGroup', function() {
     function setupMocks() {
       var resolve = this.resolve;
 
-      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.callFake(
         resolve(AccountServiceFixture.preferredZonesByAccount),
       );
-      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.callFake(
         resolve(AccountServiceFixture.credentialsKeyedByAccount),
       );
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
@@ -232,7 +231,6 @@ describe('Controller: awsCloneServerGroup', function() {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           $uibModalInstance: this.modalInstance,
-          accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
           v2modalWizardService: this.v2modalWizardService,
@@ -248,10 +246,10 @@ describe('Controller: awsCloneServerGroup', function() {
       var resolve = this.resolve;
 
       this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
-      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.callFake(
         resolve(AccountServiceFixture.preferredZonesByAccount),
       );
-      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.callFake(
         resolve(AccountServiceFixture.credentialsKeyedByAccount),
       );
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
@@ -415,7 +413,6 @@ describe('Controller: awsCloneServerGroup', function() {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           $uibModalInstance: this.modalInstance,
-          accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
           awsInstanceTypeService: this.awsInstanceTypeService,
           v2modalWizardService: this.v2modalWizardService,
@@ -431,10 +428,10 @@ describe('Controller: awsCloneServerGroup', function() {
       var resolve = this.resolve,
         spec = this;
 
-      spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(
+      spyOn(AccountService, 'getPreferredZonesByAccount').and.callFake(
         resolve(AccountServiceFixture.preferredZonesByAccount),
       );
-      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.callFake(
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.callFake(
         resolve(AccountServiceFixture.credentialsKeyedByAccount),
       );
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));

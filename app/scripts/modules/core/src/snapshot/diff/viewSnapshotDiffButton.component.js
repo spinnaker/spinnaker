@@ -2,16 +2,13 @@
 
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.deck.core.viewSnapshotDiff.component', [
-    ACCOUNT_SERVICE,
-    require('./snapshotDiff.modal.controller.js').name,
-  ])
+  .module('spinnaker.deck.core.viewSnapshotDiff.component', [require('./snapshotDiff.modal.controller.js').name])
   .component('viewSnapshotDiffButton', {
     bindings: {
       application: '=',
@@ -19,13 +16,12 @@ module.exports = angular
     template: `<button class="btn btn-link" ng-click="$ctrl.viewSnapshotDiffs()">
                   <span class="glyphicon glyphicon-cloud"></span> View Snapshot History
                </button>`,
-    controller: function($q, accountService, $uibModal) {
+    controller: function($q, $uibModal) {
       function getSnapshotEnabledAccounts(application) {
-        return accountService
-          .listProviders(application)
+        return AccountService.listProviders(application)
           .then(providers => providers.filter(provider => CloudProviderRegistry.getValue(provider, 'snapshotsEnabled')))
           .then(snapshotEnabledProviders =>
-            $q.all(snapshotEnabledProviders.map(provider => accountService.listAccounts(provider))),
+            $q.all(snapshotEnabledProviders.map(provider => AccountService.listAccounts(provider))),
           )
           .then(accounts =>
             _.chain(accounts)

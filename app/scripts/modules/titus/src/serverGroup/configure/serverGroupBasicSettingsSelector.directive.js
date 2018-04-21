@@ -2,11 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
 import _ from 'lodash';
 
 module.exports = angular
-  .module('spinnaker.serverGroup.configure.titus.basicSettingsSelector', [ACCOUNT_SERVICE])
+  .module('spinnaker.serverGroup.configure.titus.basicSettingsSelector', [])
   .directive('titusServerGroupBasicSettingsSelector', function() {
     return {
       restrict: 'E',

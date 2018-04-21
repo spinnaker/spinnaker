@@ -3,35 +3,33 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils, SUBNET_READ_SERVICE } from '@spinnaker/core';
+import { AccountService, INSTANCE_TYPE_SERVICE, NameUtils, SUBNET_READ_SERVICE } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroupCommandBuilder.service', [
-    ACCOUNT_SERVICE,
     SUBNET_READ_SERVICE,
     INSTANCE_TYPE_SERVICE,
     AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
   .factory('awsServerGroupCommandBuilder', function(
     $q,
-    accountService,
     subnetReader,
     instanceTypeService,
     awsServerGroupConfigurationService,
   ) {
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
-      var credentialsLoader = accountService.getCredentialsKeyedByAccount('aws');
+      var credentialsLoader = AccountService.getCredentialsKeyedByAccount('aws');
 
       var defaultCredentials =
         defaults.account || application.defaultCredentials.aws || AWSProviderSettings.defaults.account;
       var defaultRegion = defaults.region || application.defaultRegions.aws || AWSProviderSettings.defaults.region;
       var defaultSubnet = defaults.subnet || AWSProviderSettings.defaults.subnetType || '';
 
-      var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion(
+      var preferredZonesLoader = AccountService.getAvailabilityZonesForAccountAndRegion(
         'aws',
         defaultCredentials,
         defaultRegion,
@@ -176,7 +174,7 @@ module.exports = angular
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
-      var preferredZonesLoader = accountService.getPreferredZonesByAccount('aws');
+      var preferredZonesLoader = AccountService.getPreferredZonesByAccount('aws');
       var subnetsLoader = subnetReader.listSubnets();
 
       var serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);

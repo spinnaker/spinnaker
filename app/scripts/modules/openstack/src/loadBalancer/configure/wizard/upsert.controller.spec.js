@@ -144,7 +144,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
           application: this.mockApplication,
           loadBalancer: loadBalancer,
           isNew: !loadBalancer,
-          accountService: this.mockAccountService,
           loadBalancerWriter: this.mockLoadBalancerWriter,
           taskMonitorBuilder: this.mockTaskMonitorBuilder,
           securityGroupReader: this.mockSecurityGroupReader,

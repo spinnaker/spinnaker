@@ -6,7 +6,7 @@ import { IDeferred, IPromise } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q } from 'ngimport';
 
-import { ILoadBalancerModalProps, ReactInjector, TaskMonitor, WizardModal } from '@spinnaker/core';
+import { AccountService, ILoadBalancerModalProps, ReactInjector, TaskMonitor, WizardModal } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
@@ -93,7 +93,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
   }
 
   private formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): IPromise<void> {
-    return ReactInjector.accountService.getAccountDetails(command.credentials).then(account => {
+    return AccountService.getAccountDetails(command.credentials).then(account => {
       command.listeners.forEach(listener => {
         if (listener.protocol === 'HTTP') {
           delete listener.sslPolicy;

@@ -2,7 +2,6 @@ import { IPromise, module } from 'angular';
 import * as _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
   AccountService,
   IAccount,
   ILoadBalancersByAccount,
@@ -38,7 +37,7 @@ export class GceCommonLoadBalancerCommandBuilder {
           .value();
       });
     },
-    accounts: (): IPromise<IAccount[]> => this.accountService.listAccounts('gce'),
+    accounts: (): IPromise<IAccount[]> => AccountService.listAccounts('gce'),
     networks: (): IPromise<INetwork[]> => this.networkReader.listNetworksByProvider('gce'),
     subnets: (): IPromise<ISubnet[]> => this.subnetReader.listSubnetsByProvider('gce'),
     healthChecks: (): IPromise<IGceHealthCheck[]> => this.gceHealthCheckReader.listHealthChecks(),
@@ -48,7 +47,6 @@ export class GceCommonLoadBalancerCommandBuilder {
   constructor(
     private $q: ng.IQService,
     private loadBalancerReader: LoadBalancerReader,
-    private accountService: AccountService,
     private subnetReader: SubnetReader,
     private gceHealthCheckReader: GceHealthCheckReader,
     private networkReader: any,
@@ -96,7 +94,6 @@ export class GceCommonLoadBalancerCommandBuilder {
 export const GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER = 'spinnaker.gce.commonLoadBalancerCommandBuilder.service';
 
 module(GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER, [
-  ACCOUNT_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   GCE_CERTIFICATE_READER,
   SUBNET_READ_SERVICE,

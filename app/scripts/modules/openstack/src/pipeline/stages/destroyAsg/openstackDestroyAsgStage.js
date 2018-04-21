@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.destroyAsgStage', [])
@@ -27,7 +27,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackDestroyAsgStageCtrl', function($scope, accountService) {
+  .controller('openstackDestroyAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -35,7 +35,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function(accounts) {
+    AccountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

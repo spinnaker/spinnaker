@@ -16,7 +16,6 @@ import {
 } from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
   AccountService,
   Application,
   CACHE_INITIALIZER_SERVICE,
@@ -109,7 +108,6 @@ export class AwsServerGroupConfigurationService {
   constructor(
     private $q: IQService,
     private awsImageReader: any,
-    private accountService: AccountService,
     private securityGroupReader: SecurityGroupReader,
     private awsInstanceTypeService: any,
     private cacheInitializer: CacheInitializerService,
@@ -193,11 +191,11 @@ export class AwsServerGroupConfigurationService {
 
     return this.$q
       .all({
-        credentialsKeyedByAccount: this.accountService.getCredentialsKeyedByAccount('aws'),
+        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('aws'),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
         loadBalancers: this.loadBalancerReader.listLoadBalancers('aws'),
         subnets: this.subnetReader.listSubnets(),
-        preferredZones: this.accountService.getPreferredZonesByAccount('aws'),
+        preferredZones: AccountService.getPreferredZonesByAccount('aws'),
         keyPairs: this.keyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
         instanceTypes: this.awsInstanceTypeService.getAllTypesByRegion(),
@@ -693,7 +691,6 @@ export class AwsServerGroupConfigurationService {
 export const AWS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.amazon.serverGroup.configure.service';
 module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE, [
   require('amazon/image/image.reader.js').name,
-  ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   SUBNET_READ_SERVICE,
   require('amazon/instance/awsInstanceType.service.js').name,

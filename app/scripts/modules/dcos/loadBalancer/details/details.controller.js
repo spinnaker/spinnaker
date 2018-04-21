@@ -1,20 +1,11 @@
 'use strict';
 
-import {
-  ACCOUNT_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE,
-  ServerGroupTemplates,
-} from '@spinnaker/core';
+import { CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.loadBalancer.details.controller', [
-    ACCOUNT_SERVICE,
-    CONFIRMATION_MODAL_SERVICE,
-    LOAD_BALANCER_WRITE_SERVICE,
-  ])
+  .module('spinnaker.dcos.loadBalancer.details.controller', [CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE])
   .controller('dcosLoadBalancerDetailsController', function(
     $scope,
     $state,
@@ -22,7 +13,6 @@ module.exports = angular
     loadBalancer,
     app,
     confirmationModalService,
-    accountService,
     loadBalancerWriter,
     dcosProxyUiService,
     $q,

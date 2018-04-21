@@ -3,11 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
+import { AccountService, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.cloneServerGroupStage', [
-    ACCOUNT_SERVICE,
     require('./cloneServerGroupExecutionDetails.controller.js').name,
   ])
   .config(function(pipelineConfigProvider) {
@@ -25,14 +24,14 @@ module.exports = angular
       ],
     });
   })
-  .controller('titusCloneServerGroupStageCtrl', function($scope, accountService) {
+  .controller('titusCloneServerGroupStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('titus').then(accounts => {
+    AccountService.listAccounts('titus').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

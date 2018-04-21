@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   InfrastructureCaches,
   LOAD_BALANCER_WRITE_SERVICE,
   NameUtils,
@@ -17,7 +17,6 @@ module.exports = angular
   .module('spinnaker.azure.loadBalancer.create.controller', [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_WRITE_SERVICE,
-    ACCOUNT_SERVICE,
     require('../loadBalancer.transformer.js').name,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
@@ -27,7 +26,6 @@ module.exports = angular
     $scope,
     $uibModalInstance,
     $state,
-    accountService,
     azureLoadBalancerTransformer,
     networkReader,
     v2modalWizardService,
@@ -85,7 +83,7 @@ module.exports = angular
     });
 
     function initializeCreateMode() {
-      accountService.listAccounts('azure').then(function(accounts) {
+      AccountService.listAccounts('azure').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
         ctrl.accountUpdated();
@@ -150,7 +148,7 @@ module.exports = angular
     };
 
     this.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
+      AccountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
         $scope.regions = regions;
         ctrl.regionUpdated();
       });

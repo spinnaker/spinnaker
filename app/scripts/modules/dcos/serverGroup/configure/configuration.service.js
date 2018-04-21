@@ -2,16 +2,13 @@
 
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.configuration.service', [
-    ACCOUNT_SERVICE,
-    require('../../image/image.reader.js').name,
-  ])
-  .factory('dcosServerGroupConfigurationService', function($q, accountService, dcosImageReader) {
+  .module('spinnaker.dcos.serverGroup.configure.configuration.service', [require('../../image/image.reader.js').name])
+  .factory('dcosServerGroupConfigurationService', function($q, dcosImageReader) {
     function configureCommand(application, command, query = '') {
       let queries = command.docker.image ? [grabImageAndTag(command.docker.image.imageId)] : [];
 
@@ -38,7 +35,7 @@ module.exports = angular
 
       return $q
         .all({
-          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('dcos'),
+          credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('dcos'),
           allImages: imagesPromise,
         })
         .then(function(backingData) {

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService, PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from '@spinnaker/core';
 
 import { IAppengineStage, IAppengineStageScope } from 'appengine/domain/index';
 import { AppengineStageCtrl } from '../appengineStage.controller';
@@ -12,9 +12,9 @@ interface IAppengineShrinkClusterStage extends IAppengineStage {
 }
 
 class AppengineShrinkClusterStageCtrl extends AppengineStageCtrl {
-  constructor(public $scope: IAppengineStageScope, accountService: AccountService) {
+  constructor(public $scope: IAppengineStageScope) {
     'ngInject';
-    super($scope, accountService);
+    super($scope);
 
     super.setAccounts().then(() => {
       super.setStageRegion();
@@ -45,7 +45,7 @@ class AppengineShrinkClusterStageCtrl extends AppengineStageCtrl {
 
 export const APPENGINE_SHRINK_CLUSTER_STAGE = 'spinnaker.appengine.pipeline.stage.shrinkClusterStage';
 
-module(APPENGINE_SHRINK_CLUSTER_STAGE, [ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER])
+module(APPENGINE_SHRINK_CLUSTER_STAGE, [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider: PipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',

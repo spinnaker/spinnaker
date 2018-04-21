@@ -3,11 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
+import { AccountService, CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.cf.configuration.service', [
-    ACCOUNT_SERVICE,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
     require('../../image/image.reader.js').name,
@@ -15,7 +14,6 @@ module.exports = angular
   ])
   .factory('cfServerGroupConfigurationService', function(
     cfImageReader,
-    accountService,
     securityGroupReader,
     cfInstanceTypeService,
     cacheInitializer,
@@ -24,7 +22,7 @@ module.exports = angular
     function configureCommand(command) {
       return $q
         .all({
-          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('cf'),
+          credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('cf'),
           securityGroups: securityGroupReader.getAllSecurityGroups(),
           instanceTypes: cfInstanceTypeService.getAllTypesByRegion(),
         })

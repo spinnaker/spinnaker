@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { BindAll } from 'lodash-decorators';
 
-import { Checklist, ReactInjector } from '@spinnaker/core';
+import { AccountService, Checklist } from '@spinnaker/core';
 
 export interface ILoadBalancerAvailabilityZoneSelectorProps {
   region: string;
@@ -40,9 +40,9 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<
   private setDefaultZones(props: ILoadBalancerAvailabilityZoneSelectorProps) {
     const { credentials, onChange, region } = props;
 
-    ReactInjector.accountService
-      .getAvailabilityZonesForAccountAndRegion('aws', credentials, region)
-      .then(preferredZones => onChange(preferredZones.slice()));
+    AccountService.getAvailabilityZonesForAccountAndRegion('aws', credentials, region).then(preferredZones =>
+      onChange(preferredZones.slice()),
+    );
   }
 
   private handleUsePreferredZonesChanged(event: React.ChangeEvent<HTMLSelectElement>): void {

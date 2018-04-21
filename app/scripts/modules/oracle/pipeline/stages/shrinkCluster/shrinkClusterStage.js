@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.stage.oraclebmcs.shrinkClusterStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.core.pipeline.stage.oraclebmcs.shrinkClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsShrinkClusterStageCtrl', function($scope, accountService) {
+  .controller('oraclebmcsShrinkClusterStageCtrl', function($scope) {
     let ctrl = this;
 
     let stage = $scope.stage;
@@ -29,7 +29,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('oraclebmcs').then(function(accounts) {
+    AccountService.listAccounts('oraclebmcs').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

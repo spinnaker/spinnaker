@@ -3,12 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.edit.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_WRITER,
   ])
@@ -16,7 +15,6 @@ module.exports = angular
     $scope,
     $uibModalInstance,
     $state,
-    accountService,
     taskMonitorBuilder,
     application,
     securityGroup,

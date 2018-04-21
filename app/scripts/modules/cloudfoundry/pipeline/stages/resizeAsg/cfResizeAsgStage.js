@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.cf.pipeline.stage.resizeAsgStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.cf.pipeline.stage.resizeAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
@@ -23,7 +23,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('cfResizeAsgStageCtrl', function($scope, accountService) {
+  .controller('cfResizeAsgStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -32,7 +32,7 @@ module.exports = angular
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('cf').then(function(accounts) {
+    AccountService.listAccounts('cf').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });
@@ -40,7 +40,7 @@ module.exports = angular
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
 
     ctrl.accountUpdated = function() {
-      accountService.getAccountDetails(stage.credentials).then(function(details) {
+      AccountService.getAccountDetails(stage.credentials).then(function(details) {
         stage.regions = [details.org];
       });
     };

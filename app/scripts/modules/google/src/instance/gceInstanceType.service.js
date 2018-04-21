@@ -3,11 +3,11 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.instanceType.service', [ACCOUNT_SERVICE])
-  .factory('gceInstanceTypeService', function($http, $q, $log, accountService) {
+  .module('spinnaker.gce.instanceType.service', [])
+  .factory('gceInstanceTypeService', function($http, $q, $log) {
     var cachedResult = null;
 
     var n1standard = {
@@ -233,7 +233,7 @@ module.exports = angular
 
     let getCategories = _.memoize(() => {
       let initializedCategories = _.cloneDeep(categories);
-      return accountService.getAllAccountDetailsForProvider('gce').then(accountDetails => {
+      return AccountService.getAllAccountDetailsForProvider('gce').then(accountDetails => {
         // All GCE accounts have the same instance type disk defaults, so we can pick the first one.
         let instanceTypeDisks = _.get(accountDetails, '[0].instanceTypeDisks');
         if (instanceTypeDisks) {

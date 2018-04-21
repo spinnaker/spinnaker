@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   CACHE_INITIALIZER_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
@@ -13,7 +13,6 @@ import {
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.service', [
     require('../../image/image.reader.js').name,
-    ACCOUNT_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
@@ -21,7 +20,6 @@ module.exports = angular
   .factory('azureServerGroupConfigurationService', function(
     $q,
     azureImageReader,
-    accountService,
     securityGroupReader,
     cacheInitializer,
     loadBalancerReader,
@@ -45,7 +43,7 @@ module.exports = angular
     function configureCommand(application, command) {
       return $q
         .all({
-          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('azure'),
+          credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('azure'),
           securityGroups: securityGroupReader.loadSecurityGroups(),
           loadBalancers: loadBalancerReader.loadLoadBalancers(application.name),
         })

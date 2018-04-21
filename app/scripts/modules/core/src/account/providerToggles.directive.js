@@ -1,15 +1,15 @@
 'use strict';
 
 const angular = require('angular');
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 module.exports = angular
-  .module('spinnaker.core.account.providerToggle.directive', [ACCOUNT_SERVICE])
-  .directive('ifMultipleProviders', function(accountService) {
+  .module('spinnaker.core.account.providerToggle.directive', [])
+  .directive('ifMultipleProviders', function() {
     return {
       restrict: 'A',
       link: function(scope, elem) {
-        accountService.listProviders().then(function(providers) {
+        AccountService.listProviders().then(function(providers) {
           if (providers && providers.length && providers.length > 1) {
             elem.show();
           } else {
@@ -19,11 +19,11 @@ module.exports = angular
       },
     };
   })
-  .directive('ifSingleProvider', function(accountService) {
+  .directive('ifSingleProvider', function() {
     return {
       restrict: 'A',
       link: function(scope, elem) {
-        accountService.listProviders().then(function(providers) {
+        AccountService.listProviders().then(function(providers) {
           if (!providers || !providers.length || providers.length === 1) {
             elem.show();
           } else {

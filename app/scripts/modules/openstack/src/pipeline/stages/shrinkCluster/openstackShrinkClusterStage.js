@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.shrinkClusterStage', [PIPELINE_CONFIG_PROVIDER])
@@ -21,7 +21,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('OpenstackShrinkClusterStageCtrl', function($scope, accountService) {
+  .controller('OpenstackShrinkClusterStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -31,7 +31,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function(accounts) {
+    AccountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

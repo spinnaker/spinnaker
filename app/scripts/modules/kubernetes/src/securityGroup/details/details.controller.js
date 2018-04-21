@@ -4,7 +4,6 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
   SECURITY_GROUP_READER,
@@ -15,7 +14,6 @@ import {
 module.exports = angular
   .module('spinnaker.securityGroup.kubernetes.details.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
@@ -24,7 +22,6 @@ module.exports = angular
     $scope,
     $state,
     resolvedSecurityGroup,
-    accountService,
     app,
     confirmationModalService,
     securityGroupWriter,

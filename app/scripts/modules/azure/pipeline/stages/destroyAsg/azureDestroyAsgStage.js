@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.azure.pipeline.stage.destroyAsgStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.azure.pipeline.stage.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',
@@ -27,7 +27,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('azureDestroyAsgStageCtrl', function($scope, accountService) {
+  .controller('azureDestroyAsgStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -37,13 +37,13 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('azure').then(function(accounts) {
+    AccountService.listAccounts('azure').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
 
     ctrl.accountUpdated = function() {
-      accountService.getAccountDetails(stage.credentials).then(function(details) {
+      AccountService.getAccountDetails(stage.credentials).then(function(details) {
         stage.regions = [details.org];
         //        stage.regions = ['eastus', 'westus'];
       });

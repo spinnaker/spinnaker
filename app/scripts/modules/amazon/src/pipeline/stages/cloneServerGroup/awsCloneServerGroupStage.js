@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
+import { AccountService, LIST_EXTRACTOR_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE])
+  .module('spinnaker.amazon.pipeline.stage.cloneServerGroupStage', [LIST_EXTRACTOR_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -22,14 +22,14 @@ module.exports = angular
       ],
     });
   })
-  .controller('awsCloneServerGroupStageCtrl', function($scope, accountService, appListExtractorService) {
+  .controller('awsCloneServerGroupStageCtrl', function($scope, appListExtractorService) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('aws').then(accounts => {
+    AccountService.listAccounts('aws').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

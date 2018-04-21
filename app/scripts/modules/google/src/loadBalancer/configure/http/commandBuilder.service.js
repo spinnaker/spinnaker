@@ -3,7 +3,7 @@
 const angular = require('angular');
 import * as _ from 'lodash';
 
-import { ACCOUNT_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
+import { AccountService, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
 import { GCE_ADDRESS_READER } from 'google/address/address.reader';
 import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
@@ -17,7 +17,6 @@ module.exports = angular
   .module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
     require('../../../backendService/backendService.reader.js').name,
     GCE_CERTIFICATE_READER,
-    ACCOUNT_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
     GCE_ADDRESS_READER,
@@ -26,7 +25,6 @@ module.exports = angular
   ])
   .factory('gceHttpLoadBalancerCommandBuilder', function(
     $q,
-    accountService,
     gceHttpLoadBalancerUtils,
     gceBackendServiceReader,
     gceCertificateReader,
@@ -165,7 +163,7 @@ module.exports = angular
     }
 
     function getAccounts() {
-      return accountService.listAccounts('gce');
+      return AccountService.listAccounts('gce');
     }
 
     function getLoadBalancerMap() {

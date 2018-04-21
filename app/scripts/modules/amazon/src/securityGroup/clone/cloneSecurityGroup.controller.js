@@ -3,13 +3,12 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 import { VPC_READ_SERVICE } from 'amazon/vpc/vpc.read.service';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [
-    ACCOUNT_SERVICE,
     VPC_READ_SERVICE,
     require('../configure/configSecurityGroup.mixin.controller.js').name,
   ])
@@ -17,7 +16,6 @@ module.exports = angular
     $scope,
     $uibModalInstance,
     $controller,
-    accountService,
     securityGroup,
     application,
   ) {
@@ -41,7 +39,7 @@ module.exports = angular
       }),
     );
 
-    accountService.listAccounts('aws').then(function(accounts) {
+    AccountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
       vm.accountUpdated();
     });

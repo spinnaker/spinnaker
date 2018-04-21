@@ -3,11 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { AccountService, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
-    ACCOUNT_SERVICE,
     TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js').name,
     require('../configure/CreateSecurityGroupCtrl.js').name,
@@ -18,7 +17,6 @@ module.exports = angular
     $controller,
     $state,
     taskMonitorBuilder,
-    accountService,
     azureSecurityGroupWriter,
     securityGroup,
     application,
@@ -38,7 +36,7 @@ module.exports = angular
     });
 
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
+      AccountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
         $scope.regions = regions;
         $scope.securityGroup.regions = regions;
         ctrl.updateName();
@@ -72,7 +70,7 @@ module.exports = angular
       onTaskComplete: onTaskComplete,
     });
 
-    accountService.listAccounts('azure').then(function(accounts) {
+    AccountService.listAccounts('azure').then(function(accounts) {
       $scope.accounts = accounts;
       ctrl.accountUpdated();
     });

@@ -2,14 +2,13 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
 
 module.exports = angular
   .module('spinnaker.core.projects.configure.modal.controller', [
     require('../service/project.write.service.js').name,
     require('../service/project.read.service.js').name,
-    ACCOUNT_SERVICE,
     PIPELINE_CONFIG_SERVICE,
     require('../../modal/wizard/wizardSubFormValidation.service.js').name,
   ])
@@ -22,7 +21,6 @@ module.exports = angular
     applicationReader,
     projectWriter,
     projectReader,
-    accountService,
     taskMonitorBuilder,
     v2modalWizardService,
     wizardSubFormValidation,
@@ -140,7 +138,7 @@ module.exports = angular
       $scope.viewState.applicationsLoaded = true;
     });
 
-    accountService.listAccounts().then(accounts => {
+    AccountService.listAccounts().then(accounts => {
       $scope.accounts = accounts;
     });
 

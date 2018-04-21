@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.pipeline.stage.destroyAsgStage', [])
@@ -25,7 +25,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsDestroyAsgStageCtrl', function($scope, accountService) {
+  .controller('oraclebmcsDestroyAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
     let provider = 'oraclebmcs';
 
@@ -40,7 +40,7 @@ module.exports = angular
     init();
 
     function init() {
-      accountService.listAccounts(provider).then(accounts => {
+      AccountService.listAccounts(provider).then(accounts => {
         $scope.accounts = accounts;
         $scope.state.accounts = true;
       });

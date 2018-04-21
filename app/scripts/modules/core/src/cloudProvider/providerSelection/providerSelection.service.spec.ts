@@ -3,7 +3,7 @@ import { Application } from 'core/application/application.model';
 import { mock, IQService, IScope, IRootScopeService } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
-import { ACCOUNT_SERVICE, AccountService, IAccountDetails } from 'core/account/account.service';
+import { AccountService, IAccountDetails } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { PROVIDER_SELECTION_SERVICE, ProviderSelectionService } from './providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
@@ -25,20 +25,12 @@ function fakeAccount(provider: string): IAccountDetails {
 }
 
 describe('providerSelectionService: API', () => {
-  beforeEach(
-    mock.module(
-      APPLICATION_MODEL_BUILDER,
-      PROVIDER_SELECTION_SERVICE,
-      ACCOUNT_SERVICE,
-      require('angular-ui-bootstrap'),
-    ),
-  );
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PROVIDER_SELECTION_SERVICE, require('angular-ui-bootstrap')));
 
   // required to ensure registry provider is available
   let $q: IQService,
     $scope: IScope,
     $modal: IModalService,
-    accountService: AccountService,
     providerService: ProviderSelectionService,
     applicationBuilder: ApplicationModelBuilder;
   beforeEach(
@@ -47,14 +39,12 @@ describe('providerSelectionService: API', () => {
         _$q_: IQService,
         $rootScope: IRootScopeService,
         _$uibModal_: IModalService,
-        _accountService_: AccountService,
         _providerSelectionService_: ProviderSelectionService,
         _applicationModelBuilder_: ApplicationModelBuilder,
       ) => {
         $q = _$q_;
         $scope = $rootScope.$new();
         $modal = _$uibModal_;
-        accountService = _accountService_;
         providerService = _providerSelectionService_;
         applicationBuilder = _applicationModelBuilder_;
       },
@@ -63,7 +53,7 @@ describe('providerSelectionService: API', () => {
 
   let hasValue: boolean, accounts: IAccountDetails[];
   beforeEach(() => {
-    spyOn(accountService, 'applicationAccounts').and.callFake(() => $q.when(accounts));
+    spyOn(AccountService, 'applicationAccounts').and.callFake(() => $q.when(accounts));
     spyOn(CloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
     spyOn($modal, 'open').and.callFake(() => {
       return {

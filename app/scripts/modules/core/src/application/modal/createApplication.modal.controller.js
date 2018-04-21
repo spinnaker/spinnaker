@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
 import { APPLICATION_WRITE_SERVICE } from 'core/application/service/application.write.service';
 import { APPLICATION_NAME_VALIDATION_MESSAGES } from './validation/applicationNameValidationMessages.component';
@@ -17,7 +17,6 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     APPLICATION_WRITE_SERVICE,
     APPLICATION_READ_SERVICE,
-    ACCOUNT_SERVICE,
     TASK_READ_SERVICE,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
@@ -30,7 +29,6 @@ module.exports = angular
     $log,
     $state,
     $uibModalInstance,
-    accountService,
     applicationWriter,
     applicationReader,
     taskReader,
@@ -39,7 +37,7 @@ module.exports = angular
     let applicationLoader = applicationReader.listApplications();
     applicationLoader.then(applications => (this.data.appNameList = _.map(applications, 'name')));
 
-    let providerLoader = accountService.listProviders();
+    let providerLoader = AccountService.listProviders();
     providerLoader.then(providers => (this.data.cloudProviders = providers));
 
     $q.all([applicationLoader, providerLoader]).then(() => (this.state.initializing = false));

@@ -14,7 +14,7 @@ import {
 import { CloudProviderRegistry, ICloudProviderConfig } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
-import { IAccountDetails } from 'core/account/account.service';
+import { IAccountDetails } from 'core/account/AccountService';
 
 export interface ITransformer {
   transform: (application: Application, execution: IExecution) => void;

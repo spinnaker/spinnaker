@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -17,7 +17,6 @@ module.exports = angular
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
-    ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
     require('../../../namespace/selectField.directive.js').name,
@@ -30,7 +29,6 @@ module.exports = angular
     $state,
     application,
     securityGroup,
-    accountService,
     kubernetesSecurityGroupTransformer,
     securityGroupReader,
     loadBalancerReader,
@@ -109,7 +107,7 @@ module.exports = angular
     function initializeCreateMode() {
       return $q
         .all({
-          accounts: accountService.listAccounts('kubernetes'),
+          accounts: AccountService.listAccounts('kubernetes'),
           loadBalancers: loadBalancerReader.listLoadBalancers('kubernetes'),
         })
         .then(function(backingData) {
@@ -180,7 +178,7 @@ module.exports = angular
     };
 
     this.accountUpdated = function() {
-      accountService.getAccountDetails($scope.securityGroup.account).then(function(accountDetails) {
+      AccountService.getAccountDetails($scope.securityGroup.account).then(function(accountDetails) {
         $scope.namespaces = accountDetails.namespaces;
         ctrl.namespaceUpdated();
       });

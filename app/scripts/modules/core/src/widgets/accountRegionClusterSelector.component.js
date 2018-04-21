@@ -4,11 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { LIST_EXTRACTOR_SERVICE } from 'core/application/listExtractor/listExtractor.service';
 
 module.exports = angular
-  .module('spinnaker.core.accountRegionClusterSelector.directive', [LIST_EXTRACTOR_SERVICE, ACCOUNT_SERVICE])
+  .module('spinnaker.core.accountRegionClusterSelector.directive', [LIST_EXTRACTOR_SERVICE])
   .directive('accountRegionClusterSelector', function() {
     return {
       restrict: 'E',
@@ -25,7 +25,7 @@ module.exports = angular
       },
       templateUrl: require('./accountRegionClusterSelector.component.html'),
       controllerAs: 'vm',
-      controller: function controller(appListExtractorService, accountService) {
+      controller: function controller(appListExtractorService) {
         this.clusterField = this.clusterField || 'cluster';
 
         let vm = this;
@@ -96,8 +96,7 @@ module.exports = angular
         };
 
         let init = () => {
-          accountService
-            .getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'regions')
+          AccountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'regions')
             .then(allRegions => {
               regions = allRegions;
 

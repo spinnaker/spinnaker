@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, ARTIFACT_REFERENCE_SERVICE_PROVIDER, NameUtils, StageConstants } from '@spinnaker/core';
+import { AccountService, ARTIFACT_REFERENCE_SERVICE_PROVIDER, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [ACCOUNT_SERVICE, ARTIFACT_REFERENCE_SERVICE_PROVIDER])
+  .module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [ARTIFACT_REFERENCE_SERVICE_PROVIDER])
   .config(function(pipelineConfigProvider, artifactReferenceServiceProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -33,14 +33,14 @@ module.exports = angular
       return paths;
     });
   })
-  .controller('gceCloneServerGroupStageCtrl', function($scope, accountService) {
+  .controller('gceCloneServerGroupStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('gce').then(accounts => {
+    AccountService.listAccounts('gce').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

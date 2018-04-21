@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
+import { AccountService, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.ecs.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.ecs.pipeline.stage.cloneServerGroupStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -22,14 +22,14 @@ module.exports = angular
       ],
     });
   })
-  .controller('ecsCloneServerGroupStageCtrl', function($scope, accountService) {
+  .controller('ecsCloneServerGroupStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('ecs').then(accounts => {
+    AccountService.listAccounts('ecs').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

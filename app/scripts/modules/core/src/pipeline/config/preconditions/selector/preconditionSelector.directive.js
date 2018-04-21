@@ -1,12 +1,12 @@
 'use strict';
 
 const angular = require('angular');
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { LIST_EXTRACTOR_SERVICE } from 'core/application/listExtractor/listExtractor.service';
 import { isNil, first } from 'lodash';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.preconditions.selector', [ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE])
+  .module('spinnaker.core.pipeline.config.preconditions.selector', [LIST_EXTRACTOR_SERVICE])
   .directive('preconditionSelector', function() {
     return {
       restrict: 'E',
@@ -21,13 +21,8 @@ module.exports = angular
       controllerAs: 'preconditionCtrl',
     };
   })
-  .controller('PreconditionSelectorCtrl', function(
-    $scope,
-    preconditionTypeService,
-    accountService,
-    appListExtractorService,
-  ) {
-    accountService.listAccounts().then(accounts => {
+  .controller('PreconditionSelectorCtrl', function($scope, preconditionTypeService, appListExtractorService) {
+    AccountService.listAccounts().then(accounts => {
       $scope.accounts = accounts;
       setClusterList();
     });

@@ -1,15 +1,16 @@
 'use strict';
 
+import { AccountService } from '@spinnaker/core';
+
 describe('dcosServerGroupCommandBuilder', function() {
   beforeEach(window.module(require('./CommandBuilder.js').name));
 
   beforeEach(
-    window.inject(function(dcosServerGroupCommandBuilder, accountService, $q, $rootScope) {
+    window.inject(function(dcosServerGroupCommandBuilder, $q, $rootScope) {
       this.dcosServerGroupCommandBuilder = dcosServerGroupCommandBuilder;
       this.$scope = $rootScope;
       this.$q = $q;
-      this.accountService = accountService;
-      spyOn(this.accountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when({ test: {} }));
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when({ test: {} }));
     }),
   );
 

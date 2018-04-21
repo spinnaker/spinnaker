@@ -6,7 +6,7 @@ import { IDeferred, IPromise } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { $q } from 'ngimport';
 
-import { ILoadBalancerModalProps, ReactInjector, TaskMonitor, WizardModal } from '@spinnaker/core';
+import { AccountService, ILoadBalancerModalProps, ReactInjector, TaskMonitor, WizardModal } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
@@ -93,7 +93,7 @@ export class CreateClassicLoadBalancer extends React.Component<
   }
 
   protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): IPromise<void> {
-    return ReactInjector.accountService.getAccountDetails(command.credentials).then(account => {
+    return AccountService.getAccountDetails(command.credentials).then(account => {
       command.listeners.forEach(listener => {
         listener.sslCertificateId = this.certificateIdAsARN(
           account.accountId,

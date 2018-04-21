@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,
@@ -13,7 +13,6 @@ module.exports = angular
   .module('spinnaker.loadBalancer.kubernetes.create.controller', [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_WRITE_SERVICE,
-    ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
     require('../../../namespace/selectField.directive.js').name,
@@ -26,7 +25,6 @@ module.exports = angular
     application,
     loadBalancer,
     isNew,
-    accountService,
     kubernetesLoadBalancerTransformer,
     v2modalWizardService,
     loadBalancerWriter,
@@ -82,7 +80,7 @@ module.exports = angular
     }
 
     function initializeCreateMode() {
-      accountService.listAccounts('kubernetes').then(function(accounts) {
+      AccountService.listAccounts('kubernetes').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -137,7 +135,7 @@ module.exports = angular
     };
 
     this.accountUpdated = function() {
-      accountService.getAccountDetails($scope.loadBalancer.account).then(function(details) {
+      AccountService.getAccountDetails($scope.loadBalancer.account).then(function(details) {
         $scope.namespaces = details.namespaces;
         ctrl.namespaceUpdated();
       });

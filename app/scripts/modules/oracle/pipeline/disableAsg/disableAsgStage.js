@@ -2,12 +2,11 @@
 
 let angular = require('angular');
 import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [
     require('core/application/modal/platformHealthOverride.directive.js').name,
-    ACCOUNT_SERVICE,
   ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -28,7 +27,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsDisableAsgStageCtrl', function($scope, accountService) {
+  .controller('oraclebmcsDisableAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     let provider = 'oraclebmcs';
@@ -38,7 +37,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts(provider).then(function(accounts) {
+    AccountService.listAccounts(provider).then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

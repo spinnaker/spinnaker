@@ -2,8 +2,6 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
-
 import { CANARY_SCORE_COMPONENT } from './canaryScore.component';
 import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 
@@ -17,7 +15,6 @@ module.exports = angular
     CANARY_SCORE_COMPONENT,
     CANARY_SCORES_CONFIG_COMPONENT,
     require('./canaryStatus.directive.js').name,
-    ACCOUNT_SERVICE,
   ])
   .run(function(pipelineConfig, canaryStageTransformer) {
     pipelineConfig.registerTransformer(canaryStageTransformer);

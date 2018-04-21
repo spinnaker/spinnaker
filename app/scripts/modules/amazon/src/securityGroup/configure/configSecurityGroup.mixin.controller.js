@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { Subject } from 'rxjs';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   InfrastructureCaches,
   NameUtils,
   SECURITY_GROUP_READER,
@@ -23,7 +23,6 @@ module.exports = angular
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
-    ACCOUNT_SERVICE,
     VPC_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
   ])
@@ -36,7 +35,6 @@ module.exports = angular
     securityGroup,
     securityGroupReader,
     securityGroupWriter,
-    accountService,
     v2modalWizardService,
     cacheInitializer,
     vpcReader,
@@ -98,7 +96,7 @@ module.exports = angular
     $scope.securityGroup = securityGroup;
 
     ctrl.initializeAccounts = () => {
-      return accountService.listAccounts('aws').then(function(accounts) {
+      return AccountService.listAccounts('aws').then(function(accounts) {
         $scope.accounts = accounts;
         ctrl.accountUpdated();
       });
@@ -116,7 +114,7 @@ module.exports = angular
     }
 
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount(getAccount()).then(regions => {
+      AccountService.getRegionsForAccount(getAccount()).then(regions => {
         $scope.regions = regions.map(region => region.name);
         clearSecurityGroups();
         ctrl.regionUpdated();

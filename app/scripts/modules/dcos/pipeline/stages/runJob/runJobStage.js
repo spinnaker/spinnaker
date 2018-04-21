@@ -4,6 +4,8 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
+import { AccountService } from '@spinnaker/core';
+
 import { DcosProviderSettings } from '../../../dcos.settings';
 
 module.exports = angular
@@ -22,7 +24,7 @@ module.exports = angular
       validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'general.id' }],
     });
   })
-  .controller('dcosRunJobStageCtrl', function($scope, accountService, $q) {
+  .controller('dcosRunJobStageCtrl', function($scope, $q) {
     let stage = $scope.stage;
     this.stage = $scope.stage;
 
@@ -101,7 +103,7 @@ module.exports = angular
 
     $q
       .all({
-        credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('dcos'),
+        credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('dcos'),
       })
       .then(backingData => {
         backingData.accounts = Object.keys(backingData.credentialsKeyedByAccount);

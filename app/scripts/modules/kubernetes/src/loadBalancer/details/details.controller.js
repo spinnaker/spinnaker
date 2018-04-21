@@ -3,19 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import {
-  ACCOUNT_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
-  LOAD_BALANCER_WRITE_SERVICE,
-  ServerGroupTemplates,
-} from '@spinnaker/core';
+import { CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
 
 import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.kubernetes.details.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     LOAD_BALANCER_WRITE_SERVICE,
   ])
@@ -27,7 +21,6 @@ module.exports = angular
     loadBalancer,
     app,
     confirmationModalService,
-    accountService,
     loadBalancerWriter,
     kubernetesProxyUiService,
   ) {

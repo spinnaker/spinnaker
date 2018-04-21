@@ -2,12 +2,11 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
+import { CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.openstack.details.controller', [
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     LOAD_BALANCER_WRITE_SERVICE,
   ])
@@ -18,7 +17,6 @@ module.exports = angular
     loadBalancer,
     app,
     confirmationModalService,
-    accountService,
     loadBalancerWriter,
     subnetReader,
     $q,

@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 import './resizeStage.less';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.resizeStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.kubernetes.pipeline.stage.resizeStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
@@ -29,7 +29,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesResizeStageController', function($scope, accountService) {
+  .controller('kubernetesResizeStageController', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -39,7 +39,7 @@ module.exports = angular
       namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function(accounts) {
+    AccountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

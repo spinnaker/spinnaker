@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   CACHE_INITIALIZER_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,
@@ -20,7 +20,6 @@ import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.
 module.exports = angular
   .module('spinnaker.serverGroup.configure.gce.configuration.service', [
     LOAD_BALANCER_SET_TRANSFORMER,
-    ACCOUNT_SERVICE,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
@@ -35,7 +34,6 @@ module.exports = angular
   ])
   .factory('gceServerGroupConfigurationService', function(
     gceImageReader,
-    accountService,
     securityGroupReader,
     gceInstanceTypeService,
     cacheInitializer,
@@ -88,7 +86,7 @@ module.exports = angular
 
       return $q
         .all({
-          credentialsKeyedByAccount: accountService.getCredentialsKeyedByAccount('gce'),
+          credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('gce'),
           securityGroups: securityGroupReader.getAllSecurityGroups(),
           networks: networkReader.listNetworksByProvider('gce'),
           subnets: subnetReader.listSubnetsByProvider('gce'),

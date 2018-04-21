@@ -4,7 +4,6 @@ import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
   AccountService,
   Application,
   IAccount,
@@ -95,7 +94,6 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     private loadBalancer: TcpLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
-    private accountService: AccountService,
     private loadBalancerWriter: LoadBalancerWriter,
     private wizardSubFormValidation: any,
     private taskMonitorBuilder: TaskMonitorBuilder,
@@ -182,7 +180,7 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     ]);
     this.existingLoadBalancerNames = existingLoadBalancerNames || [];
 
-    this.accountService.getRegionsForAccount(this.loadBalancer.credentials).then((regions: IRegion[]) => {
+    AccountService.getRegionsForAccount(this.loadBalancer.credentials).then((regions: IRegion[]) => {
       this.regions = regions.map((region: IRegion) => region.name);
     });
   }
@@ -223,7 +221,6 @@ export const GCE_TCP_LOAD_BALANCER_CTRL = 'spinnaker.gce.tcpLoadBalancer.control
 module(GCE_TCP_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-  ACCOUNT_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
 ]).controller('gceTcpLoadBalancerCtrl', TcpLoadBalancerCtrl);

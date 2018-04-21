@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CONFIRMATION_MODAL_SERVICE, TASK_EXECUTOR } from '@spinnaker/core';
+import { AccountService, CONFIRMATION_MODAL_SERVICE, TASK_EXECUTOR } from '@spinnaker/core';
 
 import { SCALING_POLICY_WRITE_SERVICE } from '@spinnaker/amazon';
 
@@ -22,9 +22,9 @@ module.exports = angular
       application: '=',
     },
     templateUrl: require('./alarmBasedSummary.component.html'),
-    controller: function($uibModal, scalingPolicyWriter, confirmationModalService, accountService, taskExecutor) {
+    controller: function($uibModal, scalingPolicyWriter, confirmationModalService, taskExecutor) {
       this.$onInit = () => {
-        accountService.getAccountDetails(this.serverGroup.account).then(details => {
+        AccountService.getAccountDetails(this.serverGroup.account).then(details => {
           // alarmServerGroup is used to trick the chart rendering into using AWS metrics
           this.alarmServerGroup = {
             type: 'aws',

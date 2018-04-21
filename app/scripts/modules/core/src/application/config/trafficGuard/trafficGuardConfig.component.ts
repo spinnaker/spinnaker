@@ -1,13 +1,7 @@
 import { ILogService, module, toJson } from 'angular';
 import { cloneDeep, uniq } from 'lodash';
 
-import {
-  ACCOUNT_SERVICE,
-  AccountService,
-  IAccountDetails,
-  IAggregatedAccounts,
-  IRegion,
-} from 'core/account/account.service';
+import { AccountService, IAccountDetails, IAggregatedAccounts, IRegion } from 'core/account/AccountService';
 import { Application, IConfigSectionFooterViewState } from 'core/application';
 import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
 import './trafficGuardConfig.help';
@@ -29,7 +23,7 @@ export class TrafficGuardConfigController {
     isDirty: false,
   };
 
-  public constructor(private $log: ILogService, private accountService: AccountService) {
+  public constructor(private $log: ILogService) {
     'ngInject';
   }
 
@@ -41,7 +35,7 @@ export class TrafficGuardConfigController {
     this.viewState.originalConfig = cloneDeep(this.config);
     this.viewState.originalStringVal = toJson(this.viewState.originalConfig);
 
-    this.accountService.getCredentialsKeyedByAccount().then((aggregated: IAggregatedAccounts) => {
+    AccountService.getCredentialsKeyedByAccount().then((aggregated: IAggregatedAccounts) => {
       const allAccounts = Object.keys(aggregated).map((name: string) => aggregated[name]);
       const accountsWithRegionsOnly = allAccounts.filter(
         (details: IAccountDetails) => details.regions && !details.namespaces,
@@ -124,7 +118,7 @@ class TrafficGuardConfigComponent implements ng.IComponentOptions {
 }
 
 export const TRAFFIC_GUARD_CONFIG_COMPONENT = 'spinnaker.core.application.config.trafficGuard.component';
-module(TRAFFIC_GUARD_CONFIG_COMPONENT, [ACCOUNT_SERVICE, CLUSTER_MATCHES_COMPONENT]).component(
+module(TRAFFIC_GUARD_CONFIG_COMPONENT, [CLUSTER_MATCHES_COMPONENT]).component(
   'trafficGuardConfig',
   new TrafficGuardConfigComponent(),
 );

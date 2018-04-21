@@ -1,7 +1,7 @@
 import { module, toJson } from 'angular';
 import { cloneDeep } from 'lodash';
 
-import { Application, CONFIG_SECTION_FOOTER, IConfigSectionFooterViewState } from '@spinnaker/core';
+import { AccountService, Application, CONFIG_SECTION_FOOTER, IConfigSectionFooterViewState } from '@spinnaker/core';
 
 import { TITUS_MIGRATION_CONFIGURER_COMPONENT } from './titusMigrationConfigurer.component';
 
@@ -88,10 +88,6 @@ export class TitusMigrationConfigController implements ng.IComponentController {
   public accounts: any[];
   public regionsByAccount: any = {};
 
-  public constructor(private accountService: any) {
-    'ngInject';
-  }
-
   public $onInit(): void {
     this.config = this.application.attributes.titusTaskMigration || {
       defaultStrategy: { type: RollingPushStrategy.type, config: new RollingPushStrategy() },
@@ -104,7 +100,7 @@ export class TitusMigrationConfigController implements ng.IComponentController {
   }
 
   private initializeOptions(): void {
-    this.accountService.getAllAccountDetailsForProvider('titus').then((accounts: any[]) => {
+    AccountService.getAllAccountDetailsForProvider('titus').then((accounts: any[]) => {
       this.accounts = accounts.map((account: any) => account.name);
       accounts.forEach((account: any) => {
         this.regionsByAccount[account.name] = ['*'].concat(account.regions.map((r: any) => r.name));

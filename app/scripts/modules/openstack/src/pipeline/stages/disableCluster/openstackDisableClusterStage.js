@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+import { AccountService } from '@spinnaker/core';
+
 module.exports = angular
   .module('spinnaker.openstack.pipeline.stage.disableClusterStage', [])
   .config(function(pipelineConfigProvider) {
@@ -21,7 +23,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackDisableClusterStageCtrl', function($scope, accountService) {
+  .controller('openstackDisableClusterStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -31,7 +33,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(function(accounts) {
+    AccountService.listAccounts('openstack').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

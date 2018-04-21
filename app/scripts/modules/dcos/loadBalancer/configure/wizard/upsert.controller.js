@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   LOAD_BALANCER_READ_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
@@ -15,7 +15,6 @@ module.exports = angular
   .module('spinnaker.dcos.loadBalancer.create.controller', [
     LOAD_BALANCER_WRITE_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
-    ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     TASK_MONITOR_BUILDER,
     SEARCH_SERVICE,
@@ -29,7 +28,6 @@ module.exports = angular
     loadBalancer,
     isNew,
     loadBalancerReader,
-    accountService,
     dcosLoadBalancerTransformer,
     searchService,
     v2modalWizardService,
@@ -86,7 +84,7 @@ module.exports = angular
     }
 
     function initializeCreateMode() {
-      accountService.listAccounts('dcos').then(function(accounts) {
+      AccountService.listAccounts('dcos').then(function(accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
@@ -142,7 +140,7 @@ module.exports = angular
     };
 
     this.accountUpdated = function() {
-      accountService.getAccountDetails($scope.loadBalancer.account).then(function(details) {
+      AccountService.getAccountDetails($scope.loadBalancer.account).then(function(details) {
         $scope.dcosClusters = details.dcosClusters;
         ctrl.dcosClusterUpdated();
       });

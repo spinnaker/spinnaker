@@ -1,13 +1,7 @@
 import { uniq } from 'lodash';
 import { module } from 'angular';
 
-import {
-  ACCOUNT_SERVICE,
-  AccountService,
-  IAccountDetails,
-  IRegion,
-  IAggregatedAccounts,
-} from 'core/account/account.service';
+import { AccountService, IAccountDetails, IRegion, IAggregatedAccounts } from 'core/account/AccountService';
 import { Application } from 'core/application/application.model';
 import { ChaosMonkeyConfig, IChaosMonkeyExceptionRule } from './chaosMonkeyConfig.component';
 import { IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
@@ -23,10 +17,6 @@ export class ChaosMonkeyExceptionsController {
   public configChanged: () => void;
   public clusterMatches: IClusterMatch[][] = [];
 
-  public constructor(private accountService: AccountService) {
-    'ngInject';
-  }
-
   public addException(): void {
     this.config.exceptions = this.config.exceptions || [];
     this.config.exceptions.push({ account: null, location: null, stack: null, detail: null, region: null });
@@ -39,7 +29,7 @@ export class ChaosMonkeyExceptionsController {
   }
 
   public $onInit(): void {
-    this.accountService.getCredentialsKeyedByAccount().then((aggregated: IAggregatedAccounts) => {
+    AccountService.getCredentialsKeyedByAccount().then((aggregated: IAggregatedAccounts) => {
       this.accounts = Object.keys(aggregated)
         .map((name: string) => aggregated[name])
         .filter((details: IAccountDetails) => details.regions);
@@ -94,7 +84,4 @@ class ChaosMonkeyExceptionsComponent implements ng.IComponentOptions {
 }
 
 export const CHAOS_MONKEY_EXCEPTIONS_COMPONENT = 'spinnaker.core.chaosMonkey.exceptions.directive';
-module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT, [ACCOUNT_SERVICE]).component(
-  'chaosMonkeyExceptions',
-  new ChaosMonkeyExceptionsComponent(),
-);
+module(CHAOS_MONKEY_EXCEPTIONS_COMPONENT, []).component('chaosMonkeyExceptions', new ChaosMonkeyExceptionsComponent());

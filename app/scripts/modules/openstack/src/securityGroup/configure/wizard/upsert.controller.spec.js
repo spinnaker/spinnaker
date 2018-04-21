@@ -86,7 +86,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
 
       this.mockSecurityGroupReader = addDeferredMock({}, 'loadSecurityGroups');
 
-      this.mockAccountService = addDeferredMock({}, 'listAccounts');
+      // this.mockAccountService = addDeferredMock({}, 'listAccounts');
       this.mockSecurityGroupWriter = addDeferredMock({}, 'upsertSecurityGroup');
       this.mockTaskMonitor = {
         submit: jasmine.createSpy(),
@@ -106,7 +106,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
           application: this.mockApplication,
           securityGroup: securityGroup,
           securityGroupReader: this.mockSecurityGroupReader,
-          accountService: this.mockAccountService,
+          // accountService: this.mockAccountService,
           securityGroupWriter: this.mockSecurityGroupWriter,
           taskMonitorBuilder: this.mockTaskMonitorBuilder,
         });

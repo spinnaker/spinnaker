@@ -2,16 +2,15 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, InfrastructureCaches } from '@spinnaker/core';
+import { AccountService, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.gce.securityGroup.create.controller', [require('@uirouter/angularjs').default, ACCOUNT_SERVICE])
+  .module('spinnaker.gce.securityGroup.create.controller', [require('@uirouter/angularjs').default])
   .controller('gceCreateSecurityGroupCtrl', function(
     $scope,
     $uibModalInstance,
     $state,
     $controller,
-    accountService,
     application,
     securityGroup,
   ) {
@@ -41,7 +40,7 @@ module.exports = angular
       }),
     );
 
-    accountService.listAccounts('gce').then(function(accounts) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       ctrl.accountUpdated();
     });

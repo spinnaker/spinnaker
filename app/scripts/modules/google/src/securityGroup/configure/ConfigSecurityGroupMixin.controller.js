@@ -4,7 +4,6 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
   NETWORK_READ_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -20,7 +19,6 @@ module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
     require('@uirouter/angularjs').default,
     TASK_MONITOR_BUILDER,
-    ACCOUNT_SERVICE,
     NETWORK_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     SECURITY_GROUP_READER,
@@ -36,7 +34,6 @@ module.exports = angular
     securityGroup,
     securityGroupReader,
     securityGroupWriter,
-    accountService,
     v2modalWizardService,
     cacheInitializer,
     networkReader,

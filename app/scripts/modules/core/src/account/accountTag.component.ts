@@ -1,6 +1,6 @@
 import { module, IController, IComponentOptions } from 'angular';
 
-import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 import './accountTag.less';
 
@@ -9,12 +9,8 @@ class AccountTagController implements IController {
 
   public accountType: string;
 
-  constructor(private accountService: AccountService) {
-    'ngInject';
-  }
-
   public $onInit(): void {
-    this.accountService.challengeDestructiveActions(this.account).then(isProdAccount => {
+    AccountService.challengeDestructiveActions(this.account).then(isProdAccount => {
       this.accountType = isProdAccount ? 'prod' : this.account;
     });
   }
@@ -33,4 +29,4 @@ export class AccountTagComponent implements IComponentOptions {
 }
 
 export const ACCOUNT_TAG_COMPONENT = 'spinnaker.core.account.accountTag';
-module(ACCOUNT_TAG_COMPONENT, [ACCOUNT_SERVICE]).component('accountTag', new AccountTagComponent());
+module(ACCOUNT_TAG_COMPONENT, []).component('accountTag', new AccountTagComponent());

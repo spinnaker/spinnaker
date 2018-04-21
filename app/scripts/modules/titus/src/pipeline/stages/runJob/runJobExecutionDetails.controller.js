@@ -1,18 +1,13 @@
 'use strict';
 
 import { get, has, filter } from 'lodash';
-import { SETTINGS } from '@spinnaker/core';
+import { AccountService, SETTINGS } from '@spinnaker/core';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.titus.pipeline.stage.runJob.executionDetails.controller', [require('@uirouter/angularjs').default])
-  .controller('titusRunJobExecutionDetailsCtrl', function(
-    $scope,
-    $stateParams,
-    executionDetailsSectionService,
-    accountService,
-  ) {
+  .controller('titusRunJobExecutionDetailsCtrl', function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['runJobConfig', 'taskStatus'];
     $scope.gateUrl = SETTINGS.gateUrl;
 
@@ -26,7 +21,7 @@ module.exports = angular
         $scope.task = $scope.stage.context.jobStatus.completionDetails.taskId;
       }
 
-      accountService.getAccountDetails($scope.stage.context.credentials).then(details => {
+      AccountService.getAccountDetails($scope.stage.context.credentials).then(details => {
         $scope.titusUiEndpoint = filter(details.regions, { name: $scope.stage.context.cluster.region })[0].endpoint;
       });
     };

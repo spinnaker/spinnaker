@@ -2,14 +2,15 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
+
 import { DcosProviderSettings } from '../../dcos.settings';
 
 module.exports = angular
-  .module('spinnaker.dcos.serverGroupCommandBuilder.service', [ACCOUNT_SERVICE])
-  .factory('dcosServerGroupCommandBuilder', function(accountService, $q) {
+  .module('spinnaker.dcos.serverGroupCommandBuilder.service', [])
+  .factory('dcosServerGroupCommandBuilder', function($q) {
     function attemptToSetValidAccount(application, defaultAccount, defaultDcosCluster, command) {
-      return accountService.getCredentialsKeyedByAccount('dcos').then(function(dcosAccountsByName) {
+      return AccountService.getCredentialsKeyedByAccount('dcos').then(function(dcosAccountsByName) {
         var dcosAccountNames = _.keys(dcosAccountsByName);
         var firstDcosAccount = null;
 

@@ -4,14 +4,14 @@ const angular = require('angular');
 
 import { chain, flow } from 'lodash';
 
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 module.exports = angular
-  .module('spinnaker.core.loadBalancer.transformer', [ACCOUNT_SERVICE, PROVIDER_SERVICE_DELEGATE])
-  .factory('loadBalancerTransformer', function(providerServiceDelegate, accountService) {
+  .module('spinnaker.core.loadBalancer.transformer', [PROVIDER_SERVICE_DELEGATE])
+  .factory('loadBalancerTransformer', function(providerServiceDelegate) {
     function normalizeLoadBalancer(loadBalancer) {
-      return accountService.getAccountDetails(loadBalancer.account).then(accountDetails => {
+      return AccountService.getAccountDetails(loadBalancer.account).then(accountDetails => {
         return providerServiceDelegate
           .getDelegate(
             loadBalancer.provider || loadBalancer.type,

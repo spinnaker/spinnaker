@@ -6,13 +6,10 @@ import {
   ExampleApplicationNameValidator2,
 } from './exampleApplicationName.validator';
 import { VALIDATE_APPLICATION_NAME } from './validateApplicationName.directive';
-import { AccountService } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 describe('Validator: validateApplicationName', function() {
-  let validator1: ExampleApplicationNameValidator,
-    validator2: ExampleApplicationNameValidator2,
-    accountService: AccountService,
-    $q: ng.IQService;
+  let validator1: ExampleApplicationNameValidator, validator2: ExampleApplicationNameValidator2, $q: ng.IQService;
 
   beforeEach(mock.module(EXAMPLE_APPLICATION_NAME_VALIDATOR, VALIDATE_APPLICATION_NAME));
 
@@ -22,14 +19,12 @@ describe('Validator: validateApplicationName', function() {
       $compile: ng.ICompileService,
       exampleApplicationNameValidator: ExampleApplicationNameValidator,
       exampleApplicationNameValidator2: ExampleApplicationNameValidator2,
-      _accountService_: AccountService,
       _$q_: ng.IQService,
     ) {
       this.$rootScope = $rootScope;
       this.compile = $compile;
       validator1 = exampleApplicationNameValidator;
       validator2 = exampleApplicationNameValidator2;
-      accountService = _accountService_;
       $q = _$q_;
     }),
   );
@@ -56,7 +51,7 @@ describe('Validator: validateApplicationName', function() {
 
   describe('valid cases', function() {
     beforeEach(() => {
-      spyOn(accountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
+      spyOn(AccountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
     });
 
     it('should be valid when no provider selected and name does not match warning or error condition', function() {
@@ -98,7 +93,7 @@ describe('Validator: validateApplicationName', function() {
 
   describe('provider checks', function() {
     it('should not run validators on providers with no accounts configured', function() {
-      spyOn(accountService, 'listProviders').and.returnValue($q.when([validator1.provider]));
+      spyOn(AccountService, 'listProviders').and.returnValue($q.when([validator1.provider]));
       this.initialize(validator2.ERROR_CONDITION, []);
       expect(this.isValid()).toBe(true);
     });
@@ -106,7 +101,7 @@ describe('Validator: validateApplicationName', function() {
 
   describe('invalid cases', function() {
     beforeEach(() => {
-      spyOn(accountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
+      spyOn(AccountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
     });
 
     it('should be invalid if name is invalid for any provider and none specified', function() {
@@ -128,7 +123,7 @@ describe('Validator: validateApplicationName', function() {
 
   describe('value/option changes', function() {
     beforeEach(() => {
-      spyOn(accountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
+      spyOn(AccountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
     });
 
     it('should flip when providers change', function() {

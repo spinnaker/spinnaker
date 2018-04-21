@@ -2,8 +2,6 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { IController, module } from 'angular';
 
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
-
 export class SkinSelectorCtrl implements IController {
   public command = { skin: '' };
 
@@ -26,4 +24,4 @@ export class SkinSelectorCtrl implements IController {
 
 export const SKIN_SELECTOR_CTRL = 'spinnaker.core.cloudProvider.skinSelector.controller';
 
-module(SKIN_SELECTOR_CTRL, [ACCOUNT_SERVICE]).controller('skinSelectorCtrl', SkinSelectorCtrl);
+module(SKIN_SELECTOR_CTRL, []).controller('skinSelectorCtrl', SkinSelectorCtrl);

@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.shrinkClusterStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.kubernetes.pipeline.stage.shrinkClusterStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'shrinkCluster',
@@ -22,7 +22,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesShrinkClusterStageCtrl', function($scope, accountService) {
+  .controller('kubernetesShrinkClusterStageCtrl', function($scope) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -32,7 +32,7 @@ module.exports = angular
       namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function(accounts) {
+    AccountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

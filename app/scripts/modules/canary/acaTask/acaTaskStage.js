@@ -2,15 +2,12 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, AuthenticationService, SETTINGS } from '@spinnaker/core';
+import { AccountService, AuthenticationService, SETTINGS } from '@spinnaker/core';
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
 module.exports = angular
-  .module('spinnaker.canary.acaTaskStage', [
-    require('../canary/canaryExecutionSummary.controller').name,
-    ACCOUNT_SERVICE,
-  ])
+  .module('spinnaker.canary.acaTaskStage', [require('../canary/canaryExecutionSummary.controller').name])
   .config(function(pipelineConfigProvider) {
     if (SETTINGS.feature.canary) {
       pipelineConfigProvider.registerStage({
@@ -29,14 +26,7 @@ module.exports = angular
       });
     }
   })
-  .controller('AcaTaskStageCtrl', function(
-    $scope,
-    $uibModal,
-    stage,
-    providerSelectionService,
-    awsServerGroupTransformer,
-    accountService,
-  ) {
+  .controller('AcaTaskStageCtrl', function($scope, $uibModal, stage) {
     var user = AuthenticationService.getAuthenticatedUser();
     $scope.stage = stage;
     $scope.stage.baseline = $scope.stage.baseline || {};
@@ -80,10 +70,10 @@ module.exports = angular
     }
 
     applicationProviders.forEach(p => {
-      accountService.listAccounts(p).then(a => ($scope.accounts = $scope.accounts.concat(a)));
-      accountService
-        .getUniqueAttributeForAllAccounts(p, 'regions')
-        .then(r => ($scope.regions = $scope.regions.concat(r)));
+      AccountService.listAccounts(p).then(a => ($scope.accounts = $scope.accounts.concat(a)));
+      AccountService.getUniqueAttributeForAllAccounts(p, 'regions').then(
+        r => ($scope.regions = $scope.regions.concat(r)),
+      );
     });
 
     //TODO: Extract to be reusable with canaryStage [zkt]

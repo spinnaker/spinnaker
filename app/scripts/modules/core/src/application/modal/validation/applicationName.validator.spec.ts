@@ -10,7 +10,7 @@ import {
   ExampleApplicationNameValidator2,
   EXAMPLE_APPLICATION_NAME_VALIDATOR,
 } from './exampleApplicationName.validator';
-import { AccountService } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 describe('Validator: applicationName', () => {
   let validator: ApplicationNameValidator,
@@ -27,14 +27,13 @@ describe('Validator: applicationName', () => {
         exampleApplicationNameValidator: ExampleApplicationNameValidator,
         exampleApplicationNameValidator2: ExampleApplicationNameValidator2,
         $rootScope: ng.IRootScopeService,
-        accountService: AccountService,
         $q: ng.IQService,
       ) => {
         validator = applicationNameValidator;
         validator1 = exampleApplicationNameValidator;
         validator2 = exampleApplicationNameValidator2;
         $scope = $rootScope;
-        spyOn(accountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
+        spyOn(AccountService, 'listProviders').and.returnValue($q.when([validator1.provider, validator2.provider]));
       },
     ),
   );

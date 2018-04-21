@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.oraclebmcs.pipeline.stage.disableAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'disableServerGroup',
@@ -25,7 +25,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsDisableAsgStageCtrl', function($scope, accountService) {
+  .controller('oraclebmcsDisableAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     const provider = 'oraclebmcs';
@@ -35,7 +35,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts(provider).then(accounts => {
+    AccountService.listAccounts(provider).then(accounts => {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

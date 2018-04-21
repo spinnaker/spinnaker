@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  ACCOUNT_SERVICE,
+  AccountService,
   ClusterTargetBuilder,
   CONFIRMATION_MODAL_SERVICE,
   NameUtils,
@@ -23,7 +23,6 @@ module.exports = angular
   .module('spinnaker.serverGroup.details.titus.controller', [
     require('../../securityGroup/securityGroup.read.service').name,
     require('@uirouter/angularjs').default,
-    ACCOUNT_SERVICE,
     require('../configure/ServerGroupCommandBuilder.js').name,
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     SERVER_GROUP_READER,
@@ -48,7 +47,6 @@ module.exports = angular
     serverGroupWriter,
     awsServerGroupTransformer,
     serverGroupWarningMessageService,
-    accountService,
     titusSecurityGroupReader,
   ) {
     let application = app;
@@ -81,7 +79,7 @@ module.exports = angular
           // it's possible the summary was not found because the clusters are still loading
           details.account = serverGroup.accountId;
 
-          accountService.getAccountDetails(details.account).then(accountDetails => {
+          AccountService.getAccountDetails(details.account).then(accountDetails => {
             details.apiEndpoint = _.filter(accountDetails.regions, { name: details.region })[0].endpoint;
           });
 
@@ -194,10 +192,10 @@ module.exports = angular
       })
       .catch(() => {});
 
-    accountService.getAccountDetails(serverGroup.accountId).then(details => {
+    AccountService.getAccountDetails(serverGroup.accountId).then(details => {
       const awsAccount = details.awsAccount;
       $scope.titusUiEndpoint = _.filter(details.regions, { name: serverGroup.region })[0].endpoint;
-      accountService.getAccountDetails(awsAccount).then(awsDetails => {
+      AccountService.getAccountDetails(awsAccount).then(awsDetails => {
         this.awsAccountId = awsDetails.accountId;
         this.env = awsDetails.environment;
       });

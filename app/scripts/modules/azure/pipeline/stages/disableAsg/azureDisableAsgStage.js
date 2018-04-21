@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.pipeline.stage.disableAsgStage', [])
@@ -26,7 +26,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('azureDisableAsgStageCtrl', function($scope, accountService) {
+  .controller('azureDisableAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -34,7 +34,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts('azure').then(function(accounts) {
+    AccountService.listAccounts('azure').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

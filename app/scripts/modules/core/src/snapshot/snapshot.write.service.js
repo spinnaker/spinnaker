@@ -1,15 +1,15 @@
 'use strict';
 
 import _ from 'lodash';
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { TASK_EXECUTOR } from 'core/task/taskExecutor';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.snapshot.write.service', [TASK_EXECUTOR, ACCOUNT_SERVICE])
-  .factory('snapshotWriter', function($q, taskExecutor, accountService) {
+  .module('spinnaker.snapshot.write.service', [TASK_EXECUTOR])
+  .factory('snapshotWriter', function($q, taskExecutor) {
     function buildSaveSnapshotJobs(app, accountDetails) {
       let jobs = [];
       accountDetails.forEach(accountDetail => {
@@ -41,7 +41,7 @@ module.exports = angular
 
     function loadAccountDetails(app) {
       let accounts = _.isString(app.accounts) ? app.accounts.split(',') : [];
-      let accountDetailPromises = accounts.map(account => accountService.getAccountDetails(account));
+      let accountDetailPromises = accounts.map(account => AccountService.getAccountDetails(account));
       return $q.all(accountDetailPromises);
     }
 
@@ -57,7 +57,7 @@ module.exports = angular
     }
 
     function restoreSnapshot(app, account, timestamp) {
-      return accountService.getAccountDetails(account).then(function(accountDetail) {
+      return AccountService.getAccountDetails(account).then(function(accountDetail) {
         let jobs = buildRestoreSnapshotJob(app, accountDetail, timestamp);
         return taskExecutor.executeTask({
           job: jobs,

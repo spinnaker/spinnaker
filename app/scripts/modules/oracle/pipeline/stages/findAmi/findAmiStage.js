@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { AccountService, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.oraclebmcs.pipeline.stage.findAmiStage', [PIPELINE_CONFIG_PROVIDER, ACCOUNT_SERVICE])
+  .module('spinnaker.oraclebmcs.pipeline.stage.findAmiStage', [PIPELINE_CONFIG_PROVIDER])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'findImage',
@@ -19,7 +19,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('oraclebmcsFindAmiStageCtrl', ($scope, accountService) => {
+  .controller('oraclebmcsFindAmiStageCtrl', $scope => {
     const provider = 'oraclebmcs';
 
     let stage = $scope.stage;
@@ -29,7 +29,7 @@ module.exports = angular
       regionsLoaded: false,
     };
 
-    accountService.listAccounts(provider).then(accounts => {
+    AccountService.listAccounts(provider).then(accounts => {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

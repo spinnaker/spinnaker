@@ -8,7 +8,7 @@ import { ILoadBalancer, IServerGroup } from 'core/domain';
 import { Application } from 'core/application';
 
 export class SkinService {
-  constructor(private $log: ILogService, private $q: IQService, private accountService: AccountService) {
+  constructor(private $log: ILogService, private $q: IQService) {
     'ngInject';
   }
 
@@ -94,8 +94,7 @@ export class SkinService {
       return this.$q.resolve([]);
     }
 
-    return this.accountService
-      .getCredentialsKeyedByAccount()
+    return AccountService.getCredentialsKeyedByAccount()
       .then(aggregatedAccounts => map(aggregatedAccounts))
       .catch(e => {
         this.$log.warn('Could not initialize accounts: ', e && e.message);

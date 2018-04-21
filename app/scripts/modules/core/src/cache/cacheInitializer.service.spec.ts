@@ -2,7 +2,7 @@ import { flatten } from 'lodash';
 
 import { mock } from 'angular';
 import { CACHE_INITIALIZER_SERVICE, CacheInitializerService } from './cacheInitializer.service';
-import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
 import { InfrastructureCaches } from 'core/cache';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
@@ -24,26 +24,16 @@ describe('Service: cacheInitializer', function() {
   let $q: ng.IQService;
   let $root: ng.IRootScopeService;
   let cacheInitializer: CacheInitializerService;
-  let accountService: AccountService;
   let securityGroupReader: SecurityGroupReader;
   let applicationReader: ApplicationReader;
   let igorService: IgorService;
 
-  beforeEach(
-    mock.module(
-      CACHE_INITIALIZER_SERVICE,
-      ACCOUNT_SERVICE,
-      SECURITY_GROUP_READER,
-      APPLICATION_READ_SERVICE,
-      IGOR_SERVICE,
-    ),
-  );
+  beforeEach(mock.module(CACHE_INITIALIZER_SERVICE, SECURITY_GROUP_READER, APPLICATION_READ_SERVICE, IGOR_SERVICE));
   beforeEach(
     mock.inject(function(
       _$q_: ng.IQService,
       _$rootScope_: ng.IRootScopeService,
       _cacheInitializer_: CacheInitializerService,
-      _accountService_: AccountService,
       _securityGroupReader_: SecurityGroupReader,
       _applicationReader_: ApplicationReader,
       _igorService_: IgorService,
@@ -51,7 +41,6 @@ describe('Service: cacheInitializer', function() {
       $q = _$q_;
       $root = _$rootScope_;
       cacheInitializer = _cacheInitializer_;
-      accountService = _accountService_;
       securityGroupReader = _securityGroupReader_;
       applicationReader = _applicationReader_;
       igorService = _igorService_;
@@ -65,7 +54,6 @@ describe('Service: cacheInitializer', function() {
     expect($q).toBeDefined();
     expect($root).toBeDefined();
     expect(cacheInitializer).toBeDefined();
-    expect(accountService).toBeDefined();
     expect(securityGroupReader).toBeDefined();
     expect(applicationReader).toBeDefined();
     expect(igorService).toBeDefined();
@@ -82,11 +70,11 @@ describe('Service: cacheInitializer', function() {
 
     beforeEach(() => {
       initialized = false;
-      spyOn(accountService, 'listAllAccounts').and.returnValue($q.when(keys.account));
+      spyOn(AccountService, 'listAllAccounts').and.returnValue($q.when(keys.account));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(keys.sg));
       spyOn(applicationReader, 'listApplications').and.returnValue($q.when(keys.app));
       spyOn(igorService, 'listMasters').and.returnValue($q.when(keys.bm));
-      spyOn(accountService, 'listProviders').and.returnValue($q.when([]));
+      spyOn(AccountService, 'listProviders').and.returnValue($q.when([]));
     });
 
     it('should initialize the cache initializer with the initialization values', () => {

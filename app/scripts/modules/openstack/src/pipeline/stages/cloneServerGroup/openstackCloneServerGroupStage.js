@@ -3,10 +3,10 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, NameUtils, StageConstants } from '@spinnaker/core';
+import { AccountService, NameUtils, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.openstack.pipeline.stage.cloneServerGroupStage', [ACCOUNT_SERVICE])
+  .module('spinnaker.openstack.pipeline.stage.cloneServerGroupStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'cloneServerGroup',
@@ -21,14 +21,14 @@ module.exports = angular
       ],
     });
   })
-  .controller('openstackCloneServerGroupStageCtrl', function($scope, accountService) {
+  .controller('openstackCloneServerGroupStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.viewState = {
       accountsLoaded: false,
     };
 
-    accountService.listAccounts('openstack').then(accounts => {
+    AccountService.listAccounts('openstack').then(accounts => {
       $scope.accounts = accounts;
       $scope.viewState.accountsLoaded = true;
     });

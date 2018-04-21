@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { AccountService, StageConstants } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.destroyAsgStage', [])
@@ -28,7 +28,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('kubernetesDestroyAsgStageCtrl', function($scope, accountService) {
+  .controller('kubernetesDestroyAsgStageCtrl', function($scope) {
     let stage = $scope.stage;
 
     $scope.state = {
@@ -36,7 +36,7 @@ module.exports = angular
       namespacesLoaded: false,
     };
 
-    accountService.listAccounts('kubernetes').then(function(accounts) {
+    AccountService.listAccounts('kubernetes').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });

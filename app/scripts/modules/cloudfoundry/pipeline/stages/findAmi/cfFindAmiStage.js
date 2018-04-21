@@ -2,12 +2,12 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
+import { AccountService, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
 
 import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
 module.exports = angular
-  .module('spinnaker.cf.pipeline.stage.findAmiStage', [LIST_EXTRACTOR_SERVICE, ACCOUNT_SERVICE])
+  .module('spinnaker.cf.pipeline.stage.findAmiStage', [LIST_EXTRACTOR_SERVICE])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'findImage',
@@ -20,7 +20,7 @@ module.exports = angular
       ],
     });
   })
-  .controller('cfFindAmiStageCtrl', function($scope, accountService, appListExtractorService) {
+  .controller('cfFindAmiStageCtrl', function($scope, appListExtractorService) {
     var ctrl = this;
 
     let stage = $scope.stage;
@@ -39,7 +39,7 @@ module.exports = angular
       setClusterList();
     };
 
-    accountService.listAccounts('cf').then(function(accounts) {
+    AccountService.listAccounts('cf').then(function(accounts) {
       $scope.accounts = accounts;
       $scope.state.accounts = true;
       setClusterList();

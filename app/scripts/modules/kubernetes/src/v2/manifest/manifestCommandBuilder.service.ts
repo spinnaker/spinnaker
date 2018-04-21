@@ -2,7 +2,7 @@ import { copy, IPromise, IQService, module } from 'angular';
 
 import { dump, loadAll } from 'js-yaml';
 
-import { ACCOUNT_SERVICE, AccountService, Application, IMoniker } from '@spinnaker/core';
+import { AccountService, Application, IMoniker } from '@spinnaker/core';
 
 export interface IKubernetesManifestCommandData {
   command: IKubernetesManifestCommand;
@@ -34,7 +34,7 @@ export interface IKubernetesManifestSpinnakerRelationships {
 }
 
 export class KubernetesManifestCommandBuilder {
-  constructor(private $q: IQService, private accountService: AccountService) {
+  constructor(private $q: IQService) {
     'ngInject';
   }
 
@@ -72,8 +72,8 @@ export class KubernetesManifestCommandBuilder {
     sourceMoniker?: IMoniker,
   ): IPromise<IKubernetesManifestCommandData> {
     const dataToFetch = {
-      accounts: this.accountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
-      artifactAccounts: this.accountService.getArtifactAccounts(),
+      accounts: AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2'),
+      artifactAccounts: AccountService.getArtifactAccounts(),
     };
 
     return this.$q.all(dataToFetch).then((backingData: any) => {
@@ -126,7 +126,7 @@ export class KubernetesManifestCommandBuilder {
 
 export const KUBERNETES_MANIFEST_COMMAND_BUILDER = 'spinnaker.kubernetes.v2.manifestBuilder.service';
 
-module(KUBERNETES_MANIFEST_COMMAND_BUILDER, [ACCOUNT_SERVICE]).service(
+module(KUBERNETES_MANIFEST_COMMAND_BUILDER, []).service(
   'kubernetesManifestCommandBuilder',
   KubernetesManifestCommandBuilder,
 );

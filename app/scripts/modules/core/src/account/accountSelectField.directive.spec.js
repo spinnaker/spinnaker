@@ -1,14 +1,15 @@
 'use strict';
 
+import { AccountService } from 'core/account/AccountService';
+
 describe('Directives: accountSelectField', function() {
   beforeEach(window.module(require('./accountSelectField.directive.js').name));
 
-  var scope, accountService, accounts, ctrl, $q;
+  var scope, accounts, ctrl, $q;
 
   beforeEach(
-    window.inject(function($rootScope, $controller, _accountService_, _$q_) {
+    window.inject(function($rootScope, $controller, _$q_) {
       scope = $rootScope.$new();
-      accountService = _accountService_;
       $q = _$q_;
       accounts = {
         aws: [
@@ -22,9 +23,8 @@ describe('Directives: accountSelectField', function() {
       };
       ctrl = $controller('AccountSelectFieldCtrl', {
         $scope: scope,
-        accountService: accountService,
       });
-      spyOn(accountService, 'getAllAccountDetailsForProvider').and.callFake(provider => $q.when(accounts[provider]));
+      spyOn(AccountService, 'getAllAccountDetailsForProvider').and.callFake(provider => $q.when(accounts[provider]));
     }),
   );
 
@@ -35,7 +35,7 @@ describe('Directives: accountSelectField', function() {
 
     expect(ctrl.primaryAccounts).toEqual(['prod', 'titusprod']);
     expect(ctrl.secondaryAccounts).toEqual(['backup', 'titusbackup']);
-    expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(2);
+    expect(AccountService.getAllAccountDetailsForProvider.calls.count()).toBe(2);
   });
 
   it('groups accounts by primary field when only one provider available', function() {
@@ -45,7 +45,7 @@ describe('Directives: accountSelectField', function() {
 
     expect(ctrl.primaryAccounts).toEqual(['prod']);
     expect(ctrl.secondaryAccounts).toEqual(['backup']);
-    expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(1);
+    expect(AccountService.getAllAccountDetailsForProvider.calls.count()).toBe(1);
   });
 
   it('groups accounts by primary field when only names and provider supplied', function() {
@@ -56,7 +56,7 @@ describe('Directives: accountSelectField', function() {
 
     expect(ctrl.primaryAccounts).toEqual(['prod']);
     expect(ctrl.secondaryAccounts).toEqual(['backup']);
-    expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(1);
+    expect(AccountService.getAllAccountDetailsForProvider.calls.count()).toBe(1);
   });
 
   it('sets mergedAccounts only if there are no accounts supplied', function() {
@@ -67,7 +67,7 @@ describe('Directives: accountSelectField', function() {
     expect(ctrl.mergedAccounts).toEqual([]);
     expect(ctrl.primaryAccounts).toBeUndefined();
     expect(ctrl.secondaryAccounts).toBeUndefined();
-    expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
+    expect(AccountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
   });
 
   it('sets all accounts as primary when only names are supplied and provider is not set', function() {
@@ -78,7 +78,7 @@ describe('Directives: accountSelectField', function() {
     expect(ctrl.mergedAccounts).toEqual(['prod', 'test']);
     expect(ctrl.primaryAccounts).toEqual(['prod', 'test']);
     expect(ctrl.secondaryAccounts).toBeUndefined();
-    expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
+    expect(AccountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
   });
 
   it('re-groups accounts when they change', function() {
@@ -89,7 +89,7 @@ describe('Directives: accountSelectField', function() {
     expect(ctrl.mergedAccounts).toEqual(['prod', 'test']);
     expect(ctrl.primaryAccounts).toEqual(['prod', 'test']);
     expect(ctrl.secondaryAccounts).toBeUndefined();
-    expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
+    expect(AccountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
 
     ctrl.accounts.push('staging');
     scope.$digest();
@@ -97,7 +97,7 @@ describe('Directives: accountSelectField', function() {
     expect(ctrl.mergedAccounts).toEqual(['prod', 'test', 'staging']);
     expect(ctrl.primaryAccounts).toEqual(['prod', 'test', 'staging']);
     expect(ctrl.secondaryAccounts).toBeUndefined();
-    expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
+    expect(AccountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
   });
 
   it('maintains selection of existing account', function() {

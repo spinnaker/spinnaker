@@ -2,7 +2,7 @@ import { IPromise } from 'angular';
 import { isEmpty } from 'lodash';
 import { Observable } from 'rxjs';
 
-import { IServerGroupDetailsProps, ISubnet, ReactInjector } from '@spinnaker/core';
+import { AccountService, IServerGroupDetailsProps, ISubnet, ReactInjector } from '@spinnaker/core';
 
 import { AwsReactInjector } from 'amazon/reactShims';
 import { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
@@ -50,7 +50,7 @@ export function amazonServerGroupDetailsGetter(
 
           const serverGroup = AwsReactInjector.awsServerGroupTransformer.normalizeServerGroupDetails(details);
 
-          ReactInjector.accountService.getAccountDetails(serverGroup.account).then(accountDetails => {
+          AccountService.getAccountDetails(serverGroup.account).then(accountDetails => {
             serverGroup.accountDetails = accountDetails;
             observer.next(serverGroup);
           });

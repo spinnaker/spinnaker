@@ -3,12 +3,12 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
+import { AccountService, INSTANCE_TYPE_SERVICE, NameUtils } from '@spinnaker/core';
 import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
 module.exports = angular
-  .module('spinnaker.cf.serverGroupCommandBuilder.service', [ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE])
-  .factory('cfServerGroupCommandBuilder', function($q, accountService, instanceTypeService) {
+  .module('spinnaker.cf.serverGroupCommandBuilder.service', [INSTANCE_TYPE_SERVICE])
+  .factory('cfServerGroupCommandBuilder', function($q, instanceTypeService) {
     function populateTags(instanceTemplateTags, command) {
       if (instanceTemplateTags && instanceTemplateTags.items) {
         _.map(instanceTemplateTags.items, function(tag) {
@@ -18,7 +18,7 @@ module.exports = angular
     }
 
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
-      return accountService.listAccounts('cf').then(function(cfAccounts) {
+      return AccountService.listAccounts('cf').then(function(cfAccounts) {
         var cfAccountNames = _.map(cfAccounts, 'name');
         var firstcfAccount = null;
 

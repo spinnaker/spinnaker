@@ -1,10 +1,10 @@
 'use strict';
 
 const angular = require('angular');
-import { ACCOUNT_SERVICE } from 'core/account/account.service';
+import { AccountService } from 'core/account/AccountService';
 
 module.exports = angular
-  .module('spinnaker.core.account.collapsibleAccountTag.directive', [ACCOUNT_SERVICE])
+  .module('spinnaker.core.account.collapsibleAccountTag.directive', [])
   .directive('collapsibleAccountTag', function() {
     return {
       restrict: 'E',
@@ -15,11 +15,11 @@ module.exports = angular
         state: '=',
       },
       controllerAs: 'vm',
-      controller: function($scope, accountService) {
+      controller: function($scope) {
         this.getIcon = () => (this.state.expanded ? 'down' : 'right');
 
         let getAccountType = () => {
-          accountService.challengeDestructiveActions(this.account).then(challenge => {
+          AccountService.challengeDestructiveActions(this.account).then(challenge => {
             this.accountType = challenge ? 'prod' : $scope.account;
           });
         };

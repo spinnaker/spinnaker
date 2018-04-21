@@ -3,18 +3,16 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
-    ACCOUNT_SERVICE,
     require('../configure/ConfigSecurityGroupMixin.controller.js').name,
   ])
   .controller('gceCloneSecurityGroupController', function(
     $scope,
     $uibModalInstance,
     $controller,
-    accountService,
     securityGroup,
     application,
   ) {
@@ -38,7 +36,7 @@ module.exports = angular
       }),
     );
 
-    accountService.listAccounts('gce').then(function(accounts) {
+    AccountService.listAccounts('gce').then(function(accounts) {
       $scope.accounts = accounts;
       vm.accountUpdated();
     });

@@ -2,7 +2,7 @@
 
 import { map } from 'lodash';
 
-import { InfrastructureCaches } from '@spinnaker/core';
+import { AccountService, InfrastructureCaches } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
@@ -38,7 +38,6 @@ describe('Controller: CreateSecurityGroup', function() {
         $controller,
         $rootScope,
         $q,
-        accountService,
         securityGroupReader,
         v2modalWizardService,
         taskMonitorBuilder,
@@ -47,16 +46,15 @@ describe('Controller: CreateSecurityGroup', function() {
       ) {
         this.$scope = $rootScope.$new();
         this.$q = $q;
-        this.accountService = accountService;
         this.securityGroupReader = securityGroupReader;
         this.v2modalWizardService = v2modalWizardService;
         this.taskMonitorBuilder = taskMonitorBuilder;
         this.securityGroupWriter = securityGroupWriter;
         this.vpcReader = vpcReader;
 
-        spyOn(this.accountService, 'listAccounts').and.returnValue($q.when(['prod', 'test']));
+        spyOn(AccountService, 'listAccounts').and.returnValue($q.when(['prod', 'test']));
 
-        spyOn(this.accountService, 'getRegionsForAccount').and.returnValue($q.when(['us-east-1', 'us-west-1']));
+        spyOn(AccountService, 'getRegionsForAccount').and.returnValue($q.when(['us-east-1', 'us-west-1']));
 
         spyOn(this.vpcReader, 'listVpcs').and.returnValue(
           $q.when([
@@ -103,7 +101,6 @@ describe('Controller: CreateSecurityGroup', function() {
           this.ctrl = $controller('awsCreateSecurityGroupCtrl', {
             $scope: this.$scope,
             $uibModalInstance: { result: this.$q.when(null) },
-            accountService: this.accountService,
             securityGroupReader: this.securityGroupReader,
             v2modalWizardService: this.v2modalWizardService,
             taskMonitorBuilder: this.taskMonitorBuilder,
