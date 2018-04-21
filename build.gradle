@@ -21,12 +21,13 @@ buildscript {
     junitPlatformVersion = "1.0.2"
   }
   repositories {
+    mavenCentral()
     jcenter()
     maven { url "http://spinnaker.bintray.com/gradle" }
     maven { url "https://plugins.gradle.org/m2/" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.17.0'
+    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:4.0.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     classpath "org.junit.platform:junit-platform-gradle-plugin:${junitPlatformVersion}"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:${kotlinVersion}"
