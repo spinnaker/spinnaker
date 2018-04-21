@@ -20,8 +20,10 @@ ext {
   repackage = System.getProperty('springBoot.repackage', "false")
 }
 
-apply plugin: 'spring-boot'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
+
+mainClassName = 'com.netflix.spinnaker.echo.Application'
 
 dependencies {
     compile project(':echo-core')
@@ -62,4 +64,3 @@ test {
 }
 
 tasks.bootRepackage.enabled = Boolean.valueOf(project.repackage)
-
