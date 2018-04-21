@@ -268,13 +268,16 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
         }
       }
       loadBalancerArnToListeners.put(lb.loadBalancerArn, listenerData)
-
       if (useEdda) {
-        List<EddaRule> rules = eddaApi.rules(lb.loadBalancerName)
-        Map<String, Listener> listenerByListenerArn = listenerData.collectEntries { [(it.listenerArn): it] }
-        for (EddaRule eddaRule : rules) {
-          Listener listener = listenerByListenerArn.get(eddaRule.listenerArn)
-          listenerToRules.put(listener, eddaRule.rules)
+        try {
+          List<EddaRule> rules = eddaApi.rules(lb.loadBalancerName)
+          Map<String, Listener> listenerByListenerArn = listenerData.collectEntries { [(it.listenerArn): it] }
+          for (EddaRule eddaRule : rules) {
+            Listener listener = listenerByListenerArn.get(eddaRule.listenerArn)
+            listenerToRules.put(listener, eddaRule.rules)
+          }
+        } catch (Exception e) {
+          log.error("Failed to load load balancer rules for ${account.name} ${region} ${lb.loadBalancerName}")
         }
       } else {
         for (listener in listenerData) {
