@@ -3,7 +3,6 @@ import { isString, get, has, isEmpty, map, uniq, difference } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
 import {
-  ACCOUNT_SERVICE,
   IPipeline,
   PipelineConfigProvider
 } from '@spinnaker/core';
@@ -293,7 +292,6 @@ const allConfiguredScopesMustBeDefined = (_pipeline: IPipeline, stage: IKayentaS
 
 export const KAYENTA_CANARY_STAGE = 'spinnaker.kayenta.canaryStage';
 module(KAYENTA_CANARY_STAGE, [
-    ACCOUNT_SERVICE,
     CANARY_SCORES_CONFIG_COMPONENT,
     KAYENTA_STAGE_CONFIG_SECTION,
     KAYENTA_STAGE_TRANSFORMER,
