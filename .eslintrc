@@ -7,7 +7,7 @@
   "rules": {
     "eol-last": 1,
     "semi": 2,
-    "quotes": [1, "single", { "allowTemplateLiterals": true }],
+    "quotes": [1, "single", { "allowTemplateLiterals": true, "avoidEscape": true }],
     "comma-dangle": 0,
     "no-extra-boolean-cast": 1,
     "no-unused-vars": 1,
