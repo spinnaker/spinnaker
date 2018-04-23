@@ -6,8 +6,8 @@ import { EXPECTED_ARTIFACT_SERVICE, ExpectedArtifactService } from './expectedAr
 
 class ExpectedArtifactSelectorCtrl implements IController {
   public command: any;
-  public idField: string;
-  public accountField: string;
+  public id: any;
+  public account: any;
   public accounts: IAccount[];
   public expectedArtifacts: IExpectedArtifact[];
   public helpFieldKey: string;
@@ -21,8 +21,8 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
   public bindings: any = {
     command: '=',
     expectedArtifacts: '<',
-    idField: '@',
-    accountField: '@',
+    id: '=',
+    account: '=',
     accounts: '<',
     helpFieldKey: '@',
   };
@@ -34,7 +34,7 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
           <div class="form-group">
             <label class="col-md-3 sm-label-right">Expected Artifact <help-field key="{{ ctrl.helpFieldKey }}"/></label>
             <div class="col-md-7">
-              <ui-select ng-model="ctrl.command[ctrl.idField]"
+              <ui-select ng-model="ctrl.id"
                          class="form-control input-sm" required>
                 <ui-select-match>{{ $select.selected | summarizeExpectedArtifact }}</ui-select-match>
                 <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
@@ -43,10 +43,10 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
               </ui-select>
             </div>
           </div>
-          <div ng-if="ctrl.accountField" class="form-group">
+          <div ng-if="ctrl.account !== undefined" class="form-group">
             <label class="col-md-3 sm-label-right">Artifact Account</label>
             <div class="col-md-7">
-              <ui-select ng-model="ctrl.command[ctrl.accountField]"
+              <ui-select ng-model="ctrl.account"
                          class="form-control input-sm">
                 <ui-select-match>{{ $select.selected.name }}</ui-select-match>
                 <ui-select-choices repeat="account.name as account in ctrl.accounts">

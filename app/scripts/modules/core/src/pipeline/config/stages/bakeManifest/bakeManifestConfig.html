@@ -31,12 +31,13 @@
 
   <h4>Template Artifact</h4>
   <expected-artifact-selector command="ctrl.$scope.stage"
-                              id-field="expectedArtifactId"
-                              account-field="expectedArtifactAccount"
+                              id="ctrl.$scope.stage.inputArtifacts[0].id"
+                              account="ctrl.$scope.stage.inputArtifacts[0].account"
                               accounts="ctrl.artifactAccounts"
                               expected-artifacts="ctrl.expectedArtifacts"
                               help-field-key="pipeline.config.bake.manifest.expectedArtifact">
   </expected-artifact-selector>
+
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
       Overrides

@@ -38,6 +38,10 @@ export class KubernetesV2DeployManifestConfigCtrl implements IController {
           this.$scope.stage.source = this.textSource;
         }
 
+        if (!this.$scope.stage.manifestArtifactAccount) {
+          this.$scope.stage.manifestArtifactAccount = '';
+        }
+
         this.metadata = builtCommand.metadata;
         this.state.loaded = true;
       });
