@@ -28,8 +28,8 @@ import java.util.Map;
 public class BakeManifestRequest {
   @JsonProperty("templateRenderer")
   String templateRenderer;
-  @JsonProperty("inputArtifact")
-  Artifact inputArtifact;
+  @JsonProperty("inputArtifacts")
+  List<Artifact> inputArtifacts;
   List<Artifact> values;
   @JsonProperty("outputName")
   String outputName;
