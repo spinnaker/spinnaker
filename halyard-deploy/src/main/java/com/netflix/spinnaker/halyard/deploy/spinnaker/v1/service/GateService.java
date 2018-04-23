@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFact
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
@@ -84,8 +86,12 @@ abstract public class GateService extends SpringService<GateService.Gate> {
 
   private GateProfileFactory getGateProfileFactory(String deploymentName) {
     String version = artifactService.getArtifactVersion(deploymentName, SpinnakerArtifact.GATE);
-    if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
-      return boot128ProfileFactory;
+    try {
+      if (Versions.lessThan(version, BOOT_UPGRADED_VERSION)) {
+        return boot128ProfileFactory;
+      }
+    } catch (NumberFormatException nfe) {
+      log.warn("Could not resolve Gate version, using `boot154ProfileFactory`.");
     }
     return boot154ProfileFactory;
   }

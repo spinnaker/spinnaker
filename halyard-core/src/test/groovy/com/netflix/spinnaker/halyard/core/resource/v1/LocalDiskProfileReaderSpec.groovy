@@ -103,7 +103,7 @@ class LocalDiskProfileReaderSpec extends Specification {
                 tis.getNextEntry()
                 tarContents = IOUtils.toString(tis)
             } catch (IOException e) {
-                    throw new HalException(Problem.Severity.FATAL, "Failed to read profile entry", e);
+                    throw new HalException(Problem.Severity.FATAL, "Failed to read profile entry", e)
             }
             def fileInputStream =  localDiskProfileReader.readProfile(artifactName, version, profileName)
             def fileContents = IOUtils.toString(fileInputStream)
