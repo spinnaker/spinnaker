@@ -195,6 +195,9 @@ class OperationsController {
           log.warn("Igor is not enabled, unable to lookup build artifacts. Fix this by setting igor.enabled: true")
         } else {
           buildInfo.artifacts = buildArtifactFilter.filterArtifacts(buildInfo.artifacts)
+          if (trigger.type == "manual") {
+            trigger.artifacts = buildInfo.artifacts
+          }
         }
 
       }
