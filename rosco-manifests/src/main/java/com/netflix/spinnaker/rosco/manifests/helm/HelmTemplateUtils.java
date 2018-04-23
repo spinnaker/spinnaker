@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.rosco.manifests.helm;
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class HelmTemplateUtils extends TemplateUtils {
@@ -17,8 +19,19 @@ public class HelmTemplateUtils extends TemplateUtils {
   public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, BakeManifestRequest request) {
     BakeRecipe result = super.buildBakeRecipe(env, request);
     Path templatePath;
+    List<Path> valuePaths = new ArrayList<>();
+    List<Artifact> inputArtifacts = request.getInputArtifacts();
+    if (inputArtifacts == null || inputArtifacts.isEmpty()) {
+      throw new IllegalArgumentException("At least one input artifact must be provided to bake");
+    }
+
     try {
-      templatePath = downloadArtifactToTmpFile(env, request.getInputArtifact());
+      templatePath = downloadArtifactToTmpFile(env, inputArtifacts.get(0));
+
+      // not a stream to keep exception handling cleaner
+      for (Artifact valueArtifact : inputArtifacts.subList(1, inputArtifacts.size())) {
+        valuePaths.add(downloadArtifactToTmpFile(env, valueArtifact));
+      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to fetch helm template: " + e.getMessage(), e);
     }
@@ -36,6 +49,11 @@ public class HelmTemplateUtils extends TemplateUtils {
         command.add("--set");
         command.add("'" + entry.getKey() + "=" + entry.getValue().toString() + "'");
       }
+    }
+
+    if (!valuePaths.isEmpty()) {
+      command.add("--values");
+      command.add(String.join(",", valuePaths.stream().map(Path::toString).collect(Collectors.toList())));
     }
 
     result.setCommand(command);
