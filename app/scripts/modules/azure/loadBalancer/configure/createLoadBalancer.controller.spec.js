@@ -47,7 +47,5 @@ describe('Controller: azureCreateLoadBalancerCtrl', function() {
     $http.when('GET', API.baseUrl + '/securityGroups').respond({});
     $http.when('GET', API.baseUrl + '/credentials?expand=true').respond([]);
     $http.when('GET', API.baseUrl + '/subnets').respond([]);
-
-    $http.flush();
   });
 });

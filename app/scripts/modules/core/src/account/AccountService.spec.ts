@@ -15,6 +15,7 @@ describe('Service: AccountService', () => {
       $http = $httpBackend;
     }),
   );
+  beforeEach(() => AccountService.initialize());
 
   afterEach(SETTINGS.resetToOriginal);
 
@@ -33,7 +34,6 @@ describe('Service: AccountService', () => {
       expect(accounts.map((account: IAccount) => account.name)).toEqual(['test', 'prod']);
       done();
     });
-
     $http.flush();
     setTimeout(() => $rootScope.$digest());
   });
@@ -50,7 +50,6 @@ describe('Service: AccountService', () => {
         expect(details[1].name).toBe('prod');
         done();
       });
-
       $http.flush();
       setTimeout(() => $rootScope.$digest());
     });
@@ -62,7 +61,6 @@ describe('Service: AccountService', () => {
         expect(details).toEqual([]);
         done();
       });
-
       $http.flush();
       setTimeout(() => $rootScope.$digest());
     });
@@ -75,53 +73,70 @@ describe('Service: AccountService', () => {
       $http
         .whenGET(`${API.baseUrl}/credentials?expand=true`)
         .respond(200, [{ type: 'aws' }, { type: 'gce' }, { type: 'cf' }]);
-
       spyOn(CloudProviderRegistry, 'listRegisteredProviders').and.returnValue(registeredProviders);
     });
 
-    it('should list all providers when no application provided', () => {
-      const test: any = (result: string[]) => expect(result).toEqual(['aws', 'cf', 'gce']);
-      AccountService.listProviders().then(test);
+    it('should list all providers when no application provided', done => {
+      AccountService.listProviders().then((result: string[]) => {
+        expect(result).toEqual(['aws', 'cf', 'gce']);
+        done();
+      });
       $http.flush();
+      setTimeout(() => $rootScope.$digest());
     });
 
-    it('should filter out providers not registered', () => {
+    it('should filter out providers not registered', done => {
       registeredProviders.pop();
-      const test: any = (result: string[]) => expect(result).toEqual(['aws', 'gce']);
-      AccountService.listProviders().then(test);
+      AccountService.listProviders().then((result: string[]) => {
+        expect(result).toEqual(['aws', 'gce']);
+        done();
+      });
       $http.flush();
+      setTimeout(() => $rootScope.$digest());
     });
 
-    it('should fall back to the defaultProviders if none configured for the application', () => {
+    it('should fall back to the defaultProviders if none configured for the application', done => {
       const application: any = { attributes: { cloudProviders: [] } };
-      const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
       SETTINGS.defaultProviders = ['gce', 'cf'];
-      AccountService.listProviders(application).then(test);
+      AccountService.listProviders(application).then((result: string[]) => {
+        expect(result).toEqual(['cf', 'gce']);
+        done();
+      });
       $http.flush();
+      setTimeout(() => $rootScope.$digest());
     });
 
-    it('should return the intersection of those configured for the application and those available from the server', () => {
+    it('should return the intersection of those configured for the application and those available from the server', done => {
       const application: any = { attributes: { cloudProviders: ['gce', 'cf', 'unicron'] } };
-      const test: any = (result: string[]) => expect(result).toEqual(['cf', 'gce']);
       SETTINGS.defaultProviders = ['aws'];
-      AccountService.listProviders(application).then(test);
+      AccountService.listProviders(application).then((result: string[]) => {
+        expect(result).toEqual(['cf', 'gce']);
+        done();
+      });
       $http.flush();
+      setTimeout(() => $rootScope.$digest());
     });
 
-    it('should return an empty array if none of the app providers are available from the server', () => {
+    it('should return an empty array if none of the app providers are available from the server', done => {
       const application: any = { attributes: { cloudProviders: ['lamp', 'ceiling', 'fan'] } };
-      const test: any = (result: string[]) => expect(result).toEqual([]);
       SETTINGS.defaultProviders = ['foo'];
-      AccountService.listProviders(application).then(test);
+      AccountService.listProviders(application).then((result: string[]) => {
+        expect(result).toEqual([]);
+        done();
+      });
       $http.flush();
+      setTimeout(() => $rootScope.$digest());
     });
 
-    it('should fall back to all registered available providers if no defaults configured and none configured on app', () => {
+    it('should fall back to all registered available providers if no defaults configured and none configured on app', done => {
       const application: any = { attributes: { cloudProviders: [] } };
-      const test: any = (result: string[]) => expect(result).toEqual(['aws', 'cf', 'gce']);
       delete SETTINGS.defaultProviders;
-      AccountService.listProviders(application).then(test);
+      AccountService.listProviders(application).then((result: string[]) => {
+        expect(result).toEqual(['aws', 'cf', 'gce']);
+        done();
+      });
       $http.flush();
+      setTimeout(() => $rootScope.$digest());
     });
   });
 });

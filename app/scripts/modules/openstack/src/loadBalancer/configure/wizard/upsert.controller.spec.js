@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { AccountService, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
 import { OpenStackProviderSettings } from '../../../openstack.settings';
 
@@ -122,8 +122,8 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
         return obj;
       }
 
+      spyOn(AccountService, 'listAccounts').and.returnValue($q.when(this.testData.accountList));
       this.mockLoadBalancerReader = addDeferredMock({}, 'listLoadBalancers');
-      this.mockAccountService = addDeferredMock({}, 'listAccounts');
       this.mockLoadBalancerWriter = addDeferredMock({}, 'upsertLoadBalancer');
       this.mockSecurityGroupReader = addDeferredMock({}, 'getAllSecurityGroups');
       this.mockTaskMonitor = {
@@ -182,7 +182,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
     });
 
     it('requests the list of accounts', function() {
-      expect(this.mockAccountService.listAccounts).toHaveBeenCalledWith('openstack');
+      expect(AccountService.listAccounts).toHaveBeenCalledWith('openstack');
     });
 
     it('prepends forward slashes (for health check path)', function() {
@@ -204,7 +204,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
 
     describe('& account list returned', function() {
       beforeEach(function() {
-        this.mockAccountService.listAccounts.deferred.resolve(this.testData.accountList);
         this.$scope.$digest();
       });
 
@@ -419,7 +418,6 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function() {
 
     describe('& account list returned', function() {
       beforeEach(function() {
-        this.mockAccountService.listAccounts.deferred.resolve(this.testData.accountList);
         this.$scope.$digest();
       });
 

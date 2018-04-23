@@ -54,20 +54,25 @@ export interface IAccountZone {
 }
 
 export class AccountService {
-  public static accounts$: Observable<IAccountDetails[]> = Observable.defer(() => {
-    const promise = API.one('credentials')
-      .useCache()
-      .withParams({ expand: true })
-      .get();
-    return Observable.fromPromise<IAccountDetails[]>(promise);
-  })
-    .publishReplay(1)
-    .refCount();
+  public static accounts$: Observable<IAccountDetails[]>;
+  public static providers$: Observable<string[]>;
 
-  public static providers$ = AccountService.accounts$.map((accounts: IAccountDetails[]) => {
-    const providersFromAccounts: string[] = uniq(accounts.map(account => account.type));
-    return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
-  });
+  public static initialize(): void {
+    this.accounts$ = Observable.defer(() => {
+      const promise = API.one('credentials')
+        .useCache()
+        .withParams({ expand: true })
+        .get();
+      return Observable.fromPromise<IAccountDetails[]>(promise);
+    })
+      .publishReplay(1)
+      .refCount();
+
+    this.providers$ = AccountService.accounts$.map((accounts: IAccountDetails[]) => {
+      const providersFromAccounts: string[] = uniq(accounts.map(account => account.type));
+      return intersection(providersFromAccounts, CloudProviderRegistry.listRegisteredProviders());
+    });
+  }
 
   public static challengeDestructiveActions(account: string): IPromise<boolean> {
     return $q((resolve: IQResolveReject<boolean>) => {
@@ -206,3 +211,5 @@ export class AccountService {
     return $q.when(this.listProviders$(application).toPromise());
   }
 }
+
+AccountService.initialize();
