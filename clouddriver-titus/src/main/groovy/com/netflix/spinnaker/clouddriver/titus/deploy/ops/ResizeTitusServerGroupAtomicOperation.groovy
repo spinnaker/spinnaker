@@ -47,7 +47,7 @@ class ResizeTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
       throw new IllegalArgumentException("No titus server group named '${description.serverGroupName}' found")
     }
 
-    Boolean shouldToggleScalingFlags = !titusClient.getJob(job.id).inService
+    Boolean shouldToggleScalingFlags = !job.inService
     if (shouldToggleScalingFlags) {
       titusClient.setAutoscaleEnabled(job.id, true)
     }
