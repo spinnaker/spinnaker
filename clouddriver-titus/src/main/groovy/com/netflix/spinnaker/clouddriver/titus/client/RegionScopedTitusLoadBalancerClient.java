@@ -62,7 +62,7 @@ public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerCli
     String cursor = "";
     boolean hasMore = true;
     do {
-      Page.Builder loadBalancerPage = Page.newBuilder().setPageSize(100);
+      Page.Builder loadBalancerPage = Page.newBuilder().setPageSize(1000);
       if (!cursor.isEmpty()) {
         loadBalancerPage.setCursor(cursor);
       }
