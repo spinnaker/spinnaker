@@ -20,7 +20,7 @@ package com.netflix.spinnaker.orca.webhook.tasks
 import com.jayway.jsonpath.JsonPath
 import com.jayway.jsonpath.PathNotFoundException
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
@@ -29,9 +29,25 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpStatusCodeException
 
+import java.time.Duration
+import java.util.concurrent.TimeUnit
+
 @Slf4j
 @Component
-class MonitorWebhookTask implements Task {
+class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
+
+  long backoffPeriod = TimeUnit.SECONDS.toMillis(1)
+  long timeout = TimeUnit.HOURS.toMillis(1)
+
+  @Override
+  long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+    if (taskDuration.toMillis() > TimeUnit.MINUTES.toMillis(1)) {
+      // task has been running > 1min, drop retry interval to every 15 sec
+      return Math.max(backoffPeriod, TimeUnit.SECONDS.toMillis(15))
+    }
+
+    return backoffPeriod
+  }
 
   @Autowired
   WebhookService webhookService
