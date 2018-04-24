@@ -259,6 +259,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       if (description.targetGroups) {
         targetGroupLookupResult = validateLoadBalancers(description)
+        description.labels.put('spinnaker.targetGroups', targetGroupLookupResult?.targetGroupARNs.join(','))
+      } else {
+        if (description.labels.containsKey('spinnaker.targetGroups')) {
+          description.labels.remove('spinnaker.targetGroups')
+        }
       }
 
       task.updateStatus BASE_PHASE, "Submitting job request to Titus..."

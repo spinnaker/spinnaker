@@ -68,6 +68,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     try {
 
       def provider = titusClientProvider.getTitusClient(credentials, region)
+      def loadBalancingClient = titusClientProvider.getTitusLoadBalancerClient(credentials, region)
       def job = provider.findJobByName(serverGroupName)
 
       if (!job) {
@@ -83,6 +84,25 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           .withJobId(job.id)
           .withInService(!disable)
       )
+
+      if (loadBalancingClient && job.labels.containsKey("spinnaker.targetGroups")) {
+        if (disable) {
+          task.updateStatus phaseName, "Removing ${job.id} from target groups"
+          loadBalancingClient.getJobLoadBalancers(job.id).each { loadBalancerId ->
+            task.updateStatus phaseName, "Removing ${job.id} from ${loadBalancerId.id} "
+            loadBalancingClient.removeLoadBalancer(job.id, loadBalancerId.getId())
+          }
+        } else {
+          task.updateStatus phaseName, "Restoring ${job.id} into target groups"
+          List<String> attachedLoadBalancers = loadBalancingClient.getJobLoadBalancers(job.id)*.id
+          job.labels.get("spinnaker.targetGroups").split(',').each { loadBalancerId ->
+            if (!attachedLoadBalancers.contains(loadBalancerId)) {
+              task.updateStatus phaseName, "Restoring ${job.id} into ${loadBalancerId}"
+              loadBalancingClient.addLoadBalancer(job.id, loadBalancerId)
+            }
+          }
+        }
+      }
 
       if (job.tasks) {
         def status = disable ? AbstractEurekaSupport.DiscoveryStatus.Disable : AbstractEurekaSupport.DiscoveryStatus.Enable
