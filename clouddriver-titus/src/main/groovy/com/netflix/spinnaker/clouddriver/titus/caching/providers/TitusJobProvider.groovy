@@ -64,14 +64,14 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
   @Override
   TitusJobStatus collectJob(String account, String location, String id) {
     TitusClient titusClient = titusClientProvider.getTitusClient(accountCredentialsProvider.getCredentials(account), location)
-    Job job = titusClient.getJob(id)
+    Job job = titusClient.getJobAndAllRunningAndCompletedTasks(id)
     new TitusJobStatus(job, account, location)
   }
 
   @Override
   Map<String, Object> getFileContents(String account, String location, String id, String fileName) {
     TitusClient titusClient = titusClientProvider.getTitusClient(accountCredentialsProvider.getCredentials(account), location)
-    Job job = titusClient.getJob(id)
+    Job job = titusClient.getJobAndAllRunningAndCompletedTasks(id)
 
     def fileContents
 

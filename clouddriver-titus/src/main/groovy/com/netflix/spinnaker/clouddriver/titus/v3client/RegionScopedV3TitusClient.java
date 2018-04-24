@@ -102,7 +102,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
   // ------------------------------------------------------------------------------------------
 
   @Override
-  public Job getJob(String jobId) {
+  public Job getJobAndAllRunningAndCompletedTasks(String jobId) {
     return new Job(grpcBlockingStub.findJob(JobId.newBuilder().setId(jobId).build()), getTasks(Arrays.asList(jobId), true).get(jobId));
   }
 
