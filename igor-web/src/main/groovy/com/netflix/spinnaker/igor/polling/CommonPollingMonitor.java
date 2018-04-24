@@ -126,7 +126,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
                     );
                     sendEvents = false;
                 } else {
-                    log.warn(
+                    log.error(
                         "Number of items ({}) to cache exceeds upper threshold ({}) in {} {}",
                         deltaSize, upperThreshold, kv("monitor", monitorName), kv("partition", ctx.partitionName)
                     );
