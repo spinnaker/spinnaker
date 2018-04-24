@@ -437,6 +437,7 @@ export class ExecutionsTransformerService {
         if (summary.groupStages.length === 1) {
           // If there's only one stage, get rid of the group.
           const onlyStage = summary.groupStages[0];
+          summary = onlyStage;
           stageSummaries[index] = onlyStage;
           delete idToGroupIdMap[onlyStage.refId];
         } else if (summary.groupStages.length > 1) {
