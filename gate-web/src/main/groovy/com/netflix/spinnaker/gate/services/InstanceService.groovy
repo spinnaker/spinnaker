@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
@@ -50,8 +51,11 @@ class InstanceService {
       def instanceContext = instanceDetails.collectEntries {
         return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
       } as Map<String, String>
-
-      def context = getContext(account, region, instanceId) + instanceContext + accountDetails
+      String application
+      if (instanceContext.serverGroup) {
+        application = Names.parseName(instanceContext.serverGroup)?.app
+      }
+      def context = getContext(account, region, instanceId) + instanceContext + accountDetails + ["application": application]
       return instanceDetails + [
           "insightActions": insightConfiguration.instance.findResults { it.applyContext(context) }
       ]
