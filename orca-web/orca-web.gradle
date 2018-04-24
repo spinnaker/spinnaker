@@ -34,6 +34,7 @@ springBoot {
 dependencies {
   spinnaker.group("bootWeb")
 
+  compile project(":orca-redis")
   compile project(":orca-bakery")
   compile project(":orca-clouddriver")
   compile project(":orca-front50")

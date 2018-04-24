@@ -1,0 +1,6 @@
+dependencies {
+  compile spinnaker.dependency('jedis')
+  compile spinnaker.dependency('korkJedis')
+  compile project(":orca-test")
+  compile spinnaker.dependency("korkJedisTest")
+}

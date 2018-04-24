@@ -25,6 +25,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
@@ -33,25 +34,16 @@ import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 import rx.Observable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.PinnedServerGroupTagGenerator.PINNED_CAPACITY_TAG;
+import static java.lang.String.format;
 
 @Slf4j
 @Component
@@ -71,7 +63,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
   private final Counter triggeredCounter;
 
   @Autowired
-  public RestorePinnedServerGroupsPoller(@Qualifier("jedisPool") Pool<Jedis> jedisPool,
+  public RestorePinnedServerGroupsPoller(NotificationClusterLock notificationClusterLock,
                                          ObjectMapper objectMapper,
                                          OortService oortService,
                                          RetrySupport retrySupport,
@@ -79,7 +71,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
                                          ExecutionLauncher executionLauncher,
                                          ExecutionRepository executionRepository) {
     this(
-      jedisPool,
+      notificationClusterLock,
       objectMapper,
       oortService,
       retrySupport,
@@ -91,7 +83,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
   }
 
   @VisibleForTesting
-  RestorePinnedServerGroupsPoller(@Qualifier("jedisPool") Pool<Jedis> jedisPool,
+  RestorePinnedServerGroupsPoller(NotificationClusterLock notificationClusterLock,
                                   ObjectMapper objectMapper,
                                   OortService oortService,
                                   RetrySupport retrySupport,
@@ -99,7 +91,7 @@ class RestorePinnedServerGroupsPoller extends AbstractPollingNotificationAgent {
                                   ExecutionLauncher executionLauncher,
                                   ExecutionRepository executionRepository,
                                   PollerSupport pollerSupport) {
-    super(jedisPool);
+    super(notificationClusterLock);
 
     this.objectMapper = objectMapper;
     this.oortService = oortService;

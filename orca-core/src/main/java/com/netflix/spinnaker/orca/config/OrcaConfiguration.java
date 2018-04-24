@@ -31,7 +31,6 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -50,6 +49,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import rx.Notification;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
@@ -63,7 +63,6 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT
 @Configuration
 @ComponentScan({
   "com.netflix.spinnaker.orca.pipeline",
-  "com.netflix.spinnaker.orca.notifications.scheduling",
   "com.netflix.spinnaker.orca.deprecation",
   "com.netflix.spinnaker.orca.pipeline.util",
   "com.netflix.spinnaker.orca.telemetry"

@@ -15,31 +15,29 @@
  */
 package com.netflix.spinnaker.orca.notifications;
 
-import java.util.function.Function;
-import javax.annotation.PreDestroy;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
-import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
+
+import javax.annotation.PreDestroy;
+
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
-// TODO @afeldman - refactor around RedisClientDelegate
 abstract public class AbstractPollingNotificationAgent implements ApplicationListener<RemoteStatusChangedEvent> {
 
   private final Logger log = LoggerFactory.getLogger(AbstractPollingNotificationAgent.class);
 
-  protected final Pool<Jedis> jedisPool;
+  protected final NotificationClusterLock clusterLock;
   protected Scheduler scheduler = Schedulers.io();
   protected Subscription subscription;
 
-  public AbstractPollingNotificationAgent(Pool<Jedis> jedisPool) {
-    this.jedisPool = jedisPool;
+  public AbstractPollingNotificationAgent(NotificationClusterLock clusterLock) {
+    this.clusterLock = clusterLock;
   }
 
   protected abstract long getPollingInterval();
@@ -49,9 +47,7 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
   protected abstract void startPolling();
 
   protected boolean tryAcquireLock() {
-    String key = "lock:" + getNotificationType();
-    return withJedis(jedisPool, redis ->
-      "OK".equals(redis.set(key, "\uD83D\uDD12", "NX", "EX", (long) getPollingInterval())));
+    return clusterLock.tryAcquireLock(getNotificationType(), getPollingInterval());
   }
 
   @PreDestroy
@@ -75,12 +71,6 @@ abstract public class AbstractPollingNotificationAgent implements ApplicationLis
       log.warn("Instance is " + event.getSource().getStatus().toString() +
         "... stopping polling for " + getNotificationType() + " events");
       stopPolling();
-    }
-  }
-
-  protected <T> T withJedis(Pool<Jedis> jedisPool, Function<Jedis, T> action) {
-    try (Jedis jedis = jedisPool.getResource()) {
-      return action.apply(jedis);
     }
   }
 }

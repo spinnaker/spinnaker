@@ -16,6 +16,9 @@
 
 include "orca-extensionpoint",
   "orca-core",
+  "orca-core-tck",
+  "orca-redis",
+  "orca-test-redis",
   "orca-retrofit",
   "orca-front50",
   "orca-bakery",

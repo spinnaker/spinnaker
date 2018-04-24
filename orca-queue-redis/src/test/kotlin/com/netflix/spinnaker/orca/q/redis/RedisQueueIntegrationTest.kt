@@ -17,12 +17,30 @@
 package com.netflix.spinnaker.orca.q.redis
 
 import com.netflix.spinnaker.config.RedisOrcaQueueConfiguration
+import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import com.netflix.spinnaker.kork.jedis.RedisClientSelector
+import com.netflix.spinnaker.orca.config.JedisConfiguration
+import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.junit.runner.RunWith
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.junit4.SpringRunner
+import redis.clients.jedis.Jedis
+import redis.clients.util.Pool
+
+@Configuration
+class RedisTestConfig {
+  @Bean
+  fun queueRedisPool(jedisPool: Pool<Jedis>) = jedisPool
+
+  @Bean
+  fun redisClientSelector(redisClientDelegates: List<RedisClientDelegate>) =
+    RedisClientSelector(redisClientDelegates)
+}
 
 /**
  * This just runs [QueueIntegrationTest] with a [com.netflix.spinnaker.q.redis.RedisQueue].
@@ -31,7 +49,9 @@ import org.springframework.test.context.junit4.SpringRunner
 @SpringBootTest(
   classes = [
     EmbeddedRedisConfiguration::class,
+    JedisConfiguration::class,
     TestConfig::class,
+    RedisTestConfig::class,
     RedisOrcaQueueConfiguration::class
   ],
   properties = [

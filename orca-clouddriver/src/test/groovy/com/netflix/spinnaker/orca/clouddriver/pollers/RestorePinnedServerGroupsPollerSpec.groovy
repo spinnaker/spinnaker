@@ -22,15 +22,17 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import redis.clients.util.Pool
 import spock.lang.Specification
-import spock.lang.Subject;
+import spock.lang.Subject
 
 class RestorePinnedServerGroupsPollerSpec extends Specification {
-  def jedisPool = Mock(Pool)
+  def notificationClusterLock = Mock(NotificationClusterLock) {
+    tryAcquireLock(_, _) >> true
+  }
   def objectMapper = new ObjectMapper()
   def oortService = Mock(OortService)
   def executionLauncher = Mock(ExecutionLauncher)
@@ -80,7 +82,7 @@ class RestorePinnedServerGroupsPollerSpec extends Specification {
   def restorePinnedServerGroupsAgent = Spy(
     RestorePinnedServerGroupsPoller,
     constructorArgs: [
-      jedisPool,
+      notificationClusterLock,
       objectMapper,
       oortService,
       retrySupport,

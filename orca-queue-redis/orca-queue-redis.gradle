@@ -22,9 +22,11 @@ repositories {
 }
 
 dependencies {
+  compile project(":orca-redis")
   compile project(":orca-queue")
   compile "com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion"
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
 
+  testCompile project(":orca-test-redis")
   testCompile project(":orca-queue-tck")
 }

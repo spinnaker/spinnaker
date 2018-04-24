@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
@@ -26,9 +25,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import redis.clients.jedis.Jedis
-import redis.clients.util.Pool
-import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -36,20 +32,6 @@ class ResizeAsgStageSpec extends Specification {
 
   @Shared
   def stageNavigator = new StageNavigator([])
-
-  @Shared
-  @AutoCleanup("destroy")
-  EmbeddedRedis embeddedRedis
-
-  def setupSpec() {
-    embeddedRedis = EmbeddedRedis.embed()
-  }
-
-  def cleanup() {
-    embeddedRedis.jedis.withCloseable { it.flushDB() }
-  }
-
-  Pool<Jedis> jedisPool = embeddedRedis.pool
 
   def mapper = OrcaObjectMapper.newInstance()
   def targetReferenceSupport = Mock(TargetReferenceSupport)

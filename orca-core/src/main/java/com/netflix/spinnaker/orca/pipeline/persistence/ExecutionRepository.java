@@ -15,19 +15,19 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import rx.Observable;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
+
 import static java.util.stream.Collectors.toList;
 
 public interface ExecutionRepository {

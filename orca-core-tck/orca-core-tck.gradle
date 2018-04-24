@@ -1,0 +1,10 @@
+apply from: "$rootDir/gradle/groovy.gradle"
+
+dependencies {
+  compile project(":orca-core")
+  compile spinnaker.dependency("junit")
+  compile spinnaker.dependency("spock")
+
+  compile project(":orca-test")
+  compile project(":orca-test-groovy")
+}

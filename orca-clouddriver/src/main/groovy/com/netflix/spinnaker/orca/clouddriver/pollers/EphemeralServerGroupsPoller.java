@@ -24,6 +24,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent;
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -32,22 +33,13 @@ import groovy.util.logging.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 import rx.Observable;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -71,13 +63,13 @@ public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgen
   private final Counter triggeredCounter;
 
   @Autowired
-  public EphemeralServerGroupsPoller(@Qualifier("jedisPool") Pool<Jedis> jedisPool,
+  public EphemeralServerGroupsPoller(NotificationClusterLock notificationClusterLock,
                                      ObjectMapper objectMapper,
                                      OortService oortService,
                                      RetrySupport retrySupport,
                                      Registry registry,
                                      ExecutionLauncher executionLauncher) {
-    super(jedisPool);
+    super(notificationClusterLock);
 
     this.objectMapper = objectMapper;
     this.oortService = oortService;
