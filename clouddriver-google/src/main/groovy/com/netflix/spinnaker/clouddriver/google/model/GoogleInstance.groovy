@@ -19,15 +19,10 @@ package com.netflix.spinnaker.clouddriver.google.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.api.services.compute.model.Disk
-import com.google.api.services.compute.model.Metadata
-import com.google.api.services.compute.model.NetworkInterface
-import com.google.api.services.compute.model.ServiceAccount
-import com.google.api.services.compute.model.Tags
+import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
@@ -111,7 +106,7 @@ class GoogleInstance {
         healths << mapper.convertValue(h, new TypeReference<Map<String, Object>>() {})
       }
       healths << mapper.convertValue(instanceHealth?.view, new TypeReference<Map<String, Object>>() {})
-      healths
+      healths.unique()
     }
 
     @JsonIgnore
@@ -126,7 +121,7 @@ class GoogleInstance {
       consulNode?.healths?.each {
         allHealths << it
       }
-      allHealths
+      allHealths.unique()
     }
 
     @Override
