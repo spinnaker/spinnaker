@@ -42,7 +42,14 @@ interface OnDemandCacheUpdater {
    * @param cloudProvider
    * @param data
    */
-  OnDemandCacheStatus handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ? extends Object> data)
+  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ? extends Object> data)
 
   Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider)
+
+  Map pendingOnDemandRequest(OnDemandAgent.OnDemandType type, String cloudProvider, String id)
+
+  static class OnDemandCacheResult {
+    OnDemandCacheStatus status
+    Map<String, List<String>> cachedIdentifiersByType = [:]
+  }
 }

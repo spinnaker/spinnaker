@@ -97,4 +97,9 @@ public interface OnDemandAgent {
 
   OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data);
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache);
+
+  default Map pendingOnDemandRequest(ProviderCache providerCache, String id) {
+    Collection<Map> pendingOnDemandRequests = pendingOnDemandRequests(providerCache);
+    return pendingOnDemandRequests.stream().filter(m -> id.equals(m.get("id"))).findFirst().orElse(null);
+  }
 }

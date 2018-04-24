@@ -36,19 +36,35 @@ class CacheController {
                                 @PathVariable String type,
                                 @RequestBody Map<String, ? extends Object> data) {
     OnDemandAgent.OnDemandType onDemandType = getOnDemandType(type);
-    def cacheStatus = onDemandCacheUpdaters.find { it.handles(onDemandType, cloudProvider) }?.handle(onDemandType, cloudProvider, data)
+
+    def onDemandCacheResult = onDemandCacheUpdaters.find {
+      it.handles(onDemandType, cloudProvider)
+    }?.handle(onDemandType, cloudProvider, data)
+
+    def cacheStatus = onDemandCacheResult?.status
     def httpStatus = (cacheStatus == OnDemandCacheUpdater.OnDemandCacheStatus.PENDING) ? HttpStatus.ACCEPTED : HttpStatus.OK
-    return new ResponseEntity(httpStatus)
+
+    return new ResponseEntity(
+      [
+        cachedIdentifiersByType: onDemandCacheResult?.cachedIdentifiersByType ?: [:]
+      ],
+      httpStatus
+    )
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}/{type}")
-  Collection<Map>  pendingOnDemands(@PathVariable String cloudProvider,
-                                    @PathVariable String type) {
+  Collection<Map> pendingOnDemands(@PathVariable String cloudProvider,
+                                   @PathVariable String type,
+                                   @RequestParam(name = "id", required = false) String id) {
     OnDemandAgent.OnDemandType onDemandType = getOnDemandType(type)
     onDemandCacheUpdaters.findAll {
       it.handles(onDemandType, cloudProvider)
-    }.collect {
-      it.pendingOnDemandRequests(onDemandType, cloudProvider)
+    }?.collect {
+      if (id) {
+        def pendingOnDemandRequest = it.pendingOnDemandRequest(onDemandType, cloudProvider, id)
+        return pendingOnDemandRequest ? [ pendingOnDemandRequest ] : []
+      }
+      return it.pendingOnDemandRequests(onDemandType, cloudProvider)
     }.flatten()
   }
 

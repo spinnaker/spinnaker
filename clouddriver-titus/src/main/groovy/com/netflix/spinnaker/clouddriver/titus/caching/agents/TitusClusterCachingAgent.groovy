@@ -189,15 +189,13 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       return key && key.type == SERVER_GROUPS.ns && key.account == account.name && key.region == region
     }
 
-    return providerCache.getAll('onDemand', keys, RelationshipCacheFilter.none()).collect {
-      [
-        id            : it.id,
-        details       : Keys.parse(it.id),
-        cacheTime     : it.attributes.cacheTime,
-        processedCount: it.attributes.processedCount,
-        processedTime : it.attributes.processedTime
-      ]
-    }
+    return fetchPendingOnDemandRequests(providerCache, keys)
+  }
+
+  @Override
+  Map pendingOnDemandRequest(ProviderCache providerCache, String id) {
+    def pendingOnDemandRequests = fetchPendingOnDemandRequests(providerCache, [id])
+    return pendingOnDemandRequests?.getAt(0)
   }
 
   @Override
@@ -268,6 +266,18 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     }
 
     return result
+  }
+
+  private Collection<Map> fetchPendingOnDemandRequests(ProviderCache providerCache, Collection<String> keys) {
+    return providerCache.getAll('onDemand', keys, RelationshipCacheFilter.none()).collect {
+      [
+        id            : it.id,
+        details       : Keys.parse(it.id),
+        cacheTime     : it.attributes.cacheTime,
+        processedCount: it.attributes.processedCount,
+        processedTime : it.attributes.processedTime
+      ]
+    }
   }
 
   private CacheResult buildCacheResult(List<Job> jobs,
@@ -376,16 +386,6 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
         } catch (Exception e) {
           log.error("Failed to cache ${data.job.name} in ${account.name}", e)
         }
-      }
-    }
-  }
-
-
-  private void cacheTargetGroups(ServerGroupData data, Map<String, CacheData> targetGroups) {
-    for (String targetGroupKey : data.targetGroupKeys) {
-      targetGroups[targetGroupKey].with {
-        relationships[APPLICATIONS.ns].add(data.appName)
-        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
   }

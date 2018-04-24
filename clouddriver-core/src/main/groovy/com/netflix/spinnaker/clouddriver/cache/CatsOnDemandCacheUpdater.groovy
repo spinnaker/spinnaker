@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.cache
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentLock
 import com.netflix.spinnaker.cats.agent.AgentScheduler
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import groovy.util.logging.Slf4j
@@ -56,13 +55,15 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ? extends Object> data) {
+  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ?> data) {
     Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
     return handle(type, onDemandAgents, data)
   }
 
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(OnDemandAgent.OnDemandType type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
     boolean hasOnDemandResults = false
+    Map<String, List<String>> cachedIdentifiersByType = [:].withDefault { [] }
+
     for (OnDemandAgent agent : onDemandAgents) {
       try {
         AgentLock lock = null;
@@ -85,6 +86,13 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
           }
           if (result.cacheResult) {
             hasOnDemandResults = !(result.cacheResult.cacheResults ?: [:]).values().flatten().isEmpty() && !agentScheduler.atomic
+            if (hasOnDemandResults) {
+              result.cacheResult.cacheResults.each { k, v ->
+                if (v) {
+                  cachedIdentifiersByType[k].addAll(v*.id)
+                }
+              }
+            }
             agent.metricsSupport.cacheWrite {
               providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
             }
@@ -111,7 +119,16 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
       }
     }
 
-    return hasOnDemandResults ? OnDemandCacheUpdater.OnDemandCacheStatus.PENDING : OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
+    if (hasOnDemandResults) {
+      return new OnDemandCacheResult(
+        status: OnDemandCacheStatus.PENDING,
+        cachedIdentifiersByType: cachedIdentifiersByType
+      )
+    }
+
+    return new OnDemandCacheResult(
+      status: OnDemandCacheStatus.SUCCESSFUL
+    )
   }
 
   @Override
@@ -125,5 +142,18 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
       def providerCache = catsModule.getProviderRegistry().getProviderCache(it.providerName)
       it.pendingOnDemandRequests(providerCache)
     }.flatten()
+  }
+
+  @Override
+  Map pendingOnDemandRequest(OnDemandAgent.OnDemandType type, String cloudProvider, String id) {
+    if (agentScheduler.atomic) {
+      return null
+    }
+
+    Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
+    return onDemandAgents.findResults {
+      def providerCache = catsModule.getProviderRegistry().getProviderCache(it.providerName)
+      it.pendingOnDemandRequest(providerCache, id)
+    }?.getAt(0)
   }
 }

@@ -454,17 +454,28 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       def key = Keys.parse(it)
       key.type == SERVER_GROUPS.ns && key.account == account.name && key.region == region
     }
+
+    return fetchPendingOnDemandRequests(providerCache, keys)
+  }
+
+  @Override
+  Map pendingOnDemandRequest(ProviderCache providerCache, String id) {
+    def pendingOnDemandRequests = fetchPendingOnDemandRequests(providerCache, [id])
+    return pendingOnDemandRequests?.getAt(0)
+  }
+
+  private Collection<Map> fetchPendingOnDemandRequests(ProviderCache providerCache, Collection<String> keys) {
     return providerCache.getAll(ON_DEMAND.ns, keys, RelationshipCacheFilter.none()).collect {
       def details = Keys.parse(it.id)
 
       return [
-          id            : it.id,
-          details       : details,
-          moniker       : convertOnDemandDetails(details),
-          cacheTime     : it.attributes.cacheTime,
-          cacheExpiry   : it.attributes.cacheExpiry,
-          processedCount: it.attributes.processedCount,
-          processedTime : it.attributes.processedTime
+        id            : it.id,
+        details       : details,
+        moniker       : convertOnDemandDetails(details),
+        cacheTime     : it.attributes.cacheTime,
+        cacheExpiry   : it.attributes.cacheExpiry,
+        processedCount: it.attributes.processedCount,
+        processedTime : it.attributes.processedTime
       ]
     }
   }

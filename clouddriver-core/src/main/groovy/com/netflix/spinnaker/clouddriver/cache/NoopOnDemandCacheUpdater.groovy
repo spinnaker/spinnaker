@@ -30,12 +30,19 @@ class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  OnDemandCacheUpdater.OnDemandCacheStatus handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ? extends Object> data) {
-    return OnDemandCacheUpdater.OnDemandCacheStatus.SUCCESSFUL
+  OnDemandCacheResult handle(OnDemandAgent.OnDemandType type, String cloudProvider, Map<String, ?> data) {
+    return new OnDemandCacheResult(
+      status: OnDemandCacheStatus.SUCCESSFUL
+    )
   }
 
   @Override
   Collection<Map> pendingOnDemandRequests(OnDemandAgent.OnDemandType type, String cloudProvider) {
     return []
+  }
+
+  @Override
+  Map pendingOnDemandRequest(OnDemandAgent.OnDemandType type, String cloudProvider, String id) {
+    return null
   }
 }
