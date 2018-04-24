@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
@@ -248,6 +249,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   default String getArtifactId(String deploymentName) {
     String artifactName = getArtifact().getName();
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
+    version = Versions.isLocal(version) ? Versions.fromLocal(version) : version;
 
     KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName));
     return KubernetesUtil.getImageId(image);

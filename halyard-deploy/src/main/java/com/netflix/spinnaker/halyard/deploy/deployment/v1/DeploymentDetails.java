@@ -20,7 +20,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.Data;
-import org.apache.commons.lang.StringUtils;
 
 @Data
 public class DeploymentDetails {
@@ -30,8 +29,6 @@ public class DeploymentDetails {
 
   public String getArtifactVersion(String artifactName) {
     String version = billOfMaterials.getArtifactVersion(artifactName);
-    return version.contains(Versions.LOCAL_PREFIX)
-            ? StringUtils.substringAfterLast(version, Versions.LOCAL_PREFIX)
-            : version;
+    return Versions.isLocal(version) ? Versions.fromLocal(version) : version;
   }
 }
