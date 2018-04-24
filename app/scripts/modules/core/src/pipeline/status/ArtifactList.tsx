@@ -37,15 +37,19 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
 
   public render() {
     const { artifacts, resolvedExpectedArtifacts = [] } = this.props;
+
     const defaultArtifactRefs = new Set();
     resolvedExpectedArtifacts.forEach(rea => {
       if (rea && rea.defaultArtifact && rea.defaultArtifact.reference) {
         defaultArtifactRefs.add(rea.defaultArtifact.reference);
       }
     });
-    if (!artifacts || artifacts.length === 0) {
+    const decoratedArtifacts = artifacts && artifacts.filter(({ name, type }) => name && type);
+
+    if (!decoratedArtifacts || decoratedArtifacts.length === 0) {
       return null;
     }
+
     return (
       <ul className="trigger-details artifacts">
         {artifacts.map((artifact: IArtifact, i: number) => {

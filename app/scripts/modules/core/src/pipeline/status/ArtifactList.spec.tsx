@@ -15,7 +15,7 @@ describe('<ArtifactList/>', () => {
   beforeEach(mock.inject(() => {})); // Angular is lazy.
 
   it('renders null when null artifacts are passed in', function() {
-    const artifacts: IArtifact[] = [];
+    const artifacts: IArtifact[] = null;
     component = shallow(<ArtifactList artifacts={artifacts} />);
     expect(component.get(0)).toEqual(null);
   });
@@ -57,6 +57,29 @@ describe('<ArtifactList/>', () => {
     expect(dd.at(0).text()).toEqual(ARTIFACT_TYPE);
     expect(dt.at(1).text()).toEqual('Artifact');
     expect(dd.at(1).text()).toEqual(ARTIFACT_NAME);
+  });
+
+  it('does not render artifacts without a type and name', function() {
+    const singleArtifact: IArtifact[] = [
+      {
+        id: 'abcd',
+      },
+    ];
+    component = shallow(<ArtifactList artifacts={singleArtifact} />);
+    expect(component.get(0)).toEqual(null);
+
+    const artifacts: IArtifact[] = [
+      {
+        id: 'abcd',
+      },
+      {
+        id: 'abcd2',
+        type: ARTIFACT_TYPE,
+        name: ARTIFACT_NAME,
+      },
+    ];
+    component = shallow(<ArtifactList artifacts={artifacts} />);
+    expect(component.find('ul.trigger-details.artifacts').length).toEqual(1);
   });
 
   it('renders an artifact version if present', function() {
