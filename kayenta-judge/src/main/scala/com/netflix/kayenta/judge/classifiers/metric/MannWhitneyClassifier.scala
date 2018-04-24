@@ -22,7 +22,7 @@ import org.apache.commons.math3.stat.StatUtils
 
 case class MannWhitneyResult(lowerConfidence: Double, upperConfidence: Double, estimate: Double)
 
-class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) extends BaseMetricClassifier{
+class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) extends BaseMetricClassifier {
 
   /**
     * Mann-Whitney U Test
@@ -30,7 +30,7 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
     * @param experimentValues
     * @param controlValues
     */
-  def MannWhitneyUTest(experimentValues: Array[Double], controlValues: Array[Double]): MannWhitneyResult ={
+  def MannWhitneyUTest(experimentValues: Array[Double], controlValues: Array[Double]): MannWhitneyResult = {
     val mw = new MannWhitney()
     val params =
       MannWhitneyParams(mu = 0, confidenceLevel = confLevel, controlData = controlValues, experimentData = experimentValues)
@@ -58,18 +58,18 @@ class MannWhitneyClassifier(tolerance: Double=0.25, confLevel: Double=0.95) exte
   override def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
-    if(experiment.values.isEmpty || control.values.isEmpty){
+    if (experiment.values.isEmpty || control.values.isEmpty) {
       return MetricClassification(Nodata, None, 0.0)
     }
 
     //Check if the experiment and control data are equal
-    if (experiment.values.sorted.sameElements(control.values.sorted)){
+    if (experiment.values.sorted.sameElements(control.values.sorted)) {
       val reason = s"The ${experiment.label} and ${control.label} data are identical"
       return MetricClassification(Pass, Some(reason), 1.0)
     }
 
     //Check the number of unique observations; check for tied ranks
-    if (experiment.values.union(control.values).distinct.length == 1){
+    if (experiment.values.union(control.values).distinct.length == 1) {
       return MetricClassification(Pass, None, 1.0)
     }
 

@@ -25,12 +25,12 @@ import org.apache.commons.math3.stat.StatUtils
   * Compare the mean value of the experiment population to the mean value of the control population.
   * This classifier is primary used for benchmarking.
   */
-class MeanInequalityClassifier extends BaseMetricClassifier{
+class MeanInequalityClassifier extends BaseMetricClassifier {
 
   override def classify(control: Metric, experiment: Metric, direction: MetricDirection): MetricClassification = {
 
     //Check if there is no-data for the experiment or control
-    if(experiment.values.isEmpty || control.values.isEmpty){
+    if (experiment.values.isEmpty || control.values.isEmpty) {
       return MetricClassification(Nodata, None, 0.0)
     }
 
@@ -38,11 +38,11 @@ class MeanInequalityClassifier extends BaseMetricClassifier{
     val controlMean = StatUtils.mean(control.values)
     val ratio = experimentMean/controlMean
 
-    if((direction == MetricDirection.Increase || direction == MetricDirection.Either) && experimentMean > controlMean){
+    if ((direction == MetricDirection.Increase || direction == MetricDirection.Either) && experimentMean > controlMean)  {
       val reason = s"The ${experiment.label} mean was greater than the ${control.label} mean"
       return MetricClassification(High, Some(reason), ratio)
 
-    }else if((direction == MetricDirection.Decrease || direction == MetricDirection.Either) && experimentMean < controlMean){
+    } else if ((direction == MetricDirection.Decrease || direction == MetricDirection.Either) && experimentMean < controlMean) {
       val reason = s"The ${experiment.label} mean was less than the ${control.label} mean"
       return MetricClassification(Low, Some(reason), ratio)
     }

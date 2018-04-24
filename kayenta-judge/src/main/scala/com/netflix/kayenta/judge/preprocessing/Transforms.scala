@@ -27,7 +27,7 @@ object Transforms {
     * @param data
     * @return
     */
-  def removeNaNs(data: Array[Double]): Array[Double] ={
+  def removeNaNs(data: Array[Double]): Array[Double] = {
     data.filter(x => !x.isNaN)
   }
 
@@ -40,13 +40,21 @@ object Transforms {
   }
 
   /**
+    * Replace NaN values with 0.0 from the input metric.
+    * @param metric
+    */
+  def replaceNaNs(metric: Metric): Metric = {
+    metric.copy(values = replaceNaNs(metric.values, 0))
+  }
+
+  /**
     * Replace NaN values from the input array
     * @param data
     * @param value
     * @return
     */
-  def replaceNaNs(data: Array[Double], value: Double): Array[Double]={
-    data.map(x => if(x.isNaN) value else x)
+  def replaceNaNs(data: Array[Double], value: Double): Array[Double] = {
+    data.map(x => if (x.isNaN) value else x)
   }
 
   /**
@@ -54,9 +62,9 @@ object Transforms {
     * @param data
     * @param detector
     */
-  def removeOutliers(data: Array[Double], detector: BaseOutlierDetector): Array[Double] ={
+  def removeOutliers(data: Array[Double], detector: BaseOutlierDetector): Array[Double] = {
     val outliers = detector.detect(data)
-    data.zip(outliers).collect{case (v, false) => v}
+    data.zip(outliers).collect{ case (v, false) => v }
   }
 
   /**

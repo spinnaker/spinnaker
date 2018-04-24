@@ -109,11 +109,13 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
   /**
     * Metric Transformations
     */
-  def transformMetric(metric: Metric): Metric = {
+  def transformMetric(metric: Metric, nanStrategy: NaNStrategy): Metric = {
     val detector = new IQRDetector(factor = 3.0, reduceSensitivity = true)
-    val transform = Function.chain[Metric](Seq(
-      Transforms.removeNaNs(_),
-      Transforms.removeOutliers(_, detector)))
+    val transform = if (nanStrategy == NaNStrategy.Remove) {
+      Function.chain[Metric](Seq(Transforms.removeNaNs(_), Transforms.removeOutliers(_, detector)))
+    } else {
+      Function.chain[Metric](Seq(Transforms.replaceNaNs(_), Transforms.removeOutliers(_, detector)))
+    }
     transform(metric)
   }
 
@@ -133,15 +135,17 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     val experiment = Metric(metric.getName, experimentValues, label="Canary")
     val control = Metric(metric.getName, controlValues, label="Baseline")
 
-    val directionalityOption = MapUtils.get(metricConfig.getAnalysisConfigurations, "canary", "direction")
-    val directionalityString = if (directionalityOption.isDefined) directionalityOption.get.toString else "default"
+    val directionalityString = MapUtils.getAsStringWithDefault("either", metricConfig.getAnalysisConfigurations, "canary", "direction")
     val directionality = MetricDirection.parse(directionalityString)
+
+    val nanStrategyString = MapUtils.getAsStringWithDefault("none", metricConfig.getAnalysisConfigurations, "canary", "nanStrategy")
+    val nanStrategy = NaNStrategy.parse(nanStrategyString)
 
     //=============================================
     // Metric Transformation (Remove NaN values, etc.)
     // ============================================
-    val transformedExperiment = transformMetric(experiment)
-    val transformedControl = transformMetric(control)
+    val transformedExperiment = transformMetric(experiment, nanStrategy)
+    val transformedControl = transformMetric(control, nanStrategy)
 
     //=============================================
     // Calculate metric statistics

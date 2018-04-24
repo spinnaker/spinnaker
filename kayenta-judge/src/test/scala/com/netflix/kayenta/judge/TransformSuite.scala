@@ -16,13 +16,13 @@
 
 package com.netflix.kayenta.judge
 
-import com.netflix.kayenta.judge.preprocessing.Transforms.{removeNaNs, removeOutliers}
+import com.netflix.kayenta.judge.preprocessing.Transforms.{removeNaNs, replaceNaNs, removeOutliers}
 import com.netflix.kayenta.judge.detectors.{IQRDetector, KSigmaDetector}
 import com.netflix.kayenta.judge.preprocessing.Transforms
 import org.scalatest.FunSuite
 
 
-class TransformSuite extends FunSuite{
+class TransformSuite extends FunSuite {
 
   test("Remove Single NaN"){
     val testData = Array(0.0, 1.0, Double.NaN, 1.0, 0.0)
@@ -32,7 +32,7 @@ class TransformSuite extends FunSuite{
     assert(result === truth)
   }
 
-  test("Remove Multiple NaN"){
+  test("Remove Multiple NaN") {
     val testData = Array(Double.NaN, Double.NaN, Double.NaN)
     val truth = Array[Double]()
 
@@ -40,7 +40,15 @@ class TransformSuite extends FunSuite{
     assert(result === truth)
   }
 
-  test("IQR Outlier Removal"){
+  test("Replace NANs") {
+    val testData = Array(Double.NaN, 10.10, 20.20, 30.30, Double.NaN, 40.40)
+    val truth = Array(0.0, 10.10, 20.20, 30.30, 0.0, 40.40)
+
+    val result = replaceNaNs(testData, 0.0)
+    assert(result === truth)
+  }
+
+  test("IQR Outlier Removal") {
     val testData = Array(21.0, 23.0, 24.0, 25.0, 50.0, 29.0, 23.0, 21.0)
     val truth = Array(21.0, 23.0, 24.0, 25.0, 29.0, 23.0, 21.0)
 
@@ -49,7 +57,7 @@ class TransformSuite extends FunSuite{
     assert(result === truth)
   }
 
-  test("KSigma Outlier Removal"){
+  test("KSigma Outlier Removal") {
     val testData = Array(1.0, 1.0, 1.0, 1.0, 1.0, 20.0, 1.0, 1.0, 1.0, 1.0, 1.0)
     val truth = Array(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
 
