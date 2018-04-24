@@ -35,12 +35,9 @@ export class ExecutionFilterModel {
 
   constructor() {
     this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
-      version: 1,
-      maxAge: 180 * 24 * 60 * 60 * 1000,
+      version: 2,
+      maxAge: 14 * 24 * 60 * 60 * 1000,
     });
-    this.groupCount = this.getCachedViewState().count;
-    this.groupBy = this.getCachedViewState().groupBy;
-    this.showStageDuration = this.getCachedViewState().showStageDuration;
 
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
 
@@ -78,6 +75,10 @@ export class ExecutionFilterModel {
     $rootScope.$on(
       '$stateChangeSuccess',
       (_event, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
+        if (this.movingToExecutionsState(toState)) {
+          this.mostRecentApplication = toParams.application;
+          this.assignViewStateFromCache();
+        }
         if (this.movingToExecutionsState(toState) && this.isExecutionStateOrChild(fromState.name)) {
           this.asFilterModel.applyParamsToUrl();
           return;
@@ -121,18 +122,30 @@ export class ExecutionFilterModel {
     this.asFilterModel.activate();
   }
 
+  private assignViewStateFromCache(): void {
+    const viewState = this.getCachedViewState();
+    this.groupCount = viewState.count;
+    this.groupBy = viewState.groupBy;
+    this.showStageDuration = viewState.showStageDuration;
+  }
+
   private getCachedViewState(): { count: number; groupBy: string; showDurations: boolean; showStageDuration: boolean } {
-    const cached = this.configViewStateCache.get('#global') || {},
+    const key = this.mostRecentApplication || '#global';
+    const cached = this.configViewStateCache.get(key) || {},
       defaults = { count: 2, groupBy: 'name', showDurations: false };
+    this.configViewStateCache.touch(key); // prevents cache from expiring just because it hasn't been changed
     return extend(defaults, cached);
   }
 
   private cacheConfigViewState(): void {
-    this.configViewStateCache.put('#global', {
-      count: this.groupCount,
-      groupBy: this.groupBy,
-      showStageDuration: this.showStageDuration,
-    });
+    // don't cache if viewing only a subset of pipelines
+    if (!Object.keys(this.asFilterModel.sortFilter.pipeline).length) {
+      this.configViewStateCache.put(this.mostRecentApplication || '#global', {
+        count: this.groupCount,
+        groupBy: this.groupBy,
+        showStageDuration: this.showStageDuration,
+      });
+    }
   }
 
   private isExecutionState(stateName: string): boolean {
