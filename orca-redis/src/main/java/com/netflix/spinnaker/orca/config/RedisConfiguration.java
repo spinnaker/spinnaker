@@ -50,7 +50,7 @@ import static redis.clients.jedis.Protocol.DEFAULT_DATABASE;
 
 @Configuration
 @ComponentScan("com.netflix.spinnaker.orca.notifications.scheduling")
-@Import(JedisClientConfiguration.class)
+@Import({JedisClientConfiguration.class, JedisConfiguration.class})
 public class RedisConfiguration {
 
   public static class Clients {
