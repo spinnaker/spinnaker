@@ -44,7 +44,8 @@ export class InfrastructureSearchServiceV2 {
     const makeResultSet = (searchResults: ISearchResults<any>, type: SearchResultType): ISearchResultSet => {
       // Add URLs to each search result
       const results = searchResults.results.map(result => addComputedAttributes(result, type));
-      return { type, results, status: SearchStatus.FINISHED };
+      const query: string = apiParams.key as string;
+      return { type, results, status: SearchStatus.FINISHED, query };
     };
 
     const emitErrorResultSet = (error: any, type: SearchResultType): Observable<ISearchResultSet> => {

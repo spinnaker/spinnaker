@@ -71,7 +71,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
           .filter(({ results }) => results.length)
           .map(category => ({
             ...category,
-            results: searchRank(category.results).slice(0, 5),
+            results: searchRank(category.results, category.query).slice(0, 5),
           }))
           .sort((a, b) => a.type.order - b.type.order),
       )

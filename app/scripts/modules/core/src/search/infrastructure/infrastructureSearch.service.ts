@@ -14,6 +14,7 @@ export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {
   results: T[];
   status: SearchStatus;
   error?: any;
+  query?: string;
 }
 
 export interface IProviderResultFormatter {
