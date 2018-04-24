@@ -42,6 +42,8 @@ export class BakeManifestConfigCtrl implements IController {
   }
 
   public addInputArtifact() {
+    // First artifact is special -- the UI depends on it existing. If someone edited the json to remove it,
+    // this at least fixes the UI.
     if (!this.$scope.stage.inputArtifacts) {
       this.$scope.stage.inputArtifacts = [ BakeManifestConfigCtrl.defaultInputArtifact() ];
     }
