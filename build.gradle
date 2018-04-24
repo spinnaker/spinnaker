@@ -35,7 +35,7 @@ allprojects {
   group = "com.netflix.spinnaker.orca"
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.149.1'
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.152.2'
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
@@ -75,7 +75,7 @@ allprojects {
           it.useVersion spinnaker.version('jackson')
         }
         if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
-          it.useTarget group: "io.reactivex", name: "rxjava", version: "1.0.12"
+          it.useTarget group: "io.reactivex", name: "rxjava", version: spinnaker.version("rxJava")
         }
         if (it.requested.group == "asm" || it.requested.group == "org.ow2.asm") {
           it.useTarget group: "org.ow2.asm", name: "asm-all", version: "5.0.3"
