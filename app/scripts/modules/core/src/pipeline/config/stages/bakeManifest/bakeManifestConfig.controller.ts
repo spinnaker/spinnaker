@@ -1,6 +1,7 @@
 import { IController, IScope } from 'angular';
 
 import { AccountService, ExpectedArtifactService, IAccount, IExpectedArtifact } from 'core';
+import { UUIDGenerator } from 'core/utils';
 
 export class BakeManifestConfigCtrl implements IController {
   public expectedArtifacts: IExpectedArtifact[];
@@ -14,7 +15,7 @@ export class BakeManifestConfigCtrl implements IController {
     }
   }
 
-  constructor(public $scope: IScope, expectedArtifactService: ExpectedArtifactService ) {
+  constructor(public $scope: IScope, expectedArtifactService: ExpectedArtifactService) {
     'ngInject';
     if (this.$scope.stage.isNew) {
       const defaultSelection = {
@@ -25,6 +26,7 @@ export class BakeManifestConfigCtrl implements IController {
             kind: 'base64',
             name: ''
           },
+          id: UUIDGenerator.generateUuid(),
           defaultArtifact: {},
           useDefaultArtifact: false,
         }],
