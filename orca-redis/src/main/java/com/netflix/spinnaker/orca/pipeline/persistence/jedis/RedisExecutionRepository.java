@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.BinaryClient;
 import redis.clients.jedis.Response;
@@ -55,6 +56,7 @@ import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER;
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE;
 
 @Component
+@ConditionalOnProperty(value = "executionRepository.redis.enabled", matchIfMissing = true)
 public class RedisExecutionRepository implements ExecutionRepository {
 
   private static final TypeReference<List<Task>> LIST_OF_TASKS =
