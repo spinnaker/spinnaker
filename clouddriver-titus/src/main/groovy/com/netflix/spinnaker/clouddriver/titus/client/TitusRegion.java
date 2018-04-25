@@ -27,7 +27,6 @@ public class TitusRegion {
   private final Boolean autoscalingEnabled;
   private final Boolean loadBalancingEnabled;
   private final List<TitusFaultDomain> faultDomains;
-  private final String apiVersion;
   private final String applicationName;
   private final String url;
   private final int port;
@@ -46,7 +45,6 @@ public class TitusRegion {
                      Boolean autoscalingEnabled,
                      Boolean loadBalancingEnabled,
                      List<TitusFaultDomain> faultDomains,
-                     String apiVersion,
                      String applicationName,
                      String url,
                      Integer port,
@@ -58,7 +56,6 @@ public class TitusRegion {
     this.autoscalingEnabled = autoscalingEnabled;
     this.loadBalancingEnabled = loadBalancingEnabled;
     this.faultDomains = faultDomains == null ? Collections.emptyList() : Collections.unmodifiableList(faultDomains);
-    this.apiVersion = apiVersion;
     this.applicationName = applicationName;
     this.url = url;
     if (port != null) {
@@ -73,8 +70,8 @@ public class TitusRegion {
     }
   }
 
-  public TitusRegion(String name, String account, String endpoint, Boolean autoscalingEnabled, Boolean loadBalancingEnabled, String apiVersion, String applicationName, String url, Integer port, List<String> featureFlags) {
-    this(name, account, endpoint, autoscalingEnabled, loadBalancingEnabled, Collections.emptyList(), apiVersion, applicationName, url, port, featureFlags);
+  public TitusRegion(String name, String account, String endpoint, Boolean autoscalingEnabled, Boolean loadBalancingEnabled, String applicationName, String url, Integer port, List<String> featureFlags) {
+    this(name, account, endpoint, autoscalingEnabled, loadBalancingEnabled, Collections.emptyList(), applicationName, url, port, featureFlags);
   }
 
   public String getAccount() {
@@ -87,10 +84,6 @@ public class TitusRegion {
 
   public String getEndpoint() {
     return endpoint;
-  }
-
-  public String getApiVersion() {
-    return apiVersion;
   }
 
   public Boolean isAutoscalingEnabled() {
