@@ -34,10 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -100,7 +97,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
     if (!titusRegion.getFeatureFlags().isEmpty()) {
       log.info("Experimental Titus V3 client feature flags {} enabled for account {} and region {}",
-        StringUtils.join(titusRegion.getFeatureFlags(),","),
+        StringUtils.join(titusRegion.getFeatureFlags(), ","),
         titusRegion.getAccount(),
         titusRegion.getName());
     }
@@ -245,9 +242,14 @@ public class RegionScopedV3TitusClient implements TitusClient {
       cursor = resultPage.getPagination().getCursor();
       hasMore = resultPage.getPagination().getHasMore();
     } while (hasMore);
-    List<String> jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
-      Collectors.toList()
-    );
+
+    List<String> jobIds = Collections.emptyList();
+    if (!titusRegion.getFeatureFlags().contains("jobIds")) {
+      jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
+        Collectors.toList()
+      );
+    }
+
     Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks = getTasks(jobIds, false);
     return grpcJobs.stream().map(grpcJob -> new Job(grpcJob, tasks.get(grpcJob.getId()))).collect(Collectors.toList());
   }
@@ -264,7 +266,12 @@ public class RegionScopedV3TitusClient implements TitusClient {
       }
       TaskQuery.Builder taskQueryBuilder = TaskQuery.newBuilder();
       taskQueryBuilder.setPage(taskPage);
-      taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+      if (!jobIds.isEmpty()) {
+        taskQueryBuilder.putFilteringCriteria("jobIds", jobIds.stream().collect(Collectors.joining(",")));
+      }
+      if (titusRegion.getFeatureFlags().contains("jobIds")) {
+        taskQueryBuilder.putFilteringCriteria("attributes", "source:spinnaker");
+      }
       String filterByStates = "Accepted,Launched,StartInitiated,Started";
       if (includeDoneJobs) {
         filterByStates = filterByStates + ",KillInitiated,Finished";
