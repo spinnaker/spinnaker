@@ -66,7 +66,7 @@ public class CreateBakeManifestTask implements RetryableTask {
   public TaskResult execute(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
 
-    List<ExpectedArtifactPair> expectedArtifacts = objectMapper.convertValue(context.get("expectedArtifacts"), new TypeReference<List<ExpectedArtifactPair>>() {});
+    List<ExpectedArtifactPair> expectedArtifacts = objectMapper.convertValue(context.get("inputArtifacts"), new TypeReference<List<ExpectedArtifactPair>>() {});
     List<Artifact> inputArtifacts;
 
     if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
@@ -75,11 +75,11 @@ public class CreateBakeManifestTask implements RetryableTask {
 
     inputArtifacts = expectedArtifacts.stream()
         .map(p -> {
-          Artifact a = artifactResolver.getBoundArtifactForId(stage, p.id);
+          Artifact a = artifactResolver.getBoundArtifactForId(stage, p.getId());
           if (a == null) {
-            throw new IllegalArgumentException(stage.getExecution().getId() + ": Expected artifact " + p.id + " could not be found in the execution");
+            throw new IllegalArgumentException(stage.getExecution().getId() + ": Expected artifact " + p.getId() + " could not be found in the execution");
           }
-          a.setArtifactAccount(p.account);
+          a.setArtifactAccount(p.getAccount());
           return a;
         }).collect(Collectors.toList());
 
