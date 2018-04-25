@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.v3client.RegionScopedV3TitusClient
+import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.transform.Immutable
 
 import java.util.concurrent.ConcurrentHashMap
@@ -40,17 +41,19 @@ class TitusClientProvider {
   private final Registry registry
   private final List<TitusJobCustomizer> titusJobCustomizers
   private final GrpcChannelFactory grpcChannelFactory;
+  private final RetrySupport retrySupport;
 
-  TitusClientProvider(Registry registry, List<TitusJobCustomizer> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory) {
+  TitusClientProvider(Registry registry, List<TitusJobCustomizer> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory, RetrySupport retrySupport) {
     this.registry = registry
     this.titusJobCustomizers = titusJobCustomizers == null ? Collections.emptyList() : Collections.unmodifiableList(titusJobCustomizers)
     this.grpcChannelFactory = grpcChannelFactory
+    this.retrySupport = retrySupport
   }
 
   TitusClient getTitusClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
-    return titusClients.computeIfAbsent(key, { k -> new RegionScopedV3TitusClient(k.region, registry, titusJobCustomizers, account.environment, account.eurekaName, grpcChannelFactory) })
+    return titusClients.computeIfAbsent(key, { k -> new RegionScopedV3TitusClient(k.region, registry, titusJobCustomizers, account.environment, account.eurekaName, grpcChannelFactory, retrySupport) })
   }
 
   TitusAutoscalingClient getTitusAutoscalingClient(NetflixTitusCredentials account, String region) {

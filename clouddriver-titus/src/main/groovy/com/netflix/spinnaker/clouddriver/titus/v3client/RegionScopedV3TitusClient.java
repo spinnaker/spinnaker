@@ -21,6 +21,7 @@ import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.titus.TitusException;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClientObjectMapper;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer;
@@ -29,7 +30,9 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.*;
 import com.netflix.spinnaker.clouddriver.titus.client.model.HealthStatus;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Task;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.titus.grpc.protogen.*;
+import io.grpc.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,9 +68,10 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   private final JobManagementServiceGrpc.JobManagementServiceBlockingStub grpcBlockingStub;
 
+  private final RetrySupport retrySupport;
 
-  public RegionScopedV3TitusClient(TitusRegion titusRegion, Registry registry, List<TitusJobCustomizer> titusJobCustomizers, String environment, String eurekaName, GrpcChannelFactory grpcChannelFactory) {
-    this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry, titusJobCustomizers, environment, eurekaName, grpcChannelFactory);
+  public RegionScopedV3TitusClient(TitusRegion titusRegion, Registry registry, List<TitusJobCustomizer> titusJobCustomizers, String environment, String eurekaName, GrpcChannelFactory grpcChannelFactory, RetrySupport retrySupport) {
+    this(titusRegion, DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT, TitusClientObjectMapper.configure(), registry, titusJobCustomizers, environment, eurekaName, grpcChannelFactory, retrySupport);
   }
 
   public RegionScopedV3TitusClient(TitusRegion titusRegion,
@@ -78,13 +82,15 @@ public class RegionScopedV3TitusClient implements TitusClient {
                                    List<TitusJobCustomizer> titusJobCustomizers,
                                    String environment,
                                    String eurekaName,
-                                   GrpcChannelFactory channelFactory
+                                   GrpcChannelFactory channelFactory,
+                                   RetrySupport retrySupport
   ) {
     this.titusRegion = titusRegion;
     this.registry = registry;
     this.titusJobCustomizers = titusJobCustomizers;
     this.environment = environment;
     this.objectMapper = objectMapper;
+    this.retrySupport = retrySupport;
 
     String titusHost = "";
     try {
@@ -202,9 +208,33 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public void terminateTasksAndShrink(TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob) {
-    terminateTasksAndShrinkJob.getTaskIds().forEach(id ->
-      grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
+    List<String> failedTasks = new ArrayList<>();
+    terminateTasksAndShrinkJob.getTaskIds().forEach(id -> {
+        try {
+          killTaskWithRetry(id, terminateTasksAndShrinkJob);
+        } catch (Exception e) {
+          failedTasks.add(id);
+          log.error("Failed to terminate and shrink titus task {} in account {} and region {}", id, titusRegion.getAccount(), titusRegion.getName(), e);
+        }
+      }
     );
+    if (!failedTasks.isEmpty()) {
+      throw new TitusException("Failed to terminate and shrink titus tasks: " + StringUtils.join(failedTasks, ","));
+    }
+  }
+
+  private void killTaskWithRetry(String id, TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob) {
+    try {
+      grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build());
+    } catch (io.grpc.StatusRuntimeException e){
+      if (e.getStatus() == Status.NOT_FOUND) {
+        log.warn("Titus task {} not found, continuing with terminate tasks and shrink job request.", id);
+      } else {
+        retrySupport.retry(() ->
+            grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
+        , 10, 2, false);
+      }
+    }
   }
 
   @Override

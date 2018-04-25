@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentia
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
 import com.netflix.spinnaker.clouddriver.titus.health.TitusHealthIndicator
 import com.netflix.spinnaker.clouddriver.titus.v3client.SimpleGrpcChannelFactory
+import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -70,8 +71,8 @@ class TitusConfiguration {
   }
 
   @Bean
-  TitusClientProvider titusClientProvider(Registry registry, Optional<List<TitusJobCustomizer>> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory) {
-    return new TitusClientProvider(registry, titusJobCustomizers.orElse(Collections.emptyList()), grpcChannelFactory)
+  TitusClientProvider titusClientProvider(Registry registry, Optional<List<TitusJobCustomizer>> titusJobCustomizers, GrpcChannelFactory grpcChannelFactory, RetrySupport retrySupport) {
+    return new TitusClientProvider(registry, titusJobCustomizers.orElse(Collections.emptyList()), grpcChannelFactory, retrySupport)
   }
 
   @Bean
