@@ -232,7 +232,7 @@ public class RegionScopedV3TitusClient implements TitusClient {
       } else {
         retrySupport.retry(() ->
             grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
-        , 10, 2, false);
+        , 2, 1000, false);
       }
     }
   }
