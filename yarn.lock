@@ -77,9 +77,9 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
 
-"@spinnaker/kayenta@0.0.44":
-  version "0.0.44"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.44.tgz#5b8eb139d6dacfd50adda5e916ca8fb691581e4b"
+"@spinnaker/kayenta@0.0.45":
+  version "0.0.45"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.45.tgz#f6444e06374b26c8692a9e2aca41427c55668529"
   dependencies:
     "@fortawesome/fontawesome-free-webfonts" "^1.0.4"
     "@types/plotly.js" "^1.28.12"
