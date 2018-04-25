@@ -38,6 +38,34 @@
                               help-field-key="pipeline.config.bake.manifest.expectedArtifact">
   </expected-artifact-selector>
 
+  <h4>Overrides</h4>
+  <div class="row form-group" ng-if="ctrl.hasValueArtifacts()" ng-repeat="artifact in ctrl.$scope.stage.inputArtifacts.slice(1)">
+    <div class="col-md-offset-1 col-md-9">
+      <expected-artifact-selector command="ctrl.$scope.stage"
+                                  id="artifact.id"
+                                  account="artifact.account"
+                                  accounts="ctrl.artifactAccounts"
+                                  expected-artifacts="ctrl.expectedArtifacts">
+      </expected-artifact-selector>
+    </div>
+    <div class="col-md-1">
+      <div class="form-control-static">
+        <a href ng-click="ctrl.removeInputArtifact($index + 1)">
+          <span class="glyphicon glyphicon-trash"></span>
+          <span class="sr-only">Remove field</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="row form-group">
+    <div class="col-md-offset-3 col-md-7">
+      <button class="btn btn-block btn-sm add-new" ng-click="ctrl.addInputArtifact()">
+        <span class="glyphicon glyphicon-plus-sign"></span>
+        Add value artifact
+      </button>
+    </div>
+  </div>
+
   <div class="form-group">
     <div class="col-md-3 sm-label-right">
       Overrides
