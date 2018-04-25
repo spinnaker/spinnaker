@@ -80,7 +80,12 @@ public enum ExecutionStatus {
   /**
    * The task was skipped and the pipeline will proceed to the next task.
    */
-    SKIPPED(true, false);
+    SKIPPED(true, false),
+
+  /**
+   * The task is not started and must be transitioned to NOT_STARTED.
+   */
+    BUFFERED(false, false);
 
   /**
    * Indicates that the task/stage/pipeline has finished its work (successfully or not).

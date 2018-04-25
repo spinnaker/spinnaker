@@ -65,6 +65,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT =
     new TypeReference<Map<String, Object>>() {
     };
+
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> previousRedisClientDelegate;
   private final ObjectMapper mapper = OrcaObjectMapper.newInstance();
@@ -501,6 +502,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
         format("No Orchestration found for correlation ID %s", correlationId)
       );
     });
+  }
+
+  @Override
+  public @Nonnull List<Execution> retrieveBufferedExecutions() {
+    // TODO rz - This is definitely not a healthy way to do this.
+    return Observable.concat(
+        retrieve(PIPELINE),
+        retrieve(ORCHESTRATION)
+      )
+      .filter(execution -> execution.getStatus() == ExecutionStatus.BUFFERED)
+      .toList()
+      .toBlocking().single();
   }
 
   protected Execution buildExecution(@Nonnull Execution execution, @Nonnull Map<String, String> map, List<String> stageIds) {

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -57,18 +59,21 @@ public class ExecutionLauncher {
   private final Clock clock;
   private final Optional<PipelineValidator> pipelineValidator;
   private final Optional<Registry> registry;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
   public ExecutionLauncher(ObjectMapper objectMapper,
                            ExecutionRepository executionRepository,
                            ExecutionRunner executionRunner,
                            Clock clock,
+                           ApplicationEventPublisher applicationEventPublisher,
                            Optional<PipelineValidator> pipelineValidator,
                            Optional<Registry> registry) {
     this.objectMapper = objectMapper;
     this.executionRepository = executionRepository;
     this.executionRunner = executionRunner;
     this.clock = clock;
+    this.applicationEventPublisher = applicationEventPublisher;
     this.pipelineValidator = pipelineValidator;
     this.registry = registry;
   }
@@ -222,6 +227,7 @@ public class ExecutionLauncher {
    * Persist the initial execution configuration.
    */
   private void persistExecution(Execution execution) {
+    applicationEventPublisher.publishEvent(new BeforeInitialExecutionPersist(this, execution));
     executionRepository.store(execution);
   }
 

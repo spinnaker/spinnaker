@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.events.BeforeInitialExecutionPersist
+import org.springframework.context.ApplicationEventPublisher
+
 import java.time.Clock
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -33,6 +36,7 @@ class ExecutionLauncherSpec extends Specification {
   def executionRunner = Mock(ExecutionRunner)
   def executionRepository = Mock(ExecutionRepository)
   def pipelineValidator = Stub(PipelineValidator)
+  def applicationEventPublisher = Mock(ApplicationEventPublisher)
 
   ExecutionLauncher create() {
     return new ExecutionLauncher(
@@ -40,6 +44,7 @@ class ExecutionLauncherSpec extends Specification {
       executionRepository,
       executionRunner,
       Clock.systemDefaultZone(),
+      applicationEventPublisher,
       Optional.of(pipelineValidator),
       Optional.<Registry> empty()
     )
@@ -103,6 +108,7 @@ class ExecutionLauncherSpec extends Specification {
     launcher.start(PIPELINE, json)
 
     then:
+    1 * applicationEventPublisher.publishEvent(_ as BeforeInitialExecutionPersist)
     1 * executionRunner.start(_)
 
     where:

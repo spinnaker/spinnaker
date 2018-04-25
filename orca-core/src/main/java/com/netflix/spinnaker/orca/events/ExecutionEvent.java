@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.events;
 
-import java.time.Instant;
-import javax.annotation.Nonnull;
 import org.springframework.context.ApplicationEvent;
+
+import javax.annotation.Nonnull;
+import java.time.Instant;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 
 /**

@@ -23,10 +23,7 @@ import rx.Observable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -79,6 +76,9 @@ public interface ExecutionRepository {
 
   @Nonnull Execution retrieveOrchestrationForCorrelationId(
     @Nonnull String correlationId) throws ExecutionNotFoundException;
+
+  @Nonnull
+  List<Execution> retrieveBufferedExecutions();
 
   final class ExecutionCriteria {
     public int getLimit() {
