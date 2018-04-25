@@ -1,5 +1,5 @@
 import { omit } from 'lodash';
-import { ReactInjector } from '@spinnaker/core';
+import { API } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryState } from 'kayenta/reducers';
@@ -13,7 +13,7 @@ import {
 } from 'kayenta/domain';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
-  return ReactInjector.API.one('v2/canaryConfig').one(id).get()
+  return API.one('v2/canaryConfig').one(id).get()
     .then((config: ICanaryConfig) => ({
       ...config,
       id,
@@ -21,28 +21,28 @@ export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
 }
 
 export function getCanaryConfigSummaries(...application: string[]): Promise<ICanaryConfigSummary[]> {
-  return ReactInjector.API.one('v2/canaryConfig').withParams({ application }).get();
+  return API.one('v2/canaryConfig').withParams({ application }).get();
 }
 
 export function updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
-  return ReactInjector.API.one('v2/canaryConfig').one(config.id).put(config);
+  return API.one('v2/canaryConfig').one(config.id).put(config);
 }
 
 export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
-  return ReactInjector.API.one('v2/canaryConfig').post(config);
+  return API.one('v2/canaryConfig').post(config);
 }
 
 export function deleteCanaryConfig(id: string): Promise<void> {
-  return ReactInjector.API.one('v2/canaryConfig').one(id).remove();
+  return API.one('v2/canaryConfig').one(id).remove();
 }
 
 export function listJudges(): Promise<IJudge[]> {
-  return ReactInjector.API.one('v2/canaries/judges').get()
+  return API.one('v2/canaries/judges').get()
     .then((judges: IJudge[]) => judges.filter(judge => judge.visible));
 }
 
 export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
-  return ReactInjector.API.one('v2/canaries/credentials').useCache().get();
+  return API.one('v2/canaries/credentials').useCache().get();
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config

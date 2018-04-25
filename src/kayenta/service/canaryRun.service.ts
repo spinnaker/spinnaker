@@ -1,10 +1,12 @@
 import { sortBy } from 'lodash';
-import { ReactInjector } from '@spinnaker/core';
+
+import { API } from '@spinnaker/core';
+
 import { CanarySettings } from 'kayenta/canary.settings';
 import { IMetricSetPair, ICanaryExecutionStatusResult } from 'kayenta/domain';
 
 export const getCanaryRun = (configId: string, canaryExecutionId: string): Promise<ICanaryExecutionStatusResult> =>
-  ReactInjector.API
+  API
     .one('v2/canaries/canary')
     .one(configId)
     .one(canaryExecutionId)
@@ -20,7 +22,7 @@ export const getCanaryRun = (configId: string, canaryExecutionId: string): Promi
     });
 
 export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): Promise<IMetricSetPair> =>
-  ReactInjector.API
+  API
     .one('v2/canaries/metricSetPairList')
     .one(metricSetPairListId)
     .withParams({ storageAccountName: CanarySettings.storageAccountName })
@@ -32,7 +34,7 @@ export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: s
     );
 
 export const listCanaryExecutions = (application: string, limit: number, statuses?: string, storageAccountName?: string): Promise<ICanaryExecutionStatusResult[]> =>
-  ReactInjector.API
+  API
     .one('v2/canaries')
     .one(application)
     .one('executions')
