@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.igor.tasks.StopJenkinsJobTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -42,6 +43,11 @@ public class JenkinsStage implements StageDefinitionBuilder, RestartableStage, C
 
     if (!stage.getContext().getOrDefault("waitForCompletion", "true").toString().equalsIgnoreCase("false")) {
       builder.withTask("monitor${getType().capitalize()}Job", MonitorJenkinsJobTask.class)
+    }
+
+    if (stage.context.containsKey("expectedArtifacts")) {
+      builder
+        .withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class)
     }
   }
 
