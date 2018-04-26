@@ -36,23 +36,30 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
   }
 
   public render() {
-    const { artifacts, resolvedExpectedArtifacts = [] } = this.props;
+    let { artifacts, resolvedExpectedArtifacts } = this.props;
 
-    const defaultArtifactRefs = new Set();
-    resolvedExpectedArtifacts.forEach(rea => {
+    artifacts = artifacts || [];
+    resolvedExpectedArtifacts = resolvedExpectedArtifacts || [];
+
+    const defaultArtifactRefs: Set<string> = resolvedExpectedArtifacts.reduce((set, rea) => {
       if (rea && rea.defaultArtifact && rea.defaultArtifact.reference) {
-        defaultArtifactRefs.add(rea.defaultArtifact.reference);
+        set.add(rea.defaultArtifact.reference);
       }
-    });
-    const decoratedArtifacts = artifacts && artifacts.filter(({ name, type }) => name && type);
+      return set;
+    }, new Set());
 
-    if (!decoratedArtifacts || decoratedArtifacts.length === 0) {
+    const decoratedArtifacts = artifacts.filter(({ name, type }) => name && type);
+    const decoratedExpectedArtifacts = resolvedExpectedArtifacts
+      .map(rea => rea.boundArtifact)
+      .filter(({ name, type }) => name && type);
+
+    if (decoratedArtifacts.length === 0 && decoratedExpectedArtifacts.length === 0) {
       return null;
     }
 
     return (
       <ul className="trigger-details artifacts">
-        {artifacts.map((artifact: IArtifact, i: number) => {
+        {decoratedExpectedArtifacts.map((artifact: IArtifact, i: number) => {
           const { name, version, type, reference } = artifact;
           const isDefault = defaultArtifactRefs.has(reference);
           return (
@@ -76,6 +83,11 @@ export class ArtifactList extends React.Component<IArtifactListProps, IArtifactL
             </li>
           );
         })}
+        {decoratedArtifacts.length > decoratedExpectedArtifacts.length && (
+          <li key="extraneous-artifacts">
+            {decoratedArtifacts.length - decoratedExpectedArtifacts.length} received artifacts were not consumed
+          </li>
+        )}
       </ul>
     );
   }

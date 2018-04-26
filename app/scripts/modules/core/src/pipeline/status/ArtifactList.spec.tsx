@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { mock } from 'angular';
 import { REACT_MODULE } from 'core/reactShims';
-import { IArtifact } from 'core/domain';
+import { IArtifact, IExpectedArtifact } from 'core/domain';
 import { ArtifactList, IArtifactListProps, IArtifactListState } from './ArtifactList';
 
 const ARTIFACT_TYPE = 'docker/image';
@@ -22,7 +22,8 @@ describe('<ArtifactList/>', () => {
 
   it('renders null when 0 artifacts are passed in', function() {
     const artifacts: IArtifact[] = [];
-    component = shallow(<ArtifactList artifacts={artifacts} />);
+    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    component = shallow(<ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />);
     expect(component.get(0)).toEqual(null);
   });
 
@@ -34,7 +35,8 @@ describe('<ArtifactList/>', () => {
         name: ARTIFACT_NAME,
       },
     ];
-    component = shallow(<ArtifactList artifacts={artifacts} />);
+    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    component = shallow(<ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />);
     expect(component.find('ul.trigger-details.artifacts').length).toEqual(1);
   });
 
@@ -46,7 +48,8 @@ describe('<ArtifactList/>', () => {
         name: ARTIFACT_NAME,
       },
     ];
-    component = shallow(<ArtifactList artifacts={artifacts} />);
+    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    component = shallow(<ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />);
     const li = component.find('li');
     const dt = li.find('dt');
     const dd = li.find('dd');
@@ -65,7 +68,10 @@ describe('<ArtifactList/>', () => {
         id: 'abcd',
       },
     ];
-    component = shallow(<ArtifactList artifacts={singleArtifact} />);
+    const resolvedExpectedArtifacts = singleArtifact.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    component = shallow(
+      <ArtifactList artifacts={singleArtifact} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />,
+    );
     expect(component.get(0)).toEqual(null);
 
     const artifacts: IArtifact[] = [
@@ -92,7 +98,8 @@ describe('<ArtifactList/>', () => {
         version,
       },
     ];
-    component = shallow(<ArtifactList artifacts={artifacts} />);
+    const resolvedExpectedArtifacts = artifacts.map(a => ({ boundArtifact: a } as IExpectedArtifact));
+    component = shallow(<ArtifactList artifacts={artifacts} resolvedExpectedArtifacts={resolvedExpectedArtifacts} />);
     const li = component.find('li');
     expect(li.find('dd').length).toEqual(3);
     expect(
@@ -101,5 +108,18 @@ describe('<ArtifactList/>', () => {
         .at(2)
         .text(),
     ).toEqual(version);
+  });
+
+  it('does not render artifacts for which there is no expected artifact in the pipeline', function() {
+    const artifacts: IArtifact[] = [
+      {
+        id: 'abcd',
+        type: ARTIFACT_TYPE,
+        name: ARTIFACT_NAME,
+      },
+    ];
+    component = shallow(<ArtifactList artifacts={artifacts} />);
+    const li = component.find('li');
+    expect(li.text()).toMatch(/1.*artifact.*not.*consumed/);
   });
 });
