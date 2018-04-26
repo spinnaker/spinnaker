@@ -288,6 +288,12 @@ public class Execution implements Serializable {
     return initialConfig;
   }
 
+  private final List<SystemNotification> systemNotifications = new ArrayList<>();
+
+  public @Nonnull List<SystemNotification> getSystemNotifications() {
+    return systemNotifications;
+  }
+
   @Nullable
   public Stage namedStage(String type) {
     return stages

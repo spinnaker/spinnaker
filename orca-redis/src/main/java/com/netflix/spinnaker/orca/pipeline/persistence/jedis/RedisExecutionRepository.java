@@ -65,6 +65,9 @@ public class RedisExecutionRepository implements ExecutionRepository {
   private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT =
     new TypeReference<Map<String, Object>>() {
     };
+  private static final TypeReference<List<SystemNotification>> LIST_OF_SYSTEM_NOTIFICATIONS =
+    new TypeReference<List<SystemNotification>>() {
+    };
 
   private final RedisClientDelegate redisClientDelegate;
   private final Optional<RedisClientDelegate> previousRedisClientDelegate;
@@ -543,6 +546,9 @@ public class RedisExecutionRepository implements ExecutionRepository {
       execution.setKeepWaitingPipelines(Boolean.parseBoolean(map.get("keepWaitingPipelines")));
       execution.setOrigin(map.get("origin"));
       execution.setTrigger(map.get("trigger") != null ? mapper.readValue(map.get("trigger"), Trigger.class) : NO_TRIGGER);
+      if (map.get("systemNotifications") != null) {
+        execution.getSystemNotifications().addAll(mapper.readValue(map.get("systemNotifications"), LIST_OF_SYSTEM_NOTIFICATIONS));
+      }
     } catch (Exception e) {
       registry.counter(serializationErrorId).increment();
       throw new ExecutionSerializationException(String.format("Failed serializing execution json, id: %s", execution.getId()), e);
@@ -663,6 +669,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
       map.put("keepWaitingPipelines", String.valueOf(execution.isKeepWaitingPipelines()));
       map.put("origin", execution.getOrigin());
       map.put("trigger", mapper.writeValueAsString(execution.getTrigger()));
+      map.put("systemNotifications", mapper.writeValueAsString(execution.getSystemNotifications()));
     } catch (JsonProcessingException e) {
       throw new ExecutionSerializationException("Failed serializing execution", e);
     }
