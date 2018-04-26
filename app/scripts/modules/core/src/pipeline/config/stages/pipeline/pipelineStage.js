@@ -15,6 +15,7 @@ module.exports = angular
       restartable: true,
       controller: 'pipelineStageCtrl',
       controllerAs: 'pipelineStageCtrl',
+      producesArtifacts: true,
       templateUrl: require('./pipelineStage.html'),
       executionDetailsUrl: require('./pipelineExecutionDetails.html'),
       defaultTimeoutMs: 12 * 60 * 60 * 1000, // 12 hours
