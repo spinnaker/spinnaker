@@ -16,6 +16,7 @@ module.exports = angular
       restartable: true,
       controller: 'JenkinsStageCtrl',
       controllerAs: 'jenkinsStageCtrl',
+      producesArtifacts: true,
       templateUrl: require('./jenkinsStage.html'),
       executionDetailsUrl: require('./jenkinsExecutionDetails.html'),
       executionLabelComponent: JenkinsExecutionLabel,
