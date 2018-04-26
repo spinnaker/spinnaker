@@ -309,7 +309,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         result = liveNamespaceSupplier.get();
 
       } catch (KubectlException e) {
-        throw new RuntimeException(e);
+        log.warn("Could not list namespaces for account {}: {}", accountName, e.getMessage());
+        return new ArrayList<>();
       }
     }
 
