@@ -46,16 +46,29 @@ public class LdapValidator extends Validator<Ldap> {
       p.addProblem(Problem.Severity.ERROR, "LDAP url must use ldap or ldaps protocol.");
     }
 
-    if(StringUtils.isEmpty(ldap.getUserDnPattern())) {
-      p.addProblem(Problem.Severity.ERROR, "LDAP User Dn Pattern must be provided.");
+    switch(UserSearchMethod.toUserSearchMethod(ldap)) {
+      case DN_PATTERN: // fall through.
+      case SEARCH_AND_FILTER:
+        break;
+      case UNSPECIFIED_OR_INVALID: // fall through.
+      default:
+        p.addProblem(Problem.Severity.ERROR, "No valid user search method defined. Please " +
+            "specify with either --user-dn-pattern OR (--user-search-base and --user-search-filter).");
     }
+  }
 
-    if(ldap.getUserSearchBase() != null && ldap.getUserSearchBase().equals("")) {
-      p.addProblem(Problem.Severity.ERROR, "No LDAP User search Base provided.");
-    }
+  enum UserSearchMethod {
+    UNSPECIFIED_OR_INVALID,
+    DN_PATTERN,
+    SEARCH_AND_FILTER;
 
-    if(ldap.getUserSearchFilter() != null && ldap.getUserSearchFilter().equals("")) {
-      p.addProblem(Problem.Severity.ERROR, "No LDAP User search filter provided.");
+    static UserSearchMethod toUserSearchMethod(Ldap ldap) {
+      if (StringUtils.isNotEmpty(ldap.getUserDnPattern())) {
+        return DN_PATTERN;
+      } else if (StringUtils.isNotEmpty(ldap.getUserSearchBase()) && StringUtils.isNotEmpty(ldap.getUserSearchFilter())) {
+        return SEARCH_AND_FILTER;
+      }
+      return UNSPECIFIED_OR_INVALID;
     }
   }
 }

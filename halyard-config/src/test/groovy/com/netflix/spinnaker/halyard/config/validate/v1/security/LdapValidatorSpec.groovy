@@ -32,11 +32,10 @@ class LdapValidatorSpec extends Specification {
     problemSet.empty
 
     where:
-    description               | enabled | ldapUrl                       | userDnPattern  | userSearchBase | userSearchFilter
-    "not enabled"             | false   | null                          | null           | null           | null
-    "minimal set"             | true    | "ldaps://ldap.some.com:123"   | "some pattern" | null           | null
-    "all properties set"      | true    | "ldaps://ldap.some.com:123"   | "some pattern" | "sub"          | "ou=foo"
-    "plain LDAP"              | true    | "ldap://ldap.some.com:123"    | "some pattern" | "sub"          | "ou=foo"
+    description         | enabled | ldapUrl                     | userDnPattern  | userSearchBase | userSearchFilter
+    "not enabled"       | false   | null                        | null           | null           | null
+    "user DN pattern"   | true    | "ldaps://ldap.some.com:123" | "some pattern" | null           | null
+    "search and filter" | true    | "ldap://ldap.some.com:123"  | null           | "sub"          | "ou=foo"
   }
 
   @Unroll
@@ -57,13 +56,11 @@ class LdapValidatorSpec extends Specification {
     problemSet.problems[0].message.toLowerCase().contains(errorMessageMatches)
 
     where:
-    description               | ldapUrl                     | userDnPattern  | userSearchBase | userSearchFilter || errorMessageMatches
-    "missing user dn pattern" | "ldaps://ldap.some.com:123" | null           | "sub"          | "ou=foo"         || "user dn pattern"
-    "missing ldap url"        | null                        | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
-    "invalid url"             | "not_a_real_url"            | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
-    "wrong url protocol"      | "https://ldap.some.com:123" | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
-    "missing port number"     | "ldaps://ldap.some.com"     | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
-    "search base empty"       | "ldaps://ldap.some.com:123" | "some pattern" | ""             | "ou=foo"         || "ldap user search base"
-    "search filter empty"     | "ldaps://ldap.some.com:123" | "some pattern" | "sub"          | ""               || "ldap user search filter"
+    description           | ldapUrl                     | userDnPattern  | userSearchBase | userSearchFilter || errorMessageMatches
+    "missing ldap url"    | null                        | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
+    "invalid url"         | "not_a_real_url"            | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
+    "wrong url protocol"  | "https://ldap.some.com:123" | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
+    "missing port number" | "ldaps://ldap.some.com"     | "some pattern" | "sub"          | "ou=foo"         || "ldap url"
+    "invalid user method" | "ldaps://ldap.some.com:123" | null           | null           | null             || "user search method"
   }
 }
