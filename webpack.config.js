@@ -35,16 +35,17 @@ function configure(env, webpackOpts) {
     devtool: IS_PRODUCTION ? 'source-map' : 'eval',
     optimization: {
       splitChunks: { chunks: 'all' },
-      minimizer: [],
-      // TODO(dpeach): figure out how we can minify deck-kayenta without breaking Angular DI.
-      // minimizer: IS_PRODUCTION ? [
-      //   new UglifyJSPlugin({
-      //     parallel: true,
-      //     cache: true,
-      //     test: /vendors/,
-      //     sourceMap: true,
-      //   }),
-      // ] : [], // Disable minification unless production
+      minimizer: IS_PRODUCTION
+        ? [
+            new UglifyJSPlugin({
+              parallel: true,
+              cache: true,
+              test: /vendors/,
+              sourceMap: true,
+              uglifyOptions: { mangle: false },
+            }),
+          ]
+        : [], // Disable minification unless production
     },
     resolve: {
       extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
