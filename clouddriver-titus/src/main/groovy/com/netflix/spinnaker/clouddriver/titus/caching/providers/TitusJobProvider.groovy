@@ -76,7 +76,7 @@ class TitusJobProvider implements JobProvider<TitusJobStatus> {
     def fileContents
 
     if (job.tasks.last().logLocation != null && job.tasks.last().logLocation.containsKey("s3")) {
-      HashMap s3 = job.tasks.last().logLocation.get("s3")
+      HashMap s3 = job.tasks.sort{it.startedAt}.last().logLocation.get("s3")
       OutputStream outputStream = new ByteArrayOutputStream()
       try {
         amazonS3DataProvider.getAdhocData("titus", "${s3.accountName}:${s3.region}:${s3.bucket}", "${s3.key}/${fileName}", outputStream)

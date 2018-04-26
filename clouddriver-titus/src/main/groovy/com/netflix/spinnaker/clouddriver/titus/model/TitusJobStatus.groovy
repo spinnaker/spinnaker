@@ -20,7 +20,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.JobState
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
-import com.netflix.spinnaker.clouddriver.titus.client.model.Job as TitusApiJob
+import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job.TaskSummary
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 
@@ -48,15 +48,15 @@ class TitusJobStatus implements com.netflix.spinnaker.clouddriver.model.JobStatu
 
   JobState jobState
 
-  TitusJobStatus(TitusApiJob job, String titusAccount, String titusRegion) {
+  TitusJobStatus(Job job, String titusAccount, String titusRegion) {
     account = titusAccount
     region = titusRegion
     id = job.id
     name = job.name
     createdTime = job.submittedAt ? job.submittedAt.time : null
     application = Names.parseName(job.name).app
-    TaskSummary task = job.tasks.last()
-    jobState = convertTaskStateToJobState(task)
+    TaskSummary task = job.tasks.sort { it.startedAt }.last()
+    jobState = convertTaskStateToJobState(job, task)
     completionDetails = convertCompletionDetails(task)
   }
 
@@ -68,19 +68,22 @@ class TitusJobStatus implements com.netflix.spinnaker.clouddriver.model.JobStatu
     ]
   }
 
-  JobState convertTaskStateToJobState(TaskSummary task) {
-    switch (task.state) {
-      case [TaskState.DEAD, TaskState.CRASHED, TaskState.FAILED, TaskState.STOPPED]:
-        JobState.Failed
-        break
-      case [TaskState.FINISHED]:
-        JobState.Succeeded
-        break
-      case [TaskState.STARTING, TaskState.QUEUED, TaskState.DISPATCHED]:
-        JobState.Starting
-        break
-      default:
-        JobState.Running
+  JobState convertTaskStateToJobState(Job job, TaskSummary task) {
+
+    if (job.getJobState() in ["Accepted", "KillInitiated"]) {
+      return JobState.Running
+    } else {
+      switch (task.state) {
+        case [TaskState.DEAD, TaskState.CRASHED, TaskState.FAILED, TaskState.STOPPED]:
+          JobState.Failed
+          break
+        case [TaskState.FINISHED]:
+          JobState.Succeeded
+          break
+        case [TaskState.STARTING, TaskState.QUEUED, TaskState.DISPATCHED]:
+          JobState.Starting
+          break
+      }
     }
   }
 

@@ -247,6 +247,7 @@ public class Job {
   private List<String> softConstraints;
   private Efs efs;
   private MigrationPolicy migrationPolicy;
+  private String jobState;
 
   public Job() {
   }
@@ -314,6 +315,8 @@ public class Job {
     softConstraints.addAll(grpcJob.getJobDescriptor().getContainer().getSoftConstraints().getConstraintsMap().keySet());
     hardConstraints = new ArrayList<String>();
     hardConstraints.addAll(grpcJob.getJobDescriptor().getContainer().getHardConstraints().getConstraintsMap().keySet());
+
+    jobState = grpcJob.getStatus().getState().toString();
 
     if (grpcJob.getJobDescriptor().getContainer().getResources().getEfsMountsCount() > 0) {
       efs = new Efs();
@@ -607,5 +610,7 @@ public class Job {
   public void setMigrationPolicy(MigrationPolicy migrationPolicy) {
     this.migrationPolicy = migrationPolicy;
   }
+
+  public String getJobState() { return jobState; }
 
 }
