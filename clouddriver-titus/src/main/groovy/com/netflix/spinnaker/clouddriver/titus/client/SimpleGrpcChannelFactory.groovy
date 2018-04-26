@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.titus.v3client
+package com.netflix.spinnaker.clouddriver.titus.client
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder

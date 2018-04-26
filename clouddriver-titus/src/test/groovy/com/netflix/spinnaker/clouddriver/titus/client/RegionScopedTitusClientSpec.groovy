@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.titus.v3client
+package com.netflix.spinnaker.clouddriver.titus.client
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
-import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,7 +24,7 @@ import spock.lang.Ignore
 import spock.lang.Specification
 
 @Ignore
-class RegionScopedV3TitusClientSpec extends Specification {
+class RegionScopedTitusClientSpec extends Specification {
 
   // this isn't really a unit test..
   void 'job creation lifecycle'() {
@@ -35,7 +33,7 @@ class RegionScopedV3TitusClientSpec extends Specification {
     TitusRegion titusRegion = new TitusRegion(
       "us-east-1", "test", "http://titusapi.mainvpc.us-east-1.dyntest.netflix.net:7001/", "blah", "blah", 7104, []
     );
-    TitusClient titusClient = new RegionScopedV3TitusClient(titusRegion, new NoopRegistry(), Collections.emptyList(), "test", "titusapigrpc-mcetest-mainvpc");
+    TitusClient titusClient = new RegionScopedTitusClient(titusRegion, new NoopRegistry(), Collections.emptyList(), "test", "titusapigrpc-mcetest-mainvpc");
 
     // ******************************************************************************************************************
 

@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
 import com.netflix.spinnaker.clouddriver.titus.health.TitusHealthIndicator
-import com.netflix.spinnaker.clouddriver.titus.v3client.SimpleGrpcChannelFactory
+import com.netflix.spinnaker.clouddriver.titus.client.SimpleGrpcChannelFactory
 import com.netflix.spinnaker.kork.core.RetrySupport
 import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
