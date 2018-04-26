@@ -50,6 +50,11 @@ dependencies {
     exclude group: 'org.springframework.security'
   }
 
+  // IAP
+  compile('com.nimbusds:nimbus-jose-jwt:5.2')
+
+  compileOnly spinnaker.dependency("lombok")
+
   testCompile "com.squareup.okhttp:mockwebserver:${spinnaker.version('okHttp')}"
   testCompile apachedsDependencies
   testCompile spinnaker.dependency("korkJedisTest")

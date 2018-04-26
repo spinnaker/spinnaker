@@ -126,5 +126,5 @@ interface Front50Service {
   List<Map> getSnapshotHistory(@Path("id") String id, @Query("limit") int limit)
 
   @GET('/serviceAccounts')
-  List<Map> getServiceAccounts()
+  List<ServiceAccount> getServiceAccounts()
 }
