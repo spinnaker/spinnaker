@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestIdInterceptor
 import com.netflix.spinnaker.gate.interceptors.RequestLoggingInterceptor
 import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider
@@ -82,6 +83,8 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
     if (rateLimiter != null) {
       registry.addInterceptor(new RateLimitingInterceptor(rateLimiter, spectatorRegistry, rateLimiterPrincipalProvider))
     }
+
+    registry.addInterceptor(new RequestContextInterceptor())
   }
 
   @Bean

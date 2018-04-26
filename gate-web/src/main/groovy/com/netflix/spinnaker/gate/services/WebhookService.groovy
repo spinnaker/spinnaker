@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.internal.EchoService
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -28,7 +29,7 @@ class WebhookService {
   EchoService echoService
 
   @Autowired
-  OrcaService orcaService
+  OrcaServiceSelector orcaServiceSelector
 
   void webhooks(String type, String source, Map event) {
     echoService.webhooks(type, source, event)
@@ -39,6 +40,6 @@ class WebhookService {
   }
 
   List preconfiguredWebhooks() {
-    return orcaService.preconfiguredWebhooks()
+    return orcaServiceSelector.withContext(RequestContext.get()).preconfiguredWebhooks()
   }
 }

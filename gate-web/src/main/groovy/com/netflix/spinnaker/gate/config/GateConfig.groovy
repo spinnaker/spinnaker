@@ -38,7 +38,11 @@ import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.netflix.spinnaker.gate.services.internal.KayentaService
 import com.netflix.spinnaker.gate.services.internal.MineService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.gate.services.internal.RoscoService
+import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
+import com.netflix.spinnaker.kork.web.selector.SelectableService
+import com.netflix.spinnaker.kork.web.selector.ServiceSelector
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -57,6 +61,7 @@ import org.springframework.security.web.context.AbstractSecurityWebApplicationIn
 import org.springframework.session.data.redis.config.ConfigureRedisAction
 import org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration
 import org.springframework.stereotype.Component
+import org.springframework.util.CollectionUtils
 import org.springframework.web.client.RestTemplate
 import redis.clients.jedis.JedisPool
 import retrofit.Endpoint
@@ -139,8 +144,8 @@ class GateConfig extends RedisHttpSessionConfiguration {
   ServiceConfiguration serviceConfiguration
 
   @Bean
-  OrcaService orcaService(OkHttpClient okHttpClient) {
-    createClient "orca", OrcaService, okHttpClient
+  OrcaServiceSelector orcaServiceSelector(OkHttpClient okHttpClient) {
+    return new OrcaServiceSelector(createClientSelector("orca", OrcaService, okHttpClient))
   }
 
   @Bean
@@ -222,15 +227,18 @@ class GateConfig extends RedisHttpSessionConfiguration {
       if (!service.getConfig().containsKey("dynamicEndpoints")) {
         throw new IllegalArgumentException("Unknown dynamicEndpoint ${dynamicName} for service ${serviceName} of type ${type}")
       }
-      endpoint = newFixedEndpoint(((Map<String, String>)service.getConfig().get("dynamicEndpoints")).get(dynamicName))
+      endpoint = newFixedEndpoint(((Map<String, String>) service.getConfig().get("dynamicEndpoints")).get(dynamicName))
     }
 
     def client = new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService)
+    buildService(client, type, endpoint)
+  }
 
+  private <T> T buildService(EurekaOkClient client, Class<T> type, Endpoint endpoint) {
     // New role providers break deserialization if this is not enabled.
     ObjectMapper objectMapper = new ObjectMapper()
-        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)
@@ -243,11 +251,38 @@ class GateConfig extends RedisHttpSessionConfiguration {
       .create(type)
   }
 
+  private <T> SelectableService createClientSelector(String serviceName, Class<T> type, OkHttpClient okHttpClient) {
+    Service service = serviceConfiguration.getService(serviceName)
+    if (CollectionUtils.isEmpty(service?.getBaseUrls())) {
+      throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}")
+    }
+
+    return new SelectableService(
+      service.getBaseUrls().collect {
+        def selector = new DefaultServiceSelector(
+          buildService(
+            new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService),
+            type,
+            newFixedEndpoint(it.baseUrl)),
+          it.priority,
+          it.config)
+
+        def selectorClass = it.config?.selectorClass as Class<ServiceSelector>
+        if (selectorClass) {
+          selector = selectorClass.getConstructors()[0].newInstance(
+            selector.service, it.priority, it.config
+          )
+        }
+        selector
+      } as List<ServiceSelector>
+    )
+  }
+
   @Bean
   OriginValidator gateOriginValidator(
-      @Value('${services.deck.baseUrl}') String deckBaseUrl,
-      @Value('${services.deck.redirectHostPattern:#{null}}') String redirectHostPattern,
-      @Value('${cors.allowedOriginsPattern:#{null}}') String allowedOriginsPattern) {
+    @Value('${services.deck.baseUrl}') String deckBaseUrl,
+    @Value('${services.deck.redirectHostPattern:#{null}}') String redirectHostPattern,
+    @Value('${cors.allowedOriginsPattern:#{null}}') String allowedOriginsPattern) {
     return new GateOriginValidator(deckBaseUrl, redirectHostPattern, allowedOriginsPattern)
   }
 
@@ -277,7 +312,8 @@ class GateConfig extends RedisHttpSessionConfiguration {
    * can be pulled and forwarded in the AuthenticatedRequestFilter.
    */
   @Bean
-  FilterRegistrationBean securityFilterChain(@Qualifier(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME) Filter securityFilter) {
+  FilterRegistrationBean securityFilterChain(
+    @Qualifier(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME) Filter securityFilter) {
     def frb = new FilterRegistrationBean(securityFilter)
     frb.order = 0
     frb.name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME

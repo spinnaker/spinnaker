@@ -17,9 +17,10 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -35,13 +36,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/pipelineConfigs")
 class PipelineConfigController {
-  private static final String HYSTRIX_GROUP = "pipelineConfigs";
+  private static final String HYSTRIX_GROUP = "pipelineConfigs"
 
   @Autowired
   Front50Service front50Service
 
   @Autowired
-  OrcaService orcaService
+  OrcaServiceSelector orcaServiceSelector
 
   @RequestMapping(method = RequestMethod.GET)
   Collection<Map> getAllPipelineConfigs() {
@@ -66,7 +67,7 @@ class PipelineConfigController {
     if (pipelineConfig == null) {
       throw new NotFoundException("Pipeline config '${pipelineConfigId}' could not be found")
     }
-    String template = orcaService.convertToPipelineTemplate(pipelineConfig).body.in().text
+    String template = orcaServiceSelector.withContext(RequestContext.get()).convertToPipelineTemplate(pipelineConfig).body.in().text
     return template
   }
 }

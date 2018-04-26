@@ -23,10 +23,35 @@ class Service {
   boolean enabled = true
   String vipAddress
   String baseUrl
-
+  MultiBaseUrl shards
+  int priority = 1
   Map<String, Object> config = [:]
 
   void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl
+  }
+
+  static class BaseUrl {
+    String vipAddress
+    String baseUrl
+    int priority = 1
+    Map<String, Object> config = [:]
+  }
+
+  static class MultiBaseUrl {
+    String baseUrl
+    List<BaseUrl> baseUrls
+  }
+
+  List<BaseUrl> getBaseUrls() {
+    if (shards?.baseUrl) {
+      return [
+        new BaseUrl(baseUrl: shards.baseUrl)
+      ]
+    } else if (shards?.baseUrls) {
+      return shards.baseUrls
+    }
+
+    return [new BaseUrl(baseUrl: baseUrl)]
   }
 }

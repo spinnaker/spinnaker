@@ -15,8 +15,9 @@
  */
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,16 +28,16 @@ import org.springframework.stereotype.Component
 @Slf4j
 class PipelineTemplateService {
 
-  private static final String GROUP = "pipelineTemplates";
+  private static final String GROUP = "pipelineTemplates"
 
-  private final Front50Service front50Service;
+  private final Front50Service front50Service
 
-  private final OrcaService orcaService;
+  private final OrcaServiceSelector orcaServiceSelector
 
   @Autowired
-  public PipelineTemplateService(Front50Service front50Service, OrcaService orcaService) {
+  public PipelineTemplateService(Front50Service front50Service, OrcaServiceSelector orcaServiceSelector) {
     this.front50Service = front50Service;
-    this.orcaService = orcaService;
+    this.orcaServiceSelector = orcaServiceSelector;
   }
 
   Map get(String id) {
@@ -48,6 +49,6 @@ class PipelineTemplateService {
   }
 
   Map resolve(String source, String executionId, String pipelineConfigId) {
-    orcaService.resolvePipelineTemplate(source, executionId, pipelineConfigId)
+    orcaServiceSelector.withContext(RequestContext.get()).resolvePipelineTemplate(source, executionId, pipelineConfigId)
   }
 }

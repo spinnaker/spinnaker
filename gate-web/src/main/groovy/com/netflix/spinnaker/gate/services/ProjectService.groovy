@@ -17,10 +17,11 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +37,7 @@ class ProjectService {
   Front50Service front50Service
 
   @Autowired
-  OrcaService orcaService
+  OrcaServiceSelector orcaServiceSelector
 
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
@@ -54,8 +55,9 @@ class ProjectService {
   }
 
   List<Map> getAllPipelines(String projectId, int limit, String statuses) {
+    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newListCommand(GROUP, "getAllPipelines") {
-      return orcaService.getPipelinesForProject(projectId, limit, statuses)
+      return orcaServiceSelector.withContext(requestContext).getPipelinesForProject(projectId, limit, statuses)
     } execute()
   }
 

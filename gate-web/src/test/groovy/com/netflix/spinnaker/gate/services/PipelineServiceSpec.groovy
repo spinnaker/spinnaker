@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -24,6 +25,7 @@ class PipelineServiceSpec extends Specification {
 
   void 'startPipeline should add notifications to existing notifications'() {
     given:
+    OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
     OrcaService orcaService = Mock(OrcaService)
     def service = new PipelineService(
       applicationService: Mock(ApplicationService) {
@@ -31,18 +33,20 @@ class PipelineServiceSpec extends Specification {
           notifications: [[type: 'email']]
         ]
       },
-      orcaService: orcaService
+      orcaServiceSelector: orcaServiceSelector
     )
     when:
     service.trigger('app', 'p-id', [notifications: [[type: 'sms']]])
 
     then:
+    1 * orcaServiceSelector.withContext(_) >> { orcaService }
     1 * orcaService.startPipeline({ p -> p.notifications.type == ['email', 'sms'] }, _)
   }
 
   @Unroll
   void 'startPipeline should set notifications to those on trigger'() {
     given:
+    OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
     OrcaService orcaService = Mock(OrcaService)
     def service = new PipelineService(
       applicationService: Mock(ApplicationService) {
@@ -50,12 +54,13 @@ class PipelineServiceSpec extends Specification {
           notifications: config
         ]
       },
-      orcaService: orcaService
+      orcaServiceSelector: orcaServiceSelector
     )
     when:
     service.trigger('app', 'p-id', [notifications: trigger])
 
     then:
+    1 * orcaServiceSelector.withContext(_) >> { orcaService }
     1 * orcaService.startPipeline({ p -> p.notifications == expected }, _)
 
     where:
@@ -75,6 +80,7 @@ class PipelineServiceSpec extends Specification {
   @Unroll
   void 'startPipeline should throw exceptions if required parameters are not supplied'() {
     given:
+    OrcaServiceSelector orcaServiceSelector = Mock(OrcaServiceSelector)
     OrcaService orcaService = Mock(OrcaService)
     def service = new PipelineService(
       applicationService: Mock(ApplicationService) {
@@ -82,9 +88,10 @@ class PipelineServiceSpec extends Specification {
           parameterConfig: [[name: 'param1', required: true]]
         ]
       },
-      orcaService: orcaService
+      orcaServiceSelector: orcaServiceSelector
     )
     when:
+    orcaServiceSelector.withContext(_) >> { orcaService }
     def didThrow = false
     try {
       service.trigger('app', 'p-id', trigger)

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
-import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,9 +29,6 @@ class SecurityGroupService {
 
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
-
-  @Autowired
-  OrcaService orcaService
 
   /**
    * Keyed by account

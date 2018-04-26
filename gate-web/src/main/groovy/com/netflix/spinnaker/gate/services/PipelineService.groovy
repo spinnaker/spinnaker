@@ -17,10 +17,12 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -40,10 +42,12 @@ class PipelineService {
   EchoService echoService
 
   @Autowired
-  OrcaService orcaService
+  OrcaServiceSelector orcaServiceSelector
 
   @Autowired
   ApplicationService applicationService
+
+  private final RetrySupport retrySupport = new RetrySupport()
 
   void deleteForApplication(String applicationName, String pipelineName) {
     front50Service.deletePipelineConfig(applicationName, pipelineName)
@@ -89,46 +93,68 @@ class PipelineService {
         }
       }
     }
-    orcaService.startPipeline(pipelineConfig, trigger.user?.toString())
+    orcaServiceSelector.withContext(RequestContext.get()).startPipeline(pipelineConfig, trigger.user?.toString())
   }
 
   Map startPipeline(Map pipelineConfig, String user) {
-    orcaService.startPipeline(pipelineConfig, user)
+    orcaServiceSelector.withContext(RequestContext.get()).startPipeline(pipelineConfig, user)
   }
 
   Map getPipeline(String id) {
-    orcaService.getPipeline(id)
+    orcaServiceSelector.withContext(RequestContext.get()).getPipeline(id)
   }
 
   List<Map> getPipelineLogs(String id) {
-    orcaService.getPipelineLogs(id)
+    orcaServiceSelector.withContext(RequestContext.get()).getPipelineLogs(id)
   }
 
   Map cancelPipeline(String id, String reason, boolean force) {
-    orcaService.cancelPipeline(id, reason, force, "")
+    setApplicationForExecution(id)
+    orcaServiceSelector.withContext(RequestContext.get()).cancelPipeline(id, reason, force, "")
   }
 
   Map pausePipeline(String id) {
-    orcaService.pausePipeline(id, "")
+    setApplicationForExecution(id)
+    orcaServiceSelector.withContext(RequestContext.get()).pausePipeline(id, "")
   }
 
   Map resumePipeline(String id) {
-    orcaService.resumePipeline(id, "")
+    setApplicationForExecution(id)
+    orcaServiceSelector.withContext(RequestContext.get()).resumePipeline(id, "")
   }
 
   Map deletePipeline(String id) {
-    orcaService.deletePipeline(id)
+    setApplicationForExecution(id)
+    orcaServiceSelector.withContext(RequestContext.get()).deletePipeline(id)
   }
 
   Map updatePipelineStage(String executionId, String stageId, Map context) {
-    orcaService.updatePipelineStage(executionId, stageId, context)
+    setApplicationForExecution(executionId)
+    orcaServiceSelector.withContext(RequestContext.get()).updatePipelineStage(executionId, stageId, context)
   }
 
   Map restartPipelineStage(String executionId, String stageId, Map context) {
-    orcaService.restartPipelineStage(executionId, stageId, context)
+    setApplicationForExecution(executionId)
+    orcaServiceSelector.withContext(RequestContext.get()).restartPipelineStage(executionId, stageId, context)
   }
 
   Map evaluateExpressionForExecution(String executionId, String pipelineExpression) {
-    orcaService.evaluateExpressionForExecution(executionId, pipelineExpression)
+    orcaServiceSelector.withContext(RequestContext.get()).evaluateExpressionForExecution(executionId, pipelineExpression)
+  }
+
+  /**
+   * Retrieve an orca execution by id to populate RequestContext application
+   *
+   * @param id
+   */
+  void setApplicationForExecution(String id) {
+    try {
+      Map execution = retrySupport.retry({ -> getPipeline(id)}, 5, 1000, false)
+      if (execution.containsKey("application")) {
+        RequestContext.setApplication(execution.get("application").toString())
+      }
+    } catch (Exception e) {
+      log.error("Error loading execution {} from orca", id, e)
+    }
   }
 }

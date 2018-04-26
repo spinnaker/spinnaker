@@ -16,48 +16,59 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
-import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
-import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @CompileStatic
 @Service
-@Log4j
+@Slf4j
 class TaskService {
   private static final String GROUP = "tasks"
 
   @Autowired
-  OrcaService orcaService
+  OrcaServiceSelector orcaServiceSelector
 
   @Autowired
   ClouddriverServiceSelector clouddriverServiceSelector
 
   Map create(Map body) {
-    orcaService.doOperation(body)
+    if (body.containsKey("application")) {
+      RequestContext.setApplication(body.get("application").toString())
+    }
+    orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
   }
 
   Map createAppTask(String app, Map body) {
     body.application = app
-    orcaService.doOperation(body)
+    RequestContext.setApplication(app)
+    orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
   }
 
   Map createAppTask(Map body) {
-    orcaService.doOperation(body)
+    if (body.containsKey("application")) {
+      RequestContext.setApplication(body.get("application").toString())
+    }
+    orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
   }
 
   Map getTask(String id) {
+    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "getTask") {
-      orcaService.getTask(id)
+      orcaServiceSelector.withContext(requestContext).getTask(id)
     } execute()
   }
 
   Map deleteTask(String id) {
+    setApplicationForTask(id)
+    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "deleteTask") {
-      orcaService.deleteTask(id)
+      orcaServiceSelector.withContext(requestContext)deleteTask(id)
     } execute()
   }
 
@@ -68,19 +79,27 @@ class TaskService {
   }
 
   Map cancelTask(String id) {
+    setApplicationForTask(id)
+    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "cancelTask") {
-      orcaService.cancelTask(id, "")
+      orcaServiceSelector.withContext(requestContext).cancelTask(id, "")
     } execute()
   }
 
   Map cancelTasks(List<String> taskIds) {
+    setApplicationForTask(taskIds.get(0))
+    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "cancelTasks") {
-      orcaService.cancelTasks(taskIds)
+      orcaServiceSelector.withContext(requestContext).cancelTasks(taskIds)
     } execute()
   }
 
   Map createAndWaitForCompletion(Map body, int maxPolls = 32, int intervalMs = 1000) {
     log.info("Creating and waiting for completion: ${body}")
+
+    if (body.containsKey("application")) {
+      RequestContext.setApplication(body.get("application").toString())
+    }
 
     Map createResult = create(body)
     if (!createResult.get("ref")) {
@@ -110,8 +129,26 @@ class TaskService {
    */
   @Deprecated
   Map cancelPipeline(String id, String reason) {
+    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "cancelPipeline") {
-      orcaService.cancelPipeline(id, reason, false, "")
+      orcaServiceSelector.withContext(requestContext).cancelPipeline(id, reason, false, "")
     } execute()
   }
+
+  /**
+   * Retrieve an orca task by id to populate RequestContext application
+   *
+   * @param id
+   */
+  void setApplicationForTask(String id) {
+    try {
+      Map task = getTask(id)
+      if (task.containsKey("application")) {
+        RequestContext.setApplication(task.get("application").toString())
+      }
+    } catch (Exception e) {
+      log.error("Error loading execution {} from orca", id, e)
+    }
+  }
+
 }

@@ -16,7 +16,9 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import java.util.List;
-import com.netflix.spinnaker.gate.services.internal.OrcaService;
+
+import com.netflix.spinnaker.gate.security.RequestContext;
+import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,18 +30,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ExecutionsController {
 
-  private OrcaService orcaService;
+  private OrcaServiceSelector orcaServiceSelector;
 
   @Autowired
-  public ExecutionsController(OrcaService orcaService) {
-    this.orcaService = orcaService;
+  public ExecutionsController(OrcaServiceSelector orcaServiceSelector) {
+    this.orcaServiceSelector = orcaServiceSelector;
   }
 
   @ApiOperation(value = "Retrieve a list of the most recent pipeline executions for the provided `pipelineConfigIds` that match the provided `statuses` query parameter")
   @RequestMapping(method = RequestMethod.GET)
   List getLatestExecutionsByConfigIds(@RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
-                                    @RequestParam(value = "limit", required = false) Integer limit,
-                                    @RequestParam(value = "statuses", required = false) String statuses) {
-    return orcaService.getLatestExecutionsByConfigIds(pipelineConfigIds, limit, statuses);
+                                      @RequestParam(value = "limit", required = false) Integer limit,
+                                      @RequestParam(value = "statuses", required = false) String statuses) {
+    return orcaServiceSelector.withContext(RequestContext.get()).getLatestExecutionsByConfigIds(pipelineConfigIds, limit, statuses);
   }
 }
