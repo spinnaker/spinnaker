@@ -131,6 +131,13 @@ abstract class CloudProviderBakeHandler {
   }
 
   /**
+   * Deletes the temporary file containing artifacts to bake into the image.  Currently only GCE
+   * supports baking artifacts, so this defaults to a no-op.
+   */
+  void deleteArtifactFile(String bakeId) {
+  }
+
+  /**
    * Finds the appropriate virtualization settings in this provider's configuration based on the region and
    * bake request parameters. Throws an IllegalArgumentException if the virtualization settings cannot be
    * found.

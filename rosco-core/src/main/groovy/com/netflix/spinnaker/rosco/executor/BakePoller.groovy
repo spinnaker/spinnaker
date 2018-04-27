@@ -209,6 +209,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
         if (cloudProviderBakeHandler) {
           String region = bakeStore.retrieveRegionById(bakeId)
+          cloudProviderBakeHandler.deleteArtifactFile(bakeId)
 
           if (region) {
             Bake bakeDetails = cloudProviderBakeHandler.scrapeCompletedBakeResults(region, bakeId, logsContent)

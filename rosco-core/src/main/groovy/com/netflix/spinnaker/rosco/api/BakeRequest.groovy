@@ -18,6 +18,7 @@ package com.netflix.spinnaker.rosco.api
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.rosco.providers.util.PackageUtil
 import com.netflix.spinnaker.rosco.providers.util.packagespecific.DebPackageUtil
 import com.netflix.spinnaker.rosco.providers.util.packagespecific.NupkgPackageUtil
@@ -39,8 +40,10 @@ class BakeRequest {
   @ApiModelProperty(value = "A generated UUID which will be used to identify the effective packer bake", readOnly = true)
   final String request_id = UUID.randomUUID().toString()
   String user
-  @ApiModelProperty("The package(s) to install") @JsonProperty("package") @SerializedName("package")
+  @ApiModelProperty("The package(s) to install, as a space-delimited string") @JsonProperty("package") @SerializedName("package")
   String package_name
+  @ApiModelProperty("The package(s) to install, as Spinnaker artifacts")
+  List<Artifact> package_artifacts
   @ApiModelProperty("The CI server")
   String build_host
   @ApiModelProperty("The CI job")

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackerArtifactService
 import com.netflix.spinnaker.rosco.providers.util.PackerManifest
 import com.netflix.spinnaker.rosco.providers.util.PackerManifestService
 import groovy.util.logging.Slf4j
@@ -37,6 +38,8 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   private static resolvedBakeryDefaults = null
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
+
+  PackerArtifactService packerArtifactService = new PackerArtifactService()
 
   PackerManifestService packerManifestService = new PackerManifestService()
 
@@ -143,9 +146,16 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       parameterMap.appversion = appVersionStr
     }
 
+    parameterMap.artifactFile = packerArtifactService.writeArtifactsToFile(bakeRequest.request_id, bakeRequest.package_artifacts)?.toString()
+
     parameterMap.manifestFile = packerManifestService.getManifestFileName(bakeRequest.request_id)
 
     return parameterMap
+  }
+
+  @Override
+  void deleteArtifactFile(String bakeId) {
+    packerArtifactService.deleteArtifactFile(bakeId)
   }
 
   @Override

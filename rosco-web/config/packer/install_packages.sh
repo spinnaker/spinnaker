@@ -88,6 +88,10 @@ function main() {
   elif [[ "$package_type" == "rpm" ]]; then
     provision_rpm
   fi
+
+  if [[ -e "/tmp/artifacts.json" ]]; then
+    rm /tmp/artifacts.json
+  fi
 }
 
 main
