@@ -230,6 +230,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
               return result;
             }
         )
+        .filter(Objects::nonNull)
         .collect(Collectors.toList()));
 
 
