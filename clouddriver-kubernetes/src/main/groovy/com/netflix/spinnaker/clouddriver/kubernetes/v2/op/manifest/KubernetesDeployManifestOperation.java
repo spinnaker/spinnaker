@@ -144,6 +144,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       KubernetesHandler deployer = properties.getHandler();
 
       Moniker moniker = description.getMoniker();
+      if (StringUtils.isEmpty(moniker.getCluster())) {
+        moniker.setCluster(manifest.getFullResourceName());
+      }
+
       Artifact artifact = converter.toArtifact(provider, manifest);
 
       getTask().updateStatus(OP_NAME, "Annotating manifest " + manifest.getFullResourceName() + " with artifact, relationships & moniker...");
