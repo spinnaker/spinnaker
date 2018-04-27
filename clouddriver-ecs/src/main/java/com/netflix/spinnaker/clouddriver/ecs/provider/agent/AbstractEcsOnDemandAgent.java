@@ -69,19 +69,11 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T> im
 
     AmazonECS ecs = amazonClientProvider.getAmazonEcs(account, region, false);
 
-    List<T> items = metricsSupport.readData(new Closure<List<T>>(this, this) {
-      public List<T> doCall() {
-        return getItems(ecs, providerCache);
-      }
-    });
+    List<T> items = metricsSupport.readData(() -> getItems(ecs, providerCache));
 
     storeOnDemand(providerCache, data);
 
-    CacheResult cacheResult = metricsSupport.transformData(new Closure<CacheResult>(this, this) {
-      public CacheResult doCall() {
-        return buildCacheResult(getAuthoritativeKeyName(), items, providerCache);
-      }
-    });
+    CacheResult cacheResult = metricsSupport.transformData(() -> buildCacheResult(getAuthoritativeKeyName(), items, providerCache));
 
     return new OnDemandResult(getAgentType(), cacheResult, null); // TODO(Bruno Carrier) - evictions should happen properly instead of having a null here
   }

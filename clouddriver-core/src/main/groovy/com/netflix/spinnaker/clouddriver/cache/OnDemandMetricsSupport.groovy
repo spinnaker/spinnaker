@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spectator.api.Timer
+import java.util.function.Supplier
 
 class OnDemandMetricsSupport {
   public static final String ON_DEMAND_TOTAL_TIME = "onDemand_total"
@@ -53,33 +54,33 @@ class OnDemandMetricsSupport {
     this.onDemandCount = registry.counter(ON_DEMAND_COUNT, tags)
   }
 
-  private <T> T record(Timer timer, Closure<T> closure) {
+  private <T> T record(Timer timer, Supplier<T> closure) {
     final long start = System.nanoTime()
     try {
-      return closure.call()
+      return closure.get()
     } finally {
       final long elapsed = System.nanoTime() - start
       timer.record(elapsed, TimeUnit.NANOSECONDS)
     }
   }
 
-  public <T> T readData(Closure<T> closure) {
+  public <T> T readData(Supplier<T> closure) {
     record(dataRead, closure)
   }
 
-  public <T> T transformData(Closure<T> closure) {
+  public <T> T transformData(Supplier<T> closure) {
     record(dataTransform, closure)
   }
 
-  public <T> T onDemandStore(Closure<T> closure) {
+  public <T> T onDemandStore(Supplier<T> closure) {
     record(onDemandStore, closure)
   }
 
-  public <T> T cacheWrite(Closure<T> closure) {
+  public <T> T cacheWrite(Supplier<T> closure) {
     record(cacheWrite, closure)
   }
 
-  public <T> T cacheEvict(Closure<T> closure) {
+  public <T> T cacheEvict(Supplier<T> closure) {
     record(cacheEvict, closure)
   }
 

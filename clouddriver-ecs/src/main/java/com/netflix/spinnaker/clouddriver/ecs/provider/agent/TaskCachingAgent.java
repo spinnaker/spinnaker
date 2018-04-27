@@ -30,7 +30,6 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-import groovy.lang.Closure;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,15 +127,14 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
 
   @Override
   void storeOnDemand(ProviderCache providerCache, Map<String, ?> data) {
-    metricsSupport.onDemandStore(new Closure<List<Task>>(this, this) {
-      public void doCall() {
+    metricsSupport.onDemandStore(() ->{
         String keyString = Keys.getServiceKey(accountName, region, (String) data.get("serverGroupName"));
         Map<String, Object> att = new HashMap<>();
         att.put("cacheTime", new Date());
         CacheData cacheData = new DefaultCacheData(keyString, att, Collections.emptyMap());
         providerCache.putCacheData(ON_DEMAND.toString(), cacheData);
-      }
-    });
+        return null;
+      });
   }
 
   @Override
