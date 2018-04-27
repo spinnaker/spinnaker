@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper.TargetGroupLookupResult
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
@@ -47,10 +48,12 @@ import com.netflix.titus.grpc.protogen.PutPolicyRequest
 import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
 import com.netflix.titus.grpc.protogen.ScalingPolicyResult
 import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
+import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
   @Autowired
@@ -64,6 +67,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
+
+  @Autowired
+  Front50Service front50Service
 
   private final Logger logger = LoggerFactory.getLogger(TitusDeployHandler)
 
@@ -247,8 +253,20 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         submitJobRequest.withSecurityGroups(securityGroups.asList())
       }
 
-      if (description.user) {
-        submitJobRequest.withUser(description.user)
+      Map front50Application
+
+      try {
+        front50Application = front50Service.getApplication(description.getApplication())
+      } catch( Exception e){
+        log.error('Failed to load front50 application attributes for {}', description.getApplication())
+      }
+
+      if (front50Application && front50Application['email']) {
+        submitJobRequest.withUser(front50Application['email'])
+      } else {
+        if (description.user) {
+          submitJobRequest.withUser(description.user)
+        }
       }
 
       if (description.jobType) {
