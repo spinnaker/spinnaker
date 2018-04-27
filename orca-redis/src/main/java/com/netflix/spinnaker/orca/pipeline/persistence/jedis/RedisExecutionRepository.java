@@ -277,6 +277,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   public void updateStatus(@Nonnull String id, @Nonnull ExecutionStatus status) {
     ImmutablePair<String, RedisClientDelegate> pair = fetchKey(id);
     RedisClientDelegate delegate = pair.getRight();
+    String key = pair.getLeft();
 
     delegate.withCommandsClient(c -> {
       Map<String, String> data = new HashMap<>();
@@ -284,10 +285,10 @@ public class RedisExecutionRepository implements ExecutionRepository {
       if (status == ExecutionStatus.RUNNING) {
         data.put("canceled", "false");
         data.put("startTime", String.valueOf(currentTimeMillis()));
-      } else if (status.isComplete()) {
+      } else if (status.isComplete() && c.hget(key, "startTime") != null) {
         data.put("endTime", String.valueOf(currentTimeMillis()));
       }
-      c.hmset(pair.getLeft(), data);
+      c.hmset(key, data);
     });
   }
 

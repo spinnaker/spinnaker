@@ -26,7 +26,6 @@ import rx.schedulers.Schedulers
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -255,10 +254,12 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
   def "updateStatus sets endTime to current time if new status is #status"() {
     given:
+    execution.startTime = System.currentTimeMillis()
     repository.store(execution)
 
     expect:
     with(repository.retrieve(execution.type, execution.id)) {
+      startTime != null
       endTime == null
     }
 
@@ -276,6 +277,30 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     pipeline { trigger = new PipelineTrigger(pipeline()) }   | CANCELED
     orchestration { trigger = new DefaultTrigger("manual") } | SUCCEEDED
     orchestration { trigger = new DefaultTrigger("manual") } | TERMINAL
+  }
+
+  def "updateStatus does not set endTime if a pipeline never started"() {
+    given:
+    repository.store(execution)
+
+    expect:
+    with(repository.retrieve(execution.type, execution.id)) {
+      startTime == null
+      endTime == null
+    }
+
+    when:
+    repository.updateStatus(execution.id, status)
+
+    then:
+    with(repository.retrieve(execution.type, execution.id)) {
+      status == status
+      endTime == null
+    }
+
+    where:
+    execution                                              | status
+    pipeline { trigger = new PipelineTrigger(pipeline()) } | CANCELED
   }
 
   def "cancelling a not-yet-started execution updates the status immediately"() {
