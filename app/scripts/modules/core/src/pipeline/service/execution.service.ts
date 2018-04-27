@@ -540,7 +540,7 @@ export class ExecutionService {
           if (transform && application) {
             data.forEach((execution: IExecution) => this.transformExecution(application, execution));
           }
-          return data.sort((a, b) => b.startTime - (a.startTime || Date.now()));
+          return data.sort((a, b) => (b.buildTime || 0) - (a.buildTime || 0));
         }
         return [];
       })
