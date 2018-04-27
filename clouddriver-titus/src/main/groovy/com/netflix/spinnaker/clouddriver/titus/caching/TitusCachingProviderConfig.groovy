@@ -61,7 +61,7 @@ class TitusCachingProviderConfig {
           titusCloudProvider,
           titusClientProvider,
           account,
-          region.name,
+          region,
           objectMapper,
           registry,
           awsLookupUtilProvider,

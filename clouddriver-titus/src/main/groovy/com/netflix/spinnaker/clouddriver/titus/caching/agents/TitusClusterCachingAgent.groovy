@@ -44,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient
+import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
@@ -79,6 +80,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
   private final TitusAutoscalingClient titusAutoscalingClient
   private final TitusLoadBalancerClient titusLoadBalancerClient
   private final NetflixTitusCredentials account
+  private final TitusRegion titusRegion
   private final String region
   private final ObjectMapper objectMapper
   private final OnDemandMetricsSupport metricsSupport
@@ -89,14 +91,15 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
   TitusClusterCachingAgent(TitusCloudProvider titusCloudProvider,
                            TitusClientProvider titusClientProvider,
                            NetflixTitusCredentials account,
-                           String region,
+                           TitusRegion titusRegion,
                            ObjectMapper objectMapper,
                            Registry registry,
                            Provider<AwsLookupUtil> awsLookupUtil,
                            pollIntervalMillis,
                            timeoutMillis) {
     this.account = account
-    this.region = region
+    this.titusRegion = titusRegion
+    this.region = titusRegion.name
 
     this.titusCloudProvider = titusCloudProvider
     this.objectMapper = objectMapper
@@ -151,6 +154,52 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       titusClient.findJobByName(data.serverGroupName as String)
     }
 
+    if (titusRegion.featureFlags.contains("minimalOnDemand")) {
+      return minimalOnDemand(providerCache, job)
+    }
+
+    return legacyOnDemand(providerCache, job, data)
+  }
+
+  /**
+   * Avoid writing cache results to both ON_DEMAND and SERVER_GROUPS, etc.
+   *
+   * By writing a minimal record to ON_DEMAND only, we eliminate significant overhead (redis and network) at the cost
+   * of an increase in time before a change becomes visible in the UI.
+   *
+   * A change will not be visible until a caching cycle has completed.
+   */
+  private OnDemandResult minimalOnDemand(ProviderCache providerCache, Job job) {
+    def serverGroupKey = Keys.getServerGroupKey(job.name, account.name, region)
+    def cacheResults = [:]
+
+    if (!job) {
+      providerCache.evictDeletedItems(ON_DEMAND.ns, [serverGroupKey])
+    } else {
+      def cacheData = metricsSupport.onDemandStore {
+        new DefaultCacheData(
+          serverGroupKey,
+          10 * 60, // ttl is 10 minutes,
+          [
+            cacheTime   : new Date(),
+            cacheResults: [:]
+          ],
+          [:]
+        )
+      }
+
+      cacheResults[ON_DEMAND.ns.toString()] = [cacheData]
+    }
+
+    Map<String, Collection<String>> evictions = job ? [:] : [(SERVER_GROUPS.ns): [serverGroupKey]]
+    return new OnDemandResult(
+      sourceAgentType: getOnDemandAgentType(),
+      cacheResult: new DefaultCacheResult(cacheResults),
+      evictions: evictions
+    )
+  }
+
+  private OnDemandResult legacyOnDemand(ProviderCache providerCache, Job job, Map<String, ?> data) {
     CacheResult result = metricsSupport.transformData { buildCacheResult([job]) }
     def cacheResultAsJson = objectMapper.writeValueAsString(result.cacheResults)
     def serverGroupKey = Keys.getServerGroupKey(job.name, account.name, region)
@@ -175,7 +224,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     Map<String, Collection<String>> evictions = job ? [:] : [(SERVER_GROUPS.ns): [serverGroupKey]]
 
     log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions}, cacheResult: ${cacheResultAsJson})")
-    new OnDemandAgent.OnDemandResult(
+    return new OnDemandResult(
       sourceAgentType: getOnDemandAgentType(),
       cacheResult: result,
       evictions: evictions
