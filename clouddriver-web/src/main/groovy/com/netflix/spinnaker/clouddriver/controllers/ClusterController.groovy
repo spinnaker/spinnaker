@@ -230,6 +230,7 @@ class ClusterController {
 
       return serverGroups
     }.flatten()
+    .findAll { it.createdTime != null }
     .sort { a, b -> b.createdTime <=> a.createdTime }
 
     def expandServerGroup = { ServerGroup serverGroup ->
