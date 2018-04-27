@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
+import com.netflix.spinnaker.halyard.core.FileModeUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -93,6 +94,9 @@ public class GitProfileReader implements ProfileReader {
 
     for (Path path : filePathsToAdd) {
       TarArchiveEntry tarEntry = new TarArchiveEntry(path.toFile(), profilePath.relativize(path).toString());
+      int permissions = FileModeUtils.getFileMode(Files.getPosixFilePermissions(path));
+      permissions = FileModeUtils.setFileBit(permissions);
+      tarEntry.setMode(permissions);
       tarArchive.putArchiveEntry(tarEntry);
       IOUtils.copy(Files.newInputStream(path), tarArchive);
       tarArchive.closeArchiveEntry();

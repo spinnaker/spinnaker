@@ -19,15 +19,17 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.core.FileModeUtils;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import org.apache.commons.compress.archivers.ArchiveEntry;
+import java.nio.file.attribute.PosixFilePermission;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +69,10 @@ public class RegistryBackedArchiveProfileBuilder {
     try {
       List<Profile> result = new ArrayList<>();
 
-      ArchiveEntry profileEntry = tis.getNextEntry();
+      TarArchiveEntry profileEntry = tis.getNextTarEntry();
       while (profileEntry != null) {
         if (profileEntry.isDirectory()) {
-          profileEntry = tis.getNextEntry();
+          profileEntry = tis.getNextTarEntry();
           continue;
         }
 
@@ -78,11 +80,13 @@ public class RegistryBackedArchiveProfileBuilder {
         String profileName = String.join("/", artifact.getName(), archiveName, entryName);
         String outputPath = Paths.get(baseOutputPath, archiveName, entryName).toString();
         String contents = IOUtils.toString(tis);
+        boolean executable = FileModeUtils.getPosixPermissions(profileEntry.getMode()).contains(PosixFilePermission.OWNER_EXECUTE);
 
         result.add((new ProfileFactory() {
           @Override
           protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
             profile.setContents(profile.getBaseContents());
+            profile.setExecutable(executable);
           }
 
           @Override
@@ -111,7 +115,7 @@ public class RegistryBackedArchiveProfileBuilder {
           }
         }).getProfile(profileName, outputPath, deploymentConfiguration, null));
 
-        profileEntry = tis.getNextEntry();
+        profileEntry = tis.getNextTarEntry();
       }
 
       return result;
