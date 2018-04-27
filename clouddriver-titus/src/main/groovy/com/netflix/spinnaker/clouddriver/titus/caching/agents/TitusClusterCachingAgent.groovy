@@ -155,7 +155,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     }
 
     if (titusRegion.featureFlags.contains("minimalOnDemand")) {
-      return minimalOnDemand(providerCache, job)
+      return minimalOnDemand(providerCache, job, data)
     }
 
     return legacyOnDemand(providerCache, job, data)
@@ -169,7 +169,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
    *
    * A change will not be visible until a caching cycle has completed.
    */
-  private OnDemandResult minimalOnDemand(ProviderCache providerCache, Job job) {
+  private OnDemandResult minimalOnDemand(ProviderCache providerCache, Job job, Map<String, ?> data) {
     def serverGroupKey = Keys.getServerGroupKey(job.name, account.name, region)
     def cacheResults = [:]
 
@@ -192,6 +192,8 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     }
 
     Map<String, Collection<String>> evictions = job ? [:] : [(SERVER_GROUPS.ns): [serverGroupKey]]
+
+    log.info("minimal onDemand cache refresh (data: ${data}, evictions: ${evictions})")
     return new OnDemandResult(
       sourceAgentType: getOnDemandAgentType(),
       cacheResult: new DefaultCacheResult(cacheResults),
@@ -223,7 +225,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
 
     Map<String, Collection<String>> evictions = job ? [:] : [(SERVER_GROUPS.ns): [serverGroupKey]]
 
-    log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions}, cacheResult: ${cacheResultAsJson})")
+    log.info("legacy onDemand cache refresh (data: ${data}, evictions: ${evictions}, cacheResult: ${cacheResultAsJson})")
     return new OnDemandResult(
       sourceAgentType: getOnDemandAgentType(),
       cacheResult: result,
