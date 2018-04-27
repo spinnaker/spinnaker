@@ -203,7 +203,7 @@ const helpContents: { [key: string]: string } = {
   'kubernetes.manifest.expectedArtifact':
     'The artifact that is to be applied to the Kubernetes account for this stage.  The artifact should represent a valid Kubernetes manifest.',
   'kubernetes.manifest.requiredArtifactsToBind':
-    'These artifacts must be present in the context for this stage to successfully complete. Artifacts specfied will be <a href="https://www.spinnaker.io/reference/artifacts/in-kubernetes-v2/#binding-artifacts-in-manifests">bound to the deployed manfiest.</a>',
+    'These artifacts must be present in the context for this stage to successfully complete. Artifacts specfied will be <a href="https://www.spinnaker.io/reference/artifacts/in-kubernetes-v2/#binding-artifacts-in-manifests" target="_blank">bound to the deployed manfiest.</a>',
   'kubernetes.manifest.undoRollout.revisionsBack': `
       <p>How many revisions to rollback from the current active revision. This is not a hard-coded revision to rollout.</p>
       <p>For example: If you specify "1", and this stage executes, the prior revision will be active upon success.</p>
