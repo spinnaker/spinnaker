@@ -102,9 +102,10 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
     String runningVersion = versionsService.getRunningHalyardVersion();
     boolean halyardSnapshotRelease = runningVersion.endsWith("SNAPSHOT");
 
-    if (isReleased && !localGit) {
+    if (isReleased) {
       String minimumHalyardVersion = releasedVersion.get().getMinimumHalyardVersion();
-      if (!halyardSnapshotRelease
+      if (!localGit
+          && !halyardSnapshotRelease
           && !StringUtils.isEmpty(minimumHalyardVersion)
           && Versions.lessThan(runningVersion, minimumHalyardVersion)) {
         p.addProblem(Problem.Severity.ERROR, "Halyard version \"" + runningVersion + "\" is less than Halyard version \"" + minimumHalyardVersion + "\" required for Spinnaker \"" + version + "\"");
