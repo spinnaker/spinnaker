@@ -32,7 +32,7 @@ module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [PIPELINE_CONFIG_PROVIDER, KUBERNETES_M
           executionConfigSections: ['deployStatus', 'taskStatus'],
           producesArtifacts: true,
           defaultTimeoutMs: 30 * 60 * 1000, // 30 minutes
-          validators: [{ type: 'requiredField', fieldName: 'moniker.cluster', fieldLabel: 'Cluster' }],
+          validators: [],
         });
 
         artifactReferenceServiceProvider.registerReference('stage', () => [

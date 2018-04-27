@@ -48,10 +48,6 @@ export class KubernetesManifestCommandBuilder {
       return false;
     }
 
-    if (!command.moniker.cluster) {
-      return false;
-    }
-
     return true;
   }
 
