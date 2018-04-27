@@ -57,8 +57,8 @@ public class ArtifactReplacerFactory {
 
   public static Replacer secretVolumeReplacer() {
     return Replacer.builder()
-        .replacePath("$.spec.template.spec.volumes.[?( @.secret.name == \"{%name%}\" )].secret.name")
-        .findPath("$.spec.template.spec.volumes.*.secret.name")
+        .replacePath("$.spec.template.spec.volumes.[?( @.secret.secretName == \"{%name%}\" )].secret.secretName")
+        .findPath("$.spec.template.spec.volumes.*.secret.secretName")
         .type(ArtifactTypes.KUBERNETES_SECRET)
         .build();
   }
