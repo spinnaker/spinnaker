@@ -10,6 +10,8 @@ dependencies {
     compile spinnaker.dependency('spectatorJvm')
     compile spinnaker.dependency('spectatorWebSpring')
 
-    testCompile spinnaker.dependency('junit')
+
+    testCompile spinnaker.dependency('groovy')
+    spinnaker.group('spockBase')
     testRuntime spinnaker.dependency('slf4jSimple')
 }

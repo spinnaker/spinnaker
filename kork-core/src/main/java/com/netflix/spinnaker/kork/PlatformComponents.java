@@ -19,12 +19,18 @@ package com.netflix.spinnaker.kork;
 import com.netflix.spinnaker.kork.archaius.ArchaiusConfiguration;
 import com.netflix.spinnaker.kork.aws.AwsComponents;
 import com.netflix.spinnaker.kork.eureka.EurekaComponents;
+import com.netflix.spinnaker.kork.transientconfig.TransientConfigConfiguration;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ArchaiusConfiguration.class, EurekaComponents.class, SpectatorConfiguration.class, AwsComponents.class})
+@Import({
+  ArchaiusConfiguration.class,
+  TransientConfigConfiguration.class,
+  EurekaComponents.class,
+  SpectatorConfiguration.class,
+  AwsComponents.class
+})
 public class PlatformComponents {
 }
