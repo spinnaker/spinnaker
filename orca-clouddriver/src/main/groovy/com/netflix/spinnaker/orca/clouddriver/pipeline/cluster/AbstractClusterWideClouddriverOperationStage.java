@@ -51,7 +51,7 @@ public abstract class AbstractClusterWideClouddriverOperationStage implements St
     builder
       .withTask("determineHealthProviders", DetermineHealthProvidersTask.class)
       .withTask(opName, operationTask)
-      .withTask("monitor${name}", MonitorKatoTask.class)
+      .withTask("monitor" + name, MonitorKatoTask.class)
       .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class)
       .withTask(waitName, waitTask)
       .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class);
