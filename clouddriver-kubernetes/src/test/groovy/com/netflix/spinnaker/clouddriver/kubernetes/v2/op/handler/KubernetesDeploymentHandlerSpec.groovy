@@ -32,6 +32,7 @@ class KubernetesDeploymentHandlerSpec extends Specification {
   def IMAGE = "gcr.io/project/image"
   def CONFIG_MAP_VOLUME = "my-config-map"
   def SECRET_ENV = "my-secret-env"
+  def CONFIG_MAP_ENV_KEY = "my-config-map-env"
 
   def BASIC_DEPLOYMENT = """
 apiVersion: apps/v1beta2
@@ -58,6 +59,12 @@ spec:
         envFrom:
         - secretRef:
             name: $SECRET_ENV
+        env:
+        - name: KEY
+          valueFrom:
+            configMapKeyRef:
+              name: $CONFIG_MAP_ENV_KEY
+              key: value
       volumes:
       - configMap:
           name: $CONFIG_MAP_VOLUME
@@ -183,5 +190,43 @@ spec:
 
     then:
     result.findAll { a -> a.getReference() == SECRET_ENV && a.getType() == ArtifactTypes.KUBERNETES_SECRET.toString()}.size() == 1
+  }
+
+  void "check that only configmap value ref is replaced by the artifact replacer"() {
+    when:
+    def target = "$CONFIG_MAP_ENV_KEY-version-1.2.3"
+    def artifact = Artifact.builder()
+        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP.toString())
+        .name(CONFIG_MAP_ENV_KEY)
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+
+    then:
+    result.manifest.spec.template.spec.containers[0].env[0].valueFrom.configMapKeyRef.name == target
+  }
+
+  void "check that configmap value ref is not replaced by the artifact replacer"() {
+    when:
+    def target = "$CONFIG_MAP_ENV_KEY:version-bad"
+    def artifact = Artifact.builder()
+        .type(ArtifactTypes.KUBERNETES_CONFIG_MAP.toString())
+        .name("not-$CONFIG_MAP_ENV_KEY")
+        .reference(target)
+        .build()
+
+    def result = handler.replaceArtifacts(stringToManifest(BASIC_DEPLOYMENT), [artifact])
+
+    then:
+    result.manifest.spec.template.spec.containers[0].env[0].valueFrom.configMapKeyRef.name == CONFIG_MAP_ENV_KEY
+  }
+
+  void "check that configmap value ref is found"() {
+    when:
+    def result = handler.listArtifacts(stringToManifest(BASIC_DEPLOYMENT))
+
+    then:
+    result.findAll { a -> a.getReference() == CONFIG_MAP_ENV_KEY && a.getType() == ArtifactTypes.KUBERNETES_CONFIG_MAP.toString()}.size() == 1
   }
 }

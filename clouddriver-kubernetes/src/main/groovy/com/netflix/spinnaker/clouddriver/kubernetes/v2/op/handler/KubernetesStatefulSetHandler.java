@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
-import io.kubernetes.client.models.V1beta2RollingUpdateStatefulSetStrategy;
 import io.kubernetes.client.models.V1beta2StatefulSet;
 import io.kubernetes.client.models.V1beta2StatefulSetStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +59,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler implements
     registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
     registerReplacer(ArtifactReplacerFactory.configMapEnvFromReplacer());
     registerReplacer(ArtifactReplacerFactory.secretEnvFromReplacer());
+    registerReplacer(ArtifactReplacerFactory.configMapKeyValueFromReplacer());
+    registerReplacer(ArtifactReplacerFactory.secretKeyValueFromReplacer());
   }
 
   @Override
