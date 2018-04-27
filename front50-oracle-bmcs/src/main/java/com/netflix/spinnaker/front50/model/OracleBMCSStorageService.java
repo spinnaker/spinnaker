@@ -124,7 +124,7 @@ public class OracleBMCSStorageService implements StorageService {
       return obj;
     } catch (UniformInterfaceException e) {
       if (e.getResponse().getStatus() == 404) {
-        return null;
+        throw new NotFoundException("Object not found (key: " + objectKey + ")");
       }
       throw e;
     }
