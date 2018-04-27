@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.q.Attribute
 import com.netflix.spinnaker.q.Message
@@ -165,7 +166,7 @@ data class ContinueParentStage(
   /**
    * The phase that just completed, either before or after stages.
    */
-  val phase: SyntheticStageOwner
+  val phase: SyntheticStageOwner = STAGE_BEFORE
 ) : Message(), StageLevel {
   constructor(source: StageLevel, phase: SyntheticStageOwner) :
     this(source.executionType, source.executionId, source.application, source.stageId, phase)
