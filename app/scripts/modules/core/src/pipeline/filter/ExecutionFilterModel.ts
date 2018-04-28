@@ -15,6 +15,8 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'status', type: 'trueKeyObject', clearValue: {} },
 ];
 
+const GLOBAL_CACHE_KEY = '#global';
+
 export interface IExecutionFilterModel extends IFilterModel {
   groups: IExecutionGroup[];
 }
@@ -129,22 +131,32 @@ export class ExecutionFilterModel {
     this.showStageDuration = viewState.showStageDuration;
   }
 
-  private getCachedViewState(): { count: number; groupBy: string; showDurations: boolean; showStageDuration: boolean } {
-    const key = this.mostRecentApplication || '#global';
-    const cached = this.configViewStateCache.get(key) || {},
-      defaults = { count: 2, groupBy: 'name', showDurations: false };
+  private getCachedViewState(key?: string): { count: number; groupBy: string; showStageDuration: boolean } {
+    key = key || this.mostRecentApplication || GLOBAL_CACHE_KEY;
+    const cachedApp = this.configViewStateCache.get(key) || {};
+    const cachedGlobal = this.configViewStateCache.get(GLOBAL_CACHE_KEY) || {};
+    const defaults = { count: 2, groupBy: 'name', showDurations: false };
     this.configViewStateCache.touch(key); // prevents cache from expiring just because it hasn't been changed
-    return extend(defaults, cached);
+    return extend(defaults, cachedApp, { showStageDuration: cachedGlobal.showDurations });
   }
 
   private cacheConfigViewState(): void {
-    // don't cache if viewing only a subset of pipelines
+    const appCacheData = this.getCachedViewState();
+    appCacheData.showStageDuration = this.showStageDuration;
+
+    // don't cache count or groupBy if viewing only a subset of pipelines
     if (!Object.keys(this.asFilterModel.sortFilter.pipeline).length) {
-      this.configViewStateCache.put(this.mostRecentApplication || '#global', {
-        count: this.groupCount,
-        groupBy: this.groupBy,
-        showStageDuration: this.showStageDuration,
-      });
+      appCacheData.count = this.groupCount;
+      appCacheData.groupBy = this.groupBy;
+    }
+    const appCacheKey = this.mostRecentApplication || GLOBAL_CACHE_KEY;
+    this.configViewStateCache.put(appCacheKey, appCacheData);
+
+    // Always cache showDurations globally
+    if (appCacheKey !== GLOBAL_CACHE_KEY) {
+      const globalCacheData = this.getCachedViewState(GLOBAL_CACHE_KEY);
+      globalCacheData.showDurations = this.showStageDuration;
+      this.configViewStateCache.put(GLOBAL_CACHE_KEY, globalCacheData);
     }
   }
 
