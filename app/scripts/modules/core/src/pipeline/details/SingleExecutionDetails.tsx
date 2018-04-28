@@ -113,7 +113,7 @@ export class SingleExecutionDetails extends React.Component<
     // TODO: Since we treat sortFilter like a store, we can force the setState for now
     //       but we should eventually convert all the sortFilters to be a valid redux
     //       (or similar) store.
-    this.state.sortFilter.showStageDuration = checked;
+    this.state.sortFilter.showDurations = checked;
     this.setState({ sortFilter: this.state.sortFilter });
     ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
   }
@@ -153,7 +153,7 @@ export class SingleExecutionDetails extends React.Component<
                     <label>
                       <input
                         type="checkbox"
-                        checked={sortFilter.showStageDuration || false}
+                        checked={sortFilter.showDurations || false}
                         onChange={this.showDurationsChanged}
                       />
                       <span> stage durations</span>
@@ -186,7 +186,7 @@ export class SingleExecutionDetails extends React.Component<
                 execution={execution}
                 application={app}
                 standalone={true}
-                showStageDuration={sortFilter.showStageDuration}
+                showDurations={sortFilter.showDurations}
               />
             </div>
           </div>

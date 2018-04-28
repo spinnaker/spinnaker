@@ -26,7 +26,7 @@ export class ExecutionFilterModel {
 
   private groupCount: number;
   private groupBy: string;
-  private showStageDuration: boolean;
+  private showDurations: boolean;
 
   public asFilterModel: IExecutionFilterModel;
   public mostRecentApplication: string;
@@ -113,10 +113,10 @@ export class ExecutionFilterModel {
       },
     });
 
-    Object.defineProperty(this.asFilterModel.sortFilter, 'showStageDuration', {
-      get: () => this.showStageDuration,
+    Object.defineProperty(this.asFilterModel.sortFilter, 'showDurations', {
+      get: () => this.showDurations,
       set: newVal => {
-        this.showStageDuration = newVal;
+        this.showDurations = newVal;
         this.cacheConfigViewState();
       },
     });
@@ -128,21 +128,21 @@ export class ExecutionFilterModel {
     const viewState = this.getCachedViewState();
     this.groupCount = viewState.count;
     this.groupBy = viewState.groupBy;
-    this.showStageDuration = viewState.showStageDuration;
+    this.showDurations = viewState.showDurations;
   }
 
-  private getCachedViewState(key?: string): { count: number; groupBy: string; showStageDuration: boolean } {
+  private getCachedViewState(key?: string): { count: number; groupBy: string; showDurations: boolean } {
     key = key || this.mostRecentApplication || GLOBAL_CACHE_KEY;
     const cachedApp = this.configViewStateCache.get(key) || {};
     const cachedGlobal = this.configViewStateCache.get(GLOBAL_CACHE_KEY) || {};
     const defaults = { count: 2, groupBy: 'name', showDurations: false };
     this.configViewStateCache.touch(key); // prevents cache from expiring just because it hasn't been changed
-    return extend(defaults, cachedApp, { showStageDuration: cachedGlobal.showDurations });
+    return extend(defaults, cachedApp, { showDurations: cachedGlobal.showDurations });
   }
 
   private cacheConfigViewState(): void {
     const appCacheData = this.getCachedViewState();
-    appCacheData.showStageDuration = this.showStageDuration;
+    appCacheData.showDurations = this.showDurations;
 
     // don't cache count or groupBy if viewing only a subset of pipelines
     if (!Object.keys(this.asFilterModel.sortFilter.pipeline).length) {
@@ -155,7 +155,7 @@ export class ExecutionFilterModel {
     // Always cache showDurations globally
     if (appCacheKey !== GLOBAL_CACHE_KEY) {
       const globalCacheData = this.getCachedViewState(GLOBAL_CACHE_KEY);
-      globalCacheData.showDurations = this.showStageDuration;
+      globalCacheData.showDurations = this.showDurations;
       this.configViewStateCache.put(GLOBAL_CACHE_KEY, globalCacheData);
     }
   }

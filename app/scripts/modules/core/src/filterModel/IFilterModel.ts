@@ -40,7 +40,7 @@ export interface ISortFilter {
   showInstances: boolean;
   showLoadBalancers: boolean;
   showServerGroups: boolean;
-  showStageDuration: boolean;
+  showDurations: boolean;
   stack: { [key: string]: boolean };
   status: { [key: string]: boolean };
 }

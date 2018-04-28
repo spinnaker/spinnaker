@@ -298,7 +298,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     // TODO: Since we treat sortFilter like a store, we can force the setState for now
     //       but we should eventually convert all the sortFilters to be a valid redux
     //       (or similar) store.
-    this.state.sortFilter.showStageDuration = checked;
+    this.state.sortFilter.showDurations = checked;
     this.setState({ sortFilter: this.state.sortFilter });
     ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
   }
@@ -344,7 +344,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
             </div>
             <div
               className={`full-content ${filtersExpanded ? 'filters-expanded' : ''} ${
-                sortFilter.showStageDuration ? 'show-durations' : ''
+                sortFilter.showDurations ? 'show-durations' : ''
               }`}
               data-scroll-id="nav-content"
             >
@@ -429,7 +429,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
                       <label>
                         <input
                           type="checkbox"
-                          checked={sortFilter.showStageDuration}
+                          checked={sortFilter.showDurations}
                           onChange={this.showDurationsChanged}
                         />{' '}
                         stage durations

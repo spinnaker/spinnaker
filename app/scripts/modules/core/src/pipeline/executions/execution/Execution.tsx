@@ -29,7 +29,7 @@ import './execution.less';
 export interface IExecutionProps {
   application: Application;
   execution: IExecution;
-  showStageDuration?: boolean;
+  showDurations?: boolean;
   standalone?: boolean;
   title?: string | JSX.Element;
   dataSourceKey?: string;
@@ -243,7 +243,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public render() {
-    const { application, execution, showAccountLabels, showStageDuration, standalone, title } = this.props;
+    const { application, execution, showAccountLabels, showDurations, standalone, title } = this.props;
     const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
 
     const { CopyToClipboard } = NgReact;
@@ -270,7 +270,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       execution: true,
       'show-details': showingDetails,
       'details-hidden': !showingDetails,
-      'show-durations': showStageDuration,
+      'show-durations': showDurations,
     });
 
     return (
