@@ -26,6 +26,12 @@
   <div ng-if="ctrl.state.noVariables && !ctrl.state.error" class="alert alert-info">
     <p>This template has no variables to configure.</p>
   </div>
+  <div ng-if="!ctrl.state.error" class="alert alert-info">
+    <strong>Inherit the following configuration from the template</strong>
+    <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateExpectedArtifacts"> Expected Artifacts</p>
+    <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateTriggers"> Triggers</p>
+    <p><input type="checkbox" ng-model="ctrl.state.inheritTemplateParameters"> Parameters</p>
+  </div>
   <div class="modal-footer" ng-if="!ctrl.state.loading">
     <button ng-if="!ctrl.isNew && !ctrl.state.noVariables" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
     <button ng-if="ctrl.state.noVariables" class="btn btn-default" ng-click="ctrl.submit()">Dismiss</button>

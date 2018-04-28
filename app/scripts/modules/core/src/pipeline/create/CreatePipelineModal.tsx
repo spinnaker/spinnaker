@@ -36,6 +36,9 @@ export interface ICreatePipelineModalState {
   loadingTemplateFromSource: boolean;
   loadingTemplateFromSourceError: boolean;
   templateSourceUrl: string;
+  inheritTemplateParameters: boolean;
+  inheritTemplateExpectedArtifacts: boolean;
+  inheritTemplateTriggers: boolean;
 }
 
 export interface ICreatePipelineCommand {
@@ -103,6 +106,9 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       loadingTemplateFromSource: false,
       loadingTemplateFromSourceError: false,
       templateSourceUrl: '',
+      inheritTemplateParameters: true,
+      inheritTemplateExpectedArtifacts: true,
+      inheritTemplateTriggers: true,
     };
   }
 
