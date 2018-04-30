@@ -203,5 +203,13 @@
         <dd ng-repeat-end>{{val}}</dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Container Attributes">
+      <div ng-if="!serverGroup.containerAttributes">No container attributes associated with this
+        server group</div>
+      <dl ng-if="serverGroup.containerAttributes">
+        <dt ng-repeat-start="(key, val) in serverGroup.containerAttributes">{{key}}</dt>
+        <dd ng-repeat-end>{{val}}</dd>
+      </dl>
+    </collapsible-section>
   </div>
 </div>
