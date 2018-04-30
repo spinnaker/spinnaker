@@ -31,7 +31,7 @@ class NotificationController {
   Collection<NotificationService> notificationServices
 
   @RequestMapping(method = RequestMethod.POST)
-  void create(@RequestBody Notification notification) {
+  EchoResponse create(@RequestBody Notification notification) {
     notificationServices?.find { it.supportsType(notification.notificationType) }?.handle(notification)
   }
 }

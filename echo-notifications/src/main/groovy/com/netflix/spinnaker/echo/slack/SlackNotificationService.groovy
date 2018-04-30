@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.slack
 
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,7 +48,7 @@ class SlackNotificationService implements NotificationService {
   }
 
   @Override
-  void handle(Notification notification) {
+  EchoResponse.Void handle(Notification notification) {
     def text = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       String address = it.startsWith('#') ? it : "#${it}"
@@ -57,5 +58,7 @@ class SlackNotificationService implements NotificationService {
         slack.sendMessage(token, new SlackAttachment("Spinnaker Notification", text), address, true)
       }
     }
+
+    new EchoResponse.Void()
   }
 }

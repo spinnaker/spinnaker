@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,36 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.echo.api
+package com.netflix.spinnaker.echo.controller;
 
-class Notification {
-  Type notificationType
-  Collection<String> to
-  Collection<String> cc
-  String templateGroup
-  Severity severity
-
-  Source source
-  Map<String, Object> additionalContext = [:]
-
-  static class Source {
-    String executionType
-    String executionId
-    String application
-    String user
+public class EchoResponse<T extends EchoResponse.EchoResult> {
+  private T value;
+  public EchoResponse(T value) {
+    this.value = value;
   }
 
-  static enum Type {
-    HIPCHAT,
-    EMAIL,
-    SMS,
-    SLACK,
-    PAGER_DUTY,
-    JIRA,
+  public T getValue() {
+    return value;
   }
 
-  static enum Severity {
-    NORMAL,
-    HIGH
+  public void setValue(T value) {
+    this.value = value;
+  }
+
+  public interface EchoResult {}
+  public static class Void extends EchoResponse {
+    public Void() {
+      super(null);
+    }
   }
 }

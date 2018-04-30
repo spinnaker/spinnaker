@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.pagerduty
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.services.Front50Service
 import groovy.transform.InheritConstructors
@@ -59,7 +60,7 @@ class PagerDutyNotificationService implements NotificationService {
   }
 
   @Override
-  void handle(Notification notification) {
+  EchoResponse.Void handle(Notification notification) {
     def errors = [:]
     def pdErrors = [:]
 
@@ -124,6 +125,8 @@ class PagerDutyNotificationService implements NotificationService {
         throw new PagerDutyException("There were issues with the request sent to PagerDuty: ${message}")
       }
     }
+
+    new EchoResponse.Void()
   }
 }
 

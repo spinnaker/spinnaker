@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.echo.email
 
+import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
@@ -53,13 +54,14 @@ class EmailNotificationService implements NotificationService {
   }
 
   @Override
-  void handle(Notification notification) {
+  EchoResponse.Void handle(Notification notification) {
     def to = notification.to as String[]
     def cc = notification.cc as String[]
     def subject = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT)
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
 
     send(to, cc, subject, body)
+    new EchoResponse.Void()
   }
 
   void send(String[] to, String[] cc, String subject, String text) {

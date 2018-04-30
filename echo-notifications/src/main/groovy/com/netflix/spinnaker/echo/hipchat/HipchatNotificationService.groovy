@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.hipchat
 
+import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
@@ -44,7 +45,7 @@ class HipchatNotificationService implements NotificationService {
   }
 
   @Override
-  void handle(Notification notification) {
+  EchoResponse.Void handle(Notification notification) {
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
     notification.to.each {
       hipchat.sendMessage(token, it, new HipchatMessage(
@@ -52,5 +53,7 @@ class HipchatNotificationService implements NotificationService {
           notify: notification.severity == Notification.Severity.HIGH
       ))
     }
+
+    new EchoResponse.Void()
   }
 }

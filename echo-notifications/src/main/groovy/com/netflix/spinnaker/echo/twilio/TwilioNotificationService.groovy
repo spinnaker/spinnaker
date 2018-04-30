@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.twilio
 
+import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
@@ -47,7 +48,7 @@ class TwilioNotificationService implements NotificationService {
   }
 
   @Override
-  void handle(Notification notification) {
+  EchoResponse.Void handle(Notification notification) {
     def body = notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY)
 
     notification.to.each {
@@ -58,5 +59,7 @@ class TwilioNotificationService implements NotificationService {
           body
       )
     }
+
+    new EchoResponse.Void()
   }
 }

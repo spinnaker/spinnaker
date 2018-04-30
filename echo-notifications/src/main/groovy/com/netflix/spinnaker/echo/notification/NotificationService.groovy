@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.controller.EchoResponse
 
 interface NotificationService {
   boolean supportsType(Notification.Type type)
-  void handle(Notification notification)
+  EchoResponse handle(Notification notification)
 }
