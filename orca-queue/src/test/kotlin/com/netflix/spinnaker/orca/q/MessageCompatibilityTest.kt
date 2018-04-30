@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.q
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.q.Message
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.Spek
@@ -48,10 +46,6 @@ internal object MessageCompatibilityTest : Spek({
         it("doesn't blow up") {
           assertThat(message).isInstanceOf(ContinueParentStage::class.java)
         }
-
-        it("defaults the missing field") {
-          assertThat((message as ContinueParentStage).phase).isEqualTo(STAGE_BEFORE)
-        }
       }
     }
 
@@ -63,10 +57,6 @@ internal object MessageCompatibilityTest : Spek({
 
         it("doesn't blow up") {
           assertThat(message).isInstanceOf(ContinueParentStage::class.java)
-        }
-
-        it("deserializes the new field") {
-          assertThat((message as ContinueParentStage).phase).isEqualTo(STAGE_AFTER)
         }
       }
     }

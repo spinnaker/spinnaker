@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.ext.parent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -70,13 +71,16 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
   fun Stage.startNext() {
     execution.let { execution ->
       val downstreamStages = downstreamStages()
-      val phase = syntheticStageOwner
       if (downstreamStages.isNotEmpty()) {
         downstreamStages.forEach {
           queue.push(StartStage(it))
         }
-      } else if (phase != null) {
-        queue.push(ContinueParentStage(parent(), phase))
+      } else if (syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE) {
+        queue.push(ContinueParentStage(parent()))
+      } else if (syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER) {
+        parent().let { parent ->
+          queue.push(CompleteStage(parent))
+        }
       } else {
         queue.push(CompleteExecution(execution))
       }

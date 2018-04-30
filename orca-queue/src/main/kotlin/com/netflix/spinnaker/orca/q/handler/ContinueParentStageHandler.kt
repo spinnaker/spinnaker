@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import com.netflix.spinnaker.orca.ext.*
+import com.netflix.spinnaker.orca.ext.allBeforeStagesComplete
+import com.netflix.spinnaker.orca.ext.anyBeforeStagesFailed
+import com.netflix.spinnaker.orca.ext.firstAfterStages
+import com.netflix.spinnaker.orca.ext.hasTasks
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CompleteStage
 import com.netflix.spinnaker.orca.q.ContinueParentStage
+import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.StartTask
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.Logger
@@ -43,23 +46,14 @@ class ContinueParentStageHandler(
 
   override fun handle(message: ContinueParentStage) {
     message.withStage { stage ->
-      if (message.phase == STAGE_BEFORE) {
-        if (stage.allBeforeStagesComplete()) {
-          when {
-            stage.hasTasks() -> stage.runFirstTask()
-            else             -> queue.push(CompleteStage(stage))
-          }
-        } else if (!stage.anyBeforeStagesFailed()) {
-          log.warn("Re-queuing $message as other ${message.phase} stages are still running")
-          queue.push(message, retryDelay)
+      if (stage.allBeforeStagesComplete()) {
+        when {
+          stage.hasTasks() -> stage.runFirstTask()
+          else -> queue.push(CompleteStage(stage))
         }
-      } else {
-        if (stage.allAfterStagesComplete()) {
-          queue.push(CompleteStage(stage))
-        } else if (!stage.anyAfterStagesFailed()) {
-          log.warn("Re-queuing $message as other ${message.phase} stages are still running")
-          queue.push(message, retryDelay)
-        }
+      } else if (!stage.anyBeforeStagesFailed()) {
+        log.warn("Re-queuing $message as other BEFORE stages are still running")
+        queue.push(message, retryDelay)
       }
     }
   }
@@ -69,7 +63,18 @@ class ContinueParentStageHandler(
     if (firstTask.status == NOT_STARTED) {
       queue.push(StartTask(this, firstTask))
     } else {
-      log.warn("Ignoring $messageType for $id as tasks are already running")
+      log.warn("Ignoring $messageType for ${id} as tasks are already running")
+    }
+  }
+
+  private fun Stage.runAfterStages() {
+    val afterStages = firstAfterStages()
+    if (afterStages.all { it.status == NOT_STARTED }) {
+      afterStages.forEach {
+        queue.push(StartStage(it))
+      }
+    } else {
+      log.warn("Ignoring $messageType for ${id} as AFTER stages are already running")
     }
   }
 

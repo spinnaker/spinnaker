@@ -888,8 +888,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
 
             it("signals the parent stage to run") {
               verify(queue).push(ContinueParentStage(
-                pipeline.stageByRef("1"),
-                STAGE_BEFORE
+                pipeline.stageByRef("1")
               ))
             }
           }
@@ -954,12 +953,8 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
               subject.handle(message)
             }
 
-            it("tells the parent stage to continue") {
-              verify(queue)
-                .push(ContinueParentStage(
-                  pipeline.stageById(message.stageId).parent!!,
-                  STAGE_AFTER
-                ))
+            it("signals the completion of the parent stage") {
+              verify(queue).push(CompleteStage(pipeline.stages.first()))
             }
           }
         }
@@ -1036,8 +1031,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("signals the parent stage to try to run") {
-          verify(queue)
-            .push(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE))
+          verify(queue).push(ContinueParentStage(pipeline.stageByRef("1")))
         }
       }
 
@@ -1073,8 +1067,7 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
         }
 
         it("signals the parent stage to try to run") {
-          verify(queue)
-            .push(ContinueParentStage(pipeline.stageByRef("1"), STAGE_BEFORE))
+          verify(queue).push(ContinueParentStage(pipeline.stageByRef("1")))
         }
       }
     }
