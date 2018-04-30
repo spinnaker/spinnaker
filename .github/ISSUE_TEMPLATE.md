@@ -21,7 +21,7 @@
 
 ---
 
-**_Please delete these instructions below this line prior to submitting_**
+**_Please delete the instructions below this line prior to submitting_**
 
 Instructions:
 
