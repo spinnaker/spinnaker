@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest;
 import io.kubernetes.client.models.V1Event;
 import io.kubernetes.client.models.V1ObjectReference;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Component;
 
@@ -76,15 +77,28 @@ public class KubernetesEventHandler extends KubernetesHandler {
   public void addRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources, Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
     relationshipMap.putAll(allResources.getOrDefault(EVENT, new ArrayList<>())
         .stream()
-        .map(m -> ImmutablePair.of(m, KubernetesCacheDataConverter.getResource(m, V1Event.class)))
-        .collect(Collectors.toMap(ImmutablePair::getLeft, p -> Collections.singletonList(involvedManifest(p.getRight())))));
+        .map(m -> ImmutablePair.of(m, involvedManifest(KubernetesCacheDataConverter.getResource(m, V1Event.class))))
+        .filter(p -> p.getRight() != null)
+        .collect(Collectors.toMap(ImmutablePair::getLeft, p -> Collections.singletonList(p.getRight()))));
   }
 
   private KubernetesManifest involvedManifest(V1Event event) {
+    if (event == null) {
+      return null;
+    }
+
     V1ObjectReference ref = event.getInvolvedObject();
+
+    if (ref == null
+        || StringUtils.isEmpty(ref.getApiVersion())
+        || StringUtils.isEmpty(ref.getKind())
+        || StringUtils.isEmpty(ref.getNamespace())
+        || StringUtils.isEmpty(ref.getName())) {
+      return null;
+    }
+
     KubernetesManifest result = new KubernetesManifest();
     result.put("metadata", new HashMap<String, Object>());
-
     result.setApiVersion(KubernetesApiVersion.fromString(ref.getApiVersion()));
     result.setKind(KubernetesKind.fromString(ref.getKind()));
     result.setNamespace(ref.getNamespace());
