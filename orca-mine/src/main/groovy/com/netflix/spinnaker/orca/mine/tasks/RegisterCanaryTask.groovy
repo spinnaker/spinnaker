@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 import retrofit.client.Response
 import static java.util.concurrent.TimeUnit.HOURS
 import static java.util.concurrent.TimeUnit.MINUTES
@@ -45,14 +46,32 @@ class RegisterCanaryTask implements Task {
 
     Map c = buildCanary(app, deployStage)
 
-    log.info("Registering Canary (executionId: ${stage.execution.id}, canary: ${c})")
-    Response response = mineService.registerCanary(c)
-    String canaryId
-    if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
-      canaryId = response.body.in().text
-    } else {
-      throw new IllegalStateException("Unable to handle $response")
+    log.info("Registering Canary (executionId: ${stage.execution.id}, stageId: ${stage.id}, canary: ${c})")
+
+    String canaryId = null
+
+    try {
+      Response response = mineService.registerCanary(c)
+      if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
+        canaryId = response.body.in().text
+      }
+    } catch (RetrofitError re) {
+      def response = [:]
+      try {
+        response = re.getBodyAs(Map) as Map
+      } catch (Exception e) {
+        response.error = e.message
+      }
+
+      response.status = re.response?.status
+      response.errorKind = re.kind
+
+      throw new IllegalStateException(
+        "Unable to register canary (executionId: ${stage.execution.id}, stageId: ${stage.id} canary: ${c}), response: ${response}"
+      )
     }
+
+    log.info("Registered Canary (executionId: ${stage.execution.id}, stageId: ${stage.id}, canaryId: ${canaryId})")
 
     def canary = mineService.getCanary(canaryId)
     def outputs = [

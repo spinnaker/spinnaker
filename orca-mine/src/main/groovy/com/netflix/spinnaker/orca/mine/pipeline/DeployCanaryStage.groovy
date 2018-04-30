@@ -210,9 +210,17 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
         deployedClusterPairs << resultPair
       }
 
-      Logger log = LoggerFactory.getLogger(DeployCanaryStage)
-      log.info("Completed Canary Deploys")
       Map canary = stage.context.canary
+
+      Logger log = LoggerFactory.getLogger(DeployCanaryStage)
+      log.info(
+        "Completed Canary Deploys (executionId: {}, stageId: {}, canary: {}, canaryDeployments: {}",
+        stage.execution.id,
+        stage.id,
+        canary,
+        deployedClusterPairs
+      )
+
       canary.canaryDeployments = deployedClusterPairs
       new TaskResult(ExecutionStatus.SUCCEEDED, [canary: canary, deployedClusterPairs: deployedClusterPairs])
     }
