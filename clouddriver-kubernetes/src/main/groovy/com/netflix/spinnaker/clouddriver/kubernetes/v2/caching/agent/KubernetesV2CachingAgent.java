@@ -115,7 +115,14 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
         .stream()
         .flatMap(Collection::stream)
         .peek(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m))
-        .map(rs -> KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs)))
+        .map(rs -> {
+          try {
+            return KubernetesCacheDataConverter.convertAsResource(accountName, rs, relationships.get(rs));
+          } catch (Exception e) {
+            log.warn("Failure converting {} as resource", rs, e);
+            return null;
+          }
+        })
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
 
@@ -141,7 +148,13 @@ public abstract class KubernetesV2CachingAgent extends KubernetesCachingAgent<Ku
 
   protected Map<KubernetesManifest, List<KubernetesManifest>> loadSecondaryResourceRelationships(Map<KubernetesKind, List<KubernetesManifest>> allResources) {
     Map<KubernetesManifest, List<KubernetesManifest>> result = new HashMap<>();
-    allResources.keySet().forEach(k -> RegistryUtils.addRelationships(propertyRegistry, accountName, k, allResources, result));
+    allResources.keySet().forEach(k -> {
+      try {
+        RegistryUtils.addRelationships(propertyRegistry, accountName, k, allResources, result);
+      } catch (Exception e) {
+        log.warn("Failure adding relationships for {}", k, e);
+      }
+    });
     return result;
   }
 }
