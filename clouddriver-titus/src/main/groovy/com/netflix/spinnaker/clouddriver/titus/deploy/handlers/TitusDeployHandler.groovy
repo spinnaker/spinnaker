@@ -146,7 +146,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
 
         if (description.env.isEmpty()) {
-          sourceJob.env.each { k, v -> description.labels.put(k, v) }
+          sourceJob.environment.each { k, v -> description.env.put(k, v) }
         }
 
         if (description.containerAttributes.isEmpty()) {
