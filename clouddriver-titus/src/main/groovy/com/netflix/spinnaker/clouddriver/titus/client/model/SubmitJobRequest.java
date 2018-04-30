@@ -82,6 +82,7 @@ public class SubmitJobRequest {
   private boolean allocateIpAddress;
   private List<Constraint> constraints = new ArrayList<>();
   private Map<String, String> labels = new HashMap<String, String>();
+  private Map<String, String> containerAttributes = new HashMap<String, String>();
   private List<String> securityGroups = null;
   private MigrationPolicy migrationPolicy = null;
 
@@ -215,9 +216,13 @@ public class SubmitJobRequest {
     return this;
   }
 
-
   public SubmitJobRequest withLabels(Map labels) {
     this.labels = labels;
+    return this;
+  }
+
+  public SubmitJobRequest withContainerAttributes(Map containerAttributes) {
+    this.containerAttributes = containerAttributes;
     return this;
   }
 
@@ -359,6 +364,10 @@ public class SubmitJobRequest {
 
   public Map<String, String> getLabels() {
     return labels;
+  }
+
+  public Map<String, String> getContainerAttributes() {
+    return containerAttributes;
   }
 
   public JobDescription getJobDescription() {

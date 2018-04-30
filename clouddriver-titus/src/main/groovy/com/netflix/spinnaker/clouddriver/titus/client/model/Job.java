@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
-import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup;
 import com.netflix.titus.grpc.protogen.*;
 
 import java.util.*;
@@ -233,6 +232,7 @@ public class Job {
   private int networkMbps;
   private int[] ports;
   private Map<String, String> environment;
+  private Map<String, String> containerAttributes;
   private int retries;
   private int runtimeLimitSecs;
   private boolean allocateIpAddress;
@@ -284,6 +284,7 @@ public class Job {
     }
 
     labels = grpcJob.getJobDescriptor().getAttributesMap();
+    containerAttributes = grpcJob.getJobDescriptor().getContainer().getAttributesMap();
     user = grpcJob.getJobDescriptor().getOwner().getTeamEmail();
 
     if (grpcTasks != null) {
@@ -539,6 +540,14 @@ public class Job {
     this.labels = labels;
   }
 
+  public Map<String, String> getContainerAttributes() {
+    return containerAttributes;
+  }
+
+  public void setContainerAttributes(Map<String, String> containerAttributes) {
+    this.containerAttributes = containerAttributes;
+  }
+
   public String getJobGroupStack() {
     return jobGroupStack;
   }
@@ -611,6 +620,8 @@ public class Job {
     this.migrationPolicy = migrationPolicy;
   }
 
-  public String getJobState() { return jobState; }
+  public String getJobState() {
+    return jobState;
+  }
 
 }

@@ -38,6 +38,7 @@ class TitusDeployDescription extends AbstractTitusCredentialsDescription impleme
   Resources resources = new Resources()
   Map env
   Map labels
+  Map containerAttributes
   String entryPoint
   String iamProfile
   String capacityGroup

@@ -100,6 +100,10 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       String region = description.region
       String subnet = description.subnet
 
+      if (!description.env) description.env = [:]
+      if (!description.containerAttributes) description.containerAttributes = [:]
+      if (!description.labels) description.labels = [:]
+
       if (description.source.asgName) {
         Source source = description.source
 
@@ -132,17 +136,21 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         description.resources.gpu = description.resources.gpu ?: sourceJob.gpu
         description.resources.networkMbps = description.resources.networkMbps ?: sourceJob.networkMbps
         description.efs = description.efs ?: sourceJob.efs
-        description.env = description.env != null ? description.env : sourceJob.environment
         description.resources.allocateIpAddress = description.resources.allocateIpAddress ?: sourceJob.allocateIpAddress
         description.entryPoint = description.entryPoint ?: sourceJob.entryPoint
         description.iamProfile = description.iamProfile ?: sourceJob.iamProfile
         description.capacityGroup = description.capacityGroup ?: sourceJob.capacityGroup
 
-        if (!description.labels || description.labels.isEmpty()) {
-          if (!description.labels) {
-            description.labels = [:]
-          }
+        if (description.labels.isEmpty()) {
           sourceJob.labels.each { k, v -> description.labels.put(k, v) }
+        }
+
+        if (description.env.isEmpty()) {
+          sourceJob.env.each { k, v -> description.labels.put(k, v) }
+        }
+
+        if (description.containerAttributes.isEmpty()) {
+          sourceJob.containerAttributes.each { k, v -> description.containerAttributes.put(k, v) }
         }
         if (description.inService == null) {
           description.inService = sourceJob.inService
@@ -173,9 +181,6 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       TitusServerGroupNameResolver serverGroupNameResolver = new TitusServerGroupNameResolver(titusClient, description.region)
       String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
       task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
-
-      if (!description.env) description.env = [:]
-      if (!description.labels) description.labels = [:]
 
       if (description.interestingHealthProviderNames && !description.interestingHealthProviderNames.empty) {
         description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(","))
@@ -209,6 +214,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         .withInService(description.inService)
         .withMigrationPolicy(description.migrationPolicy)
         .withCredentials(description.credentials.name)
+        .withContainerAttributes(description.containerAttributes)
 
       Set<String> securityGroups = []
       description.securityGroups?.each { providedSecurityGroup ->

@@ -49,6 +49,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
   Map<String, Object> image = [:]
   List<Map> scalingPolicies = []
   Map labels
+  Map containerAttributes
   Set<Instance> instances = [] as Set
   ServerGroup.Capacity capacity
   TitusServerGroupResources resources = new TitusServerGroupResources()
@@ -80,6 +81,7 @@ class TitusServerGroup implements ServerGroup, Serializable {
     capacityGroup = job.capacityGroup
     env = job.environment
     labels = job.labels
+    containerAttributes = job.containerAttributes
     submittedAt = job.submittedAt ? job.submittedAt.time : null
     application = Names.parseName(job.name).app
     placement.account = account

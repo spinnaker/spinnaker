@@ -53,6 +53,7 @@ public class JobDescription {
   private List<String> hardConstraints;
   private List<String> securityGroups;
   private Map<String, String> labels;
+  private Map<String, String> containerAttributes;
   private Boolean inService;
 
   private String entryPoint;
@@ -95,6 +96,7 @@ public class JobDescription {
     user = request.getUser();
     env = request.getEnv() != null ? request.getEnv() : new HashMap<>();
     labels = request.getLabels() != null ? request.getLabels() : new HashMap<>();
+    containerAttributes = request.getContainerAttributes() != null ? request.getContainerAttributes() : new HashMap<>();
     entryPoint = request.getEntryPoint();
     iamProfile = request.getIamProfile();
     capacityGroup = request.getCapacityGroup();
@@ -308,6 +310,10 @@ public class JobDescription {
     this.env = env;
   }
 
+  public void setContainerAttributes(Map<String, String> containerAttributes) {
+    this.containerAttributes = containerAttributes;
+  }
+
   public void setEnvParam(String key, String value) {
     if (this.env == null) {
       this.env = new HashMap<>();
@@ -449,6 +455,10 @@ public class JobDescription {
 
     if (entryPoint != null) {
       containerBuilder.addEntryPoint(entryPoint);
+    }
+
+    if (!containerAttributes.isEmpty()) {
+      containerBuilder.putAllAttributes(containerAttributes);
     }
 
     if (!env.isEmpty()) {
