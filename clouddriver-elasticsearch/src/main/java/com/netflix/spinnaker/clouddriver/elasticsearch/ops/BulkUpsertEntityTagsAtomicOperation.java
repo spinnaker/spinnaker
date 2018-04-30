@@ -62,8 +62,17 @@ public class BulkUpsertEntityTagsAtomicOperation implements AtomicOperation<Bulk
 
   public BulkUpsertEntityTagsAtomicOperationResult operate(List priorOutputs) {
     BulkUpsertEntityTagsAtomicOperationResult result = new BulkUpsertEntityTagsAtomicOperationResult();
-    List<EntityTags> entityTags = bulkUpsertEntityTagsDescription.entityTags;
 
+    if (bulkUpsertEntityTagsDescription.entityTags != null) {
+      // ensure that this collection is _not_ unmodifiable
+      bulkUpsertEntityTagsDescription.entityTags = new ArrayList<>(
+        bulkUpsertEntityTagsDescription.entityTags
+      );
+    } else {
+      bulkUpsertEntityTagsDescription.entityTags = new ArrayList<>();
+    }
+
+    List<EntityTags> entityTags = bulkUpsertEntityTagsDescription.entityTags;
     addTagIdsIfMissing(entityTags, result);
 
     mergeTags(bulkUpsertEntityTagsDescription);
