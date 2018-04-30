@@ -1,11 +1,9 @@
-An issue is not a place to ask questions. Please use [Slack](http://join.spinnaker.io) or [Stack Overflow](http://stackoverflow.com/questions/tagged/spinnaker). 
-
-Before you open an issue, please check if a similar issue already exists or has been closed before.
-
-Make sure you have read through the [Spinnaker FAQ](https://www.spinnaker.io/community/faqs/) and [Halyard FAQ](https://www.spinnaker.io/setup/quickstart/faq/) to provide as much information as possible.
+* An issue is not a place to ask questions. Please use [Slack](http://join.spinnaker.io) or [Stack Overflow](http://stackoverflow.com/questions/tagged/spinnaker). 
+* Before you open an issue, please check if a similar issue already exists or has been closed before.
+* Make sure you have read through the [Spinnaker FAQ](https://www.spinnaker.io/community/faqs/) and [Halyard FAQ](https://www.spinnaker.io/setup/quickstart/faq/) to provide as much information as possible.
 
 ### Issue Summary:
-
+A brief description of what you're seeing.
 
 ### Cloud Provider:
 
