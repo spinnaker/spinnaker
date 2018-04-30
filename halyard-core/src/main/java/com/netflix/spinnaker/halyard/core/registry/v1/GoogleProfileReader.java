@@ -45,7 +45,10 @@ public class GoogleProfileReader implements ProfileReader {
   String spinconfigBucket;
 
   @Autowired
-  Storage googleStorage;
+  Storage applicationDefaultGoogleStorage;
+
+  @Autowired
+  Storage unauthenticatedGoogleStorage;
 
   @Autowired
   ObjectMapper relaxedObjectMapper;
@@ -54,26 +57,13 @@ public class GoogleProfileReader implements ProfileReader {
   Yaml yamlParser;
 
   @Bean
-  public Storage googleStorage() {
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-    String applicationName = "Spinnaker/Halyard";
-    HttpRequestInitializer requestInitializer;
-    try {
-      GoogleCredential credential = GoogleCredential.getApplicationDefault();
-      if (credential.createScopedRequired()) {
-        credential = credential.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
-      }
-      requestInitializer = GoogleCredentials.setHttpTimeout(credential);
-      
-      log.info("Loaded application default credential for reading BOMs & profiles.");
-    } catch (Exception e) {
-      requestInitializer = GoogleCredentials.retryRequestInitializer();
-      log.debug("No application default credential could be loaded for reading BOMs & profiles. Continuing unauthenticated: {}", e.getMessage());
-    }
+  public Storage applicationDefaultGoogleStorage() {
+    return createGoogleStorage(true);
+  }
 
-    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, requestInitializer)
-        .setApplicationName(applicationName)
-        .build();
+  @Bean
+  public Storage unauthenticatedGoogleStorage() {
+    return createGoogleStorage(false);
   }
 
   public InputStream readProfile(String artifactName, String version, String profileName) throws IOException {
@@ -112,7 +102,39 @@ public class GoogleProfileReader implements ProfileReader {
   private InputStream getContents(String objectName) throws IOException {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     log.info("Getting object contents of " + objectName);
-    googleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
+
+    try {
+      applicationDefaultGoogleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
+    } catch (IOException e) {
+      log.debug("Getting object contents of {} with failed. Retrying with no authentication.", objectName, e);
+      output = new ByteArrayOutputStream();
+      unauthenticatedGoogleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
+    }
+
     return new ByteArrayInputStream(output.toByteArray());
   }
+
+  private Storage createGoogleStorage(boolean useApplicationDefaultCreds) {
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    String applicationName = "Spinnaker/Halyard";
+    HttpRequestInitializer requestInitializer;
+
+    try {
+      GoogleCredential credential = useApplicationDefaultCreds ? GoogleCredential.getApplicationDefault() : new GoogleCredential();
+      if (credential.createScopedRequired()) {
+        credential = credential.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+      }
+      requestInitializer = GoogleCredentials.setHttpTimeout(credential);
+
+      log.info("Loaded application default credential for reading BOMs & profiles.");
+    } catch (Exception e) {
+      requestInitializer = GoogleCredentials.retryRequestInitializer();
+      log.debug("No application default credential could be loaded for reading BOMs & profiles. Continuing unauthenticated: {}", e.getMessage());
+    }
+
+    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, requestInitializer)
+        .setApplicationName(applicationName)
+        .build();
+  }
+
 }
