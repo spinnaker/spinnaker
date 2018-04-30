@@ -90,32 +90,37 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
       log.info("Using {} as the manifest to be deployed", manifestArtifact);
 
       manifestArtifact.setArtifactAccount((String) task.get("manifestArtifactAccount"));
-      Response manifestText = retrySupport.retry(() -> oort.fetchArtifact(manifestArtifact), 5, 1000, true);
+      Object parsedManifests = retrySupport.retry(() -> {
+        try {
+          Response manifestText = oort.fetchArtifact(manifestArtifact);
 
-      try {
-        Iterable<Object> rawManifests = yamlParser.loadAll(manifestText.getBody().in());
-        List<Map> manifests = StreamSupport.stream(rawManifests.spliterator(), false)
-            .map(m -> objectMapper.convertValue(m, Map.class))
-            .collect(Collectors.toList());
+          Iterable<Object> rawManifests = yamlParser.loadAll(manifestText.getBody().in());
+          List<Map> manifests = StreamSupport.stream(rawManifests.spliterator(), false)
+              .map(m -> objectMapper.convertValue(m, Map.class))
+              .collect(Collectors.toList());
 
-        Map<String, Object> manifestWrapper = new HashMap<>();
-        manifestWrapper.put("manifests", manifests);
+          Map<String, Object> manifestWrapper = new HashMap<>();
+          manifestWrapper.put("manifests", manifests);
 
-        manifestWrapper = contextParameterProcessor.process(
-            manifestWrapper,
-          contextParameterProcessor.buildExecutionContext(stage, true),
-          true
-        );
+          manifestWrapper = contextParameterProcessor.process(
+              manifestWrapper,
+              contextParameterProcessor.buildExecutionContext(stage, true),
+              true
+          );
 
-        if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
-          throw new IllegalStateException("Failure evaluating manifest expressions: " + manifestWrapper.get("expressionEvaluationSummary"));
+          if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
+            throw new IllegalStateException("Failure evaluating manifest expressions: " + manifestWrapper.get("expressionEvaluationSummary"));
+          }
+
+          return manifestWrapper.get("manifests");
+        } catch (Exception e) {
+          log.warn("Failure fetching/parsing manifests from {}", manifestArtifact, e);
+          // forces a retry
+          throw new IllegalStateException(e);
         }
-
-        task.put("manifests", manifestWrapper.get("manifests"));
-        task.put("source", "text");
-      } catch (Exception e) {
-        throw new IllegalArgumentException("Failed to read manifest from '" + manifestArtifact + "' as '" + manifestText + "': " + e.getMessage(), e);
-      }
+      }, 10, 2000, true); // retry 10x, at a max of 2s intervals
+      task.put("manifests", parsedManifests);
+      task.put("source", "text");
     }
 
     List<String> requiredArtifactIds = (List<String>) task.get("requiredArtifactIds");
