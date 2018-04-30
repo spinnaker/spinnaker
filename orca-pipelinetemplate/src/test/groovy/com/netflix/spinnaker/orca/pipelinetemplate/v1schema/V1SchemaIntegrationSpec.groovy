@@ -49,7 +49,7 @@ class V1SchemaIntegrationSpec extends Specification {
   TemplateLoader templateLoader = new TemplateLoader([new ResourceSchemeLoader("/integration/v1schema", objectMapper)])
 
   Renderer renderer = new JinjaRenderer(
-    new YamlRenderedValueConverter(new Yaml()), objectMapper, Mock(Front50Service), []
+    new YamlRenderedValueConverter(), objectMapper, Mock(Front50Service), []
   )
 
   Registry registry = Mock() {

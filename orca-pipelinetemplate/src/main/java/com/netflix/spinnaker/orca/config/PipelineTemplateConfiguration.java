@@ -64,7 +64,7 @@ public class PipelineTemplateConfiguration {
 
   @Bean
   RenderedValueConverter yamlRenderedValueConverter() {
-    return new YamlRenderedValueConverter(new Yaml());
+    return new YamlRenderedValueConverter();
   }
 
   @Bean

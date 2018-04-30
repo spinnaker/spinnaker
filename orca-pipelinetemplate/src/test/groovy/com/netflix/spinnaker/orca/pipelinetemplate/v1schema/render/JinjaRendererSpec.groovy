@@ -28,7 +28,7 @@ class JinjaRendererSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper()
 
-  RenderedValueConverter renderedValueConverter = new YamlRenderedValueConverter(new Yaml())
+  RenderedValueConverter renderedValueConverter = new YamlRenderedValueConverter()
 
   @Subject
   Renderer subject = new JinjaRenderer(renderedValueConverter, objectMapper, Mock(Front50Service), [])

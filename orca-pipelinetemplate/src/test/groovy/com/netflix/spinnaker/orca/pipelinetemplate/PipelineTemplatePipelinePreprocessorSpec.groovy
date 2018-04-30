@@ -42,7 +42,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
   TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)])
 
   Renderer renderer = new JinjaRenderer(
-    new YamlRenderedValueConverter(new Yaml()), objectMapper, Mock(Front50Service), []
+    new YamlRenderedValueConverter(), objectMapper, Mock(Front50Service), []
   )
 
   Registry registry = Mock() {

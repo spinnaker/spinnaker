@@ -31,11 +31,7 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private Yaml yaml;
-
-  public YamlRenderedValueConverter(Yaml yaml) {
-    this.yaml = yaml;
-  }
+  private static final ThreadLocal<Yaml> yaml = ThreadLocal.withInitial(Yaml::new);
 
   @Override
   public Object convertRenderedValue(String renderedValue) {
@@ -47,7 +43,7 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
     }
 
     try {
-      Object converted = yaml.load(renderedValue);
+      Object converted = yaml.get().load(renderedValue);
       if (converted == null || converted instanceof String) {
         return "".equals(converted) || "".equals(renderedValue) ? null : renderedValue;
       }
