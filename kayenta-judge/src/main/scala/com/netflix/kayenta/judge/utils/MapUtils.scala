@@ -43,4 +43,9 @@ object MapUtils {
   def getAsStringWithDefault(default: String, data: Any, path: String*): String = {
     get(data, path: _*).getOrElse(default).toString
   }
+
+  def getAsBooleanWithDefault(default: Boolean, data: Any, path: String*): Boolean = {
+    get(data, path: _*).getOrElse(default).asInstanceOf[Boolean]
+  }
+
 }

@@ -17,14 +17,13 @@
 package com.netflix.kayenta.judge.scorers
 
 import com.netflix.kayenta.canary.results.CanaryAnalysisResult
-import com.netflix.kayenta.judge.classifiers.metric.{Pass, High, Low}
+import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Pass}
 
 import scala.collection.JavaConverters._
 
-class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
+class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer {
 
-  private def calculateGroupScore(groupName: String, classificationLabels: List[String]): GroupScore ={
-
+  private def calculateGroupScore(groupName: String, classificationLabels: List[String]): GroupScore = {
     val labelCounts = classificationLabels.groupBy(identity).mapValues(_.size)
     val numMetrics = classificationLabels.size
 
@@ -33,19 +32,19 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     val numLow = labelCounts.getOrElse(Low.toString, 0)
     val numTotal = numHigh + numLow + numPass
 
-    val hasNoData = if(numTotal == 0) true else false
-    val score = if(!hasNoData) (numPass/numTotal.toDouble) * 100 else 0.0
+    val hasNoData = numTotal == 0
+    val score = if (!hasNoData) (numPass/numTotal.toDouble) * 100 else 0.0
 
     GroupScore(groupName, score, hasNoData, labelCounts, numMetrics)
   }
 
-  private def calculateGroupScores(metricResults: List[CanaryAnalysisResult]): List[GroupScore] ={
+  private def calculateGroupScores(metricResults: List[CanaryAnalysisResult]): List[GroupScore] = {
 
-    val groupLabels = metricResults.flatMap{ metric =>
-      metric.getGroups.asScala.map{ group => (group, metric.getClassification)}
+    val groupLabels = metricResults.flatMap { metric =>
+      metric.getGroups.asScala.map { group => (group, metric.getClassification) }
     }.groupBy(_._1).mapValues(_.map(_._2))
 
-    groupLabels.map{ case (groupName, labels) => calculateGroupScore(groupName, labels)}.toList
+    groupLabels.map { case (groupName, labels) => calculateGroupScore(groupName, labels) }.toList
   }
 
   private def calculateSummaryScore(groupResults: List[GroupScore]): Double ={
@@ -58,7 +57,7 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
 
     //Determine which groups do not have weights associated with them
     val groupDifference = groupSet.diff(groupWeightSet)
-    val calculatedWeight = if(groupDifference.nonEmpty) (100-groupWeightSum)/groupDifference.size else 0.0
+    val calculatedWeight = if (groupDifference.nonEmpty) (100-groupWeightSum)/groupDifference.size else 0.0
 
     //Compute the summary score based on the group score and weights
     var summaryScore: Double = 0.0
@@ -70,10 +69,20 @@ class WeightedSumScorer(groupWeights: Map[String, Double]) extends BaseScorer{
     summaryScore
   }
 
+  def criticalFailures(results: List[CanaryAnalysisResult]): Boolean = {
+    val criticalFailures = results.filter { result => result.isCritical && !result.getClassification.equals(Pass.toString) }
+    criticalFailures.nonEmpty
+  }
+
   override def score(results: List[CanaryAnalysisResult]): ScoreResult = {
     val groupScores = calculateGroupScores(results)
     val summaryScore = calculateSummaryScore(groupScores)
-    ScoreResult(Some(groupScores), summaryScore, results.size)
+
+    if (criticalFailures(results)) {
+      ScoreResult(Some(groupScores), 0.0, results.size)
+    } else {
+      ScoreResult(Some(groupScores), summaryScore, results.size)
+    }
   }
 
 }

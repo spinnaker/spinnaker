@@ -24,9 +24,9 @@ import org.scalatest.Matchers._
 
 import scala.collection.JavaConverters._
 
-class ScorerSuite extends FunSuite{
+class ScorerSuite extends FunSuite {
 
-  test("Weighted Sum Group Scorer: Single Metric Pass"){
+  test("Weighted Sum Group Scorer: Single Metric Pass") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -40,7 +40,7 @@ class ScorerSuite extends FunSuite{
     assert(scores.summaryScore == 100.0)
   }
 
-  test("Weighted Sum Group Scorer: Single Metric Fail"){
+  test("Weighted Sum Group Scorer: Single Metric Fail") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -54,7 +54,7 @@ class ScorerSuite extends FunSuite{
     assert(scores.summaryScore == 0.0)
   }
 
-  test("Weighted Sum Group Scorer: One Group, Two Metrics"){
+  test("Weighted Sum Group Scorer: One Group, Two Metrics") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -74,7 +74,7 @@ class ScorerSuite extends FunSuite{
     assert(scores.summaryScore == 50.0)
   }
 
-  test("Weighted Sum Group Scorer: One Group, Three Metrics"){
+  test("Weighted Sum Group Scorer: One Group, Three Metrics") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -100,7 +100,7 @@ class ScorerSuite extends FunSuite{
     assert(scores.summaryScore === (33.33 +- 1.0e-2))
   }
 
-  test("Weighted Sum Group Scorer: Two Groups, Three Metrics"){
+  test("Weighted Sum Group Scorer: Two Groups, Three Metrics") {
     val groupWeights = Map[String, Double]("group-1" -> 75.0, "group-2" -> 25.0)
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -126,7 +126,7 @@ class ScorerSuite extends FunSuite{
     assert(scores.summaryScore == 75.0)
   }
 
-  test("Weighted Sum Group Scorer: Two Groups, Three Metrics (Equal Weight)"){
+  test("Weighted Sum Group Scorer: Two Groups, Three Metrics (Equal Weight)") {
     val groupWeights = Map[String, Double]("group-1" -> 50.0, "group-2" -> 50.0)
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -152,7 +152,7 @@ class ScorerSuite extends FunSuite{
     assert(scores.summaryScore == 25.0)
   }
 
-  test("Weighted Sum Group Scorer: No Data"){
+  test("Weighted Sum Group Scorer: No Data") {
     val groupWeights = Map[String, Double]()
     val weightedSumScorer = new WeightedSumScorer(groupWeights)
 
@@ -164,6 +164,49 @@ class ScorerSuite extends FunSuite{
 
     val scores = weightedSumScorer.score(List(metricClassification))
     assert(scores.summaryScore == 0.0)
+  }
+
+  test("Weighted Sum Group Scorer: Two metrics, one good (normal), one fail (critical)") {
+    val groupWeights = Map[String, Double]()
+    val weightedSumScorer = new WeightedSumScorer(groupWeights)
+
+    val passMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-pass")
+      .classification(Pass.toString)
+      .groups(List[String]("test-group").asJava)
+      .build()
+
+    val highMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-high")
+      .critical(true)
+      .classification(High.toString)
+      .groups(List[String]("test-group").asJava)
+      .build()
+
+    val scores = weightedSumScorer.score(List(passMetric, highMetric))
+    assert(scores.summaryScore == 0.0)
+  }
+
+  test("Weighted Sum Group Scorer: Two metrics, one low (normal), one good (critical)") {
+    val groupWeights = Map[String, Double]()
+    val weightedSumScorer = new WeightedSumScorer(groupWeights)
+
+    val passMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-low")
+      .critical(false)
+      .classification(Low.toString)
+      .groups(List[String]("test-group").asJava)
+      .build()
+
+    val highMetric = CanaryAnalysisResult.builder()
+      .name("test-metric-pass2")
+      .critical(true)
+      .classification(Pass.toString)
+      .groups(List[String]("test-group").asJava)
+      .build()
+
+    val scores = weightedSumScorer.score(List(passMetric, highMetric))
+    assert(scores.summaryScore == 50.0)
   }
 
 }
