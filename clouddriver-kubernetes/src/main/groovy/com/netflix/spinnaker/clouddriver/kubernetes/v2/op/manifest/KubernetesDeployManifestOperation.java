@@ -143,7 +143,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       KubernetesArtifactConverter converter = versioned ? properties.getVersionedConverter() : properties.getUnversionedConverter();
       KubernetesHandler deployer = properties.getHandler();
 
-      Moniker moniker = description.getMoniker();
+      Moniker moniker = cloneMoniker(description.getMoniker());
       if (StringUtils.isEmpty(moniker.getCluster())) {
         moniker.setCluster(manifest.getFullResourceName());
       }
@@ -170,6 +170,17 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     result.getBoundArtifacts().addAll(boundArtifacts);
     result.removeSensitiveKeys(registry, accountName);
     return result;
+  }
+
+  // todo(lwander): move to kork
+  private static Moniker cloneMoniker(Moniker inp) {
+    return Moniker.builder()
+        .app(inp.getApp())
+        .cluster(inp.getCluster())
+        .stack(inp.getStack())
+        .detail(inp.getDetail())
+        .sequence(inp.getSequence())
+        .build();
   }
 
   private KubernetesResourceProperties findResourceProperties(KubernetesManifest manifest) {
