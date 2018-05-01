@@ -169,7 +169,7 @@ describe('Service: Cluster', function() {
             status: 'RUNNING',
             variables: [
               { key: 'credentials', value: 'test' },
-              { key: 'regions', value: ['us-east-1'] },
+              { key: 'region', value: 'us-east-1' },
               { key: 'targetop.asg.disableServerGroup.name', value: 'the-source' },
               { key: 'targetop.asg.enableServerGroup.name', value: 'the-target' },
             ],

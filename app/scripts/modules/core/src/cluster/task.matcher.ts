@@ -131,7 +131,7 @@ function instanceIdsTaskMatcher(task: ITask, serverGroup: IServerGroup): boolean
 
 function rollbackServerGroupTaskMatcher(task: ITask, serverGroup: IServerGroup): boolean {
   const account: string = task.getValueFor('credentials'),
-    region: string = task.getValueFor('regions') ? task.getValueFor('regions')[0] : null;
+    region: string = task.getValueFor('region');
 
   if (account && serverGroup.account === account && region && serverGroup.region === region) {
     return (
