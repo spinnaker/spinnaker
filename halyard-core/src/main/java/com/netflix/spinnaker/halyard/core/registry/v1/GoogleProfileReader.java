@@ -106,7 +106,7 @@ public class GoogleProfileReader implements ProfileReader {
     try {
       applicationDefaultGoogleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
     } catch (IOException e) {
-      log.debug("Getting object contents of {} with failed. Retrying with no authentication.", objectName, e);
+      log.debug("Getting object contents of {} failed. Retrying with no authentication.", objectName, e);
       output = new ByteArrayOutputStream();
       unauthenticatedGoogleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
     }
