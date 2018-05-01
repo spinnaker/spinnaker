@@ -13,13 +13,14 @@ module(KUBERNETES_FIND_ARTIFACTS_FROM_RESOURCE_STAGE, [PIPELINE_CONFIG_PROVIDER,
     // Todo: replace feature flag with proper versioned provider mechanism once available.
     if (SETTINGS.feature.artifacts) {
       pipelineConfigProvider.registerStage({
-        label: 'Find artifacts from resource (Manifest)',
+        label: 'Find Artifacts From Resource (Manifest)',
         description: 'Finds artifacts from a Kubernetes resource.',
         key: 'findArtifactsFromResource',
         cloudProvider: 'kubernetes',
         templateUrl: require('./findArtifactsFromResourceConfig.html'),
         controller: 'KubernetesV2FindArtifactsFromResourceConfigCtrl',
         controllerAs: 'ctrl',
+        producesArtifacts: true,
         validators: [
           { type: 'requiredField', fieldName: 'location', fieldLabel: 'Namespace' },
           { type: 'requiredField', fieldName: 'account', fieldLabel: 'Account' },
