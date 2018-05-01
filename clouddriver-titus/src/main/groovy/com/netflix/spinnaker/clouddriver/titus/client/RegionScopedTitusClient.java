@@ -154,7 +154,7 @@ public class RegionScopedTitusClient implements TitusClient {
     for (TitusJobCustomizer customizer : titusJobCustomizers) {
       customizer.customize(jobDescription);
     }
-    return grpcBlockingStub.createJob(jobDescription.getGrpcJobDescriptor()).getId();
+    return TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).createJob(jobDescription.getGrpcJobDescriptor()).getId();
   }
 
   @Override
@@ -166,7 +166,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
   @Override
   public void resizeJob(ResizeJobRequest resizeJobRequest) {
-    grpcBlockingStub.updateJobCapacity(JobCapacityUpdate.newBuilder()
+    TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).updateJobCapacity(JobCapacityUpdate.newBuilder()
       .setJobId(resizeJobRequest.getJobId())
       .setCapacity(Capacity.newBuilder()
         .setDesired(resizeJobRequest.getInstancesDesired())
@@ -179,12 +179,12 @@ public class RegionScopedTitusClient implements TitusClient {
 
   @Override
   public void activateJob(ActivateJobRequest activateJobRequest) {
-    grpcBlockingStub.updateJobStatus(JobStatusUpdate.newBuilder().setId(activateJobRequest.getJobId()).setEnableStatus(activateJobRequest.getInService()).build());
+    TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).updateJobStatus(JobStatusUpdate.newBuilder().setId(activateJobRequest.getJobId()).setEnableStatus(activateJobRequest.getInService()).build());
   }
 
   @Override
   public void setAutoscaleEnabled(String jobId, boolean shouldEnable) {
-    grpcBlockingStub.updateJobProcesses(
+    TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).updateJobProcesses(
       JobProcessesUpdate.newBuilder()
         .setServiceJobProcesses(
           ServiceJobSpec.ServiceJobProcesses.newBuilder()
@@ -199,7 +199,7 @@ public class RegionScopedTitusClient implements TitusClient {
 
   @Override
   public void terminateJob(TerminateJobRequest terminateJobRequest) {
-    grpcBlockingStub.killJob(JobId.newBuilder().setId(terminateJobRequest.getJobId()).build());
+    TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).killJob(JobId.newBuilder().setId(terminateJobRequest.getJobId()).build());
   }
 
   @Override
@@ -221,13 +221,13 @@ public class RegionScopedTitusClient implements TitusClient {
 
   private void killTaskWithRetry(String id, TerminateTasksAndShrinkJobRequest terminateTasksAndShrinkJob) {
     try {
-      grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build());
+      TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build());
     } catch (io.grpc.StatusRuntimeException e) {
       if (e.getStatus() == Status.NOT_FOUND) {
         log.warn("Titus task {} not found, continuing with terminate tasks and shrink job request.", id);
       } else {
         retrySupport.retry(() ->
-            grpcBlockingStub.killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
+            TitusClientAuthenticationUtil.attachCaller(grpcBlockingStub).killTask(TaskKillRequest.newBuilder().setTaskId(id).setShrink(terminateTasksAndShrinkJob.isShrink()).build())
           , 2, 1000, false);
       }
     }

@@ -49,12 +49,12 @@ public class RegionScopedTitusLoadBalancerClient implements TitusLoadBalancerCli
 
   @Override
   public void addLoadBalancer(String jobId, String loadBalancerId) {
-    loadBalancerServiceBlockingStub.addLoadBalancer(AddLoadBalancerRequest.newBuilder().setJobId(jobId).setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build()).build());
+    TitusClientAuthenticationUtil.attachCaller(loadBalancerServiceBlockingStub).addLoadBalancer(AddLoadBalancerRequest.newBuilder().setJobId(jobId).setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build()).build());
   }
 
   @Override
   public void removeLoadBalancer(String jobId, String loadBalancerId) {
-    loadBalancerServiceBlockingStub.removeLoadBalancer(RemoveLoadBalancerRequest.newBuilder().setJobId(jobId).setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build()).build());
+    TitusClientAuthenticationUtil.attachCaller(loadBalancerServiceBlockingStub).removeLoadBalancer(RemoveLoadBalancerRequest.newBuilder().setJobId(jobId).setLoadBalancerId(LoadBalancerId.newBuilder().setId(loadBalancerId).build()).build());
   }
 
   public Map<String, List<String>> getAllLoadBalancers() {
