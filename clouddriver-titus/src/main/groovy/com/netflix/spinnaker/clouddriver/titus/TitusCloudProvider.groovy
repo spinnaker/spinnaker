@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus
 
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
-import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import org.springframework.stereotype.Component
 
 import java.lang.annotation.Annotation
@@ -27,7 +26,7 @@ import java.lang.annotation.Annotation
  */
 @Component
 class TitusCloudProvider implements CloudProvider {
-  static final String ID = Keys.PROVIDER
+  static final String ID = 'titus'
   final String id = ID
   final String displayName = "Titus"
   final Class<Annotation> operationAnnotationType = TitusOperation

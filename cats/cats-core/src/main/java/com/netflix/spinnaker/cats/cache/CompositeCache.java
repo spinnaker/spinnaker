@@ -71,6 +71,24 @@ public class CompositeCache implements Cache {
     }
 
     @Override
+    public Collection<String> existingIdentifiers(String type, Collection<String> ids) {
+        HashSet<String> identifiers = new HashSet<>(ids.size());
+        HashSet<String> remainingIds = new HashSet<>(ids);
+        for (Cache cache : caches) {
+          Collection<String> existing = cache.existingIdentifiers(type, remainingIds);
+          identifiers.addAll(existing);
+
+          //minimize redis exists calls - if we've seen the identifier in at least
+          // one cache, then we know it exists
+          remainingIds.removeAll(existing);
+          if (remainingIds.isEmpty()) {
+            break;
+          }
+        }
+        return identifiers;
+    }
+
+    @Override
     public Collection<String> getIdentifiers(String type) {
         HashSet<String> identifiers = new HashSet<>();
         for (Cache cache : caches) {

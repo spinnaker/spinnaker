@@ -18,11 +18,11 @@ package com.netflix.spinnaker.clouddriver.titus.model
 
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
-import com.netflix.spinnaker.clouddriver.titus.caching.Keys
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 
 class TitusCluster implements Cluster, Serializable {
   String name
-  String type = Keys.PROVIDER
+  String type = TitusCloudProvider.ID
   String accountName
   Set<TitusServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<TitusServerGroup>())
   Set<LoadBalancer> loadBalancers = Collections.emptySet()

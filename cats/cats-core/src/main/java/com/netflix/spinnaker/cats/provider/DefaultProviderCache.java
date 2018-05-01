@@ -100,6 +100,13 @@ public class DefaultProviderCache implements ProviderCache {
     }
 
     @Override
+    public Collection<String> existingIdentifiers(String type, Collection<String> identifiers) {
+        Set<String> existing = new HashSet<>(backingStore.existingIdentifiers(type, identifiers));
+        existing.remove(ALL_ID);
+        return existing;
+    }
+
+    @Override
     public Collection<String> getIdentifiers(String type) {
         validateTypes(type);
         Set<String> identifiers = new HashSet<>(backingStore.getIdentifiers(type));

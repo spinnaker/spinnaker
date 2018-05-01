@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.aws.provider
 import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.aws.cache.Keys
 
@@ -31,6 +33,8 @@ class AwsInfrastructureProvider extends AgentSchedulerAware implements Searchabl
   public static final String PROVIDER_NAME = AwsInfrastructureProvider.name
 
   private final Collection<Agent> agents
+
+  private final KeyParser keyParser = new Keys()
 
   AwsInfrastructureProvider(Collection<Agent> agents) {
     this.agents = agents
@@ -57,5 +61,10 @@ class AwsInfrastructureProvider extends AgentSchedulerAware implements Searchabl
   @Override
   Map<String, String> parseKey(String key) {
     return Keys.parse(key)
+  }
+
+  @Override
+  Optional<KeyParser> getKeyParser() {
+    return Optional.of(keyParser)
   }
 }

@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -47,28 +48,32 @@ class CatsSearchProvider implements SearchProvider, Runnable {
   private final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators
 
   private final Map<String, Template> urlMappings
+  private final ProviderRegistry providerRegistry
 
-  private AtomicReference<Map<String, Collection<Map<String, String>>>> cachedIdentifiersByType = new AtomicReference(
+
+
+  private final AtomicReference<Map<String, Collection<Map<String, String>>>> cachedIdentifiersByType = new AtomicReference(
     [:]
   )
 
   private final FiatPermissionEvaluator permissionEvaluator
-  private final List<KeyParser> keyParsers;
-  private final List<KeyProcessor> keyProcessors;
+  private final List<KeyParser> keyParsers
 
   private final ScheduledExecutorService scheduledExecutorService
 
   CatsSearchProvider(CatsInMemorySearchProperties catsInMemorySearchProperties,
                      Cache cacheView,
                      List<SearchableProvider> providers,
+                     ProviderRegistry providerRegistry,
                      Optional<FiatPermissionEvaluator> permissionEvaluator,
-                     Optional<List<KeyParser>> keyParsers,
-                     Optional<List<KeyProcessor>> keyProcessors) {
-    this(catsInMemorySearchProperties, cacheView, providers)
+                     Optional<List<KeyParser>> keyParsers) {
+    this.catsInMemorySearchProperties = catsInMemorySearchProperties
+    this.cacheView = cacheView
+    this.providers = providers
 
     this.permissionEvaluator = permissionEvaluator.orElse(null)
     this.keyParsers = keyParsers.orElse(Collections.emptyList())
-    this.keyProcessors = keyProcessors.orElse(Collections.emptyList())
+    this.providerRegistry = providerRegistry
 
     defaultCaches = providers.defaultCaches.flatten()
     log.info("Enabled default caches: ${defaultCaches}")
@@ -87,13 +92,12 @@ class CatsSearchProvider implements SearchProvider, Runnable {
     }
   }
 
-  @VisibleForTesting
   CatsSearchProvider(CatsInMemorySearchProperties catsInMemorySearchProperties,
                      Cache cacheView,
-                     List<SearchableProvider> providers) {
-    this.catsInMemorySearchProperties = catsInMemorySearchProperties
-    this.cacheView = cacheView
-    this.providers = providers
+                     List<SearchableProvider> providers,
+                     ProviderRegistry providerRegistry) {
+    this(catsInMemorySearchProperties, cacheView, providers, providerRegistry, Optional.empty(), Optional.empty())
+
   }
 
   @PostConstruct
@@ -110,10 +114,13 @@ class CatsSearchProvider implements SearchProvider, Runnable {
    */
   @Override
   void run() {
-    log.info("Refreshing Cached Identifiers")
-    def instanceIdentifiers = cacheView.getIdentifiers("instances")?.findResults { String key ->
-      providers.findResults {
-        def v = it.parseKey(key)
+    log.info("Refreshing Cached Identifiers (instances)")
+    def instanceIdentifiers = providers.findAll { provider ->
+      provider.supportsSearch('instances', Collections.emptyMap())
+    }.collect { provider ->
+      def cache = providerRegistry.getProviderCache(provider.getProviderName())
+      return cache.existingIdentifiers("instances", cache.getIdentifiers("instances")).findResults { key ->
+        def v = provider.parseKey(key)
         if (v) {
           v["_id"] = key
         }
@@ -121,8 +128,8 @@ class CatsSearchProvider implements SearchProvider, Runnable {
         return v?.collectEntries {
           [it.key, it.value.toLowerCase()]
         }
-      }[0]
-    } ?: []
+      }
+    }.flatten()
 
     if (instanceIdentifiers) {
       cachedIdentifiersByType.set(["instances": instanceIdentifiers])
@@ -238,17 +245,6 @@ class CatsSearchProvider implements SearchProvider, Runnable {
     log.info("Querying ${cachesToQuery} for term: ${q}")
     String normalizedWord = q.toLowerCase()
     List<String> matches = cachesToQuery.collect { String cache ->
-      List<KeyProcessor> keyProcessors = (this.keyProcessors ?: []).findAll { it.canProcess(cache) }
-
-      // if the key represented in the cache doesn't actually exist, don't process it
-      Closure keyExists = { String key ->
-        boolean exists = keyProcessors.empty || keyProcessors.any { it.exists(key) }
-        if (!exists) {
-          log.warn("found ${cache} key that did not exist: ${key}")
-        }
-        return exists
-      }
-
       Closure filtersMatch = { String key ->
         try {
           if (!filters) {
@@ -274,24 +270,32 @@ class CatsSearchProvider implements SearchProvider, Runnable {
       }
 
       def identifiers
-      if (cachedIdentifiersByType.get().containsKey(cache)) {
+      def cached = cachedIdentifiersByType.get()
+      if (cached.containsKey(cache)) {
         /**
          * Attempt an exact match of the query against any attribute of an instance key (account, region, etc.).
          *
          * This is not 100% consistent with doing `*:${cache}:*${normalizedWord}*` in redis _but_ for instances it
          * should be sufficient.
          */
-        def identifiersForCache = cachedIdentifiersByType.get().get(cache)
+        def identifiersForCache = cached.get(cache)
         identifiers = identifiersForCache.findAll { identifier ->
           identifier.values().contains(normalizedWord)
         }.collect { it["_id"] }
       } else {
-        identifiers = cacheView
-          .filterIdentifiers(cache, "*:${cache}:*${normalizedWord}*")
+        List<SearchableProvider> validProviders = providers.findAll { it.supportsSearch(cache, filters) }
+        identifiers = new HashSet<>()
+        for (SearchableProvider sp : validProviders) {
+          def providerCache = providerRegistry.getProviderCache(sp.getProviderName())
+          def searchGlob = sp.buildSearchTerm(cache, normalizedWord)
+          def filteredIds = providerCache.filterIdentifiers(cache, searchGlob)
+          filteredIds.removeAll(identifiers)
+          def existingIds = providerCache.existingIdentifiers(cache, filteredIds)
+          identifiers.addAll(existingIds)
+        }
       }
 
       return identifiers
-        .findAll(keyExists)
         .findAll(filtersMatch)
     }.flatten()
 

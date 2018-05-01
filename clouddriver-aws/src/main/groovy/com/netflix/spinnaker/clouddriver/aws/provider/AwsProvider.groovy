@@ -19,21 +19,21 @@ package com.netflix.spinnaker.clouddriver.aws.provider
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.cache.KeyParser
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
-import java.util.regex.Pattern
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
-import static com.netflix.spinnaker.clouddriver.cache.SearchableProvider.SearchableResource
 
 class AwsProvider extends AgentSchedulerAware implements SearchableProvider, EurekaAwareProvider {
 
   public static final String PROVIDER_NAME = AwsProvider.name
+
+  final KeyParser keyParser = new Keys()
 
   final AccountCredentialsRepository accountCredentialsRepository
 
@@ -84,6 +84,11 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
   @Override
   Map<String, String> parseKey(String key) {
     return Keys.parse(key)
+  }
+
+  @Override
+  Optional<KeyParser> getKeyParser() {
+    return Optional.of(keyParser)
   }
 
   private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {

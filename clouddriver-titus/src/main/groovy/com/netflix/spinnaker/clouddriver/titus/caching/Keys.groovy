@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.clouddriver.titus.caching
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.cache.KeyParser
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
+import org.springframework.stereotype.Component
 
-class Keys {
-
-  public static final PROVIDER = "titus"
+@Component("titusKeyParser")
+class Keys implements KeyParser {
 
   static enum Namespace {
     IMAGES,
@@ -43,6 +45,27 @@ class Keys {
     }
   }
 
+  @Override
+  String getCloudProvider() {
+    return TitusCloudProvider.ID
+  }
+
+  @Override
+  Map<String, String> parseKey(String key) {
+    return parse(key)
+  }
+
+  @Override
+  Boolean canParseType(String type) {
+    return Namespace.values().any { it.ns == type }
+  }
+
+  @Override
+  Boolean canParseField(String field) {
+    return false
+  }
+
+
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
 
@@ -50,7 +73,7 @@ class Keys {
       return null
     }
 
-    if (parts[0] != PROVIDER) {
+    if (parts[0] != TitusCloudProvider.ID) {
       return null
     }
 
@@ -86,7 +109,7 @@ class Keys {
   }
 
   static String getImageKey(String imageId, String account, String region) {
-    "${PROVIDER}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
+    "${TitusCloudProvider.ID}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
   static String getServerGroupKey(String serverGroupName, String account, String region) {
@@ -95,22 +118,22 @@ class Keys {
   }
 
   static String getServerGroupKey(String cluster, String autoScalingGroupName, String account, String region) {
-    "${PROVIDER}:${Namespace.SERVER_GROUPS}:${cluster}:${account}:${region}:${autoScalingGroupName}"
+    "${TitusCloudProvider.ID}:${Namespace.SERVER_GROUPS}:${cluster}:${account}:${region}:${autoScalingGroupName}"
   }
 
   static String getInstanceKey(String id, String accountId, String stack, String region) {
-    "${PROVIDER}:${Namespace.INSTANCES}:${accountId}:${region}:${stack}:${id}"
+    "${TitusCloudProvider.ID}:${Namespace.INSTANCES}:${accountId}:${region}:${stack}:${id}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
-    "${PROVIDER}:${Namespace.CLUSTERS}:${application?.toLowerCase()}:${account}:${clusterName}"
+    "${TitusCloudProvider.ID}:${Namespace.CLUSTERS}:${application?.toLowerCase()}:${account}:${clusterName}"
   }
 
   static String getApplicationKey(String application) {
-    "${PROVIDER}:${Namespace.APPLICATIONS}:${application?.toLowerCase()}"
+    "${TitusCloudProvider.ID}:${Namespace.APPLICATIONS}:${application?.toLowerCase()}"
   }
 
   static String getInstanceHealthKey(String id, String healthProvider) {
-    "${PROVIDER}:${Namespace.HEALTH}:${id}:${healthProvider}"
+    "${TitusCloudProvider.ID}:${Namespace.HEALTH}:${id}:${healthProvider}"
   }
 }

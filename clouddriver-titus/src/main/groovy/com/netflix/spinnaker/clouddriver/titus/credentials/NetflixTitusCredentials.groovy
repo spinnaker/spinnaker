@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.clouddriver.titus.credentials
 
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
-import com.netflix.spinnaker.clouddriver.titus.caching.Keys
+import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.security.TitusCredentials
 
 class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
-  private static final String CLOUD_PROVIDER = Keys.PROVIDER
+  private static final String CLOUD_PROVIDER = TitusCloudProvider.ID
 
   final String name
   final String environment

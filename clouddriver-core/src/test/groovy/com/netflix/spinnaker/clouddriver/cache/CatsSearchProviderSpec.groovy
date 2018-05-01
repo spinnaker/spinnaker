@@ -16,24 +16,40 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import spock.lang.Shared
 import spock.lang.Specification;
 
 class CatsSearchProviderSpec extends Specification {
   def catsInMemorySearchProperties = new CatsInMemorySearchProperties()
-  def cache = Mock(Cache)
+  def cache = Mock(ProviderCache)
+
+  def instanceAgent = Stub(CachingAgent) {
+    getProvidedDataTypes() >> [ new AgentDataType("instances", AgentDataType.Authority.AUTHORITATIVE)]
+  }
 
   def providers = [
-    Mock(SearchableProvider) {
+    Stub(SearchableProvider) {
+      supportsSearch('instances', _) >> true
+      getAgents() >> [ instanceAgent ]
       parseKey(_) >> { String k -> return null }
     },
-    Mock(SearchableProvider) {
+    Stub(SearchableProvider) {
+      supportsSearch('instances', _) >> true
+      getAgents() >> [ instanceAgent ]
       parseKey(_) >> { String k -> return ["originalKey": k] }
     }
   ]
 
-  def catsSearchProvider = new CatsSearchProvider(catsInMemorySearchProperties, cache, providers)
+  def providerRegistry = Stub(ProviderRegistry) {
+    getProviders() >> providers
+    getProviderCache(_) >> cache
+  }
+
+  def catsSearchProvider = new CatsSearchProvider(catsInMemorySearchProperties, cache, providers, providerRegistry)
 
   @Shared
   def instanceIdentifiers = [
@@ -46,12 +62,14 @@ class CatsSearchProviderSpec extends Specification {
 
 
   def "should parse instance identifiers"() {
+    given:
+    cache.getIdentifiers("instances") >> { return instanceIdentifiers }
+    cache.existingIdentifiers("instances", _ as Collection<String>) >> { t, i -> return i }
+
     when:
     catsSearchProvider.run()
 
     then:
-    cache.getIdentifiers("instances") >> { return instanceIdentifiers }
-
     catsSearchProvider.cachedIdentifiersByType.get() == [
       "instances": instanceIdentifiers.collect {
         [

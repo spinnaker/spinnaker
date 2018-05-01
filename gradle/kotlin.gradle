@@ -16,8 +16,6 @@
 
 apply plugin: "nebula.kotlin"
 
-def kotlinVersion = "${spinnaker.version('kotlin')}"
-
 configurations.all {
   resolutionStrategy {
     eachDependency { details ->
