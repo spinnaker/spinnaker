@@ -67,6 +67,9 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
   @Autowired
   KubernetesV2RedisService redisService;
 
+  @Autowired
+  KubernetesV2RoscoService roscoService;
+
   @Override
   public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     DaemonTaskHandler.newStage("Invoking kubectl");
