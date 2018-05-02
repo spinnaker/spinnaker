@@ -32,7 +32,7 @@ Fiat Service Accounts are groups that act as a user during automated triggers (s
 ---
 
 ### User Role/Authorization Providers
-There are currently two user role providers: Google Groups (through a Google Apps for Work organization) and GitHub Teams. If you would like to see additional providers, see [this issue](https://github.com/spinnaker/fiat/issues/30). 
+There are currently two user role providers: Google Groups (through a Google Apps for Work organization) and GitHub Teams. If you would like to see additional providers, see [this issue](https://github.com/spinnaker/spinnaker/issues/2437).
 
 ---
 
