@@ -68,8 +68,9 @@ class ServerGroupController {
                             @PathVariable String account,
                             @PathVariable String region,
                             @PathVariable String serverGroupName,
-                            @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    def serverGroupDetails = serverGroupService.getForApplicationAndAccountAndRegion(applicationName, account, region, serverGroupName, sourceApp)
+                            @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp,
+                            @RequestParam(value = "includeDetails", defaultValue = "true") String includeDetails) {
+    def serverGroupDetails = serverGroupService.getForApplicationAndAccountAndRegion(applicationName, account, region, serverGroupName, sourceApp, includeDetails)
     if (!serverGroupDetails) {
       throw new NotFoundException("Server group not found (id: ${serverGroupName})")
     }

@@ -63,12 +63,12 @@ class ServerGroupService {
     } execute()
   }
 
-  Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName, String selectorKey) {
+  Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName, String selectorKey, String includeDetails) {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       try {
         def service = clouddriverServiceSelector.select(selectorKey)
         def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
-        def serverGroupDetails = service.getServerGroupDetails(applicationName, account, region, serverGroupName)
+        def serverGroupDetails = service.getServerGroupDetails(applicationName, account, region, serverGroupName, includeDetails)
         def serverGroupContext = serverGroupDetails.collectEntries {
           return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
         } as Map<String, String>

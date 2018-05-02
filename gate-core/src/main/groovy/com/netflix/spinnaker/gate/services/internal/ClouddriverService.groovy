@@ -163,7 +163,8 @@ interface ClouddriverService {
   Map getServerGroupDetails(@Path("name") String appName,
                             @Path("account") String account,
                             @Path("region") String region,
-                            @Path("serverGroupName") String serverGroupName)
+                            @Path("serverGroupName") String serverGroupName,
+                            @Query("includeDetails") String includeDetails)
 
   @Headers("Accept: application/json")
   @GET("/applications/{name}/clusters/{account}/{cluster}/{type}/loadBalancers")

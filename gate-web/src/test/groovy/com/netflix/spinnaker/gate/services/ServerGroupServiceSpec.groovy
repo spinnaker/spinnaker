@@ -31,7 +31,7 @@ class ServerGroupServiceSpec extends Specification {
         clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
           1 * select(_) >> {
             Mock(ClouddriverService) {
-              1 * getServerGroupDetails(_, _, _, _) >> { return [cloudProvider: "aws"] }
+              1 * getServerGroupDetails(_, _, _, _ ,_) >> { return [cloudProvider: "aws"] }
               1 * getAccount(_) >> { return [awsAccount: "prod"] }
             }
           }
@@ -47,7 +47,7 @@ class ServerGroupServiceSpec extends Specification {
     )
 
     expect:
-    service.getForApplicationAndAccountAndRegion("application", "account", "region", "serverGroup", null).insightActions*.url == [
+    service.getForApplicationAndAccountAndRegion("application", "account", "region", "serverGroup", null, "true").insightActions*.url == [
         "application-account-region-serverGroup-aws-{DNE}-prod"
     ]
   }
