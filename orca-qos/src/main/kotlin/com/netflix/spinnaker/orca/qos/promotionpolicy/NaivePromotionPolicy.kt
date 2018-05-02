@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.qos.strategy.naive
+package com.netflix.spinnaker.orca.qos.promotionpolicy
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.qos.PromotionPolicy
@@ -22,12 +22,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("qos.strategy.naive.enabled")
+@ConditionalOnProperty("qos.promotionPolicy.naive.enabled")
 class NaivePromotionPolicy : PromotionPolicy {
 
   override fun apply(candidates: List<Execution>) =
    PromotionResult(
-     source = javaClass.simpleName,
      candidates = candidates.subList(0, 1),
      finalized = false,
      reason = "Naive policy promotes 1 execution every cycle"

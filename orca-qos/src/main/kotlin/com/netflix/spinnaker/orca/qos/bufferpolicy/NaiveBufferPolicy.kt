@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.qos.strategy.naive
+package com.netflix.spinnaker.orca.qos.bufferpolicy
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.qos.BufferAction
@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty("qos.strategy.naive.enabled")
+@ConditionalOnProperty("qos.bufferPolicy.naive.enabled")
 class NaiveBufferPolicy : BufferPolicy {
 
   override fun apply(execution: Execution): BufferResult = BufferResult(

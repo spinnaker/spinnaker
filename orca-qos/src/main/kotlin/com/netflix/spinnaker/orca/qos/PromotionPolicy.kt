@@ -38,7 +38,6 @@ interface PromotionPolicy : Ordered {
  * @param reason A human-friendly reason for the promotion result.
  */
 data class PromotionResult(
-  val source: String,
   val candidates: List<Execution>,
   val finalized: Boolean,
   val reason: String
