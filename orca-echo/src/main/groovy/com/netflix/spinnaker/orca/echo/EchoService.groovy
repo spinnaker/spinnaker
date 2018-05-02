@@ -59,7 +59,8 @@ interface EchoService {
       HIPCHAT,
       EMAIL,
       SMS,
-      PAGER_DUTY
+      PAGER_DUTY,
+      JIRA
     }
 
     static enum Severity {
