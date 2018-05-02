@@ -15,6 +15,11 @@ RUN apk --no-cache add --update bash wget  && \
 
 ENV PATH "/packer:$PATH"
 
+RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get && \
+  chmod +x get && \
+  ./get && \
+  rm get
+
 RUN adduser -D -S spinnaker
 
 USER spinnaker

@@ -25,5 +25,13 @@ install_packer() {
   fi
 }
 
+install_helm() {
+  wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get
+  chmod +x get
+  ./get
+  rm get
+}
+
 install_packer
+install_helm
 install --mode=755 --owner=spinnaker --group=spinnaker --directory  /var/log/spinnaker/rosco

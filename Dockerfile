@@ -15,6 +15,11 @@ RUN GRADLE_USER_HOME=cache ./gradlew buildDeb -x test && \
   unzip packer_1.2.2_linux_amd64.zip && \
   rm -rf /workdir
 
+RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get && \
+  chmod +x get && \
+  ./get && \
+  rm get
+
 ENV PATH "/packer:$PATH"
 
 CMD ["/opt/rosco/bin/rosco"]
