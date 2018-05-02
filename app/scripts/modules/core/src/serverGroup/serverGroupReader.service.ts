@@ -39,6 +39,7 @@ export class ServerGroupReader {
       .all(account)
       .all(region)
       .one(serverGroupName)
+      .withParams({ includeDetails: 'false' })
       .get();
   }
 }
