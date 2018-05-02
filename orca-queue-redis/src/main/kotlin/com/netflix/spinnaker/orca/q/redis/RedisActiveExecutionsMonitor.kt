@@ -30,8 +30,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
-import redis.clients.jedis.Jedis
-import redis.clients.util.Pool
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -56,12 +54,11 @@ class RedisActiveExecutionsMonitor(
   private val objectMapper: ObjectMapper,
   private val registry: Registry,
   @Value("\${queue.monitor.activeExecutions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long,
-  @Value("\${queue.monitor.activeExecutions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long
+  @Value("\${queue.monitor.activeExecutions.cleanup.frequency.ms:300000}") cleanupFrequencyMs: Long,
+  @Value("\${queue.monitor.activeExecutions.key:monitor.activeExecutions}") val redisKey: String
 ) : ApplicationListener<ExecutionEvent> {
 
   private val log = LoggerFactory.getLogger(javaClass)
-
-  private val REDIS_KEY = "monitor.activeExecutions"
 
   private val snapshot: MutableMap<Id, AtomicLong> = ConcurrentHashMap()
 
@@ -151,7 +148,7 @@ class RedisActiveExecutionsMonitor(
     log.info("Cleaning up ${orphans.size} orphaned active executions")
     if (orphans.isNotEmpty()) {
       redisClientDelegate.withCommandsClient { redis ->
-        redis.hdel(REDIS_KEY, *orphans)
+        redis.hdel(redisKey, *orphans)
       }
     }
   }
@@ -174,7 +171,7 @@ class RedisActiveExecutionsMonitor(
     }
 
     redisClientDelegate.withCommandsClient{ redis ->
-      redis.hset(REDIS_KEY, execution.id, objectMapper.writeValueAsString(ActiveExecution(
+      redis.hset(redisKey, execution.id, objectMapper.writeValueAsString(ActiveExecution(
         id = execution.id,
         type = execution.type,
         application = execution.application
@@ -184,13 +181,13 @@ class RedisActiveExecutionsMonitor(
 
   private fun completeExecution(executionId: String) {
     redisClientDelegate.withCommandsClient { redis ->
-      redis.hdel(REDIS_KEY, executionId)
+      redis.hdel(redisKey, executionId)
     }
   }
 
   private fun getActiveExecutions() =
     redisClientDelegate.withCommandsClient<List<ActiveExecution>> { redis ->
-      redis.hgetAll(REDIS_KEY).map { objectMapper.readValue(it.value, ActiveExecution::class.java) }
+      redis.hgetAll(redisKey).map { objectMapper.readValue(it.value, ActiveExecution::class.java) }
     }
 
   private fun ActiveExecution.getMetricId() =
