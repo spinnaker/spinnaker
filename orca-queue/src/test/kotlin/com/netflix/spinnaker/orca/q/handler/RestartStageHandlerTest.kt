@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELIN
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
-import com.netflix.spinnaker.orca.queueing.PipelineQueue
+import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
@@ -41,7 +41,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
-  val pipelineQueue: PipelineQueue = mock()
+  val pendingExecutionService: PendingExecutionService = mock()
   val clock = fixedClock()
 
   subject(GROUP) {
@@ -53,7 +53,7 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
         stageWithSyntheticBefore,
         stageWithNestedSynthetics
       ),
-      pipelineQueue,
+      pendingExecutionService,
       clock
     )
   }

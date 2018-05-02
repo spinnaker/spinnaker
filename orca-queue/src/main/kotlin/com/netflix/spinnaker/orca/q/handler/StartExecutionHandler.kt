@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
-import com.netflix.spinnaker.orca.queueing.PipelineQueue
+import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Queue
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.Logger
@@ -40,7 +40,7 @@ import java.time.Instant
 class StartExecutionHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
-  private val pipelineQueue: PipelineQueue,
+  private val pendingExecutionService: PendingExecutionService,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) : OrcaMessageHandler<StartExecution> {
@@ -55,7 +55,7 @@ class StartExecutionHandler(
         if (execution.shouldQueue()) {
           execution.pipelineConfigId?.let {
             log.info("Queueing {} {} {}", execution.application, execution.name, execution.id)
-            pipelineQueue.enqueue(it, message)
+            pendingExecutionService.enqueue(it, message)
           }
         } else {
           start(execution)

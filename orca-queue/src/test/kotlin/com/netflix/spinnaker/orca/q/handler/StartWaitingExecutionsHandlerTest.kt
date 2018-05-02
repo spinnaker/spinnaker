@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
-import com.netflix.spinnaker.orca.queueing.PipelineQueue
+import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
@@ -36,7 +36,7 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
 
   val queue = mock<Queue>()
   val repository = mock<ExecutionRepository>()
-  val pipelineQueue = mock<PipelineQueue>()
+  val pipelineQueue = mock<PendingExecutionService>()
 
   fun resetMocks() {
     reset(queue, repository)

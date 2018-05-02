@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartStage
-import com.netflix.spinnaker.orca.queueing.PipelineQueue
+import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,7 +35,7 @@ class RestartStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
-  private val pipelineQueue: PipelineQueue,
+  private val pendingExecutionService: PendingExecutionService,
   private val clock: Clock
 ) : OrcaMessageHandler<RestartStage>, StageBuilderAware {
 
@@ -49,7 +49,7 @@ class RestartStageHandler(
         // this pipeline is already running and has limitConcurrent = true
         stage.execution.pipelineConfigId?.let {
           log.info("Queueing restart of {} {} {}", stage.execution.application, stage.execution.name, stage.execution.id)
-          pipelineQueue.enqueue(it, message)
+          pendingExecutionService.enqueue(it, message)
         }
       } else {
         // If RestartStage is requested for a synthetic stage, operate on its parent

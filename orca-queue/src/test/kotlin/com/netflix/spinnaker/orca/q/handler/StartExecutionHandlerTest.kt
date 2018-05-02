@@ -27,8 +27,8 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.orca.q.singleTaskStage
-import com.netflix.spinnaker.orca.queueing.PipelineQueue
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.time.fixedClock
@@ -45,12 +45,12 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
-  val pipelineQueue: PipelineQueue = mock()
+  val pendingExecutionService: PendingExecutionService = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
 
   subject(GROUP) {
-    StartExecutionHandler(queue, repository, pipelineQueue, publisher, clock)
+    StartExecutionHandler(queue, repository, pendingExecutionService, publisher, clock)
   }
 
   fun resetMocks() = reset(queue, repository, publisher)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.queueing
+package com.netflix.spinnaker.orca.q.redis.pending
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartExecution
-import com.netflix.spinnaker.orca.queueing.RedisPipelineQueue
 import com.netflix.spinnaker.q.Message
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
@@ -31,18 +30,18 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.*
 import java.util.*
 
-internal object RedisPipelineQueueTest : Spek({
+internal object RedisPendingExecutionServiceTest : Spek({
 
   lateinit var redis: EmbeddedRedis
   val mapper = ObjectMapper().apply {
     registerModule(KotlinModule())
     registerSubtypes(StartExecution::class.java, RestartStage::class.java)
   }
-  lateinit var subject: RedisPipelineQueue
+  lateinit var subject: RedisPendingExecutionService
 
   beforeGroup {
     redis = EmbeddedRedis.embed()
-    subject = RedisPipelineQueue(redis.pool, mapper)
+    subject = RedisPendingExecutionService(redis.pool, mapper)
   }
 
   afterGroup {

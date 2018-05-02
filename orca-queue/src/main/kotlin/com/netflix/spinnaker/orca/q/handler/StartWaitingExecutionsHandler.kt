@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
-import com.netflix.spinnaker.orca.queueing.PipelineQueue
+import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component
 class StartWaitingExecutionsHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
-  private val pipelineQueue: PipelineQueue
+  private val pendingExecutionService: PendingExecutionService
 ) : OrcaMessageHandler<StartWaitingExecutions> {
 
   private val log: Logger get() = LoggerFactory.getLogger(javaClass)
@@ -38,9 +38,9 @@ class StartWaitingExecutionsHandler(
   override fun handle(message: StartWaitingExecutions) {
     if (message.purgeQueue) {
       // when purging the queue, run the latest message and discard the rest
-      pipelineQueue.popNewest(message.pipelineConfigId)
+      pendingExecutionService.popNewest(message.pipelineConfigId)
         .also { _ ->
-          pipelineQueue.purge(message.pipelineConfigId) { purgedMessage ->
+          pendingExecutionService.purge(message.pipelineConfigId) { purgedMessage ->
             when (purgedMessage) {
               is StartExecution -> {
                 log.info("Dropping queued pipeline {} {}", purgedMessage.application, purgedMessage.executionId)
@@ -55,7 +55,7 @@ class StartWaitingExecutionsHandler(
         }
     } else {
       // when not purging the queue, run the messages in the order they came in
-      pipelineQueue.popOldest(message.pipelineConfigId)
+      pendingExecutionService.popOldest(message.pipelineConfigId)
     }
       ?.let {
         // spoiler, it always is!

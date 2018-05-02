@@ -22,6 +22,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.q.redis.migration.ExecutionTypeDeserializer
 import com.netflix.spinnaker.orca.q.redis.migration.OrcaToKeikoSerializationMigrator
+import com.netflix.spinnaker.orca.q.redis.pending.RedisPendingExecutionService
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
 import com.netflix.spinnaker.q.redis.RedisDeadMessageHandler
@@ -70,4 +71,12 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
   ): RedisQueue {
     return super.queue(redisPool, redisQueueProperties, clock, deadMessageHandler, publisher, mapper, serializationMigrator)
   }
+
+  @Bean
+  fun pendingExecutionService(
+    @Qualifier("queueRedisPool") jedisPool: Pool<Jedis>,
+    mapper: ObjectMapper
+  ) =
+    RedisPendingExecutionService(jedisPool, mapper)
+
 }

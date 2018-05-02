@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.queueing
+package com.netflix.spinnaker.orca.q.redis.pending
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.orca.q.pending.PendingExecutionService
 import com.netflix.spinnaker.q.Message
-import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 
-@Component
-class RedisPipelineQueue(
+class RedisPendingExecutionService(
   private val pool: Pool<Jedis>,
   private val mapper: ObjectMapper
-) : PipelineQueue {
+) : PendingExecutionService {
   override fun enqueue(pipelineConfigId: String, message: Message) {
     pool.resource.use { redis ->
       redis.lpush(listName(pipelineConfigId), mapper.writeValueAsString(message))
