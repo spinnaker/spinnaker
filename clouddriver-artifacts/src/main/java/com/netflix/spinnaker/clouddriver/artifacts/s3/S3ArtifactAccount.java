@@ -25,4 +25,6 @@ import lombok.EqualsAndHashCode;
 public class S3ArtifactAccount extends ArtifactAccount
 {
   private String name;
+  private String apiEndpoint;
+  private String apiRegion;
 }

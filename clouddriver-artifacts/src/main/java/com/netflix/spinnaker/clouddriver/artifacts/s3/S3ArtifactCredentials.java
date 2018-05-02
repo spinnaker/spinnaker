@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.artifacts.s3;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
+import org.apache.commons.lang3.StringUtils;
 
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -30,9 +33,24 @@ import java.io.InputStream;
 @Data
 public class S3ArtifactCredentials implements ArtifactCredentials {
   private final String name;
+  private final String apiEndpoint;
+  private final String apiRegion;
 
   public S3ArtifactCredentials(S3ArtifactAccount account) throws IllegalArgumentException {
     name = account.getName();
+    apiEndpoint = account.getApiEndpoint();
+    apiRegion = account.getApiRegion();
+  }
+
+  protected AmazonS3 getS3Client() {
+    AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+
+    if (!StringUtils.isEmpty(apiEndpoint)) {
+      AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration(apiEndpoint, apiRegion);
+      builder.setEndpointConfiguration(endpoint);
+    }
+
+    return builder.build();
   }
 
   @Override
@@ -48,7 +66,7 @@ public class S3ArtifactCredentials implements ArtifactCredentials {
     }
     String bucketName = reference.substring(0, slash);
     String path = reference.substring(slash + 1);
-    S3Object s3obj = AmazonS3ClientBuilder.defaultClient().getObject(bucketName, path);
+    S3Object s3obj = getS3Client().getObject(bucketName, path);
     return s3obj.getObjectContent();
   }
 
