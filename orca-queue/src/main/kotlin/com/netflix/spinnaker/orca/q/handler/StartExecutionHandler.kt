@@ -22,10 +22,10 @@ import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.ext.initialStages
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.queueing.PipelineQueue
 import com.netflix.spinnaker.q.Queue
 import net.logstash.logback.argument.StructuredArguments.value
 import org.slf4j.Logger
@@ -40,6 +40,7 @@ import java.time.Instant
 class StartExecutionHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
+  private val pipelineQueue: PipelineQueue,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
   private val clock: Clock
 ) : OrcaMessageHandler<StartExecution> {
@@ -52,7 +53,10 @@ class StartExecutionHandler(
     message.withExecution { execution ->
       if (execution.status == NOT_STARTED && !execution.isCanceled) {
         if (execution.shouldQueue()) {
-          log.info("Queueing {} {} {}", execution.application, execution.name, execution.id)
+          execution.pipelineConfigId?.let {
+            log.info("Queueing {} {} {}", execution.application, execution.name, execution.id)
+            pipelineQueue.enqueue(it, message)
+          }
         } else {
           start(execution)
         }
@@ -98,20 +102,6 @@ class StartExecutionHandler(
         value("executionId", execution.id),
         value("application", execution.application))
     }
-  }
-
-  private fun Execution.shouldQueue(): Boolean {
-    if (!isLimitConcurrent) {
-      return false
-    }
-    return pipelineConfigId?.let { configId ->
-      val criteria = ExecutionCriteria().setLimit(1).setStatuses(RUNNING)
-      !repository
-        .retrievePipelinesForPipelineConfigId(configId, criteria)
-        .isEmpty
-        .toBlocking()
-        .first()
-    } == true
   }
 
   private fun Execution.isAfterStartTimeExpiry() =

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.ext.parent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -85,5 +86,19 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
         queue.push(CompleteExecution(execution))
       }
     }
+  }
+
+  fun Execution.shouldQueue(): Boolean {
+    if (!isLimitConcurrent) {
+      return false
+    }
+    return pipelineConfigId?.let { configId ->
+      val criteria = ExecutionRepository.ExecutionCriteria().setLimit(1).setStatuses(ExecutionStatus.RUNNING)
+      !repository
+        .retrievePipelinesForPipelineConfigId(configId, criteria)
+        .isEmpty
+        .toBlocking()
+        .first()
+    } == true
   }
 }

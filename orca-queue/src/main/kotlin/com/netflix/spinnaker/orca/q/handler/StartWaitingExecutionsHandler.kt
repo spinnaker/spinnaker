@@ -16,12 +16,9 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import com.netflix.spinnaker.orca.q.CancelExecution
-import com.netflix.spinnaker.orca.q.StartExecution
-import com.netflix.spinnaker.orca.q.StartWaitingExecutions
+import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.queueing.PipelineQueue
 import com.netflix.spinnaker.q.Queue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,7 +27,8 @@ import org.springframework.stereotype.Component
 @Component
 class StartWaitingExecutionsHandler(
   override val queue: Queue,
-  override val repository: ExecutionRepository
+  override val repository: ExecutionRepository,
+  private val pipelineQueue: PipelineQueue
 ) : OrcaMessageHandler<StartWaitingExecutions> {
 
   private val log: Logger get() = LoggerFactory.getLogger(javaClass)
@@ -38,34 +36,33 @@ class StartWaitingExecutionsHandler(
   override val messageType = StartWaitingExecutions::class.java
 
   override fun handle(message: StartWaitingExecutions) {
-
-    val criteria = ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
-    repository
-      .retrievePipelinesForPipelineConfigId(message.pipelineConfigId, criteria)
-      .toBlocking()
-      .toIterable()
-      .let { pipelines ->
-        if (message.purgeQueue) {
-          pipelines
-            .maxBy { it.buildTime ?: 0L }
-            ?.let { newest ->
-              log.info("Starting queued pipeline {} {} {}", newest.application, newest.name, newest.id)
-              queue.push(StartExecution(newest))
-              pipelines
-                .filter { it.id != newest.id }
-                .forEach {
-                  log.info("Dropping queued pipeline {} {} {}", it.application, it.name, it.id)
-                  queue.push(CancelExecution(it))
-                }
+    if (message.purgeQueue) {
+      // when purging the queue, run the latest message and discard the rest
+      pipelineQueue.popNewest(message.pipelineConfigId)
+        .also { _ ->
+          pipelineQueue.purge(message.pipelineConfigId) { purgedMessage ->
+            when (purgedMessage) {
+              is StartExecution -> {
+                log.info("Dropping queued pipeline {} {}", purgedMessage.application, purgedMessage.executionId)
+                queue.push(CancelExecution(purgedMessage))
+              }
+              is RestartStage -> {
+                log.info("Cancelling restart of {} {}", purgedMessage.application, purgedMessage.executionId)
+                // don't need to do anything else
+              }
             }
-        } else {
-          pipelines
-            .minBy { it.buildTime ?: 0L }
-            ?.let { oldest ->
-              log.info("Starting queued pipeline {} {} {}", oldest.application, oldest.name, oldest.id)
-              queue.push(StartExecution(oldest))
-            }
+          }
         }
+    } else {
+      // when not purging the queue, run the messages in the order they came in
+      pipelineQueue.popOldest(message.pipelineConfigId)
+    }
+      ?.let {
+        // spoiler, it always is!
+        if (it is ExecutionLevel) {
+          log.info("Starting queued pipeline {} {} {}", it.application, it.executionId)
+        }
+        queue.push(it)
       }
   }
 }

@@ -16,25 +16,18 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.fixture.pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
+import com.netflix.spinnaker.orca.queueing.PipelineQueue
+import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.Queue
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
-import rx.Observable
-import rx.Observable.empty
-import rx.Observable.just
 import java.time.Instant.now
 import java.util.*
 import kotlin.math.absoluteValue
@@ -43,13 +36,14 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
 
   val queue = mock<Queue>()
   val repository = mock<ExecutionRepository>()
+  val pipelineQueue = mock<PipelineQueue>()
 
   fun resetMocks() {
     reset(queue, repository)
   }
 
   subject(GROUP) {
-    StartWaitingExecutionsHandler(queue, repository)
+    StartWaitingExecutionsHandler(queue, repository, pipelineQueue)
   }
 
   val configId = UUID.randomUUID().toString()
@@ -57,12 +51,7 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
   describe("starting waiting pipelines") {
     given("there are no pipelines waiting") {
       beforeGroup {
-        whenever(
-          repository.retrievePipelinesForPipelineConfigId(
-            configId,
-            ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
-          )
-        ) doReturn empty<Execution>()
+        whenever(pipelineQueue.depth(configId)) doReturn 0
       }
 
       afterGroup(::resetMocks)
@@ -83,12 +72,8 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
 
       given("the queue should not be purged") {
         beforeGroup {
-          whenever(
-            repository.retrievePipelinesForPipelineConfigId(
-              configId,
-              ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
-            )
-          ) doReturn just(waitingPipeline)
+          whenever(pipelineQueue.depth(configId)) doReturn 1
+          whenever(pipelineQueue.popOldest(configId)) doReturn StartExecution(waitingPipeline)
         }
 
         afterGroup(::resetMocks)
@@ -104,12 +89,8 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
 
       given("the queue should be purged") {
         beforeGroup {
-          whenever(
-            repository.retrievePipelinesForPipelineConfigId(
-              configId,
-              ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
-            )
-          ) doReturn just(waitingPipeline)
+          whenever(pipelineQueue.depth(configId)) doReturn 1
+          whenever(pipelineQueue.popNewest(configId)) doReturn StartExecution(waitingPipeline)
         }
 
         afterGroup(::resetMocks)
@@ -142,12 +123,9 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
 
       given("the queue should not be purged") {
         beforeGroup {
-          whenever(
-            repository.retrievePipelinesForPipelineConfigId(
-              configId,
-              ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
-            )
-          ) doReturn Observable.from(waitingPipelines)
+          whenever(pipelineQueue.depth(configId)) doReturn waitingPipelines.size
+          whenever(pipelineQueue.popOldest(configId)) doReturn StartExecution(oldest)
+          whenever(pipelineQueue.popNewest(configId)) doReturn StartExecution(newest)
         }
 
         afterGroup(::resetMocks)
@@ -167,12 +145,16 @@ object StartWaitingExecutionsHandlerTest : SubjectSpek<StartWaitingExecutionsHan
 
       given("the queue should be purged") {
         beforeGroup {
-          whenever(
-            repository.retrievePipelinesForPipelineConfigId(
-              configId,
-              ExecutionCriteria().setStatuses(NOT_STARTED).setLimit(Int.MAX_VALUE)
-            )
-          ) doReturn Observable.from(waitingPipelines)
+          whenever(pipelineQueue.depth(configId)) doReturn waitingPipelines.size
+          whenever(pipelineQueue.popOldest(configId)) doReturn StartExecution(oldest)
+          whenever(pipelineQueue.popNewest(configId)) doReturn StartExecution(newest)
+          argumentCaptor<(Message) -> Unit>().apply {
+            whenever(pipelineQueue.purge(eq(configId), capture())).then {
+              (waitingPipelines - newest).forEach {
+                firstValue.invoke(StartExecution(it))
+              }
+            }
+          }
         }
 
         afterGroup(::resetMocks)

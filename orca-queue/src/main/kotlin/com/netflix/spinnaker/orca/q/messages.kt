@@ -238,6 +238,9 @@ data class RestartStage(
 ) : Message(), StageLevel {
   constructor(source: Execution, stageId: String, user: String?) :
     this(source.type, source.id, source.application, stageId, user)
+
+  constructor(stage: Stage, user: String?) :
+    this(stage.execution.type, stage.execution.id, stage.execution.application, stage.id, user)
 }
 
 @JsonTypeName("resumeStage")
@@ -324,6 +327,9 @@ data class CancelExecution(
 
   constructor(source: Execution) :
     this(source.type, source.id, source.application, null, null)
+
+  constructor(source: ExecutionLevel) :
+    this(source.executionType, source.executionId, source.application, null, null)
 }
 
 @JsonTypeName("startWaitingExecutions")

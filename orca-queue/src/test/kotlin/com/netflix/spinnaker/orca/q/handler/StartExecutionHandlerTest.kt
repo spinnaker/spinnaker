@@ -28,15 +28,13 @@ import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.singleTaskStage
+import com.netflix.spinnaker.orca.queueing.PipelineQueue
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
 import org.assertj.core.api.Assertions.assertThat
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
+import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
@@ -47,11 +45,12 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
+  val pipelineQueue: PipelineQueue = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
 
   subject(GROUP) {
-    StartExecutionHandler(queue, repository, publisher, clock)
+    StartExecutionHandler(queue, repository, pipelineQueue, publisher, clock)
   }
 
   fun resetMocks() = reset(queue, repository, publisher)

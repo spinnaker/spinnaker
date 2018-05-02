@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.orca.q.redis
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.RedisOrcaQueueConfiguration
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
 import com.netflix.spinnaker.orca.config.JedisConfiguration
-import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.TestConfig
+import com.netflix.spinnaker.orca.queueing.RedisPipelineQueue
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.junit.runner.RunWith
 import org.springframework.boot.test.context.SpringBootTest
@@ -40,6 +41,10 @@ class RedisTestConfig {
   @Bean
   fun redisClientSelector(redisClientDelegates: List<RedisClientDelegate>) =
     RedisClientSelector(redisClientDelegates)
+
+  @Bean
+  fun pipelineQueue(jedisPool: Pool<Jedis>, mapper: ObjectMapper) =
+    RedisPipelineQueue(jedisPool, mapper)
 }
 
 /**

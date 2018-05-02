@@ -23,7 +23,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.queueing.PipelineQueue
 import com.netflix.spinnaker.q.Queue
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Clock
 
@@ -32,21 +35,32 @@ class RestartStageHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
+  private val pipelineQueue: PipelineQueue,
   private val clock: Clock
 ) : OrcaMessageHandler<RestartStage>, StageBuilderAware {
 
   override val messageType = RestartStage::class.java
 
+  private val log: Logger get() = LoggerFactory.getLogger(javaClass)
+
   override fun handle(message: RestartStage) {
     message.withStage { stage ->
-      // If RestartStage is requested for a synthetic stage, operate on its parent
-      val topStage = stage.topLevelStage
-      val startMessage = StartStage(message.executionType, message.executionId, message.application, topStage.id)
-      if (topStage.status.isComplete) {
-        topStage.addRestartDetails(message.user)
-        topStage.reset()
-        repository.updateStatus(topStage.execution.type, topStage.execution.id, RUNNING)
-        queue.push(StartStage(startMessage))
+      if (stage.execution.shouldQueue()) {
+        // this pipeline is already running and has limitConcurrent = true
+        stage.execution.pipelineConfigId?.let {
+          log.info("Queueing restart of {} {} {}", stage.execution.application, stage.execution.name, stage.execution.id)
+          pipelineQueue.enqueue(it, message)
+        }
+      } else {
+        // If RestartStage is requested for a synthetic stage, operate on its parent
+        val topStage = stage.topLevelStage
+        val startMessage = StartStage(message.executionType, message.executionId, message.application, topStage.id)
+        if (topStage.status.isComplete) {
+          topStage.addRestartDetails(message.user)
+          topStage.reset()
+          repository.updateStatus(topStage.execution.type, topStage.execution.id, RUNNING)
+          queue.push(StartStage(startMessage))
+        }
       }
     }
   }
