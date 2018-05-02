@@ -38,7 +38,7 @@ class CancelExecutionHandler(
 
   override fun handle(message: CancelExecution) {
     message.withExecution { execution ->
-      repository.cancel(execution.id, message.user, message.reason)
+      repository.cancel(execution.type, execution.id, message.user, message.reason)
 
       // Resume any paused stages so that their RunTaskHandler gets executed
       // and handles the `canceled` flag.

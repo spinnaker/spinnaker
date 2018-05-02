@@ -79,10 +79,10 @@ class StartExecutionHandler(
       val initialStages = execution.initialStages()
       if (initialStages.isEmpty()) {
         log.warn("No initial stages found (executionId: ${execution.id})")
-        repository.updateStatus(execution.id, TERMINAL)
+        repository.updateStatus(execution.type, execution.id, TERMINAL)
         publisher.publishEvent(ExecutionComplete(this, execution.type, execution.id, TERMINAL))
       } else {
-        repository.updateStatus(execution.id, RUNNING)
+        repository.updateStatus(execution.type, execution.id, RUNNING)
         initialStages.forEach { queue.push(StartStage(it)) }
         publisher.publishEvent(ExecutionStarted(this, execution.type, execution.id))
       }

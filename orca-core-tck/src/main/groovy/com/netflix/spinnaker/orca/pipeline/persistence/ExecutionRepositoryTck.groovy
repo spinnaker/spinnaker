@@ -236,7 +236,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.updateStatus(execution.id, RUNNING)
+    repository.updateStatus(execution.type, execution.id, RUNNING)
 
     then:
     with(repository.retrieve(execution.type, execution.id)) {
@@ -264,7 +264,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.updateStatus(execution.id, status)
+    repository.updateStatus(execution.type, execution.id, status)
 
     then:
     with(repository.retrieve(execution.type, execution.id)) {
@@ -290,7 +290,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.updateStatus(execution.id, status)
+    repository.updateStatus(execution.type, execution.id, status)
 
     then:
     with(repository.retrieve(execution.type, execution.id)) {
@@ -314,7 +314,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.cancel(execution.id)
+    repository.cancel(execution.type, execution.id)
 
 
     then:
@@ -328,7 +328,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     given:
     def execution = pipeline()
     repository.store(execution)
-    repository.updateStatus(execution.id, RUNNING)
+    repository.updateStatus(execution.type, execution.id, RUNNING)
 
     expect:
     with(repository.retrieve(execution.type, execution.id)) {
@@ -336,7 +336,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.cancel(execution.id)
+    repository.cancel(execution.type, execution.id)
 
 
     then:
@@ -352,7 +352,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     def execution = pipeline()
     def user = "user@netflix.com"
     repository.store(execution)
-    repository.updateStatus(execution.id, RUNNING)
+    repository.updateStatus(execution.type, execution.id, RUNNING)
 
     expect:
     with(repository.retrieve(execution.type, execution.id)) {
@@ -360,7 +360,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.cancel(execution.id, user, reason)
+    repository.cancel(execution.type, execution.id, user, reason)
 
 
     then:
@@ -382,10 +382,10 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     given:
     def execution = pipeline()
     repository.store(execution)
-    repository.updateStatus(execution.id, RUNNING)
+    repository.updateStatus(execution.type, execution.id, RUNNING)
 
     when:
-    repository.pause(execution.id, "user@netflix.com")
+    repository.pause(execution.type, execution.id, "user@netflix.com")
 
     then:
     with(repository.retrieve(execution.type, execution.id)) {
@@ -398,7 +398,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     }
 
     when:
-    repository.resume(execution.id, "another@netflix.com")
+    repository.resume(execution.type, execution.id, "another@netflix.com")
 
     then:
     with(repository.retrieve(execution.type, execution.id)) {
@@ -417,10 +417,10 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     given:
     def execution = pipeline()
     repository.store(execution)
-    repository.updateStatus(execution.id, status)
+    repository.updateStatus(execution.type, execution.id, status)
 
     when:
-    repository."${method}"(execution.id, "user@netflix.com")
+    repository."${method}"(execution.type, execution.id, "user@netflix.com")
 
     then:
     def e = thrown(IllegalStateException)
@@ -439,18 +439,18 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     given:
     def execution = pipeline()
     repository.store(execution)
-    repository.updateStatus(execution.id, RUNNING)
+    repository.updateStatus(execution.type, execution.id, RUNNING)
 
     when:
-    repository.pause(execution.id, "user@netflix.com")
+    repository.pause(execution.type, execution.id, "user@netflix.com")
     execution = repository.retrieve(execution.type, execution.id)
 
     then:
     execution.paused.isPaused()
 
     when:
-    repository.updateStatus(execution.id, status)
-    repository.resume(execution.id, "user@netflix.com", true)
+    repository.updateStatus(execution.type, execution.id, status)
+    repository.resume(execution.type, execution.id, "user@netflix.com", true)
     execution = repository.retrieve(execution.type, execution.id)
 
     then:
@@ -467,7 +467,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
       trigger = new DefaultTrigger("manual", "covfefe")
     }
     repository.store(execution)
-    repository.updateStatus(execution.id, RUNNING)
+    repository.updateStatus(execution.type, execution.id, RUNNING)
 
     when:
     def result = repository.retrieveOrchestrationForCorrelationId('covfefe')
@@ -476,7 +476,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     result.id == execution.id
 
     when:
-    repository.updateStatus(execution.id, SUCCEEDED)
+    repository.updateStatus(execution.type, execution.id, SUCCEEDED)
     repository.retrieveOrchestrationForCorrelationId('covfefe')
 
     then:

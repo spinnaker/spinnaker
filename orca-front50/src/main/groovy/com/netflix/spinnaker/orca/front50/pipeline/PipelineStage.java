@@ -80,7 +80,7 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
           Execution childPipeline = executionRepository.retrieve(PIPELINE, executionId);
           if (!childPipeline.isCanceled()) {
             // flag the child pipeline as canceled (actual cancellation will happen asynchronously)
-            executionRepository.cancel(executionId, "parent pipeline", null);
+            executionRepository.cancel(stage.getExecution().getType(), executionId, "parent pipeline", null);
           }
         }
       }

@@ -74,7 +74,7 @@ object ConfigurationErrorHandlerTest : SubjectSpek<ConfigurationErrorHandler>({
       }
 
       it("marks the execution as terminal") {
-        verify(repository).updateStatus(message.executionId, TERMINAL)
+        verify(repository).updateStatus(PIPELINE, message.executionId, TERMINAL)
       }
 
       it("does not push any messages to the queue") {

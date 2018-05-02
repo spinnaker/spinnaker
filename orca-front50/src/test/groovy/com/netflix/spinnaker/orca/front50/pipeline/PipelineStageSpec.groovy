@@ -45,7 +45,7 @@ class PipelineStageSpec extends Specification {
     pipelineStage.cancel(stage)
 
     then:
-    (shouldCancel ? 1 : 0) * executionRepository.cancel(stageContext.executionId, "parent pipeline", null)
+    (shouldCancel ? 1 : 0) * executionRepository.cancel(PIPELINE, stageContext.executionId, "parent pipeline", null)
 
     where:
     stageContext                     || childPipelineIsCanceled || shouldCancel

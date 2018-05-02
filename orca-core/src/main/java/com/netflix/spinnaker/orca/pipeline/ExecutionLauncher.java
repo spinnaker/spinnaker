@@ -158,8 +158,8 @@ public class ExecutionLauncher {
     final ExecutionStatus status = ExecutionStatus.TERMINAL;
 
     log.error("Failed to start {} {}", execution.getType(), execution.getId(), failure);
-    executionRepository.updateStatus(execution.getId(), status);
-    executionRepository.cancel(execution.getId(), canceledBy, reason);
+    executionRepository.updateStatus(execution.getType(), execution.getId(), status);
+    executionRepository.cancel(execution.getType(), execution.getId(), canceledBy, reason);
     return executionRepository.retrieve(execution.getType(), execution.getId());
   }
 

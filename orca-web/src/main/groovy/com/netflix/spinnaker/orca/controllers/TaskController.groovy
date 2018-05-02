@@ -141,8 +141,8 @@ class TaskController {
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
-    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
-    executionRepository.updateStatus(id, ExecutionStatus.CANCELED)
+    executionRepository.cancel(ORCHESTRATION, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
+    executionRepository.updateStatus(ORCHESTRATION, id, ExecutionStatus.CANCELED)
   }
 
   @PreFilter("hasPermission(this.getOrchestration(filterObject)?.application, 'APPLICATION', 'WRITE')")
@@ -150,8 +150,8 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTasks(@RequestBody List<String> taskIds) {
     taskIds.each {
-      executionRepository.cancel(it, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
-      executionRepository.updateStatus(it, ExecutionStatus.CANCELED)
+      executionRepository.cancel(ORCHESTRATION, it, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), null)
+      executionRepository.updateStatus(ORCHESTRATION, it, ExecutionStatus.CANCELED)
     }
   }
 
@@ -208,14 +208,14 @@ class TaskController {
         reason
       )
     }
-    executionRepository.updateStatus(id, ExecutionStatus.CANCELED)
+    executionRepository.updateStatus(PIPELINE, id, ExecutionStatus.CANCELED)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
-    executionRepository.pause(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+    executionRepository.pause(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
     def pipeline = executionRepository.retrieve(PIPELINE, id)
     executionRunner.reschedule(pipeline)
   }
@@ -224,7 +224,7 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
-    executionRepository.resume(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
+    executionRepository.resume(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
     def pipeline = executionRepository.retrieve(PIPELINE, id)
     executionRunner.unpause(pipeline)
   }

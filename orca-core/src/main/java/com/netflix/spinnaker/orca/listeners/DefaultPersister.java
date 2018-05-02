@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.listeners;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 
@@ -33,12 +34,12 @@ public class DefaultPersister implements Persister {
   }
 
   @Override
-  public boolean isCanceled(String executionId) {
-    return executionRepository.isCanceled(executionId);
+  public boolean isCanceled(ExecutionType type, String executionId) {
+    return executionRepository.isCanceled(type, executionId);
   }
 
   @Override
-  public void updateStatus(String executionId, ExecutionStatus executionStatus) {
-    executionRepository.updateStatus(executionId, executionStatus);
+  public void updateStatus(ExecutionType type, String executionId, ExecutionStatus executionStatus) {
+    executionRepository.updateStatus(type, executionId, executionStatus);
   }
 }

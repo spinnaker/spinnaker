@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.orca.listeners;
 
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 public interface Persister {
   void save(Stage stage);
 
-  boolean isCanceled(String executionId);
+  boolean isCanceled(ExecutionType type, String executionId);
 
-  void updateStatus(String executionId, ExecutionStatus executionStatus);
+  void updateStatus(ExecutionType type, String executionId, ExecutionStatus executionStatus);
 }

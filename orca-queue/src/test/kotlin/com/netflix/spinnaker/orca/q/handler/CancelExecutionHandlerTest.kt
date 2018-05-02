@@ -71,7 +71,7 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       }
 
       it("sets the canceled flag on the pipeline") {
-        verify(repository).cancel(pipeline.id, "fzlem@netflix.com", "because")
+        verify(repository).cancel(PIPELINE, pipeline.id, "fzlem@netflix.com", "because")
       }
 
       it("it triggers a reevaluate") {
@@ -113,7 +113,7 @@ object CancelExecutionHandlerTest : SubjectSpek<CancelExecutionHandler>({
       }
 
       it("sets the canceled flag on the pipeline") {
-        verify(repository).cancel(pipeline.id, "fzlem@netflix.com", "because")
+        verify(repository).cancel(PIPELINE, pipeline.id, "fzlem@netflix.com", "because")
       }
 
       it("unpauses the paused stage") {

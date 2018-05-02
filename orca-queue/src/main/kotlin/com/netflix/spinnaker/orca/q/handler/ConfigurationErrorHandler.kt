@@ -40,7 +40,7 @@ class ConfigurationErrorHandler(
         log.error("No such ${message.executionType} ${message.executionId} for ${message.application}")
       else -> {
         log.error("${message.javaClass.simpleName} for ${message.executionType} ${message.executionId} for ${message.application}")
-        repository.updateStatus(message.executionId, TERMINAL)
+        repository.updateStatus(message.executionType, message.executionId, TERMINAL)
       }
     }
   }

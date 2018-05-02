@@ -45,7 +45,7 @@ class RestartStageHandler(
       if (topStage.status.isComplete) {
         topStage.addRestartDetails(message.user)
         topStage.reset()
-        repository.updateStatus(topStage.execution.id, RUNNING)
+        repository.updateStatus(topStage.execution.type, topStage.execution.id, RUNNING)
         queue.push(StartStage(startMessage))
       }
     }

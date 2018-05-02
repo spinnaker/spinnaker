@@ -883,7 +883,7 @@ class TestConfig {
       override fun getType() = "pipeline"
 
       override fun cancel(stage: Stage?): CancellableStage.Result {
-        repository.cancel(stage!!.context["executionId"] as String)
+        repository.cancel(PIPELINE, stage!!.context["executionId"] as String)
         return CancellableStage.Result(stage, mapOf("foo" to "bar"))
       }
     }

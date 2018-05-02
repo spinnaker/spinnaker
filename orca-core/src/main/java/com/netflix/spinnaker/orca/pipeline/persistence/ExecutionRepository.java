@@ -38,35 +38,27 @@ public interface ExecutionRepository {
 
   void addStage(@Nonnull Stage stage);
 
-  void cancel(@Nonnull String id);
+  void cancel(@Nonnull ExecutionType type, @Nonnull String id);
 
-  void cancel(
-    @Nonnull String id, @Nullable String user, @Nullable String reason);
+  void cancel(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user, @Nullable String reason);
 
-  void pause(@Nonnull String id, @Nullable String user);
+  void pause(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
-  void resume(@Nonnull String id, @Nullable String user);
+  void resume(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
-  void resume(
-    @Nonnull String id, @Nullable String user, boolean ignoreCurrentStatus);
+  void resume(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user, boolean ignoreCurrentStatus);
 
-  boolean isCanceled(@Nonnull String id);
+  boolean isCanceled(ExecutionType type, @Nonnull String id);
 
-  void updateStatus(@Nonnull String id, @Nonnull ExecutionStatus status);
+  void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
-  @Nonnull Execution retrieve(
-    @Nonnull ExecutionType type,
-    @Nonnull String id) throws ExecutionNotFoundException;
+  @Nonnull Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id) throws ExecutionNotFoundException;
 
-  void delete(
-    @Nonnull ExecutionType type,
-    @Nonnull String id
-  );
+  void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
   @Nonnull Observable<Execution> retrieve(ExecutionType type);
 
-  @Nonnull Observable<Execution> retrievePipelinesForApplication(
-    @Nonnull String application);
+  @Nonnull Observable<Execution> retrievePipelinesForApplication(@Nonnull String application);
 
   @Nonnull Observable<Execution> retrievePipelinesForPipelineConfigId(
     @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);

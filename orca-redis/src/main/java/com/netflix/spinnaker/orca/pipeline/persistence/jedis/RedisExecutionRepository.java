@@ -173,12 +173,12 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  public void cancel(@Nonnull String id) {
-    cancel(id, null, null);
+  public void cancel(ExecutionType type, @Nonnull String id) {
+    cancel(type, id, null, null);
   }
 
   @Override
-  public void cancel(@Nonnull String id, String user, String reason) {
+  public void cancel(ExecutionType type, @Nonnull String id, String user, String reason) {
     ImmutablePair<String, RedisClientDelegate> pair = fetchKey(id);
     RedisClientDelegate delegate = pair.getRight();
     delegate.withCommandsClient(c -> {
@@ -199,7 +199,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  public void pause(@Nonnull String id, String user) {
+  public void pause(ExecutionType type, @Nonnull String id, String user) {
     ImmutablePair<String, RedisClientDelegate> pair = fetchKey(id);
     RedisClientDelegate delegate = pair.getRight();
 
@@ -229,12 +229,12 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  public void resume(@Nonnull String id, String user) {
-    resume(id, user, false);
+  public void resume(ExecutionType type, @Nonnull String id, String user) {
+    resume(type, id, user, false);
   }
 
   @Override
-  public void resume(@Nonnull String id, String user, boolean ignoreCurrentStatus) {
+  public void resume(ExecutionType type, @Nonnull String id, String user, boolean ignoreCurrentStatus) {
     ImmutablePair<String, RedisClientDelegate> pair = fetchKey(id);
     RedisClientDelegate delegate = pair.getRight();
 
@@ -264,7 +264,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  public boolean isCanceled(@Nonnull String id) {
+  public boolean isCanceled(ExecutionType type, @Nonnull String id) {
     ImmutablePair<String, RedisClientDelegate> pair = fetchKey(id);
     RedisClientDelegate delegate = pair.getRight();
 
@@ -274,7 +274,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  public void updateStatus(@Nonnull String id, @Nonnull ExecutionStatus status) {
+  public void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status) {
     ImmutablePair<String, RedisClientDelegate> pair = fetchKey(id);
     RedisClientDelegate delegate = pair.getRight();
     String key = pair.getLeft();

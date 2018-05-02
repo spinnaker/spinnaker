@@ -220,7 +220,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
       trigger = new DefaultTrigger("manual", "covfefe")
     }
     previousRepository.store(execution)
-    previousRepository.updateStatus(execution.id, RUNNING)
+    previousRepository.updateStatus(execution.type, execution.id, RUNNING)
 
     when:
     def result = repository.retrieveOrchestrationForCorrelationId('covfefe')
@@ -229,7 +229,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<RedisExecution
     result.id == execution.id
 
     when:
-    repository.updateStatus(execution.id, SUCCEEDED)
+    repository.updateStatus(execution.type, execution.id, SUCCEEDED)
     repository.retrieveOrchestrationForCorrelationId('covfefe')
 
     then:
