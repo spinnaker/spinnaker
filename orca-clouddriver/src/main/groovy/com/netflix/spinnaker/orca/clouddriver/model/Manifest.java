@@ -21,9 +21,11 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class Manifest {
+  private Map<String, Object> manifest;
   private List<Artifact> artifacts;
   private Status status;
 
