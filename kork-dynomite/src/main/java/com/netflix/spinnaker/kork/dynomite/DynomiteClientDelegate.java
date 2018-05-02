@@ -108,6 +108,15 @@ public class DynomiteClientDelegate implements RedisClientDelegate {
   }
 
   @Override
+  public void syncPipeline(RedisPipeline p) {
+    if (!(p instanceof DynoJedisPipeline)) {
+      throw new IllegalArgumentException("Invalid RedisPipeline implementation: " + p.getClass().getName());
+    }
+
+    ((DynoJedisPipeline) p).sync();
+  }
+
+  @Override
   public boolean supportsMultiKeyPipelines() {
     return false;
   }

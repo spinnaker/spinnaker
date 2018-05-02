@@ -45,6 +45,8 @@ public interface RedisClientDelegate {
 
   <R> R withPipeline(Function<RedisPipeline, R> f);
 
+  void syncPipeline(RedisPipeline p);
+
   boolean supportsMultiKeyPipelines();
 
   void withMultiKeyPipeline(Consumer<Pipeline> f);

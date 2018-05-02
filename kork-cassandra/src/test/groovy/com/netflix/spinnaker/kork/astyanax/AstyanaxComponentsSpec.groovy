@@ -34,7 +34,15 @@ class AstyanaxComponentsSpec extends Specification {
 
     def "should run embedded cassandra #description"() {
         given:
+        def svr = new ServerSocket(0)
+        def port = svr.getLocalPort()
+        svr.close()
+        svr = new ServerSocket(0)
+        def storagePort = svr.getLocalPort()
+        svr.close()
         properties.each { k, v -> System.setProperty(k, v) }
+        System.setProperty('cassandra.port', port.toString())
+        System.setProperty('cassandra.storagePort', storagePort.toString())
 
         and:
         def ctx = createContext()

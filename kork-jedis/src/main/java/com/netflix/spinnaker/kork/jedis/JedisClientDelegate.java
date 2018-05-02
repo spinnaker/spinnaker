@@ -98,6 +98,15 @@ public class JedisClientDelegate implements RedisClientDelegate {
   }
 
   @Override
+  public void syncPipeline(RedisPipeline p) {
+    if (!(p instanceof Pipeline)) {
+      throw new IllegalArgumentException("Invalid RedisPipeline implementation: " + p.getClass().getName());
+    }
+
+    ((Pipeline) p).sync();
+  }
+
+  @Override
   public boolean supportsMultiKeyPipelines() {
     return true;
   }

@@ -4,7 +4,7 @@ build/
 *.iml
 *.ipr
 *.iws
-/out/
+out/
 
 .classpath
 .vscode
