@@ -27,6 +27,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -39,6 +40,7 @@ import java.util.function.Supplier;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 @Component
+@ConditionalOnProperty("jira.enabled")
 public class JiraNotificationService implements NotificationService {
   private static final Logger LOGGER = LoggerFactory.getLogger(JiraNotificationService.class);
   private static final int MAX_RETRY = 3;
