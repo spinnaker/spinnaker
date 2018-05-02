@@ -385,6 +385,15 @@ public class KubernetesCacheDataConverter {
     for (CacheData cacheData : ungroupedCacheData) {
       String key = cacheData.getId();
       Keys.CacheKey parsedKey = Keys.parseKey(key).orElseThrow(() -> new IllegalStateException("Cache data produced with illegal key format " + key));
+      if (parsedKey instanceof Keys.InfrastructureCacheKey) {
+        // given that we now have large caching agents that are authoritative for huge chunks of the cache,
+        // it's possible that some resources (like events) still point to deleted resources. these won't have
+        // any attributes, but if we add a cache entry here, the deleted item will still be cached
+        if (cacheData.getAttributes() == null || cacheData.getAttributes().isEmpty()) {
+          continue;
+        }
+      }
+
       String group = parsedKey.getGroup();
 
       Collection<CacheData> groupedCacheData = result.get(group);
