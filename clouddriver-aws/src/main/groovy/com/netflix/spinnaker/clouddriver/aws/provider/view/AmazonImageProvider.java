@@ -21,6 +21,7 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration;
+import com.netflix.spinnaker.clouddriver.aws.data.Keys;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonImage;
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonServerGroup;
 import com.netflix.spinnaker.clouddriver.model.Image;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -68,9 +70,8 @@ public class AmazonImageProvider implements ImageProvider {
     List<CacheData> imageCacheList = new ArrayList<>(cacheView.getAll(IMAGES.toString(), imageIdList));
 
     AmazonImage image = objectMapper.convertValue(imageCacheList.get(0).getAttributes(), AmazonImage.class);
-    image.setId(image.getImageId());
-    String[] imageIdSplitKey = imageCacheList.get(0).getId().split(":");
-    image.setRegion(imageIdSplitKey[imageIdSplitKey.length - 2]);
+
+    image.setRegion(Keys.parse(imageCacheList.get(0).getId()).get("region"));
 
     List<AmazonServerGroup> serverGroupList = imageCacheList.stream()
         .filter(imageCache -> imageCache.getRelationships().get(SERVER_GROUPS.toString()) != null)
@@ -89,12 +90,7 @@ public class AmazonImageProvider implements ImageProvider {
   }
 
   private AmazonServerGroup getServerGroupData(String serverGroupCacheKey) {
-
-    String[] splittedKey = serverGroupCacheKey.split(":");
-    String account = splittedKey[splittedKey.length - 3];
-    String region = splittedKey[splittedKey.length - 2];
-    String serverGroupName = splittedKey[splittedKey.length - 1];
-
-    return amazonServerGroupProvider.getServerGroup(account, region, serverGroupName);
+    Map<String, String> parsedServerGroupKey = Keys.parse(serverGroupCacheKey);
+    return amazonServerGroupProvider.getServerGroup(parsedServerGroupKey.get("account"), parsedServerGroupKey.get("region"), parsedServerGroupKey.get("serverGroup"));
   }
 }

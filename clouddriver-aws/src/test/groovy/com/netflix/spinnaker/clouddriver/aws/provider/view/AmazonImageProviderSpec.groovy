@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.view
 
+import com.amazonaws.services.ec2.model.Image
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
@@ -43,9 +44,10 @@ class AmazonImageProviderSpec extends Specification {
     then:
     AmazonImage expectedImage = new AmazonImage()
     expectedImage.setRegion("eu-west-1")
-    expectedImage.setId("ami-123321")
-    expectedImage.setImageId("ami-123321")
-    expectedImage.setOwnerId("1233211233231")
+    expectedImage.setImage(new Image())
+    expectedImage.image.setImageId("ami-123321")
+    expectedImage.image.setName("some_ami")
+    expectedImage.image.setOwnerId("1233211233231")
     result == Optional.of(expectedImage)
 
     and:
@@ -54,9 +56,11 @@ class AmazonImageProviderSpec extends Specification {
     ]
 
     1 * cache.getAll(IMAGES.ns, ["aws:images:test_account:eu-west-1:ami-123321"]) >>
-        [imageCacheData('aws:images:test_account:eu-west-1:ami-123321', [
+        [imageCacheData('ami-123321', [
             ownerId: '1233211233231',
             name   : 'some_ami',
+            account   : 'test_account',
+            region   : 'eu-west-1',
             imageId: 'ami-123321'])]
   }
 

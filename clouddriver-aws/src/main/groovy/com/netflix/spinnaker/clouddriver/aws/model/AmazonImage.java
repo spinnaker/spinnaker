@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.netflix.spinnaker.clouddriver.model.Image;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,9 +26,19 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class AmazonImage extends com.amazonaws.services.ec2.model.Image implements Image {
+public class AmazonImage implements Image {
   public static final String AMAZON_IMAGE_TYPE = "aws/image";
-  String id;
+
   String region;
   List<AmazonServerGroup> serverGroups = new ArrayList<>();
+  @JsonUnwrapped
+  com.amazonaws.services.ec2.model.Image image;
+
+  public String getName() {
+    return image.getName();
+  }
+
+  public String getId() {
+    return image.getImageId();
+  }
 }

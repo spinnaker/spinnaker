@@ -44,7 +44,7 @@ public class ImageController {
         .collect(Collectors.toList());
 
     if (imageProviderList.isEmpty()) {
-      throw new UnsupportedOperationException("ImageProvider for provider " + provider + " not found.");
+      throw new NotFoundException("ImageProvider for provider " + provider + " not found.");
     } else if (imageProviderList.size() > 1) {
       throw new IllegalStateException("Found multiple ImageProviders for provider " + provider + ". Multiple ImageProviders for a single provider are not supported.");
     } else {
