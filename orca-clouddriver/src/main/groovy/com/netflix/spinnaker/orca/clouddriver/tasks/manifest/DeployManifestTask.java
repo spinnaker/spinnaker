@@ -62,7 +62,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
   @Autowired
   ObjectMapper objectMapper;
 
-  Yaml yamlParser = new Yaml();
+  private static final ThreadLocal<Yaml> yamlParser = ThreadLocal.withInitial(Yaml::new);
 
   @Autowired
   ContextParameterProcessor contextParameterProcessor;
@@ -94,7 +94,7 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
         try {
           Response manifestText = oort.fetchArtifact(manifestArtifact);
 
-          Iterable<Object> rawManifests = yamlParser.loadAll(manifestText.getBody().in());
+          Iterable<Object> rawManifests = yamlParser.get().loadAll(manifestText.getBody().in());
           List<Map> manifests = StreamSupport.stream(rawManifests.spliterator(), false)
               .map(m -> objectMapper.convertValue(m, Map.class))
               .collect(Collectors.toList());
