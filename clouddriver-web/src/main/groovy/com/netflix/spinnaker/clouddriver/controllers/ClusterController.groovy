@@ -167,7 +167,7 @@ class ClusterController {
       } ?: []
 
       return shouldExpand ? serverGroups : serverGroups.collect { ServerGroup sg ->
-        return serverGroupController.getServerGroupByApplication(application, account, sg.region, sg.name)
+        return serverGroupController.getServerGroupByApplication(application, account, sg.region, sg.name, "true")
       }
     }.flatten()
 
@@ -240,7 +240,7 @@ class ClusterController {
       }
 
       return serverGroupController.getServerGroupByApplication(
-          application, account, serverGroup.region, serverGroup.name
+        application, account, serverGroup.region, serverGroup.name, "true"
       )
     }
 

@@ -34,6 +34,11 @@ class NoopClusterProvider implements ClusterProvider<Cluster> {
   }
 
   @Override
+  ServerGroup getServerGroup(String account, String region, String name, boolean includeDetails) {
+    null
+  }
+
+  @Override
   ServerGroup getServerGroup(String account, String region, String name) {
     null
   }

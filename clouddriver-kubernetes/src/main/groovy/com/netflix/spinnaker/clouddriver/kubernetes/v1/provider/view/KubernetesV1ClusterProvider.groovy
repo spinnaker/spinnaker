@@ -207,7 +207,7 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesV1Cluster
   }
 
   @Override
-  ServerGroup getServerGroup(String account, String namespace, String name) {
+  ServerGroup getServerGroup(String account, String namespace, String name, boolean includeDetails) {
     String serverGroupKey = Keys.getServerGroupKey(account, namespace, name)
     CacheData serverGroupData = cacheView.get(Keys.Namespace.SERVER_GROUPS.ns, serverGroupKey)
     if (!serverGroupData) {
@@ -231,6 +231,11 @@ class KubernetesV1ClusterProvider implements ClusterProvider<KubernetesV1Cluster
     }
 
     return serverGroup
+  }
+
+  @Override
+  ServerGroup getServerGroup(String account, String namespace, String name) {
+    return getServerGroup(account, namespace, name, true)
   }
 
   @Override

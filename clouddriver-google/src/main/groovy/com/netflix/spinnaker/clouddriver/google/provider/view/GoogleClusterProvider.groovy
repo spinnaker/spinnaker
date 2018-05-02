@@ -123,7 +123,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
   }
 
   @Override
-  GoogleServerGroup.View getServerGroup(String account, String region, String name) {
+  GoogleServerGroup.View getServerGroup(String account, String region, String name, boolean includeDetails) {
     def cacheData = cacheView.get(SERVER_GROUPS.ns,
                                   Keys.getServerGroupKey(name, account, region),
                                   RelationshipCacheFilter.include(LOAD_BALANCERS.ns))
@@ -149,6 +149,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       def loadBalancers = loadBalancersFromKeys(cacheData.relationships[LOAD_BALANCERS.ns] as List)
       return serverGroupFromCacheData(cacheData, account, instances, securityGroups, loadBalancers)?.view
     }
+  }
+
+  @Override
+  GoogleServerGroup.View getServerGroup(String account, String region, String name) {
+    return getServerGroup(account, region, name, true);
   }
 
   @Override

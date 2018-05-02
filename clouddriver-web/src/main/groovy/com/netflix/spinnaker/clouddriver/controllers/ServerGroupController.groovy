@@ -64,8 +64,10 @@ class ServerGroupController {
   ServerGroup getServerGroupByApplication(@PathVariable String application, // needed for @PreAuthorize
                                           @PathVariable String account,
                                           @PathVariable String region,
-                                          @PathVariable() String name) {
-    getServerGroup(account, region, name)
+                                          @PathVariable() String name,
+                                          @RequestParam(required = false, value = 'includeDetails', defaultValue = 'true') String includeDetails
+  ) {
+    getServerGroup(account, region, name, includeDetails)
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
@@ -74,15 +76,20 @@ class ServerGroupController {
   // TODO: /application and /serverGroup endpoints should be in their own controllers. See https://github.com/spinnaker/spinnaker/issues/2023
   ServerGroup getServerGroupByMoniker(@PathVariable String account,
                                       @PathVariable String region,
-                                      @PathVariable String name) {
-    getServerGroup(account, region, name)
+                                      @PathVariable String name,
+                                      @RequestParam(required = false, value = 'includeDetails', defaultValue = 'true') String includeDetails) {
+    getServerGroup(account, region, name, includeDetails)
   }
 
   private getServerGroup(String account,
                          String region,
-                         String name) {
+                         String name,
+                         String includeDetails) {
+
+    Boolean shouldIncludeDetails = Boolean.valueOf(includeDetails)
+
     def matches = (Set<ServerGroup>) clusterProviders.findResults { provider ->
-      requestQueue.execute(name, { provider.getServerGroup(account, region, name) })
+      requestQueue.execute(name, { provider.getServerGroup(account, region, name, shouldIncludeDetails) })
     }
     if (!matches) {
       throw new NotFoundException("Server group not found (account: ${account}, region: ${region}, name: ${name})")
@@ -192,7 +199,7 @@ class ServerGroupController {
     allIdTokens.collect { String[] idTokens ->
       def (account, region, name) = idTokens
       try {
-        def serverGroup = getServerGroup(account, region, name)
+        def serverGroup = getServerGroup(account, region, name, true)
         return new ServerGroupViewModel(serverGroup, serverGroup.moniker.cluster, account)
       } catch (e) {
         log.error("Couldn't get server group ${idTokens.join(':')}", e)

@@ -73,7 +73,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   @Override
-  AmazonServerGroup getServerGroup(String account, String region, String name) {
+  AmazonServerGroup getServerGroup(String account, String region, String name, boolean includeDetails) {
     String serverGroupKey = Keys.getServerGroupKey(name, account, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
     if (serverGroupData == null) {
@@ -101,6 +101,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns, instanceFilter, RelationshipCacheFilter.none())).values()
 
     serverGroup
+  }
+
+  @Override
+  AmazonServerGroup getServerGroup(String account, String region, String name) {
+    return getServerGroup(account, region, name, true)
   }
 
   @Override

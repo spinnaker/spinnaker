@@ -83,7 +83,7 @@ class OracleBMCSClusterProvider implements ClusterProvider<OracleBMCSCluster.Vie
   }
 
   @Override
-  ServerGroup getServerGroup(String account, String region, String name) {
+  ServerGroup getServerGroup(String account, String region, String name, boolean includeDetails) {
     def pattern = Keys.getServerGroupKey(account, region, name)
     def identifiers = cacheView.filterIdentifiers(Keys.Namespace.SERVER_GROUPS.ns, pattern)
     Set<OracleBMCSServerGroup> serverGroups = loadServerGroups(identifiers)
@@ -91,6 +91,11 @@ class OracleBMCSClusterProvider implements ClusterProvider<OracleBMCSCluster.Vie
       return null
     }
     return serverGroups.iterator().next().getView()
+  }
+
+  @Override
+  ServerGroup getServerGroup(String account, String region, String name) {
+    return getServerGroup(account, region, name, true)
   }
 
   @Override

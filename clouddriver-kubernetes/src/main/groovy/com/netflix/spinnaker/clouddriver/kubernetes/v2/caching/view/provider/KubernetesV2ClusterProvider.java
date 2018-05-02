@@ -114,7 +114,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
   }
 
   @Override
-  public KubernetesV2ServerGroup getServerGroup(String account, String namespace, String name) {
+  public KubernetesV2ServerGroup getServerGroup(String account, String namespace, String name, boolean includeDetails) {
     Pair<KubernetesKind, String> parsedName;
     try {
       parsedName = KubernetesManifest.fromFullResourceName(name);
@@ -159,6 +159,11 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
           .loadBalancerData(loadBalancerData)
           .build());
     }).orElse(null);
+  }
+
+  @Override
+  public KubernetesV2ServerGroup getServerGroup(String account, String namespace, String name) {
+    return getServerGroup(account, namespace, name, true);
   }
 
   @Override

@@ -417,7 +417,7 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
    * Gets a Spinnaker server group for a given Spinnaker application, ECS account, and the Spinnaker server group name.
    */
   @Override
-  public ServerGroup getServerGroup(String account, String region, String serverGroupName) {
+  public ServerGroup getServerGroup(String account, String region, String serverGroupName, boolean includeDetails) {
     if (serverGroupName == null) {
       throw new Error("Invalid Server Group");
     }
@@ -451,6 +451,10 @@ public class EcsServerClusterProvider implements ClusterProvider<EcsServerCluste
     // if it isn't found..)
     log.info("No ECS Server Groups were found with the name " + serverGroupName);
     return null;
+  }
+
+  public ServerGroup getServerGroup(String account, String region, String serverGroupName) {
+    return getServerGroup(account, region, serverGroupName, true);
   }
 
   @Override

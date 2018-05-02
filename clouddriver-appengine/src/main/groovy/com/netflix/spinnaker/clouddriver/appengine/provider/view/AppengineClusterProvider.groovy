@@ -77,7 +77,7 @@ class AppengineClusterProvider implements ClusterProvider<AppengineCluster> {
   }
 
   @Override
-  AppengineServerGroup getServerGroup(String account, String region, String serverGroupName) {
+  AppengineServerGroup getServerGroup(String account, String region, String serverGroupName, boolean includeDetails) {
     String serverGroupKey = Keys.getServerGroupKey(account, serverGroupName, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
 
@@ -89,6 +89,11 @@ class AppengineClusterProvider implements ClusterProvider<AppengineCluster> {
       .findResults { AppengineProviderUtils.instanceFromCacheData(objectMapper, it) }
 
     AppengineProviderUtils.serverGroupFromCacheData(objectMapper, serverGroupData, instances)
+  }
+
+  @Override
+  AppengineServerGroup getServerGroup(String account, String region, String serverGroupName) {
+    return getServerGroup(account, region, serverGroupName, true);
   }
 
   @Override

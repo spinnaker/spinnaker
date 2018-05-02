@@ -99,7 +99,7 @@ class ClusterControllerSpec extends Specification {
         cluster.getServerGroups() >> [serverGroup]
         cluster
       }
-      1 * serverGroupController.getServerGroupByApplication("app", "account", "us-west-2", "clusterName-v001") >> serverGroup
+      1 * serverGroupController.getServerGroupByApplication("app", "account", "us-west-2", "clusterName-v001", "true") >> serverGroup
       0 * _
 
       // all similarly named server groups are returned (ie. one per region) when region not provided

@@ -111,7 +111,7 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
   }
 
   @Override
-  AzureServerGroupDescription getServerGroup(String account, String region, String name) {
+  AzureServerGroupDescription getServerGroup(String account, String region, String name, boolean includeDetails) {
     String serverGroupKey = Keys.getServerGroupKey(AzureCloudProvider.ID, name, region, account)
     CacheData serverGroupData = cacheView.get(AZURE_SERVER_GROUPS.ns, serverGroupKey)
 
@@ -120,6 +120,11 @@ class AzureClusterProvider implements ClusterProvider<AzureCluster> {
     }
 
     translateServerGroup(serverGroupData)
+  }
+
+  @Override
+  AzureServerGroupDescription getServerGroup(String account, String region, String name) {
+    return getServerGroup(account, region, name, true)
   }
 
   @Override

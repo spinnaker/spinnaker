@@ -145,7 +145,7 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
    * @return
    */
   @Override
-  TitusServerGroup getServerGroup(String account, String region, String name) {
+  TitusServerGroup getServerGroup(String account, String region, String name, boolean includeDetails) {
     String serverGroupKey = Keys.getServerGroupKey(name, account, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
     if (serverGroupData == null) {
@@ -157,11 +157,18 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
     serverGroup.placement.account = account
     serverGroup.placement.region = region
     serverGroup.scalingPolicies = serverGroupData.attributes.scalingPolicies
-    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
+    if (includeDetails) {
+      serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
+    }
     serverGroup.targetGroups = serverGroupData.attributes.targetGroups
     serverGroup.accountId = awsLookupUtil.awsAccountId(account, region)
     serverGroup.awsAccount = awsLookupUtil.lookupAccount(account, region)?.awsAccount
     serverGroup
+  }
+
+  @Override
+  TitusServerGroup getServerGroup(String account, String region, String name) {
+    return getServerGroup(account, region, name, true);
   }
 
   @Override

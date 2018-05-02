@@ -109,7 +109,7 @@ class DcosClusterProvider implements ClusterProvider<DcosCluster> {
   }
 
   @Override
-  ServerGroup getServerGroup(final String account, final String combinedRegion, final String name) {
+  ServerGroup getServerGroup(final String account, final String combinedRegion, final String name, boolean includeDetails) {
     String region = combinedRegion.split(DcosSpinnakerAppId.SAFE_REGION_SEPARATOR).first()
     String group = combinedRegion.split(DcosSpinnakerAppId.SAFE_REGION_SEPARATOR).tail().join("/")
     Optional<DcosSpinnakerAppId> appId = DcosSpinnakerAppId.from(account, group, name)
@@ -123,6 +123,11 @@ class DcosClusterProvider implements ClusterProvider<DcosCluster> {
     }
 
     objectMapper.convertValue(serverGroupData.attributes.serverGroup, DcosServerGroup)
+  }
+
+  @Override
+  ServerGroup getServerGroup(final String account, final String combinedRegion, final String name) {
+    return getServerGroup(account, combinedRegion, name, true)
   }
 
   @Override

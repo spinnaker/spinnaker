@@ -99,7 +99,7 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster.View>
   }
 
   @Override
-  OpenstackServerGroup.View getServerGroup(final String account, final String region, final String name) {
+  OpenstackServerGroup.View getServerGroup(final String account, final String region, final String name, final boolean includeDetails) {
     ServerGroup result = null
     CacheData cacheData = cacheView.get(SERVER_GROUPS.ns, Keys.getServerGroupKey(name, account, region),
       RelationshipCacheFilter.include(INSTANCES.ns, LOAD_BALANCERS.ns))
@@ -109,6 +109,11 @@ class OpenstackClusterProvider implements ClusterProvider<OpenstackCluster.View>
     }
 
     result
+  }
+
+  @Override
+  OpenstackServerGroup.View getServerGroup(final String account, final String region, final String name) {
+    return getServerGroup(account, region, name, true)
   }
 
   @Override

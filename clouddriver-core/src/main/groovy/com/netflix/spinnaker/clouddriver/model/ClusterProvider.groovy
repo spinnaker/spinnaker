@@ -86,8 +86,12 @@ interface ClusterProvider<T extends Cluster> {
    * @param account name
    * @param region
    * @param name
+   * @param includeDetails
    * @return the server group or null if none exists
    */
+  @Nullable
+  ServerGroup getServerGroup(String account, String region, String name, boolean includeDetails)
+
   @Nullable
   ServerGroup getServerGroup(String account, String region, String name)
 
