@@ -16,98 +16,93 @@
 
 package com.netflix.spinnaker.clouddriver.aws.model
 
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
+import com.netflix.spinnaker.clouddriver.model.DataProvider
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 class AmazonReservationReportBuilderV4Spec extends Specification {
+  def dataProvider = Mock(AmazonS3DataProvider)
+
   @Shared
   def reportBuilder = new AmazonReservationReportBuilder.V4()
 
-  def allocationIndex = new AtomicInteger(0)
-
-  void "should partially cover a shortfall"() {
+  void "should noop if 'rri_weights' does not exist"() {
     given:
-    def regional = overallReservationDetail("m4.fxlarge", 16, 0)
-    def shortfall = overallReservationDetail("m4.4xlarge", 0, 2)
+    def source = new AmazonReservationReport(
+      reservations: [
+        overallReservationDetail("r4.4xlarge", 100, 100, "us-west-2", "us-west-2a")
+      ]
+    )
 
     when:
-    reportBuilder.coverShortfall(allocationIndex, regional, 16, shortfall, 20)
+    def v4Report = reportBuilder.build(dataProvider, source)
 
     then:
-    allocationIndex.get() == 1
+    1 * dataProvider.supportsIdentifier(DataProvider.IdentifierType.Static, "rri_weights") >> { return false }
 
-    // shortfall was 8/20 == 40% ... 40% of available surplus == 4 fxlarge == 1 * 4xlarge available to partially cover
-    regional.totalSurplus() == 12
-    regional.totalRegionalReserved() == -4
-
-    shortfall.totalSurplus() == -1
-    shortfall.totalRegionalReserved() == 1
+    v4Report == source
   }
 
-  void "should fully cover a shortfall"() {
+  void "should partition surplus by 'rri_weights'"() {
     given:
-    def regional = overallReservationDetail("m4.fxlarge", 24, 0)
-    def shortfall = overallReservationDetail("m4.4xlarge", 0, 2)
+    def source = new AmazonReservationReport(
+      reservations: [
+        overallReservationDetail("r4.2xlarge", 0, 0, "us-west-2", "us-west-2a"),
+        overallReservationDetail("r4.2xlarge", 0, 0, "us-west-2", "us-west-2b"),
+        overallReservationDetail("r4.2xlarge", 0, 0, "us-west-2", "us-west-2c"),
+        overallReservationDetail("r4.8xlarge", 0, 0, "us-west-2", "us-west-2a"),
+        overallReservationDetail("r4.fxlarge", 1000, 0, "us-west-2", "*"),
+
+        overallReservationDetail("m4.2xlarge", 100, 0, "us-west-2", "us-west-2a"),
+
+        overallReservationDetail("m5.2xlarge", 0, 0, "us-west-2", "us-west-2a"),
+        overallReservationDetail("m5.fxlarge", 1, 0, "us-west-2", "*"),
+      ]
+    )
 
     when:
-    reportBuilder.coverShortfall(allocationIndex, regional, 24, shortfall, 20)
+    def v4Report = reportBuilder.build(dataProvider, source)
+    def reservations = v4Report.reservations.groupBy { it.id() }
 
     then:
-    allocationIndex.get() == 1
+    1 * dataProvider.supportsIdentifier(DataProvider.IdentifierType.Static, "rri_weights") >> { return true }
+    1 * dataProvider.getStaticData("rri_weights", [:]) >> {
+      return """
+InstanceType,Region,Weight
+r4.2xlarge,us-west-2,0.5
+r4.8xlarge,us-west-2,0.5
+m5.2xlarge,us-west-2,1.0
+""".trim()
+    }
 
-    // shortfall was 8/20 == 40% ... 40% of available surplus == 9 fxlarge == 2 * 4xlarge available to fully cover
-    regional.totalSurplus() == 16
-    regional.totalRegionalReserved() == -8
+    reservations["us-west-2:a:r4.2xlarge:linux"][0].totalSurplus() == 83  // 166 fxlarge
+    reservations["us-west-2:b:r4.2xlarge:linux"][0].totalSurplus() == 83  // 166 fxlarge
+    reservations["us-west-2:c:r4.2xlarge:linux"][0].totalSurplus() == 83  // 166 fxlarge
+    reservations["us-west-2:a:r4.8xlarge:linux"][0].totalSurplus() == 62  // 496 fxlarge
+                                                                          // -----------
+    reservations["us-west-2:*:r4.fxlarge:linux"][0].totalSurplus() == 6   // 994 fxlarge (1000 - 994 = 6)
 
-    shortfall.totalSurplus() == 0
-    shortfall.totalRegionalReserved() == 2
-  }
+    reservations["us-west-2:a:m4.2xlarge:linux"][0].totalSurplus() == 100 // untouched
 
-  void "unable to cover any shortfall"() {
-    given:
-    def regional = overallReservationDetail("m4.fxlarge", 8, 0)
-    def shortfall = overallReservationDetail("m4.4xlarge", 0, 2)
+    reservations["us-west-2:a:m5.2xlarge:linux"][0].totalSurplus() == 0   // not enough surplus for even one instance
+    reservations["us-west-2:*:m5.fxlarge:linux"][0].totalSurplus() == 1   // no surplus used
 
-    when:
-    reportBuilder.coverShortfall(allocationIndex, regional, 8, shortfall, 20)
-
-    then:
-    allocationIndex.get() == 0
-
-    // shortfall was 8/20 == 40% ... 40% of available surplus == 3 fxlarge == 0 * 4xlarge available to cover shortfall
-    regional.totalSurplus() == 8
-    regional.totalRegionalReserved() == 0
-
-    shortfall.totalSurplus() == -2
-    shortfall.totalRegionalReserved() == 0
-  }
-
-  @Unroll
-  void "should determine multiplier relative to 'xlarge'"() {
-    given:
-    def support = new AmazonReservationReportBuilder.Support()
-
-    expect:
-    support.getMultiplier(instanceType) == multiplier
-
-    where:
-    instanceType   || multiplier
-    "m4.16xlarge"  || 16
-    "m4.xlarge"    || 1
-    "m4.xwhoknows" || 0
-    "m4.large"     || 0.5
   }
 
   private AmazonReservationReport.OverallReservationDetail overallReservationDetail(String instanceType,
                                                                                     int totalReserved,
-                                                                                    int totalUsed) {
+                                                                                    int totalUsed,
+                                                                                    String region,
+                                                                                    String availabilityZone) {
     return new AmazonReservationReport.OverallReservationDetail(
       totalReserved: new AtomicInteger(totalReserved),
       totalUsed: new AtomicInteger(totalUsed),
       instanceType: instanceType,
+      region: region,
+      availabilityZone: availabilityZone,
       os: AmazonReservationReport.OperatingSystemType.LINUX
     )
   }

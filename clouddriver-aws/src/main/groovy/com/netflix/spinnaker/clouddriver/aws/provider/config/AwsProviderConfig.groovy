@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCertificateCac
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerCachingAgent
 
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
@@ -61,6 +62,7 @@ class AwsProviderConfig {
   @DependsOn('netflixAmazonCredentials')
   AwsProvider awsProvider(AmazonCloudProvider amazonCloudProvider,
                           AmazonClientProvider amazonClientProvider,
+                          AmazonS3DataProvider amazonS3DataProvider,
                           AccountCredentialsRepository accountCredentialsRepository,
                           ObjectMapper objectMapper,
                           EddaApiFactory eddaApiFactory,
@@ -75,6 +77,7 @@ class AwsProviderConfig {
     synchronizeAwsProvider(awsProvider,
                            amazonCloudProvider,
                            amazonClientProvider,
+                           amazonS3DataProvider,
                            accountCredentialsRepository,
                            objectMapper,
                            eddaApiFactory,
@@ -111,6 +114,7 @@ class AwsProviderConfig {
   AwsProviderSynchronizer synchronizeAwsProvider(AwsProvider awsProvider,
                                                  AmazonCloudProvider amazonCloudProvider,
                                                  AmazonClientProvider amazonClientProvider,
+                                                 AmazonS3DataProvider amazonS3DataProvider,
                                                  AccountCredentialsRepository accountCredentialsRepository,
                                                  ObjectMapper objectMapper,
                                                  EddaApiFactory eddaApiFactory,
@@ -161,7 +165,7 @@ class AwsProviderConfig {
     } else {
       // This caching agent runs across all accounts in one iteration (to maintain consistency).
       newlyAddedAgents << new ReservationReportCachingAgent(
-        registry, amazonClientProvider, allAccounts, objectMapper, reservationReportPool, ctx
+        registry, amazonClientProvider, amazonS3DataProvider, allAccounts, objectMapper, reservationReportPool, ctx
       )
     }
 

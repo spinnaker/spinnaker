@@ -218,16 +218,16 @@ class AmazonReservationReport implements ReservationReport {
     int index
 
     @JsonView(Views.V3.class)
-    int totalRegionalSurplusForFamily
+    Integer totalRegionalSurplusForFamily
 
     @JsonView(Views.V3.class)
-    int totalShortfallForFamily
+    Integer totalShortfallForFamily
 
     @JsonView(Views.V3.class)
-    double percentageOfShortfall
+    Double percentageOfShortfall
 
     @JsonView(Views.V3.class)
-    int portionOfAvailableSurplus
+    Double portionOfAvailableSurplus
   }
 
   static class DescendingOverallReservationDetailComparator implements Comparator<OverallReservationDetail> {

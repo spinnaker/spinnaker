@@ -61,8 +61,10 @@ class ReservationReportCachingAgentSpec extends Specification {
     ]
 
     3 * registry.createId("reservedInstances.errors") >> registryId
-    2 * registryId.withTags([account: "test", region: "us-west-1"]) >> registryId
-    1 * registryId.withTags([account: "test", region: "us-west-2"]) >> registryId
+    2 * registryId.withTag("account", "test") >> registryId
+    2 * registryId.withTag("region", "us-west-1") >> registryId
+    1 * registryId.withTag("account", "test") >> registryId
+    1 * registryId.withTag("region", "us-west-2") >> registryId
     3 * registry.counter(registryId) >> counter
     3 * counter.increment()
   }

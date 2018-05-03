@@ -44,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport.OverallReservationDetail
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReportBuilder
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
+import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonS3DataProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -54,7 +55,6 @@ import org.springframework.context.ApplicationContext
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.ToDoubleFunction
@@ -77,6 +77,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   private Cache cacheView
 
   final AmazonClientProvider amazonClientProvider
+  final AmazonS3DataProvider amazonS3DataProvider
   final Collection<NetflixAmazonCredentials> accounts
   final ObjectMapper objectMapper
   final AccountReservationDetailSerializer accountReservationDetailSerializer
@@ -84,13 +85,16 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
   final MetricsSupport metricsSupport
   final Registry registry
 
+
   ReservationReportCachingAgent(Registry registry,
                                 AmazonClientProvider amazonClientProvider,
+                                AmazonS3DataProvider amazonS3DataProvider,
                                 Collection<NetflixAmazonCredentials> accounts,
                                 ObjectMapper objectMapper,
                                 ExecutorService reservationReportPool,
                                 ApplicationContext ctx) {
     this.amazonClientProvider = amazonClientProvider
+    this.amazonS3DataProvider = amazonS3DataProvider
     this.accounts = accounts
 
     def module = new SimpleModule()
@@ -234,17 +238,26 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       Map
     )
 
+    def v4 = [:]
+    try {
+      // v4 is experimental so let's go out of our way to prevent a failure from breaking other versions
+      v4 = objectMapper.readValue(
+        objectMapper
+          .writerWithView(AmazonReservationReport.Views.V4.class)
+          .writeValueAsString(
+          new AmazonReservationReportBuilder.V4().build(
+            amazonS3DataProvider,
+            objectMapper.convertValue(v3, AmazonReservationReport)
+          )
+        ),
+        Map
+      )
+    } catch (Exception e) {
+      recordErrorMetric(registry, null, null)
+      log.error("Failed to build 'v4' reservation report", e)
+    }
 
-    def v4 = objectMapper.readValue(
-      objectMapper
-        .writerWithView(AmazonReservationReport.Views.V4.class)
-        .writeValueAsString(
-        new AmazonReservationReportBuilder.V4().build(objectMapper.convertValue(v2, AmazonReservationReport))
-      ),
-      Map
-    )
-
-    metricsSupport.registerMetrics(objectMapper.convertValue(v2, AmazonReservationReport))
+    metricsSupport.registerMetrics(objectMapper.convertValue(v3, AmazonReservationReport))
 
     return new DefaultCacheResult(
       (RESERVATION_REPORTS.ns): [
@@ -369,10 +382,20 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       previousValue.add(errorMessage)
     }
 
-    def id = registry.createId("reservedInstances.errors").withTags([
-      region : region,
-      account: credentials.name
-    ])
+    recordErrorMetric(registry, credentials.name, region)
+  }
+
+  static void recordErrorMetric(Registry registry, String account, String region) {
+    def id = registry.createId("reservedInstances.errors")
+
+    if (account) {
+      id = id.withTag("account", account)
+    }
+
+    if (region) {
+      id = id.withTag("region", region)
+    }
+
     registry.counter(id).increment()
   }
 
