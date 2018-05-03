@@ -13,20 +13,27 @@ export interface IInstanceProps {
 
 @BindAll()
 export class Instance extends React.Component<IInstanceProps> {
+  private $tooltipElement: JQuery = null;
+
   private handleClick(event: React.MouseEvent<any>) {
     event.preventDefault();
     this.props.onInstanceClicked(this.props.instance);
   }
 
   public onMouseOver(event: React.MouseEvent<any>) {
-    $(event.target)
-      .tooltip({ animation: false, container: 'body' } as JQueryUI.TooltipOptions)
-      .tooltip('show');
+    this.$tooltipElement = $(event.target);
+    this.$tooltipElement.tooltip({ animation: false, container: 'body' } as JQueryUI.TooltipOptions).tooltip('show');
   }
 
   public shouldComponentUpdate(nextProps: IInstanceProps) {
     const checkProps: Array<keyof IInstanceProps> = ['instance', 'active', 'highlight'];
     return checkProps.some(key => this.props[key] !== nextProps[key]);
+  }
+
+  public componentWillUnmount() {
+    if (this.$tooltipElement) {
+      this.$tooltipElement.tooltip('destroy');
+    }
   }
 
   public render() {
