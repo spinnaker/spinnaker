@@ -1,20 +1,20 @@
 <div class="details-panel" ng-class="{ disabled: serverGroup.isDisabled }">
 
   <div class="header" ng-if="state.loading">
-      <div class="close-button">
-          <a class="btn btn-link" ui-sref="^">
-              <span class="glyphicon glyphicon-remove"></span>
-          </a>
-      </div>
-      <h4 class="text-center">
-          <span us-spinner="{radius:20, width:6, length: 12}"></span>
-      </h4>
+    <div class="close-button">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
   </div>
 
   <div class="header" ng-if="!state.loading">
     <div class="close-button">
       <a class="btn btn-link"
-          ui-sref="^">
+         ui-sref="^">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -39,7 +39,7 @@
       <div class="actions" ng-class="{ insights: serverGroup.insightActions.length > 0 }">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
-            Titus Job Actions <span class="caret"></span>
+            Server Group Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li><a href ng-if="ctrl.isRollbackEnabled()" ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
@@ -58,16 +58,16 @@
         </div>
         <div class="dropdown" ng-if="serverGroup.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
-           Insight <span class="caret"></span>
+            Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li ng-repeat="action in serverGroup.insightActions"
-              analytics-on="click"
-              analytics-category="Insight Menu (Server Group)"
-              analytics-event="{{action.label}} clicked"
-              analytics-label="{{serverGroup.account}}/{{serverGroup.region}}/{{serverGroup.name}}">
-            <a target=_blank href="{{action.url}}">{{action.label}}</a>
-          </li>
+            <li ng-repeat="action in serverGroup.insightActions"
+                analytics-on="click"
+                analytics-category="Insight Menu (Server Group)"
+                analytics-event="{{action.label}} clicked"
+                analytics-label="{{serverGroup.account}}/{{serverGroup.region}}/{{serverGroup.name}}">
+              <a target=_blank href="{{action.url}}">{{action.label}}</a>
+            </li>
           </ul>
         </div>
         <div class="clearfix"></div>
@@ -78,24 +78,21 @@
     <div class="band band-info" ng-if="serverGroup.isDisabled">
       Job is Disabled
     </div>
-    <server-group-running-tasks-details server-group="serverGroup" application="ctrl.application"></server-group-running-tasks-details>
-    <collapsible-section heading="Titus Job Information" expanded="true">
+    <server-group-running-tasks-details server-group="serverGroup"
+                                        application="ctrl.application"></server-group-running-tasks-details>
+    <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
-        <dt>Job Id</dt>
-        <dd><a href="{{titusUiEndpoint}}jobs/{{serverGroup.id}}" target="_blank">{{serverGroup.id}}</a></dd>
         <dt>Created</dt>
         <dd>{{serverGroup.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="serverGroup.account" pad="right"></account-tag>
+          {{serverGroup.region}}
+        </dd>
+        </dd>
+        <dt>Job Id</dt>
+        <dd><a href="{{titusUiEndpoint}}jobs/{{serverGroup.id}}" target="_blank">{{serverGroup.id}}</a></dd>
         <entity-source metadata="serverGroup.entityTags.creationMetadata"></entity-source>
-        <dt ng-if="serverGroup.iamProfile">IAM Profile</dt>
-        <dd ng-if="serverGroup.iamProfile">{{serverGroup.iamProfile}}</dd>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Placement Constraints" expanded="true">
-      <dl class="dl-horizontal dl-flex">
-        <dt>Account</dt>
-        <dd><account-tag account="serverGroup.account" pad="right"></account-tag></dd>
-        <dt>Region</dt>
-        <dd>{{serverGroup.region}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity" expanded="true">
@@ -133,7 +130,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Docker Image">
+    <collapsible-section heading="Launch Configuration">
       <dl class="horizontal-when-filters-collapsed" ng-if="serverGroup.image">
         <dt ng-if="serverGroup.image.dockerImageName">Image Name</dt>
         <dd ng-if="serverGroup.image.dockerImageName">{{serverGroup.image.dockerImageName}}</dd>
@@ -141,6 +138,18 @@
         <dd ng-if="serverGroup.image.dockerImageVersion">{{serverGroup.image.dockerImageVersion}}</dd>
         <dt ng-if="serverGroup.entryPoint">Entrypoint</dt>
         <dd ng-if="serverGroup.entryPoint">{{serverGroup.entryPoint}}</dd>
+        <dt ng-if="serverGroup.iamProfile">IAM Profile</dt>
+        <dd ng-if="serverGroup.iamProfile">{{serverGroup.iamProfile}}</dd>
+        <dt>CPU(s)</dt>
+        <dd>{{serverGroup.resources.cpu}}</dd>
+        <dt>Memory</dt>
+        <dd>{{serverGroup.resources.memory}} MB</dd>
+        <dt>Disk</dt>
+        <dd>{{serverGroup.resources.disk}} MB</dd>
+        <dt>Network</dt>
+        <dd>{{serverGroup.resources.networkMbps}} Mbps</dd>
+        <dt>GPU(s)</dt>
+        <dd>{{serverGroup.resources.gpu}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Security Groups">
@@ -155,14 +164,14 @@
     </collapsible-section>
 
     <collapsible-section heading="Scaling Policies" ng-if="ctrl.scalingPoliciesEnabled">
-        <titus-scaling-policy-summary
-          ng-repeat="policy in serverGroup.scalingPolicies"
-          policy="policy"
-          server-group="serverGroup"
-          application="ctrl.application"></titus-scaling-policy-summary>
-        <titus-create-scaling-policy-button
-          server-group="serverGroup"
-          application="ctrl.application"></titus-create-scaling-policy-button>
+      <titus-scaling-policy-summary
+        ng-repeat="policy in serverGroup.scalingPolicies"
+        policy="policy"
+        server-group="serverGroup"
+        application="ctrl.application"></titus-scaling-policy-summary>
+      <titus-create-scaling-policy-button
+        server-group="serverGroup"
+        application="ctrl.application"></titus-create-scaling-policy-button>
       <div ng-if="ctrl.awsAccountId">
         <config-bin-link
           application="ctrl.application"
@@ -174,22 +183,10 @@
           config-updated="addConfigBinData"></config-bin-link>
       </div>
     </collapsible-section>
-
-    <collapsible-section heading="Resources" expanded="true">
-      <dl class="dl-horizontal dl-flex">
-        <dt>CPU(s)</dt>
-        <dd>{{serverGroup.resources.cpu}}</dd>
-        <dt>Memory</dt>
-        <dd>{{serverGroup.resources.memory}} MB</dd>
-        <dt>Disk</dt>
-        <dd>{{serverGroup.resources.disk}} MB</dd>
-        <dt>Network</dt>
-        <dd>{{serverGroup.resources.networkMbps}} Mbps</dd>
-      </dl>
-    </collapsible-section>
     <collapsible-section heading="Job Attributes">
       <div ng-if="!serverGroup.labels">No job attributes associated with this
-        server group</div>
+        server group
+      </div>
       <dl ng-if="labels">
         <dt ng-repeat-start="(key, val) in labels">{{key}}</dt>
         <dd ng-repeat-end>{{val}}</dd>
@@ -197,7 +194,8 @@
     </collapsible-section>
     <collapsible-section heading="Environment Variables">
       <div ng-if="!serverGroup.env">No environment variables associated with this
-        server group</div>
+        server group
+      </div>
       <dl ng-if="serverGroup.env">
         <dt ng-repeat-start="(key, val) in serverGroup.env">{{key}}</dt>
         <dd ng-repeat-end>{{val}}</dd>
@@ -205,7 +203,8 @@
     </collapsible-section>
     <collapsible-section heading="Container Attributes">
       <div ng-if="!serverGroup.containerAttributes">No container attributes associated with this
-        server group</div>
+        server group
+      </div>
       <dl ng-if="serverGroup.containerAttributes">
         <dt ng-repeat-start="(key, val) in serverGroup.containerAttributes">{{key}}</dt>
         <dd ng-repeat-end>{{val}}</dd>

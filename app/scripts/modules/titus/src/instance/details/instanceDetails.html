@@ -20,7 +20,6 @@
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{instance ? instance.id : instanceIdNotFound}}
       </h3>
-
       <copy-to-clipboard
         ng-if="instance"
         class="copy-to-clipboard"
@@ -31,14 +30,19 @@
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled"
+                  uib-dropdown-toggle>
             Titus Task Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-            <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()">Enable in Discovery</a></li>
-            <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up') || ctrl.hasHealthState('Discovery', 'Down')">Disable in Discovery</a></li>
+            <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()">Enable in
+              Discovery</a></li>
+            <li><a href ng-click="ctrl.disableInstanceInDiscovery()"
+                   ng-if="ctrl.hasHealthState('Discovery', 'Up') || ctrl.hasHealthState('Discovery', 'Down')">Disable in
+              Discovery</a></li>
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
-            <li><a href ng-click="ctrl.terminateInstanceAndShrinkServerGroup()">Terminate and Shrink Server Group</a></li>
+            <li><a href ng-click="ctrl.terminateInstanceAndShrinkServerGroup()">Terminate and Shrink Server Group</a>
+            </li>
           </ul>
         </div>
         <div class="dropdown" ng-if="instance.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
@@ -60,63 +64,33 @@
     </div>
   </div>
   <div class="content" ng-if="!state.loading && instance">
-    <collapsible-section heading="Titus Task Information" expanded="true">
+    <collapsible-section heading="Instance Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
-        <dt>Task Id</dt>
-        <dd><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}/tasks/{{instance.id}}" target="_blank">{{instance.id}}</a></dd>
-        <dt>Instance Id</dt>
-        <dd>{{instance.instanceId}}
-          <copy-to-clipboard
-            class="copy-to-clipboard"
-            text="instance.instanceId"
-            tool-tip="'Copy instance Id to clipboard'">
-          </copy-to-clipboard>
-        </dd>
-        <dt>Job Id</dt>
-        <dd><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}" target="_blank">{{instance.jobId}}</a></dd>
-        <dt ng-if="instance.serverGroup">Job Name</dt>
-        <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
         <dt>Launched</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Task Placement" expanded="true">
-      <dl class="dl-horizontal dl-flex">
-        <dt>Account</dt>
-        <dd><account-tag account="instance.account" pad="right"></account-tag></dd>
-        <dt>Region</dt>
-        <dd>{{instance.placement.region}}</dd>
-        <dt>Host</dt>
-        <dd>{{instance.placement.host}}</dd>
-        <dt ng-if="instance.resources.ports && ctrl.hasPorts()">Port(s)</dt>
-        <dd ng-if="instance.resources.ports && ctrl.hasPorts()">
-          <div ng-repeat="(key, val) in instance.resources.ports">
-            {{key}} -> {{val}}
-          </div>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="instance.account" pad="right"></account-tag>
+          {{instance.placement.region || '(Unknown)'}}
         </dd>
-        <dt ng-if="instance.placement.containerIp">Container IP</dt>
-        <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}
+        <dt ng-if="instance.serverGroup">Server Group</dt>
+        <dd ng-if="instance.serverGroup">
+          <a ui-sref="^.serverGroup({region: instance.region,
+              accountId: instance.account,
+              serverGroup: instance.serverGroup,
+              provider: instance.provider})">{{instance.serverGroup}}</a>
+        </dd>
+        <dt>Job Id</dt>
+        <dd><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}" target="_blank">{{instance.jobId}}</a></dd>
+        <dt>Instance Id</dt>
+        <dd><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}/tasks/{{instance.id}}" target="_blank">{{instance.id}}</a>
           <copy-to-clipboard
             class="copy-to-clipboard"
-            text="instance.placement.containerIp"
-            tool-tip="'Copy container IP clipboard'">
+            text="instance.id"
+            tool-tip="'Copy instance Id to clipboard'">
           </copy-to-clipboard>
         </dd>
-      </dl>
-    </collapsible-section>
-    <collapsible-section heading="Task Resources" expanded="true">
-      <dl class="dl-horizontal dl-flex">
-        <dt>CPU(s)</dt>
-        <dd>{{instance.resources.cpu}}</dd>
-        <dt>Memory</dt>
-        <dd>{{instance.resources.memory}} MB</dd>
-        <dt>Disk</dt>
-        <dd>{{instance.resources.disk}} MB</dd>
-        <dt>Network</dt>
-        <dd>{{instance.resources.networkMbps}} Mbps</dd>
-        <dt>GPU(s)</dt>
-        <dd>{{instance.resources.gpu}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
@@ -130,7 +104,8 @@
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <div ng-if="metric.type !== 'TargetGroup'">
-            <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+            <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}"
+                  tooltip-placement="left">
               <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
               {{metric.state | robotToHuman}}
             </span>
@@ -143,10 +118,25 @@
               </span>
             </span>
           </div>
-          <div ng-if="metric.type === 'TargetGroup' && metric.targetGroups.length" ng-repeat="targetGroup in metric.targetGroups">
+          <div ng-if="metric.type === 'TargetGroup' && metric.targetGroups.length"
+               ng-repeat="targetGroup in metric.targetGroups">
             <instance-load-balancer-health load-balancer="targetGroup"></instance-load-balancer-health>
           </div>
         </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="DNS">
+      <dl class="dl-horizontal dl-flex">
+        <dt ng-if="instance.placement.containerIp">Container IP</dt>
+        <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}
+          <copy-to-clipboard
+            class="copy-to-clipboard"
+            text="instance.placement.containerIp"
+            tool-tip="'Copy container IP clipboard'">
+          </copy-to-clipboard>
+        </dd>
+        <dt>Host IP</dt>
+        <dd>{{instance.placement.host}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Security Groups">
@@ -159,9 +149,24 @@
         </li>
       </ul>
     </collapsible-section>
-    <collapsible-section heading="Task Logs">
+    <!--<collapsible-section heading="Resources">
+      <dl class="dl-horizontal dl-flex">
+        <dt>CPU(s)</dt>
+        <dd>{{instance.resources.cpu}}</dd>
+        <dt>Memory</dt>
+        <dd>{{instance.resources.memory}} MB</dd>
+        <dt>Disk</dt>
+        <dd>{{instance.resources.disk}} MB</dd>
+        <dt>Network</dt>
+        <dd>{{instance.resources.networkMbps}} Mbps</dd>
+        <dt>GPU(s)</dt>
+        <dd>{{instance.resources.gpu}}</dd>
+      </dl>-->
+    </collapsible-section>
+    <collapsible-section heading="Console Output">
       <ul>
-        <li><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}/tasks/{{instance.id}}/logs/live" target="_blank">Task Logs</a></li>
+        <li><a href="{{ctrl.titusUiEndpoint}}jobs/{{instance.jobId}}/tasks/{{instance.id}}/logs/live" target="_blank">Live
+          Logs in Titus UI</a></li>
       </ul>
     </collapsible-section>
     <instance-links address="baseIpAddress" application="application" instance="instance"></instance-links>
