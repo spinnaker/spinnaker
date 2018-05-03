@@ -21,9 +21,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.cats.cache.CacheFilter;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.moniker.Moniker;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -63,8 +65,14 @@ public class KubernetesManifestAnnotater {
       return;
     }
 
+
     try {
-      annotations.put(key, objectMapper.writeValueAsString(value));
+      if (value instanceof String) {
+        // The "write value as string" method will attach quotes which are ugly to read
+        annotations.put(key, (String) value);
+      } else {
+        annotations.put(key, objectMapper.writeValueAsString(value));
+      }
     } catch (JsonProcessingException e) {
       throw new IllegalArgumentException("Illegal annotation value for '" + key + "': " + e);
     }
@@ -74,6 +82,24 @@ public class KubernetesManifestAnnotater {
     return getAnnotation(annotations, key, typeReference, null);
   }
 
+  private static boolean stringTypeReference(TypeReference typeReference) {
+    if (typeReference.getType() == null || typeReference.getType().getTypeName() == null) {
+      log.warn("Malformed type reference {}", typeReference);
+      return false;
+    }
+
+    return typeReference.getType().getTypeName().equals(String.class.getName());
+  }
+
+  // This is to read values that were annotated with the ObjectMapper with quotes, before we started ignoring the quotes
+  private static boolean looksLikeSerializedString(String value) {
+    if (StringUtils.isEmpty(value) || value.length() == 1) {
+      return false;
+    }
+
+    return value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"';
+  }
+
   private static <T> T getAnnotation(Map<String, String> annotations, String key, TypeReference<T> typeReference, T defaultValue) {
     String value = annotations.get(key);
     if (value == null) {
@@ -81,7 +107,13 @@ public class KubernetesManifestAnnotater {
     }
 
     try {
-      return objectMapper.readValue(value, typeReference);
+      boolean wantsString = stringTypeReference(typeReference);
+
+      if (wantsString && !looksLikeSerializedString(value)) {
+        return (T) value;
+      } else {
+        return objectMapper.readValue(value, typeReference);
+      }
     } catch (Exception e) {
       log.warn("Illegally annotated resource for '" + key + "': " + e);
       return null;

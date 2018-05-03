@@ -74,8 +74,8 @@ class KubernetesManifestAnnotatorSpec extends Specification {
       .build()
 
     KubernetesManifestAnnotater.annotateManifest(manifest, moniker)
-    manifest.getAnnotations().get(clusterKey) == '"' + cluster + '"'
-    manifest.getAnnotations().get(applicationKey) == '"' + application + '"'
+    manifest.getAnnotations().get(clusterKey) == cluster
+    manifest.getAnnotations().get(applicationKey) == application
 
     where:
     cluster | application
