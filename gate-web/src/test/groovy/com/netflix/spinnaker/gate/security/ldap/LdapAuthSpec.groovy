@@ -22,7 +22,6 @@ import com.netflix.spinnaker.gate.security.FormLoginRequestBuilder
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.services.AccountLookupService
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired

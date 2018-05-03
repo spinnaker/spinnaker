@@ -1,0 +1,5686 @@
+{
+   "basePath" : "/",
+   "info" : {
+      "title" : "Spinnaker API",
+      "contact" : {}
+   },
+   "paths" : {
+      "/images/{account}/{region}/{imageId}" : {
+         "get" : {
+            "operationId" : "getImageDetailsUsingGET",
+            "summary" : "Get image details",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "name" : "account",
+                  "description" : "account",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "description" : "region",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "region",
+                  "required" : true
+               },
+               {
+                  "name" : "imageId",
+                  "description" : "imageId",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "name" : "provider",
+                  "description" : "provider",
+                  "type" : "string",
+                  "in" : "query",
+                  "default" : "aws",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "in" : "header",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App"
+               }
+            ],
+            "tags" : [
+               "image-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            }
+         }
+      },
+      "/pipelines/{id}/resume" : {
+         "put" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  }
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "resumePipelineUsingPUT",
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "path",
+                  "name" : "id",
+                  "required" : true
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Resume a pipeline execution"
+         }
+      },
+      "/applications/{application}/snapshots/{account}" : {
+         "get" : {
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "snapshot-controller"
+            ],
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "account",
+                  "name" : "account"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get current snapshot",
+            "operationId" : "getCurrentSnapshotUsingGET"
+         }
+      },
+      "/applications/{applicationName}/jobs/{account}/{region}/{name}" : {
+         "get" : {
+            "tags" : [
+               "job-controller"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "getJobUsingGET",
+            "parameters" : [
+               {
+                  "name" : "applicationName",
+                  "description" : "applicationName",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "account",
+                  "name" : "account",
+                  "required" : true
+               },
+               {
+                  "name" : "region",
+                  "description" : "region",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "name",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "name"
+               },
+               {
+                  "name" : "expand",
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "expand",
+                  "default" : "false",
+                  "required" : false
+               },
+               {
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "required" : false
+               }
+            ],
+            "summary" : "Get job",
+            "produces" : [
+               "*/*"
+            ]
+         }
+      },
+      "/v2/builds/{buildMaster}/builds/**" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "tags" : [
+               "build-controller"
+            ],
+            "summary" : "Get builds for build master",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "buildMaster",
+                  "name" : "buildMaster",
+                  "required" : true
+               }
+            ],
+            "operationId" : "getBuildsUsingGET"
+         }
+      },
+      "/webhooks/{type}/{source}" : {
+         "post" : {
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "description" : "type",
+                  "in" : "path",
+                  "name" : "type",
+                  "required" : true
+               },
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "source",
+                  "name" : "source",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "event",
+                  "description" : "event",
+                  "in" : "body",
+                  "schema" : {
+                     "type" : "object"
+                  }
+               },
+               {
+                  "type" : "string",
+                  "description" : "X-Hub-Signature",
+                  "in" : "header",
+                  "name" : "X-Hub-Signature",
+                  "required" : false
+               },
+               {
+                  "type" : "string",
+                  "description" : "X-Event-Key",
+                  "in" : "header",
+                  "name" : "X-Event-Key",
+                  "required" : false
+               }
+            ],
+            "summary" : "Endpoint for posting webhooks to Spinnaker's webhook service",
+            "produces" : [
+               "*/*"
+            ],
+            "operationId" : "webhooksUsingPOST",
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "201" : {
+                  "description" : "Created"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "webhook-controller"
+            ]
+         }
+      },
+      "/applications/{application}/clusters/{account}" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "cluster-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of clusters for an account",
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "application",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "name" : "account",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "account",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "description" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App"
+               }
+            ],
+            "operationId" : "getClustersUsingGET_1"
+         }
+      },
+      "/search" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "search-controller"
+            ],
+            "summary" : "Search infrastructure",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : false,
+                  "name" : "q",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "q"
+               },
+               {
+                  "required" : true,
+                  "name" : "type",
+                  "description" : "type",
+                  "type" : "string",
+                  "in" : "query"
+               },
+               {
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "platform",
+                  "name" : "platform",
+                  "required" : false
+               },
+               {
+                  "type" : "integer",
+                  "in" : "query",
+                  "description" : "pageSize",
+                  "format" : "int32",
+                  "name" : "pageSize",
+                  "required" : false,
+                  "default" : 10000
+               },
+               {
+                  "required" : false,
+                  "default" : 1,
+                  "name" : "page",
+                  "format" : "int32",
+                  "type" : "integer",
+                  "in" : "query",
+                  "description" : "page"
+               },
+               {
+                  "default" : false,
+                  "required" : false,
+                  "description" : "allowShortQuery",
+                  "type" : "boolean",
+                  "in" : "query",
+                  "name" : "allowShortQuery"
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App"
+               }
+            ],
+            "operationId" : "searchUsingGET"
+         }
+      },
+      "/applications/{application}/clusters/{account}/{clusterName}/{type}/loadBalancers" : {
+         "get" : {
+            "operationId" : "getClusterLoadBalancersUsingGET",
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "applicationName",
+                  "name" : "applicationName",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "account",
+                  "type" : "string",
+                  "description" : "account",
+                  "in" : "path"
+               },
+               {
+                  "name" : "clusterName",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "clusterName",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "description" : "type",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "type"
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a cluster's loadbalancers",
+            "tags" : [
+               "cluster-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/networks/{cloudProvider}" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "tags" : [
+               "network-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of networks for a given cloud provider",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "cloudProvider",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "cloudProvider"
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "description" : "X-RateLimit-App"
+               }
+            ],
+            "operationId" : "allByCloudProviderUsingGET"
+         }
+      },
+      "/pipelines/{id}/pause" : {
+         "put" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "pausePipelineUsingPUT",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "id"
+               }
+            ],
+            "summary" : "Pause a pipeline execution",
+            "produces" : [
+               "*/*"
+            ]
+         }
+      },
+      "/pipelines/{id}/evaluateExpression" : {
+         "options" : {
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "description" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "name" : "expression",
+                  "type" : "string",
+                  "description" : "expression",
+                  "in" : "query",
+                  "required" : true
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Evaluate a pipeline expression using the provided execution as context",
+            "operationId" : "evaluateExpressionForExecutionUsingOPTIONS"
+         },
+         "patch" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "summary" : "Evaluate a pipeline expression using the provided execution as context",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "id",
+                  "required" : true
+               },
+               {
+                  "name" : "expression",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "expression",
+                  "required" : true
+               }
+            ],
+            "operationId" : "evaluateExpressionForExecutionUsingPATCH"
+         },
+         "delete" : {
+            "operationId" : "evaluateExpressionForExecutionUsingDELETE",
+            "summary" : "Evaluate a pipeline expression using the provided execution as context",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "path",
+                  "name" : "id"
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "description" : "expression",
+                  "in" : "query",
+                  "name" : "expression"
+               }
+            ],
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               }
+            }
+         },
+         "put" : {
+            "operationId" : "evaluateExpressionForExecutionUsingPUT",
+            "summary" : "Evaluate a pipeline expression using the provided execution as context",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "description" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "id",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "description" : "expression",
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "expression"
+               }
+            ],
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               }
+            }
+         },
+         "post" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Evaluate a pipeline expression using the provided execution as context",
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "id",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "expression",
+                  "name" : "expression",
+                  "required" : true
+               }
+            ],
+            "operationId" : "evaluateExpressionForExecutionUsingPOST"
+         },
+         "get" : {
+            "summary" : "Evaluate a pipeline expression using the provided execution as context",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "description" : "expression",
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "expression",
+                  "required" : true
+               }
+            ],
+            "operationId" : "evaluateExpressionForExecutionUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "pipeline-controller"
+            ]
+         },
+         "head" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "operationId" : "evaluateExpressionForExecutionUsingHEAD",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Evaluate a pipeline expression using the provided execution as context",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "id"
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "expression",
+                  "name" : "expression"
+               }
+            ]
+         }
+      },
+      "/applications/{application}/tasks" : {
+         "get" : {
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of an application's tasks",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "description" : "application",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "application"
+               },
+               {
+                  "required" : false,
+                  "type" : "integer",
+                  "in" : "query",
+                  "description" : "limit",
+                  "format" : "int32",
+                  "name" : "limit"
+               },
+               {
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "statuses",
+                  "name" : "statuses",
+                  "required" : false
+               }
+            ],
+            "operationId" : "getTasksUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "application-controller"
+            ]
+         },
+         "post" : {
+            "summary" : "Create task",
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "application",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "map",
+                  "in" : "body",
+                  "name" : "map"
+               }
+            ],
+            "operationId" : "taskUsingPOST",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "produces" : [
+               "*/*"
+            ],
+            "tags" : [
+               "application-controller"
+            ],
+            "deprecated" : true
+         }
+      },
+      "/applications/{application}/pipelineConfigs/{pipelineName}" : {
+         "post" : {
+            "produces" : [
+               "*/*"
+            ],
+            "deprecated" : true,
+            "tags" : [
+               "application-controller"
+            ],
+            "operationId" : "invokePipelineConfigUsingPOST",
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "application",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "description" : "pipelineName",
+                  "in" : "path",
+                  "name" : "pipelineName",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "name" : "trigger",
+                  "description" : "trigger",
+                  "in" : "body",
+                  "schema" : {
+                     "type" : "object"
+                  }
+               },
+               {
+                  "required" : false,
+                  "name" : "user",
+                  "type" : "string",
+                  "description" : "user",
+                  "in" : "query"
+               }
+            ],
+            "summary" : "Invoke pipeline config",
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "schema" : {
+                     "$ref" : "#/definitions/HttpEntity"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         },
+         "get" : {
+            "operationId" : "getPipelineConfigUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a pipeline configuration",
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "application",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "pipelineName",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "pipelineName"
+               }
+            ],
+            "tags" : [
+               "application-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               }
+            }
+         }
+      },
+      "/bakery/logs/{region}/{statusId}" : {
+         "get" : {
+            "tags" : [
+               "bake-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "lookupLogsUsingGET",
+            "parameters" : [
+               {
+                  "name" : "region",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "region",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "statusId",
+                  "type" : "string",
+                  "description" : "statusId",
+                  "in" : "path"
+               }
+            ],
+            "summary" : "Retrieve the logs for a given bake",
+            "produces" : [
+               "*/*"
+            ]
+         }
+      },
+      "/pipelines/{id}/stages/{stageId}/restart" : {
+         "put" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Restart a stage execution",
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "description" : "stageId",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "stageId"
+               },
+               {
+                  "in" : "body",
+                  "description" : "context",
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "name" : "context",
+                  "required" : true
+               }
+            ],
+            "operationId" : "restartStageUsingPUT"
+         }
+      },
+      "/securityGroups/{account}/{region}/{name}" : {
+         "get" : {
+            "tags" : [
+               "security-group-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object"
+                  }
+               }
+            },
+            "operationId" : "getSecurityGroupUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a security group's details",
+            "parameters" : [
+               {
+                  "name" : "account",
+                  "type" : "string",
+                  "description" : "account",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "region",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "region"
+               },
+               {
+                  "type" : "string",
+                  "description" : "name",
+                  "in" : "path",
+                  "name" : "name",
+                  "required" : true
+               },
+               {
+                  "default" : "aws",
+                  "required" : false,
+                  "name" : "provider",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "provider"
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "description" : "vpcId",
+                  "in" : "query",
+                  "name" : "vpcId"
+               },
+               {
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "required" : false
+               }
+            ]
+         }
+      },
+      "/auth/redirect" : {
+         "get" : {
+            "operationId" : "redirectUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Redirect to Deck",
+            "parameters" : [
+               {
+                  "name" : "to",
+                  "description" : "to",
+                  "type" : "string",
+                  "in" : "query",
+                  "required" : true
+               }
+            ],
+            "tags" : [
+               "auth-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            }
+         }
+      },
+      "/auth/loggedOut" : {
+         "get" : {
+            "operationId" : "loggedOutUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get logged out message",
+            "tags" : [
+               "auth-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "string"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/subnets/{cloudProvider}" : {
+         "get" : {
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "cloudProvider",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "cloudProvider"
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header"
+               }
+            ],
+            "summary" : "Retrieve a list of subnets for a given cloud provider",
+            "produces" : [
+               "*/*"
+            ],
+            "operationId" : "allByCloudProviderUsingGET_1",
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "subnet-controller"
+            ]
+         }
+      },
+      "/pipelines/start" : {
+         "post" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "$ref" : "#/definitions/ResponseEntity"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Initiate a pipeline execution",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "map",
+                  "description" : "map",
+                  "in" : "body",
+                  "schema" : {
+                     "type" : "object"
+                  }
+               }
+            ],
+            "operationId" : "startUsingPOST"
+         }
+      },
+      "/webhooks/preconfigured" : {
+         "get" : {
+            "tags" : [
+               "webhook-controller"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "preconfiguredWebhooksUsingGET",
+            "summary" : "Retrieve a list of preconfigured webhooks in Orca",
+            "produces" : [
+               "*/*"
+            ]
+         }
+      },
+      "/applications/{application}/history" : {
+         "get" : {
+            "tags" : [
+               "application-controller"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "getApplicationHistoryUsingGET",
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "name" : "limit",
+                  "format" : "int32",
+                  "type" : "integer",
+                  "description" : "limit",
+                  "in" : "query",
+                  "required" : false,
+                  "default" : 20
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of an application's configuration revision history"
+         }
+      },
+      "/applications/{applicationName}/jobs" : {
+         "get" : {
+            "tags" : [
+               "job-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "operationId" : "getJobsUsingGET",
+            "summary" : "Get jobs",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "name" : "applicationName",
+                  "description" : "applicationName",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "default" : "false",
+                  "required" : false,
+                  "description" : "expand",
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "expand"
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App"
+               }
+            ]
+         }
+      },
+      "/credentials/{account}" : {
+         "get" : {
+            "operationId" : "getAccountUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve an account's details",
+            "parameters" : [
+               {
+                  "in" : "query",
+                  "type" : "array",
+                  "name" : "roles",
+                  "collectionFormat" : "multi",
+                  "items" : {
+                     "type" : "string"
+                  },
+                  "required" : false
+               },
+               {
+                  "in" : "query",
+                  "type" : "array",
+                  "name" : "allowedAccounts",
+                  "collectionFormat" : "multi",
+                  "items" : {
+                     "type" : "string"
+                  },
+                  "required" : false
+               },
+               {
+                  "in" : "query",
+                  "type" : "string",
+                  "name" : "email",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "name" : "username",
+                  "in" : "query",
+                  "type" : "string"
+               },
+               {
+                  "name" : "firstName",
+                  "type" : "string",
+                  "in" : "query",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "lastName"
+               },
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "account",
+                  "name" : "account",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App",
+                  "required" : false
+               }
+            ],
+            "tags" : [
+               "credentials-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "$ref" : "#/definitions/AccountDetails"
+                  }
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            }
+         }
+      },
+      "/applications/{application}" : {
+         "get" : {
+            "operationId" : "getApplicationUsingGET",
+            "parameters" : [
+               {
+                  "name" : "application",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "default" : true,
+                  "in" : "query",
+                  "type" : "boolean",
+                  "description" : "expand",
+                  "name" : "expand"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve an application's details",
+            "tags" : [
+               "application-controller"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/pipelines/{id}/cancel" : {
+         "put" : {
+            "operationId" : "cancelPipelineUsingPUT_1",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Cancel a pipeline execution",
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "reason",
+                  "name" : "reason",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "default" : false,
+                  "type" : "boolean",
+                  "description" : "force",
+                  "in" : "query",
+                  "name" : "force"
+               }
+            ],
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            }
+         }
+      },
+      "/pipelines/{application}/{pipelineName}" : {
+         "delete" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "summary" : "Delete a pipeline definition",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "application",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "application"
+               },
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "pipelineName",
+                  "name" : "pipelineName",
+                  "required" : true
+               }
+            ],
+            "operationId" : "deletePipelineUsingDELETE"
+         }
+      },
+      "/applications/{application}/pipelines" : {
+         "get" : {
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "application-controller"
+            ],
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "application",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "format" : "int32",
+                  "name" : "limit",
+                  "in" : "query",
+                  "type" : "integer",
+                  "description" : "limit"
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "description" : "statuses",
+                  "in" : "query",
+                  "name" : "statuses"
+               },
+               {
+                  "required" : false,
+                  "name" : "expand",
+                  "in" : "query",
+                  "type" : "boolean",
+                  "description" : "expand"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of an application's pipeline executions",
+            "operationId" : "getPipelinesUsingGET"
+         }
+      },
+      "/tasks/cancel" : {
+         "put" : {
+            "tags" : [
+               "task-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  }
+               }
+            },
+            "operationId" : "cancelTasksUsingPUT",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Cancel tasks",
+            "parameters" : [
+               {
+                  "name" : "ids",
+                  "collectionFormat" : "multi",
+                  "items" : {
+                     "type" : "string"
+                  },
+                  "in" : "query",
+                  "type" : "array",
+                  "description" : "ids",
+                  "required" : true
+               }
+            ]
+         }
+      },
+      "/instances/{account}/{region}/{instanceId}" : {
+         "get" : {
+            "summary" : "Retrieve an instance's details",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "description" : "account",
+                  "in" : "path",
+                  "name" : "account",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "description" : "region",
+                  "in" : "path",
+                  "name" : "region",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "instanceId",
+                  "type" : "string",
+                  "description" : "instanceId",
+                  "in" : "path"
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "description" : "X-RateLimit-App"
+               }
+            ],
+            "operationId" : "getInstanceDetailsUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "tags" : [
+               "instance-controller"
+            ]
+         }
+      },
+      "/instanceTypes" : {
+         "get" : {
+            "operationId" : "instanceTypesUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get instance types",
+            "tags" : [
+               "amazon-infrastructure-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            }
+         }
+      },
+      "/loadBalancers" : {
+         "get" : {
+            "operationId" : "getAllUsingGET",
+            "parameters" : [
+               {
+                  "required" : false,
+                  "default" : "aws",
+                  "name" : "provider",
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "provider"
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "in" : "header",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of load balancers for a given cloud provider",
+            "tags" : [
+               "load-balancer-controller"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "type" : "object"
+                     }
+                  }
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/v2/builds" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               }
+            },
+            "tags" : [
+               "build-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get build masters",
+            "operationId" : "getBuildMastersUsingGET"
+         }
+      },
+      "/applications/{application}/clusters/{account}/{clusterName}/serverGroups/{serverGroupName}/scalingActivities" : {
+         "get" : {
+            "summary" : "Retrieve a list of scaling activities for a server group",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "application",
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path"
+               },
+               {
+                  "name" : "account",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "account",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "clusterName",
+                  "name" : "clusterName"
+               },
+               {
+                  "required" : true,
+                  "name" : "serverGroupName",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "serverGroupName"
+               },
+               {
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "provider",
+                  "name" : "provider",
+                  "default" : "aws",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "name" : "region",
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "region"
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "in" : "header",
+                  "description" : "X-RateLimit-App",
+                  "name" : "X-RateLimit-App"
+               }
+            ],
+            "operationId" : "getScalingActivitiesUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "tags" : [
+               "cluster-controller"
+            ]
+         }
+      },
+      "/tasks/{id}/details/{taskDetailsId}" : {
+         "get" : {
+            "tags" : [
+               "task-controller"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "getTaskDetailsUsingGET_1",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "id"
+               },
+               {
+                  "name" : "taskDetailsId",
+                  "type" : "string",
+                  "description" : "taskDetailsId",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "in" : "header",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get task details"
+         }
+      },
+      "/auditevents.json" : {
+         "get" : {
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "audit-events-mvc-endpoint"
+            ],
+            "parameters" : [
+               {
+                  "required" : false,
+                  "name" : "principal",
+                  "description" : "principal",
+                  "type" : "string",
+                  "in" : "query"
+               },
+               {
+                  "required" : false,
+                  "format" : "date-time",
+                  "name" : "after",
+                  "description" : "after",
+                  "type" : "string",
+                  "in" : "query"
+               },
+               {
+                  "name" : "type",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "type",
+                  "required" : false
+               }
+            ],
+            "produces" : [
+               "application/vnd.spring-boot.actuator.v1+json",
+               "application/json"
+            ],
+            "summary" : "findByPrincipalAndAfterAndType",
+            "operationId" : "findByPrincipalAndAfterAndTypeUsingGET_1"
+         }
+      },
+      "/applications/{application}/loadBalancers" : {
+         "get" : {
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "load-balancer-controller"
+            ],
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "description" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App"
+               }
+            ],
+            "summary" : "Retrieve a list of load balancers for a given application",
+            "produces" : [
+               "*/*"
+            ],
+            "operationId" : "getApplicationLoadBalancersUsingGET"
+         }
+      },
+      "/applications" : {
+         "get" : {
+            "summary" : "Retrieve a list of applications",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "name" : "account",
+                  "description" : "filters results to only include applications deployed in the specified account",
+                  "type" : "string",
+                  "in" : "query",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "description" : "filteres results to only include applications owned by the specified email",
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "owner"
+               }
+            ],
+            "operationId" : "getAllApplicationsUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "tags" : [
+               "application-controller"
+            ]
+         }
+      },
+      "/applications/{application}/clusters/{account}/{clusterName}/{cloudProvider}/{scope}/serverGroups/target/{target}" : {
+         "get" : {
+            "tags" : [
+               "cluster-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "application",
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path"
+               },
+               {
+                  "required" : true,
+                  "name" : "account",
+                  "description" : "account",
+                  "type" : "string",
+                  "in" : "path"
+               },
+               {
+                  "required" : true,
+                  "name" : "clusterName",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "clusterName"
+               },
+               {
+                  "required" : true,
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "cloudProvider",
+                  "name" : "cloudProvider"
+               },
+               {
+                  "type" : "string",
+                  "description" : "scope",
+                  "in" : "path",
+                  "name" : "scope",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "description" : "target",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "target"
+               },
+               {
+                  "name" : "onlyEnabled",
+                  "type" : "boolean",
+                  "in" : "query",
+                  "description" : "onlyEnabled",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "description" : "validateOldest",
+                  "type" : "boolean",
+                  "in" : "query",
+                  "name" : "validateOldest"
+               },
+               {
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App",
+                  "required" : false
+               }
+            ],
+            "summary" : "Retrieve a server group that matches a target coordinate (e.g., newest, ancestor) relative to a cluster",
+            "operationId" : "getTargetServerGroupUsingGET",
+            "description" : "`scope` is either a zone or a region"
+         }
+      },
+      "/vpcs" : {
+         "get" : {
+            "tags" : [
+               "amazon-infrastructure-controller"
+            ],
+            "deprecated" : true,
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "operationId" : "vpcsUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get VPCs"
+         }
+      },
+      "/projects/{id}/pipelines" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     },
+                     "type" : "array"
+                  }
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "tags" : [
+               "project-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get all pipelines for project",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "path",
+                  "name" : "id"
+               },
+               {
+                  "in" : "query",
+                  "type" : "integer",
+                  "description" : "limit",
+                  "format" : "int32",
+                  "name" : "limit",
+                  "required" : false,
+                  "default" : 5
+               },
+               {
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "statuses",
+                  "name" : "statuses",
+                  "required" : false
+               }
+            ],
+            "operationId" : "allPipelinesForProjectUsingGET"
+         }
+      },
+      "/networks" : {
+         "get" : {
+            "operationId" : "allUsingGET_1",
+            "parameters" : [
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "in" : "header",
+                  "description" : "X-RateLimit-App",
+                  "name" : "X-RateLimit-App"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of networks, grouped by cloud provider",
+            "tags" : [
+               "network-controller"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/tasks" : {
+         "post" : {
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "map",
+                  "in" : "body",
+                  "description" : "map",
+                  "schema" : {
+                     "type" : "object"
+                  }
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Create task",
+            "operationId" : "taskUsingPOST_1",
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "task-controller"
+            ]
+         }
+      },
+      "/applications/{application}/pipelines/{id}/cancel" : {
+         "put" : {
+            "tags" : [
+               "application-controller"
+            ],
+            "deprecated" : true,
+            "produces" : [
+               "*/*"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "summary" : "Cancel pipeline",
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "id",
+                  "name" : "id",
+                  "required" : true
+               },
+               {
+                  "name" : "reason",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "reason",
+                  "required" : false
+               }
+            ],
+            "operationId" : "cancelPipelineUsingPUT"
+         }
+      },
+      "/applications/{application}/snapshots/{account}/history" : {
+         "get" : {
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "snapshot-controller"
+            ],
+            "parameters" : [
+               {
+                  "name" : "application",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "application",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "account",
+                  "name" : "account",
+                  "required" : true
+               },
+               {
+                  "in" : "query",
+                  "type" : "integer",
+                  "description" : "limit",
+                  "name" : "limit",
+                  "format" : "int32",
+                  "default" : 20,
+                  "required" : false
+               }
+            ],
+            "summary" : "Get snapshot history",
+            "produces" : [
+               "*/*"
+            ],
+            "operationId" : "getSnapshotHistoryUsingGET"
+         }
+      },
+      "/pipelines/{id}/stages/{stageId}" : {
+         "patch" : {
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "description" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "name" : "stageId",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "stageId",
+                  "required" : true
+               },
+               {
+                  "name" : "context",
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "context",
+                  "in" : "body",
+                  "required" : true
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Update a stage execution",
+            "operationId" : "updateStageUsingPATCH",
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "pipeline-controller"
+            ]
+         }
+      },
+      "/applications/{application}/pipelineConfigs" : {
+         "get" : {
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "application-controller"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "application",
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of an application's pipeline configurations",
+            "operationId" : "getPipelineConfigsForApplicationUsingGET"
+         }
+      },
+      "/applications/{application}/clusters" : {
+         "get" : {
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "cluster-controller"
+            ],
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "application",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "in" : "header",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of cluster names for an application, grouped by account",
+            "operationId" : "getClustersUsingGET_2"
+         }
+      },
+      "/applications/{application}/strategyConfigs" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "type" : "object"
+                     }
+                  }
+               }
+            },
+            "tags" : [
+               "application-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of an application's pipeline strategy configurations",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "application",
+                  "description" : "application",
+                  "type" : "string",
+                  "in" : "path"
+               }
+            ],
+            "operationId" : "getStrategyConfigsForApplicationUsingGET"
+         }
+      },
+      "/applications/{application}/tasks/{id}/details/{taskDetailsId}" : {
+         "get" : {
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "id",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "taskDetailsId",
+                  "name" : "taskDetailsId"
+               },
+               {
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "required" : false
+               }
+            ],
+            "summary" : "Get task details",
+            "operationId" : "getTaskDetailsUsingGET",
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "deprecated" : true,
+            "tags" : [
+               "application-controller"
+            ]
+         }
+      },
+      "/applications/{application}/serverGroupManagers" : {
+         "get" : {
+            "operationId" : "getServerGroupManagersForApplicationUsingGET",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "application",
+                  "name" : "application"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of server group managers for an application",
+            "tags" : [
+               "server-group-manager-controller"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/applications/{applicationName}/serverGroups" : {
+         "get" : {
+            "operationId" : "getServerGroupsForApplicationUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of server groups for a given application",
+            "parameters" : [
+               {
+                  "name" : "applicationName",
+                  "type" : "string",
+                  "description" : "applicationName",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "default" : "false",
+                  "description" : "expand",
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "expand"
+               },
+               {
+                  "name" : "cloudProvider",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "cloudProvider",
+                  "required" : false
+               },
+               {
+                  "type" : "string",
+                  "description" : "clusters",
+                  "in" : "query",
+                  "name" : "clusters",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "description" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header"
+               }
+            ],
+            "tags" : [
+               "server-group-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  }
+               }
+            }
+         }
+      },
+      "/applications/{application}/clusters/{account}/{clusterName}" : {
+         "get" : {
+            "tags" : [
+               "cluster-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "operationId" : "getClustersUsingGET",
+            "summary" : "Retrieve a cluster's details",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "application",
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path"
+               },
+               {
+                  "description" : "account",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "account",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "clusterName",
+                  "description" : "clusterName",
+                  "type" : "string",
+                  "in" : "path"
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "description" : "X-RateLimit-App"
+               }
+            ]
+         }
+      },
+      "/pipelines/{application}/{pipelineNameOrId}" : {
+         "post" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "$ref" : "#/definitions/HttpEntity"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "invokePipelineConfigUsingPOST_1",
+            "parameters" : [
+               {
+                  "name" : "application",
+                  "description" : "application",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "description" : "pipelineNameOrId",
+                  "in" : "path",
+                  "name" : "pipelineNameOrId",
+                  "required" : true
+               },
+               {
+                  "name" : "trigger",
+                  "in" : "body",
+                  "description" : "trigger",
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "required" : false
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Trigger a pipeline execution"
+         }
+      },
+      "/pipelines/{id}/logs" : {
+         "get" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     },
+                     "type" : "array"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "operationId" : "getPipelineLogsUsingGET",
+            "summary" : "Retrieve pipeline execution logs",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "id",
+                  "name" : "id"
+               }
+            ]
+         }
+      },
+      "/securityGroups" : {
+         "get" : {
+            "summary" : "Retrieve a list of security groups, grouped by account, cloud provider, and region",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "query",
+                  "required" : false
+               },
+               {
+                  "description" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App",
+                  "required" : false
+               }
+            ],
+            "operationId" : "allUsingGET_2",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "tags" : [
+               "security-group-controller"
+            ]
+         }
+      },
+      "/v2/builds/{buildMaster}/jobs/**" : {
+         "get" : {
+            "operationId" : "getJobConfigUsingGET",
+            "parameters" : [
+               {
+                  "name" : "buildMaster",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "buildMaster",
+                  "required" : true
+               }
+            ],
+            "summary" : "Get job config",
+            "produces" : [
+               "*/*"
+            ],
+            "tags" : [
+               "build-controller"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/pipelines/{id}" : {
+         "get" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "operationId" : "getPipelineUsingGET",
+            "summary" : "Retrieve a pipeline execution",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "id",
+                  "name" : "id",
+                  "required" : true
+               }
+            ]
+         },
+         "put" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "operationId" : "updatePipelineUsingPUT",
+            "summary" : "Update a pipeline definition",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "description" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "id",
+                  "required" : true
+               },
+               {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "pipeline",
+                  "in" : "body",
+                  "name" : "pipeline",
+                  "required" : true
+               }
+            ]
+         },
+         "delete" : {
+            "operationId" : "deletePipelineUsingDELETE_1",
+            "parameters" : [
+               {
+                  "description" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "id",
+                  "required" : true
+               }
+            ],
+            "summary" : "Delete a pipeline execution",
+            "produces" : [
+               "*/*"
+            ],
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  }
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/tasks/{id}" : {
+         "delete" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  }
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "204" : {
+                  "description" : "No Content"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "task-controller"
+            ],
+            "summary" : "Delete task",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "description" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "id",
+                  "required" : true
+               }
+            ],
+            "operationId" : "deleteTaskUsingDELETE"
+         },
+         "get" : {
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "task-controller"
+            ],
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "id",
+                  "required" : true
+               }
+            ],
+            "summary" : "Get task",
+            "produces" : [
+               "*/*"
+            ],
+            "operationId" : "getTaskUsingGET_1"
+         }
+      },
+      "/pipelines/move" : {
+         "post" : {
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK"
+               }
+            },
+            "operationId" : "renamePipelineUsingPOST",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Rename a pipeline definition",
+            "parameters" : [
+               {
+                  "name" : "renameCommand",
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "in" : "body",
+                  "description" : "renameCommand",
+                  "required" : true
+               }
+            ]
+         }
+      },
+      "/applications/{application}/clusters/{account}/{clusterName}/serverGroups/{serverGroupName}" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "tags" : [
+               "cluster-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a server group's details",
+            "parameters" : [
+               {
+                  "name" : "application",
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "name" : "account",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "account",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "clusterName",
+                  "name" : "clusterName"
+               },
+               {
+                  "required" : true,
+                  "name" : "serverGroupName",
+                  "type" : "string",
+                  "description" : "serverGroupName",
+                  "in" : "path"
+               },
+               {
+                  "required" : false,
+                  "description" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App"
+               }
+            ],
+            "operationId" : "getServerGroupsUsingGET"
+         }
+      },
+      "/images/tags" : {
+         "get" : {
+            "tags" : [
+               "image-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               }
+            },
+            "operationId" : "findTagsUsingGET",
+            "summary" : "Find tags",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "default" : "aws",
+                  "required" : false,
+                  "type" : "string",
+                  "description" : "provider",
+                  "in" : "query",
+                  "name" : "provider"
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "account",
+                  "name" : "account"
+               },
+               {
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "repository",
+                  "name" : "repository",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "in" : "header",
+                  "description" : "X-RateLimit-App",
+                  "name" : "X-RateLimit-App",
+                  "required" : false
+               }
+            ]
+         }
+      },
+      "/subnets" : {
+         "get" : {
+            "operationId" : "subnetsUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get subnets",
+            "tags" : [
+               "amazon-infrastructure-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            }
+         }
+      },
+      "/applications/{application}/clusters/{account}/{clusterName}/serverGroups" : {
+         "get" : {
+            "tags" : [
+               "cluster-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "getServerGroupsUsingGET_1",
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "application",
+                  "name" : "application",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "description" : "account",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "account"
+               },
+               {
+                  "type" : "string",
+                  "description" : "clusterName",
+                  "in" : "path",
+                  "name" : "clusterName",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "name" : "X-RateLimit-App",
+                  "required" : false
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of server groups for a cluster"
+         }
+      },
+      "/applications/{application}/strategyConfigs/{strategyName}" : {
+         "get" : {
+            "parameters" : [
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "description" : "application",
+                  "in" : "path",
+                  "name" : "application"
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "strategyName",
+                  "name" : "strategyName"
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a pipeline strategy configuration",
+            "operationId" : "getStrategyConfigUsingGET",
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "application-controller"
+            ]
+         }
+      },
+      "/artifacts/credentials" : {
+         "get" : {
+            "operationId" : "allUsingGET",
+            "parameters" : [
+               {
+                  "name" : "X-RateLimit-App",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "in" : "header",
+                  "required" : false
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve the list of artifact accounts configured in Clouddriver.",
+            "tags" : [
+               "artifact-controller"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/auth/user" : {
+         "get" : {
+            "operationId" : "userUsingGET",
+            "summary" : "Get user",
+            "produces" : [
+               "*/*"
+            ],
+            "tags" : [
+               "auth-controller"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "$ref" : "#/definitions/User"
+                  }
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/pipelines" : {
+         "post" : {
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "pipeline-controller"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "pipeline",
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "pipeline",
+                  "in" : "body"
+               }
+            ],
+            "summary" : "Save a pipeline definition",
+            "produces" : [
+               "*/*"
+            ],
+            "operationId" : "savePipelineUsingPOST"
+         }
+      },
+      "/tasks/{id}/cancel" : {
+         "put" : {
+            "summary" : "Cancel task",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "id",
+                  "description" : "id",
+                  "type" : "string",
+                  "in" : "path"
+               }
+            ],
+            "operationId" : "cancelTaskUsingPUT_1",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "tags" : [
+               "task-controller"
+            ]
+         }
+      },
+      "/auth/roles/sync" : {
+         "post" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "auth-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Sync user roles",
+            "operationId" : "syncUsingPOST"
+         }
+      },
+      "/images/find" : {
+         "get" : {
+            "produces" : [
+               "*/*"
+            ],
+            "tags" : [
+               "image-controller"
+            ],
+            "description" : "The query parameter `q` filters the list of images by image name",
+            "operationId" : "findImagesUsingGET",
+            "parameters" : [
+               {
+                  "required" : false,
+                  "default" : "aws",
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "provider",
+                  "name" : "provider"
+               },
+               {
+                  "required" : false,
+                  "name" : "q",
+                  "type" : "string",
+                  "description" : "q",
+                  "in" : "query"
+               },
+               {
+                  "required" : false,
+                  "description" : "region",
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "region"
+               },
+               {
+                  "name" : "account",
+                  "type" : "string",
+                  "description" : "account",
+                  "in" : "query",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "description" : "count",
+                  "type" : "integer",
+                  "in" : "query",
+                  "name" : "count",
+                  "format" : "int32"
+               }
+            ],
+            "summary" : "Retrieve a list of images, filtered by cloud provider, region, and account",
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/loadBalancers/{account}/{region}/{name}" : {
+         "get" : {
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a load balancer's details as a single element list for a given account, region, cloud provider and load balancer name",
+            "parameters" : [
+               {
+                  "name" : "account",
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "account",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "name" : "region",
+                  "type" : "string",
+                  "description" : "region",
+                  "in" : "path"
+               },
+               {
+                  "required" : true,
+                  "name" : "name",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "name"
+               },
+               {
+                  "required" : false,
+                  "default" : "aws",
+                  "type" : "string",
+                  "description" : "provider",
+                  "in" : "query",
+                  "name" : "provider"
+               },
+               {
+                  "required" : false,
+                  "name" : "X-RateLimit-App",
+                  "description" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header"
+               }
+            ],
+            "operationId" : "getLoadBalancerDetailsUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/HashMap"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "tags" : [
+               "load-balancer-controller"
+            ]
+         }
+      },
+      "/auditevents" : {
+         "get" : {
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "audit-events-mvc-endpoint"
+            ],
+            "parameters" : [
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "description" : "principal",
+                  "in" : "query",
+                  "name" : "principal"
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "description" : "after",
+                  "in" : "query",
+                  "name" : "after",
+                  "format" : "date-time"
+               },
+               {
+                  "required" : false,
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "type",
+                  "name" : "type"
+               }
+            ],
+            "summary" : "findByPrincipalAndAfterAndType",
+            "produces" : [
+               "application/vnd.spring-boot.actuator.v1+json",
+               "application/json"
+            ],
+            "operationId" : "findByPrincipalAndAfterAndTypeUsingGET"
+         }
+      },
+      "/loadBalancers/{name}" : {
+         "get" : {
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  }
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "load-balancer-controller"
+            ],
+            "parameters" : [
+               {
+                  "type" : "string",
+                  "description" : "name",
+                  "in" : "path",
+                  "name" : "name",
+                  "required" : true
+               },
+               {
+                  "required" : false,
+                  "default" : "aws",
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "provider",
+                  "name" : "provider"
+               },
+               {
+                  "name" : "X-RateLimit-App",
+                  "description" : "X-RateLimit-App",
+                  "type" : "string",
+                  "in" : "header",
+                  "required" : false
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a load balancer for a given cloud provider",
+            "operationId" : "getLoadBalancerUsingGET"
+         }
+      },
+      "/credentials" : {
+         "get" : {
+            "tags" : [
+               "credentials-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "$ref" : "#/definitions/Account"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "operationId" : "getAccountsUsingGET",
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a list of accounts",
+            "parameters" : [
+               {
+                  "required" : false,
+                  "in" : "query",
+                  "type" : "array",
+                  "items" : {
+                     "type" : "string"
+                  },
+                  "collectionFormat" : "multi",
+                  "name" : "roles"
+               },
+               {
+                  "type" : "array",
+                  "in" : "query",
+                  "collectionFormat" : "multi",
+                  "name" : "allowedAccounts",
+                  "items" : {
+                     "type" : "string"
+                  },
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "in" : "query",
+                  "type" : "string",
+                  "name" : "email"
+               },
+               {
+                  "required" : false,
+                  "name" : "username",
+                  "type" : "string",
+                  "in" : "query"
+               },
+               {
+                  "name" : "firstName",
+                  "in" : "query",
+                  "type" : "string",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "lastName"
+               },
+               {
+                  "required" : false,
+                  "name" : "expand",
+                  "in" : "query",
+                  "type" : "boolean",
+                  "description" : "expand"
+               }
+            ]
+         }
+      },
+      "/executions" : {
+         "get" : {
+            "summary" : "Retrieve a list of the most recent pipeline executions for the provided `pipelineConfigIds` that match the provided `statuses` query parameter",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "required" : true,
+                  "name" : "pipelineConfigIds",
+                  "type" : "string",
+                  "in" : "query",
+                  "description" : "pipelineConfigIds"
+               },
+               {
+                  "required" : false,
+                  "type" : "integer",
+                  "in" : "query",
+                  "description" : "limit",
+                  "format" : "int32",
+                  "name" : "limit"
+               },
+               {
+                  "name" : "statuses",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "statuses",
+                  "required" : false
+               }
+            ],
+            "operationId" : "getLatestExecutionsByConfigIdsUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "type" : "object"
+                     }
+                  }
+               }
+            },
+            "tags" : [
+               "executions-controller"
+            ]
+         }
+      },
+      "/applications/{application}/tasks/{id}/cancel" : {
+         "put" : {
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "201" : {
+                  "description" : "Created"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "schema" : {
+                     "additionalProperties" : {
+                        "type" : "object"
+                     },
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "operationId" : "cancelTaskUsingPUT",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "description" : "id",
+                  "in" : "path",
+                  "name" : "id"
+               }
+            ],
+            "summary" : "Cancel task",
+            "deprecated" : true,
+            "tags" : [
+               "application-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ]
+         }
+      },
+      "/bakery/options" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "bake-controller"
+            ],
+            "summary" : "Retrieve a list of available bakery base images, grouped by cloud provider",
+            "produces" : [
+               "*/*"
+            ],
+            "operationId" : "bakeOptionsUsingGET_1"
+         }
+      },
+      "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName}" : {
+         "get" : {
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve a server group's details",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "description" : "applicationName",
+                  "in" : "path",
+                  "name" : "applicationName"
+               },
+               {
+                  "name" : "account",
+                  "description" : "account",
+                  "type" : "string",
+                  "in" : "path",
+                  "required" : true
+               },
+               {
+                  "type" : "string",
+                  "in" : "path",
+                  "description" : "region",
+                  "name" : "region",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "type" : "string",
+                  "description" : "serverGroupName",
+                  "in" : "path",
+                  "name" : "serverGroupName"
+               },
+               {
+                  "name" : "X-RateLimit-App",
+                  "in" : "header",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "required" : false
+               },
+               {
+                  "default" : "true",
+                  "required" : false,
+                  "name" : "includeDetails",
+                  "description" : "includeDetails",
+                  "type" : "string",
+                  "in" : "query"
+               }
+            ],
+            "operationId" : "getServerGroupDetailsUsingGET",
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "tags" : [
+               "server-group-controller"
+            ]
+         }
+      },
+      "/v2/builds/{buildMaster}/build/{number}/**" : {
+         "get" : {
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "tags" : [
+               "build-controller"
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get build for build master",
+            "parameters" : [
+               {
+                  "description" : "buildMaster",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "buildMaster",
+                  "required" : true
+               },
+               {
+                  "name" : "number",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "number",
+                  "required" : true
+               }
+            ],
+            "operationId" : "getBuildUsingGET"
+         }
+      },
+      "/instances/{account}/{region}/{instanceId}/console" : {
+         "get" : {
+            "operationId" : "getConsoleOutputUsingGET",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "account",
+                  "name" : "account"
+               },
+               {
+                  "name" : "region",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "region",
+                  "required" : true
+               },
+               {
+                  "required" : true,
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "instanceId",
+                  "name" : "instanceId"
+               },
+               {
+                  "required" : false,
+                  "default" : "aws",
+                  "description" : "provider",
+                  "type" : "string",
+                  "in" : "query",
+                  "name" : "provider"
+               },
+               {
+                  "name" : "X-RateLimit-App",
+                  "in" : "header",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "required" : false
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Retrieve an instance's console output",
+            "tags" : [
+               "instance-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "schema" : {
+                     "type" : "object"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/applications/{application}/tasks/{id}" : {
+         "get" : {
+            "produces" : [
+               "*/*"
+            ],
+            "deprecated" : true,
+            "tags" : [
+               "application-controller"
+            ],
+            "parameters" : [
+               {
+                  "name" : "id",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "id",
+                  "required" : true
+               }
+            ],
+            "summary" : "Get task",
+            "operationId" : "getTaskUsingGET",
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object",
+                     "additionalProperties" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      },
+      "/auth/user/serviceAccounts" : {
+         "get" : {
+            "tags" : [
+               "auth-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "200" : {
+                  "schema" : {
+                     "items" : {
+                        "type" : "object"
+                     },
+                     "type" : "array"
+                  },
+                  "description" : "OK"
+               },
+               "404" : {
+                  "description" : "Not Found"
+               }
+            },
+            "operationId" : "getServiceAccountsUsingGET",
+            "summary" : "Get service accounts",
+            "produces" : [
+               "*/*"
+            ]
+         }
+      },
+      "/securityGroups/{account}" : {
+         "get" : {
+            "tags" : [
+               "security-group-controller"
+            ],
+            "consumes" : [
+               "application/json"
+            ],
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object"
+                  }
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               }
+            },
+            "operationId" : "allByAccountUsingGET",
+            "summary" : "Retrieve a list of security groups for a given account, grouped by region",
+            "produces" : [
+               "*/*"
+            ],
+            "parameters" : [
+               {
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "account",
+                  "name" : "account",
+                  "required" : true
+               },
+               {
+                  "default" : "aws",
+                  "required" : false,
+                  "name" : "provider",
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "provider"
+               },
+               {
+                  "in" : "query",
+                  "type" : "string",
+                  "description" : "region",
+                  "name" : "region",
+                  "required" : false
+               },
+               {
+                  "required" : false,
+                  "in" : "header",
+                  "type" : "string",
+                  "description" : "X-RateLimit-App",
+                  "name" : "X-RateLimit-App"
+               }
+            ]
+         }
+      },
+      "/v2/builds/{buildMaster}/jobs" : {
+         "get" : {
+            "parameters" : [
+               {
+                  "name" : "buildMaster",
+                  "in" : "path",
+                  "type" : "string",
+                  "description" : "buildMaster",
+                  "required" : true
+               }
+            ],
+            "produces" : [
+               "*/*"
+            ],
+            "summary" : "Get jobs for build master",
+            "operationId" : "getJobsForBuildMasterUsingGET",
+            "responses" : {
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "array",
+                     "items" : {
+                        "type" : "object"
+                     }
+                  }
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ],
+            "tags" : [
+               "build-controller"
+            ]
+         }
+      },
+      "/bakery/options/{cloudProvider}" : {
+         "get" : {
+            "operationId" : "bakeOptionsUsingGET",
+            "parameters" : [
+               {
+                  "required" : true,
+                  "description" : "cloudProvider",
+                  "type" : "string",
+                  "in" : "path",
+                  "name" : "cloudProvider"
+               }
+            ],
+            "summary" : "Retrieve a list of available bakery base images for a given cloud provider",
+            "produces" : [
+               "*/*"
+            ],
+            "tags" : [
+               "bake-controller"
+            ],
+            "responses" : {
+               "200" : {
+                  "description" : "OK",
+                  "schema" : {
+                     "type" : "object"
+                  }
+               },
+               "404" : {
+                  "description" : "Not Found"
+               },
+               "401" : {
+                  "description" : "Unauthorized"
+               },
+               "403" : {
+                  "description" : "Forbidden"
+               }
+            },
+            "consumes" : [
+               "application/json"
+            ]
+         }
+      }
+   },
+   "swagger" : "2.0",
+   "tags" : [
+      {
+         "description" : "Task Controller",
+         "name" : "task-controller"
+      },
+      {
+         "name" : "amazon-infrastructure-controller",
+         "description" : "Amazon Infrastructure Controller"
+      },
+      {
+         "description" : "Project Controller",
+         "name" : "project-controller"
+      },
+      {
+         "name" : "auth-controller",
+         "description" : "Auth Controller"
+      },
+      {
+         "description" : "Search Controller",
+         "name" : "search-controller"
+      },
+      {
+         "description" : "Pipeline Controller",
+         "name" : "pipeline-controller"
+      },
+      {
+         "description" : "Load Balancer Controller",
+         "name" : "load-balancer-controller"
+      },
+      {
+         "name" : "credentials-controller",
+         "description" : "Credentials Controller"
+      },
+      {
+         "description" : "Security Group Controller",
+         "name" : "security-group-controller"
+      },
+      {
+         "description" : "Image Controller",
+         "name" : "image-controller"
+      },
+      {
+         "description" : "Application Controller",
+         "name" : "application-controller"
+      },
+      {
+         "description" : "Instance Controller",
+         "name" : "instance-controller"
+      },
+      {
+         "name" : "audit-events-mvc-endpoint",
+         "description" : "Audit Events Mvc Endpoint"
+      },
+      {
+         "name" : "server-group-controller",
+         "description" : "Server Group Controller"
+      },
+      {
+         "description" : "Network Controller",
+         "name" : "network-controller"
+      },
+      {
+         "description" : "Snapshot Controller",
+         "name" : "snapshot-controller"
+      },
+      {
+         "name" : "webhook-controller",
+         "description" : "Webhook Controller"
+      },
+      {
+         "description" : "Subnet Controller",
+         "name" : "subnet-controller"
+      },
+      {
+         "name" : "artifact-controller",
+         "description" : "Artifact Controller"
+      },
+      {
+         "name" : "executions-controller",
+         "description" : "Executions Controller"
+      },
+      {
+         "name" : "server-group-manager-controller",
+         "description" : "Server Group Manager Controller"
+      },
+      {
+         "description" : "Build Controller",
+         "name" : "build-controller"
+      },
+      {
+         "name" : "bake-controller",
+         "description" : "Bake Controller"
+      },
+      {
+         "name" : "cluster-controller",
+         "description" : "Cluster Controller"
+      },
+      {
+         "description" : "Job Controller",
+         "name" : "job-controller"
+      }
+   ],
+   "host" : "localhost",
+   "definitions" : {
+      "HashMap" : {
+         "type" : "object",
+         "additionalProperties" : {
+            "type" : "object"
+         }
+      },
+      "Account" : {
+         "properties" : {
+            "name" : {
+               "type" : "string"
+            },
+            "requiredGroupMembership" : {
+               "items" : {
+                  "type" : "string"
+               },
+               "type" : "array"
+            },
+            "type" : {
+               "type" : "string"
+            },
+            "providerVersion" : {
+               "type" : "string"
+            },
+            "accountId" : {
+               "type" : "string"
+            },
+            "permissions" : {
+               "type" : "object",
+               "additionalProperties" : {
+                  "type" : "array",
+                  "items" : {
+                     "type" : "string"
+                  }
+               }
+            },
+            "skin" : {
+               "type" : "string"
+            }
+         },
+         "type" : "object"
+      },
+      "User" : {
+         "properties" : {
+            "roles" : {
+               "type" : "array",
+               "items" : {
+                  "type" : "string"
+               }
+            },
+            "email" : {
+               "type" : "string"
+            },
+            "firstName" : {
+               "type" : "string"
+            },
+            "allowedAccounts" : {
+               "items" : {
+                  "type" : "string"
+               },
+               "type" : "array"
+            },
+            "credentialsNonExpired" : {
+               "type" : "boolean"
+            },
+            "authorities" : {
+               "items" : {
+                  "$ref" : "#/definitions/GrantedAuthority"
+               },
+               "type" : "array"
+            },
+            "accountNonExpired" : {
+               "type" : "boolean"
+            },
+            "lastName" : {
+               "type" : "string"
+            },
+            "enabled" : {
+               "type" : "boolean"
+            },
+            "username" : {
+               "type" : "string"
+            },
+            "accountNonLocked" : {
+               "type" : "boolean"
+            }
+         },
+         "type" : "object"
+      },
+      "ResponseEntity" : {
+         "type" : "object",
+         "properties" : {
+            "statusCode" : {
+               "type" : "string",
+               "enum" : [
+                  "100",
+                  "101",
+                  "102",
+                  "103",
+                  "200",
+                  "201",
+                  "202",
+                  "203",
+                  "204",
+                  "205",
+                  "206",
+                  "207",
+                  "208",
+                  "226",
+                  "300",
+                  "301",
+                  "302",
+                  "303",
+                  "304",
+                  "305",
+                  "307",
+                  "308",
+                  "400",
+                  "401",
+                  "402",
+                  "403",
+                  "404",
+                  "405",
+                  "406",
+                  "407",
+                  "408",
+                  "409",
+                  "410",
+                  "411",
+                  "412",
+                  "413",
+                  "414",
+                  "415",
+                  "416",
+                  "417",
+                  "418",
+                  "419",
+                  "420",
+                  "421",
+                  "422",
+                  "423",
+                  "424",
+                  "426",
+                  "428",
+                  "429",
+                  "431",
+                  "451",
+                  "500",
+                  "501",
+                  "502",
+                  "503",
+                  "504",
+                  "505",
+                  "506",
+                  "507",
+                  "508",
+                  "509",
+                  "510",
+                  "511"
+               ]
+            },
+            "statusCodeValue" : {
+               "format" : "int32",
+               "type" : "integer"
+            },
+            "body" : {
+               "type" : "object"
+            }
+         }
+      },
+      "GrantedAuthority" : {
+         "type" : "object",
+         "properties" : {
+            "authority" : {
+               "type" : "string"
+            }
+         }
+      },
+      "AccountDetails" : {
+         "type" : "object",
+         "properties" : {
+            "type" : {
+               "type" : "string"
+            },
+            "name" : {
+               "type" : "string"
+            },
+            "requiredGroupMembership" : {
+               "items" : {
+                  "type" : "string"
+               },
+               "type" : "array"
+            },
+            "cloudProvider" : {
+               "type" : "string"
+            },
+            "skin" : {
+               "type" : "string"
+            },
+            "primaryAccount" : {
+               "type" : "boolean"
+            },
+            "environment" : {
+               "type" : "string"
+            },
+            "accountId" : {
+               "type" : "string"
+            },
+            "accountType" : {
+               "type" : "string"
+            },
+            "providerVersion" : {
+               "type" : "string"
+            },
+            "challengeDestructiveActions" : {
+               "type" : "boolean"
+            },
+            "permissions" : {
+               "type" : "object",
+               "additionalProperties" : {
+                  "type" : "array",
+                  "items" : {
+                     "type" : "string"
+                  }
+               }
+            }
+         }
+      },
+      "HttpEntity" : {
+         "properties" : {
+            "body" : {
+               "type" : "object"
+            }
+         },
+         "type" : "object"
+      }
+   }
+}
