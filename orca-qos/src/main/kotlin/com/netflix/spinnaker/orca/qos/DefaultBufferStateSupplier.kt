@@ -16,20 +16,12 @@
 
 package com.netflix.spinnaker.orca.qos
 
-import com.netflix.spinnaker.kork.transientconfig.TransientConfigService
-import com.netflix.spinnaker.orca.qos.BufferState.ACTIVE
 import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty(name = ["qos.bufferingState.supplier"], havingValue = "killSwitch")
-class KillSwitchBufferStateSupplier(
-  private val transientConfigService: TransientConfigService
-) : BufferStateSupplier {
-  override fun get() =
-    when (transientConfigService.isEnabled("qos.bufferingState.active", false)) {
-      true  -> ACTIVE
-      false -> INACTIVE
-    }
+@ConditionalOnMissingBean(BufferStateSupplier::class)
+class DefaultBufferStateSupplier :BufferStateSupplier {
+  override fun get() = INACTIVE
 }

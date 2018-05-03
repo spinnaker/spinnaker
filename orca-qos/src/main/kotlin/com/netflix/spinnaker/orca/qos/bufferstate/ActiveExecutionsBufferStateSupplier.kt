@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.qos.BufferState.INACTIVE
 import com.netflix.spinnaker.orca.qos.BufferStateSupplier
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Component
  * state. By default, this is 60 seconds.
  */
 @Component
+@ConditionalOnProperty(name = ["qos.bufferingState.supplier"], havingValue = "activeExecutions")
 class ActiveExecutionsBufferStateSupplier(
   @Value("\${qos.bufferingState.activeExecutionsThreshold:100}") private val threshold: Int,
   private val registry: Registry
