@@ -65,7 +65,7 @@ public class ArtifactReplacer {
   }
 
   public ReplaceResult replaceAll(KubernetesManifest input, List<Artifact> artifacts) {
-    log.info("Doing replacement on {} using {}", input, artifacts);
+    log.debug("Doing replacement on {} using {}", input, artifacts);
     DocumentContext document;
     try {
       document = JsonPath.using(configuration).parse(mapper.writeValueAsString(input));
