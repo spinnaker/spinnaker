@@ -26,15 +26,12 @@ import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
 import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 import static com.netflix.spinnaker.front50.model.pipeline.Pipeline.TYPE_TEMPLATED
 import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration.TemplateSource.SPINNAKER_PREFIX
@@ -45,6 +42,8 @@ import static com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration
 @RestController
 @RequestMapping('pipelines')
 class PipelineController {
+
+  private final Logger log = LoggerFactory.getLogger(getClass())
 
   @Autowired(required = false)
   PipelineTemplateDAO pipelineTemplateDAO = null;
@@ -123,9 +122,9 @@ class PipelineController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = '{application}/{pipeline:.+}', method = RequestMethod.DELETE)
   void delete(@PathVariable String application, @PathVariable String pipeline) {
-    pipelineDAO.delete(
-      pipelineDAO.getPipelineId(application, pipeline)
-    )
+    String pipelineId = pipelineDAO.getPipelineId(application, pipeline)
+    log.info("Deleting pipeline \"{}\" with id {} in application {}", pipeline, pipelineId, application)
+    pipelineDAO.delete(pipelineId)
   }
 
   void delete(@PathVariable String id) {
