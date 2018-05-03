@@ -344,10 +344,15 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
         // independently), this was an easy way to get them into deck without creating a whole new
         // provider type.
         if (loadBalancerFromCache.relationships[TARGET_GROUPS.ns]) {
-          loadBalancer.targetGroups = loadBalancerFromCache.relationships[TARGET_GROUPS.ns].collect {
-            [
-              name: targetGroups[it].attributes.targetGroupName,
-              targetType: targetGroups[it].attributes.targetType
+          loadBalancer.targetGroups = loadBalancerFromCache.relationships[TARGET_GROUPS.ns].findResults {
+            def targetGroup = targetGroups[it]
+            if (!targetGroup) {
+              return null
+            }
+
+            return [
+              name: targetGroup.attributes.targetGroupName,
+              targetType: targetGroup.attributes.targetType
             ]
           }
         }
