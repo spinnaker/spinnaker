@@ -506,7 +506,8 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
         def baseTags = [
           availabilityZone: overallReservationDetail.availabilityZone ?: "n/a",
           instanceType    : overallReservationDetail.instanceType,
-          os              : overallReservationDetail.os.name
+          os              : overallReservationDetail.os.name,
+          region          : overallReservationDetail.region()
         ] as Map<String, String>
 
         registerMetric("reservedInstances.surplusOverall", baseTags, { OverallReservationDetail o ->
