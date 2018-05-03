@@ -50,7 +50,7 @@ class StartPipelineTask implements Task {
     Map<String, Object> pipelineConfig = pipelines.find { it.id == pipelineId }
 
     if (!pipelineConfig) {
-      throw new IllegalArgumentException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} cannot be located (${pipelineId}")
+      throw new IllegalArgumentException("The referenced ${isStrategy ? 'custom strategy' : 'pipeline'} cannot be located (${pipelineId})")
     }
 
     if (pipelineConfig.getOrDefault("disabled", false)) {
