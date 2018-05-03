@@ -124,8 +124,8 @@ public class KubernetesCacheDataConverter {
   public static CacheData mergeCacheData(CacheData current, CacheData added) {
     String id = current.getId();
     Map<String, Object> attributes = new HashMap<>();
-    attributes.putAll(added.getAttributes());
     attributes.putAll(current.getAttributes());
+    attributes.putAll(added.getAttributes());
     // Behavior is: if no ttl is set on either, the merged key won't expire
     int ttl = Math.min(current.getTtlSeconds(), added.getTtlSeconds());
 

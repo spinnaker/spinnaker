@@ -129,10 +129,16 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     Map<String, Collection<CacheData>> cacheResults = result.getCacheResults();
 
     for (CacheData onDemandData : keepInOnDemand) {
+      if (!shouldOverwriteUsingOnDemand(start, onDemandData)) {
+        continue;
+      }
+
       String onDemandKey = onDemandData.getId();
-      log.info("On demand entry '{}' is overwriting load data entry", onDemandKey);
+      log.info("{}: On demand entry '{}' is overwriting load data entry", getAgentType(), onDemandKey);
 
       String onDemandResultsJson = (String) onDemandData.getAttributes().get(CACHE_RESULTS_KEY);
+
+      log.debug("{}: On demand entry contents overwriting load data entry: {}", getAgentType(), onDemandResultsJson);
       Map<String, Collection<CacheData>> onDemandResults;
       try {
         onDemandResults = objectMapper.readValue(onDemandResultsJson, new TypeReference<Map<String, List<DefaultCacheData>>>() { });
@@ -175,6 +181,13 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     }
   }
 
+  private boolean shouldOverwriteUsingOnDemand(Long startTime, CacheData onDemandEntry) {
+    Map<String, Object> attributes = onDemandEntry.getAttributes();
+    Long cacheTime = (Long) attributes.get(CACHE_TIME_KEY);
+
+    return cacheTime != null && cacheTime >= startTime;
+  }
+
   private void processOnDemandEntry(CacheData onDemandEntry) {
     Map<String, Object> attributes = onDemandEntry.getAttributes();
     Integer processedCount = (Integer) attributes.get(PROCESSED_COUNT_KEY);
@@ -213,9 +226,10 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
     Map<String, Collection<String>> evictions = new HashMap<>();
     CacheResult cacheResult;
 
-    log.info("Storing on demand '{}'", key);
+    log.info("{}: Storing on demand '{}'", getAgentType(), key);
     cacheResult = buildCacheResult(manifest);
     String jsonResult = objectMapper.writeValueAsString(cacheResult.getCacheResults());
+    log.debug("{}: On demand entry being written: {}", getAgentType(), jsonResult);
 
     Map<String, Object> attributes = new ImmutableMap.Builder<String, Object>()
         .put(CACHE_TIME_KEY, System.currentTimeMillis())
