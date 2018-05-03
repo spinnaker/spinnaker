@@ -9,10 +9,15 @@ import {
 
 import { KubernetesV2DeployManifestConfigCtrl } from './deployManifestConfig.controller';
 import { KUBERNETES_MANIFEST_COMMAND_BUILDER } from '../../../manifest/manifestCommandBuilder.service';
+import { KUBERNETES_DEPLOY_MANIFEST_DEPLOY_STATUS_MANIFEST_SUMMARY } from './deployStatusManifestSummary';
 
 export const KUBERNETES_DEPLOY_MANIFEST_STAGE = 'spinnaker.kubernetes.v2.pipeline.stage.deployManifestStage';
 
-module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [PIPELINE_CONFIG_PROVIDER, KUBERNETES_MANIFEST_COMMAND_BUILDER])
+module(KUBERNETES_DEPLOY_MANIFEST_STAGE, [
+  PIPELINE_CONFIG_PROVIDER,
+  KUBERNETES_MANIFEST_COMMAND_BUILDER,
+  KUBERNETES_DEPLOY_MANIFEST_DEPLOY_STATUS_MANIFEST_SUMMARY,
+])
   .config(
     (
       pipelineConfigProvider: PipelineConfigProvider,
