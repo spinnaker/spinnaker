@@ -54,10 +54,6 @@ interface OrcaService {
   Map deleteTask(@Path("id") String id)
 
   @Headers("Accept: application/json")
-  @GET("/tasks")
-  Map all()
-
-  @Headers("Accept: application/json")
   @PUT("/tasks/{id}/cancel")
   Map cancelTask(@Path("id") String id, @Body String ignored)
 
