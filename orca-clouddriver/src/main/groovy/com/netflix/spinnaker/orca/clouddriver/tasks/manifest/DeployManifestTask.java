@@ -40,6 +40,7 @@ import retrofit.client.Response;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -96,7 +97,14 @@ public class DeployManifestTask extends AbstractCloudProviderAwareTask implement
 
           Iterable<Object> rawManifests = yamlParser.get().loadAll(manifestText.getBody().in());
           List<Map> manifests = StreamSupport.stream(rawManifests.spliterator(), false)
-              .map(m -> objectMapper.convertValue(m, Map.class))
+              .map(m -> {
+                try {
+                  return Collections.singletonList(objectMapper.convertValue(m, Map.class));
+                } catch (Exception e) {
+                  return (List<Map>) objectMapper.convertValue(m, List.class);
+                }
+              })
+              .flatMap(Collection::stream)
               .collect(Collectors.toList());
 
           Map<String, Object> manifestWrapper = new HashMap<>();
