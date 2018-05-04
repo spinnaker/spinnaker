@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -87,6 +89,16 @@ class CreateBakeTaskSpec extends Specification {
     baseOs           : "ubuntu",
     baseLabel        : "release",
     rebake           : true
+  ]
+
+  @Shared
+  def bakeConfigWithArtifacts = [
+    region   : "us-west-1",
+    packageArtifactIds : ["abc", "def"],
+    package  : "hodor",
+    user     : "bran",
+    baseOs   : "ubuntu",
+    baseLabel: "release"
   ]
 
   @Shared
@@ -784,4 +796,37 @@ class CreateBakeTaskSpec extends Specification {
     [type: "jenkins", master: "master", job: "job", buildNumber: 1]                | null
   }
 
+  def "properly resolves package artifacts"() {
+    given:
+    def stage = stage {
+      type = "bake"
+      context = bakeConfigWithArtifacts
+    }
+    task.artifactResolver = Mock(ArtifactResolver)
+    task.bakery = Mock(BakeryService)
+
+    when:
+    def bakeResult = task.bakeFromContext(stage)
+
+    then:
+    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> new Artifact()
+    bakeResult.getPackageArtifacts().size() == 2
+  }
+
+  def "handles null packageArtifactIds field"() {
+    given:
+    def stage = stage {
+      type = "bake"
+      context = bakeConfig
+    }
+    task.artifactResolver = Mock(ArtifactResolver)
+    task.bakery = Mock(BakeryService)
+
+    when:
+    def bakeResult = task.bakeFromContext(stage)
+
+    then:
+    0 * task.artifactResolver.getBoundArtifactForId(*_) >> new Artifact()
+    bakeResult.getPackageArtifacts().size() == 0
+  }
 }

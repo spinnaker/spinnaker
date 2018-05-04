@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
@@ -40,6 +41,9 @@ class CreateBakeTask implements RetryableTask {
 
   long backoffPeriod = 30000
   long timeout = 300000
+
+  @Autowired
+  ArtifactResolver artifactResolver
 
   @Autowired(required = false)
   BakeryService bakery
@@ -135,6 +139,10 @@ class CreateBakeTask implements RetryableTask {
       mapper)
 
     Map requestMap = packageInfo.findTargetPackage(allowMissingPackageInstallation)
+
+    requestMap.packageArtifacts = stage.context.packageArtifactIds.collect { String artifactId ->
+      artifactResolver.getBoundArtifactForId(stage, artifactId)
+    }
 
     def request = mapper.convertValue(requestMap, BakeRequest)
     if (!roscoApisEnabled) {

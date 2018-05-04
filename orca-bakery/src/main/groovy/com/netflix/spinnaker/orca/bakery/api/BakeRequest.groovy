@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 
@@ -42,6 +43,7 @@ class BakeRequest {
 
   String user
   @JsonProperty("package") String packageName
+  List<Artifact> packageArtifacts
   String buildHost
   String job
   String buildNumber
