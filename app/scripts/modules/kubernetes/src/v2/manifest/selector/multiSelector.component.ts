@@ -12,7 +12,7 @@ class KubernetesManifestSelectorCtrl implements IController {
   public rawKind: string;
   public rawName: string;
 
-  constructor() {
+  public $onInit() {
     AccountService.getAllAccountDetailsForProvider('kubernetes', 'v2').then(accounts => {
       this.accounts = accounts;
       if (!this.selector.account) {

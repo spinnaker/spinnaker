@@ -1,5 +1,4 @@
 import { UIRouterContext } from '@uirouter/react-hybrid';
-import { BindAll } from 'lodash-decorators';
 import * as React from 'react';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
 import { Subscription } from 'rxjs';
@@ -25,7 +24,6 @@ export interface IAllClustersGroupingsState {
 }
 
 @UIRouterContext
-@BindAll()
 export class AllClustersGroupings extends React.Component<IAllClustersGroupingsProps, IAllClustersGroupingsState> {
   private clusterFilterService = ClusterState.filterService;
   private clusterFilterModel = ClusterState.filterModel;
@@ -85,7 +83,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     this.unwatchSortFilter();
   }
 
-  private renderRow(props: ListRowProps): JSX.Element {
+  private renderRow = (props: ListRowProps): JSX.Element => {
     const { app } = this.props;
     const { groups = [], sortFilter } = this.state;
     const group = groups[props.index];
@@ -102,11 +100,11 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
         </div>
       </CellMeasurer>
     );
-  }
+  };
 
-  private noRowsRender(): JSX.Element {
+  private noRowsRender = (): JSX.Element => {
     return <h4 className="text-center">No server groups match the filters you've selected.</h4>;
-  }
+  };
 
   public render() {
     const { initialized } = this.props;

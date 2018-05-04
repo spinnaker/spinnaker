@@ -3,7 +3,7 @@ import * as DOMPurify from 'dompurify';
 import { UISref } from '@uirouter/react';
 import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';
-import { BindAll, Debounce } from 'lodash-decorators';
+import { Debounce } from 'lodash-decorators';
 import * as moment from 'moment';
 import { Observable } from 'rxjs';
 import {
@@ -78,7 +78,6 @@ const SortIndicator = (props: { direction: SortDirectionType; sorted: boolean })
   return <span className="fa fa-caret-down disabled" />;
 };
 
-@BindAll()
 export class Pager extends React.Component<IPagerProps, IPagerState> {
   private cache = new CellMeasurerCache({
     defaultHeight: 50,
@@ -135,7 +134,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     return 0;
   }
 
-  public sort(info: { sortBy: string; sortDirection: SortDirectionType }): void {
+  public sort = (info: { sortBy: string; sortDirection: SortDirectionType }): void => {
     const { sortBy, sortDirection } = info;
     const { sortedData } = this.state;
 
@@ -145,7 +144,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       this.cache.clearAll();
       this.setState({ sortedData, sortBy, sortDirection });
     }
-  }
+  };
 
   public sortList(sortedData: IOnCallsByService[], sortBy: string, sortDirection: SortDirectionType): void {
     if (sortBy) {
@@ -267,24 +266,24 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     // filter out services without an integration_key
   }
 
-  private selectedChanged(service: IPagerDutyService, value: boolean): void {
+  private selectedChanged = (service: IPagerDutyService, value: boolean): void => {
     const { selectedKeys } = this.state;
     value ? selectedKeys.set(service.integration_key, service) : selectedKeys.delete(service.integration_key);
     ReactInjector.$state.go('.', { keys: Array.from(selectedKeys.keys()) });
     this.setState({ selectedKeys });
-  }
+  };
 
-  private clearAll(): void {
+  private clearAll = (): void => {
     const { selectedKeys } = this.state;
     selectedKeys.clear();
     this.setState({ selectedKeys });
-  }
+  };
 
-  private rowGetter(data: { index: number }): any {
+  private rowGetter = (data: { index: number }): any => {
     return this.state.sortedData[data.index];
-  }
+  };
 
-  private serviceRenderer(data: TableCellProps): React.ReactNode {
+  private serviceRenderer = (data: TableCellProps): React.ReactNode => {
     const service: IPagerDutyService = data.cellData;
     return (
       <div style={paddingStyle}>
@@ -296,14 +295,14 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         />
       </div>
     );
-  }
+  };
 
-  private lastIncidentRenderer(data: TableCellProps): React.ReactNode {
+  private lastIncidentRenderer = (data: TableCellProps): React.ReactNode => {
     const time: moment.Moment = data.cellData;
     return <div style={paddingStyle}>{time.isValid() ? time.fromNow() : 'Never'}</div>;
-  }
+  };
 
-  private applicationRenderer(data: TableCellProps): React.ReactNode {
+  private applicationRenderer = (data: TableCellProps): React.ReactNode => {
     const apps: IApplicationSummary[] = data.cellData;
     const appList = apps.map(app => {
       let displayName = app.name;
@@ -333,7 +332,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         </div>
       </CellMeasurer>
     );
-  }
+  };
 
   private highlight(text: string): string {
     const match = this.state.filterString || this.state.app;
@@ -344,7 +343,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     return text;
   }
 
-  private onCallRenderer(data: TableCellProps): React.ReactNode {
+  private onCallRenderer = (data: TableCellProps): React.ReactNode => {
     const onCalls: IUserList = data.cellData;
     return (
       <CellMeasurer
@@ -379,9 +378,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         </div>
       </CellMeasurer>
     );
-  }
+  };
 
-  private pageRenderer(data: TableCellProps): React.ReactNode {
+  private pageRenderer = (data: TableCellProps): React.ReactNode => {
     const service: IPagerDutyService = data.cellData;
     const disabled = service.status === 'disabled';
 
@@ -404,13 +403,13 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         </div>
       </div>
     );
-  }
+  };
 
-  private pageHeaderRenderer(_data: TableHeaderProps): React.ReactNode {
+  private pageHeaderRenderer = (_data: TableHeaderProps): React.ReactNode => {
     return <span />;
-  }
+  };
 
-  private headerRenderer(data: TableHeaderProps): React.ReactNode {
+  private headerRenderer = (data: TableHeaderProps): React.ReactNode => {
     const { dataKey, disableSort, label, sortBy, sortDirection } = data;
     const children = [
       <span className="table-header" key="label" title={label}>
@@ -423,13 +422,13 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     }
 
     return children;
-  }
+  };
 
-  private handleFilterChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  private handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ app: '', filterString: event.target.value });
-  }
+  };
 
-  private rowClassName(info: { index: number }): string {
+  private rowClassName = (info: { index: number }): string => {
     if (info.index === -1) {
       return 'on-call-header';
     }
@@ -443,15 +442,15 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       classNames.push('disabled');
     }
     return classNames.join(' ');
-  }
+  };
 
-  private handleHideNoAppsChanged(event: React.ChangeEvent<HTMLInputElement>): void {
+  private handleHideNoAppsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const hideNoApps = event.target.checked;
     this.setState({ hideNoApps });
     ReactInjector.$state.go('.', { hide_no_apps: hideNoApps });
-  }
+  };
 
-  private rowClicked(info: RowMouseEventHandlerParams): void {
+  private rowClicked = (info: RowMouseEventHandlerParams): void => {
     // Don't change selection if clicking a link...
     if (!['A', 'I'].includes((info.event.target as any).tagName)) {
       const service: IPagerDutyService = (info.rowData as any).service;
@@ -460,13 +459,13 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         this.selectedChanged(service, flippedValue);
       }
     }
-  }
+  };
 
-  private closeCallback(succeeded: boolean): void {
+  private closeCallback = (succeeded: boolean): void => {
     if (succeeded) {
       this.setState({ selectedKeys: new Map() });
     }
-  }
+  };
 
   public render() {
     const { app, filterString, hideNoApps, selectedKeys, sortBy, sortDirection, sortedData } = this.state;

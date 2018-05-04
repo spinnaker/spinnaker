@@ -6,7 +6,7 @@ export class ChaosMonkeyNewApplicationConfigController {
   public enabled = false;
   public applicationConfig: any;
 
-  public constructor() {
+  public $onInit() {
     this.enabled = SETTINGS.feature.chaosMonkey;
     if (this.enabled) {
       this.applicationConfig.chaosMonkey = {
@@ -23,7 +23,7 @@ export class ChaosMonkeyNewApplicationConfigController {
 
 class ChaosMonkeyNewApplicationConfigComponent implements ng.IComponentOptions {
   public bindings: any = {
-    applicationConfig: '=',
+    applicationConfig: '<',
   };
   public controller: any = ChaosMonkeyNewApplicationConfigController;
   public template = `

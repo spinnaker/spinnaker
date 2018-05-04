@@ -69,7 +69,6 @@ module.exports = {
         use: [
           { loader: 'cache-loader' },
           { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
-          { loader: 'babel-loader' },
           { loader: 'ts-loader', options: { happyPackMode: true } },
           { loader: 'tslint-loader' },
         ],

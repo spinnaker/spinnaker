@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { ReactInjector } from 'core/reactShims';
 import { IDataSourceCategory } from './ApplicationHeader';
@@ -10,9 +9,8 @@ export interface ITinyHeaderProps {
   activeCategory?: IDataSourceCategory;
 }
 
-@BindAll()
 export class TinyHeader extends React.Component<ITinyHeaderProps> {
-  private renderCategory(category: IDataSourceCategory): JSX.Element {
+  private renderCategory = (category: IDataSourceCategory): JSX.Element => {
     if (category.dataSources.length === 1) {
       return (
         <option value={category.dataSources[0].key} key={category.key}>
@@ -29,9 +27,9 @@ export class TinyHeader extends React.Component<ITinyHeaderProps> {
         ))}
       </optgroup>
     );
-  }
+  };
 
-  private categoryChanged(event: React.ChangeEvent<HTMLSelectElement>) {
+  private categoryChanged = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const { primaryCategories, secondaryCategories } = this.props;
     const { $state } = ReactInjector;
     const key = event.target.value;
@@ -43,7 +41,7 @@ export class TinyHeader extends React.Component<ITinyHeaderProps> {
     }
     const dsMatch = categoryMatch.dataSources.find(ds => ds.key === key);
     $state.go(dsMatch.sref, null, { relative: this.getApplicationState() });
-  }
+  };
 
   private getApplicationState(): string {
     return ReactInjector.$state.current.name.split('.application.')[0] + '.application';

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import { Transition } from '@uirouter/core';
-import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { IInstance } from 'core/domain';
@@ -16,7 +15,6 @@ export interface IInstancesState {
   detailsInstanceId: string;
 }
 
-@BindAll()
 export class Instances extends React.Component<IInstancesProps, IInstancesState> {
   // context from enclosing UIView
   public static contextTypes = {
@@ -41,11 +39,11 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
     this.subscription.unsubscribe();
   }
 
-  private onStateChange(transition: Transition) {
+  private onStateChange = (transition: Transition) => {
     const isShowingDetails = !!/\.instanceDetails/.exec(transition.to().name);
     const detailsInstanceId = isShowingDetails ? transition.params().instanceId : null;
     this.setState({ detailsInstanceId });
-  }
+  };
 
   public shouldComponentUpdate(nextProps: IInstancesProps, nextState: IInstancesState) {
     const propsKeys: Array<keyof IInstancesProps> = ['instances', 'highlight'];
@@ -63,13 +61,13 @@ export class Instances extends React.Component<IInstancesProps, IInstancesState>
     return false;
   }
 
-  private handleInstanceClicked(instance: IInstance) {
+  private handleInstanceClicked = (instance: IInstance) => {
     const { router, parentUIViewAddress } = this.context;
     const params = { instanceId: instance.id, provider: instance.provider };
     const options = { relative: parentUIViewAddress.context };
 
     router.stateService.go('.instanceDetails', params, options);
-  }
+  };
 
   private partitionInstances(): IInstance[][] {
     const partitions: IInstance[][] = [];

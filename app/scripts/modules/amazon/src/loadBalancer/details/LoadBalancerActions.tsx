@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { Application, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
 
@@ -21,7 +20,6 @@ export interface ILoadBalancerActionsState {
   showEditModal: boolean;
 }
 
-@BindAll()
 export class LoadBalancerActions extends React.Component<ILoadBalancerActionsProps, ILoadBalancerActionsState> {
   constructor(props: ILoadBalancerActionsProps) {
     super(props);
@@ -53,11 +51,11 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     };
   }
 
-  public editLoadBalancer(): void {
+  public editLoadBalancer = (): void => {
     this.setState({ showEditModal: true });
-  }
+  };
 
-  public deleteLoadBalancer(): void {
+  public deleteLoadBalancer = (): void => {
     const { app, loadBalancer, loadBalancerFromParams } = this.props;
 
     if (loadBalancer.instances && loadBalancer.instances.length) {
@@ -91,15 +89,15 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
       taskMonitorConfig: taskMonitor,
       submitMethod,
     });
-  }
+  };
 
-  private entityTagUpdate(): void {
+  private entityTagUpdate = (): void => {
     this.props.app.loadBalancers.refresh();
-  }
+  };
 
-  private showEditCallback(show: boolean): void {
+  private showEditCallback = (show: boolean): void => {
     this.setState({ showEditModal: show });
-  }
+  };
 
   public render() {
     const { app, loadBalancer } = this.props;

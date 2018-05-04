@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { cloneDeep, get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikValues } from 'formik';
 import { IDeferred, IPromise } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
@@ -33,7 +32,6 @@ export interface ICreateApplicationLoadBalancerState {
 type ApplicationLoadBalancerModal = new () => WizardModal<IAmazonApplicationLoadBalancerUpsertCommand>;
 const ApplicationLoadBalancerModal = WizardModal as ApplicationLoadBalancerModal;
 
-@BindAll()
 export class CreateApplicationLoadBalancer extends React.Component<
   ICreateApplicationLoadBalancerProps,
   ICreateApplicationLoadBalancerState
@@ -66,10 +64,10 @@ export class CreateApplicationLoadBalancer extends React.Component<
     Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
 
-  private dismiss(): void {
+  private dismiss = (): void => {
     this.props.showCallback(false);
     // no idea
-  }
+  };
 
   protected certificateIdAsARN(
     accountId: string,
@@ -188,7 +186,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
     this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(null, () => this.onApplicationRefresh(values));
   }
 
-  private submit(values: IAmazonApplicationLoadBalancerUpsertCommand): void {
+  private submit = (values: IAmazonApplicationLoadBalancerUpsertCommand): void => {
     const { app, forPipelineConfig, onComplete } = this.props;
     const { isNew } = this.state;
 
@@ -216,13 +214,13 @@ export class CreateApplicationLoadBalancer extends React.Component<
 
       this.setState({ taskMonitor });
     }
-  }
+  };
 
-  private validate(values: FormikValues): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> {
+  private validate = (values: FormikValues): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> => {
     this.setState({ includeSecurityGroups: !!values.vpcId });
     const errors = {} as FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand>;
     return errors;
-  }
+  };
 
   public render(): React.ReactElement<CreateApplicationLoadBalancer> {
     const { app, forPipelineConfig, loadBalancer, show } = this.props;

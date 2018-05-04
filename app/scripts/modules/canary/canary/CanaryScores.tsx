@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { isString } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { HelpField } from 'core/help/HelpField';
 
@@ -19,7 +18,6 @@ export interface ICanaryScoresProps {
   unhealthyScore: string;
 }
 
-@BindAll()
 export class CanaryScores extends React.Component<ICanaryScoresProps> {
   public render() {
     const hasExpressions =
@@ -99,19 +97,19 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
     );
   }
 
-  private handleSuccessfulChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  private handleSuccessfulChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onChange({
       successfulScore: event.target.value,
       unhealthyScore: this.props.unhealthyScore,
     });
-  }
+  };
 
-  private handleUnhealthyChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  private handleUnhealthyChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     this.props.onChange({
       successfulScore: this.props.successfulScore,
       unhealthyScore: event.target.value,
     });
-  }
+  };
 
   private isSuccessfulScoreValid(successfulScore: number, unhealthyScore: number): boolean {
     return successfulScore && (!unhealthyScore || successfulScore > unhealthyScore) && successfulScore <= 100;

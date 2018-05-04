@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 
 import { Key, ITag, TagList } from 'core/widgets';
 
@@ -23,7 +22,6 @@ export interface ISearchState {
   tags: ITag[];
 }
 
-@BindAll()
 export class Search extends React.Component<ISearchProps, ISearchState> {
   private filterTypes: IFilterType[] = [];
   private keys: Set<string>;
@@ -140,24 +138,24 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     return result;
   }
 
-  private handleTagListUpdate(elements: HTMLElement[]): void {
+  private handleTagListUpdate = (elements: HTMLElement[]): void => {
     this.tagElements = elements;
-  }
+  };
 
-  private refCallback(element: HTMLInputElement): void {
+  private refCallback = (element: HTMLInputElement): void => {
     this.inputElement = element;
-  }
+  };
 
-  private handleBlur(): void {
+  private handleBlur = (): void => {
     if (!this.mouseDownFired) {
       this.setState({
         isFocused: false,
         isOpen: false,
       });
     }
-  }
+  };
 
-  private handleChange(): void {
+  private handleChange = (): void => {
     let newState: Partial<ISearchState>;
     const value = this.inputElement.value.trim();
     if (this.hasModifier(value)) {
@@ -171,9 +169,9 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     }
 
     this.setState(newState as ISearchState);
-  }
+  };
 
-  private handleDelete(tag: ITag, focus: boolean): void {
+  private handleDelete = (tag: ITag, focus: boolean): void => {
     const tags = this.state.tags.filter((t: ITag) => tag !== t);
     this.setState({
       isFocused: true,
@@ -184,13 +182,13 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     if (focus) {
       this.inputElement.focus();
     }
-  }
+  };
 
-  private handleFocus(): void {
+  private handleFocus = (): void => {
     this.setState({
       isFocused: true,
     });
-  }
+  };
 
   private navigateUp(): void {
     const { filterTypes } = this;
@@ -227,7 +225,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     }
   }
 
-  private handleKeyUpFromInput(event: React.KeyboardEvent<HTMLInputElement>): void {
+  private handleKeyUpFromInput = (event: React.KeyboardEvent<HTMLInputElement>): void => {
     const length = this.tagElements.length;
     switch (event.key) {
       case Key.LEFT_ARROW:
@@ -260,18 +258,18 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
         });
         break;
     }
-  }
+  };
 
-  private handleKeyUpFromTag(): void {
+  private handleKeyUpFromTag = (): void => {
     this.inputElement.focus();
-  }
+  };
 
-  private filterClicked(filter: Filter): void {
+  private filterClicked = (filter: Filter): void => {
     this.handleFilterSelection(filter.props.filterType);
     this.mouseDownFired = false;
-  }
+  };
 
-  private handleKeyUp(key: Key): void {
+  private handleKeyUp = (key: Key): void => {
     switch (key) {
       case Key.UP_ARROW:
         this.navigateUp();
@@ -280,13 +278,13 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
         this.navigateDown();
         break;
     }
-  }
+  };
 
-  private handleMouseDown(): void {
+  private handleMouseDown = (): void => {
     this.mouseDownFired = true;
-  }
+  };
 
-  private handleClearClick(): void {
+  private handleClearClick = (): void => {
     this.setState({
       isOpen: false,
       tags: [],
@@ -294,7 +292,7 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
     this.inputElement.value = '';
     this.inputElement.focus();
     this.props.onChange([]);
-  }
+  };
 
   public render(): React.ReactElement<Search> {
     const { activeFilter, isFocused, isOpen, layouts, tags } = this.state;

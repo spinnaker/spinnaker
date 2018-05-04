@@ -15,7 +15,9 @@ class PageSectionController implements IController {
   public noWrapper: boolean;
   private pageConfig: INavigationPage;
 
-  public constructor(private pageNavigationState: PageNavigationState) {}
+  public constructor(private pageNavigationState: PageNavigationState) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.visible = this.visible !== false;

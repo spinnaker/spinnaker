@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
@@ -14,7 +13,6 @@ export interface IApplicationRefresherState {
   lastRefresh: number;
 }
 
-@BindAll()
 export class ApplicationRefresher extends React.Component<IApplicationRefresherProps, IApplicationRefresherState> {
   private activeStateRefreshUnsubscribe: () => void;
   private activeStateChangeSubscription: Subscription;
@@ -73,11 +71,11 @@ export class ApplicationRefresher extends React.Component<IApplicationRefresherP
     this.clearApplicationListeners();
   }
 
-  public handleRefresh(): void {
+  public handleRefresh = (): void => {
     // Force set refreshing to true since we are forcing the refresh
     this.setState({ refreshing: true });
     this.props.app.refresh(true);
-  }
+  };
 
   public render() {
     return (

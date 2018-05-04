@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { CollapsibleSectionStateCache } from 'core/cache';
 import { HelpField } from 'core/help/HelpField';
@@ -19,7 +18,6 @@ export interface ICollapsibleSectionState {
   headingIsString: boolean;
 }
 
-@BindAll()
 export class CollapsibleSection extends React.Component<ICollapsibleSectionProps, ICollapsibleSectionState> {
   constructor(props: ICollapsibleSectionProps) {
     super(props);
@@ -35,11 +33,11 @@ export class CollapsibleSection extends React.Component<ICollapsibleSectionProps
     };
   }
 
-  public toggle(): void {
+  private toggle = (): void => {
     const { cacheKey, expanded } = this.state;
     this.setState({ expanded: !expanded });
     CollapsibleSectionStateCache.setExpanded(cacheKey, !expanded);
-  }
+  };
 
   public render() {
     const { bodyClassName, children, heading, helpKey, subsection } = this.props;

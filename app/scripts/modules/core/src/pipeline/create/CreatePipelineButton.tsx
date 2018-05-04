@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
 import { ReactInjector } from 'core/reactShims';
@@ -17,7 +16,6 @@ export interface ICreatePipelineButtonState {
   showCreatePipelineModal: boolean;
 }
 
-@BindAll()
 export class CreatePipelineButton extends React.Component<ICreatePipelineButtonProps, ICreatePipelineButtonState> {
   constructor(props: ICreatePipelineButtonProps) {
     super(props);
@@ -27,23 +25,23 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
     };
   }
 
-  private showCallBack(showCreatePipelineModal: boolean) {
+  private showCallBack = (showCreatePipelineModal: boolean) => {
     this.setState({ showCreatePipelineModal });
-  }
+  };
 
-  private createPipeline() {
+  private createPipeline = () => {
     ReactGA.event({ category: 'Pipelines', action: 'Create Pipeline' });
     this.setState({ showCreatePipelineModal: true });
-  }
+  };
 
-  private goToPipelineConfig(id: string) {
+  private goToPipelineConfig = (id: string) => {
     const { $state } = ReactInjector;
     if (!$state.current.name.includes('.executions.execution')) {
       $state.go('^.pipelineConfig', { pipelineId: id });
     } else {
       $state.go('^.^.pipelineConfig', { pipelineId: id });
     }
-  }
+  };
 
   public render() {
     const modal = (

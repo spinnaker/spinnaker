@@ -1,6 +1,5 @@
 import { module } from 'angular';
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import {
   IVariableInputBuilder,
@@ -11,7 +10,6 @@ import {
 } from './variableInput.service';
 import { VariableError } from '../VariableError';
 
-@BindAll()
 class BooleanInput extends React.Component<IVariableProps, IVariableState> {
   public render() {
     return (
@@ -22,13 +20,13 @@ class BooleanInput extends React.Component<IVariableProps, IVariableState> {
     );
   }
 
-  private extractValue(): void {
+  private extractValue = (): void => {
     this.props.onChange({
       value: !this.props.variable.value,
       type: this.props.variable.type,
       name: this.props.variable.name,
     });
-  }
+  };
 }
 
 export class BooleanInputBuilder implements IVariableInputBuilder {

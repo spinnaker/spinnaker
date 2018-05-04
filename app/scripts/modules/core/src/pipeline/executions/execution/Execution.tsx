@@ -3,7 +3,6 @@ import * as ReactGA from 'react-ga';
 import { clone, isEqual } from 'lodash';
 import { $location } from 'ngimport';
 import { Subscription } from 'rxjs';
-import { BindAll } from 'lodash-decorators';
 import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
@@ -46,7 +45,6 @@ export interface IExecutionState {
   runningTimeInMs: number;
 }
 
-@BindAll()
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
   public static defaultProps: Partial<IExecutionProps> = {
     dataSourceKey: 'executions',
@@ -113,10 +111,10 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     return this.state.showingDetails && Number(ReactInjector.$stateParams.stage) === stageIndex;
   }
 
-  public toggleDetails(stageIndex?: number, subIndex?: number): void {
+  public toggleDetails = (stageIndex?: number, subIndex?: number): void => {
     const { executionService } = ReactInjector;
     executionService.toggleDetails(this.props.execution, stageIndex, subIndex);
-  }
+  };
 
   public getUrl(): string {
     let url = $location.absUrl();
@@ -201,46 +199,46 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     this.stateChangeSuccessSubscription.unsubscribe();
   }
 
-  private handleNodeClick(node: IPipelineGraphNode, subIndex: number): void {
+  private handleNodeClick = (node: IPipelineGraphNode, subIndex: number): void => {
     this.toggleDetails(node.index, subIndex);
-  }
+  };
 
-  private handleSourceNoStagesClick(): void {
+  private handleSourceNoStagesClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked (no stages found)' });
-  }
+  };
 
-  private handlePauseClick(): void {
+  private handlePauseClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution pause clicked' });
     this.pauseExecution();
-  }
+  };
 
-  private handleResumeClick(): void {
+  private handleResumeClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution resume clicked' });
     this.resumeExecution();
-  }
+  };
 
-  private handleDeleteClick(): void {
+  private handleDeleteClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution delete clicked' });
     this.deleteExecution();
-  }
+  };
 
-  private handleCancelClick(): void {
+  private handleCancelClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution cancel clicked' });
     this.cancelExecution();
-  }
+  };
 
-  private handleRerunClick(): void {
+  private handleRerunClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution rerun clicked' });
     this.props.onRerun(this.props.execution);
-  }
+  };
 
-  private handleSourceClick(): void {
+  private handleSourceClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked' });
-  }
+  };
 
-  private handlePermalinkClick(): void {
+  private handlePermalinkClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Permalink clicked' });
-  }
+  };
 
   public render() {
     const { application, execution, showAccountLabels, showDurations, standalone, title } = this.props;

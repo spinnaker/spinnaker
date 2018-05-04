@@ -1,6 +1,5 @@
 import { IPromise } from 'angular';
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { Observable, Subject } from 'rxjs';
 import * as ReactGA from 'react-ga';
 
@@ -25,7 +24,6 @@ export interface IRecentlyViewedItemsState {
   recentItems: ISearchResultPodData[];
 }
 
-@BindAll()
 export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsProps, IRecentlyViewedItemsState> {
   public state: IRecentlyViewedItemsState = { recentItems: [] };
   private categories = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
@@ -76,19 +74,19 @@ export class RecentlyViewedItems extends React.Component<IRecentlyViewedItemsPro
     return this.search.formatRouteResult(category, routeParams).then(displayName => ({ ...item, displayName }));
   }
 
-  private handleRemoveProject(projectId: string) {
+  private handleRemoveProject = (projectId: string) => {
     this.recentHistoryService.removeItem('projects', projectId);
     this.updateRecentItems();
-  }
+  };
 
-  private handleRemoveItem(categoryName: string, itemId: string) {
+  private handleRemoveItem = (categoryName: string, itemId: string) => {
     this.recentHistoryService.removeItem(categoryName, itemId);
     this.updateRecentItems();
-  }
+  };
 
-  private handleResultClick(categoryName: string): void {
+  private handleResultClick = (categoryName: string): void => {
     ReactGA.event({ category: 'Primary Search', action: `Recent item selected from ${categoryName}` });
-  }
+  };
 
   public render() {
     const { Component } = this.props;

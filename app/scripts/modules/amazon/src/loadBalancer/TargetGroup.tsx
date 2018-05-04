@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { orderBy } from 'lodash';
 import { UISref, UISrefActive } from '@uirouter/react';
 
@@ -16,7 +15,6 @@ export interface ITargetGroupProps {
   showInstances: boolean;
 }
 
-@BindAll()
 export class TargetGroup extends React.Component<ITargetGroupProps> {
   public render(): React.ReactElement<TargetGroup> {
     const { targetGroup, showInstances, showServerGroups, loadBalancer } = this.props;

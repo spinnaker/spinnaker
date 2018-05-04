@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { get, orderBy, uniq } from 'lodash';
-import { BindAll, Debounce } from 'lodash-decorators';
+import { Debounce } from 'lodash-decorators';
 import { $q } from 'ngimport';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { Subscription } from 'rxjs';
@@ -29,7 +29,6 @@ const DragHandle = SortableHandle(() => (
   <span className="pipeline-drag-handle clickable glyphicon glyphicon-resize-vertical" />
 ));
 
-@BindAll()
 export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IExecutionFiltersState> {
   private executionsRefreshUnsubscribe: () => void;
   private groupsUpdatedSubscription: Subscription;
@@ -67,32 +66,32 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     });
   }
 
-  private enablePipelineReorder(): void {
+  private enablePipelineReorder = (): void => {
     this.setState({ pipelineReorderEnabled: true });
     ReactGA.event({ category: 'Pipelines', action: 'Filter: reorder' });
-  }
+  };
 
-  private disablePipelineReorder(): void {
+  private disablePipelineReorder = (): void => {
     this.setState({ pipelineReorderEnabled: false });
     ReactGA.event({ category: 'Pipelines', action: 'Filter: stop reorder' });
-  }
+  };
 
   private updateExecutionGroups(): void {
     ExecutionState.filterModel.asFilterModel.applyParamsToUrl();
     ReactInjector.executionFilterService.updateExecutionGroups(this.props.application);
   }
 
-  private refreshExecutions(): void {
+  private refreshExecutions = (): void => {
     ExecutionState.filterModel.asFilterModel.applyParamsToUrl();
     this.props.application.executions.refresh(true);
     this.props.application.executions.reloadingForFilters = true;
-  }
+  };
 
-  private clearFilters(): void {
+  private clearFilters = (): void => {
     ReactGA.event({ category: 'Pipelines', action: `Filter: clear all (side nav)` });
     ReactInjector.executionFilterService.clearFilters();
     this.refreshExecutions();
-  }
+  };
 
   private getPipelineNames(): string[] {
     const { application } = this.props;
@@ -136,15 +135,15 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     this.updateExecutionGroups();
   }
 
-  private searchFieldUpdated(event: React.FormEvent<HTMLInputElement>): void {
+  private searchFieldUpdated = (event: React.FormEvent<HTMLInputElement>): void => {
     this.updateFilterSearch(event.currentTarget.value);
-  }
+  };
 
   private updatePipelines(pipelines: IPipeline[]): void {
     $q.all(pipelines.map(pipeline => ReactInjector.pipelineConfigService.savePipeline(pipeline)));
   }
 
-  private handleSortEnd(sortEnd: SortEnd): void {
+  private handleSortEnd = (sortEnd: SortEnd): void => {
     const pipelineNames = arrayMove(this.state.pipelineNames, sortEnd.oldIndex, sortEnd.newIndex);
     const { application } = this.props;
     ReactGA.event({ category: 'Pipelines', action: 'Reordered pipeline' });
@@ -158,7 +157,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     });
     this.updatePipelines(dirty);
     this.refreshPipelines();
-  }
+  };
 
   public render() {
     const { pipelineNames, pipelineReorderEnabled, tags } = this.state;

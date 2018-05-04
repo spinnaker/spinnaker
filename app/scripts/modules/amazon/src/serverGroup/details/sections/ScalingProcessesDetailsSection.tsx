@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { CollapsibleSection, HelpField, ModalInjector, Tooltip, timestamp } from '@spinnaker/core';
 
@@ -14,7 +13,6 @@ export interface IScalingProcessesDetailsSectionState {
   scheduledActionsDisabled: boolean;
 }
 
-@BindAll()
 export class ScalingProcessesDetailsSection extends React.Component<
   IAmazonServerGroupDetailsSectionProps,
   IScalingProcessesDetailsSectionState
@@ -25,7 +23,7 @@ export class ScalingProcessesDetailsSection extends React.Component<
     this.state = this.getState(props);
   }
 
-  private toggleScalingProcesses(): void {
+  private toggleScalingProcesses = (): void => {
     ModalInjector.modalService.open({
       templateUrl: require('../scalingProcesses/modifyScalingProcesses.html'),
       controller: 'ModifyScalingProcessesCtrl as ctrl',
@@ -35,7 +33,7 @@ export class ScalingProcessesDetailsSection extends React.Component<
         processes: () => this.state.autoScalingProcesses,
       },
     });
-  }
+  };
 
   private getState(props: IAmazonServerGroupDetailsSectionProps): IScalingProcessesDetailsSectionState {
     const { serverGroup } = props;

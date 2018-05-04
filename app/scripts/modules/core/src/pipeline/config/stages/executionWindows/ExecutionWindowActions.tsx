@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
@@ -29,7 +28,6 @@ export interface IExecutionWindowWhitelistEntry {
 export const DEFAULT_SKIP_WINDOW_TEXT =
   'The pipeline will proceed immediately, continuing to the next step in the stage.';
 
-@BindAll()
 export class ExecutionWindowActions extends React.Component<
   IExecutionWindowActionsProps,
   IExecutionWindowActionsState
@@ -46,7 +44,7 @@ export class ExecutionWindowActions extends React.Component<
     };
   }
 
-  private finishWaiting(e: React.MouseEvent<HTMLElement>): void {
+  private finishWaiting = (e: React.MouseEvent<HTMLElement>): void => {
     const { confirmationModalService, executionService } = ReactInjector;
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const { application, execution, stage } = this.props;
@@ -68,7 +66,7 @@ export class ExecutionWindowActions extends React.Component<
           .then(updated => executionService.updateExecution(application, updated));
       },
     });
-  }
+  };
 
   private replaceDays(days: number[]): string[] {
     const daySet = new Set(days);

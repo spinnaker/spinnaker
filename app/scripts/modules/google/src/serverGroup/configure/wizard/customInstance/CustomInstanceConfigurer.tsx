@@ -1,6 +1,5 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
-import { BindAll } from 'lodash-decorators';
 
 import { HelpField } from '@spinnaker/core';
 
@@ -17,7 +16,6 @@ export interface ICustomInstanceConfigurerProps {
   onChange: (config: ICustomInstanceConfig) => void;
 }
 
-@BindAll()
 export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
     const vCpuOptions: Option[] = (this.props.vCpuList || []).map(vCpu => ({ label: vCpu + '', value: vCpu }));
@@ -62,13 +60,13 @@ export class CustomInstanceConfigurer extends React.Component<ICustomInstanceCon
     );
   }
 
-  private handleVCpuChange(option: Option) {
+  private handleVCpuChange = (option: Option) => {
     const value = (option ? option.value : null) as number;
     this.props.onChange({ vCpuCount: value, memory: this.props.selectedMemory });
-  }
+  };
 
-  private handleMemoryChange(option: Option) {
+  private handleMemoryChange = (option: Option) => {
     const value = (option ? option.value : null) as number;
     this.props.onChange({ vCpuCount: this.props.selectedVCpuCount, memory: value });
-  }
+  };
 }

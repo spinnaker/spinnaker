@@ -1,21 +1,19 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 export interface IToggleProps {
   bsRole: string;
   onClick?: React.EventHandler<React.MouseEvent<HTMLAnchorElement>>;
 }
 
-@BindAll()
 export class CustomToggle extends React.Component<IToggleProps, {}> {
   constructor(props: IToggleProps) {
     super(props);
   }
 
-  private handleClick(e: React.MouseEvent<HTMLAnchorElement>): void {
+  private handleClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
     e.preventDefault();
     this.props.onClick(e);
-  }
+  };
 
   public render() {
     return (

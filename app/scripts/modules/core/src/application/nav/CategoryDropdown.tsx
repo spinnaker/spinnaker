@@ -3,7 +3,6 @@ import * as React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { UISref, UISrefActive } from '@uirouter/react';
 import { Subscription } from 'rxjs';
-import { BindAll } from 'lodash-decorators';
 import { Dropdown } from 'react-bootstrap';
 import { merge } from 'rxjs/observable/merge';
 
@@ -30,7 +29,6 @@ export interface ICategoryDropdownState {
 }
 
 @UIRouterContext
-@BindAll()
 export class CategoryDropdown extends React.Component<ICategoryDropdownProps, ICategoryDropdownState> {
   private runningCountSubscription: Subscription;
   private entityTagsSubscription: Subscription;
@@ -78,17 +76,17 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
     this.clearSubscriptions();
   }
 
-  private open(): void {
+  private open = (): void => {
     // don't open if it's already expanded as the third-level navigation
     if (this.props.activeCategory === this.props.category) {
       return;
     }
     this.setState({ open: true });
-  }
+  };
 
-  private close(): void {
+  private close = (): void => {
     this.setState({ open: false });
-  }
+  };
 
   private createNonMenuEntry(): JSX.Element {
     const { runningCount } = this.state;

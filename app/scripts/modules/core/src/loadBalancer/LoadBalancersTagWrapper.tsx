@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { CloudProviderRegistry } from 'core/cloudProvider';
@@ -13,7 +12,6 @@ export interface ILoadBalancersTagProps {
   container?: JSX.Element | HTMLElement;
 }
 
-@BindAll()
 export class LoadBalancersTagWrapper extends React.Component<ILoadBalancersTagProps> {
   public render(): React.ReactElement<LoadBalancersTagWrapper> {
     const { serverGroup } = this.props;

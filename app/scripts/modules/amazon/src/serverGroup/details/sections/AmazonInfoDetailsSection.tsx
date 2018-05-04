@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { has, get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import {
   AccountTag,
@@ -21,7 +20,6 @@ export interface IAmazonInfoDetailsSectionState {
   changeConfig: IViewChangesConfig;
 }
 
-@BindAll()
 export class AmazonInfoDetailsSection extends React.Component<
   IAmazonServerGroupDetailsSectionProps,
   IAmazonInfoDetailsSectionState

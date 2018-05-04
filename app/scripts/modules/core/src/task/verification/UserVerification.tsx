@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { HelpField } from 'core/help/HelpField';
 
@@ -14,11 +13,10 @@ export interface IUserVerificationState {
   matches: boolean;
 }
 
-@BindAll()
 export class UserVerification extends React.Component<IUserVerificationProps, IUserVerificationState> {
   public state = { value: '', matches: false };
 
-  private handleChange(evt: React.ChangeEvent<any>) {
+  private handleChange = (evt: React.ChangeEvent<any>) => {
     const { value } = evt.target;
     const { expectedValue } = this.props;
 
@@ -29,7 +27,7 @@ export class UserVerification extends React.Component<IUserVerificationProps, IU
     if (matches !== previousMatches) {
       this.props.onValidChange(matches);
     }
-  }
+  };
 
   public render() {
     const { label, expectedValue } = this.props;

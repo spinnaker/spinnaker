@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { xor } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 export interface IChecklistProps {
   includeSelectAllButton?: boolean;
@@ -12,20 +11,19 @@ export interface IChecklistProps {
 
 export interface IChecklistState {}
 
-@BindAll()
 export class Checklist extends React.Component<IChecklistProps, IChecklistState> {
   constructor(props: IChecklistProps) {
     super(props);
   }
 
-  private handleChecked(event: React.ChangeEvent<HTMLInputElement>): void {
+  private handleChecked = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const name = event.target.name;
     const isChecked = event.target.checked;
     const checked = new Set(this.props.checked);
 
     isChecked ? checked.add(name) : checked.delete(name);
     this.props.onChange(checked);
-  }
+  };
 
   public render(): React.ReactElement<Checklist> {
     const { checked, includeSelectAllButton, inline, items, onChange } = this.props;

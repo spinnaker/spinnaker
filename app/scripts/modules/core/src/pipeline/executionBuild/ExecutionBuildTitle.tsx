@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
@@ -11,8 +10,7 @@ export interface IExecutionBuildTitleProps extends IExecutionBuildLinkProps {
   defaultToTimestamp?: boolean;
 }
 
-@BindAll()
-export class ExecutionBuildTitle extends React.Component<IExecutionBuildTitleProps, {}> {
+export class ExecutionBuildTitle extends React.Component<IExecutionBuildTitleProps> {
   public static defaultProps: Partial<IExecutionBuildTitleProps> = {
     defaultToTimestamp: false,
   };

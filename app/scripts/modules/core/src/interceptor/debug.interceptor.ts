@@ -1,15 +1,13 @@
 import { module, IRequestConfig, IHttpInterceptor, IHttpProvider } from 'angular';
 import { $log, $location } from 'ngimport';
 import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
-import { BindAll } from 'lodash-decorators';
 
-@BindAll()
 export class DebugInterceptor implements IHttpInterceptor {
   constructor(private jsonUtilityService: JsonUtilityService) {
     'ngInject';
   }
 
-  public request(config: IRequestConfig): IRequestConfig {
+  public request = (config: IRequestConfig): IRequestConfig => {
     try {
       // This is a great opportunity to break Deck, so be careful.
       this.logMutatingRequest(config);
@@ -17,7 +15,7 @@ export class DebugInterceptor implements IHttpInterceptor {
       $log.warn('Debug interceptor bug: ', e.message);
     }
     return config;
-  }
+  };
 
   private logMutatingRequest(config: IRequestConfig): void {
     if (

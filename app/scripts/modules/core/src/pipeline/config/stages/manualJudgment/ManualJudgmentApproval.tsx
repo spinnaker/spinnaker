@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 import 'react-select/dist/react-select.css';
-import { BindAll } from 'lodash-decorators';
 
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
@@ -21,7 +20,6 @@ export interface IManualJudgmentApprovalState {
   error: boolean;
 }
 
-@BindAll()
 export class ManualJudgmentApproval extends React.Component<
   IManualJudgmentApprovalProps,
   IManualJudgmentApprovalState
@@ -50,17 +48,17 @@ export class ManualJudgmentApproval extends React.Component<
     );
   }
 
-  private handleJudgementChanged(option: Option): void {
+  private handleJudgementChanged = (option: Option): void => {
     this.setState({ judgmentInput: { value: option.value as string } });
-  }
+  };
 
-  private handleContinueClick(): void {
+  private handleContinueClick = (): void => {
     this.provideJudgment('continue');
-  }
+  };
 
-  private handleStopClick(): void {
+  private handleStopClick = (): void => {
     this.provideJudgment('stop');
-  }
+  };
 
   public render(): React.ReactElement<ManualJudgmentApproval> {
     const stage: IExecutionStage = this.props.stage,

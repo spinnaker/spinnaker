@@ -4,7 +4,6 @@ import { $q } from 'ngimport';
 import { Field, FieldProps, Form, Formik, FormikErrors, FormikProps } from 'formik';
 import { Modal } from 'react-bootstrap';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { BindAll } from 'lodash-decorators';
 
 import {
   UUIDGenerator,
@@ -66,7 +65,6 @@ export interface IEntityTagEditorValues {
   ownerIndex: number | string;
 }
 
-@BindAll()
 export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEntityTagEditorState> {
   public static defaultProps: Partial<IEntityTagEditorProps> = {
     onUpdate: noop,
@@ -107,20 +105,20 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
 
-  private validate(values: IEntityTagEditorValues): Partial<FormikErrors<IEntityTagEditorValues>> {
+  private validate = (values: IEntityTagEditorValues): Partial<FormikErrors<IEntityTagEditorValues>> => {
     const errors: Partial<FormikErrors<IEntityTagEditorValues>> = {};
     if (!values.message) {
       errors.message = 'Please enter a message';
     }
     return errors;
-  }
+  };
 
-  private close(): void {
-    this.props.dismissModal.apply(null, arguments);
+  private close = (args?: any): void => {
+    this.props.dismissModal.apply(null, args);
     this.$uibModalInstanceEmulation.deferred.resolve();
-  }
+  };
 
-  private upsertTag(values: IEntityTagEditorValues): void {
+  private upsertTag = (values: IEntityTagEditorValues): void => {
     const { application, isNew, tag, onUpdate, ownerOptions } = this.props;
     const ownerIndex = Number(values.ownerIndex);
 
@@ -149,7 +147,7 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     taskMonitor.submit(submitMethod);
 
     this.setState({ taskMonitor, isSubmitting: true });
-  }
+  };
 
   public render() {
     const { isNew, tag, ownerOptions } = this.props;

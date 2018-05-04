@@ -101,7 +101,6 @@ function configure(env, webpackOpts) {
           use: [
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
             { loader: 'thread-loader', options: { workers: THREADS } },
-            { loader: 'babel-loader' },
             { loader: 'ts-loader', options: { happyPackMode: true } },
             { loader: 'tslint-loader' },
           ],

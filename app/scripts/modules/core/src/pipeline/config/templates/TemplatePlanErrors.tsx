@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { IPipelineTemplatePlanError } from 'core/pipeline/config/templates/pipelineTemplate.service';
 
@@ -7,7 +6,6 @@ export interface ITemplatePlanErrorsProps {
   errors: IPipelineTemplatePlanError[];
 }
 
-@BindAll()
 export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps> {
   public render() {
     if (this.props.errors && this.props.errors.length) {

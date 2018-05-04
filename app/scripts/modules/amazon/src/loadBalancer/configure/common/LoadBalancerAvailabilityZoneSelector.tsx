@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { AccountService, Checklist } from '@spinnaker/core';
 
@@ -15,7 +14,6 @@ export interface ILoadBalancerAvailabilityZoneSelectorState {
   usePreferredZones: boolean;
 }
 
-@BindAll()
 export class LoadBalancerAvailabilityZoneSelector extends React.Component<
   ILoadBalancerAvailabilityZoneSelectorProps,
   ILoadBalancerAvailabilityZoneSelectorState
@@ -45,18 +43,18 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<
     );
   }
 
-  private handleUsePreferredZonesChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
+  private handleUsePreferredZonesChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const usePreferredZones = event.target.value === 'true';
     this.setState({ usePreferredZones });
 
     if (usePreferredZones) {
       this.setDefaultZones(this.props);
     }
-  }
+  };
 
-  private handleSelectedZonesChanged(zones: Set<string>): void {
+  private handleSelectedZonesChanged = (zones: Set<string>): void => {
     this.props.onChange([...zones]);
-  }
+  };
 
   public render(): React.ReactElement<LoadBalancerAvailabilityZoneSelector> {
     const { region, allZones, selectedZones } = this.props;
@@ -64,7 +62,6 @@ export class LoadBalancerAvailabilityZoneSelector extends React.Component<
 
     return (
       <div className="form-group">
-        {/* <input type="hidden" ng-model="model.regionZones[0]" required={true} /> */}
         <div className="col-md-3 sm-label-right">Availability Zones</div>
         {region && (
           <div className="col-md-7">

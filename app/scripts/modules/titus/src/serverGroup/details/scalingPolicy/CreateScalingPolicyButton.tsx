@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { AccountService, Application, IServerGroup, ModalInjector } from '@spinnaker/core';
 
@@ -19,7 +18,6 @@ export interface ICreateScalingPolicyButtonState {
   awsAccount: string;
 }
 
-@BindAll()
 export class CreateScalingPolicyButton extends React.Component<
   ICreateScalingPolicyButtonProps,
   ICreateScalingPolicyButtonState
@@ -37,9 +35,9 @@ export class CreateScalingPolicyButton extends React.Component<
     });
   }
 
-  public handleClick(): void {
+  public handleClick = (): void => {
     this.setState({ showSelection: true });
-  }
+  };
 
   public createStepPolicy(): void {
     const { serverGroup, application } = this.props;
@@ -91,7 +89,7 @@ export class CreateScalingPolicyButton extends React.Component<
       .result.catch(() => {});
   }
 
-  public typeSelected(typeSelection: string): void {
+  public typeSelected = (typeSelection: string): void => {
     this.setState({ typeSelection, showSelection: false, showModal: true });
     if (typeSelection === 'step') {
       this.createStepPolicy();
@@ -99,11 +97,11 @@ export class CreateScalingPolicyButton extends React.Component<
     if (typeSelection === 'targetTracking') {
       this.createTargetTrackingPolicy();
     }
-  }
+  };
 
-  public showModalCallback(): void {
+  public showModalCallback = (): void => {
     this.setState({ showSelection: false, showModal: false, typeSelection: null });
-  }
+  };
 
   public render() {
     return (

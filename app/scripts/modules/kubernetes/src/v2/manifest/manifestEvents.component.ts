@@ -12,10 +12,6 @@ class KubernetesManifestEvents implements IController {
       return '';
     }
   }
-
-  constructor() {
-    'ngInject';
-  }
 }
 
 class KubernetesManifestEventsComponent implements IComponentOptions {

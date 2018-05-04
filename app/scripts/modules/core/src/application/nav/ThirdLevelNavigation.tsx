@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { UISref, UISrefActive } from '@uirouter/react';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
 import { IDataSourceCategory } from './ApplicationHeader';
@@ -13,7 +12,6 @@ export interface IThirdLevelNavigationProps {
 }
 
 @UIRouterContext
-@BindAll()
 export class ThirdLevelNavigation extends React.Component<IThirdLevelNavigationProps> {
   public render() {
     const { category, application } = this.props;

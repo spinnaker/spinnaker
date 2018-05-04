@@ -1,6 +1,5 @@
 import { IPromise } from 'angular';
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { AccountService } from 'core/account/AccountService';
 
 export interface IAccountTagProps {
@@ -11,7 +10,6 @@ export interface IAccountTagState {
   isProdAccount: boolean;
 }
 
-@BindAll()
 export class AccountTag extends React.Component<IAccountTagProps, IAccountTagState> {
   private static cache: {
     [account: string]: boolean | IPromise<boolean>;

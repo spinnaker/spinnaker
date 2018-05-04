@@ -1,7 +1,5 @@
-import { IAttributes, IController, IDirective, IScope, ITimeoutService, module } from 'angular';
+import { IAttributes, IController, IScope, ITimeoutService, module } from 'angular';
 import { Subject } from 'rxjs';
-
-import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 
 export interface IAutoScrollAttrs extends IAttributes {
   autoScrollEnabled: string;
@@ -56,26 +54,24 @@ export class AutoScrollController implements IController {
   public constructor(private $timeout: ITimeoutService) {}
 }
 
-@DirectiveFactory('$timeout')
-class AutoScrollDirective implements IDirective {
-  public restrict = 'A';
-  public controller: any = AutoScrollController;
-  public controllerAs = '$ctrl';
-  public bindToController: any = {
-    autoScrollParent: '@?',
-    autoScrollEnabled: '@?',
-    onScroll: '=?',
-    scrollToTop: '=?',
-  };
-
-  public link($scope: IScope, $element: JQuery, $attrs: IAutoScrollAttrs, ctrl: AutoScrollController) {
-    ctrl.$scope = $scope;
-    ctrl.$element = $element;
-    ctrl.$attrs = $attrs;
-    ctrl.initialize();
-  }
-}
-
 export const AUTO_SCROLL_DIRECTIVE = 'spinnaker.core.autoScroll';
 
-module(AUTO_SCROLL_DIRECTIVE, []).directive('autoScroll', AutoScrollDirective as any);
+module(AUTO_SCROLL_DIRECTIVE, []).directive('autoScroll', function() {
+  return {
+    restrict: 'A',
+    controller: AutoScrollController,
+    controllerAs: '$ctrl',
+    bindToController: {
+      autoScrollParent: '@?',
+      autoScrollEnabled: '@?',
+      onScroll: '=?',
+      scrollToTop: '=?',
+    },
+    link: ($scope: IScope, $element: JQuery, $attrs: IAutoScrollAttrs, ctrl: AutoScrollController) => {
+      ctrl.$scope = $scope;
+      ctrl.$element = $element;
+      ctrl.$attrs = $attrs;
+      ctrl.initialize();
+    },
+  };
+});

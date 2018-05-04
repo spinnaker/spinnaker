@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { UISref, UISrefActive } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
@@ -14,7 +13,6 @@ export interface ISpinnakerHeaderState {
 }
 
 @UIRouterContext
-@BindAll()
 export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> {
   constructor(props: {}) {
     super(props);
@@ -29,11 +27,11 @@ export class SpinnakerHeader extends React.Component<{}, ISpinnakerHeaderState> 
     return isPhone.toLowerCase() === 'true';
   }
 
-  public toggleNavItems(): void {
+  public toggleNavItems = (): void => {
     this.setState({
       navExpanded: !this.state.navExpanded,
     });
-  }
+  };
 
   public render(): React.ReactElement<SpinnakerHeader> {
     const { UserMenu, WhatsNew } = NgReact;

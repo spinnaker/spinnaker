@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import { IPromise } from 'angular';
 import { chain, find, isEqual, isNil, trimEnd, uniq } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { Field, FormikErrors, FormikProps } from 'formik';
 
 import {
@@ -53,7 +52,6 @@ export interface ILoadBalancerLocationState {
   subnets: ISubnetOption[];
 }
 
-@BindAll()
 class LoadBalancerLocationImpl extends React.Component<
   ILoadBalancerLocationProps & IWizardPageProps & FormikProps<IAmazonLoadBalancerUpsertCommand>,
   ILoadBalancerLocationState
@@ -143,10 +141,10 @@ class LoadBalancerLocationImpl extends React.Component<
     return trimEnd(elbName, '-');
   }
 
-  private internalFlagChanged(event: React.ChangeEvent<any>): void {
+  private internalFlagChanged = (event: React.ChangeEvent<any>): void => {
     this.setState({ internalFlagToggled: true });
     this.props.handleChange(event);
-  }
+  };
 
   private getAvailabilityZones(regions: IRegion[]): string[] {
     const { setFieldValue, values } = this.props;
@@ -206,9 +204,9 @@ class LoadBalancerLocationImpl extends React.Component<
     this.setState({ availabilityZones });
   }
 
-  private handleSubnetUpdated(): void {
+  private handleSubnetUpdated = (): void => {
     this.subnetUpdated(this.state.subnets);
-  }
+  };
 
   private updateSubnets(): void {
     this.getAvailableSubnets().then(availableSubnets => {
@@ -279,7 +277,7 @@ class LoadBalancerLocationImpl extends React.Component<
     this.props.setFieldValue('name', this.getName());
   }
 
-  private accountUpdated(account: string): void {
+  private accountUpdated = (account: string): void => {
     this.props.setFieldValue('credentials', account);
     AccountService.getRegionsForAccount(this.props.values.credentials).then(regions => {
       const availabilityZones = this.getAvailabilityZones(regions);
@@ -288,34 +286,34 @@ class LoadBalancerLocationImpl extends React.Component<
       this.updateSubnets();
       this.updateName();
     });
-  }
+  };
 
-  private regionUpdated(region: string): void {
+  private regionUpdated = (region: string): void => {
     this.props.setFieldValue('region', region);
     const availabilityZones = this.getAvailabilityZones(this.state.regions);
     this.setState({ availabilityZones });
     this.updateExistingLoadBalancerNames();
     this.updateSubnets();
     this.updateName();
-  }
+  };
 
-  private stackChanged(event: React.ChangeEvent<HTMLInputElement>): void {
+  private stackChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const stack = event.target.value;
     this.props.values.stack = stack;
     this.props.setFieldValue('stack', stack);
     this.updateName();
-  }
+  };
 
-  private detailChanged(event: React.ChangeEvent<HTMLInputElement>): void {
+  private detailChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const detail = event.target.value;
     this.props.values.detail = detail;
     this.props.setFieldValue('detail', detail);
     this.updateName();
-  }
+  };
 
-  private handleAvailabilityZonesChanged(zones: string[]): void {
+  private handleAvailabilityZonesChanged = (zones: string[]): void => {
     this.props.setFieldValue('regionZones', zones);
-  }
+  };
 
   public render() {
     const { app, errors, values } = this.props;

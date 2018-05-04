@@ -34,8 +34,10 @@ class ArtifactCtrl implements IController {
     if (this.$attrs.$attr.hasOwnProperty('isMatch')) {
       this.isMatch = true;
     }
-
     this.options = this.pipelineConfig.getArtifactKinds();
+  }
+
+  public $onInit(): void {
     this.loadArtifactKind();
   }
 

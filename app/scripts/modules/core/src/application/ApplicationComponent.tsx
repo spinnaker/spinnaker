@@ -1,6 +1,5 @@
 import { ApplicationHeader } from 'core/application/nav/ApplicationHeader';
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { UIView } from '@uirouter/react';
 
 import { Application } from 'core/application';
@@ -13,7 +12,6 @@ export interface IApplicationComponentProps {
   app: Application;
 }
 
-@BindAll()
 export class ApplicationComponent extends React.Component<IApplicationComponentProps> {
   constructor(props: IApplicationComponentProps) {
     super(props);

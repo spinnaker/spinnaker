@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { HelpField } from 'core/help/HelpField';
 
@@ -13,7 +12,6 @@ export interface IFilterSectionState {
   expanded: boolean;
 }
 
-@BindAll()
 export class FilterSection extends React.Component<IFilterSectionProps, IFilterSectionState> {
   constructor(props: IFilterSectionProps) {
     super(props);
@@ -24,9 +22,9 @@ export class FilterSection extends React.Component<IFilterSectionProps, IFilterS
     return this.state.expanded ? 'down' : 'right';
   }
 
-  public toggle() {
+  public toggle = () => {
     this.setState({ expanded: !this.state.expanded });
-  }
+  };
 
   public render() {
     return (

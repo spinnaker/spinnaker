@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { isEqual } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { SelectCallback } from 'react-bootstrap';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
@@ -32,7 +31,6 @@ export interface IApplicationsState {
   pagination: IApplicationPagination;
 }
 
-@BindAll()
 export class Applications extends React.Component<{}, IApplicationsState> {
   private applicationsCache: ICache;
 

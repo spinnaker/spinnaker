@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 export interface IConfigSectionFooterProps {
@@ -11,7 +10,6 @@ export interface IConfigSectionFooterProps {
   onSaveClicked: () => void;
 }
 
-@BindAll()
 export class ConfigSectionFooter extends React.Component<IConfigSectionFooterProps> {
   public render() {
     const { isValid, isDirty, isSaving, saveError, onRevertClicked, onSaveClicked } = this.props;

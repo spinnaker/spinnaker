@@ -4,7 +4,6 @@ import { $timeout } from 'ngimport';
 import { IPromise } from 'angular';
 import { Subscription } from 'rxjs';
 import { find, flatten, uniq, without } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { CollapsibleSectionStateCache } from 'core/cache';
@@ -37,7 +36,6 @@ export interface IExecutionGroupState {
   showAccounts: boolean;
 }
 
-@BindAll()
 export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecutionGroupState> {
   private strategyConfig: IPipeline;
   private expandUpdatedSubscription: Subscription;
@@ -99,14 +97,14 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     );
   }
 
-  private toggle(): void {
+  private toggle = (): void => {
     const open = !this.state.open;
     if (this.isShowingDetails()) {
       this.hideDetails();
     }
     CollapsibleSectionStateCache.setExpanded(this.getSectionCacheKey(), open);
     this.setState({ open });
-  }
+  };
 
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     const { executionService, pipelineConfigService } = ReactInjector;
@@ -170,16 +168,16 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     }
   }
 
-  private handleHeadingClicked(): void {
+  private handleHeadingClicked = (): void => {
     ReactGA.event({
       category: 'Pipeline',
       action: `Group ${this.state.open ? 'collapsed' : 'expanded'}`,
       label: this.props.group.heading,
     });
     this.toggle();
-  }
+  };
 
-  private handleConfigureClicked(e: React.MouseEvent<HTMLElement>): void {
+  private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
     ReactGA.event({
       category: 'Pipeline',
       action: 'Configure pipeline button clicked',
@@ -187,18 +185,18 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     });
     this.configure(this.props.group.config.id);
     e.stopPropagation();
-  }
+  };
 
-  private handleTriggerClicked(e: React.MouseEvent<HTMLElement>): void {
+  private handleTriggerClicked = (e: React.MouseEvent<HTMLElement>): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Trigger pipeline button clicked', label: this.props.group.heading });
     this.triggerPipeline();
     e.stopPropagation();
-  }
+  };
 
-  private rerunExecutionClicked(execution: IExecution): void {
+  private rerunExecutionClicked = (execution: IExecution): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Rerun pipeline button clicked', label: this.props.group.heading });
     this.triggerPipeline(execution.trigger);
-  }
+  };
 
   public render(): React.ReactElement<ExecutionGroup> {
     const group = this.props.group;

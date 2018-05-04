@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { IExecutionStageLabelComponentProps } from 'core/domain';
@@ -16,19 +15,17 @@ export interface IExecutionBarLabelState {
   hydrated: boolean;
 }
 
-@BindAll()
 export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, IExecutionBarLabelState> {
-
   private mounted = false;
 
   constructor(props: IExecutionBarLabelProps) {
     super(props);
     this.state = {
-      hydrated: props.execution && props.execution.hydrated
+      hydrated: props.execution && props.execution.hydrated,
     };
   }
 
-  private hydrate(): void {
+  private hydrate = (): void => {
     const { execution, application } = this.props;
     if (!execution) {
       return;
@@ -38,7 +35,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
         this.setState({ hydrated: true });
       }
     });
-  }
+  };
 
   public componentDidMount() {
     this.mounted = true;
@@ -66,7 +63,11 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
     if (executionMarker) {
       const LabelComponent = stage.labelComponent;
       if (LabelComponent !== ExecutionBarLabel && !this.state.hydrated) {
-        const loadingTooltip = (<Tooltip id={stage.id}><Spinner size="small"/></Tooltip>);
+        const loadingTooltip = (
+          <Tooltip id={stage.id}>
+            <Spinner size="small" />
+          </Tooltip>
+        );
         return (
           <span onMouseEnter={this.hydrate}>
             <OverlayTrigger placement="top" overlay={loadingTooltip}>

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { ReactInjector } from 'core/reactShims';
 
@@ -15,7 +14,6 @@ export interface IVariableProps {
   onChange: (variable: IVariable) => void;
 }
 
-@BindAll()
 export class Variable extends React.Component<IVariableProps> {
   private getVariableInput(): JSX.Element {
     const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(

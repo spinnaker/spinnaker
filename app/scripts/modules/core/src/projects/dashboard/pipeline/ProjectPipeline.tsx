@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { has } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { ExecutionBuildLink } from 'core/pipeline/executionBuild/ExecutionBuildLink';
@@ -22,7 +21,6 @@ export interface IProjectPipelineState {
   stageWidth: string;
 }
 
-@BindAll()
 export class ProjectPipeline extends React.Component<IProjectPipelineProps, IProjectPipelineState> {
   constructor(props: IProjectPipelineProps) {
     super(props);
@@ -36,20 +34,20 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
     };
   }
 
-  private handleExecutionTitleClick(): void {
+  private handleExecutionTitleClick = (): void => {
     ReactInjector.$state.go('^.application.pipelines.executions.execution', {
       application: this.props.execution.application,
       executionId: this.props.execution.id,
     });
-  }
+  };
 
-  private handleStageClick(stageIndex: number) {
+  private handleStageClick = (stageIndex: number) => {
     ReactInjector.$state.go('^.application.pipelines.executionDetails.execution', {
       application: this.props.execution.application,
       executionId: this.props.execution.id,
       stage: stageIndex,
     });
-  }
+  };
 
   public render() {
     const execution = this.props.execution,

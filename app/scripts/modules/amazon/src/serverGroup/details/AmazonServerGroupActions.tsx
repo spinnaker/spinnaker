@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 import { get, find, filter, orderBy } from 'lodash';
 
@@ -21,7 +20,6 @@ export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps
   serverGroup: IAmazonServerGroupView;
 }
 
-@BindAll()
 export class AmazonServerGroupActions extends React.Component<IAmazonServerGroupActionsProps> {
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {
@@ -60,7 +58,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     return this.props.serverGroup.isDisabled || get(this.props.serverGroup, 'instanceCounts.outOfService', 0) > 0;
   }
 
-  private destroyServerGroup(): void {
+  private destroyServerGroup = (): void => {
     const { app, serverGroup } = this.props;
 
     const taskMonitor = {
@@ -102,9 +100,9 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     }
 
     ReactInjector.confirmationModalService.confirm(confirmationModalParams);
-  }
+  };
 
-  private disableServerGroup(): void {
+  private disableServerGroup = (): void => {
     const { app, serverGroup } = this.props;
 
     const taskMonitor = {
@@ -136,9 +134,9 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     }
 
     ReactInjector.confirmationModalService.confirm(confirmationModalParams);
-  }
+  };
 
-  private enableServerGroup(): void {
+  private enableServerGroup = (): void => {
     if (!this.isRollbackEnabled()) {
       this.showEnableServerGroupModal();
       return;
@@ -161,7 +159,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
           this.showEnableServerGroupModal();
         }
       });
-  }
+  };
 
   private showEnableServerGroupModal(): void {
     const { app, serverGroup } = this.props;
@@ -194,7 +192,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     ReactInjector.confirmationModalService.confirm(confirmationModalParams);
   }
 
-  private rollbackServerGroup(): void {
+  private rollbackServerGroup = (): void => {
     const { app } = this.props;
 
     let serverGroup: IAmazonServerGroup = this.props.serverGroup;
@@ -251,9 +249,9 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
         application: () => app,
       },
     });
-  }
+  };
 
-  private resizeServerGroup(): void {
+  private resizeServerGroup = (): void => {
     ModalInjector.modalService.open({
       templateUrl: ReactInjector.overrideRegistry.getTemplate(
         'aws.resize.modal',
@@ -265,9 +263,9 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
         application: () => this.props.app,
       },
     });
-  }
+  };
 
-  private cloneServerGroup(): void {
+  private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     ModalInjector.modalService.open({
       templateUrl: require('../configure/wizard/serverGroupWizard.html'),
@@ -280,7 +278,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
           AwsReactInjector.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup),
       },
     });
-  }
+  };
 
   public render(): JSX.Element {
     const { app, serverGroup } = this.props;

@@ -7,7 +7,9 @@ export class PagerDutyTagComponentController implements IComponentController {
   public servicesLoaded = false;
   public currentService: IPagerDutyService;
 
-  constructor(private pagerDutyReader: PagerDutyReader) {}
+  constructor(private pagerDutyReader: PagerDutyReader) {
+    'ngInject';
+  }
 
   private setCurrentService(): void {
     this.servicesLoaded = false;

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import * as DOMPurify from 'dompurify';
-import { BindAll } from 'lodash-decorators';
 
 import { HelpContentsRegistry } from 'core/help';
 import { HoverablePopover, Placement } from 'core/presentation';
@@ -19,7 +18,6 @@ export interface IState {
   contents: React.ReactElement<any>;
 }
 
-@BindAll()
 export class HelpField extends React.Component<IHelpFieldProps, IState> {
   public static defaultProps: IHelpFieldProps = {
     placement: 'top',
@@ -50,15 +48,15 @@ export class HelpField extends React.Component<IHelpFieldProps, IState> {
     this.setState(this.getState());
   }
 
-  private onShow(): void {
+  private onShow = (): void => {
     this.popoverShownStart = Date.now();
-  }
+  };
 
-  private onHide(): void {
+  private onHide = (): void => {
     if (Date.now() - this.popoverShownStart > 500) {
       ReactGA.event({ action: 'Help contents viewed', category: 'Help', label: this.props.id || this.props.content });
     }
-  }
+  };
 
   public render() {
     const { placement, label, expand } = this.props;

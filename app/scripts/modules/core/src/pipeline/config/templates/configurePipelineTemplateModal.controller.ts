@@ -1,7 +1,6 @@
 import { module, IController, IScope, IHttpPromiseCallbackArg, IPromise } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { load, dump } from 'js-yaml';
-import { BindAll } from 'lodash-decorators';
 import { without, chain, has } from 'lodash';
 
 import { Application } from 'core/application/application.model';
@@ -33,7 +32,6 @@ export interface IState {
   inheritTemplateExpectedArtifacts: boolean;
 }
 
-@BindAll()
 export class ConfigurePipelineTemplateModalController implements IController {
   public pipelineName: string;
   public variableMetadataGroups: IVariableMetadataGroup[];

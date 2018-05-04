@@ -1,7 +1,6 @@
 import { IDeferred, ILogService, IPromise, IQService, IScope } from 'angular';
 import { get } from 'lodash';
 import { UIRouter } from '@uirouter/core';
-import { BindAll } from 'lodash-decorators';
 import { Subject, Subscription } from 'rxjs';
 
 import { Application } from '../application.model';
@@ -169,7 +168,6 @@ export interface IDataSourceConfig {
   category?: string;
 }
 
-@BindAll()
 export class ApplicationDataSource implements IDataSourceConfig {
   /** Index Signature */
   [k: string]: any;

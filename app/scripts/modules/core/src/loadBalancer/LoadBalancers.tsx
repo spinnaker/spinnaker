@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BindAll, Debounce } from 'lodash-decorators';
+import { Debounce } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -25,7 +25,6 @@ export interface ILoadBalancersState {
   showInstances: boolean;
 }
 
-@BindAll()
 export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBalancersState> {
   private groupsUpdatedListener: Subscription;
   private loadBalancersRefreshUnsubscribe: () => any;
@@ -79,10 +78,10 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     }
   }
 
-  private clearFilters(): void {
+  private clearFilters = (): void => {
     LoadBalancerState.filterService.clearFilters();
     this.updateLoadBalancerGroups();
-  }
+  };
 
   private updateUIState(state: ILoadBalancersState): void {
     const params: any = {
@@ -98,7 +97,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     ReactInjector.$state.go('.', params);
   }
 
-  private handleInputChange(event: any): void {
+  private handleInputChange = (event: any): void => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name: keyof ISortFilter = target.name;
@@ -109,11 +108,11 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     state[name] = value;
     this.updateUIState(state);
     this.setState(state);
-  }
+  };
 
-  private tagCleared(): void {
+  private tagCleared = (): void => {
     this.updateLoadBalancerGroups();
-  }
+  };
 
   public render(): React.ReactElement<LoadBalancers> {
     const { HelpField } = NgReact;

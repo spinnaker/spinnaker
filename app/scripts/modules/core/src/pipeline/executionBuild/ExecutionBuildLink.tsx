@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 
 import { IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
@@ -11,13 +10,12 @@ export interface IExecutionBuildLinkProps {
   execution: IExecution;
 }
 
-@BindAll()
 export class ExecutionBuildLink extends React.Component<IExecutionBuildLinkProps, {}> {
   constructor(props: IExecutionBuildLinkProps) {
     super(props);
   }
 
-  private handleParentPipelineClick() {
+  private handleParentPipelineClick = () => {
     const { parentExecution } = this.props.execution.trigger;
     const { $state } = ReactInjector;
     ReactGA.event({ category: 'Pipeline', action: 'Execution build number clicked - parent pipeline' });
@@ -25,12 +23,12 @@ export class ExecutionBuildLink extends React.Component<IExecutionBuildLinkProps
     const toStateOptions = { inherit: false, reload: 'home.applications.application.pipelines.executionDetails' };
     const nextState = `${$state.current.name.endsWith('.execution') ? '^' : ''}.^.executionDetails.execution`;
     $state.go(nextState, toStateParams, toStateOptions);
-  }
+  };
 
-  private handleBuildInfoClick(event: React.MouseEvent<HTMLElement>) {
+  private handleBuildInfoClick = (event: React.MouseEvent<HTMLElement>) => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution build number clicked - build info' });
     event.stopPropagation();
-  }
+  };
 
   public render() {
     const { trigger } = this.props.execution;

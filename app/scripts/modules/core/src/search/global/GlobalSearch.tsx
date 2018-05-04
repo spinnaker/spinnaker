@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { BindAll, Debounce } from 'lodash-decorators';
+import { Debounce } from 'lodash-decorators';
 import { flatten } from 'lodash';
 import * as ReactGA from 'react-ga';
 import { Observable, Subject } from 'rxjs';
@@ -32,7 +32,6 @@ export interface IGlobalSearchState {
 }
 
 @UIRouterContext
-@BindAll()
 export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   private container: HTMLElement;
   private searchField: HTMLInputElement;
@@ -90,7 +89,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     this.destroy$.next();
   }
 
-  private handleWindowKeyup(event: KeyboardEvent) {
+  private handleWindowKeyup = (event: KeyboardEvent) => {
     const { target, which } = event;
     if (
       target instanceof HTMLInputElement ||
@@ -102,21 +101,21 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     }
 
     this.searchField.focus();
-  }
+  };
 
-  private handleWindowClick(event: MouseEvent) {
+  private handleWindowClick = (event: MouseEvent) => {
     if (!this.container.contains(event.target as Node)) {
       this.hideDropdown();
     }
-  }
+  };
 
-  private searchFieldBlurred({ relatedTarget }: React.FocusEvent<HTMLInputElement>) {
+  private searchFieldBlurred = ({ relatedTarget }: React.FocusEvent<HTMLInputElement>) => {
     if (!this.container.contains(relatedTarget as Node)) {
       this.hideDropdown();
     }
-  }
+  };
 
-  private searchFieldKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
+  private searchFieldKeyUp = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!this.state.showDropdown) {
       return;
     }
@@ -149,20 +148,20 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       }
       return;
     }
-  }
+  };
 
-  private focusFirstSearchResult() {
+  private focusFirstSearchResult = () => {
     const refToFocus = this.resultRefs[0] && this.resultRefs[0][0];
     refToFocus && refToFocus.focus();
-  }
+  };
 
-  private focusLastSearchResult() {
+  private focusLastSearchResult = () => {
     const flattenedRefs = flatten(this.resultRefs);
     const refToFocus = flattenedRefs[flattenedRefs.length - 1];
     refToFocus && refToFocus.focus();
-  }
+  };
 
-  private navigateResult(event: React.KeyboardEvent<HTMLElement>) {
+  private navigateResult = (event: React.KeyboardEvent<HTMLElement>) => {
     const { which, target } = event;
     if (which === 27) {
       // escape
@@ -205,9 +204,9 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
       prevResultRef && prevResultRef.focus();
       event.preventDefault();
     }
-  }
+  };
 
-  private queryChanged({ target }: React.ChangeEvent<HTMLInputElement>) {
+  private queryChanged = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     const query = target.value;
     const { showMinLengthWarning } = this.state;
     // If the query is still too short and we've already shown a warning
@@ -230,7 +229,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
         }
       },
     );
-  }
+  };
 
   // Rather than add a jarring warning message as someone is typing a query —
   // for which a warning might not even be necessary — we wait until typing has finished
@@ -241,17 +240,17 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     this.setState({ showMinLengthWarning: !!query && query.length < MIN_SEARCH_LENGTH });
   }
 
-  private showDropdown() {
+  private showDropdown = () => {
     this.setState({ showDropdown: true });
-  }
+  };
 
-  private hideDropdown() {
+  private hideDropdown = () => {
     this.setState({ showDropdown: false });
-  }
+  };
 
-  private clearFilters(result: ISearchResult) {
+  private clearFilters = (result: ISearchResult) => {
     ClusterState.filterService.overrideFiltersForUrl(result);
-  }
+  };
 
   private renderDropdown() {
     const { query, querying, showMinLengthWarning, categories } = this.state;

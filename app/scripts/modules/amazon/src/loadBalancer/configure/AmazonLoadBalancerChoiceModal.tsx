@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
-import { BindAll } from 'lodash-decorators';
 
 import { ILoadBalancerModalProps } from '@spinnaker/core';
 
@@ -12,7 +11,6 @@ export interface IAmazonLoadBalancerChoiceModalState {
   selectedChoice: IAmazonLoadBalancerConfig;
 }
 
-@BindAll()
 export class AmazonLoadBalancerChoiceModal extends React.Component<
   ILoadBalancerModalProps,
   IAmazonLoadBalancerChoiceModalState
@@ -30,14 +28,14 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     this.setState({ selectedChoice: choice });
   }
 
-  public choose(): void {
+  private choose = (): void => {
     this.setState({ configuring: true });
-  }
+  };
 
-  public close(): void {
+  public close = (): void => {
     this.setState({ configuring: false, selectedChoice: this.state.choices[0] });
     this.props.showCallback(false);
-  }
+  };
 
   public render() {
     const { choices, configuring, selectedChoice } = this.state;

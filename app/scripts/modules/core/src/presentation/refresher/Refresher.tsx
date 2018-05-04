@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { $window } from 'ngimport';
 
 import { IScheduler } from 'core/scheduler/scheduler.factory';
@@ -20,7 +19,6 @@ export interface IRefresherState {
   relativeTime: string;
 }
 
-@BindAll()
 export class Refresher extends React.Component<IRefresherProps, IRefresherState> {
   private activeRefresher: IScheduler;
   private yellowAge = 2 * 60 * 1000; // 2 minutes
@@ -51,7 +49,7 @@ export class Refresher extends React.Component<IRefresherProps, IRefresherState>
     }
   }
 
-  public parseState(props: IRefresherProps): IRefresherState {
+  private parseState(props: IRefresherProps): IRefresherState {
     const lastRefresh = props.lastRefresh || 0;
     const age = new Date().getTime() - lastRefresh;
 

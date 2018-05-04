@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { groupBy } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { EntityName } from './EntityName';
 import { INotification } from './NotificationsPopover';
@@ -26,7 +25,6 @@ export interface IGroupedNotificationListState {
  * Notifications list where duplicated messages are grouped together
  * A clickable link shows/hides the entities (server groups) affected
  */
-@BindAll()
 export class GroupedNotificationList extends React.Component<
   IGroupedNotificationListProps,
   IGroupedNotificationListState
@@ -78,7 +76,6 @@ interface IAlertsForMessageState {
   collapsed: boolean;
 }
 
-@BindAll()
 class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsForMessageState> {
   public state: IAlertsForMessageState = {
     collapsed: true,
@@ -107,16 +104,16 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
     );
   }
 
-  private toggleCollapsed(): void {
+  private toggleCollapsed = (): void => {
     this.setState({ collapsed: !this.state.collapsed });
-  }
+  };
 
-  private renderServerGroupName(notification: INotification): JSX.Element {
+  private renderServerGroupName = (notification: INotification): JSX.Element => {
     const { entityTags } = notification;
     const { entityRef: { region, entityId } } = entityTags;
     const alertKey = `${region}+${entityId}`;
     return <EntityName key={alertKey} tag={entityTags} />;
-  }
+  };
 
   public render() {
     const { alertsForMessage: { notifications, title, message, tagline } } = this.props;

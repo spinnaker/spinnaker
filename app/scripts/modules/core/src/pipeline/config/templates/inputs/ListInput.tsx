@@ -10,9 +10,7 @@ import {
   IVariableProps,
 } from './variableInput.service';
 import { VariableError } from '../VariableError';
-import { BindAll } from 'lodash-decorators';
 
-@BindAll()
 class ListInput extends React.Component<IVariableProps, IVariableState> {
   public render() {
     return (
@@ -64,10 +62,10 @@ class ListInput extends React.Component<IVariableProps, IVariableState> {
     this.props.onChange({ value: list, type: this.props.variable.type, name: this.props.variable.name });
   }
 
-  private handleAddValue(): void {
+  private handleAddValue = (): void => {
     const list = this.props.variable.value.slice().concat(['']);
     this.props.onChange({ value: list, type: this.props.variable.type, name: this.props.variable.name });
-  }
+  };
 }
 
 export class ListInputBuilder implements IVariableInputBuilder {

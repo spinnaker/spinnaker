@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { cloneDeep, get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikValues } from 'formik';
 import { IDeferred, IPromise } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
@@ -34,7 +33,6 @@ export interface ICreateClassicLoadBalancerState {
 type ClassicLoadBalancerModal = new () => WizardModal<IAmazonClassicLoadBalancerUpsertCommand>;
 const ClassicLoadBalancerModal = WizardModal as ClassicLoadBalancerModal;
 
-@BindAll()
 export class CreateClassicLoadBalancer extends React.Component<
   ICreateClassicLoadBalancerProps,
   ICreateClassicLoadBalancerState
@@ -67,9 +65,9 @@ export class CreateClassicLoadBalancer extends React.Component<
     Object.assign(this.$uibModalInstanceEmulation, { deferred });
   }
 
-  private dismiss(): void {
+  private dismiss = (): void => {
     this.props.showCallback(false);
-  }
+  };
 
   protected certificateIdAsARN(
     accountId: string,
@@ -164,7 +162,7 @@ export class CreateClassicLoadBalancer extends React.Component<
     this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(null, () => this.onApplicationRefresh(values));
   }
 
-  private submit(values: IAmazonClassicLoadBalancerUpsertCommand): void {
+  private submit = (values: IAmazonClassicLoadBalancerUpsertCommand): void => {
     const { app, forPipelineConfig, onComplete } = this.props;
     const { isNew } = this.state;
 
@@ -192,13 +190,13 @@ export class CreateClassicLoadBalancer extends React.Component<
 
       this.setState({ taskMonitor });
     }
-  }
+  };
 
-  private validate(values: FormikValues): FormikErrors<IAmazonClassicLoadBalancerUpsertCommand> {
+  private validate = (values: FormikValues): FormikErrors<IAmazonClassicLoadBalancerUpsertCommand> => {
     this.setState({ includeSecurityGroups: !!values.vpcId });
     const errors = {} as FormikErrors<IAmazonClassicLoadBalancerUpsertCommand>;
     return errors;
-  }
+  };
 
   public render(): React.ReactElement<CreateClassicLoadBalancer> {
     const { app, forPipelineConfig, loadBalancer, show } = this.props;

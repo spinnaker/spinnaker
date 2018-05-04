@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as $ from 'jquery';
-import { BindAll } from 'lodash-decorators';
 
 import { IInstance } from 'core/domain';
 
@@ -11,19 +10,18 @@ export interface IInstanceProps {
   onInstanceClicked(instance: IInstance): void;
 }
 
-@BindAll()
 export class Instance extends React.Component<IInstanceProps> {
   private $tooltipElement: JQuery = null;
 
-  private handleClick(event: React.MouseEvent<any>) {
+  private handleClick = (event: React.MouseEvent<any>) => {
     event.preventDefault();
     this.props.onInstanceClicked(this.props.instance);
-  }
+  };
 
-  public onMouseOver(event: React.MouseEvent<any>) {
+  public onMouseOver = (event: React.MouseEvent<any>) => {
     this.$tooltipElement = $(event.target);
     this.$tooltipElement.tooltip({ animation: false, container: 'body' } as JQueryUI.TooltipOptions).tooltip('show');
-  }
+  };
 
   public shouldComponentUpdate(nextProps: IInstanceProps) {
     const checkProps: Array<keyof IInstanceProps> = ['instance', 'active', 'highlight'];

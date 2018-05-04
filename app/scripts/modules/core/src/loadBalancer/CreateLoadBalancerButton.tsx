@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
 import { CloudProviderRegistry } from 'core/cloudProvider';
@@ -26,7 +25,6 @@ export interface ICreateLoadBalancerButtonState {
   showModal: boolean;
 }
 
-@BindAll()
 export class CreateLoadBalancerButton extends React.Component<
   ICreateLoadBalancerButtonProps,
   ICreateLoadBalancerButtonState
@@ -39,7 +37,7 @@ export class CreateLoadBalancerButton extends React.Component<
     };
   }
 
-  private createLoadBalancer(): void {
+  private createLoadBalancer = (): void => {
     const { providerSelectionService, skinSelectionService } = ReactInjector;
     const { app } = this.props;
     providerSelectionService.selectProvider(app, 'loadBalancer').then(selectedProvider => {
@@ -67,11 +65,11 @@ export class CreateLoadBalancerButton extends React.Component<
         }
       });
     });
-  }
+  };
 
-  private showModal(show: boolean): void {
+  private showModal = (show: boolean): void => {
     this.setState({ showModal: show });
-  }
+  };
 
   public render() {
     const { app } = this.props;

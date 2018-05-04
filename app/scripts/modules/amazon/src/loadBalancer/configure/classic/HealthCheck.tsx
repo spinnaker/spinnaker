@@ -1,12 +1,10 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { Field, FormikProps } from 'formik';
 
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
 
 import { IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 
-@BindAll()
 class HealthCheckImpl extends React.Component<IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>> {
   public static LABEL = 'Health Check';
 
@@ -18,10 +16,10 @@ class HealthCheckImpl extends React.Component<IWizardPageProps & FormikProps<IAm
     return this.props.values.healthCheckProtocol && this.props.values.healthCheckProtocol.indexOf('HTTP') === 0;
   }
 
-  private healthCheckPathChanged(event: React.ChangeEvent<HTMLInputElement>) {
+  private healthCheckPathChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     this.props.setFieldValue('healthCheckPath', value && value.indexOf('/') !== 0 ? `/${value}` : value);
-  }
+  };
 
   public render() {
     return (

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 
 import { IFilterType } from './SearchFilterTypeRegistry';
 
@@ -12,7 +11,6 @@ export interface IFilterProps {
   onMouseDown?: (event: React.MouseEvent<HTMLElement>) => void;
 }
 
-@BindAll()
 export class Filter extends React.Component<IFilterProps> {
   public static defaultProps: Partial<IFilterProps> = {
     onClick: () => {},
@@ -20,19 +18,19 @@ export class Filter extends React.Component<IFilterProps> {
     onMouseDown: () => {},
   };
 
-  private handleClick(): void {
+  private handleClick = (): void => {
     const { filterType, onClick } = this.props;
     const { name, key } = filterType;
     onClick([name, key].join('|'));
-  }
+  };
 
-  private handleKeyUp(event: React.KeyboardEvent<HTMLElement>): void {
+  private handleKeyUp = (event: React.KeyboardEvent<HTMLElement>): void => {
     this.props.onKeyUp(event);
-  }
+  };
 
-  private handleMouseDown(event: React.MouseEvent<HTMLElement>): void {
+  private handleMouseDown = (event: React.MouseEvent<HTMLElement>): void => {
     this.props.onMouseDown(event);
-  }
+  };
 
   public render(): React.ReactElement<Filter> {
     const { isActive } = this.props;

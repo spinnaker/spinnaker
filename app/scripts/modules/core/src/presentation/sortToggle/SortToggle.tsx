@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 
 import { noop } from 'core/utils';
 
@@ -11,7 +10,6 @@ export interface ISortToggleProps {
   currentSort: string;
 }
 
-@BindAll()
 export class SortToggle extends React.Component<ISortToggleProps> {
   public static defaultProps: Partial<ISortToggleProps> = {
     onChange: noop,
@@ -27,12 +25,12 @@ export class SortToggle extends React.Component<ISortToggleProps> {
     return this.props.currentSort && this.props.currentSort.startsWith('-');
   }
 
-  private setSortKey(event: React.MouseEvent<HTMLElement>): void {
+  private setSortKey = (event: React.MouseEvent<HTMLElement>): void => {
     const { sortKey, onChange } = this.props;
     event.preventDefault();
     const predicate = this.isSortKey() && this.isReverse() ? '' : '-';
     onChange(predicate + sortKey);
-  }
+  };
 
   public render() {
     const isSortKey = this.isSortKey();

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
 
@@ -13,7 +12,6 @@ export interface IScheduledActionsDetailsSectionState {
   scheduledActionsDisabled: boolean;
 }
 
-@BindAll()
 export class ScheduledActionsDetailsSection extends React.Component<
   IAmazonServerGroupDetailsSectionProps,
   IScheduledActionsDetailsSectionState
@@ -39,7 +37,7 @@ export class ScheduledActionsDetailsSection extends React.Component<
     return { scheduledActionsDisabled };
   }
 
-  private editScheduledActions(): void {
+  private editScheduledActions = (): void => {
     ModalInjector.modalService.open({
       templateUrl: require('../scheduledAction/editScheduledActions.modal.html'),
       controller: 'EditScheduledActionsCtrl as ctrl',
@@ -48,7 +46,7 @@ export class ScheduledActionsDetailsSection extends React.Component<
         serverGroup: () => this.props.serverGroup,
       },
     });
-  }
+  };
 
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
     this.setState(this.getState(nextProps));

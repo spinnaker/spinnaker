@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 import { clone } from 'lodash';
 import { UISref, UISrefActive } from '@uirouter/react';
 
@@ -22,7 +21,6 @@ export interface ILoadBalancerServerGroupState {
   instances: IInstance[];
 }
 
-@BindAll()
 export class LoadBalancerServerGroup extends React.Component<
   ILoadBalancerServerGroupProps,
   ILoadBalancerServerGroupState

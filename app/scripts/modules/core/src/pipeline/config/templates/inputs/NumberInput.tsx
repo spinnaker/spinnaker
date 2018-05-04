@@ -7,10 +7,8 @@ import {
   IVariableState,
   IVariableProps,
 } from './variableInput.service';
-import { BindAll } from 'lodash-decorators';
 import { VariableError } from '../VariableError';
 
-@BindAll()
 class NumberInput extends React.Component<IVariableProps, IVariableState> {
   public render() {
     return (
@@ -27,10 +25,10 @@ class NumberInput extends React.Component<IVariableProps, IVariableState> {
     );
   }
 
-  private extractValue(e: React.ChangeEvent<HTMLInputElement>) {
+  private extractValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value: string = e.target.value; // Comes back from input as a string, not a number.
     this.props.onChange({ value, type: this.props.variable.type, name: this.props.variable.name });
-  }
+  };
 }
 
 export class NumberInputBuilder implements IVariableInputBuilder {

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { has } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { IBuildTrigger, ICronTrigger, IDockerTrigger, IExecution, IArtifact } from 'core/domain';
 import { HoverablePopover } from 'core/presentation';
@@ -30,7 +29,6 @@ export interface IExecutionStatusState {
   timestamp: string;
 }
 
-@BindAll()
 export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExecutionStatusState> {
   private timestampScheduler: IScheduler;
 
@@ -68,7 +66,7 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
 
   public componentDidMount(): void {
     this.timestampScheduler = ReactInjector.schedulerFactory.createScheduler();
-    this.timestampScheduler.subscribe(this.validateTimestamp);
+    this.timestampScheduler.subscribe(() => this.validateTimestamp());
   }
 
   public componentWillUnmount(): void {
@@ -104,10 +102,10 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
     return user;
   }
 
-  private toggleDetails(): void {
+  private toggleDetails = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution details toggled (Details link)' });
     this.props.toggleDetails();
-  }
+  };
 
   public render() {
     const { execution, showingDetails, standalone } = this.props;

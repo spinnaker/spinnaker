@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Application, IPagerDutyService } from '@spinnaker/core';
 
@@ -17,7 +16,6 @@ export interface IPageButtonState {
   showModal: boolean;
 }
 
-@BindAll()
 export class PageButton extends React.Component<IPageButtonProps, IPageButtonState> {
   constructor(props: IPageButtonProps) {
     super(props);
@@ -33,14 +31,14 @@ export class PageButton extends React.Component<IPageButtonProps, IPageButtonSta
     }
   }
 
-  private closeCallback(succeeded: boolean) {
+  private closeCallback = (succeeded: boolean) => {
     this.setState({ showModal: false });
     this.props.closeCallback(succeeded);
-  }
+  };
 
-  private sendPage() {
+  private sendPage = () => {
     this.setState({ showModal: true });
-  }
+  };
 
   public render() {
     return (

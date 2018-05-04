@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 import { Formik, Form, FormikProps, FormikValues } from 'formik';
 import { Modal } from 'react-bootstrap';
 
@@ -40,7 +39,6 @@ export interface IWizardModalState {
   waiting: Set<string>;
 }
 
-@BindAll()
 export class WizardModal<T extends FormikValues> extends React.Component<IWizardModalProps, IWizardModalState> {
   private pages: { [label: string]: IWizardPageData } = {};
   private stepsElement: HTMLDivElement;
@@ -58,18 +56,18 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     };
   }
 
-  private setCurrentPage(pageState: IWizardPageData): void {
+  private setCurrentPage = (pageState: IWizardPageData): void => {
     if (this.stepsElement) {
       this.stepsElement.scrollTop = pageState.element.offsetTop;
     }
     this.setState({ currentPage: pageState });
-  }
+  };
 
-  private onHide(): void {
+  private onHide = (): void => {
     // noop
-  }
+  };
 
-  private onMount(element: any): void {
+  private onMount = (element: any): void => {
     if (element) {
       const label = element.state.label;
       this.pages[label] = {
@@ -79,9 +77,9 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
         props: element.props,
       };
     }
-  }
+  };
 
-  private dirtyCallback(name: string, dirty: boolean): void {
+  private dirtyCallback = (name: string, dirty: boolean): void => {
     const dirtyPages = new Set(this.state.dirtyPages);
     if (dirty) {
       dirtyPages.add(name);
@@ -89,7 +87,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
       dirtyPages.delete(name);
     }
     this.setState({ dirtyPages });
-  }
+  };
 
   public componentDidMount(): void {
     const pages = this.getVisiblePageNames();
@@ -104,7 +102,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     this.pages = {};
   }
 
-  private handleStepsScroll(event: React.UIEvent<HTMLDivElement>): void {
+  private handleStepsScroll = (event: React.UIEvent<HTMLDivElement>): void => {
     // Cannot precalculate because sections can shrink/grow.
     // Could optimize by having a callback every time the size changes... but premature
     const pageTops = this.state.pages.map(pageName => this.pages[pageName].element.offsetTop);
@@ -118,7 +116,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     const currentPage = this.pages[this.state.pages[currentPageIndex]];
 
     this.setState({ currentPage });
-  }
+  };
 
   private getFilteredChildren(): React.ReactChild[] {
     return React.Children.toArray(this.props.children).filter((child: any): boolean => {
@@ -133,7 +131,7 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     return this.getFilteredChildren().map((child: any) => child.type.label);
   }
 
-  private validate(values: FormikValues): any {
+  private validate = (values: FormikValues): any => {
     const errors: Array<{ [key: string]: string }> = [];
     const newErrorPages: Set<string> = new Set();
 
@@ -150,17 +148,17 @@ export class WizardModal<T extends FormikValues> extends React.Component<IWizard
     const flattenedErrors = Object.assign({}, ...errors);
     this.setState({ errorPages: newErrorPages, formInvalid: Object.keys(flattenedErrors).length > 0 });
     return flattenedErrors;
-  }
+  };
 
   private revalidate(values: FormikValues, setErrors: (errors: any) => void) {
     setErrors(this.validate(values));
   }
 
-  private setWaiting(section: string, isWaiting: boolean): void {
+  private setWaiting = (section: string, isWaiting: boolean): void => {
     const waiting = new Set(this.state.waiting);
     isWaiting ? waiting.add(section) : waiting.delete(section);
     this.setState({ waiting });
-  }
+  };
 
   public render(): React.ReactElement<WizardModal<T>> {
     const { dismiss, heading, hideSections, initialValues, show, submitButtonLabel, taskMonitor } = this.props;

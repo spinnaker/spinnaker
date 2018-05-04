@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { IEntityTags, IEntityTag } from 'core/domain';
 import { Placement } from 'core/presentation';
@@ -27,7 +26,6 @@ export interface IEntityNotificationsProps {
  * A notifications popover for alerts and notices.
  * Shows the notifications for a single entity (not rolled up, and not grouped by message)
  */
-@BindAll()
 export class EntityNotifications extends React.Component<IEntityNotificationsProps> {
   public static defaultProps: Partial<IEntityNotificationsProps> = {
     placement: 'bottom',
@@ -36,7 +34,7 @@ export class EntityNotifications extends React.Component<IEntityNotificationsPro
     onUpdate: noop,
   };
 
-  private getAlertAnalyticsLabel(): string {
+  private getAlertAnalyticsLabel = (): string => {
     const { entity, pageLocation, entityType } = this.props;
     const entityTags: IEntityTags = entity.entityTags;
 
@@ -44,9 +42,9 @@ export class EntityNotifications extends React.Component<IEntityNotificationsPro
     const alertsStr = entityTags.alerts.map((tag: IEntityTag) => tag.name).join(',');
 
     return [pageLocation, entityType, account, region, entityId, region, alertsStr].join(':');
-  }
+  };
 
-  private getNoticeAnalyticsLabel(): string {
+  private getNoticeAnalyticsLabel = (): string => {
     const { entity, pageLocation, entityType } = this.props;
     const entityTags: IEntityTags = entity.entityTags;
 
@@ -54,7 +52,7 @@ export class EntityNotifications extends React.Component<IEntityNotificationsPro
     const noticesStr = entityTags.notices.map((tag: IEntityTag) => tag.name).join(',');
 
     return [pageLocation, entityType, account, region, entityId, noticesStr].join(':');
-  }
+  };
 
   public render() {
     const { entity, application, placement, hOffsetPercent, className, onUpdate } = this.props;

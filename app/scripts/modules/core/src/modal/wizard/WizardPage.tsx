@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 
 import { noop } from 'core/utils';
 
@@ -30,7 +29,6 @@ export type IWrappedWizardPage = (React.ComponentClass<IWizardPageProps> | React
 export function wizardPage<P = {}>(
   WrappedComponent: IWrappedWizardPage,
 ): React.ComponentClass<P & IWizardPageProps> & { label: string } {
-  @BindAll()
   class WizardPage extends React.Component<P & IWizardPageProps, IWizardPageState> {
     public static defaultProps: Partial<IWizardPageProps> = {
       dirtyCallback: noop,
@@ -57,28 +55,28 @@ export function wizardPage<P = {}>(
       this.props.onMount(undefined);
     }
 
-    private dirtyCallback(name: string, dirty: boolean): void {
+    private dirtyCallback = (name: string, dirty: boolean): void => {
       if (name === this.state.label) {
         this.setState({ isDirty: dirty });
         this.props.dirtyCallback(name, dirty);
       }
-    }
+    };
 
-    private handleRef(element: any) {
+    private handleRef = (element: any) => {
       if (element) {
         this.element = element;
       }
-    }
+    };
 
-    private handleWrappedRef(wrappedComponent: any) {
+    private handleWrappedRef = (wrappedComponent: any) => {
       if (wrappedComponent) {
         this.validate = (values: { [key: string]: any }) => {
           const errors = wrappedComponent.validate(values);
           this.setState({ hasErrors: Object.keys(errors).length > 0 });
           return errors;
-        }
+        };
       }
-    }
+    };
 
     public render() {
       const { done, mandatory } = this.props;

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Markdown } from 'core/presentation';
 import { relativeTime, timestamp } from 'core/utils';
@@ -56,15 +55,14 @@ interface IActionsProps {
   onDeleteTag(notification: INotification): void;
 }
 
-@BindAll()
 class NotificationActions extends React.Component<IActionsProps> {
-  private editTag(): void {
+  private editTag = (): void => {
     this.props.onEditTag(this.props.notification);
-  }
+  };
 
-  private deleteTag(): void {
+  private deleteTag = (): void => {
     this.props.onDeleteTag(this.props.notification);
-  }
+  };
 
   public render() {
     return (

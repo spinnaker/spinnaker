@@ -23,6 +23,10 @@ class KubernetesAnnotationCustomSections implements IController {
   public customSections: ICustomSectionMap;
 
   constructor(private $sce: ISCEService, private $interpolate: IInterpolateService) {
+    'ngInject';
+  }
+
+  public $onInit() {
     const annotations: IAnnotationsMap = get(this, ['manifest', 'metadata', 'annotations']);
     if (annotations == null) {
       return;

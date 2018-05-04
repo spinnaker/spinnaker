@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { filter, flatten, get, groupBy, set, uniq } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
@@ -27,7 +26,6 @@ export interface ITargetGroupsState {
   oldTargetGroupCount: number;
 }
 
-@BindAll()
 class TargetGroupsImpl extends React.Component<
   ITargetGroupsProps & IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>,
   ITargetGroupsState
@@ -150,7 +148,7 @@ class TargetGroupsImpl extends React.Component<
     setFieldValue('targetGroups', values.targetGroups);
   }
 
-  private addTargetGroup(): void {
+  private addTargetGroup = (): void => {
     const { setFieldValue, values } = this.props;
     const tgLength = values.targetGroups.length;
     values.targetGroups.push({
@@ -173,7 +171,7 @@ class TargetGroupsImpl extends React.Component<
       },
     });
     setFieldValue('targetGroups', values.targetGroups);
-  }
+  };
 
   private removeTargetGroup(index: number): void {
     const { setFieldValue, values } = this.props;

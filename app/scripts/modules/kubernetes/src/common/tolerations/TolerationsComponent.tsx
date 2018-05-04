@@ -2,7 +2,6 @@ import * as React from 'react';
 import { cloneDeep } from 'lodash';
 import Select, { Option } from 'react-select';
 import { Button } from 'react-bootstrap';
-import { BindAll } from 'lodash-decorators';
 import { HelpField } from '@spinnaker/core';
 
 export type IOperator = 'Exists' | 'Equal';
@@ -21,7 +20,6 @@ export interface IKubernetesTolerationsProps {
   onTolerationChange: (tolerations: IToleration[]) => void;
 }
 
-@BindAll()
 export class KubernetesTolerations extends React.Component<IKubernetesTolerationsProps> {
   private static operators: Option[] = [{ value: 'Exists', label: 'Exists' }, { value: 'Equal', label: 'Equal' }];
 
@@ -37,11 +35,11 @@ export class KubernetesTolerations extends React.Component<IKubernetesToleration
     super(props);
   }
 
-  private addTolerations(): void {
+  private addTolerations = (): void => {
     const tolerations = cloneDeep(this.props.tolerations) || [];
     tolerations.push({ key: '', value: '', operator: 'Exists', effect: 'NoSchedule' });
     this.props.onTolerationChange(tolerations);
-  }
+  };
 
   private removeToleration(index: number): () => void {
     return () => {

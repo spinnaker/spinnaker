@@ -11,7 +11,6 @@ import {
   module,
 } from 'angular';
 import { Dictionary } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 /**
  * Handles two scenarios:
@@ -19,7 +18,6 @@ import { BindAll } from 'lodash-decorators';
  *   2. requests are aborted due to a network change (retries immediately)
  */
 
-@BindAll()
 export class NetworkInterceptor implements IHttpInterceptor {
   private networkAvailable: IDeferred<void>;
   private retryQueue: Dictionary<number> = {};
@@ -37,14 +35,14 @@ export class NetworkInterceptor implements IHttpInterceptor {
     this.resetNetworkAvailable();
   }
 
-  private handleOffline(): void {
+  private handleOffline = (): void => {
     this.networkAvailable = this.$q.defer();
-  }
+  };
 
-  private handleOnline(): void {
+  private handleOnline = (): void => {
     this.networkAvailable.resolve();
     this.resetNetworkAvailable();
-  }
+  };
 
   private resetNetworkAvailable(): void {
     this.networkAvailable = this.$q.defer();

@@ -1,5 +1,4 @@
 import { IComponentOptions, IController, module } from 'angular';
-import { BindAll } from 'lodash-decorators';
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { IStage, IExpectedArtifact, IPipeline } from 'core';
@@ -8,7 +7,6 @@ import {
   ARTIFACT_REFERENCE_SERVICE_PROVIDER,
 } from 'core/artifact/ArtifactReferenceService';
 
-@BindAll()
 class ProducesArtifactsCtrl implements IController {
   public stage: IStage;
   public pipeline: IPipeline;
@@ -21,7 +19,7 @@ class ProducesArtifactsCtrl implements IController {
     return this.stage && this.stage.expectedArtifacts instanceof Array && this.stage.expectedArtifacts.length > 0;
   }
 
-  public removeExpectedArtifact(stage: IStage, expectedArtifact: IExpectedArtifact) {
+  public removeExpectedArtifact = (stage: IStage, expectedArtifact: IExpectedArtifact) => {
     if (!this.hasExpectedArtifacts()) {
       return;
     }
@@ -29,7 +27,7 @@ class ProducesArtifactsCtrl implements IController {
     stage.expectedArtifacts = stage.expectedArtifacts.filter((a: IExpectedArtifact) => a.id !== expectedArtifact.id);
 
     this.artifactReferenceService.removeReferenceFromStages(expectedArtifact.id, this.pipeline.stages);
-  }
+  };
 
   private defaultArtifact() {
     return { kind: 'custom' };

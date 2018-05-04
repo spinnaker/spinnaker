@@ -3,7 +3,6 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { $q } from 'ngimport';
 
 import {
@@ -35,7 +34,6 @@ export interface IPageModalState {
   taskMonitor: TaskMonitor;
 }
 
-@BindAll()
 export class PageModal extends React.Component<IPageModalProps, IPageModalState> {
   private taskMonitorBuilder: TaskMonitorBuilder = ReactInjector.taskMonitorBuilder;
   private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
@@ -74,23 +72,23 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
     };
   }
 
-  public close(evt?: React.MouseEvent<any>): void {
+  public close = (evt?: React.MouseEvent<any>): void => {
     evt && evt.stopPropagation();
     this.setState(this.getDefaultState(this.props));
     this.props.closeCallback(false);
-  }
+  };
 
-  private handleSubjectChanged(event: any): void {
+  private handleSubjectChanged = (event: any): void => {
     const value = event.target.value;
     this.setState({ subject: value });
-  }
+  };
 
-  private handleDetailsChanged(event: any): void {
+  private handleDetailsChanged = (event: any): void => {
     const value = event.target.value;
     this.setState({ details: value });
-  }
+  };
 
-  public sendPage(): void {
+  public sendPage = (): void => {
     const { pagerDutyWriter } = ReactInjector;
     const taskMonitor = this.taskMonitorBuilder.buildTaskMonitor({
       title: `Sending page to ${this.state.pageCount} policies`,
@@ -108,7 +106,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
     taskMonitor.submit(submitMethod);
 
     this.setState({ taskMonitor, submitting: true });
-  }
+  };
 
   public render() {
     const formValid = true;

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
 import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from 'core/domain';
@@ -22,7 +21,6 @@ export interface IStepDetailsState {
   sourceUrl?: string;
 }
 
-@BindAll()
 export class StepDetails extends React.Component<IStepDetailsProps, IStepDetailsState> {
   constructor(props: IStepDetailsProps) {
     super(props);

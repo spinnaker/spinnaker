@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 import { UISref } from '@uirouter/react';
 
@@ -35,7 +34,6 @@ export interface ISingleExecutionRouterStateChange extends IStateChange {
   toParams: ISingleExecutionStateParams;
 }
 
-@BindAll()
 export class SingleExecutionDetails extends React.Component<
   ISingleExecutionDetailsProps,
   ISingleExecutionDetailsState
@@ -108,7 +106,7 @@ export class SingleExecutionDetails extends React.Component<
     this.stateChangeSuccessSubscription.unsubscribe();
   }
 
-  private showDurationsChanged(event: React.ChangeEvent<HTMLInputElement>): void {
+  private showDurationsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const checked = event.target.checked;
     // TODO: Since we treat sortFilter like a store, we can force the setState for now
     //       but we should eventually convert all the sortFilters to be a valid redux
@@ -116,16 +114,16 @@ export class SingleExecutionDetails extends React.Component<
     this.state.sortFilter.showDurations = checked;
     this.setState({ sortFilter: this.state.sortFilter });
     ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
-  }
+  };
 
-  private handleConfigureClicked(e: React.MouseEvent<HTMLElement>): void {
+  private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
     ReactGA.event({ category: 'Execution', action: 'Configuration' });
     ReactInjector.$state.go('^.pipelineConfig', {
       application: this.props.app.name,
       pipelineId: this.state.execution.pipelineConfigId,
     });
     e.stopPropagation();
-  }
+  };
 
   public render() {
     const { app } = this.props;

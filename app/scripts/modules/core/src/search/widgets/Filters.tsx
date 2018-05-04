@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 
 import { Key } from 'core/widgets/Keys';
 import { Filter } from './Filter';
@@ -22,7 +21,6 @@ export interface IFiltersProps {
   onMouseDown?: () => void;
 }
 
-@BindAll()
 export class Filters extends React.Component<IFiltersProps> {
   public static defaultProps: Partial<IFiltersProps> = {
     filterClicked: () => {},
@@ -32,30 +30,30 @@ export class Filters extends React.Component<IFiltersProps> {
 
   private filters: Filter[] = [];
 
-  private refCallback(filter: Filter): void {
+  private refCallback = (filter: Filter): void => {
     this.filters.push(filter);
-  }
+  };
 
-  private handleClick(str: string): void {
+  private handleClick = (str: string): void => {
     const clickedFilter = this.filters.find((filter: Filter) => {
       const { name, key } = filter.props.filterType;
       return str === [name, key].join('|');
     });
     this.props.filterClicked(clickedFilter);
-  }
+  };
 
-  private handleKeyUp(event: React.KeyboardEvent<HTMLElement>): void {
+  private handleKeyUp = (event: React.KeyboardEvent<HTMLElement>): void => {
     switch (event.key) {
       case Key.UP_ARROW:
       case Key.DOWN_ARROW:
         this.props.onKeyUp(event.key);
         break;
     }
-  }
+  };
 
-  private handleMouseDown(): void {
+  private handleMouseDown = (): void => {
     this.props.onMouseDown();
-  }
+  };
 
   private generateFilterElement(filterType: IFilterType): JSX.Element {
     const { name, key } = filterType;

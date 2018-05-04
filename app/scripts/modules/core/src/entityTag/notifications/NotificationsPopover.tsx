@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 import { uniq, pick } from 'lodash';
 
 import { Application } from 'core/application';
@@ -72,7 +71,6 @@ export interface INotificationsPopoverState {
 /**
  * A configurable popover which renders notifications
  */
-@BindAll()
 export class NotificationsPopover extends React.Component<INotificationsPopoverProps, INotificationsPopoverState> {
   public static defaultProps: Partial<INotificationsPopoverProps> = {
     tags: [],
@@ -154,10 +152,10 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     });
   }
 
-  public fireGAEvent(): void {
+  public fireGAEvent = (): void => {
     const analyticsLabel = this.props.gaLabelFn(this.props);
     ReactGA.event({ action: 'SPAN', category: 'Alerts hovered', label: analyticsLabel });
-  }
+  };
 
   private PopoverContent = ({ hidePopover }: IHoverablePopoverContentsProps) => {
     const { type, categorized, grouped } = this.props;

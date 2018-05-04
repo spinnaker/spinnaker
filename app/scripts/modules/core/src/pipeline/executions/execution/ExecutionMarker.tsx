@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { IExecution, IExecutionStageSummary } from 'core/domain';
@@ -29,7 +28,6 @@ export interface IExecutionMarkerState {
   hydrated: boolean;
 }
 
-@BindAll()
 export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExecutionMarkerState> {
   private runningTime: OrchestratedItemRunningTime;
   private mounted = false;
@@ -45,14 +43,14 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     };
   }
 
-  private hydrate(): void {
+  private hydrate = (): void => {
     const { execution, application } = this.props;
     ReactInjector.executionService.hydrate(application, execution).then(() => {
       if (this.mounted) {
         this.setState({ hydrated: true });
       }
     });
-  }
+  };
 
   public componentDidMount() {
     this.mounted = true;
@@ -70,10 +68,10 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     this.runningTime.reset();
   }
 
-  private handleStageClick(): void {
+  private handleStageClick = (): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Stage clicked (bar)' });
     this.props.onClick(this.props.stage.index);
-  }
+  };
 
   public render() {
     const { stage, application, execution, active, previousStageActive, width } = this.props;

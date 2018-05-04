@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 import { sortBy } from 'lodash';
 
 import { ILoadBalancer } from 'core/domain';
@@ -16,12 +15,11 @@ interface ILoadBalancerListItemProps {
   onItemClick: (loadBalancer: ILoadBalancer) => void;
 }
 
-@BindAll()
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
-  private onClick(e: React.MouseEvent<HTMLElement>): void {
+  private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
-  }
+  };
 
   public render(): React.ReactElement<LoadBalancerListItem> {
     return (
@@ -33,12 +31,11 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   }
 }
 
-@BindAll()
 class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
-  private onClick(e: React.MouseEvent<HTMLElement>): void {
+  private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
-  }
+  };
 
   public render(): React.ReactElement<LoadBalancerButton> {
     return (
@@ -59,7 +56,6 @@ export interface ILoadBalancersTagState {
   loadBalancers: ILoadBalancer[];
 }
 
-@BindAll()
 export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, ILoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
 
@@ -74,7 +70,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     );
   }
 
-  private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
+  private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
     const { $state } = ReactInjector;
     const serverGroup = this.props.serverGroup;
     ReactGA.event({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
@@ -85,16 +81,16 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
       name: loadBalancer.name,
       provider: serverGroup.type,
     });
-  }
+  };
 
-  private handleShowPopover() {
+  private handleShowPopover = () => {
     ReactGA.event({ category: 'Cluster Pod', action: `Show Load Balancers Menu` });
-  }
+  };
 
-  private handleClick(e: React.MouseEvent<HTMLElement>): void {
+  private handleClick = (e: React.MouseEvent<HTMLElement>): void => {
     e.preventDefault();
     e.stopPropagation();
-  }
+  };
 
   public componentDidMount(): void {
     this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => {

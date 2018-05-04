@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { UISref } from '@uirouter/react';
 import { Subject } from 'rxjs';
 
@@ -15,7 +14,6 @@ import { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGrou
 import { RunningTasks } from './RunningTasks';
 import { ServerGroupInsightActions } from './ServerGroupInsightActions';
 
-@BindAll()
 export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps, IServerGroupDetailsState> {
   private destroy$ = new Subject();
   private serverGroupsRefreshUnsubscribe: () => void;
@@ -34,9 +32,9 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
     ReactInjector.$state.go('^', null, { location: 'replace' });
   }
 
-  private updateServerGroup(serverGroup: IServerGroup): void {
+  private updateServerGroup = (serverGroup: IServerGroup): void => {
     this.setState({ serverGroup, loading: false });
-  }
+  };
 
   public componentDidMount(): void {
     this.props

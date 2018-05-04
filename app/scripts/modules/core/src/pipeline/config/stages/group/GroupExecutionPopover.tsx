@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { IExecutionStageSummary } from 'core/domain';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
@@ -16,13 +15,12 @@ export interface IGroupedStageListItemProps {
   stageClicked?: (stage: IExecutionStageSummary) => void;
 }
 
-@BindAll()
 class GroupedStageListItem extends React.Component<IGroupedStageListItemProps> {
-  private onClick(): void {
+  private onClick = (): void => {
     if (this.props.stageClicked) {
       this.props.stageClicked(this.props.stage);
     }
-  }
+  };
 
   public render(): React.ReactElement<GroupedStageListItem> {
     const { stage } = this.props;
@@ -48,13 +46,12 @@ class GroupedStageListItem extends React.Component<IGroupedStageListItemProps> {
   }
 }
 
-@BindAll()
 export class GroupExecutionPopover extends React.Component<IGroupExecutionPopoverProps> {
-  private subStageClicked(subStage: IExecutionStageSummary): void {
+  private subStageClicked = (subStage: IExecutionStageSummary): void => {
     if (this.props.subStageClicked) {
       this.props.subStageClicked(this.props.stage, subStage);
     }
-  }
+  };
 
   public render() {
     const { stage } = this.props;

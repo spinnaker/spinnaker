@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { IClusterConfig } from './configBin.reader';
-import { BindAll } from 'lodash-decorators';
 import { ConfigBinModal } from './ConfigBinModal';
 import { Application, HelpField } from '@spinnaker/core';
 
@@ -19,7 +18,6 @@ export interface IConfigBinLinkState {
   modalOpen: boolean;
 }
 
-@BindAll()
 export class ConfigBinLink extends React.Component<IConfigBinLinkProps, IConfigBinLinkState> {
   constructor(props: IConfigBinLinkProps) {
     super(props);
@@ -28,14 +26,14 @@ export class ConfigBinLink extends React.Component<IConfigBinLinkProps, IConfigB
     };
   }
 
-  private showModal(): void {
+  private showModal = (): void => {
     this.setState({ modalOpen: true });
-  }
+  };
 
-  private hideModal(): void {
+  private hideModal = (): void => {
     this.props.configUpdated();
     this.setState({ modalOpen: false });
-  }
+  };
 
   public render() {
     const { config, awsAccountId, env, region, clusterName, application } = this.props;

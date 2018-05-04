@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { uniq } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { GroupedNotificationList } from './GroupedNotificationList';
 import { NotificationCategory } from './NotificationCategory';
@@ -46,7 +45,6 @@ export interface ICategorizedNotificationsState {
  * |                  |                                   |
  * +------------------+-----------------------------------+
  */
-@BindAll()
 export class CategorizedNotifications extends React.Component<
   ICategorizedNotificationsProps,
   ICategorizedNotificationsState
@@ -89,9 +87,9 @@ export class CategorizedNotifications extends React.Component<
     return categories.map(makeAlertCategory).sort((a, b) => b.category.severity - a.category.severity);
   }
 
-  private handleCategorySelected(selectedCategory: INotificationCategory): void {
+  private handleCategorySelected = (selectedCategory: INotificationCategory): void => {
     this.setState({ selectedCategory });
-  }
+  };
 
   public render() {
     const { categorizedAlerts, selectedCategory } = this.state;

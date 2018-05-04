@@ -7,10 +7,8 @@ import {
   IVariableProps,
   IVariableState,
 } from './variableInput.service';
-import { BindAll } from 'lodash-decorators';
 import { VariableError } from '../VariableError';
 
-@BindAll()
 class StringInput extends React.Component<IVariableProps, IVariableState> {
   public render() {
     return (
@@ -27,9 +25,9 @@ class StringInput extends React.Component<IVariableProps, IVariableState> {
     );
   }
 
-  private extractValue(e: React.ChangeEvent<HTMLInputElement>) {
+  private extractValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.props.onChange({ value: e.target.value, type: this.props.variable.type, name: this.props.variable.name });
-  }
+  };
 }
 
 export class StringInputBuilder implements IVariableInputBuilder {

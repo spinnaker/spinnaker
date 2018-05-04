@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { BindAll } from 'lodash-decorators';
 
 export interface IPolicyTypeSelectionModalState {
   typeSelection: string;
@@ -11,7 +10,6 @@ export interface IPolicyTypeSelectionModalProps {
   typeSelectedCallback: (type: string) => void;
 }
 
-@BindAll()
 export class PolicyTypeSelectionModal extends React.Component<
   IPolicyTypeSelectionModalProps,
   IPolicyTypeSelectionModalState
@@ -23,17 +21,17 @@ export class PolicyTypeSelectionModal extends React.Component<
     };
   }
 
-  public close(): void {
+  public close = (): void => {
     this.props.showCallback();
-  }
+  };
 
-  public selectType(e: React.MouseEvent<HTMLElement>): void {
+  public selectType = (e: React.MouseEvent<HTMLElement>): void => {
     this.setState({ typeSelection: e.currentTarget.id });
-  }
+  };
 
-  public confirmTypeSelection(): void {
+  public confirmTypeSelection = (): void => {
     this.props.typeSelectedCallback(this.state.typeSelection);
-  }
+  };
 
   public render() {
     const stepClass = this.state.typeSelection === 'step' ? 'card active' : 'card';

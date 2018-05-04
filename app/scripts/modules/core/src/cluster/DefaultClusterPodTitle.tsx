@@ -1,12 +1,10 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { AccountTag } from 'core/account';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
 import { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
 
-@BindAll()
 export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProps> {
   public render(): React.ReactElement<DefaultClusterPodTitle> {
     const { grouping, application, parentHeading } = this.props;

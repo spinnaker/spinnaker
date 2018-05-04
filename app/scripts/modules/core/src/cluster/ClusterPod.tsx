@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { orderBy } from 'lodash';
 
 import { ClusterState } from 'core/state';
@@ -23,7 +22,6 @@ export interface IClusterPodState {
   showCloseButton: boolean;
 }
 
-@BindAll()
 export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodState> {
   constructor(props: IClusterPodProps) {
     super(props);
@@ -33,13 +31,13 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
     };
   }
 
-  public close(): void {
+  public close = (): void => {
     const { parentHeading, grouping, application } = this.props;
 
     delete ClusterState.filterModel.asFilterModel.sortFilter.clusters[`${parentHeading}:${grouping.heading}`];
     ClusterState.filterModel.asFilterModel.applyParamsToUrl();
     application.getDataSource('serverGroups').refresh();
-  }
+  };
 
   public render() {
     const { grouping } = this.props;
@@ -67,7 +65,7 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
     );
   }
 
-  private renderSubGroup(subgroup: IServerGroupSubgroup) {
+  private renderSubGroup = (subgroup: IServerGroupSubgroup) => {
     const { grouping, application, sortFilter } = this.props;
     const hasMoniker = subgroup.serverGroups.every(sg => {
       return !!sg.moniker;
@@ -110,5 +108,5 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
           ))}
       </div>
     );
-  }
+  };
 }

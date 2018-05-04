@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { IExecutionStageSummary, IExecution } from 'core/domain';
 import { Application } from 'core/application/application.model';
@@ -17,18 +16,11 @@ export interface IGroupExecutionLabelProps {
   executionMarker: boolean;
 }
 
-export interface IGroupedStageListItemProps {
-  execution: IExecution;
-  groupStage: IExecutionStageSummary;
-  stage: IExecutionStageSummary;
-}
-
-@BindAll()
 export class GroupExecutionLabel extends React.Component<IGroupExecutionLabelProps> {
-  private subStageClicked(groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void {
+  private subStageClicked = (groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void => {
     const { executionService } = ReactInjector;
     executionService.toggleDetails(this.props.execution, groupStage.index, stage.index);
-  }
+  };
 
   public render() {
     const { stage } = this.props;

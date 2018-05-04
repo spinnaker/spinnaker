@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { pickBy, isEmpty } from 'lodash';
 import { Observable, Subject } from 'rxjs';
 
@@ -25,7 +24,6 @@ export interface ISearchV2State {
   refreshingCache: boolean;
 }
 
-@BindAll()
 export class SearchV2 extends React.Component<{}, ISearchV2State> {
   private $state = ReactInjector.$state;
   private $uiRouter = ReactInjector.$uiRouter;
@@ -147,11 +145,11 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     this.destroy$.next();
   }
 
-  public handleFilterChange(filters: ITag[]) {
+  public handleFilterChange = (filters: ITag[]) => {
     const blankApiParams = API_PARAMS.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
     const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]: filter.text }), blankApiParams);
     this.$state.go('.', newParams, { location: 'replace' });
-  }
+  };
 
   public render() {
     const { params, resultSets, selectedTab, isSearching } = this.state;

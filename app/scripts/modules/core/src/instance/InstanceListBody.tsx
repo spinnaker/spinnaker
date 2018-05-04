@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 import * as classNames from 'classnames';
 
@@ -22,7 +21,6 @@ export interface IInstanceListBodyState {
   multiselect: boolean;
 }
 
-@BindAll()
 export class InstanceListBody extends React.Component<IInstanceListBodyProps, IInstanceListBodyState> {
   private clusterFilterModel = ClusterState.filterModel.asFilterModel;
   private $uiRouter = ReactInjector.$uiRouter;
@@ -90,7 +88,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     );
   }
 
-  private instanceSorter(a1: IInstance, b1: IInstance): number {
+  private instanceSorter = (a1: IInstance, b1: IInstance): number => {
     const { sortFilter } = this.clusterFilterModel;
     const filterSplit = sortFilter.instanceSort.split('-'),
       filterType = filterSplit.length === 1 ? filterSplit[0] : filterSplit[1],
@@ -137,7 +135,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
       default:
         return -1;
     }
-  }
+  };
 
   private renderRow(instance: IInstance): JSX.Element {
     const { hasLoadBalancers, hasDiscovery } = this.props;
@@ -211,7 +209,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     );
   }
 
-  private instanceBodyClicked(event: React.MouseEvent<HTMLElement>): void {
+  private instanceBodyClicked = (event: React.MouseEvent<HTMLElement>): void => {
     const target = event.target as HTMLElement;
     const targetRow = target.closest('tr');
     if (!targetRow) {
@@ -219,7 +217,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     }
     ClusterState.multiselectModel.toggleInstance(this.props.serverGroup, targetRow.getAttribute('data-instance-id'));
     event.stopPropagation();
-  }
+  };
 
   public render() {
     return (

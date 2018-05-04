@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
-import { BindAll } from 'lodash-decorators';
 
 export interface IManagedTemplateSelectorProps {
   selectedTemplate: IPipelineTemplate;
@@ -9,7 +8,6 @@ export interface IManagedTemplateSelectorProps {
   onChange: (template: IPipelineTemplate) => void;
 }
 
-@BindAll()
 export class ManagedTemplateSelector extends React.Component<IManagedTemplateSelectorProps> {
   public render() {
     const selected = this.props.selectedTemplate;
@@ -32,15 +30,15 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
     return this.props.templates.map(t => ({ label: t.metadata.name, value: t.id }));
   }
 
-  private handleTemplateSelect(option: Option): void {
+  private handleTemplateSelect = (option: Option): void => {
     let selectedTemplate: IPipelineTemplate;
     if (option) {
       selectedTemplate = this.props.templates.find(t => t.id === option.value);
     }
     this.props.onChange(selectedTemplate);
-  }
+  };
 
-  private templateOptionRenderer(option: Option) {
+  private templateOptionRenderer = (option: Option) => {
     const template = this.props.templates.find(t => t.id === option.value);
     return (
       <div>
@@ -50,5 +48,5 @@ export class ManagedTemplateSelector extends React.Component<IManagedTemplateSel
         {template.metadata.description && <p className="small">{template.metadata.description}</p>}
       </div>
     );
-  }
+  };
 }

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { parseSpelExpressions } from '../spel2js.templateParser';
-import { BindAll } from 'lodash-decorators';
 import { truncate } from 'lodash';
 
 import { Markdown } from 'core/presentation/Markdown';
@@ -33,7 +32,6 @@ export interface ISpelError {
   contextTruncated: string;
 }
 
-@BindAll()
 export class ExpressionInput extends React.Component<IExpressionInputProps, IExpressionInputState> {
   public static defaultProps = { context: {}, locals: {} };
 
@@ -103,13 +101,13 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
     return null;
   }
 
-  private hideContextModal(): void {
+  private hideContextModal = (): void => {
     this.setState({ showContextModal: false });
-  }
+  };
 
-  private showContextModal(): void {
+  private showContextModal = (): void => {
     this.setState({ showContextModal: true });
-  }
+  };
 
   private renderError(): JSX.Element {
     const { spelError } = this.state;
@@ -145,10 +143,10 @@ export class ExpressionInput extends React.Component<IExpressionInputProps, IExp
     );
   }
 
-  private handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
+  private handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const { value } = event.target;
     this.validate(value);
-  }
+  };
 
   public render(): JSX.Element {
     const { Help, label, markdown, placeholder, required } = this.props;

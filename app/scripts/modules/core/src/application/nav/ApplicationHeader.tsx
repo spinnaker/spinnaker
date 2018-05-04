@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
 import { ApplicationRefresher } from './ApplicationRefresher';
@@ -28,7 +27,6 @@ export interface IApplicationHeaderState {
   activeCategory?: IDataSourceCategory;
 }
 
-@BindAll()
 export class ApplicationHeader extends React.Component<IApplicationHeaderProps, IApplicationHeaderState> {
   private stopListeningToStateChange: Function;
   private stopListeningToAppRefresh: Function;

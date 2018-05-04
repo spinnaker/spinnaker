@@ -2,7 +2,6 @@ import { module, IPromise, IQService } from 'angular';
 import { flatten } from 'lodash';
 import { API } from 'core/api/ApiService';
 import { IPipeline } from 'core/domain/IPipeline';
-import { BindAll } from 'lodash-decorators';
 
 export interface IPipelineTemplate {
   id: string;
@@ -52,7 +51,7 @@ export interface IPipelineTemplateConfig extends Partial<IPipeline> {
         source: string;
       };
       variables?: { [key: string]: any };
-    },
+    };
     configuration?: {
       inherit?: string[];
     };
@@ -75,7 +74,6 @@ export interface IPipelineTemplatePlanError {
   nestedErrors: IPipelineTemplatePlanError[];
 }
 
-@BindAll()
 export class PipelineTemplateService {
   constructor(private $q: IQService) {
     'ngInject';
@@ -102,11 +100,11 @@ export class PipelineTemplateService {
       .post({ ...config, plan: true, executionId });
   }
 
-  public getPipelineTemplatesByScope(scope: string): IPromise<IPipelineTemplate[]> {
+  public getPipelineTemplatesByScope = (scope: string): IPromise<IPipelineTemplate[]> => {
     return API.one('pipelineTemplates')
       .withParams({ scope })
       .get();
-  }
+  };
 
   public getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
     return this.$q

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { IClusterConfigExpression } from './configBin.reader';
 
@@ -14,7 +13,6 @@ export interface ICustomMetricState {
   uri: string;
 }
 
-@BindAll()
 export class CustomMetric extends React.Component<ICustomMetricProps, ICustomMetricState> {
   constructor(props: ICustomMetricProps) {
     super(props);
@@ -24,19 +22,19 @@ export class CustomMetric extends React.Component<ICustomMetricProps, ICustomMet
     };
   }
 
-  private metricNameUpdated(e: React.ChangeEvent<HTMLInputElement>): void {
+  private metricNameUpdated = (e: React.ChangeEvent<HTMLInputElement>): void => {
     this.setState({ name: e.target.value });
     this.props.metricUpdated(this.props.metric, { ...this.props.metric, metricName: e.target.value });
-  }
+  };
 
-  private metricUriUpdated(e: React.ChangeEvent<HTMLTextAreaElement>): void {
+  private metricUriUpdated = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     this.setState({ uri: e.target.value });
     this.props.metricUpdated(this.props.metric, { ...this.props.metric, atlasUri: e.target.value });
-  }
+  };
 
-  private removeMetric(): void {
+  private removeMetric = (): void => {
     this.props.metricRemoved(this.props.metric);
-  }
+  };
 
   public render() {
     const { metric } = this.props;

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { chain, find, sortBy } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { UISref } from '@uirouter/react';
 
 import { CollapsibleSection, ISecurityGroup, ModalInjector } from '@spinnaker/core';
@@ -11,7 +10,6 @@ export interface ISecurityGroupsDetailsSectionState {
   securityGroups: ISecurityGroup[];
 }
 
-@BindAll()
 export class SecurityGroupsDetailsSection extends React.Component<
   IAmazonServerGroupDetailsSectionProps,
   ISecurityGroupsDetailsSectionState
@@ -40,7 +38,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
     return securityGroups;
   }
 
-  private updateSecurityGroups(): void {
+  private updateSecurityGroups = (): void => {
     ModalInjector.modalService.open({
       templateUrl: require('../securityGroup/editSecurityGroups.modal.html'),
       controller: 'EditSecurityGroupsCtrl as $ctrl',
@@ -50,7 +48,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
         securityGroups: () => this.state.securityGroups,
       },
     });
-  }
+  };
 
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
     this.setState({ securityGroups: this.getSecurityGroups(nextProps) });

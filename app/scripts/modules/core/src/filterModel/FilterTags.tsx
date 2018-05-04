@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 
 export interface IFilter {
   label: string;
@@ -22,7 +21,6 @@ export interface IFilterTagsState {
   tags: IFilterTag[];
 }
 
-@BindAll()
 export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsState> {
   public static defaultProps: Partial<IFilterTagsProps> = {
     tagCleared: () => {},
@@ -39,10 +37,10 @@ export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsSta
     this.setState({ tags: newProps.tags });
   }
 
-  private clearAllFilters(): void {
+  private clearAllFilters = (): void => {
     this.props.clearFilters();
     ReactGA.event({ category: 'Filter Tags', action: 'Clear All clicked' });
-  }
+  };
 
   private generateTag(tag: IFilterTag) {
     const clearFilter = (): void => {

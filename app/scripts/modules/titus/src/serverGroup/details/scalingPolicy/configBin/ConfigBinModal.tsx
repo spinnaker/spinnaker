@@ -2,7 +2,6 @@ import * as React from 'react';
 import { IDeferred } from 'angular';
 
 import { Modal } from 'react-bootstrap';
-import { BindAll } from 'lodash-decorators';
 import { cloneDeep, partition } from 'lodash';
 import { $q } from 'ngimport';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
@@ -40,7 +39,6 @@ export interface IExpressionModel extends IClusterConfigExpression {
   index?: number;
 }
 
-@BindAll()
 export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfigBinModalState> {
   public static defaultProps: Partial<IConfigBinModalProps> = {
     config: {
@@ -144,11 +142,11 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     return model;
   }
 
-  private close(): void {
+  private close = (): void => {
     this.props.showCallback();
-  }
+  };
 
-  private save(): void {
+  private save = (): void => {
     const { config, clusterName, application } = this.props;
     const { cannedExpressions, nonEditableExpressions, customExpressions } = this.state;
     const command = cloneDeep(config);
@@ -182,7 +180,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     taskMonitor.submit(submitMethod);
 
     this.setState({ saving: true, saveError: null, taskMonitor });
-  }
+  };
 
   private getExpressionTemplate(): IExpressionModel {
     return {
@@ -199,24 +197,24 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
     };
   }
 
-  private addCustomExpression(): void {
+  private addCustomExpression = (): void => {
     const newExpression = this.getExpressionTemplate();
     newExpression.atlasUri = '';
     newExpression.metricName = '';
     newExpression.isCustom = true;
     this.setState({ customExpressions: this.state.customExpressions.concat([newExpression]) });
-  }
+  };
 
-  private removeCustomExpression(metric: IClusterConfigExpression): void {
+  private removeCustomExpression = (metric: IClusterConfigExpression): void => {
     const { customExpressions } = this.state;
     this.setState({ customExpressions: customExpressions.filter(e => e !== metric) });
-  }
+  };
 
-  private metricUpdated(oldMetric: IClusterConfigExpression, newMetric: IClusterConfigExpression): void {
+  private metricUpdated = (oldMetric: IClusterConfigExpression, newMetric: IClusterConfigExpression): void => {
     Object.assign(oldMetric, newMetric);
-  }
+  };
 
-  private optionToggled(event: React.ChangeEvent<HTMLInputElement>): void {
+  private optionToggled = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const metric = event.target.value;
     const existingExpression = this.state.cannedExpressions.find(e => e.metric === metric);
     if (existingExpression) {
@@ -228,7 +226,7 @@ export class ConfigBinModal extends React.Component<IConfigBinModalProps, IConfi
       newExpression.region = this.props.region;
       this.setState({ cannedExpressions: this.state.cannedExpressions.concat([newExpression]) });
     }
-  }
+  };
 
   public render() {
     const { cannedExpressions, customExpressions } = this.state;

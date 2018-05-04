@@ -1,5 +1,5 @@
 import { chain, find, forOwn, groupBy, includes, intersection, map, some, sortBy, values, without } from 'lodash';
-import { Debounce, BindAll } from 'lodash-decorators';
+import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
@@ -8,7 +8,6 @@ import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
 import { LoadBalancerState } from 'core/state';
 
-@BindAll()
 export class LoadBalancerFilterService {
   public groupsUpdatedStream: Subject<ILoadBalancerGroup[]> = new Subject<ILoadBalancerGroup[]>();
 

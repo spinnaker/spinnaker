@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
 import { Observable, Subject } from 'rxjs';
-import { BindAll } from 'lodash-decorators';
 
 import { Placement } from 'core/presentation';
 import { UUIDGenerator } from 'core/utils';
@@ -51,7 +50,6 @@ export interface IHoverablePopoverState {
   PopoverRenderer?: React.ComponentType<IHoverablePopoverContentsProps>;
 }
 
-@BindAll()
 export class HoverablePopover extends React.Component<IHoverablePopoverProps, IHoverablePopoverState> {
   public static defaultProps: Partial<IHoverablePopoverProps> = {
     placement: 'top',
@@ -101,15 +99,15 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     callback && callback();
   }
 
-  private handleMouseEvent(e: React.SyntheticEvent<any>): void {
+  private handleMouseEvent = (e: React.SyntheticEvent<any>): void => {
     this.mouseEvents$.next(e);
-  }
+  };
 
-  private refCallback(ref: Element): void {
+  private refCallback = (ref: Element): void => {
     this.target = ref;
-  }
+  };
 
-  private rendererRefCallback(ref: React.Component): void {
+  private rendererRefCallback = (ref: React.Component): void => {
     if (ref) {
       const { clientWidth, clientHeight } = ReactDOM.findDOMNode(ref);
       const bounds = this.target.getBoundingClientRect();
@@ -133,7 +131,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
       }
       this.setState({ placementOverride });
     }
-  }
+  };
 
   public render() {
     const { Component, template, placement, container, hOffsetPercent, id, title, className } = this.props;

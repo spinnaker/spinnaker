@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
-import { BindAll } from 'lodash-decorators';
 
 import { decodeUnicodeBase64 } from 'core/utils/unicodeBase64';
 
@@ -15,7 +14,6 @@ export interface IShowUserDataState {
   decodeAsText: boolean;
 }
 
-@BindAll()
 export class ShowUserData extends React.Component<IShowUserDataProps, IShowUserDataState> {
   constructor(props: IShowUserDataProps) {
     super(props);
@@ -25,17 +23,17 @@ export class ShowUserData extends React.Component<IShowUserDataProps, IShowUserD
     };
   }
 
-  private close() {
+  private close = () => {
     this.setState({ show: false });
-  }
+  };
 
-  private open() {
+  private open = () => {
     this.setState({ show: true });
-  }
+  };
 
-  private onDecodeChange({ target }: React.ChangeEvent<HTMLInputElement>) {
+  private onDecodeChange = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ decodeAsText: target.checked });
-  }
+  };
 
   public render() {
     const { serverGroupName, title, userData } = this.props;

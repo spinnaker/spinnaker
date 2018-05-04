@@ -1,14 +1,4 @@
-import {
-  IAttributes,
-  IController,
-  IDeferred,
-  IDirective,
-  INgModelController,
-  IQService,
-  IScope,
-  module,
-} from 'angular';
-import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
+import { IAttributes, IController, IDeferred, INgModelController, IQService, IScope, module } from 'angular';
 import {
   APPLICATION_NAME_VALIDATOR,
   ApplicationNameValidator,
@@ -51,28 +41,23 @@ class ValidateApplicationNameController implements IController {
   }
 }
 
-@DirectiveFactory('applicationNameValidator')
-class ValidateApplicationNameDirective implements IDirective {
-  public restrict = 'A';
-  public controller: any = ValidateApplicationNameController;
-  public controllerAs = '$ctrl';
-  public require = 'ngModel';
-  public bindToController: any = {
-    cloudProviders: '<',
-  };
-
-  public link($scope: IScope, _$element: JQuery, $attrs: IValidateNameAttrs, ctrl: INgModelController) {
-    const $ctrl: ValidateApplicationNameController = $scope['$ctrl'];
-    $ctrl.$scope = $scope;
-    $ctrl.$attrs = $attrs;
-    $ctrl.model = ctrl;
-    $ctrl.initialize();
-  }
-}
-
 export const VALIDATE_APPLICATION_NAME = 'spinnaker.core.application.modal.validateApplicationName.component';
 
-module(VALIDATE_APPLICATION_NAME, [APPLICATION_NAME_VALIDATOR]).directive(
-  'validateApplicationName',
-  ValidateApplicationNameDirective as any,
-);
+module(VALIDATE_APPLICATION_NAME, [APPLICATION_NAME_VALIDATOR]).directive('validateApplicationName', function() {
+  return {
+    restrict: 'A',
+    controller: ValidateApplicationNameController,
+    controllerAs: '$ctrl',
+    require: 'ngModel',
+    bindToController: {
+      cloudProviders: '<',
+    },
+    link: ($scope: IScope, _$element: JQuery, $attrs: IValidateNameAttrs, ctrl: INgModelController) => {
+      const $ctrl: ValidateApplicationNameController = $scope['$ctrl'];
+      $ctrl.$scope = $scope;
+      $ctrl.$attrs = $attrs;
+      $ctrl.model = ctrl;
+      $ctrl.initialize();
+    },
+  };
+});

@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { has } from 'lodash';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
 import { ReactInjector } from 'core/reactShims';
@@ -47,7 +46,6 @@ export interface IServerGroupState {
   isMultiSelected: boolean; // multiselect mode
 }
 
-@BindAll()
 export class ServerGroup extends React.Component<IServerGroupProps, IServerGroupState> {
   private stateChangeSubscription: Subscription;
   private serverGroupsSubscription: Subscription;
@@ -115,16 +113,16 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     return multiselect && ClusterState.multiselectModel.serverGroupIsSelected(serverGroup);
   }
 
-  private onServerGroupsChanged() {
+  private onServerGroupsChanged = () => {
     const isMultiSelected = this.isMultiSelected(this.props.sortFilter.multiselect, this.props.serverGroup);
     this.setState({ isMultiSelected });
     // Enables the (angular) details pane to detect the changes
     ReactInjector.$rootScope.$applyAsync(() => false);
-  }
+  };
 
-  private onStateChanged() {
+  private onStateChanged = () => {
     this.setState({ isSelected: this.isSelected(this.props.serverGroup) });
-  }
+  };
 
   public componentDidMount(): void {
     const { serverGroupsStream, instancesStream } = ClusterState.multiselectModel;
@@ -155,10 +153,10 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     });
   }
 
-  private handleServerGroupClicked(event: React.MouseEvent<any>) {
+  private handleServerGroupClicked = (event: React.MouseEvent<any>) => {
     ReactGA.event({ category: 'Cluster Pod', action: 'Load Server Group Details' });
     this.loadDetails(event);
-  }
+  };
 
   public render() {
     const { instances, images, jenkins, docker, isSelected, isMultiSelected } = this.state;

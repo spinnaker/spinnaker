@@ -2,7 +2,6 @@ import * as React from 'react';
 import Select, { Option } from 'react-select';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { difference, flatten, get, uniq } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { FormikErrors, FormikProps } from 'formik';
 
 import { HelpField, IWizardPageProps, Tooltip, ValidationError, wizardPage } from '@spinnaker/core';
@@ -30,14 +29,12 @@ const DragHandle = SortableHandle(() => (
   <span className="pipeline-drag-handle clickable glyphicon glyphicon-resize-vertical" />
 ));
 
-@BindAll()
 class ALBListenersImpl extends React.Component<
   IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>,
   IALBListenersState
 > {
   public static LABEL = 'Listeners';
   public protocols = ['HTTP', 'HTTPS'];
-  public secureProtocols = ['HTTPS', 'SSL'];
 
   constructor(props: IWizardPageProps & FormikProps<IAmazonApplicationLoadBalancerUpsertCommand>) {
     super(props);
@@ -153,7 +150,7 @@ class ALBListenersImpl extends React.Component<
     this.updateListeners();
   }
 
-  private addListener(): void {
+  private addListener = (): void => {
     this.props.values.listeners.push({
       certificates: [],
       protocol: 'HTTP',
@@ -167,9 +164,9 @@ class ALBListenersImpl extends React.Component<
       rules: [],
     });
     this.updateListeners();
-  }
+  };
 
-  private addRule(listener: IALBListenerDescription): void {
+  private addRule = (listener: IALBListenerDescription): void => {
     const newRule: IListenerRule = {
       priority: null,
       actions: [
@@ -188,50 +185,53 @@ class ALBListenersImpl extends React.Component<
 
     listener.rules.push(newRule);
     this.updateListeners();
-  }
+  };
 
-  public removeRule(listener: IALBListenerDescription, index: number): void {
+  public removeRule = (listener: IALBListenerDescription, index: number): void => {
     listener.rules.splice(index, 1);
     this.updateListeners();
-  }
+  };
 
-  private handleDefaultTargetChanged(listener: IALBListenerDescription, newTarget: string): void {
+  private handleDefaultTargetChanged = (listener: IALBListenerDescription, newTarget: string): void => {
     listener.defaultActions[0].targetGroupName = newTarget;
     this.updateListeners();
-  }
+  };
 
-  private handleConditionFieldChanged(condition: IListenerRuleCondition, newField: ListenerRuleConditionField): void {
+  private handleConditionFieldChanged = (
+    condition: IListenerRuleCondition,
+    newField: ListenerRuleConditionField,
+  ): void => {
     condition.field = newField;
     this.updateListeners();
-  }
+  };
 
-  private handleConditionValueChanged(condition: IListenerRuleCondition, newValue: string): void {
+  private handleConditionValueChanged = (condition: IListenerRuleCondition, newValue: string): void => {
     condition.values[0] = newValue;
     this.updateListeners();
-  }
+  };
 
-  private addCondition(rule: IListenerRule): void {
+  private addCondition = (rule: IListenerRule): void => {
     if (rule.conditions.length === 1) {
       const field = rule.conditions[0].field === 'path-pattern' ? 'host-header' : 'path-pattern';
       rule.conditions.push({ field, values: [''] });
     }
     this.updateListeners();
-  }
+  };
 
-  private removeCondition(rule: IListenerRule, index: number): void {
+  private removeCondition = (rule: IListenerRule, index: number): void => {
     rule.conditions.splice(index, 1);
     this.updateListeners();
-  }
+  };
 
-  private handleRuleActionTargetChanged(rule: IListenerRule, newTarget: string): void {
+  private handleRuleActionTargetChanged = (rule: IListenerRule, newTarget: string): void => {
     rule.actions[0].targetGroupName = newTarget;
     this.updateListeners();
-  }
+  };
 
-  private handleSortEnd(sortEnd: SortEnd, listener: IALBListenerDescription): void {
+  private handleSortEnd = (sortEnd: SortEnd, listener: IALBListenerDescription): void => {
     listener.rules = arrayMove(listener.rules, sortEnd.oldIndex, sortEnd.newIndex);
     this.updateListeners();
-  }
+  };
 
   public render() {
     const { errors, values } = this.props;

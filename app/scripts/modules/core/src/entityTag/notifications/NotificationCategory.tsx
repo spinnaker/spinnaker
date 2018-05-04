@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { INotificationCategory } from './notificationCategories';
 import { INotification } from './NotificationsPopover';
@@ -17,11 +16,10 @@ export interface INotificationCategoryProps {
  * | (icon) Category      (# badge) |
  * +--------------------------------+
  */
-@BindAll()
 export class NotificationCategory extends React.Component<INotificationCategoryProps, any> {
-  public selectCategory(): void {
+  public selectCategory = (): void => {
     this.props.onCategorySelected(this.props.category);
-  }
+  };
 
   public render() {
     const { category, notifications } = this.props;

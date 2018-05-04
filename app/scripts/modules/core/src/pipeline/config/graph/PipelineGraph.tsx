@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as DOMPurify from 'dompurify';
 import * as $ from 'jquery';
 import * as classNames from 'classnames';
-import { BindAll, Debounce, Throttle } from 'lodash-decorators';
+import { Debounce, Throttle } from 'lodash-decorators';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
 import { Subscription } from 'rxjs';
 
@@ -42,7 +42,6 @@ export interface IPipelineGraphState {
   rowHeights: number[];
 }
 
-@BindAll()
 export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelineGraphState> {
   private defaultNodeRadius = 8;
   private defaultState: IPipelineGraphState = {
@@ -78,7 +77,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     }
   }
 
-  private highlight(node: IPipelineGraphNode, highlight: boolean): void {
+  private highlight = (node: IPipelineGraphNode, highlight: boolean): void => {
     if (node.isActive) {
       return;
     }
@@ -86,20 +85,20 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     node.parentLinks.forEach((link: IPipelineGraphLink) => (link.isHighlighted = highlight));
     node.childLinks.forEach((link: IPipelineGraphLink) => (link.isHighlighted = highlight));
     this.applyAllNodes(this.state);
-  }
+  };
 
   @Throttle(300)
   private handleWindowResize(): void {
     this.updateGraph(this.props);
   }
 
-  private handleWheel(e: React.WheelEvent<HTMLDivElement>) {
+  private handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     // track and save the graph scroll position for executions so it doesn't get reset to
     // zero every second due to repaint.
     if (this.props.execution) {
       PipelineGraphService.xScrollOffset[this.props.execution.id] = e.deltaX;
     }
-  }
+  };
 
   /**
    * Used to draw inverse bezier curve between stages
@@ -404,11 +403,11 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     this.updateGraph(this.props);
   }
 
-  private refCallback(element: HTMLDivElement): void {
+  private refCallback = (element: HTMLDivElement): void => {
     if (element) {
       this.element = $(element);
     }
-  }
+  };
 
   @Debounce(300)
   private validatePipeline(pipeline: IPipeline): void {

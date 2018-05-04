@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { Dropdown } from 'react-bootstrap';
 
 import { Application } from 'core/application';
@@ -14,11 +13,10 @@ export interface ICreatePipelineProps {
   application: Application;
 }
 
-@BindAll()
 export class CreatePipeline extends React.Component<ICreatePipelineProps> {
-  private dropdownToggled(): void {
+  private dropdownToggled = (): void => {
     ReactGA.event({ category: 'Pipelines', action: 'Configure (top level)' });
-  }
+  };
 
   public render() {
     const { application } = this.props;

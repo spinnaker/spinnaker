@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Tooltip } from 'core/presentation/Tooltip';
 import { CloudProviderRegistry } from 'core/cloudProvider';
@@ -17,7 +16,6 @@ export interface ICloudProviderLogoState {
   tooltip?: string;
 }
 
-@BindAll()
 export class CloudProviderLogo extends React.Component<ICloudProviderLogoProps, ICloudProviderLogoState> {
   constructor(props: ICloudProviderLogoProps) {
     super(props);

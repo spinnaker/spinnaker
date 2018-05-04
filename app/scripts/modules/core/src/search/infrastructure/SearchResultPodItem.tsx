@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { UISref } from '@uirouter/react';
-import { BindAll } from 'lodash-decorators';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
 import { ISearchResult } from 'core/search/infrastructure/SearchResultPods';
@@ -16,18 +15,17 @@ export interface ISearchResultPodItemProps {
 }
 
 @UIRouterContext
-@BindAll()
 export class SearchResultPodItem extends React.Component<ISearchResultPodItemProps> {
   private handleRemoveClicked(evt: React.MouseEvent<any>, categoryName: string, itemId: string) {
     evt.preventDefault();
     this.props.onRemoveItem(categoryName, itemId);
   }
 
-  private handleResultClick(): void {
+  private handleResultClick = (): void => {
     if (this.props.onResultClick) {
       this.props.onResultClick(this.props.categoryName);
     }
-  }
+  };
 
   public render() {
     const { categoryName, result, onRemoveItem } = this.props;

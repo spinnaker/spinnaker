@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import {
   CollapsibleSection,
@@ -14,7 +13,6 @@ import {
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
 @Overridable('amazon.serverGroup.CapacityDetailsSection')
-@BindAll()
 export class CapacityDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
   public static resizeServerGroup(serverGroup: IServerGroup, application: Application): void {
     ModalInjector.modalService.open({

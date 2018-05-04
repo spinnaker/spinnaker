@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 
 import { IServerGroup, IInstance } from 'core/domain';
@@ -39,7 +38,6 @@ interface IColumnWidths {
   cloudProvider: number;
 }
 
-@BindAll()
 export class InstanceList extends React.Component<IInstanceListProps, IInstanceListState> {
   private instanceGroup: any;
   private clusterFilterModel = ClusterState.filterModel.asFilterModel;
@@ -76,13 +74,13 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     this.destroy$.next();
   }
 
-  private toggleSelectAll(event: React.MouseEvent<HTMLElement>): void {
+  private toggleSelectAll = (event: React.MouseEvent<HTMLElement>): void => {
     event.stopPropagation();
     const { instances, serverGroup } = this.props;
     const selectedInstances = instances.map(i => i.id);
     ClusterState.multiselectModel.toggleSelectAll(serverGroup, selectedInstances);
     this.setState({ allSelected: !this.state.allSelected });
-  }
+  };
 
   private getColumnWidths(): IColumnWidths {
     const { hasDiscovery, hasLoadBalancers } = this.props;
@@ -127,10 +125,10 @@ export class InstanceList extends React.Component<IInstanceListProps, IInstanceL
     return this.state.multiselect !== nextState.multiselect || this.state.allSelected !== nextState.allSelected;
   }
 
-  private toggleSort(sortKey: string): void {
+  private toggleSort = (sortKey: string): void => {
     this.clusterFilterModel.sortFilter.instanceSort = sortKey;
     this.clusterFilterModel.applyParamsToUrl();
-  }
+  };
 
   private renderHeader(): JSX.Element {
     const { hasDiscovery, hasLoadBalancers } = this.props;

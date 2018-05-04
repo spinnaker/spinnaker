@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { IPromise } from 'angular';
 import { filter, get, isEqual, map, uniq } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { FormikProps } from 'formik';
 import VirtualizedSelect from 'react-virtualized-select';
 import { Observable, Subject } from 'rxjs';
@@ -29,7 +28,6 @@ export interface ISecurityGroupsState {
   refreshTime: number;
 }
 
-@BindAll()
 class SecurityGroupsImpl extends React.Component<
   IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>,
   ISecurityGroupsState
@@ -56,10 +54,10 @@ class SecurityGroupsImpl extends React.Component<
     return {};
   }
 
-  private clearRemoved(): void {
+  private clearRemoved = (): void => {
     this.props.dirtyCallback(SecurityGroups.label, false);
     this.setState({ removed: [] });
-  }
+  };
 
   private preloadSecurityGroups(): IPromise<ISecurityGroupsByAccountSourceData> {
     return ReactInjector.securityGroupReader.getAllSecurityGroups().then(securityGroups => {
@@ -138,7 +136,7 @@ class SecurityGroupsImpl extends React.Component<
     this.setState({ availableSecurityGroups, removed: newRemoved });
   }
 
-  private refreshSecurityGroups(): void {
+  private refreshSecurityGroups = (): void => {
     this.setState({ refreshing: true });
     this.props.setWaiting(SecurityGroups.label, true);
 
@@ -157,11 +155,11 @@ class SecurityGroupsImpl extends React.Component<
             this.updateAvailableSecurityGroups([this.props.values.vpcId], securityGroups);
           });
       });
-  }
+  };
 
-  private handleSecurityGroupsChanged(newValues: Array<{ label: string; value: string }>): void {
+  private handleSecurityGroupsChanged = (newValues: Array<{ label: string; value: string }>): void => {
     this.props.setFieldValue('securityGroups', newValues.map(sg => sg.value));
-  }
+  };
 
   public componentDidMount(): void {
     this.refreshSecurityGroups();

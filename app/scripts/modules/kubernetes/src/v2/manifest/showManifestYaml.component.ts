@@ -11,6 +11,9 @@ class KubernetesShowManifestYaml implements IController {
 
   constructor(private $rootScope: IRootScopeService, private $uibModal: IModalService) {
     'ngInject';
+  }
+
+  public $onInit() {
     this.text = dump(copy(this.manifest));
     this.title = this.manifest.metadata.name;
   }

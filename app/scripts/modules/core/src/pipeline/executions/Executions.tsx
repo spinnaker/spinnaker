@@ -5,7 +5,6 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { Transition } from '@uirouter/core';
 import { get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { $timeout, $q } from 'ngimport';
 import { Subscription } from 'rxjs';
 
@@ -36,7 +35,6 @@ export interface IExecutionsState {
   triggeringExecution: boolean;
 }
 
-@BindAll()
 export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
@@ -77,14 +75,14 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     });
   }
 
-  private clearFilters(): void {
+  private clearFilters = (): void => {
     ReactInjector.executionFilterService.clearFilters();
     this.updateExecutionGroups(true);
-  }
+  };
 
-  private forceUpdateExecutionGroups(): void {
+  private forceUpdateExecutionGroups = (): void => {
     this.updateExecutionGroups(true);
-  }
+  };
 
   private updateExecutionGroups(reload?: boolean): void {
     this.normalizeExecutionNames();
@@ -127,15 +125,15 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     });
   }
 
-  private expand(): void {
+  private expand = (): void => {
     ReactGA.event({ category: 'Pipelines', action: 'Expand All' });
     ExecutionState.filterModel.expandSubject.next(true);
-  }
+  };
 
-  private collapse(): void {
+  private collapse = (): void => {
     ReactGA.event({ category: 'Pipelines', action: 'Collapse All' });
     ExecutionState.filterModel.expandSubject.next(false);
-  }
+  };
 
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     this.setState({ triggeringExecution: true });
@@ -153,9 +151,9 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       );
   }
 
-  private startManualExecutionClicked(): void {
+  private startManualExecutionClicked = (): void => {
     this.triggerPipeline();
-  }
+  };
 
   private triggerPipeline(pipeline: IPipeline = null): void {
     ReactGA.event({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
@@ -269,31 +267,31 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     this.activeRefresher && this.activeRefresher.unsubscribe();
   }
 
-  private showFilters(): void {
+  private showFilters = (): void => {
     this.setState({ filtersExpanded: true });
     this.insightFilterStateModel.pinFilters(true);
-  }
+  };
 
-  private hideFilters(): void {
+  private hideFilters = (): void => {
     this.setState({ filtersExpanded: false });
     this.insightFilterStateModel.pinFilters(false);
-  }
+  };
 
-  private groupByChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
+  private groupByChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = event.target.value;
     ReactGA.event({ category: 'Pipelines', action: 'Group By', label: value });
     this.state.sortFilter.groupBy = value;
     this.updateExecutionGroups();
-  }
+  };
 
-  private showCountChanged(event: React.ChangeEvent<HTMLSelectElement>): void {
+  private showCountChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = event.target.value;
     this.state.sortFilter.count = parseInt(value, 10);
     ReactGA.event({ category: 'Pipelines', action: 'Change Count', label: value });
     this.updateExecutionGroups(true);
-  }
+  };
 
-  private showDurationsChanged(event: React.ChangeEvent<HTMLInputElement>): void {
+  private showDurationsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const checked = event.target.checked;
     // TODO: Since we treat sortFilter like a store, we can force the setState for now
     //       but we should eventually convert all the sortFilters to be a valid redux
@@ -301,7 +299,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     this.state.sortFilter.showDurations = checked;
     this.setState({ sortFilter: this.state.sortFilter });
     ReactGA.event({ category: 'Pipelines', action: 'Toggle Durations', label: checked.toString() });
-  }
+  };
 
   public render(): React.ReactElement<Executions> {
     const { app } = this.props;

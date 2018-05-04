@@ -1,12 +1,10 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 export interface ISpinnerProps {
   size?: 'nano' | 'small' | 'medium' | 'large';
   message?: string;
 }
 
-@BindAll()
 export class Spinner extends React.Component<ISpinnerProps> {
   public getBarRows(): React.ReactNode[] {
     const { size } = this.props;

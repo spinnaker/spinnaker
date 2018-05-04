@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { ModalFooter } from 'react-bootstrap';
-import { BindAll } from 'lodash-decorators';
 
 import { AccountService, UserVerification, IAccountDetails } from '@spinnaker/core';
 
@@ -15,7 +14,6 @@ export interface IAwsModalFooterState {
   requireVerification: boolean;
 }
 
-@BindAll()
 export class AwsModalFooter extends React.Component<IAwsModalFooterProps, IAwsModalFooterState> {
   public state = { verified: false, requireVerification: false };
 
@@ -28,9 +26,9 @@ export class AwsModalFooter extends React.Component<IAwsModalFooterProps, IAwsMo
       });
   }
 
-  private handleVerification(verified: boolean) {
+  private handleVerification = (verified: boolean) => {
     this.setState({ verified });
-  }
+  };
 
   public render() {
     const { account, onCancel, onSubmit } = this.props;

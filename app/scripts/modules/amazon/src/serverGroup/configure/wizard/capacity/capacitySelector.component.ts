@@ -1,4 +1,34 @@
-import { module } from 'angular';
+import { IComponentController, module } from 'angular';
+
+export class AwsCapacitySelectorController implements IComponentController {
+  public minMaxDesiredTemplate = require('./minMaxDesiredFields.template.html');
+  public command: any;
+
+  public preferSourceCapacityOptions = [
+    { label: 'fail the stage', value: undefined },
+    { label: 'use fallback values', value: true },
+  ];
+
+  public useSourceCapacityUpdated(): void {
+    if (!this.command.useSourceCapacity) {
+      delete this.command.preferSourceCapacity;
+    }
+  }
+
+  public setSimpleCapacity(simpleCapacity: boolean) {
+    this.command.viewState.useSimpleCapacity = simpleCapacity;
+    this.command.useSourceCapacity = false;
+    this.setMinMax(this.command.capacity.desired);
+  }
+
+  public setMinMax(newVal: number) {
+    if (this.command.viewState.useSimpleCapacity) {
+      this.command.capacity.min = newVal;
+      this.command.capacity.max = newVal;
+      this.command.useSourceCapacity = false;
+    }
+  }
+}
 
 export const CAPACITY_SELECTOR = 'spinnaker.amazon.serverGroup.configure.wizard.capacity.selector';
 module(CAPACITY_SELECTOR, []).component('awsServerGroupCapacitySelector', {
@@ -6,32 +36,5 @@ module(CAPACITY_SELECTOR, []).component('awsServerGroupCapacitySelector', {
     command: '=',
   },
   templateUrl: require('./capacitySelector.component.html'),
-  controller() {
-    this.minMaxDesiredTemplate = require('./minMaxDesiredFields.template.html');
-
-    this.preferSourceCapacityOptions = [
-      { label: 'fail the stage', value: undefined },
-      { label: 'use fallback values', value: true },
-    ];
-
-    this.useSourceCapacityUpdated = () => {
-      if (!this.command.useSourceCapacity) {
-        delete this.command.preferSourceCapacity;
-      }
-    };
-
-    this.setSimpleCapacity = (simpleCapacity: boolean) => {
-      this.command.viewState.useSimpleCapacity = simpleCapacity;
-      this.command.useSourceCapacity = false;
-      this.setMinMax(this.command.capacity.desired);
-    };
-
-    this.setMinMax = (newVal: number) => {
-      if (this.command.viewState.useSimpleCapacity) {
-        this.command.capacity.min = newVal;
-        this.command.capacity.max = newVal;
-        this.command.useSourceCapacity = false;
-      }
-    };
-  },
+  controller: AwsCapacitySelectorController,
 });

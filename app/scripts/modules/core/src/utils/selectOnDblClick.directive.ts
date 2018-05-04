@@ -1,6 +1,5 @@
 /** based on http://jsfiddle.net/epinapala/WdeTM/4/ */
-import { IController, IDirective, IScope, module } from 'angular';
-import { DirectiveFactory } from './tsDecorators/directiveFactoryDecorator';
+import { IController, IScope, module } from 'angular';
 
 class DoubleClickController implements IController {
   public $element: JQuery;
@@ -22,19 +21,16 @@ class DoubleClickController implements IController {
   }
 }
 
-@DirectiveFactory()
-class DoubleClickDirective implements IDirective {
-  public restrict = 'A';
-  public controller: any = DoubleClickController;
-  public bindToController = {};
-
-  public link($scope: IScope, $element: JQuery, _$attrs: any, ctrl: DoubleClickController) {
-    ctrl.$scope = $scope;
-    ctrl.$element = $element;
-    ctrl.$attrs = _$attrs;
-    ctrl.initialize();
-  }
-}
-
 export const SELECT_ON_DOUBLE_CLICK_DIRECTIVE = 'spinnaker.core.utils.selectOnDblClick';
-module(SELECT_ON_DOUBLE_CLICK_DIRECTIVE, []).directive('selectOnDblClick', DoubleClickDirective as any);
+module(SELECT_ON_DOUBLE_CLICK_DIRECTIVE, []).directive('selectOnDblClick', function() {
+  return {
+    restrict: 'A',
+    controller: DoubleClickController,
+    link: ($scope: IScope, $element: JQuery, _$attrs: any, ctrl: DoubleClickController) => {
+      ctrl.$scope = $scope;
+      ctrl.$element = $element;
+      ctrl.$attrs = _$attrs;
+      ctrl.initialize();
+    },
+  };
+});

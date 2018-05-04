@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
 import { IServerGroupManager, IServerGroup } from 'core/domain';
@@ -12,7 +11,6 @@ export interface IServerGroupManagerTagProps {
   serverGroup: IServerGroup;
 }
 
-@BindAll()
 export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTagProps> {
   public render() {
     const serverGroupManager = this.extractServerGroupManager();
@@ -45,12 +43,12 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
       );
   }
 
-  private openDetails(event: React.MouseEvent<HTMLElement>): void {
+  private openDetails = (event: React.MouseEvent<HTMLElement>): void => {
     event.preventDefault();
     const { $state } = ReactInjector;
     const nextState = $state.current.name.endsWith('.clusters') ? '.serverGroupManager' : '^.serverGroupManager';
     $state.go(nextState, this.buildStateParams());
-  }
+  };
 
   private buildStateParams(): IServerGroupManagerStateParams {
     const serverGroupManager = this.extractServerGroupManager();

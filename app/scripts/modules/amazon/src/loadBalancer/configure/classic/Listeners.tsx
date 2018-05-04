@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Select, { Option } from 'react-select';
 import { get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { FormikProps } from 'formik';
 
 import { IWizardPageProps, wizardPage } from '@spinnaker/core';
@@ -22,7 +21,6 @@ export interface IListenersState {
   certificateTypes: string[];
 }
 
-@BindAll()
 class ListenersImpl extends React.Component<
   IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>,
   IListenersState
@@ -123,7 +121,7 @@ class ListenersImpl extends React.Component<
     this.updateListeners();
   }
 
-  private addListener(): void {
+  private addListener = (): void => {
     this.props.values.listeners.push({
       internalProtocol: 'HTTP',
       externalProtocol: 'HTTP',
@@ -131,7 +129,7 @@ class ListenersImpl extends React.Component<
       internalPort: 0,
     });
     this.updateListeners();
-  }
+  };
 
   public render() {
     const { values } = this.props;

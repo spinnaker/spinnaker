@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { get } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 
 import { Application } from 'core/application';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from 'core/domain';
@@ -14,10 +13,7 @@ export interface IStageSummaryProps {
   stageSummary: IExecutionStageSummary;
 }
 
-export interface IStageSummaryState {}
-
-@BindAll()
-export class StageSummary extends React.Component<IStageSummaryProps, IStageSummaryState> {
+export class StageSummary extends React.Component<IStageSummaryProps> {
   private getSourceUrl(): string {
     return get(
       this.props,

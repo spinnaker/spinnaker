@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { BindAll } from 'lodash-decorators';
 import { $q, $templateCache } from 'ngimport';
 import { Observable } from 'rxjs';
 
@@ -8,13 +7,6 @@ import { IServerGroup } from 'core/domain';
 import { AngularJSAdapter, ReactInjector } from 'core/reactShims';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
-
-export interface IServerGroupDetailsWrapperStateParams {
-  provider: string;
-  accountId: string;
-  region: string;
-  serverGroup: string;
-}
 
 export interface IServerGroupDetailsWrapperProps {
   app: Application;
@@ -58,7 +50,6 @@ export interface IServerGroupDetailsState {
   serverGroup: IServerGroup;
 }
 
-@BindAll()
 export class ServerGroupDetailsWrapper extends React.Component<
   IServerGroupDetailsWrapperProps,
   IServerGroupDetailsWrapperState

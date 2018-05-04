@@ -1,9 +1,8 @@
-// This is all mercilessly copied from LoadBalancersTag.tsx. This should be clenaed up at some point
+// This is all mercilessly copied from LoadBalancersTag.tsx. This should be cleaned up at some point
 // Probably when we convert clusters view to React.
 
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 import { sortBy } from 'lodash';
 
 import {
@@ -28,12 +27,11 @@ interface ILoadBalancerSingleItemProps extends ILoadBalancerListItemProps {
   label: string;
 }
 
-@BindAll()
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
-  private onClick(e: React.MouseEvent<HTMLElement>): void {
+  private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
-  }
+  };
 
   public render(): React.ReactElement<LoadBalancerListItem> {
     return (
@@ -45,12 +43,11 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   }
 }
 
-@BindAll()
 class LoadBalancerButton extends React.Component<ILoadBalancerSingleItemProps> {
-  private onClick(e: React.MouseEvent<HTMLElement>): void {
+  private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
-  }
+  };
 
   public render(): React.ReactElement<LoadBalancerButton> {
     return (
@@ -72,7 +69,6 @@ export interface IAmazonLoadBalancersTagState {
   targetGroups: ITargetGroup[];
 }
 
-@BindAll()
 export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagProps, IAmazonLoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
   private mounted = false;
@@ -98,7 +94,7 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     );
   }
 
-  private showLoadBalancerDetails(loadBalancer: ILoadBalancer): void {
+  private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
     const { $state } = ReactInjector;
     const serverGroup = this.props.serverGroup;
     ReactGA.event({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
@@ -109,9 +105,9 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
       name: loadBalancer.name,
       provider: serverGroup.type,
     });
-  }
+  };
 
-  private showTargetGroupDetails(targetGroup: ITargetGroup): void {
+  private showTargetGroupDetails = (targetGroup: ITargetGroup): void => {
     const { $state } = ReactInjector;
     ReactGA.event({ category: 'Cluster Pod', action: `Load Target Group Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.targetGroupDetails' : '^.targetGroupDetails';
@@ -122,16 +118,16 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
       provider: 'aws',
       loadBalancerName: targetGroup.loadBalancerNames[0],
     });
-  }
+  };
 
-  private handleShowPopover() {
+  private handleShowPopover = () => {
     ReactGA.event({ category: 'Cluster Pod', action: `Show Load Balancers Menu` });
-  }
+  };
 
-  private handleClick(e: React.MouseEvent<HTMLElement>): void {
+  private handleClick = (e: React.MouseEvent<HTMLElement>): void => {
     e.preventDefault();
     e.stopPropagation();
-  }
+  };
 
   public componentDidMount(): void {
     this.mounted = true;

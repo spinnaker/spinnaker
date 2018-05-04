@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { IScope } from 'angular';
-import { BindAll } from 'lodash-decorators';
 import { DropdownButton, MenuItem } from 'react-bootstrap';
 import { StateService } from '@uirouter/core';
 import { IModalService } from 'angular-ui-bootstrap';
@@ -21,7 +20,6 @@ export interface IInsightMenuState {
   refreshingCache: boolean;
 }
 
-@BindAll()
 export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenuState> {
   public static defaultProps: IInsightMenuProps = { createApp: true, createProject: true, refreshCaches: true };
 
@@ -41,7 +39,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     this.cacheInitializer = ReactInjector.cacheInitializer;
   }
 
-  private createProject() {
+  private createProject = () => {
     this.$uibModal
       .open({
         scope: this.$rootScope.$new(),
@@ -57,13 +55,13 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
       })
       .result.then(this.routeToProject)
       .catch(() => {});
-  }
+  };
 
-  private routeToProject(project: IProject) {
+  private routeToProject = (project: IProject) => {
     this.$state.go('home.project.dashboard', { project: project.name });
-  }
+  };
 
-  private createApplication() {
+  private createApplication = () => {
     this.$uibModal
       .open({
         scope: this.$rootScope.$new(),
@@ -76,13 +74,13 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
       })
       .result.then(this.routeToApplication)
       .catch(() => {});
-  }
+  };
 
-  private routeToApplication(app: Application) {
+  private routeToApplication = (app: Application) => {
     this.$state.go('home.applications.application.insight.clusters', { application: app.name });
-  }
+  };
 
-  private refreshAllCaches() {
+  private refreshAllCaches = () => {
     if (this.state.refreshingCache) {
       return;
     }
@@ -91,7 +89,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     this.cacheInitializer.refreshCaches().then(() => {
       this.setState({ refreshingCache: false });
     });
-  }
+  };
 
   public render() {
     const { createApp, createProject, refreshCaches } = this.props;

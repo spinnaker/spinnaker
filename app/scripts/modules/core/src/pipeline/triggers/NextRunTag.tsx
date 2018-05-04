@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as moment from 'moment';
-import { BindAll } from 'lodash-decorators';
 
 import { IPipeline, ICronTrigger } from 'core/domain';
 import { Popover } from 'core/presentation/Popover';
@@ -17,7 +16,6 @@ export interface INextRunTagState {
   hasNextScheduled: boolean;
 }
 
-@BindAll()
 export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagState> {
   constructor(props: INextRunTagProps) {
     super(props);
@@ -69,9 +67,9 @@ export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagSta
     };
   }
 
-  private handleMouseEnter() {
+  private handleMouseEnter = () => {
     this.setState(this.updateSchedule());
-  }
+  };
 
   public render(): React.ReactElement<NextRunTag> {
     const nextDuration = moment(this.state.nextScheduled).fromNow();

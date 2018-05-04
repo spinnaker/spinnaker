@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import * as DOMPurify from 'dompurify';
 import * as classNames from 'classnames';
-import { BindAll } from 'lodash-decorators';
 import { get } from 'lodash';
 
 import { IExecutionStageSummary } from 'core/domain';
@@ -23,31 +22,30 @@ export interface IPipelineGraphNodeProps {
   node: IPipelineGraphNode;
 }
 
-@BindAll()
 export class PipelineGraphNode extends React.Component<IPipelineGraphNodeProps> {
-  private highlight(): void {
+  private highlight = (): void => {
     this.props.highlight(this.props.node, true);
-  }
+  };
 
-  private removeHighlight(): void {
+  private removeHighlight = (): void => {
     this.props.highlight(this.props.node, false);
-  }
+  };
 
-  private handleClick(): void {
+  private handleClick = (): void => {
     ReactGA.event({
       category: `Pipeline Graph (${this.props.isExecution ? 'execution' : 'config'})`,
       action: `Node clicked`,
     });
     this.props.nodeClicked(this.props.node);
-  }
+  };
 
-  private subStageClicked(groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void {
+  private subStageClicked = (groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void => {
     ReactGA.event({
       category: `Pipeline Graph (${this.props.isExecution ? 'execution' : 'config'})`,
       action: `Grouped stage clicked`,
     });
     this.props.nodeClicked(groupStage, stage.index);
-  }
+  };
 
   public render() {
     const { labelOffsetX, labelOffsetY, maxLabelWidth, nodeRadius, node } = this.props;

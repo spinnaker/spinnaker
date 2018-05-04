@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
-import { BindAll } from 'lodash-decorators';
 
 import { Markdown } from './Markdown';
 import { Placement } from './Placement';
@@ -13,7 +12,6 @@ export interface ITooltipProps {
   delayShow?: number;
 }
 
-@BindAll()
 export class Tooltip extends React.Component<ITooltipProps> {
   public static defaultProps: Partial<ITooltipProps> = {
     placement: 'top',
@@ -22,11 +20,11 @@ export class Tooltip extends React.Component<ITooltipProps> {
 
   private popover: any; // OverlayTrigger does not expose hide() in it's type definition
 
-  private handleRef(popover: OverlayTrigger): void {
+  private handleRef = (popover: OverlayTrigger): void => {
     if (popover) {
       this.popover = popover;
     }
-  }
+  };
 
   public componentWillReceiveProps(nextProps: ITooltipProps): void {
     if (this.popover) {

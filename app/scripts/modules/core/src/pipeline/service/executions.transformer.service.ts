@@ -478,5 +478,5 @@ export class ExecutionsTransformerService {
 export const EXECUTIONS_TRANSFORMER_SERVICE = 'spinnaker.core.pipeline.executionTransformer.service';
 module(EXECUTIONS_TRANSFORMER_SERVICE, [PIPELINE_CONFIG_PROVIDER]).service(
   'executionsTransformer',
-  (pipelineConfig: PipelineConfigProvider) => new ExecutionsTransformerService(pipelineConfig),
+  ExecutionsTransformerService,
 );

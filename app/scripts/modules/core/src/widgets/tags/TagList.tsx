@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
-import { BindAll } from 'lodash-decorators';
 
 import { Key } from 'core/widgets/Keys';
 import { DeleteType, ITag, Tag } from './Tag';
@@ -16,7 +15,6 @@ export interface ITagListProps {
   onUpdate?: (elements: HTMLElement[]) => void;
 }
 
-@BindAll()
 export class TagList extends React.Component<ITagListProps> {
   public static defaultProps: Partial<ITagListProps> = {
     onBlur: () => {},
@@ -34,16 +32,16 @@ export class TagList extends React.Component<ITagListProps> {
     });
   }
 
-  private handleBlur(): void {
+  private handleBlur = (): void => {
     this.props.onBlur();
-  }
+  };
 
-  private handleCreate(element: HTMLElement): void {
+  private handleCreate = (element: HTMLElement): void => {
     this.tagElements.push(element);
     this.props.onUpdate(this.tagElements);
-  }
+  };
 
-  private handleDelete(tag: ITag, deleteType: DeleteType): void {
+  private handleDelete = (tag: ITag, deleteType: DeleteType): void => {
     const index = this.findIndex(tag);
     this.tagElements.splice(index, 1);
     this.props.onUpdate(this.tagElements);
@@ -78,13 +76,13 @@ export class TagList extends React.Component<ITagListProps> {
     }
 
     ReactGA.event({ category: 'Infrastructure Search Tags', action: 'Individual tag removed' });
-  }
+  };
 
-  private handleFocus(): void {
+  private handleFocus = (): void => {
     this.props.onFocus();
-  }
+  };
 
-  private handleKeyUp(tag: ITag, key: Key): void {
+  private handleKeyUp = (tag: ITag, key: Key): void => {
     const index = this.findIndex(tag);
     switch (key) {
       case Key.LEFT_ARROW:
@@ -102,7 +100,7 @@ export class TagList extends React.Component<ITagListProps> {
         }
         break;
     }
-  }
+  };
 
   public render(): React.ReactElement<TagList> {
     const tags = this.props.tags || [];

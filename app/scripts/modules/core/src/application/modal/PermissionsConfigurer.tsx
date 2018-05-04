@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Select, { Creatable, Option } from 'react-select';
 import { intersection, uniq, without, cloneDeep, compact } from 'lodash';
-import { BindAll } from 'lodash-decorators';
 import { Button } from 'react-bootstrap';
 
 import { AuthenticationService } from 'core/authentication';
@@ -29,7 +28,6 @@ export interface IPermissionsConfigurerState {
   roleOptions: Option[];
 }
 
-@BindAll()
 export class PermissionsConfigurer extends React.Component<IPermissionsConfigurerProps, IPermissionsConfigurerState> {
   private static accessTypes: Option[] = [
     { value: 'READ', label: 'Read only' },
@@ -165,11 +163,11 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     };
   }
 
-  private handleAddPermission(): void {
+  private handleAddPermission = (): void => {
     const permissionRows = cloneDeep(this.state.permissionRows);
     permissionRows.push({ group: null, access: 'READ' });
     this.props.onPermissionsChange(this.buildPermissions(permissionRows));
-  }
+  };
 
   public render() {
     return (
