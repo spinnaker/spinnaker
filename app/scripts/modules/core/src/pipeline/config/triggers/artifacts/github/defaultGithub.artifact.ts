@@ -12,7 +12,7 @@ module(DEFAULT_GITHUB_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConf
     key: 'default.github',
     isDefault: true,
     isMatch: false,
-    controller(artifact: IArtifact) {
+    controller: function(artifact: IArtifact) {
       'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'github/file';

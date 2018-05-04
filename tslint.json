@@ -44,6 +44,7 @@
     "no-var-keyword": true,
     "object-curly-spacing": "always",
     "object-literal-sort-keys": false,
+    "object-literal-shorthand": false,
     "one-line": [true, "check-catch", "check-else", "check-open-brace", "check-whitespace"],
     "prefer-const": [true, { "destructuring": "all" }],
     "quotemark": [true, "single", "avoid-escape", "jsx-double"],

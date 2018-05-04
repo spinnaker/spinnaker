@@ -21,7 +21,7 @@ module(DEFAULT_BASE64_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConf
     key: 'default.base64',
     isDefault: true,
     isMatch: false,
-    controller(artifact: IArtifact) {
+    controller: function(artifact: IArtifact) {
       'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'embedded/base64';

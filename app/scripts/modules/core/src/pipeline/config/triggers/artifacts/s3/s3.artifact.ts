@@ -12,7 +12,7 @@ module(S3_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider: 
     key: 's3',
     isDefault: false,
     isMatch: true,
-    controller(artifact: IArtifact) {
+    controller: function(artifact: IArtifact) {
       'ngInject';
       this.artifact = artifact;
       this.artifact.type = 's3/object';

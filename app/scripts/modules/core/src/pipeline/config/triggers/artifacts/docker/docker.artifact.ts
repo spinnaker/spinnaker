@@ -12,7 +12,7 @@ module(DOCKER_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvid
     isMatch: true,
     description: 'A Docker image to be deployed.',
     key: 'docker',
-    controller(artifact: IArtifact) {
+    controller: function(artifact: IArtifact) {
       'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'docker/image';

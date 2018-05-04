@@ -12,7 +12,7 @@ module(GCS_ARTIFACT, [PIPELINE_CONFIG_PROVIDER]).config((pipelineConfigProvider:
     key: 'gcs',
     isDefault: false,
     isMatch: true,
-    controller(artifact: IArtifact) {
+    controller: function(artifact: IArtifact) {
       'ngInject';
       this.artifact = artifact;
       this.artifact.type = 'gcs/object';

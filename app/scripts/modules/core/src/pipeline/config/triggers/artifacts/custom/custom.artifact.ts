@@ -19,7 +19,7 @@ module(CUSTOM_ARTIFACT, [PIPELINE_CONFIG_PROVIDER])
       key: 'custom',
       isDefault: true,
       isMatch: true,
-      controller(artifact: IArtifact) {
+      controller: function(artifact: IArtifact) {
         'ngInject';
         this.artifact = artifact;
       },
