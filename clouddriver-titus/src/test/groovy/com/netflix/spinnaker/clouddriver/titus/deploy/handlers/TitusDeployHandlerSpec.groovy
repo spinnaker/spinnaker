@@ -113,7 +113,7 @@ class TitusDeployHandlerSpec extends Specification {
         it.application == titusDeployDescription.application &&
         it.allocateIpAddress == titusDeployDescription.resources.allocateIpAddress &&
         it.labels.get("interestingHealthProviderNames") == "Titus,Discovery"
-    } as SubmitJobRequest)
+    } as SubmitJobRequest) >> "123456"
   }
 
 }

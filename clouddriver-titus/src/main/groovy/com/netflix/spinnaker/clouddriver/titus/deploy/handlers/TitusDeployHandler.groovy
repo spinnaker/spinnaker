@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
+import com.netflix.spinnaker.clouddriver.titus.TitusException
 import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusAutoscalingClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
@@ -44,11 +45,13 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDes
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription.Source
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertTitusScalingPolicyDescription
 import com.netflix.spinnaker.clouddriver.titus.model.DockerImage
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.titus.grpc.protogen.PutPolicyRequest
 import com.netflix.titus.grpc.protogen.PutPolicyRequest.Builder
 import com.netflix.titus.grpc.protogen.ScalingPolicyResult
 import com.netflix.titus.grpc.protogen.ScalingPolicyStatus.ScalingPolicyState
 import groovy.util.logging.Slf4j
+import io.grpc.Status
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -78,11 +81,13 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   private final TitusClientProvider titusClientProvider
   private final AccountCredentialsRepository accountCredentialsRepository
   private final TargetGroupLookupHelper targetGroupLookupHelper
+  private final RetrySupport retrySupport
 
   TitusDeployHandler(TitusClientProvider titusClientProvider, AccountCredentialsRepository accountCredentialsRepository) {
     this.titusClientProvider = titusClientProvider
     this.accountCredentialsRepository = accountCredentialsRepository
     this.targetGroupLookupHelper = new TargetGroupLookupHelper()
+    this.retrySupport = new RetrySupport()
   }
 
   private static Task getTask() {
@@ -178,16 +183,11 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
       DockerImage dockerImage = new DockerImage(description.imageId)
 
-      TitusServerGroupNameResolver serverGroupNameResolver = new TitusServerGroupNameResolver(titusClient, description.region)
-      String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
-      task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
-
       if (description.interestingHealthProviderNames && !description.interestingHealthProviderNames.empty) {
         description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(","))
       }
 
       SubmitJobRequest submitJobRequest = new SubmitJobRequest()
-        .withJobName(nextServerGroupName)
         .withApplication(description.application)
         .withDockerImageName(dockerImage.imageName)
         .withDockerImageVersion(dockerImage.imageVersion)
@@ -263,7 +263,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       try {
         front50Application = front50Service.getApplication(description.getApplication())
-      } catch( Exception e){
+      } catch (Exception e) {
         log.error('Failed to load front50 application attributes for {}', description.getApplication())
       }
 
@@ -290,8 +290,34 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         }
       }
 
-      task.updateStatus BASE_PHASE, "Submitting job request to Titus..."
-      String jobUri = titusClient.submitJob(submitJobRequest)
+      String nextServerGroupName = resolveJobName(description, submitJobRequest, task, titusClient)
+      String jobUri
+      int retryCount = 0
+
+      retrySupport.retry({
+        try {
+          task.updateStatus BASE_PHASE, "Submitting job request to Titus..."
+          jobUri = titusClient.submitJob(submitJobRequest)
+        } catch (io.grpc.StatusRuntimeException e) {
+          task.updateStatus BASE_PHASE, "Error encountered submitting job request to Titus ${e.message} for ${nextServerGroupName}"
+          if ((e.status.code == Status.RESOURCE_EXHAUSTED.code && e.status.description.contains("Constraint violation - job with group sequence")) || (e.status.code == Status.INVALID_ARGUMENT.code && e.status.description.contains("Job sequence id reserved by another pending job"))) {
+            if (e.status.code == Status.INVALID_ARGUMENT){
+              sleep 1000 ^ pow(2, retryCount)
+              retryCount++
+            }
+            nextServerGroupName = resolveJobName(description, submitJobRequest, task, titusClient)
+            task.updateStatus BASE_PHASE, "Retrying with ${nextServerGroupName} after ${tries} attempts"
+            throw e;
+          }
+          if (e.status.code == Status.UNAVAILABLE.code) {
+            throw e;
+          }
+        }
+      }, 12, 1000, false)
+
+      if (jobUri == null) {
+        throw new TitusException("Could not create job")
+      }
 
       task.updateStatus BASE_PHASE, "Successfully submitted job request to Titus (Job URI: ${jobUri})"
 
@@ -324,6 +350,14 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
       logger.error("Deploy failed", t)
       throw t
     }
+  }
+
+  private String resolveJobName(TitusDeployDescription description, SubmitJobRequest submitJobRequest, Task task, TitusClient titusClient) {
+    TitusServerGroupNameResolver serverGroupNameResolver = new TitusServerGroupNameResolver(titusClient, description.region)
+    String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
+    submitJobRequest.withJobName(nextServerGroupName)
+    task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
+    return nextServerGroupName
   }
 
   protected TargetGroupLookupHelper.TargetGroupLookupResult validateLoadBalancers(TitusDeployDescription description) {

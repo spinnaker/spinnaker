@@ -126,7 +126,7 @@ public class RegionScopedTitusClient implements TitusClient {
   @Override
   public List<Job> findJobsByApplication(String application) {
     JobQuery.Builder jobQuery = JobQuery.newBuilder().putFilteringCriteria("appName", application);
-    return getJobs(jobQuery);
+    return getJobs(jobQuery, false);
   }
 
   @Override
@@ -252,6 +252,10 @@ public class RegionScopedTitusClient implements TitusClient {
   }
 
   private List<Job> getJobs(JobQuery.Builder jobQuery) {
+    return getJobs(jobQuery, true);
+  }
+
+  private List<Job> getJobs(JobQuery.Builder jobQuery, boolean includeTasks) {
     List<Job> jobs = new ArrayList<>();
     List<com.netflix.titus.grpc.protogen.Job> grpcJobs = new ArrayList<>();
     String cursor = "";
@@ -269,14 +273,20 @@ public class RegionScopedTitusClient implements TitusClient {
       hasMore = resultPage.getPagination().getHasMore();
     } while (hasMore);
 
-    List<String> jobIds = Collections.emptyList();
-    if (!titusRegion.getFeatureFlags().contains("jobIds")) {
-      jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
-        Collectors.toList()
-      );
+    final Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks;
+
+    if (includeTasks) {
+      List<String> jobIds = Collections.emptyList();
+      if (!titusRegion.getFeatureFlags().contains("jobIds")) {
+        jobIds = grpcJobs.stream().map(grpcJob -> grpcJob.getId()).collect(
+          Collectors.toList()
+        );
+      }
+      tasks = getTasks(jobIds, false);
+    } else {
+      tasks = Collections.emptyMap();
     }
 
-    Map<String, List<com.netflix.titus.grpc.protogen.Task>> tasks = getTasks(jobIds, false);
     return grpcJobs.stream().map(grpcJob -> new Job(grpcJob, tasks.get(grpcJob.getId()))).collect(Collectors.toList());
   }
 
