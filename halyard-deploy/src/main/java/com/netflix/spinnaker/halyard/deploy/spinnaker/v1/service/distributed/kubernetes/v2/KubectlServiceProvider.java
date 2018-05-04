@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -60,6 +61,9 @@ public class KubectlServiceProvider extends SpinnakerServiceProvider<AccountDepl
 
   @Autowired
   KubernetesV2KayentaService kayentaService;
+
+  @Autowired
+  KubernetesV2MonitoringDaemonService monitoringDaemonService;
 
   @Autowired
   KubernetesV2OrcaService orcaService;

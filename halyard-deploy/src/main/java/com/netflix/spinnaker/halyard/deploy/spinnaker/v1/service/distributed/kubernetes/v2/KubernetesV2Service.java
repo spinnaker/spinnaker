@@ -24,6 +24,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
@@ -35,6 +37,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils.SecretMountPair;
 import io.fabric8.utils.Strings;
@@ -45,7 +49,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +64,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   ArtifactService getArtifactService();
   ServiceSettings defaultServiceSettings();
   ObjectMapper getObjectMapper();
+  SpinnakerMonitoringDaemonService getMonitoringDaemonService();
 
   default boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
     return true;
@@ -100,6 +104,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
   default String getResourceYaml(AccountDeploymentDetails<KubernetesAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
+    SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
     String namespace = getNamespace(settings);
 
     List<ConfigSource> configSources = stageConfig(details, resolvedConfiguration);
@@ -112,8 +117,6 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
             Entry::getValue
         ));
 
-    env.putAll(settings.getEnv());
-
     List<String> volumes = configSources.stream()
         .map(ConfigSource::getId)
         .collect(Collectors.toSet())
@@ -124,6 +127,39 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
           return volume.toString();
         }).collect(Collectors.toList());
 
+    env.putAll(settings.getEnv());
+
+    Integer targetSize = settings.getTargetSize();
+    CustomSizing customSizing = details.getDeploymentConfiguration().getDeploymentEnvironment().getCustomSizing();
+    if (customSizing != null) {
+      Map componentSizing = customSizing.getOrDefault(getService().getServiceName(), new HashMap());
+      targetSize = (Integer) componentSizing.getOrDefault("replicas", targetSize);
+    }
+
+    String primaryContainer = buildContainer(getService().getCanonicalName(), details, settings, configSources, env);
+    List<String> sidecarContainers = getSidecars(runtimeSettings).stream()
+        .map(SidecarService::getService)
+        .map(s -> buildContainer(s.getCanonicalName(), details, runtimeSettings.getServiceSettings(s), configSources, env))
+        .collect(Collectors.toList());
+
+    List<String> containers = new ArrayList<>();
+    containers.add(primaryContainer);
+    containers.addAll(sidecarContainers);
+
+    TemplatedResource podSpec = new JinjaJarResource("/kubernetes/manifests/podSpec.yml")
+        .addBinding("containers", containers)
+        .addBinding("volumes", volumes);
+
+    return new JinjaJarResource("/kubernetes/manifests/deployment.yml")
+        .addBinding("name", getService().getCanonicalName())
+        .addBinding("namespace", namespace)
+        .addBinding("replicas", targetSize)
+        .addBinding("podAnnotations", settings.getKubernetes().getPodAnnotations())
+        .addBinding("podSpec", podSpec.toString())
+        .toString();
+  }
+
+  default String buildContainer(String name, AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings, List<ConfigSource> configSources, Map<String, String> env) {
     List<String> volumeMounts = configSources.stream()
         .map(c -> {
           TemplatedResource volume = new JinjaJarResource("/kubernetes/manifests/volumeMount.yml");
@@ -141,18 +177,16 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       probe.addBinding("port", settings.getPort());
     }
 
-    Integer targetSize = settings.getTargetSize();
     CustomSizing customSizing = details.getDeploymentConfiguration().getDeploymentEnvironment().getCustomSizing();
     TemplatedResource resources = new JinjaJarResource("/kubernetes/manifests/resources.yml");
     if (customSizing != null) {
       Map componentSizing = customSizing.getOrDefault(getService().getServiceName(), new HashMap());
       resources.addBinding("requests", componentSizing.getOrDefault("requests", new HashMap()));
       resources.addBinding("limits", componentSizing.getOrDefault("limits", new HashMap()));
-      targetSize = (Integer) componentSizing.getOrDefault("replicas", targetSize);
     }
 
     TemplatedResource container = new JinjaJarResource("/kubernetes/manifests/container.yml");
-    container.addBinding("name", getService().getCanonicalName());
+    container.addBinding("name", name);
     container.addBinding("imageId", settings.getArtifactId());
     container.addBinding("port", settings.getPort());
     container.addBinding("volumeMounts", volumeMounts);
@@ -160,18 +194,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     container.addBinding("env", env);
     container.addBinding("resources", resources.toString());
 
-    List<String> containers = Collections.singletonList(container.toString());
-    TemplatedResource podSpec = new JinjaJarResource("/kubernetes/manifests/podSpec.yml")
-        .addBinding("containers", containers)
-        .addBinding("volumes", volumes);
-
-    return new JinjaJarResource("/kubernetes/manifests/deployment.yml")
-        .addBinding("name", getService().getCanonicalName())
-        .addBinding("namespace", namespace)
-        .addBinding("replicas", targetSize)
-        .addBinding("podAnnotations", settings.getKubernetes().getPodAnnotations())
-        .addBinding("podSpec", podSpec.toString())
-        .toString();
+    return container.toString();
   }
 
   default String getNamespace(ServiceSettings settings) {
@@ -182,6 +205,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
     String stagingPath = getSpinnakerStagingPath(details.getDeploymentName());
+    SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
 
     Map<String, Set<Profile>> profilesByDirectory = new HashMap<>();
     List<String> requiredFiles = new ArrayList<>();
@@ -189,6 +213,17 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     String secretNamePrefix = getServiceName() + "-files";
     String namespace = getNamespace(resolvedConfiguration.getServiceSettings(getService()));
     KubernetesAccount account = details.getAccount();
+
+    for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
+      for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, getService())) {
+        if (profile == null) {
+          throw new HalException(Problem.Severity.FATAL, "Service " + sidecarService.getService().getCanonicalName() + " is required but was not supplied for deployment.");
+        }
+
+        profiles.put(profile.getName(), profile);
+        requiredFiles.addAll(profile.getRequiredFiles());
+      }
+    }
 
     for (Entry<String, Profile> entry : profiles.entrySet()) {
       Profile profile = entry.getValue();
@@ -201,6 +236,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
       requiredFiles.addAll(profile.getRequiredFiles());
       profilesByDirectory.put(mountPoint, profilesInDirectory);
     }
+
 
     for (Entry<String, Set<Profile>> entry: profilesByDirectory.entrySet()) {
       Set<Profile> profilesInDirectory = entry.getValue();
@@ -244,6 +280,19 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     }
 
     return configSources;
+  }
+
+  default List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
+    SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
+    ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
+    ServiceSettings thisSettings = runtimeSettings.getServiceSettings(getService());
+
+    List<SidecarService> result = new ArrayList<>();
+    if (monitoringSettings.getEnabled() && thisSettings.getMonitored()) {
+      result.add(monitoringService);
+    }
+
+    return result;
   }
 
   default String getArtifactId(String deploymentName) {

@@ -44,4 +44,8 @@ public class KubernetesV2ServiceDelegate {
   @Autowired
   @Getter
   ObjectMapper objectMapper;
+
+  @Autowired
+  @Getter
+  KubernetesV2MonitoringDaemonService monitoringDaemonService;
 }
