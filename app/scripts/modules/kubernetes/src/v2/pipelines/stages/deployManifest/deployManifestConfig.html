@@ -3,56 +3,43 @@
     <strong>Warning!</strong> This stage is under active development and is subject to change.
   </div>
 
-  <h4>Basic Settings</h4>
-  <kubernetes-manifest-basic-settings command="ctrl.$scope.stage"
-                                      metadata="ctrl.metadata">
-  </kubernetes-manifest-basic-settings>
-
-  <h4>Manifest Configuration</h4>
   <div class="container-fluid form-horizontal">
+    <h4>Basic Settings</h4>
+    <kubernetes-manifest-basic-settings command="ctrl.$scope.stage"
+                                        metadata="ctrl.metadata">
+    </kubernetes-manifest-basic-settings>
+
+    <h4>Manifest Configuration</h4>
     <ng-form name="kubernetesManifestSource">
-      <div class="form-group form-inline">
-        <div class="col-md-3 sm-label-right">
-          Manifest Source
-          <help-field key="kubernetes.manifest.source"></help-field>
-        </div>
-        <div class="col-md-4">
-          <label class="sm-label-right">
-            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}">
-            {{ ctrl.textSource | robotToHuman }}
-          </label><br/>
-          <label class="sm-label-right">
-            <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
-            {{ ctrl.artifactSource | robotToHuman }}
-          </label>
-        </div>
-      </div>
+      <stage-config-field label="Manifest Source" help-key="kubernetes.manifest.source">
+        <label class="sm-label-right">
+          <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.textSource}}">
+          {{ ctrl.textSource | robotToHuman }}
+        </label><br/>
+        <label class="sm-label-right">
+          <input type="radio" ng-model="ctrl.$scope.stage.source" value="{{ctrl.artifactSource}}">
+          {{ ctrl.artifactSource | robotToHuman }}
+        </label>
+      </stage-config-field>
     </ng-form>
-  </div>
-
-  <hr>
-
-  <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
-                             command="ctrl.$scope.stage"
-                             metadata="ctrl.metadata" change="ctrl.change()">
-  </kubernetes-manifest-entry>
-
-  <div class="container-fluid form-horizontal" ng-if="ctrl.$scope.stage.source === ctrl.artifactSource">
-    <expected-artifact-selector command="ctrl.$scope.stage"
+    <kubernetes-manifest-entry ng-if="ctrl.$scope.stage.source === ctrl.textSource"
+                               command="ctrl.$scope.stage"
+                               metadata="ctrl.metadata" change="ctrl.change()">
+    </kubernetes-manifest-entry>
+    <expected-artifact-selector ng-if="ctrl.$scope.stage.source === ctrl.artifactSource"
+                                command="ctrl.$scope.stage"
                                 id="ctrl.$scope.stage.manifestArtifactId"
                                 account="ctrl.$scope.stage.manifestArtifactAccount"
                                 accounts="ctrl.metadata.backingData.artifactAccounts"
                                 expected-artifacts="ctrl.expectedArtifacts"
                                 help-field-key="kubernetes.manifest.expectedArtifact">
     </expected-artifact-selector>
+    <hr>
+    <expected-artifact-multi-selector command="ctrl.$scope.stage"
+                                      ids-field="requiredArtifactIds"
+                                      artifact-label="Req. Artifacts To Bind"
+                                      expected-artifacts="ctrl.expectedArtifacts"
+                                      help-field-key="kubernetes.manifest.requiredArtifactsToBind">
+    </expected-artifact-multi-selector>
   </div>
-
-  <hr>
-
-  <expected-artifact-multi-selector command="ctrl.$scope.stage"
-                                    ids-field="requiredArtifactIds"
-                                    artifact-label="Req. Artifacts To Bind"
-                                    expected-artifacts="ctrl.expectedArtifacts"
-                                    help-field-key="kubernetes.manifest.requiredArtifactsToBind">
-  </expected-artifact-multi-selector>
 </div>

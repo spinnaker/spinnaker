@@ -12,34 +12,21 @@ class KubernetesManifestBasicSettingsComponent implements IComponentOptions {
   public controller: any = KubernetesManifestBasicSettingsCtrl;
   public controllerAs = 'ctrl';
   public template = `
-    <div class="container-fluid form-horizontal">
       <ng-form name="basicSettings">
-        <div class="form-group">
-          <div class="col-md-3 sm-label-right">
-            Account *
-            <help-field key="kubernetes.manifest.account"></help-field>
-          </div>
-          <div class="col-md-7">
-            <account-select-field component="ctrl.command"
-                                  field="account"
-                                  accounts="ctrl.metadata.backingData.accounts"
-                                  provider="'kubernetes'"></account-select-field>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="col-md-3 sm-label-right">
-            Application *
-            <help-field key="kubernetes.manifest.application"></help-field>
-          </div>
-          <div class="col-md-7"><input readonly="true"
-                                       type="text"
-                                       class="form-control input-sm"
-                                       name="application"
-                                       ng-model="ctrl.command.moniker.app"/></div>
-        </div>
+        <stage-config-field label="Account *" help-key="kubernetes.manifest.account">
+          <account-select-field component="ctrl.command"
+                                field="account"
+                                accounts="ctrl.metadata.backingData.accounts"
+                                provider="'kubernetes'"></account-select-field>
+        </stage-config-field>
+        <stage-config-field label="Application *" help-key="kubernetes.manifest.application">
+          <input readonly="true"
+                 type="text"
+                 class="form-control input-sm"
+                 name="application"
+                 ng-model="ctrl.command.moniker.app"/>
+        </stage-config-field>
       </ng-form>
-    </div>
   `;
 }
 

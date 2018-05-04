@@ -15,14 +15,12 @@ class KubernetesManifestEntryComponent implements IComponentOptions {
   public controller: any = KubernetesManifestCtrl;
   public controllerAs = 'ctrl';
   public template = `
-    <div class="container-fluid form-horizontal">
       <ng-form name="manifest">
         <div class="form-group" ng-class="{ 'kubernetes-manifest-error': ctrl.metadata.yamlError }">
           <div style="" class="kubernetes-manifest-yaml-error-message">Invalid YAML</div>
           <textarea class="code form-control kubernetes-manifest-entry" ng-model="ctrl.metadata.manifestText" ng-change="ctrl.change()" rows="40"></textarea>
         </div>
       </ng-form>
-    </div>
   `;
 }
 

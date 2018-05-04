@@ -22,21 +22,16 @@ class ExpectedArtifactMultiSelectorComponent implements IComponentOptions {
   public template = `
       <render-if-feature feature="artifacts">
         <ng-form name="artifacts">
-          <div class="col-md-12">
-            <div class="form-group">
-              <label class="col-md-3 sm-label-right">{{ctrl.artifactLabel}} <help-field key="{{ctrl.helpFieldKey}}"/></label>
-              <div class="col-md-9">
-                <ui-select multiple
-                           ng-model="ctrl.command[ctrl.idsField]"
-                           class="form-control input-sm">
-                  <ui-select-match>{{ $item | summarizeExpectedArtifact }}</ui-select-match>
-                  <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
-                    <span>{{ expected | summarizeExpectedArtifact }}</span>
-                  </ui-select-choices>
-                </ui-select>
-              </div>
-            </div>
-          </div>
+          <stage-config-field label="{{ctrl.artifactLabel}}" help-key="{{ctrl.helpFieldKey}}">
+            <ui-select multiple
+                       ng-model="ctrl.command[ctrl.idsField]"
+                       class="form-control input-sm">
+              <ui-select-match>{{ $item | summarizeExpectedArtifact }}</ui-select-match>
+              <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
+                <span>{{ expected | summarizeExpectedArtifact }}</span>
+              </ui-select-choices>
+            </ui-select>
+          </stage-config-field>
         </ng-form>
       </render-if-feature>
   `;

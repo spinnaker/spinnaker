@@ -30,33 +30,28 @@ class ExpectedArtifactSelectorComponent implements IComponentOptions {
   public controllerAs = 'ctrl';
   public template = `
     <render-if-feature feature="artifacts">
-        <ng-form name="artifact">
-          <div class="form-group">
-            <label class="col-md-3 sm-label-right">Expected Artifact <help-field key="{{ ctrl.helpFieldKey }}"/></label>
-            <div class="col-md-7">
-              <ui-select ng-model="ctrl.id"
-                         class="form-control input-sm" required>
-                <ui-select-match>{{ $select.selected | summarizeExpectedArtifact }}</ui-select-match>
-                <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
-                  <span>{{ expected | summarizeExpectedArtifact }}</span>
-                </ui-select-choices>
-              </ui-select>
-            </div>
-          </div>
-          <div ng-if="ctrl.account !== undefined" class="form-group">
-            <label class="col-md-3 sm-label-right">Artifact Account</label>
-            <div class="col-md-7">
-              <ui-select ng-model="ctrl.account"
-                         class="form-control input-sm">
-                <ui-select-match>{{ $select.selected.name }}</ui-select-match>
-                <ui-select-choices repeat="account.name as account in ctrl.accounts">
-                  <span>{{ account.name }}</span>
-                </ui-select-choices>
-              </ui-select>
-            </div>
-          </div>
-        </ng-form>
-    </render-if-feature>
+      <ng-form name="artifact">
+        <stage-config-field label="Expected Artifact" help-key="{{ctrl.helpFieldKey}}">
+          <ui-select ng-model="ctrl.id"
+                     class="form-control input-sm" required>
+            <ui-select-match>{{ $select.selected | summarizeExpectedArtifact }}</ui-select-match>
+            <ui-select-choices repeat="expected.id as expected in ctrl.expectedArtifacts">
+               <span>{{ expected | summarizeExpectedArtifact }}</span>
+            </ui-select-choices>
+          </ui-select>
+        </stage-config-field>
+        <stage-config-field ng-if="ctrl.account !== undefined"
+                            label="Artifact Account">
+          <ui-select ng-model="ctrl.account"
+                     class="form-control input-sm">
+            <ui-select-match>{{ $select.selected.name }}</ui-select-match>
+            <ui-select-choices repeat="account.name as account in ctrl.accounts">
+              <span>{{ account.name }}</span>
+            </ui-select-choices>
+          </ui-select>
+        </stage-config-field>
+      </ng-form>
+     </render-if-feature>
   `;
 }
 
