@@ -267,7 +267,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   public validateNameIsUnique(): boolean {
-    return this.state.existingNames.every(name => name !== this.state.command.name);
+    return this.state.existingNames.every(name => name !== this.state.command.name.trim());
   }
 
   public loadPipelineTemplates(): void {
