@@ -66,7 +66,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   @Override
   Collection<AmazonSecurityGroup> getAll(boolean includeRules) {
     if (!includeRules) {
-      def identifiers = cacheView.getIdentifiers(SECURITY_GROUPS.ns)
+      def identifiers = cacheView.filterIdentifiers(SECURITY_GROUPS.ns, Keys.getSecurityGroupKey('*', '*', '*', '*', '*'))
       return identifiers.collect {
         Map parts = Keys.parse(it)
         new AmazonSecurityGroup(
