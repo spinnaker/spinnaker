@@ -13,6 +13,9 @@ class KubernetesDeployManifestDeployStatusManifestSummaryController implements I
 
   constructor(private kubernetesManifestService: KubernetesManifestService, private $scope: IScope) {
     'ngInject';
+  }
+
+  public $onInit() {
     const params = {
       account: this.stage.context.account,
       location: this.manifestContents.metadata.namespace,
