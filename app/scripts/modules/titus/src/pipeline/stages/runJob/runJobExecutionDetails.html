@@ -36,7 +36,7 @@
     <stage-failure-message stage="stage" ng-if="stage.isFailed"
                            message="stage.failureMessage || stage.context.completionDetails.message"></stage-failure-message>
 
-    <div class="row" ng-if="stage.context.jobStatus.completionDetails.taskId">
+    <div class="row" ng-if="task">
       <div class="col-md-12">
         <div class="well alert alert-info">
           <a target="_blank" href="{{titusUiEndpoint}}jobs/{{job}}/tasks/{{task}}/logs/archived">
