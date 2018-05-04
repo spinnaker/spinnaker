@@ -25,7 +25,6 @@ module.exports = angular
         network: 'default',
         inService: true,
         resources: {
-          allocateIpAddress: true,
           cpu: 1,
           networkMbps: 128,
           disk: 512,
@@ -106,8 +105,6 @@ module.exports = angular
           memory: serverGroup.resources.memory,
           disk: serverGroup.resources.disk,
           networkMbps: serverGroup.resources.networkMbps,
-          ports: serverGroup.resources.ports,
-          allocateIpAddress: serverGroup.resources.allocateIpAddress,
         },
         targetGroups: serverGroup.targetGroups,
         capacity: {

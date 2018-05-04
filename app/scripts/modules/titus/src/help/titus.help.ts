@@ -11,7 +11,6 @@ const helpContents: { [key: string]: string } = {
   'titus.deploy.migrationPolicy': 'Defines how the tasks for this job will be migrated during an infrastructure change',
   'titus.deploy.network': 'Amount of networking bandwidth to allocate in Mbps',
   'titus.deploy.gpu': 'Number of GPUs to use. WARNING: only use if directed by Titus team, otherwise leave at 0',
-  'titus.deploy.allocateIP': 'If selected, specifies an IP to be allocated for each of your job’s containers',
   'titus.deploy.softConstraints':
     'Soft constraints are enforced on a best efforts basis. For example, if tasks can’t be perfectly balanced across zones, the best available balance is achieved without keeping the tasks pending for execution.',
   'titus.deploy.hardConstraints':
