@@ -69,7 +69,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       def provider = titusClientProvider.getTitusClient(credentials, region)
       def loadBalancingClient = titusClientProvider.getTitusLoadBalancerClient(credentials, region)
-      def job = provider.findJobByName(serverGroupName)
+      def job = provider.findJobByName(serverGroupName, true)
 
       if (!job) {
         task.updateStatus phaseName, "No Job named '$serverGroupName' found in $region"

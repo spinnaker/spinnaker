@@ -51,7 +51,7 @@ class TitusEurekaSupport extends AbstractEurekaSupport {
 
     if (asgName) {
       def titusClient = titusClientProvider.getTitusClient(credentials, region)
-      def asg = new TitusServerGroup(titusClient.findJobByName(asgName), credentials.name, region)
+      def asg = new TitusServerGroup(titusClient.findJobByName(asgName,true), credentials.name, region)
       if (!asg || asg.isDisabled()) {
         // ASG does not exist or is in the process of being deleted
         return false

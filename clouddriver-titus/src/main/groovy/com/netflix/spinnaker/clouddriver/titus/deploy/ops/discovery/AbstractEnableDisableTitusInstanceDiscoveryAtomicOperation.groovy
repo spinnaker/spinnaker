@@ -55,7 +55,7 @@ abstract class AbstractEnableDisableTitusInstanceDiscoveryAtomicOperation implem
       return null
     }
     def titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
-    def job = titusClient.findJobByName(description.asgName)
+    def job = titusClient.findJobByName(description.asgName, true)
     if (!job) {
       return
     }

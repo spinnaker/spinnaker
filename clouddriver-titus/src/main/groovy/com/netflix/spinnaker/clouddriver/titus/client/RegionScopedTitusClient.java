@@ -114,13 +114,18 @@ public class RegionScopedTitusClient implements TitusClient {
   }
 
   @Override
-  public Job findJobByName(String jobName) {
+  public Job findJobByName(String jobName, boolean includeTasks) {
     JobQuery.Builder jobQuery = JobQuery.newBuilder()
       .putFilteringCriteria("jobType", "SERVICE")
       .putFilteringCriteria("attributes", "source:spinnaker,name:" + jobName)
       .putFilteringCriteria("attributes.op", "and");
-    List<Job> results = getJobs(jobQuery);
+    List<Job> results = getJobs(jobQuery, includeTasks);
     return results.isEmpty() ? null : results.get(0);
+  }
+
+  @Override
+  public Job findJobByName(String jobName) {
+    return findJobByName(jobName, false);
   }
 
   @Override

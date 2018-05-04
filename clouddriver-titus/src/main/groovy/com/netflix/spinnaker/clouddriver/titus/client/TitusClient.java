@@ -31,6 +31,13 @@ public interface TitusClient {
 
   /**
    * @param jobName
+   * @param includeTasks
+   * @return
+   */
+  public Job findJobByName(String jobName, boolean includeTasks);
+
+  /**
+   * @param jobName
    * @return
    */
   public Job findJobByName(String jobName);

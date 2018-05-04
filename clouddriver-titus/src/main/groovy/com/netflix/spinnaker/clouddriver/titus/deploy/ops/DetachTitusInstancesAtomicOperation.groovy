@@ -42,7 +42,7 @@ class DetachTitusInstancesAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Detaching instances: ${description.instanceIds}..."
     TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
 
-    def job = titusClient.findJobByName(description.asgName)
+    def job = titusClient.findJobByName(description.asgName, true)
     if (!job) {
       task.updateStatus BASE_PHASE, "job not found"
       return
