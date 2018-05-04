@@ -3,6 +3,15 @@
     <input type="text" class="form-control input-sm"
            ng-model="stage.package"/>
   </stage-config-field>
+  <expected-artifact-multi-selector command="stage"
+                                    ids-field="packageArtifactIds"
+                                    artifact-label="Package Artifacts"
+                                    expected-artifacts="viewState.expectedArtifacts"
+                                    help-field-key="pipeline.config.bake.packageArtifacts">
+  </expected-artifact-multi-selector>
+
+  <hr>
+
   <stage-config-field label="Base OS">
     <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
   </stage-config-field>
@@ -15,6 +24,8 @@
       {{baseLabel}}
     </label>
   </stage-config-field>
+
+  <hr>
 
   <!-- Even if the roscoMode flag is false, we should show the control if rebake is set. -->
   <stage-config-field label="Rebake" ng-if="viewState.roscoMode || stage.rebake">

@@ -197,6 +197,10 @@ const helpContents: { [key: string]: string } = {
       <p>The name of the package you want installed (without any version identifiers).</p>
       <p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>
       <p>If there are multiple packages (space separated), then they will be installed in the order they are entered.</p>`,
+  'pipeline.config.bake.packageArtifacts': `
+      <p>Artifacts representing packages you want installed.</p>
+      <p>These artifacts must be either deb or rpm packages, whichever applies to the operating system on your base image.</p>
+      <p>Package artifacts are installed in order, after any packages in the 'Packages' field are installed.</p>`,
   'pipeline.config.docker.bake.targetImage': '<p>The name of the resulting docker image.</p>',
   'pipeline.config.docker.bake.targetImageTag':
     '<p>The tag of the resulting docker image, defaults to commit hash if available.</p>',
