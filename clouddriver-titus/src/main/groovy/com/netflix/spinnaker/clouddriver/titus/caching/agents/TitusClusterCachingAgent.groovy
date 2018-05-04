@@ -154,11 +154,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       titusClient.findJobByName(data.serverGroupName as String)
     }
 
-    if (titusRegion.featureFlags.contains("minimalOnDemand")) {
-      return minimalOnDemand(providerCache, job, data)
-    }
-
-    return legacyOnDemand(providerCache, job, data)
+    return onDemand(providerCache, job, data)
   }
 
   /**
@@ -169,7 +165,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
    *
    * A change will not be visible until a caching cycle has completed.
    */
-  private OnDemandResult minimalOnDemand(ProviderCache providerCache, Job job, Map<String, ?> data) {
+  private OnDemandResult onDemand(ProviderCache providerCache, Job job, Map<String, ?> data) {
     def serverGroupKey = Keys.getServerGroupKey(job.name, account.name, region)
     def cacheResults = [:]
 
@@ -197,38 +193,6 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     return new OnDemandResult(
       sourceAgentType: getOnDemandAgentType(),
       cacheResult: new DefaultCacheResult(cacheResults),
-      evictions: evictions
-    )
-  }
-
-  private OnDemandResult legacyOnDemand(ProviderCache providerCache, Job job, Map<String, ?> data) {
-    CacheResult result = metricsSupport.transformData { buildCacheResult([job]) }
-    def cacheResultAsJson = objectMapper.writeValueAsString(result.cacheResults)
-    def serverGroupKey = Keys.getServerGroupKey(job.name, account.name, region)
-
-    if (result.cacheResults.values().flatten().isEmpty()) {
-      providerCache.evictDeletedItems(ON_DEMAND.ns, [serverGroupKey])
-    } else {
-      def cacheData = metricsSupport.onDemandStore {
-        new DefaultCacheData(
-          serverGroupKey,
-          10 * 60, // ttl is 10 minutes,
-          [
-            cacheTime   : new Date(),
-            cacheResults: cacheResultAsJson
-          ],
-          [:]
-        )
-      }
-      providerCache.putCacheData(ON_DEMAND.ns, cacheData)
-    }
-
-    Map<String, Collection<String>> evictions = job ? [:] : [(SERVER_GROUPS.ns): [serverGroupKey]]
-
-    log.info("legacy onDemand cache refresh (data: ${data}, evictions: ${evictions}, cacheResult: ${cacheResultAsJson})")
-    return new OnDemandResult(
-      sourceAgentType: getOnDemandAgentType(),
-      cacheResult: result,
       evictions: evictions
     )
   }
