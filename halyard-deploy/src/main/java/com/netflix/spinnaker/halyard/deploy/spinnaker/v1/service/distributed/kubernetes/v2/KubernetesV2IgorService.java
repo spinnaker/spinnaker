@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.IgorService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.experimental.Delegate;
@@ -29,6 +30,12 @@ public class KubernetesV2IgorService extends IgorService implements KubernetesV2
   @Delegate
   @Autowired
   KubernetesV2ServiceDelegate serviceDelegate;
+
+  @Override
+  public boolean isEnabled(DeploymentConfiguration deploymentConfiguration) {
+    return deploymentConfiguration.getProviders().getDockerRegistry().isEnabled() ||
+        deploymentConfiguration.getCi().ciEnabled();
+  }
 
   @Override
   public ServiceSettings defaultServiceSettings() {

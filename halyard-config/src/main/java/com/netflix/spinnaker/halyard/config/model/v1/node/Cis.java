@@ -32,6 +32,20 @@ public class Cis extends Node implements Cloneable {
   JenkinsCi jenkins = new JenkinsCi();
   TravisCi travis = new TravisCi();
 
+  public boolean ciEnabled() {
+    NodeIterator iterator = getChildren();
+    Ci child = (Ci) iterator.getNext();
+    while (child != null) {
+      if (child.isEnabled()) {
+        return true;
+      }
+
+      child = (Ci) iterator.getNext();
+    }
+
+    return false;
+  }
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
