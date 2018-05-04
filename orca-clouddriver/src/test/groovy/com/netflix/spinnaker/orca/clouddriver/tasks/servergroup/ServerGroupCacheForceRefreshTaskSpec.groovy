@@ -129,7 +129,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     )
 
     when:
-    def processingComplete = task.processPendingForceCacheUpdates("test", "aws", stageData, 0,)
+    def processingComplete = task.processPendingForceCacheUpdates("executionId", "test", "aws", stageData, 0)
 
     then:
     1 * task.cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> { return pendingForceCacheUpdates }

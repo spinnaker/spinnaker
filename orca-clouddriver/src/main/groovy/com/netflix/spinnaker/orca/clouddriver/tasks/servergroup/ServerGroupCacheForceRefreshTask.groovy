@@ -74,7 +74,9 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       return optionalTaskResult.get()
     }
 
-    boolean allAreComplete = processPendingForceCacheUpdates(account, cloudProvider, stageData, stage.startTime)
+    boolean allAreComplete = processPendingForceCacheUpdates(
+      stage.execution.id, account, cloudProvider, stageData, stage.startTime
+    )
     if (allAreComplete) {
       // ensure clean stage data such that a subsequent ServerGroupCacheForceRefresh (in this stage) starts fresh
       stageData.reset()
@@ -137,20 +139,13 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
    * It's possible waiting until processing is overkill but we do this to avoid the possibility of a race condition
    * between a forceCache refresh and an ongoing caching agent cycle.
    */
-  private boolean processPendingForceCacheUpdates(String account,
+  private boolean processPendingForceCacheUpdates(String executionId,
+                                                  String account,
                                                   String cloudProvider,
                                                   StageData stageData,
                                                   Long startTime) {
     def pendingForceCacheUpdates = cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE)
-
-    if (startTime) {
-      def isRecent = pendingForceCacheUpdates.find { it.cacheTime >= startTime }
-      if (!isRecent) {
-        // replication lag -- there are no pending force cache refreshes newer than this particular stage ... retry in 10s
-        log.debug("No recent pending force cache refresh updates found, retrying in 10s (lag: ${System.currentTimeMillis() - startTime}ms)")
-        return false
-      }
-    }
+    boolean isRecent = (startTime != null) ? pendingForceCacheUpdates.find { it.cacheTime >= startTime } : false
 
     boolean finishedProcessing = true
     stageData.deployServerGroups.each { String region, Set<String> serverGroups ->
@@ -164,6 +159,17 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
         if (stageData.processedServerGroups.contains(model)) {
           // this server group has already been processed
           return true
+        }
+
+        if (!isRecent) {
+          // replication lag -- there are no pending force cache refreshes newer than this particular stage ... retry in 10s
+          log.debug(
+            "No recent pending force cache refresh updates found, retrying in 10s (lag: {}ms, model: {}, executionId: {})",
+            System.currentTimeMillis() - startTime,
+            model,
+            executionId
+          )
+          return false
         }
 
         def forceCacheUpdate = pendingForceCacheUpdates.find {
