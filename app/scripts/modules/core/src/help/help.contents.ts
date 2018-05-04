@@ -282,7 +282,7 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.script.propertyFile':
     '<p>(Optional) The name to the properties file produced by the script execution to be used by later stages of the Spinnaker pipeline. </p>',
   'pipeline.config.docker.trigger.tag':
-    '<p>(Optional) If specified, only the tags that match this Java Regular Expression will be triggered. Leave empty to trigger builds on any tag pushed.</p>',
+    '<p>(Optional) If specified, only the tags that match this Java Regular Expression will be triggered. Leave empty to trigger builds on any tag pushed.</p><p>Builds will not be triggered off the latest tag or updates to existing tags.</p>',
   'pipeline.config.git.trigger.branch':
     '<p>(Optional) If specified, only pushes to the branches that match this Java Regular Expression will be triggered. Leave empty to trigger builds for every branch.</p>',
   'pipeline.config.git.trigger.githubSecret':
