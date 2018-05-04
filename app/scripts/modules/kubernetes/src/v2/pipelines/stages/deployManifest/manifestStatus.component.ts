@@ -18,7 +18,18 @@ class KubernetesDeployManifestManifestStatusComponent implements IComponentOptio
   public controllerAs = 'ctrl';
   public template = `
     <span ng-repeat="(status, statusDescription) in ctrl.manifest.status">
-      <span ng-if="statusDescription.state" class="pill {{ ctrl.statusPills[status] }}" title="{{ statusDescription.message }}">
+      <span
+        ng-if="statusDescription.state"
+        title="{{ statusDescription.message }}"
+        class="pill {{ ctrl.statusPills[status] }}"
+      >
+        {{ status }}
+      </span>
+      <span
+        ng-if="!statusDescription.state && statusDescription.message"
+        title="{{ statusDescription.message }}"
+        class="pill warn"
+      >
         {{ status }}
       </span>
     </span>
