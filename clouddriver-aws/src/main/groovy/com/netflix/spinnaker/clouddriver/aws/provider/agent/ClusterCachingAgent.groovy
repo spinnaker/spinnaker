@@ -404,7 +404,15 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
-    providerCache.getAll(ON_DEMAND.ns, asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) }).each {
+
+
+    def serverGroupKeys = asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) } as Set<String>
+    def pendingOnDemandRequestKeys = providerCache
+      .filterIdentifiers(ON_DEMAND.ns, Keys.getServerGroupKey("*", "*", account.name, region))
+      .findAll { serverGroupKeys.contains(it) }
+
+    def pendingOnDemandRequestsForServerGroups = providerCache.getAll(ON_DEMAND.ns, pendingOnDemandRequestKeys)
+    pendingOnDemandRequestsForServerGroups.each {
       if (it.attributes.cacheTime < start && it.attributes.processedCount > 0) {
         if (account.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region)) {
           def asgFromEdda = asgs.find { asg -> it.id.endsWith(":${asg.autoScalingGroupName}") }
@@ -449,12 +457,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
   @Override
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    def keys = providerCache.getIdentifiers(ON_DEMAND.ns)
-    keys = keys.findAll {
-      def key = Keys.parse(it)
-      key.type == SERVER_GROUPS.ns && key.account == account.name && key.region == region
-    }
-
+    def keys = providerCache.filterIdentifiers(ON_DEMAND.ns, Keys.getServerGroupKey("*", "*", account.name, region))
     return fetchPendingOnDemandRequests(providerCache, keys)
   }
 
