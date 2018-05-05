@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,59 +75,111 @@ public class JiraService {
     }
   }
 
-  static class CreateJiraIssueException extends RuntimeException {
+  public static class CreateJiraIssueException extends RuntimeException {
     public CreateJiraIssueException(String message) {
       super(message);
     }
   }
 
   public static class CreateJiraIssueResponse {
-    private String id;
-    private String key;
-    private String self;
+    private Value value;
 
-    public String getId() {
-      return id;
+    public Value getValue() {
+      return value;
     }
 
-    public void setId(String id) {
-      this.id = id;
+    public void setValue(Value value) {
+      this.value = value;
     }
 
-    public String getKey() {
-      return key;
+    public static class Value {
+      private String id;
+      private String key;
+      private String self;
+
+      public String getId() {
+        return id;
+      }
+
+      public void setId(String id) {
+        this.id = id;
+      }
+
+      public String getKey() {
+        return key;
+      }
+
+      public void setKey(String key) {
+        this.key = key;
+      }
+
+      public String getSelf() {
+        return self;
+      }
+
+      public void setSelf(String self) {
+        this.self = self;
+      }
     }
 
-    public void setKey(String key) {
-      this.key = key;
-    }
-
-    public String getSelf() {
-      return self;
-    }
-
-    public void setSelf(String self) {
-      this.self = self;
-    }
-  }
-
-  private static class HasDetails {
-    Map<String, Object> details = new HashMap<>();
-
-    @JsonAnySetter
-    private void set(String name, Object value) {
-      details.put(name, value);
-    }
-
-    @JsonAnyGetter
-    private Map<String, Object> details() {
-      return details;
-    }
   }
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class CreateIssueRequest {
     private Fields fields;
+
+    public CreateIssueRequest() {
+      this.fields = new JiraService.CreateIssueRequest.Fields();
+    }
+
+    public CreateIssueRequest withProjectId(String projectId) {
+       fields.setProject(new Fields.Project().withId(projectId));
+       return this;
+    }
+
+    public CreateIssueRequest withProjectKey(String key) {
+      fields.setProject(new Fields.Project().withKey(key));
+      return this;
+    }
+
+    public CreateIssueRequest withParentKey(String key) {
+      fields.setParent(new Fields.Parent().withKey(key));
+      return this;
+    }
+
+    public CreateIssueRequest withParentId(String id) {
+      fields.setParent(new Fields.Parent().withId(id));
+      return this;
+    }
+
+    public CreateIssueRequest withSummary(String summary) {
+      fields.setSummary(summary);
+      return this;
+    }
+
+    public CreateIssueRequest withDescription(String description) {
+      fields.setDescription(description);
+      return this;
+    }
+
+    public CreateIssueRequest withIssueTypeName(String issueTypeName) {
+      fields.setIssueType(new JiraService.CreateIssueRequest.Fields.IssueType().withName(issueTypeName));
+      return this;
+    }
+
+    public CreateIssueRequest withIssueTypeId(String id) {
+      fields.setIssueType(new JiraService.CreateIssueRequest.Fields.IssueType().withId(id));
+      return this;
+    }
+
+    public CreateIssueRequest withReporter(String reporter) {
+      fields.setReporter(new Fields.Reporter().withName(reporter));
+      return this;
+    }
+
+    public void addDetails(String key, Object object) {
+      fields.details().put(key, object);
+    }
 
     public Fields getFields() {
       return fields;
@@ -152,15 +201,14 @@ public class JiraService {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class Fields extends HasDetails {
+    public static class Fields {
       @NotNull
       private Project project;
       @NotNull private String description;
       @JsonProperty("issuetype") private IssueType issueType;
       private String summary;
-      private Project parent;
+      private Parent parent;
       private Reporter reporter;
-      private Map<String, Object> customFields;
 
       public Project getProject() {
         return project;
@@ -194,19 +242,11 @@ public class JiraService {
         this.issueType = issueType;
       }
 
-      public Map<String, Object> getCustomFields() {
-        return customFields;
-      }
-
-      public void setCustomFields(Map<String, Object> customFields) {
-        this.customFields = customFields;
-      }
-
-      public Project getParent() {
+      public Parent getParent() {
         return parent;
       }
 
-      public void setParent(Project parent) {
+      public void setParent(Parent parent) {
         this.parent = parent;
       }
 
@@ -216,6 +256,17 @@ public class JiraService {
 
       public void setReporter(Reporter reporter) {
         this.reporter = reporter;
+      }
+
+      private Map<String, Object> details = new HashMap<>();
+      @JsonAnySetter
+      public void set(String name, Object value) {
+        details.put(name, value);
+      }
+
+      @JsonAnyGetter
+      public Map<String, Object> details() {
+        return details;
       }
 
       @Override
@@ -228,7 +279,6 @@ public class JiraService {
           ", summary='" + summary + '\'' +
           ", parent=" + parent +
           ", reporter='" + reporter + '\'' +
-          ", customFields=" + customFields +
           '}';
       }
 
@@ -257,8 +307,49 @@ public class JiraService {
       }
 
       @JsonInclude(JsonInclude.Include.NON_NULL)
-      static class Project {
+      public static class Project extends IdKey {
+        public Project withId(String id) {
+          setId(id);
+          return this;
+        }
+
+        public Project withKey(String key) {
+          setKey(key);
+          return this;
+        }
+        @Override
+        public String toString() {
+          return "Project{" +
+            "id='" + super.id + '\'' +
+            ", key='" + super.key + '\'' +
+            '}';
+        }
+      }
+
+      @JsonInclude(JsonInclude.Include.NON_NULL)
+      public static class Parent extends IdKey {
+        public Parent withId(String id) {
+          setId(id);
+          return this;
+        }
+
+        public Parent withKey(String key) {
+          setKey(key);
+          return this;
+        }
+
+        @Override
+        public String toString() {
+          return "Parent{" +
+            "id='" + super.id + '\'' +
+            ", key='" + super.key + '\'' +
+            '}';
+        }
+      }
+
+      static class IdKey {
         private String id;
+        private String key;
 
         public String getId() {
           return id;
@@ -268,18 +359,29 @@ public class JiraService {
           this.id = id;
         }
 
-        @Override
-        public String toString() {
-          return "Project{" +
-            "id='" + id + '\'' +
-            '}';
+        public String getKey() {
+          return key;
+        }
+
+        public void setKey(String key) {
+          this.key = key;
         }
       }
 
       @JsonInclude(JsonInclude.Include.NON_NULL)
-      static class IssueType {
+      public static class IssueType {
         private String name;
         private String id;
+
+        public IssueType withName(String name) {
+          setName(name);
+          return this;
+        }
+
+        public IssueType withId(String id) {
+          setId(id);
+          return this;
+        }
 
         public String getName() {
           return name;
