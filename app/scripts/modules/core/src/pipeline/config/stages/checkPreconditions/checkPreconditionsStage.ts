@@ -20,6 +20,6 @@ module(CHECK_PRECONDITIONS_STAGE, [PIPELINE_CONFIG_PROVIDER])
       strategy: true,
     });
   })
-  .controller('CheckPreconditionsStageCtrl', ($scope: IScope) => {
+  .controller('CheckPreconditionsStageCtrl', function($scope: IScope) {
     $scope.stage.preconditions = $scope.stage.preconditions || [];
   });

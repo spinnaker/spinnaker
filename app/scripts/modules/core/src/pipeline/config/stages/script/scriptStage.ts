@@ -23,7 +23,7 @@ module(SCRIPT_STAGE, [PIPELINE_CONFIG_PROVIDER])
       strategy: true,
     });
   })
-  .controller('ScriptStageCtrl', ($scope: IScope, stage: IStage) => {
+  .controller('ScriptStageCtrl', function($scope: IScope, stage: IStage) {
     $scope.stage = stage;
     $scope.stage.failPipeline = $scope.stage.failPipeline === undefined ? true : $scope.stage.failPipeline;
     $scope.stage.waitForCompletion =
