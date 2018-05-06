@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
+import de.huxhorn.sulky.ulid.ULID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,9 +41,10 @@ import static java.util.stream.Collectors.toMap;
 public class Execution implements Serializable {
 
   public static final DefaultTrigger NO_TRIGGER = new DefaultTrigger("none");
+  private static final ULID ID_GENERATOR = new ULID();
 
   public Execution(ExecutionType type, String application) {
-    this(type, UUID.randomUUID().toString(), application);
+    this(type, ID_GENERATOR.nextULID(), application);
   }
 
   @JsonCreator

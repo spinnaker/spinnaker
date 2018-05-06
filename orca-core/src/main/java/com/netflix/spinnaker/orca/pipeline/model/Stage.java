@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDeserializer;
+import de.huxhorn.sulky.ulid.ULID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,6 +45,8 @@ import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
 public class Stage implements Serializable {
+
+  private static final ULID ID_GENERATOR = new ULID();
 
   /**
    * Sorts stages into order according to their refIds / requisiteStageRefIds.
@@ -104,7 +107,7 @@ public class Stage implements Serializable {
   /**
    * A stage's unique identifier
    */
-  private String id = UUID.randomUUID().toString();
+  private String id = ID_GENERATOR.nextULID();
 
   public @Nonnull String getId() {
     return id;

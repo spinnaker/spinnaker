@@ -39,6 +39,7 @@ dependencies {
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version('jackson')}"
   compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version('jackson')}"
   compile "org.apache.commons:commons-lang3:3.7"
+  compile "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.1.1"
 
   compileOnly spinnaker.dependency("lombok")
 
