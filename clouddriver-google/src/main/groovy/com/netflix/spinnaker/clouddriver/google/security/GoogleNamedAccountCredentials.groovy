@@ -226,7 +226,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       GString credInfo = "Google Credentials ($name): "
       if (credentials == null) {
         if (jsonKey) {
-          credInfo += "From JSON key $jsonKey"
+          credInfo += "From JSON key"
           credentials = new GoogleJsonCredentials(project, computeVersion, jsonKey)
         } else if (serviceAccountId && serviceAccountProject) {
           credInfo += "Impersonating $serviceAccountProject/$serviceAccountId"
