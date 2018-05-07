@@ -11,6 +11,7 @@ module.exports = angular
     pipelineConfigProvider.registerStage({
       provides: 'runJob',
       useBaseProvider: true,
+      restartable: true,
       cloudProvider: 'titus',
       providesFor: ['aws', 'titus'],
       templateUrl: require('./runJobStage.html'),
