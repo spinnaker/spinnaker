@@ -494,7 +494,10 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       if (!existingId) {
         registry.gauge(id, reservationReportCache, { LoadingCache<String, AmazonReservationReport> reservationReportCache ->
           def overallReservationDetail = reservationReportCache.get("v3").reservations.find {
-            it.availabilityZone == tags.availabilityZone && it.instanceType == tags.instanceType && it.os.name == tags.os
+            it.availabilityZone == tags.availabilityZone &&
+            it.instanceType == tags.instanceType &&
+            it.os.name == tags.os &&
+            it.region() == tags.region
           }
           return metricValueClosure.call(overallReservationDetail)
         } as ToDoubleFunction)
