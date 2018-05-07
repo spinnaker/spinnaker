@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
+import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.MonitorJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.RunJobTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.WaitOnJobCompletion
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class RunJobStage implements StageDefinitionBuilder {
+class RunJobStage implements StageDefinitionBuilder, RestartableStage {
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
@@ -42,5 +43,20 @@ class RunJobStage implements StageDefinitionBuilder {
     if (stage.getContext().containsKey("expectedArtifacts")) {
       builder.withTask(BindProducedArtifactsTask.TASK_NAME, BindProducedArtifactsTask.class);
     }
+  }
+
+  @Override
+  void prepareStageForRestart(Stage stage) {
+    if (stage.context.jobStatus) {
+      if (!stage.context.restartDetails) stage.context.restartDetails = [:]
+      stage.context.restartDetails["jobStatus"] = stage.context.jobStatus
+      stage.context.restartDetails["completionDetails"] = stage.context.completionDetails
+      stage.context.restartDetails["propertyFileContents"] = stage.context.propertyFileContents
+      stage.context.restartDetails["deploy.jobs"] = stage.context["deploy.jobs"]
+    }
+    stage.context.remove("jobStatus")
+    stage.context.remove("completionDetails")
+    stage.context.remove("propertyFileContents")
+    stage.context.remove("deploy.jobs")
   }
 }
