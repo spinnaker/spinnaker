@@ -797,16 +797,69 @@ class AuditArtifactVersions(CommandProcessor):
               result.add(info['bom_version'])
     return result
 
+  def __remove_old_bom_versions(self, min_semver, version_to_commit_boms):
+    """Remove references to older boms in collected bom info.
+
+    Args:
+      min_semver: [SemanticVersion] minimally acceptable semantic version
+      version_to_commit_boms: [dict of {commit_id, build_info}]
+         where build_info is a dictionary mapping buildnum to list of
+         bom_metadata dictionaries.
+
+    Returns:
+      copy of versions but without build_info referencing older bom_versions.
+    """
+    def list_of_current_bom_meta(min_semver, all_bom_meta):
+      good_bom_meta = []
+      for bom_meta in all_bom_meta:
+        semver = SemanticVersion.make('ignored-' + bom_meta['bom_version'])
+        if SemanticVersion.compare(semver, min_semver) >= 0:
+          good_bom_meta.append(bom_meta)
+      return good_bom_meta
+
+    def commit_to_current_bom_meta(min_semver, build_map):
+      build_info = {}
+      for buildnum, all_bom_meta in build_map.items():
+        good_bom_meta = list_of_current_bom_meta(min_semver, all_bom_meta)
+        if good_bom_meta:
+          build_info[buildnum] = good_bom_meta
+      return build_info
+
+    result = {}
+    for version, commit_build_map in version_to_commit_boms.items():
+      commit_map = {}
+      for commit_id, orig_build_map in commit_build_map.items():
+        build_map = commit_to_current_bom_meta(min_semver, orig_build_map)
+        if build_map:
+          commit_map[commit_id] = build_map
+      if commit_map:
+        result[version] = commit_map
+      else:
+        logging.info(
+            'Dropping version=%s because it bom versions are all too old.',
+            version)
+    return result
+
   def __init__(self, factory, options, **kwargs):
     super(AuditArtifactVersions, self).__init__(factory, options, **kwargs)
     base_path = os.path.dirname(self.get_output_dir())
     self.__init_bintray_versions_helper(base_path)
 
+    min_version = options.min_bom_version or '0.0.0'
+    min_parts = min_version.split('.')
+    if len(min_parts) < 3:
+      min_version += '.0' * (3 - len(min_parts))
+    min_semver = SemanticVersion.make('ignored-' + min_version)
+
     bom_data_dir = os.path.join(base_path, 'collect_bom_versions')
     path = os.path.join(bom_data_dir, 'released_bom_service_map.yml')
     check_path_exists(path, 'released bom analysis')
     with open(path, 'r') as stream:
-      self.__released_boms = yaml.load(stream.read())
+      self.__released_boms = {}
+      for service, versions in yaml.load(stream.read()).items():
+        stripped_versions = self.__remove_old_bom_versions(min_semver, versions)
+        if stripped_versions:
+          self.__released_boms[service] = stripped_versions
 
     path = os.path.join(bom_data_dir, 'unreleased_bom_service_map.yml')
     check_path_exists(path, 'unreleased bom analysis')
@@ -1200,6 +1253,8 @@ class AuditArtifactVersionsFactory(CommandFactory):
 
   def init_argparser(self, parser, defaults):
     super(AuditArtifactVersionsFactory, self).init_argparser(parser, defaults)
+    self.add_argument(parser, 'min_bom_version', defaults, None,
+                      help='Minimum released bom version to audit.')
     self.add_argument(
         parser, 'prune_min_buildnum_prefix', defaults, None,
         help='Only suggest pruning artifacts with a smaller build number.'
