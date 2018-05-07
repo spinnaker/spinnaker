@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
-import com.squareup.okhttp.ConnectionPool
-import com.squareup.okhttp.ConnectionSpec
-import com.squareup.okhttp.OkHttpClient
+import com.netflix.spinnaker.okhttp.OkHttp3ClientConfigurationProperties
+import okhttp3.ConnectionPool
+import okhttp3.ConnectionSpec
+import okhttp3.OkHttpClient
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -37,31 +37,29 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @CompileStatic
 @Component
-@Deprecated
-class OkHttpClientConfiguration {
-
-  private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
+class OkHttp3ClientConfiguration {
+  private final OkHttp3ClientConfigurationProperties okHttpClientConfigurationProperties
 
   @Autowired
-  public OkHttpClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
+  public OkHttp3ClientConfiguration(OkHttp3ClientConfigurationProperties okHttpClientConfigurationProperties) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
   }
 
   /**
    * @return OkHttpClient w/ <optional> key and trust stores
    */
-  OkHttpClient create() {
-
-    def okHttpClient = new OkHttpClient()
-    okHttpClient.setConnectTimeout(okHttpClientConfigurationProperties.connectTimoutMs, TimeUnit.MILLISECONDS)
-    okHttpClient.setReadTimeout(okHttpClientConfigurationProperties.readTimeoutMs, TimeUnit.MILLISECONDS)
-    okHttpClient.setRetryOnConnectionFailure(okHttpClientConfigurationProperties.retryOnConnectionFailure)
-    okHttpClient.connectionPool = new ConnectionPool(
-      okHttpClientConfigurationProperties.connectionPool.maxIdleConnections,
-      okHttpClientConfigurationProperties.connectionPool.keepAliveDurationMs)
+  OkHttpClient.Builder create() {
+    OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
+      .connectTimeout(okHttpClientConfigurationProperties.connectTimoutMs, TimeUnit.MILLISECONDS)
+      .readTimeout(okHttpClientConfigurationProperties.readTimeoutMs, TimeUnit.MILLISECONDS)
+      .retryOnConnectionFailure(okHttpClientConfigurationProperties.retryOnConnectionFailure)
+      .connectionPool(new ConnectionPool(
+        okHttpClientConfigurationProperties.connectionPool.maxIdleConnections,
+        okHttpClientConfigurationProperties.connectionPool.keepAliveDurationMs,
+        TimeUnit.MILLISECONDS))
 
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
-      return okHttpClient
+      return okHttpClientBuilder
     }
 
     def sslContext = SSLContext.getInstance('TLS')
@@ -88,13 +86,13 @@ class OkHttpClientConfiguration {
     }
 
     sslContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, secureRandom)
-    okHttpClient.setSslSocketFactory(sslContext.socketFactory)
+    okHttpClientBuilder.sslSocketFactory(sslContext.socketFactory)
 
-    return applyConnectionSpecs(okHttpClient)
+    return applyConnectionSpecs(okHttpClientBuilder)
   }
 
   @CompileDynamic
-  private OkHttpClient applyConnectionSpecs(OkHttpClient okHttpClient) {
+  private OkHttpClient.Builder applyConnectionSpecs(OkHttpClient.Builder okHttpClientBuilder) {
     def cipherSuites = (okHttpClientConfigurationProperties.cipherSuites ?: ConnectionSpec.MODERN_TLS.cipherSuites()*.javaName) as String[]
     def tlsVersions = (okHttpClientConfigurationProperties.tlsVersions ?: ConnectionSpec.MODERN_TLS.tlsVersions()*.javaName) as String[]
 
@@ -103,6 +101,6 @@ class OkHttpClientConfiguration {
       .tlsVersions(tlsVersions)
       .build()
 
-    return okHttpClient.setConnectionSpecs([connectionSpec, ConnectionSpec.CLEARTEXT] as List<ConnectionSpec>)
+    return okHttpClientBuilder.connectionSpecs([connectionSpec, ConnectionSpec.CLEARTEXT] as List<ConnectionSpec>)
   }
 }

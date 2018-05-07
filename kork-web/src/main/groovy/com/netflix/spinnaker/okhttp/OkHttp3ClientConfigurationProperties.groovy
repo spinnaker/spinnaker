@@ -21,9 +21,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.NestedConfigurationProperty
 
 @Canonical
-@ConfigurationProperties(prefix="okHttpClient")
-@Deprecated
-class OkHttpClientConfigurationProperties {
+@ConfigurationProperties(prefix="okHttp3Client")
+class OkHttp3ClientConfigurationProperties {
   long connectTimoutMs = 15000
   long readTimeoutMs = 20000
 
