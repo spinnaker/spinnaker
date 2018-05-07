@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 import { Option } from 'react-select';
-import { noop } from '@spinnaker/core';
+import { noop, HelpField } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
 import { ICanaryMetricConfig } from 'kayenta/domain';
@@ -21,6 +21,8 @@ interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
   changeGroup: (event: any) => void;
   updateDirection: (event: any) => void;
+  updateNanStrategy: (event: any) => void;
+  updateCriticality: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
   selectTemplate: (template: Option) => void;
@@ -34,18 +36,18 @@ interface IEditMetricModalStateProps {
   groups: string[];
 }
 
-function DirectionChoice({ value, label, current, action }: { value: string, label: string, current: string, action: (event: any) => void }) {
+function RadioChoice({ value, label, name, current, action }: { value: string, label: string, name: string, current: string, action: (event: any) => void }) {
   return (
     <label style={{ fontWeight: 'normal', marginRight: '1em' }}>
       <DisableableInput
-        name="direction"
         type="radio"
+        name={name}
         value={value}
         onChange={action}
         checked={value === current}
         disabledStateKeys={[DISABLE_EDIT_CONFIG]}
       />
-        {label}
+        {' '}{label}
     </label>
   );
 }
@@ -82,12 +84,29 @@ function FilterTemplateSelector({ metricStore, template, templates, select }: IF
 /*
  * Modal to edit metric details.
  */
-function EditMetricModal({ metric, rename, changeGroup, groups, confirm, cancel, updateDirection, templates, selectTemplate, filterTemplate, updateScopeName }: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
+function EditMetricModal({
+  metric,
+  rename,
+  changeGroup,
+  groups,
+  confirm,
+  cancel,
+  updateDirection,
+  updateNanStrategy,
+  updateCriticality,
+  templates,
+  selectTemplate,
+  filterTemplate,
+  updateScopeName
+}: IEditMetricModalDispatchProps & IEditMetricModalStateProps) {
   if (!metric) {
     return null;
   }
 
   const direction = get(metric, ['analysisConfigurations', 'canary', 'direction'], 'either');
+  const nanStrategy = get(metric, ['analysisConfigurations', 'canary', 'nanStrategy'], 'default');
+  const critical = get(metric, ['analysisConfigurations', 'canary', 'critical'], false);
+
   const metricGroup = metric.groups.length ? metric.groups[0] : groups[0];
   return (
     <Modal show={true} onHide={noop} className="kayenta-edit-metric-modal">
@@ -131,9 +150,25 @@ function EditMetricModal({ metric, rename, changeGroup, groups, confirm, cancel,
             />
           </FormRow>
           <FormRow label="Fail on">
-            <DirectionChoice value="increase" label="increase" current={direction} action={updateDirection}/>
-            <DirectionChoice value="decrease" label="decrease" current={direction} action={updateDirection}/>
-            <DirectionChoice value="either"   label="either"   current={direction} action={updateDirection}/>
+            <RadioChoice value="increase" label="Increase" name="direction" current={direction} action={updateDirection}/>
+            <RadioChoice value="decrease" label="Decrease" name="direction" current={direction} action={updateDirection}/>
+            <RadioChoice value="either"   label="Either"   name="direction" current={direction} action={updateDirection}/>
+          </FormRow>
+          <FormRow label="Criticality" checkbox>
+            <label>
+              <DisableableInput
+                type="checkbox"
+                checked={critical}
+                onChange={updateCriticality}
+                disabledStateKeys={[DISABLE_EDIT_CONFIG]}
+              />
+              Fail the canary if this metric fails
+            </label>
+          </FormRow>
+          <FormRow label={<>NaN Strategy <HelpField id="canary.config.nanStrategy"/></>}>
+            <RadioChoice value="default" label="Default (remove)"  name="nanStrategy" current={nanStrategy} action={updateNanStrategy}/>
+            <RadioChoice value="replace" label="Replace with zero" name="nanStrategy" current={nanStrategy} action={updateNanStrategy}/>
+            <RadioChoice value="remove"  label="Remove"            name="nanStrategy" current={nanStrategy} action={updateNanStrategy}/>
           </FormRow>
           <FilterTemplateSelector
             metricStore={metric.query.type}
@@ -184,8 +219,14 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     confirm: () => {
       dispatch(Creators.editMetricConfirm());
     },
-    updateDirection: (event: any) => {
-      dispatch(Creators.updateMetricDirection({ id: event.target.dataset.id, direction: event.target.value }))
+    updateDirection: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(Creators.updateMetricDirection({ id: target.dataset.id, direction: target.value }));
+    },
+    updateNanStrategy: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(Creators.updateMetricNanStrategy({ id: target.dataset.id, strategy: target.value }));
+    },
+    updateCriticality: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(Creators.updateMetricCriticality({ id: target.dataset.id, critical: Boolean(target.checked) }));
     },
     selectTemplate: (template: Option) =>
       dispatch(Creators.selectTemplate({ name: template ? template.value as string : null })),

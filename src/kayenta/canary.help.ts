@@ -47,6 +47,10 @@ const helpContents: {[key: string]: string} = {
     <p>A canary score is the weighted sum of metric group scores.</p>
     <p>Group weights must sum to 100.</p>
   `,
+  'canary.config.nanStrategy': `
+    <p>When there is no value for a metric at a given point in time, it can either be ignored or assumed to be zero. The right choice depends on what is being measured. For example, when measuring successful attempts (like health checks) replacing missing values with zero may be appropriate.</p>
+    <p>The default strategy for a given metric will be used if no strategy is selected.</p>
+  `,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

@@ -61,8 +61,8 @@ export const DisableableInput = disableable<IDisableableInputProps>(props => {
       {...inputProps}
       className={
         classNames(className, {
-          'form-control': inputProps.type !== 'radio',
-          'input-sm': inputProps.type !== 'radio',
+          'form-control': ![ 'radio', 'checkbox' ].includes(inputProps.type),
+          'input-sm': ![ 'radio', 'checkbox' ].includes(inputProps.type),
         })}
     />
   );

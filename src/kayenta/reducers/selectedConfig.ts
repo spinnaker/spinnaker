@@ -1,6 +1,6 @@
 import { Action, combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
-import { get, set, has, omit, chain, pick, fromPairs, flatMap, cloneDeep } from 'lodash';
+import { get, set, unset, has, omit, chain, pick, fromPairs, flatMap, cloneDeep } from 'lodash';
 
 import * as Actions from '../actions';
 import { ICanaryClassifierThresholdsConfig } from '../domain';
@@ -111,6 +111,24 @@ const editingMetric = handleActions({
   [Actions.UPDATE_METRIC_DIRECTION]: (state: ICanaryMetricConfig, action: Action & any) => (
     set(cloneDeep(state), ['analysisConfigurations', 'canary', 'direction'], action.payload.direction)
   ),
+  [Actions.UPDATE_METRIC_NAN_STRATEGY]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
+    const newState = cloneDeep(state);
+
+    payload.strategy === 'default' ?
+      unset(newState, ['analysisConfigurations', 'canary', 'nanStrategy']) :
+      set(newState, ['analysisConfigurations', 'canary', 'nanStrategy'], payload.strategy);
+
+    return newState;
+  },
+  [Actions.UPDATE_METRIC_CRITICALITY]: (state: ICanaryMetricConfig, { payload }: Action & any) => {
+    const newState = cloneDeep(state);
+
+    payload.critical ?
+    set(newState, ['analysisConfigurations', 'canary', 'critical'], payload.critical) :
+    unset(newState, ['analysisConfigurations', 'canary', 'critical']);
+
+    return newState;
+  },
   [Actions.UPDATE_METRIC_GROUP]: (state: ICanaryMetricConfig, action: Action & any) => ({
     ...state, groups: [action.payload.group]
   }),
