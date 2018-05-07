@@ -106,7 +106,7 @@ public class LocalDiskProfileReader implements ProfileReader {
   }
 
   private String profilePath(String artifactName, String profileFileName) {
-      return Paths.get(localBomPath, artifactName, HALCONFIG_DIR, profileFileName).toString();
+      return Paths.get(localBomPath, artifactName, profileFileName).toString();
   }
 
   String bomPath(String version) {
