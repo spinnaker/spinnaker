@@ -2,13 +2,13 @@
 
 var feedbackUrl = '';
 var gateHost = '{%gate.baseUrl%}';
-var bakeryDetailUrl = (gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}');
-var authEndpoint = (gateHost + '/auth/user');
+var bakeryDetailUrl = gateHost + '/bakery/logs/{{context.region}}/{{context.status.resourceId}}';
+var authEndpoint = gateHost + '/auth/user';
 var authEnabled = '{%features.auth%}' === 'true';
 var chaosEnabled = '{%features.chaos%}' === 'true';
 var fiatEnabled = '{%features.fiat%}' === 'true';
 var jobsEnabled = '{%features.jobs%}' === 'true';
-var infrastructureStagesEnabled = "{%features.infrastructureStages%}" === "true";
+var infrastructureStagesEnabled = '{%features.infrastructureStages%}' === 'true';
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
 var artifactsEnabled = '{%features.artifacts%}' === 'true';
 var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
@@ -31,7 +31,7 @@ var gce = {
   defaults: {
     account: '{%google.default.account%}',
     region: '{%google.default.region%}',
-    zone: '{%google.default.zone%}'
+    zone: '{%google.default.zone%}',
   },
   associatePublicIpAddress: true,
 };
@@ -42,49 +42,49 @@ var kubernetes = {
     proxy: '{%kubernetes.default.proxy%}',
     internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
     instanceLinkTemplate: '{{host}}/api/v1/proxy/namespaces/{{namespace}}/pods/{{name}}',
-  }
+  },
 };
 var appengine = {
   defaults: {
     account: '{%appengine.default.account%}',
     editLoadBalancerStageEnabled: '{%appengine.enabled%}' === 'true',
     containerImageUrlDeployments: appengineContainerImageUrlDeploymentsEnabled,
-  }
+  },
 };
 var openstack = {
   defaults: {
     account: '{%openstack.default.account%}',
-    region: '{%openstack.default.region%}'
-  }
+    region: '{%openstack.default.region%}',
+  },
 };
 var azure = {
   defaults: {
     account: '{%azure.default.account%}',
-    region: '{%azure.default.region%}'
-  }
+    region: '{%azure.default.region%}',
+  },
 };
 var oraclebmcs = {
   defaults: {
     account: '{%oraclebmcs.default.account%}',
-    region: '{%oraclebmcs.default.region%}'
-  }
+    region: '{%oraclebmcs.default.region%}',
+  },
 };
 var dcos = {
   defaults: {
-    account: '{%dcos.default.account%}'
-  }
+    account: '{%dcos.default.account%}',
+  },
 };
 var ecs = {
   defaults: {
-    account: '{%ecs.default.account%}'
-  }
+    account: '{%ecs.default.account%}',
+  },
 };
 var entityTagsEnabled = false;
 var netflixMode = false;
 var notificationsEnabled = '{%notifications.enabled%}' === 'true';
 var slack = {
   enabled: '{%notifications.slack.enabled%}' === 'true',
-  botName: '{%notifications.slack.botName%}'
+  botName: '{%notifications.slack.botName%}',
 };
 
 window.spinnakerSettings = {
@@ -128,7 +128,7 @@ window.spinnakerSettings = {
     kubernetes: kubernetes,
     appengine: appengine,
     oraclebmcs: oraclebmcs,
-    dcos: dcos
+    dcos: dcos,
   },
   changelog: {
     gistId: changelogGistId,
@@ -140,19 +140,20 @@ window.spinnakerSettings = {
     },
     hipchat: {
       enabled: true,
-      botName: 'Skynet T-800'
+      botName: 'Skynet T-800',
     },
     sms: {
       enabled: true,
     },
-    slack: slack
+    slack: slack,
   },
   pagerDuty: {
-    required: false
+    required: false,
   },
   authEnabled: authEnabled,
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
+  pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub', 'webhook'],
   canary: {
     reduxLogger: reduxLoggerEnabled,

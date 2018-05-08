@@ -35,6 +35,7 @@ export * from './IOrchestratedItem';
 
 export * from './IPipeline';
 export * from './IProject';
+export * from './IPubsubSubscription';
 
 export * from './IRegionalCluster';
 

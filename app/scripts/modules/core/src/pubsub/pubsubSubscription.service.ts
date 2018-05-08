@@ -1,9 +1,9 @@
 import { module, IPromise } from 'angular';
 
-import { API } from 'core/api/ApiService';
+import { API, IPubsubSubscription } from '@spinnaker/core';
 
 export class PubsubSubscriptionService {
-  public getPubsubSubscriptions(): IPromise<string[]> {
+  public getPubsubSubscriptions(): IPromise<IPubsubSubscription[]> {
     return API.one('pubsub')
       .one('subscriptions')
       .get();

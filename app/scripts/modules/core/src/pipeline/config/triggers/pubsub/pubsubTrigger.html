@@ -6,7 +6,8 @@
     <div class="col-md-6">
       <select class="form-control input-sm"
               ng-options="pubsubSystem for pubsubSystem in vm.pubsubSystems"
-              ng-model="vm.trigger.pubsubSystem">
+              ng-model="vm.trigger.pubsubSystem"
+              ng-change="vm.updateFilteredPubsubSubscriptions()">
         <option value="">Select Pub/Sub System</option>
       </select>
     </div>
@@ -18,7 +19,7 @@
     </div>
     <div class="col-md-6">
       <select class="form-control input-sm"
-              ng-options="pubsubSystem for pubsubSystem in vm.pubsubSubscriptions"
+              ng-options="subscription for subscription in vm.filteredPubsubSubscriptions"
               ng-model="vm.trigger.subscriptionName">
         <option value="">Select Pub/Sub Subscription</option>
       </select>
