@@ -31,7 +31,9 @@ import io.kubernetes.client.models.V1JobSpec;
 import io.kubernetes.client.models.V1JobStatus;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
@@ -99,10 +101,13 @@ public class KubernetesJobHandler extends KubernetesHandler implements
     if (status.getSucceeded() != null) {
       succeeded = status.getSucceeded();
     }
+
     if (succeeded < completions) {
       List<V1JobCondition> conditions = status.getConditions();
-      if (conditions != null && conditions.stream().anyMatch(this::jobDeadlineExceeded)) {
-        return result.failed("Job deadline exceeded");
+      conditions = conditions != null ? conditions : Collections.emptyList();
+      Optional<V1JobCondition> condition = conditions.stream().filter(this::jobFailed).findAny();
+      if (condition.isPresent()) {
+        return result.failed(condition.get().getMessage());
       } else {
         return result.unstable("Waiting for jobs to finish");
       }
@@ -111,7 +116,7 @@ public class KubernetesJobHandler extends KubernetesHandler implements
     return result;
   }
 
-  private boolean jobDeadlineExceeded(V1JobCondition condition) {
-    return "DeadlineExceeded".equalsIgnoreCase(condition.getReason()) && "True".equalsIgnoreCase(condition.getStatus());
+  private boolean jobFailed(V1JobCondition condition) {
+    return "Failed".equalsIgnoreCase(condition.getType()) && "True".equalsIgnoreCase(condition.getStatus());
   }
 }
