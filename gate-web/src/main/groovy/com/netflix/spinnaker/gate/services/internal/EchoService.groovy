@@ -39,5 +39,5 @@ interface EchoService {
   Map validateCronExpression(@Query("cronExpression") String cronExpression)
 
   @GET("/pubsub/subscriptions")
-  List<String> getPubsubSubscriptions()
+  List<Map<String, String>> getPubsubSubscriptions()
 }

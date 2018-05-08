@@ -18,10 +18,10 @@ package com.netflix.spinnaker.gate.services;
 
 import com.netflix.spinnaker.gate.services.internal.EchoService;
 import groovy.transform.CompileStatic;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @CompileStatic
 @Component
@@ -30,7 +30,7 @@ public class PubsubSubscriptionService {
   @Autowired(required = false)
   private EchoService echoService;
 
-  public List<String> getPubsubSubscriptions() {
+  public List<Map<String, String>> getPubsubSubscriptions() {
     if (echoService == null) {
       throw new IllegalStateException("No Echo service available.");
     }

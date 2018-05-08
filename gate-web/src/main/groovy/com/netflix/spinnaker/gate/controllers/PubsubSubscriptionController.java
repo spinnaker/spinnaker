@@ -18,12 +18,12 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.PubsubSubscriptionService;
 import io.swagger.annotations.ApiOperation;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 public class PubsubSubscriptionController {
@@ -33,7 +33,7 @@ public class PubsubSubscriptionController {
 
   @ApiOperation(value = "Retrieve the list of pub/sub subscriptions configured in Echo.")
   @RequestMapping(value = "/pubsub/subscriptions", method = RequestMethod.GET)
-  List<String> all() {
+  List<Map<String, String>> all() {
     return pubsubSubscriptionService.getPubsubSubscriptions();
   }
 }
