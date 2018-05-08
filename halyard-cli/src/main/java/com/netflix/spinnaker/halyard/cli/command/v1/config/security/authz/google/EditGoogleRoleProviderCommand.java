@@ -55,7 +55,7 @@ public class EditGoogleRoleProviderCommand extends AbstractEditRoleProviderComma
   protected RoleProvider editRoleProvider(GoogleRoleProvider roleProvider) {
     roleProvider.setCredentialPath(isSet(credentialPath) ? credentialPath : roleProvider.getCredentialPath());
     roleProvider.setAdminUsername(isSet(adminUsername) ? adminUsername : roleProvider.getAdminUsername());
-    roleProvider.setDomain(isSet(domain) ? domain : roleProvider.getAdminUsername());
+    roleProvider.setDomain(isSet(domain) ? domain : roleProvider.getDomain());
     return roleProvider;
   }
 }
