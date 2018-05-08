@@ -28,6 +28,7 @@ import com.google.api.services.storage.StorageScopes;
 import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
@@ -40,6 +41,7 @@ import java.util.Collections;
 
 @Component
 @Slf4j
+@ConditionalOnProperty("spinnaker.config.input.gcs.enabled")
 public class GoogleProfileReader implements ProfileReader {
   @Autowired
   String spinconfigBucket;

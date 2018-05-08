@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,7 +31,7 @@ import java.io.InputStream;
 @Component
 @Slf4j
 public class ProfileRegistry {
-  @Autowired
+  @Autowired(required = false)
   GoogleProfileReader googleProfileReader;
 
   @Autowired
@@ -53,8 +55,12 @@ public class ProfileRegistry {
   }
 
   public Versions readVersions() throws IOException {
-    // git can't store these
-    return googleProfileReader.readVersions();
+    if (googleProfileReader == null) {
+      return null;
+    } else {
+      // git can't store these
+      return googleProfileReader.readVersions();
+    }
   }
 
   public InputStream readArchiveProfile(String artifactName, String version, String profileName) throws IOException {
@@ -66,8 +72,10 @@ public class ProfileRegistry {
       return gitProfileReader;
     } else if (Versions.isLocal(version)) {
       return localDiskProfileReader;
-    } else {
+    } else if (googleProfileReader != null) {
       return googleProfileReader;
+    } else {
+      throw new HalException(Problem.Severity.FATAL, "No profile reader exists to read '" + version + "'. Consider setting 'spinnaker.config.input.gcs.enabled: true' in /opt/spinnaker/config/halyard.yml");
     }
   }
 }

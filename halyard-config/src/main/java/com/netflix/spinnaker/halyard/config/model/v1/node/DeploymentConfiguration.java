@@ -21,10 +21,13 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -119,6 +122,11 @@ public class DeploymentConfiguration extends Node {
 
   protected List<String> versionOptions(ConfigProblemSetBuilder psBuilder) {
     VersionsService service = psBuilder.getContext().getBean(VersionsService.class);
-    return service.getVersions().getVersions().stream().map(Version::getVersion).collect(Collectors.toList());
+    Versions versions = service.getVersions();
+    if (versions == null) {
+      return Collections.emptyList();
+    } else {
+      return versions.getVersions().stream().map(Version::getVersion).collect(Collectors.toList());
+    }
   }
 }

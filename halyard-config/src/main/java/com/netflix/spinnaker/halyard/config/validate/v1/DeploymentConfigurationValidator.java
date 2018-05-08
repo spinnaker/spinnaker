@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -49,9 +50,16 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
       p.addProblem(Problem.Severity.ERROR, "Timezone " + timezone + " does not match any known canonical timezone ID")
           .setRemediation("Pick a timezone from those listed here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones");
     }
+  }
+
+  private void validateVersions(ConfigProblemSetBuilder p, DeploymentConfiguration n) {
+    Versions versions = versionsService.getVersions();
+    if (versions == null) {
+      return;
+    }
 
     String version = n.getVersion();
-    Versions versions = versionsService.getVersions();
+
     boolean localGit = n.getDeploymentEnvironment().getType() == DeploymentType.LocalGit;
 
     if (StringUtils.isEmpty(version)) {

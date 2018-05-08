@@ -81,7 +81,13 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("timezone", deploymentConfiguration.getTimezone());
     bindings.put("version", deploymentConfiguration.getVersion());
 
-    Optional<Versions.Version> validatedVersion = versionsService.getVersions().getVersion(version);
+    Versions versions = versionsService.getVersions();
+    Optional<Versions.Version> validatedVersion;
+    if (versions != null) {
+      validatedVersion = versions.getVersion(version);
+    } else {
+      validatedVersion = Optional.empty();
+    }
 
     if (validatedVersion.isPresent()) {
       String changelog = validatedVersion.get().getChangelog();

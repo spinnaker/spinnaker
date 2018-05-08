@@ -24,9 +24,9 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.GoogleWriteableProfileRegistry;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
-import com.netflix.spinnaker.halyard.core.registry.v1.GoogleWriteableProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,13 +87,20 @@ public class ArtifactService {
         .collect(Collectors.toList()));
   }
 
+  private static final String BAD_CONFIG_FORMAT = "You need to set '%s: true' in /opt/spinnaker/config/halyard-local.yml to perform this admin feature";
+  private static final String NO_WRITER_ENABLED = String.format(BAD_CONFIG_FORMAT, "spinnaker.config.input.writerEnabled");
+  private static final String NO_GCS_ENABLED = String.format(BAD_CONFIG_FORMAT, "spinnaker.config.input.gcs.enabled");
+
   public void deprecateVersion(Version version, String illegalReason) {
     if (googleWriteableProfileRegistry == null) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify your halconfig bucket contents.").build());
+      throw new HalException(FATAL, NO_WRITER_ENABLED);
     }
 
     Versions versionsCollection = versionsService.getVersions();
+    if (versionsCollection == null) {
+      throw new HalException(FATAL, NO_GCS_ENABLED);
+    }
+
     deleteVersion(versionsCollection, version.getVersion());
 
     if (!StringUtils.isEmpty(illegalReason)) {
@@ -111,11 +118,13 @@ public class ArtifactService {
 
   public void publishVersion(Version version) {
     if (googleWriteableProfileRegistry == null) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify your halconfig bucket contents.").build());
+      throw new HalException(FATAL, NO_WRITER_ENABLED);
     }
 
     Versions versionsCollection = versionsService.getVersions();
+    if (versionsCollection == null) {
+      throw new HalException(FATAL, NO_GCS_ENABLED);
+    }
     deleteVersion(versionsCollection, version.getVersion());
     versionsCollection.getVersions().add(version);
 
@@ -124,11 +133,13 @@ public class ArtifactService {
 
   public void publishLatestSpinnaker(String latestSpinnaker) {
     if (googleWriteableProfileRegistry == null) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
+      throw new HalException(FATAL, NO_WRITER_ENABLED);
     }
 
     Versions versionsCollection = versionsService.getVersions();
+    if (versionsCollection == null) {
+      throw new HalException(FATAL, NO_GCS_ENABLED);
+    }
     boolean hasLatest = versionsCollection.getVersions().stream().anyMatch(v -> v.getVersion().equals(latestSpinnaker));
     if (!hasLatest) {
       throw new HalException(FATAL, "Version " + latestSpinnaker + " does not exist in the list of published versions");
@@ -141,11 +152,13 @@ public class ArtifactService {
 
   public void publishLatestHalyard(String latestHalyard) {
     if (googleWriteableProfileRegistry == null) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
+      throw new HalException(FATAL, NO_WRITER_ENABLED);
     }
 
     Versions versionsCollection = versionsService.getVersions();
+    if (versionsCollection == null) {
+      throw new HalException(FATAL, NO_GCS_ENABLED);
+    }
 
     versionsCollection.setLatestHalyard(latestHalyard);
 
@@ -154,8 +167,7 @@ public class ArtifactService {
 
   public void writeBom(String bomPath) {
     if (googleWriteableProfileRegistry == null) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
+      throw new HalException(FATAL, NO_WRITER_ENABLED);
     }
 
     BillOfMaterials bom;
@@ -183,8 +195,7 @@ public class ArtifactService {
 
   public void writeArtifactConfig(String bomPath, String artifactName, String profilePath) {
     if (googleWriteableProfileRegistry == null) {
-      throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify base-profiles.").build());
+      throw new HalException(FATAL, NO_WRITER_ENABLED);
     }
 
     BillOfMaterials bom;

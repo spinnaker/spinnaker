@@ -83,8 +83,13 @@ public class VersionsService {
   public String getLatestHalyardVersion() {
     String result = concurrentMap.get(latestHalyardKey);
     if (result == null) {
-      result = getVersions().getLatestHalyard();
-      concurrentMap.put(latestHalyardKey, result);
+      Versions versions = getVersions();
+      if (versions != null) {
+        result = versions.getLatestHalyard();
+        concurrentMap.put(latestHalyardKey, result);
+      } else {
+        result = "0.0.0-UNKNOWN";
+      }
     }
 
     return result;
@@ -99,7 +104,12 @@ public class VersionsService {
   public String getLatestSpinnakerVersion() {
     String result = concurrentMap.get(latestSpinnakerKey);
     if (result == null) {
-      result = getVersions().getLatestSpinnaker();
+      Versions versions = getVersions();
+      if (versions != null) {
+        result = versions.getLatestSpinnaker();
+      } else {
+        result = "0.0.0-UNKNOWN";
+      }
       concurrentMap.put(latestSpinnakerKey, result);
     }
 
