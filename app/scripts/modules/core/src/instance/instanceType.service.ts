@@ -17,6 +17,7 @@ export interface IInstanceStorage {
   type: string;
   size: number;
   count: number;
+  isDefault?: boolean;
 }
 
 export interface IPreferredInstanceType {

@@ -328,7 +328,7 @@ module.exports = angular
     const resolveInstanceTypeDetails = instanceType => {
       return {
         name: instanceType,
-        storage: SETTINGS.providers.gce.defaults.instanceTypeStorage,
+        storage: Object.assign({ isDefault: true }, SETTINGS.providers.gce.defaults.instanceTypeStorage),
       };
     };
 
