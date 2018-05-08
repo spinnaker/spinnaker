@@ -150,7 +150,7 @@ module.exports = angular
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch('command.network', createResultProcessor($scope.command.networkChanged));
       $scope.$watch('command.zone', createResultProcessor($scope.command.zoneChanged));
-      $scope.$watch('command.viewState.instanceTypeDetails', updateStorageSettingsFromInstanceType());
+      $scope.$watch('command.viewState.instanceTypeDetails', updateStorageSettingsFromInstanceType(), true);
       $scope.$watch(
         'command.viewState.customInstance',
         () => {

@@ -66,6 +66,19 @@ window.spinnakerSettings = {
     gce: {
       defaults: {
         account: 'my-google-account',
+        instanceTypeStorage: {
+          count: 1,
+          defaultSettings: {
+            disks: [
+              {
+                type: 'pd-ssd',
+                sizeGb: 10,
+              },
+            ],
+          },
+          localSSDSupported: false,
+          size: 10,
+        },
         region: 'us-central1',
         zone: 'us-central1-f',
       },

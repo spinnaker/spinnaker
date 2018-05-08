@@ -227,18 +227,14 @@ module.exports = angular
       let result = { dirty: {} };
 
       let locations = c.regional ? [c.region] : [c.zone],
-        { instanceTypes, credentialsKeyedByAccount } = c.backingData,
+        { credentialsKeyedByAccount } = c.backingData,
         { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
 
       if (locations.every(l => !l)) {
         return result;
       }
 
-      let filtered = gceInstanceTypeService.getAvailableTypesForLocations(
-        instanceTypes,
-        locationToInstanceTypesMap,
-        locations,
-      );
+      let filtered = gceInstanceTypeService.getAvailableTypesForLocations(locationToInstanceTypesMap, locations);
 
       filtered = sortInstanceTypes(filtered);
       let instanceType = c.instanceType;

@@ -47,6 +47,7 @@ export interface IInstanceTypeCategory {
 }
 
 export interface IInstanceTypeService {
+  resolveInstanceTypeDetails?: (instanceType: string) => IPromise<IPreferredInstanceType>;
   getCategories(): IPromise<IInstanceTypeCategory[]>;
   getAllTypesByRegion(): IPromise<IInstanceTypesByRegion>;
   getAvailableTypesForRegions(instanceTypes: string[], regions: string[]): IPromise<string[]>;
@@ -84,8 +85,12 @@ export class InstanceTypeService {
     return this.getInstanceTypeCategory(cloudProvider, instanceType).then((category: IInstanceTypeCategory) => {
       if (category && category.families && category.families.length && category.families[0].instanceTypes) {
         return category.families[0].instanceTypes.find(i => i.name === instanceType);
+      } else {
+        if (this.getDelegate(cloudProvider).resolveInstanceTypeDetails) {
+          return this.getDelegate(cloudProvider).resolveInstanceTypeDetails(instanceType);
+        }
+        return null;
       }
-      return null;
     });
   }
 

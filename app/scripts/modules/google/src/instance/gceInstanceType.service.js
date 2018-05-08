@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, SETTINGS } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.gce.instanceType.service', [])
@@ -317,20 +317,26 @@ module.exports = angular
       });
     }
 
-    function getAvailableTypesForLocations(instanceTypes, locationToInstanceTypesMap, selectedLocations) {
+    function getAvailableTypesForLocations(locationToInstanceTypesMap, selectedLocations) {
       // This function is only ever called with one location.
-      let [location] = selectedLocations,
-        availableTypesForLocation = locationToInstanceTypesMap[location].instanceTypes;
-
-      return _.intersection(instanceTypes, availableTypesForLocation);
+      const [location] = selectedLocations;
+      return locationToInstanceTypesMap[location].instanceTypes;
     }
 
     let getAvailableTypesForRegions = getAvailableTypesForLocations;
+
+    const resolveInstanceTypeDetails = instanceType => {
+      return {
+        name: instanceType,
+        storage: SETTINGS.providers.gce.defaults.instanceTypeStorage,
+      };
+    };
 
     return {
       getCategories: getCategories,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
       getAllTypesByRegion: getAllTypesByRegion,
       getAvailableTypesForLocations: getAvailableTypesForLocations,
+      resolveInstanceTypeDetails: resolveInstanceTypeDetails,
     };
   });
