@@ -306,7 +306,6 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     Long start = useEdda ? null : System.currentTimeMillis()
 
-
     // Get all the load balancers
     List<LoadBalancer> allLoadBalancers = []
     DescribeLoadBalancersRequest describeLoadBalancerRequest = new DescribeLoadBalancersRequest()
@@ -378,6 +377,10 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     Map<String, CacheData> loadBalancers = CacheHelpers.cache()
     Map<String, CacheData> targetGroups = CacheHelpers.cache()
 
+    Map<String, String> targetGroupNameToType = allTargetGroups.collectEntries {
+      [(it.targetGroupName): it.targetType]
+    }
+
     for (LoadBalancer lb : allLoadBalancers) {
       String loadBalancerKey = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.vpcId, lb.type)
 
@@ -423,8 +426,9 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
             String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn as String).get()
             action.targetGroupName = targetGroupName
             action.remove("targetGroupArn")
+            String type = targetGroupNameToType.get(targetGroupName)
 
-            allTargetGroupKeys.add(Keys.getTargetGroupKey(targetGroupName, account.name, region, vpcId))
+            allTargetGroupKeys.add(Keys.getTargetGroupKey(targetGroupName, account.name, region, type, vpcId))
           }
 
           // add the rules to the listener
@@ -439,8 +443,9 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
               String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn).get()
               action.targetGroupName = targetGroupName
               action.remove("targetGroupArn")
+              String type = targetGroupNameToType.get(targetGroupName)
 
-              allTargetGroupKeys.add(Keys.getTargetGroupKey(targetGroupName, account.name, region, vpcId))
+              allTargetGroupKeys.add(Keys.getTargetGroupKey(targetGroupName, account.name, region, type, vpcId))
             }
 
             rules.push(ruleAttributes)
@@ -461,7 +466,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     List<InstanceTargetGroupState> instanceTargetGroupStates = []
     for (TargetGroup targetGroup : allTargetGroups) {
-      String targetGroupId = Keys.getTargetGroupKey(targetGroup.targetGroupName, account.name, region, targetGroup.vpcId)
+      String targetGroupId = Keys.getTargetGroupKey(targetGroup.targetGroupName, account.name, region, targetGroup.targetType, targetGroup.vpcId)
       // Get associated load balancer keys
       Collection<String> loadBalancerIds = targetGroup.loadBalancerArns.collect {
         String lbName = ArnUtils.extractLoadBalancerName(it).get()

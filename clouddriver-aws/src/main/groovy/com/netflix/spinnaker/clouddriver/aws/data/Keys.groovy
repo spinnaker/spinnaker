@@ -113,8 +113,8 @@ class Keys implements KeyParser {
         break
       case Namespace.TARGET_GROUPS.ns:
         def names = Names.parseName(parts[4])
-        String vpcId = parts.length > 5 ? (parts[5] ?: null) : null
-        result << [account: parts[2], region: parts[3], targetGroup: parts[4], vpcId: vpcId, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
+        String vpcId = parts.length > 6 ? (parts[6] ?: null) : null
+        result << [account: parts[2], region: parts[3], targetGroup: parts[4], vpcId: vpcId, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail, targetType: parts[5]]
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
@@ -170,8 +170,8 @@ class Keys implements KeyParser {
     return key
   }
 
-  static String getTargetGroupKey(String targetGroupName, String account, String region, String vpcId) {
-    "${ID}:${Namespace.TARGET_GROUPS}:${account}:${region}:${targetGroupName}:${vpcId}"
+  static String getTargetGroupKey(String targetGroupName, String account, String region, String targetGroupType, String vpcId) {
+    "${ID}:${Namespace.TARGET_GROUPS}:${account}:${region}:${targetGroupName}:${targetGroupType}:${vpcId}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {

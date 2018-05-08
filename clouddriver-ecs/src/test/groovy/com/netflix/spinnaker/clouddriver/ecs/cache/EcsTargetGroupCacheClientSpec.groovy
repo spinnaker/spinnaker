@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetTypeEnum
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
@@ -44,7 +45,7 @@ class EcsTargetGroupCacheClientSpec extends Specification {
     def targetGroupName = 'test-target-group'
 
     def loadbalancerKey = Keys.getLoadBalancerKey(loadBalancerName, account, region, vpcId, loadBalancerType)
-    def targetGroupKey = Keys.getTargetGroupKey(targetGroupName, account, region, vpcId)
+    def targetGroupKey = Keys.getTargetGroupKey(targetGroupName, account, region, TargetTypeEnum.Instance.toString(), vpcId)
 
     def givenEcsTargetGroup = new EcsTargetGroup(
       loadBalancerNames: [loadBalancerName],

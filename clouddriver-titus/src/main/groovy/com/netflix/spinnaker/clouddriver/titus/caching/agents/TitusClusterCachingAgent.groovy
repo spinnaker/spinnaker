@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.titus.caching.agents
 
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetTypeEnum
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
+import com.netflix.spinnaker.clouddriver.aws.data.Keys as AwsKeys
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
@@ -480,7 +482,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       } as Set).asImmutable()
 
       targetGroupKeys = (targetGroupNames.collect {
-        com.netflix.spinnaker.clouddriver.aws.data.Keys.getTargetGroupKey(it, getAwsAccountId(account, region), region, getAwsVpcId(account, region))
+        AwsKeys.getTargetGroupKey(it, getAwsAccountId(account, region), region, TargetTypeEnum.Ip.toString(), getAwsVpcId(account, region))
       } as Set).asImmutable()
 
     }

@@ -274,7 +274,15 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   List<AmazonLoadBalancerSummary> list() {
     def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
-    getSummaryForLoadBalancers(identifiers).values() as List
+    Map<String, Map<String, String>> targetGroupKeys = cacheView.getIdentifiers(TARGET_GROUPS.ns).collectEntries {
+      Map<String, String> parts = Keys.parse(it)
+      Map<String, String> summary = [
+        name: parts.targetGroup,
+        targetType: parts.targetType
+      ]
+      return [(it): summary]
+    }
+    getSummaryForLoadBalancers(identifiers, targetGroupKeys).values() as List
   }
 
   AmazonLoadBalancerSummary get(String name) {
@@ -283,7 +291,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
       def key = Keys.parse(it)
       key.loadBalancer == name
     }
-    getSummaryForLoadBalancers(identifiers).get(name)
+    getSummaryForLoadBalancers(identifiers, null).get(name)
   }
 
   List<Map> byAccountAndRegionAndName(String account,
@@ -309,11 +317,18 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     }
   }
 
-  private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
+  private Map<String, Map<String, String>> getTargetGroupSummariesForLoadBalancer(Collection<CacheData> loadBalancerData) {
+    Collection<CacheData> targetGroupData = resolveRelationshipDataForCollection(loadBalancerData, TARGET_GROUPS.ns)
+    return targetGroupData.collectEntries {
+      [(it.id): [ name: it.attributes.targetGroupName, targetType: it.attributes.targetType ]]
+    }
+  }
+
+  private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys, Map<String, Map<String, String>> targetGroupMap) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
     Collection<CacheData> loadBalancerData = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys, RelationshipCacheFilter.include(TARGET_GROUPS.ns))
     Map<String, CacheData> loadBalancers = loadBalancerData.collectEntries { [(it.id): it] }
-    Map<String, CacheData> targetGroups = resolveRelationshipDataForCollection(loadBalancerData, TARGET_GROUPS.ns).collectEntries { [(it.id): it] }
+    targetGroupMap = targetGroupMap ?: getTargetGroupSummariesForLoadBalancer(loadBalancerData)
 
     for (lb in loadBalancerKeys) {
       CacheData loadBalancerFromCache = loadBalancers[lb]
@@ -345,15 +360,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
         // provider type.
         if (loadBalancerFromCache.relationships[TARGET_GROUPS.ns]) {
           loadBalancer.targetGroups = loadBalancerFromCache.relationships[TARGET_GROUPS.ns].findResults {
-            def targetGroup = targetGroups[it]
-            if (!targetGroup) {
-              return null
-            }
-
-            return [
-              name: targetGroup.attributes.targetGroupName,
-              targetType: targetGroup.attributes.targetType
-            ]
+            targetGroupMap[it]
           }
         }
 

@@ -30,6 +30,7 @@ import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.amazonaws.services.ec2.model.Subnet
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetTypeEnum
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.type.TypeReference
@@ -723,7 +724,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       } as Set).asImmutable()
 
       targetGroupKeys = (targetGroupNames.collect {
-        Keys.getTargetGroupKey(it, account, region, vpcId)
+        Keys.getTargetGroupKey(it, account, region, TargetTypeEnum.Instance.toString(), vpcId)
       } as Set).asImmutable()
 
       instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()

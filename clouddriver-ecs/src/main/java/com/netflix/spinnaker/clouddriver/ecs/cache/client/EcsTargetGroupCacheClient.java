@@ -47,7 +47,7 @@ public class EcsTargetGroupCacheClient {
   }
 
   public List<EcsTargetGroup> findAll() {
-    String searchKey = Keys.getTargetGroupKey("*", "*", "*", "*") + "*";
+    String searchKey = Keys.getTargetGroupKey("*", "*", "*", "*", "*") + "*";
     Collection<String> targetGroupKeys = cacheView.filterIdentifiers(TARGET_GROUPS.getNs(), searchKey);
 
     Set<Map<String, Object>> targetGroupAttributes = fetchLoadBalancerAttributes(targetGroupKeys);
