@@ -6,6 +6,7 @@ import {
   AccountTag,
   ExecutionDetailsSection,
   IExecutionDetailsSectionProps,
+  IExecutionDetailsComponentProps,
   StageFailureMessage,
 } from '@spinnaker/core';
 
@@ -13,14 +14,16 @@ export interface IRunJobExecutionDetailsState {
   titusUiEndpoint?: string;
 }
 
+export interface IRunJobExecutionDetailsProps extends IExecutionDetailsComponentProps, IExecutionDetailsSectionProps {}
+
 export class RunJobExecutionDetails extends React.Component<
-  IExecutionDetailsSectionProps,
+  IRunJobExecutionDetailsProps,
   IRunJobExecutionDetailsState
 > {
   public static title = 'runJobConfig';
   private mounted = false;
 
-  constructor(props: IExecutionDetailsSectionProps) {
+  constructor(props: IRunJobExecutionDetailsProps) {
     super(props);
     this.state = {};
   }
