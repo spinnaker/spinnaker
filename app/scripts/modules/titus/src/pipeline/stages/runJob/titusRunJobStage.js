@@ -3,10 +3,11 @@
 const angular = require('angular');
 import { Subject } from 'rxjs';
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, ExecutionDetailsTasks } from '@spinnaker/core';
+import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 
 module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.runJobStage', [require('./runJobExecutionDetails.controller.js').name])
+  .module('spinnaker.titus.pipeline.stage.runJobStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'runJob',
@@ -15,7 +16,7 @@ module.exports = angular
       cloudProvider: 'titus',
       providesFor: ['aws', 'titus'],
       templateUrl: require('./runJobStage.html'),
-      executionDetailsUrl: require('./runJobExecutionDetails.html'),
+      executionDetailsSections: [RunJobExecutionDetails, ExecutionDetailsTasks],
       defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
         { type: 'requiredField', fieldName: 'cluster.imageId' },
