@@ -155,6 +155,9 @@ google:
       imageProjects: # Additional projects that can images for deploying
         - my-gcp-image-project
   defaults:
+    fallbackInstanceTypeDisks:
+    - type: pd-ssd
+      sizeGb: 10
     instanceTypeDisks:
     - instanceType: n1-standard-1
       disks:
@@ -232,7 +235,7 @@ google:
         sizeGb: 10
     - instanceType: default
       disks:
-      - type: pd-standard
+      - type: pd-ssd
         sizeGb: 10
 
 openstack:

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.deploy.description.CreateGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
+import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -120,7 +121,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
             @Subject def operation = new CreateGoogleInstanceAtomicOperation(description)
             operation.registry = registry
             operation.googleConfigurationProperties = new GoogleConfigurationProperties(baseImageProjects: BASE_IMAGE_PROJECTS)
-            operation.googleDeployDefaults = new GoogleConfiguration.DeployDefaults()
+            operation.googleDeployDefaults = new GoogleConfiguration.DeployDefaults(fallbackInstanceTypeDisks: [new GoogleDisk(type: 'pd-ssd', sizeGb: 10)])
             operation.googleNetworkProvider = googleNetworkProviderMock
             operation.operate([])
           }

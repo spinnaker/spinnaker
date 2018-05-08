@@ -39,8 +39,6 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class GoogleConfiguration {
 
   private static final String DEFAULT_KEY = "default"
-  private static final String DISK_TYPE = "pd-standard"
-  private static final long DISK_SIZE_GB = 10
 
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
   @Bean
@@ -67,6 +65,7 @@ class GoogleConfiguration {
 
   @ToString(includeNames = true)
   static class DeployDefaults {
+    List<GoogleDisk> fallbackInstanceTypeDisks = []
     List<GoogleInstanceTypeDisk> instanceTypeDisks = []
 
     GoogleInstanceTypeDisk determineInstanceTypeDisk(String instanceType) {
@@ -81,10 +80,8 @@ class GoogleConfiguration {
       }
 
       if (!instanceTypeDisk) {
-        instanceTypeDisk =
-          new GoogleInstanceTypeDisk(instanceType: DEFAULT_KEY,
-            disks: [new GoogleDisk(type: DISK_TYPE,
-              sizeGb: DISK_SIZE_GB)])
+        instanceTypeDisk = new GoogleInstanceTypeDisk(instanceType: DEFAULT_KEY,
+                                                      disks: fallbackInstanceTypeDisks)
       }
 
       return instanceTypeDisk
