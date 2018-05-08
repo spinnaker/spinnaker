@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.applications.tasks
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.tasks.AbstractFront50Task
 import groovy.transform.CompileStatic
@@ -44,10 +45,15 @@ class UpsertApplicationTask extends AbstractFront50Task {
     } else {
       log.info("Creating application (name: ${application.name})")
       front50Service.create(application)
+      if (application.permission?.permissions == null) {
+        application.setPermissions(Permissions.EMPTY)
+      }
     }
 
     try {
-      front50Service.updatePermission(application.name, application.permission)
+      if (application.permission?.permissions != null) {
+        front50Service.updatePermission(application.name, application.permission)
+      }
     } catch (RetrofitError re) {
       log.error("Could not create or update application permission", re)
     }

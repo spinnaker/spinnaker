@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
@@ -55,7 +57,7 @@ class UpsertApplicationTaskSpec extends Specification {
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> null
       1 * create(app)
-      1 * updatePermission(app.name, app.permission)
+      1 * updatePermission(*_)
       0 * _._
     }
 
@@ -77,7 +79,7 @@ class UpsertApplicationTaskSpec extends Specification {
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> existingApplication
       1 * update("application", application)
-      1 * updatePermission(application.name, application.permission)
+      0 * updatePermission(*_)
       0 * _._
     }
 
@@ -97,7 +99,7 @@ class UpsertApplicationTaskSpec extends Specification {
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> initialState
       1 * "${operation}"(*_)
-      1 * updatePermission(*_)
+      _ * updatePermission(*_)
       0 * _._
     }
 
@@ -112,5 +114,38 @@ class UpsertApplicationTaskSpec extends Specification {
     initialState      | operation
     null              | 'create'
     new Application() | 'update'
+  }
+
+  @Unroll
+  void "should only update application permissions if permissions are non-null in request"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        type = "UpsertApplication"
+        context = [
+          application: [
+            "name"          : "application",
+            "permissions"   : permissions,
+          ],
+        ]
+      }
+    }
+
+    task.front50Service = Mock(Front50Service) {
+      1 * get(*_) >> new Application()
+      1 * update(*_)
+    }
+
+    when:
+    task.execute(pipeline.stages.first())
+
+    then:
+    permissionsUpdateCount * task.front50Service.updatePermission(*_)
+
+    where:
+    permissions                                                 || permissionsUpdateCount
+    null                                                        || 0
+    [:]                                                         || 1
+    [READ: ["google@google.com"], WRITE: ["google@google.com"]] || 1
   }
 }

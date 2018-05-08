@@ -43,7 +43,7 @@ class Application {
   @JsonIgnore
   String user
   @JsonIgnore
-  private Permissions permissions = Permissions.EMPTY
+  private Permissions permissions
 
   private Map<String, Object> details = new HashMap<String, Object>()
 
@@ -57,7 +57,7 @@ class Application {
     log.warn("Required group membership settings detected in application ${name}. " +
                  "Please update to `permissions` format.")
 
-    if (!permissions.isRestricted()) { // Do not overwrite permissions if it contains values
+    if (permissions == null || !permissions.isRestricted()) { // Do not overwrite permissions if it contains values
       Permissions.Builder b = new Permissions.Builder()
       requiredGroupMembership.each {
         b.add(Authorization.READ, it.trim().toLowerCase())
