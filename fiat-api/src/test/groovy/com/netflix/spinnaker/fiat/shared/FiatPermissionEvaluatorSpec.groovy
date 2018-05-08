@@ -73,21 +73,18 @@ class FiatPermissionEvaluatorSpec extends Specification {
     then:
     1 * fiatService.getUserPermission("testUser") >> new UserPermission(
             applications: [
-                new Application(name: "abc",
+                new Application(name: "abc-def",
                                 permissions: Permissions.factory([
                                     (Authorization.READ): ["testRole"]
-                                ]))
+                                ])),
             ],
             roles: [new Role("testRole")]
         ).getView()
     result
 
     where:
-    resource           | resourceName | resourceType
-    "abc"              | "abc"        | ResourceType.APPLICATION
-    "abc-def"          | "abc"        | ResourceType.APPLICATION
-    "abc-def-ghi"      | "abc"        | ResourceType.APPLICATION
-    "abc-def-ghi-1234" | "abc"        | ResourceType.APPLICATION
+    resource           | resourceName         | resourceType
+    "abc-def"          | "abc-def"            | ResourceType.APPLICATION
 
     authorization = 'READ'
   }

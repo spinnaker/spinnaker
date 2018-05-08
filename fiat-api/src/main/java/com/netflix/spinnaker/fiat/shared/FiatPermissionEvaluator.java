@@ -103,11 +103,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
       a = Authorization.valueOf(authorization.toString());
     }
 
-    if (r == ResourceType.APPLICATION) {
-      val parsedName = Names.parseName(resourceName.toString()).getApp();
-      if (StringUtils.isNotEmpty(parsedName)) {
-        resourceName = parsedName;
-      }
+    if (r == ResourceType.APPLICATION && StringUtils.isNotEmpty(resourceName.toString())) {
+        resourceName = resourceName.toString();
     }
 
     UserPermission.View permission = getPermission(getUsername(authentication));
