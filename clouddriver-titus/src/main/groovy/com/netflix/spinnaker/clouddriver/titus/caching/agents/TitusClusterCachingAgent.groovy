@@ -60,6 +60,7 @@ import javax.inject.Provider
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS
 import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*
 
@@ -262,9 +263,13 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     List<CacheData> evictFromOnDemand = []
     List<CacheData> keepInOnDemand = []
 
-    def serverGroupKeys = jobs.collect { job -> Keys.getServerGroupKey(job.name, account.name, region) }
+    def serverGroupKeys = jobs.collect { job -> Keys.getServerGroupKey(job.name, account.name, region) } as Set<String>
+    def pendingOnDemandRequestKeys = providerCache
+      .filterIdentifiers(ON_DEMAND.ns, Keys.getServerGroupKey("*", "*", account.name, region))
+      .findAll { serverGroupKeys.contains(it) }
 
-    providerCache.getAll(ON_DEMAND.ns, serverGroupKeys).each { CacheData onDemandEntry ->
+    def pendingOnDemandRequestsForServerGroups = providerCache.getAll(ON_DEMAND.ns, pendingOnDemandRequestKeys)
+    pendingOnDemandRequestsForServerGroups.each { CacheData onDemandEntry ->
       if (onDemandEntry.attributes.cacheTime < start && onDemandEntry.attributes.processedCount > 0) {
         evictFromOnDemand << onDemandEntry
       } else {

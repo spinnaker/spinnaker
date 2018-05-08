@@ -405,7 +405,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
 
-
     def serverGroupKeys = asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) } as Set<String>
     def pendingOnDemandRequestKeys = providerCache
       .filterIdentifiers(ON_DEMAND.ns, Keys.getServerGroupKey("*", "*", account.name, region))
