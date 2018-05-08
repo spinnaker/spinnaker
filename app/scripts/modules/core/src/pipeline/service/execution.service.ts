@@ -500,6 +500,7 @@ export class ExecutionService {
         }
       });
       unhydrated.hydrated = true;
+      this.synchronizeExecution(unhydrated, hydrated);
       return unhydrated;
     });
     unhydrated.hydrator = Promise.resolve(executionHydrator);
