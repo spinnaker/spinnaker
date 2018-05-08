@@ -111,7 +111,7 @@ class GceDiskConfigurer implements IComponentOptions {
       </div>
       <div class="form-group">
         <div class="sm-label-left" style="margin-bottom: 5px;">Persistent Disks
-         <span class="glyphicon glyphicon-warning-sign" 
+         <span class="glyphicon glyphicon-warning-sign"
                style="color: #EEBB3C;"
                ng-if="$ctrl.isDefault && !diskConfigurer.$dirty"
                uib-tooltip="This instance type does not have an explicitly configured persistent disk option and is using the
