@@ -17,12 +17,14 @@
 
 package com.netflix.spinnaker.orca.retrofit
 
-import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
-import com.squareup.okhttp.ConnectionPool
-import com.squareup.okhttp.Interceptor
-import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
+import okhttp3.ConnectionPool
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import okhttp3.Response
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -34,40 +36,41 @@ import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import retrofit.RestAdapter.LogLevel
-import retrofit.client.Client
-import retrofit.client.OkClient
+
+import java.util.concurrent.TimeUnit
 
 @Configuration
 @CompileStatic
-@Import(OkHttpClientConfiguration)
+@Import(OkHttp3ClientConfiguration)
 @EnableConfigurationProperties
 class RetrofitConfiguration {
 
-   @Value('${okHttpClient.connectionPool.maxIdleConnections:5}')
+   @Value('${okHttp3Client.connectionPool.maxIdleConnections:5}')
    int maxIdleConnections
 
-   @Value('${okHttpClient.connectionPool.keepAliveDurationMs:300000}')
+   @Value('${okHttp3Client.connectionPool.keepAliveDurationMs:300000}')
    int keepAliveDurationMs
 
-   @Value('${okHttpClient.retryOnConnectionFailure:true}')
+   @Value('${okHttp3Client.retryOnConnectionFailure:true}')
    boolean retryOnConnectionFailure
 
    @Bean(name = ["retrofitClient", "okClient"])
    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-   OkClient retrofitClient(@Qualifier("okHttpClientConfiguration") OkHttpClientConfiguration okHttpClientConfig) {
+   Ok3Client retrofitClient(@Qualifier("okHttpClientConfiguration") OkHttp3ClientConfiguration okHttpClientConfig) {
      final String userAgent = "Spinnaker-${System.getProperty('spring.application.name', 'unknown')}/${getClass().getPackage().implementationVersion ?: '1.0'}"
-     def cfg = okHttpClientConfig.create()
-     cfg.networkInterceptors().add(new Interceptor() {
-       @Override
-       Response intercept(Interceptor.Chain chain) throws IOException {
-         def req = chain.request().newBuilder().header('User-Agent', userAgent).build()
-         chain.proceed(req)
-       }
-     })
-     cfg.setConnectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs))
-     cfg.retryOnConnectionFailure = retryOnConnectionFailure
+     OkHttpClient.Builder builder = okHttpClientConfig.create()
+     builder.addNetworkInterceptor(
+       new Interceptor() {
+         @Override
+         Response intercept(Interceptor.Chain chain) throws IOException {
+           def req = chain.request().newBuilder().header('User-Agent', userAgent).build()
+           chain.proceed(req)
+         }
+       })
+       .connectionPool(new ConnectionPool(maxIdleConnections, keepAliveDurationMs, TimeUnit.MILLISECONDS))
+       .retryOnConnectionFailure(retryOnConnectionFailure)
 
-     new OkClient(cfg)
+     new Ok3Client(builder.build())
   }
 
   @Bean LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
