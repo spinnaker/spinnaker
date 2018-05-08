@@ -45,15 +45,15 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     def filter = new OldPipelineCleanupPollingNotificationAgent(clock: clock, thresholdDays: 1).filter
 
     expect:
-    filter.call(pipeline {
+    filter.test(pipeline {
       status = ExecutionStatus.SUCCEEDED
       startTime = Duration.ofDays(1).toMillis()
     }) == true
-    filter.call(pipeline {
+    filter.test(pipeline {
       status = ExecutionStatus.RUNNING
       startTime = Duration.ofDays(1).toMillis()
     }) == false
-    filter.call(pipeline {
+    filter.test(pipeline {
       status = ExecutionStatus.SUCCEEDED
       startTime = Duration.ofDays(3).toMillis()
     }) == false
@@ -74,7 +74,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     def mapper = new OldPipelineCleanupPollingNotificationAgent().mapper
 
     expect:
-    with(mapper.call(pipeline)) {
+    with(mapper.apply(pipeline)) {
       id == "ID1"
       application == "orca"
       pipelineConfigId == "P1"
@@ -94,7 +94,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
       millis() >> { Duration.ofDays(10).toMillis() }
     }
     def executionRepository = Mock(ExecutionRepository) {
-      1 * retrievePipelinesForApplication("orca") >> rx.Observable.from(pipelines)
+      1 * retrievePipelinesForApplication("orca") >> pipelines
     }
     def jedisPool = Stub(Pool) {
       getResource() >> {

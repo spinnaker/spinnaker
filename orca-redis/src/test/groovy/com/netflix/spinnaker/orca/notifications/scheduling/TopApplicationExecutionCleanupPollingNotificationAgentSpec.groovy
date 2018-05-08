@@ -48,7 +48,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
         status = s
       }
 
-      filter.call(pipeline) == (s == ExecutionStatus.SUCCEEDED)
+      filter.test(pipeline) == (s == ExecutionStatus.SUCCEEDED)
     }
   }
 
@@ -64,7 +64,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent().mapper
 
     expect:
-    with(mapper.call(pipeline)) {
+    with(mapper.apply(pipeline)) {
       id == "ID1"
       startTime == 1000
       pipelineConfigId == "P1"
@@ -88,7 +88,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
       }
     }
     agent.executionRepository = Mock(ExecutionRepository) {
-      retrieveOrchestrationsForApplication("app1", _) >> rx.Observable.from(orchestrations)
+      retrieveOrchestrationsForApplication("app1", _) >> orchestrations
     }
 
     when:

@@ -37,7 +37,6 @@ import redis.clients.util.Pool;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.PreDestroy;
@@ -45,9 +44,13 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION;
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.IterableUtil.toStream;
 import static java.lang.String.format;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
@@ -63,9 +66,9 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent implements A
   private Scheduler scheduler = Schedulers.io();
   private Subscription subscription;
 
-  private Func1<Execution, Boolean> filter = (Execution execution) ->
+  private Predicate<Execution> filter = (Execution execution) ->
     execution.getStatus().isComplete() || Instant.ofEpochMilli(execution.getBuildTime()).isBefore(Instant.now().minus(31, DAYS));
-  private Func1<Execution, Map> mapper = (Execution execution) -> {
+  private Function<Execution, Map> mapper = (Execution execution) -> {
     Map<String, Object> builder = new HashMap<>();
     builder.put("id", execution.getId());
     builder.put("startTime", execution.getStartTime());
@@ -142,7 +145,11 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent implements A
 
           ExecutionCriteria executionCriteria = new ExecutionCriteria();
           executionCriteria.setLimit(Integer.MAX_VALUE);
-          cleanup(executionRepository.retrieveOrchestrationsForApplication(application, executionCriteria), application, "orchestration");
+          cleanup(
+            toStream(executionRepository.retrieveOrchestrationsForApplication(application, executionCriteria)),
+            application,
+            "orchestration"
+          );
         } else {
           log.error("Unable to cleanup executions, unsupported type: {}", type);
         }
@@ -158,13 +165,21 @@ public class TopApplicationExecutionCleanupPollingNotificationAgent implements A
     }
   }
 
-  private void cleanup(Observable<Execution> observable, String application, String type) {
-    List<Map> executions = observable.filter(filter).map(mapper).toList().toBlocking().single();
+  private void cleanup(Stream<Execution> observable, String application, String type) {
+    List<Map> executions = observable.filter(filter).map(mapper).collect(Collectors.toList());
     executions.sort(comparing(a -> (Long) Optional.ofNullable(a.get("startTime")).orElse(0L)));
     if (executions.size() > threshold) {
       executions.subList(0, (executions.size() - threshold)).forEach(it -> {
         Long startTime = Optional.ofNullable((Long) it.get("startTime")).orElseGet(() -> (Long) it.get("buildTime"));
-        log.info("Deleting {} execution {} (startTime: {}, application: {}, pipelineConfigId: {}, status: {})", type, it.get("id"), startTime != null ? Instant.ofEpochMilli(startTime) : null, application, it.get("pipelineConfigId"), it.get("status"));
+        log.info(
+          "Deleting {} execution {} (startTime: {}, application: {}, pipelineConfigId: {}, status: {})",
+          type,
+          it.get("id"),
+          startTime != null ? Instant.ofEpochMilli(startTime) : null,
+          application,
+          it.get("pipelineConfigId"),
+          it.get("status")
+        );
         if (type.equals("orchestration")) {
           executionRepository.delete(ORCHESTRATION, (String) it.get("id"));
         } else {

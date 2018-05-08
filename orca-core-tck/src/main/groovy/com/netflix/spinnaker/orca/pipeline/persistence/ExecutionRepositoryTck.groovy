@@ -22,10 +22,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import rx.schedulers.Schedulers
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -66,7 +66,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(succeededExecution)
     def pipelines = repository.retrievePipelinesForPipelineConfigId(
       "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
-    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+    ).toList()
 
     then:
     pipelines*.id.sort() == [runningExecution.id, succeededExecution.id].sort()
@@ -74,7 +74,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     when:
     pipelines = repository.retrievePipelinesForPipelineConfigId(
       "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
-    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+    ).toList()
 
     then:
     pipelines*.id.sort() == [runningExecution.id].sort()
@@ -82,7 +82,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     when:
     pipelines = repository.retrievePipelinesForPipelineConfigId(
       "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
-    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+    ).toList()
 
     then:
     pipelines.isEmpty()
@@ -106,7 +106,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(succeededExecution)
     def orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
-    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+    ).toList()
 
     then:
     orchestrations*.id.sort() == [runningExecution.id, succeededExecution.id].sort()
@@ -114,7 +114,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
-    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+    ).toList()
 
     then:
     orchestrations*.id.sort() == [runningExecution.id].sort()
@@ -122,7 +122,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
       runningExecution.application, new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
-    ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
+    ).toList()
 
     then:
     orchestrations.isEmpty()
@@ -154,7 +154,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(pipeline)
 
     expect:
-    repository.retrieve(PIPELINE).toBlocking().first().id == pipeline.id
+    repository.retrieve(PIPELINE).first().id == pipeline.id
 
     with(repository.retrieve(pipeline.type, pipeline.id)) {
       id == pipeline.id
@@ -223,7 +223,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     thrown ExecutionNotFoundException
 
     and:
-    repository.retrieve(PIPELINE).toList().toBlocking().first() == []
+    repository.retrieve(PIPELINE).toList() == []
   }
 
   def "updateStatus sets startTime to current time if new status is RUNNING"() {

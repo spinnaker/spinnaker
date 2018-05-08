@@ -30,23 +30,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.IterableUtil.toStream;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -139,15 +131,10 @@ public class ArtifactResolver {
     @Nonnull String pipelineId,
     @Nonnull ExecutionCriteria criteria
   ) {
-    Execution execution = executionRepository
-        .retrievePipelinesForPipelineConfigId(pipelineId, criteria)
-        .subscribeOn(Schedulers.io())
-        .toSortedList(startTimeOrId)
-        .toBlocking()
-        .single()
-        .stream()
-        .findFirst()
-        .orElse(null);
+    Execution execution = toStream(executionRepository.retrievePipelinesForPipelineConfigId(pipelineId, criteria))
+      .sorted(startTimeOrId)
+      .findFirst()
+      .orElse(null);
 
     return execution == null ? Collections.emptyList() : getAllArtifacts(execution);
   }
@@ -266,7 +253,7 @@ public class ArtifactResolver {
     Set<ExpectedArtifact> unresolvedExpectedArtifacts = new HashSet<>();
   }
 
-  private static Func2<Execution, Execution, Integer> startTimeOrId = (a, b) -> {
+  private static Comparator<Execution> startTimeOrId = (a, b) -> {
     Long aStartTime = Optional.ofNullable(a.getStartTime()).orElse(0L);
     Long bStartTime = Optional.ofNullable(b.getStartTime()).orElse(0L);
 

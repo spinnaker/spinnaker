@@ -15,10 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import javax.annotation.Nullable;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -33,6 +29,13 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE;
 
 @Component
@@ -85,15 +88,12 @@ public class PipelineTemplateService {
     } else if (pipelineConfigId != null) {
       // No executionId set - use last execution
       ExecutionRepository.ExecutionCriteria criteria = new ExecutionRepository.ExecutionCriteria().setLimit(1);
-      try {
-        return executionRepository.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
-          .toSingle()
-          .toBlocking()
-          .value();
-      } catch (NoSuchElementException e) {
-        throw new ExecutionNotFoundException("No pipeline execution could be found for config id " +
-          pipelineConfigId + ": " + e.getMessage());
+
+      Iterator<Execution> executions = executionRepository.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria).iterator();
+      if (!executions.hasNext()) {
+        throw new ExecutionNotFoundException("No pipeline execution could be found for config id " + pipelineConfigId);
       }
+      return executions.next();
     } else {
       throw new IllegalArgumentException("Either executionId or pipelineConfigId have to be set.");
     }

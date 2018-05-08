@@ -19,11 +19,12 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import rx.Observable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 
@@ -56,14 +57,14 @@ public interface ExecutionRepository {
 
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
-  @Nonnull Observable<Execution> retrieve(ExecutionType type);
+  @Nonnull Iterable<Execution> retrieve(ExecutionType type);
 
-  @Nonnull Observable<Execution> retrievePipelinesForApplication(@Nonnull String application);
+  @Nonnull Iterable<Execution> retrievePipelinesForApplication(@Nonnull String application);
 
-  @Nonnull Observable<Execution> retrievePipelinesForPipelineConfigId(
+  @Nonnull Iterable<Execution> retrievePipelinesForPipelineConfigId(
     @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
 
-  @Nonnull Observable<Execution> retrieveOrchestrationsForApplication(
+  @Nonnull Iterable<Execution> retrieveOrchestrationsForApplication(
     @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
   @Nonnull Execution retrieveOrchestrationForCorrelationId(
@@ -114,6 +115,13 @@ public interface ExecutionRepository {
 
     @Override public int hashCode() {
       return Objects.hash(limit, statuses);
+    }
+  }
+
+  final class IterableUtil {
+
+    public static <T> Stream<T> toStream(Iterable<T> iterable) {
+      return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterable.iterator(), Spliterator.ORDERED), false);
     }
   }
 }

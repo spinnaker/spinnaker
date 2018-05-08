@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
@@ -40,10 +39,12 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.mock.env.MockEnvironment
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import javax.servlet.http.HttpServletResponse
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
@@ -471,7 +472,7 @@ class OperationsControllerSpec extends Specification {
       startedPipeline.id = UUID.randomUUID().toString()
       startedPipeline
     }
-    executionRepository.retrievePipelinesForPipelineConfigId(*_) >> Observable.empty()
+    executionRepository.retrievePipelinesForPipelineConfigId(*_) >> []
     ArtifactResolver realArtifactResolver = new ArtifactResolver(mapper, executionRepository)
 
     // can't use @subject, since we need to test the behavior of otherwise mocked-out 'artifactResolver'

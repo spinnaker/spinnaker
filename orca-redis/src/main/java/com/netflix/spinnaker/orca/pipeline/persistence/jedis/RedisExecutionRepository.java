@@ -300,12 +300,16 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  public @Nonnull
-  Observable<Execution> retrieve(@Nonnull ExecutionType type) {
+  public @Nonnull Iterable<Execution> retrieve(@Nonnull ExecutionType type) {
     List<Observable<Execution>> observables = allRedisDelegates().stream()
       .map(d -> all(type, d))
       .collect(Collectors.toList());
-    return Observable.merge(observables);
+
+    return Observable.from(observables)
+      .flatMap(task -> task.observeOn(queryAllScheduler))
+      .toList()
+      .toBlocking()
+      .single();
   }
 
   @Override
@@ -316,17 +320,17 @@ public class RedisExecutionRepository implements ExecutionRepository {
 
   @Override
   public @Nonnull
-  Observable<Execution> retrievePipelinesForApplication(@Nonnull String application) {
+  Iterable<Execution> retrievePipelinesForApplication(@Nonnull String application) {
     List<Observable<Execution>> observables = allRedisDelegates().stream()
       .map(d -> allForApplication(PIPELINE, application, d))
       .collect(Collectors.toList());
-    return Observable.merge(observables);
+    return Observable.merge(observables).toList().toBlocking().single();
   }
 
   @Override
   public @Nonnull
-  Observable<Execution> retrievePipelinesForPipelineConfigId(@Nonnull String pipelineConfigId,
-                                                             @Nonnull ExecutionCriteria criteria) {
+  Iterable<Execution> retrievePipelinesForPipelineConfigId(@Nonnull String pipelineConfigId,
+                                                           @Nonnull ExecutionCriteria criteria) {
     /*
      * Fetch pipeline ids from the primary redis (and secondary if configured)
      */
@@ -396,15 +400,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
       );
 
       // merge primary + secondary observables
-      return Observable.merge(currentObservable, previousObservable);
+      return Observable.merge(currentObservable, previousObservable)
+        .subscribeOn(queryByAppScheduler)
+        .toList()
+        .toBlocking().single();
     }
 
-    return currentObservable;
+    return currentObservable.toList().toBlocking().single();
   }
 
   @Override
   public @Nonnull
-  Observable<Execution> retrieveOrchestrationsForApplication(@Nonnull String application, @Nonnull ExecutionCriteria criteria) {
+  Iterable<Execution> retrieveOrchestrationsForApplication(@Nonnull String application, @Nonnull ExecutionCriteria criteria) {
     String allOrchestrationsKey = appKey(ORCHESTRATION, application);
 
     /*
@@ -478,10 +485,13 @@ public class RedisExecutionRepository implements ExecutionRepository {
       );
 
       // merge primary + secondary observables
-      return Observable.merge(currentObservable, previousObservable);
+      return Observable.merge(currentObservable, previousObservable)
+        .subscribeOn(queryByAppScheduler)
+        .toList()
+        .toBlocking().single();
     }
 
-    return currentObservable;
+    return currentObservable.subscribeOn(queryByAppScheduler).toList().toBlocking().single();
   }
 
   @Override
@@ -511,12 +521,10 @@ public class RedisExecutionRepository implements ExecutionRepository {
   @Override
   public @Nonnull List<Execution> retrieveBufferedExecutions() {
     // TODO rz - This is definitely not a healthy way to do this.
-    return Observable.concat(
-        retrieve(PIPELINE),
-        retrieve(ORCHESTRATION)
-      )
+    return Observable.merge(Observable.from(retrieve(PIPELINE)), Observable.from(retrieve(ORCHESTRATION)))
       .filter(execution -> execution.getStatus() == ExecutionStatus.BUFFERED)
       .toList()
+      .first()
       .toBlocking().single();
   }
 
