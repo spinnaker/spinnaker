@@ -21,5 +21,4 @@ dependencies {
   spinnaker.group('retrofitDefault')
   compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency('rxJava')
-  compile spinnaker.dependency('retrofit1okHttp3Client')
 }
