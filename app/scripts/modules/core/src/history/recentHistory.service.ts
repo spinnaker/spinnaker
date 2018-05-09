@@ -37,6 +37,14 @@ export class RecentHistoryService {
 
   public getItems(type: any): IRecentHistoryEntry[] {
     const replacements: ICacheEntryStateMigrator[] = [
+      {
+        state: 'securityGroup',
+        replacement: 'firewall',
+      },
+      {
+        state: 'securityGroupDetails',
+        replacement: 'firewallDetails',
+      },
       // example: replace "application.executions" with "application.pipelines.executions"
       // {
       //   state: 'application.executions',

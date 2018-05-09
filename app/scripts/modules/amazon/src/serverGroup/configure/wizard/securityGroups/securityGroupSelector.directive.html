@@ -1,6 +1,6 @@
 <div class="form-group">
   <div class="col-md-3 sm-label-right" ng-if="!vm.hideLabel">
-    <b>Security Groups</b>
+    <b><firewall-label label="Firewalls"/></b>
     <help-field key="{{vm.helpKey}}"></help-field>
   </div>
   <div class="col-md-9">
@@ -23,11 +23,11 @@
   <div class="col-md-{{vm.hideLabel ? 12 : 9}} col-md-offset-{{vm.hideLabel ? 0 : 3}}">
     <p>
       <span ng-if="vm.refreshing"><span class="fa fa-sync-alt fa-spin"></span></span>
-      Security groups
+      <firewall-label label="Firewalls"/>
       <span ng-if="!vm.refreshing">last refreshed {{ vm.refreshTime | timestamp }}</span>
       <span ng-if="vm.refreshing"> refreshing...</span>
     </p>
-    <p>If you're not finding a security group that was recently added,
+    <p>If you're not finding a <firewall-label label="firewall"/> that was recently added,
       <a href ng-click="vm.refreshSecurityGroups()">click here</a> to refresh the list.
     </p>
   </div>

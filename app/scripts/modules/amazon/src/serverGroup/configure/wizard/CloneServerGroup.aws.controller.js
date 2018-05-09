@@ -8,6 +8,7 @@ import {
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
@@ -68,6 +69,8 @@ module.exports = angular
 
     $scope.title = title;
 
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
+
     $scope.applicationName = application.name;
     $scope.application = application;
 
@@ -82,7 +85,7 @@ module.exports = angular
       copied: [
         'account, region, subnet, cluster name (stack, details)',
         'load balancers',
-        'security groups',
+        FirewallLabels.get('firewalls'),
         'instance type',
         'all fields on the Advanced Settings page',
       ],

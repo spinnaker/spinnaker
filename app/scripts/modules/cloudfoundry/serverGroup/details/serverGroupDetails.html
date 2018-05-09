@@ -111,10 +111,10 @@
         <dd>{{ctrl.getNetwork()}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
+    <collapsible-section heading="Firewalls">
       <ul>
         <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: serverGroup.region, provider: serverGroup.type})">
+          <a ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: serverGroup.region, provider: serverGroup.type})">
             {{securityGroup.name}}
           </a>
         </li>

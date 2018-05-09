@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.clone.controller', [
@@ -24,6 +24,8 @@ module.exports = angular
       sourceFilters: require('../configure/createSecurityGroupSourceFilters.html'),
       ingress: require('../configure/createSecurityGroupIngress.html'),
     };
+
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
 
     angular.extend(
       this,

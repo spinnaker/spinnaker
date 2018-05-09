@@ -145,10 +145,10 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
+    <collapsible-section heading="{{firewallsLabel}}">
         <ul>
           <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
-            <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: 'global', provider: instance.provider})">
+            <a ui-sref="^.firewallDetails({name:securityGroup.groupName, accountId: instance.account, region: 'global', provider: instance.provider})">
               {{securityGroup.groupName}}
             </a>
           </li>

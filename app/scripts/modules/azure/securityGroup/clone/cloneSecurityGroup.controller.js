@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { AccountService, TASK_MONITOR_BUILDER, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [
@@ -22,6 +22,8 @@ module.exports = angular
     application,
   ) {
     var ctrl = this;
+
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
 
     $scope.pages = {
       location: require('../configure/createSecurityGroupProperties.html'),
@@ -65,7 +67,7 @@ module.exports = angular
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
-      title: 'Updating your security group',
+      title: `Updating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
@@ -103,10 +105,10 @@ module.exports = angular
         region: $scope.securityGroup.region,
         provider: 'azure',
       };
-      if (!$state.includes('**.securityGroupDetails')) {
-        $state.go('.securityGroupDetails', newStateParams);
+      if (!$state.includes('**.firewallDetails')) {
+        $state.go('.firewallDetails', newStateParams);
       } else {
-        $state.go('^.securityGroupDetails', newStateParams);
+        $state.go('^.firewallDetails', newStateParams);
       }
     }
 

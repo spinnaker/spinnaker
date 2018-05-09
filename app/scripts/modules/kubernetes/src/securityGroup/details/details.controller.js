@@ -10,6 +10,7 @@ import {
   SECURITY_GROUP_WRITER,
   ServerGroupTemplates,
 } from '@spinnaker/core';
+import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.securityGroup.kubernetes.details.controller', [
@@ -33,6 +34,8 @@ module.exports = angular
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('kubernetes', 'securityGroup.detailsTemplateUrl');
+
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
 
     $scope.state = {
       loading: true,

@@ -1,6 +1,8 @@
 'use strict';
 
 const angular = require('angular');
+import { FirewallLabels } from '@spinnaker/core';
+
 import { TITUS_SECURITY_GROUP_PICKER } from '../../../securityGroup/securityGroupPicker.component';
 import { TITUS_LOAD_BALANCER_SELECTOR } from '../../../loadBalancers/loadBalancerSelector.component';
 
@@ -32,6 +34,8 @@ module.exports = angular
       securityGroups: require('./securityGroups.html'),
       parameters: require('./parameters.html'),
     };
+
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.title = title;
     $scope.applicationName = application.name;

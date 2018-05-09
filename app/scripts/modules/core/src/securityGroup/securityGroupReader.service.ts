@@ -141,7 +141,7 @@ export class SecurityGroupReader {
             }
             securityGroups.push(securityGroup);
           } catch (e) {
-            this.$log.warn('could not attach security group to load balancer:', loadBalancer.name, securityGroupId, e);
+            this.$log.warn('could not attach firewall to load balancer:', loadBalancer.name, securityGroupId, e);
             notFoundCaught = true;
           }
         });
@@ -163,7 +163,7 @@ export class SecurityGroupReader {
         SecurityGroupReader.attachUsageFields(match);
         securityGroups.push(match);
       } catch (e) {
-        this.$log.warn('could not initialize application security group:', securityGroup);
+        this.$log.warn('could not initialize application firewall:', securityGroup);
         notFoundCaught = true;
       }
     });
@@ -193,7 +193,7 @@ export class SecurityGroupReader {
             }
             securityGroups.push(securityGroup);
           } catch (e) {
-            this.$log.warn('could not attach security group to server group:', serverGroup.name, securityGroupId);
+            this.$log.warn('could not attach firewall to server group:', serverGroup.name, securityGroupId);
             notFoundCaught = true;
           }
         });
@@ -240,7 +240,7 @@ export class SecurityGroupReader {
         data = nameBasedGroups.securityGroups;
       }
     } else {
-      // filter down to empty (name-based only) security groups - we will repopulate usages
+      // filter down to empty (name-based only) firewalls - we will repopulate usages
       data = application
         .getDataSource('securityGroups')
         .data.filter(
@@ -263,7 +263,7 @@ export class SecurityGroupReader {
 
     data = uniq(data);
     if (notFoundCaught && retryIfNotFound) {
-      this.$log.warn('Clearing security group cache and trying again...');
+      this.$log.warn('Clearing firewall cache and trying again...');
       return this.clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
     } else {
       data.forEach((sg: ISecurityGroup) => this.addNamePartsToSecurityGroup(sg));
@@ -421,7 +421,7 @@ export class SecurityGroupReader {
       .then((searchResults: ISearchResults<ISecurityGroupSearchResult>) => {
         let result: ISecurityGroup[] = [];
         if (!searchResults || !searchResults.results) {
-          this.$log.warn('WARNING: Gate security group endpoint appears to be down.');
+          this.$log.warn('WARNING: Gate firewall endpoint appears to be down.');
         } else {
           result = filter(searchResults.results, { application: applicationName });
         }

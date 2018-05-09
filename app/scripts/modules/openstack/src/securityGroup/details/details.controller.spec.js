@@ -75,7 +75,7 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
       });
     });
 
-    it('security group for edit', function() {
+    it('firewall for edit', function() {
       expect(this.mockSecurityGroupReader.getSecurityGroupDetails).toHaveBeenCalledWith(
         this.mockApplication,
         this.editSecurityGroup.accountId,
@@ -86,7 +86,7 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
       );
     });
 
-    describe('security group object should get set.', function() {
+    describe('firewall object should get set.', function() {
       beforeEach(function() {
         var securityGroup = this.editSecurityGroup;
         var details = {
@@ -98,7 +98,7 @@ describe('Controller: openstackSecurityGroupDetailsController', function() {
         this.$scope.$digest();
       });
 
-      it('should set security group region', function() {
+      it('should set firewall region', function() {
         expect(this.$scope.state.loading).toEqual(false);
       });
     });

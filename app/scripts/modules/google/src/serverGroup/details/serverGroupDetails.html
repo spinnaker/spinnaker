@@ -169,10 +169,10 @@
         <dd ng-if="!ctrl.serverGroup.startupScript">[none]</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
+    <collapsible-section heading="{{ctrl.firewallsLabel}}">
       <ul>
         <li ng-repeat="securityGroup in ctrl.securityGroups | orderBy:'name'">
-          <a ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: 'global', provider: ctrl.serverGroup.type})">
+          <a ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: 'global', provider: ctrl.serverGroup.type})">
             {{securityGroup.name}}
           </a>
         </li>

@@ -10,6 +10,7 @@ import {
   ApplicationModelBuilder,
 } from 'core/application';
 import { SKIN_SERVICE, SkinService } from 'core/cloudProvider';
+import { FirewallLabels } from 'core/securityGroup/label';
 
 import { SecurityGroupReader } from './securityGroupReader.service';
 import { filterModelConfig } from './filter/SecurityGroupFilterModel';
@@ -22,9 +23,9 @@ module(SECURITY_GROUP_STATES, [
   APPLICATION_MODEL_BUILDER,
   SKIN_SERVICE,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
-  const securityGroupDetails: INestedState = {
-    name: 'securityGroupDetails',
-    url: '/securityGroupDetails/:provider/:accountId/:region/:vpcId/:name',
+  const firewallDetails: INestedState = {
+    name: 'firewallDetails',
+    url: '/firewallDetails/:provider/:accountId/:region/:vpcId/:name',
     params: {
       vpcId: {
         value: null,
@@ -54,7 +55,7 @@ module(SECURITY_GROUP_STATES, [
     },
     data: {
       pageTitleDetails: {
-        title: 'Security Group Details',
+        title: `${FirewallLabels.get('Firewall')} Details`,
         nameParam: 'name',
         accountParam: 'accountId',
         regionParam: 'region',
@@ -66,8 +67,8 @@ module(SECURITY_GROUP_STATES, [
   };
 
   const securityGroupSummary: INestedState = {
-    url: `/securityGroups?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
-    name: 'securityGroups',
+    url: `/firewalls?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
+    name: 'firewalls',
     views: {
       nav: {
         template: '<security-group-filter app="$resolve.app"></security-group-filter>',
@@ -81,14 +82,14 @@ module(SECURITY_GROUP_STATES, [
     params: stateConfigProvider.buildDynamicParams(filterModelConfig),
     data: {
       pageTitleSection: {
-        title: 'Security Groups',
+        title: FirewallLabels.get('Firewalls'),
       },
     },
   };
 
-  const standaloneSecurityGroup: INestedState = {
-    name: 'securityGroupDetails',
-    url: '/securityGroupDetails/:provider/:accountId/:region/:vpcId/:name',
+  const standaloneFirewall: INestedState = {
+    name: 'firewallDetails',
+    url: '/firewallDetails/:provider/:accountId/:region/:vpcId/:name',
     params: {
       vpcId: {
         value: null,
@@ -134,8 +135,8 @@ module(SECURITY_GROUP_STATES, [
           securityGroupReader: SecurityGroupReader,
           applicationModelBuilder: ApplicationModelBuilder,
         ): ng.IPromise<Application> => {
-          // we need the application to have a security group index (so rules get attached and linked properly)
-          // and its name should just be the name of the security group (so cloning works as expected)
+          // we need the application to have a firewall index (so rules get attached and linked properly)
+          // and its name should just be the name of the firewall (so cloning works as expected)
           return securityGroupReader.loadSecurityGroups().then(securityGroupsIndex => {
             const application: Application = applicationModelBuilder.createStandaloneApplication($stateParams.name);
             application['securityGroupsIndex'] = securityGroupsIndex; // TODO: refactor the securityGroupsIndex out
@@ -146,7 +147,7 @@ module(SECURITY_GROUP_STATES, [
     },
     data: {
       pageTitleDetails: {
-        title: 'Security Group Details',
+        title: `${FirewallLabels.get('Firewall')} Details`,
         nameParam: 'name',
         accountParam: 'accountId',
         regionParam: 'region',
@@ -158,6 +159,13 @@ module(SECURITY_GROUP_STATES, [
   };
 
   applicationStateProvider.addInsightState(securityGroupSummary);
-  applicationStateProvider.addInsightDetailState(securityGroupDetails);
-  stateConfigProvider.addToRootState(standaloneSecurityGroup);
+  applicationStateProvider.addInsightDetailState(firewallDetails);
+  stateConfigProvider.addToRootState(standaloneFirewall);
+  stateConfigProvider.addRewriteRule(
+    '/applications/{application}/securityGroups',
+    '/applications/{application}/firewalls',
+  );
+  stateConfigProvider.addRewriteRule(/(.+?)\/securityGroupDetails\/(.*)/, ($match: string[]) => {
+    return `${$match[1]}/firewallDetails/${$match[2]}`;
+  });
 });

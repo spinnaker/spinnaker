@@ -9,6 +9,7 @@ import {
   INSTANCE_READ_SERVICE,
   RECENT_HISTORY_SERVICE,
   SETTINGS,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 import { AMAZON_INSTANCE_WRITE_SERVICE } from 'amazon/instance/amazon.instance.write.service';
@@ -46,6 +47,8 @@ module.exports = angular
     };
 
     $scope.application = app;
+
+    $scope.securityGroupsLabel = FirewallLabels.get('Firewalls');
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

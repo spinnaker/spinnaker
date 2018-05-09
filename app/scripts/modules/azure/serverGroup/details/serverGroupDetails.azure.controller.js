@@ -8,6 +8,7 @@ import {
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_WRITER,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.azure.module.js');
@@ -37,6 +38,8 @@ module.exports = angular
     $scope.state = {
       loading: true,
     };
+
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     this.application = app;
 

@@ -3,6 +3,7 @@ import { IPromise, module } from 'angular';
 import { Application } from 'core/application/application.model';
 import { InfrastructureCaches } from 'core/cache/infrastructureCaches';
 import { ISecurityGroup, ITask } from 'core/domain';
+import { FirewallLabels } from 'core/securityGroup/label';
 
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
@@ -29,7 +30,7 @@ export class SecurityGroupWriter {
     const operation: IPromise<ITask> = this.taskExecutor.executeTask({
       job: [params],
       application,
-      description: `Delete Security Group: ${securityGroup.name}`,
+      description: `Delete ${FirewallLabels.get('Firewall')}: ${securityGroup.name}`,
     });
     InfrastructureCaches.clearCache('securityGroups');
 
@@ -49,7 +50,7 @@ export class SecurityGroupWriter {
     const operation: IPromise<ITask> = this.taskExecutor.executeTask({
       job: [job],
       application,
-      description: `${description} Security Group: ${securityGroup.name}`,
+      description: `${description} ${FirewallLabels.get('Firewall')}: ${securityGroup.name}`,
     });
 
     InfrastructureCaches.clearCache('securityGroups');

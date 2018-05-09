@@ -217,7 +217,7 @@ class ProjectsUrlBuilder implements IUrlBuilder {
 
 class SecurityGroupsUrlBuilder implements IUrlBuilder {
   public build(input: IUrlBuilderInput, $state: StateService) {
-    const href: string = $state.href('home.securityGroupDetails', {
+    const href: string = $state.href('home.firewallDetails', {
       accountId: input.account,
       region: input.region,
       name: input.name,

@@ -55,7 +55,7 @@ export class ApplicationStateProvider implements IServiceProvider {
   /**
    * Adds an inspector view to all insight states. Adding an insight detail state makes that view available to all
    * parent insight views, so, for example, adding the load balancer details state makes it available to cluster,
-   * security group, and load balancer insight parent states
+   * firewall, and load balancer insight parent states
    * @param state
    */
   public addInsightDetailState(state: INestedState): void {

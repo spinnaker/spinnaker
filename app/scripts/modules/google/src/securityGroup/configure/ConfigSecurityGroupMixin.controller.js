@@ -4,6 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
+  FirewallLabels,
   NETWORK_READ_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -138,10 +139,10 @@ module.exports = angular
         vpcId: $scope.securityGroup.vpcId,
         provider: 'gce',
       };
-      if (!$state.includes('**.securityGroupDetails')) {
-        $state.go('.securityGroupDetails', newStateParams);
+      if (!$state.includes('**.firewallDetails')) {
+        $state.go('.firewallDetails', newStateParams);
       } else {
-        $state.go('^.securityGroupDetails', newStateParams);
+        $state.go('^.firewallDetails', newStateParams);
       }
     }
 
@@ -152,7 +153,7 @@ module.exports = angular
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
-      title: 'Creating your security group',
+      title: `Creating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });

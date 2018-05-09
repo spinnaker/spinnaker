@@ -14,6 +14,7 @@ import {
   Spinner,
   timestamp,
   wizardPage,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
@@ -32,7 +33,9 @@ class SecurityGroupsImpl extends React.Component<
   IWizardPageProps & FormikProps<IAmazonClassicLoadBalancerUpsertCommand>,
   ISecurityGroupsState
 > {
-  public static LABEL = 'Security Groups';
+  public static get LABEL() {
+    return FirewallLabels.get('Firewalls');
+  }
 
   private destroy$ = new Subject();
 
@@ -183,8 +186,8 @@ class SecurityGroupsImpl extends React.Component<
                 <div className="alert alert-warning">
                   <p>
                     <i className="fa fa-exclamation-triangle" />
-                    The following security groups could not be found in the selected account/region/VPC and were
-                    removed:
+                    The following {FirewallLabels.get('firewalls')} could not be found in the selected
+                    account/region/VPC and were removed:
                   </p>
                   <ul>{removed.map(sg => <li key={sg}>{sg}</li>)}</ul>
                   <p className="text-right">
@@ -197,7 +200,7 @@ class SecurityGroupsImpl extends React.Component<
             </div>
           )}
           <div className="form-group">
-            <div className="col-md-3 sm-label-right">Security Groups</div>
+            <div className="col-md-3 sm-label-right">{FirewallLabels.get('Firewalls')}</div>
             <div className="col-md-9">
               {!loaded && (
                 <div style={{ paddingTop: '13px' }}>
@@ -225,12 +228,12 @@ class SecurityGroupsImpl extends React.Component<
                     <span className="fa fa-sync-alt fa-spin" />{' '}
                   </span>
                 )}
-                Security groups
+                {FirewallLabels.get('Firewalls')}
                 {!refreshing && <span> last refreshed {timestamp(refreshTime)}</span>}
                 {refreshing && <span> refreshing...</span>}
               </p>
               <p>
-                If you're not finding a security group that was recently added,{' '}
+                If you're not finding a {FirewallLabels.get('firewall')} that was recently added,{' '}
                 <a className="clickable" onClick={this.refreshSecurityGroups}>
                   click here
                 </a>{' '}

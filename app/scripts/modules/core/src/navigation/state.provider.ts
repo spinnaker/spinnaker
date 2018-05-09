@@ -69,7 +69,7 @@ export class StateConfigProvider implements IServiceProvider {
    * @param base, e.g. "/applications/{application}"
    * @param replacement, e.g. "/applications/{application}/clusters"
    */
-  public addRewriteRule(base: string, replacement: string) {
+  public addRewriteRule(base: string | RegExp, replacement: string | Function) {
     this.$urlRouterProvider.when(base, replacement);
   }
 

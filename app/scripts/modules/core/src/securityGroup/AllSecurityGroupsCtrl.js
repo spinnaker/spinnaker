@@ -6,6 +6,7 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SKIN_SELECTION_SERVICE } from 'core/cloudProvider/skinSelection/skinSelection.service';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 import { SETTINGS } from 'core/config/settings';
+import { FirewallLabels } from './label/FirewallLabels';
 import { SecurityGroupState } from 'core/state';
 
 const angular = require('angular');
@@ -48,6 +49,7 @@ module.exports = angular
     };
 
     this.groupingsTemplate = require('./groupings.html');
+    this.firewallLabel = FirewallLabels.get('Firewall');
 
     let updateSecurityGroups = () => {
       $scope.$evalAsync(() => {

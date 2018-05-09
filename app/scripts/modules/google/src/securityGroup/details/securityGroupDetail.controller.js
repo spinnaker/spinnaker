@@ -7,6 +7,7 @@ import {
   AccountService,
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
 } from '@spinnaker/core';
@@ -44,6 +45,8 @@ module.exports = angular
       standalone: app.isStandalone,
     };
 
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
+
     function extractSecurityGroup() {
       return securityGroupReader
         .getSecurityGroupDetails(
@@ -69,7 +72,7 @@ module.exports = angular
             );
             $scope.securityGroup = angular.extend(_.cloneDeep(applicationSecurityGroup), $scope.securityGroup);
 
-            // These come back from the global security group endpoint as '[tag-a, tag-b]'
+            // These come back from the global firewall endpoint as '[tag-a, tag-b]'
             if (typeof $scope.securityGroup.targetTags === 'string') {
               let targetTags = $scope.securityGroup.targetTags;
               $scope.securityGroup.targetTags = targetTags.substring(1, targetTags.length - 1).split(', ');
@@ -226,7 +229,7 @@ module.exports = angular
     };
 
     if (app.isStandalone) {
-      // we still want the edit to refresh the security group details when the modal closes
+      // we still want the edit to refresh the firewall details when the modal closes
       app.securityGroups = {
         refresh: extractSecurityGroup,
       };

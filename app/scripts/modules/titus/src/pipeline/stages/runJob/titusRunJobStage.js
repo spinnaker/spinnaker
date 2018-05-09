@@ -3,7 +3,7 @@
 const angular = require('angular');
 import { Subject } from 'rxjs';
 
-import { AccountService, ExecutionDetailsTasks } from '@spinnaker/core';
+import { AccountService, ExecutionDetailsTasks, FirewallLabels } from '@spinnaker/core';
 import { RunJobExecutionDetails } from './RunJobExecutionDetails';
 
 module.exports = angular
@@ -33,6 +33,7 @@ module.exports = angular
   .controller('titusRunJobStageCtrl', function($scope, $q) {
     let stage = $scope.stage;
     let vm = this;
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     if (!stage.cluster) {
       stage.cluster = {};

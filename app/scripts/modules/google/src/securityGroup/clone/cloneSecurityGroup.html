@@ -1,5 +1,5 @@
 <ng-form name="form" novalidate class="gce-security-group-wizard">
-  <v2-modal-wizard heading="Clone Security Group" task-monitor="taskMonitor" dismiss="$dismiss()">
+  <v2-modal-wizard heading="Clone {{firewallLabel}}" task-monitor="taskMonitor" dismiss="$dismiss()">
     <v2-wizard-page key="Location" label="Location">
       <ng-include src="pages.location"></ng-include>
     </v2-wizard-page>

@@ -7,6 +7,7 @@ import {
   AccountService,
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
   RECENT_HISTORY_SERVICE,
@@ -43,6 +44,7 @@ module.exports = angular
       loading: true,
       standalone: app.isStandalone,
     };
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.application = app;
     $scope.gateUrl = SETTINGS.gateUrl;

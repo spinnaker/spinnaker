@@ -7,6 +7,7 @@ import {
   AccountService,
   ClusterTargetBuilder,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   NameUtils,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
@@ -51,6 +52,8 @@ module.exports = angular
   ) {
     let application = app;
     this.application = app;
+
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.gateUrl = SETTINGS.gateUrl;
 

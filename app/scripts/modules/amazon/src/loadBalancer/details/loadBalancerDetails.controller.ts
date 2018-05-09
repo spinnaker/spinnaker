@@ -17,6 +17,7 @@ import {
   SecurityGroupReader,
   SUBNET_READ_SERVICE,
   SubnetReader,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 import {
@@ -45,6 +46,7 @@ export class AwsLoadBalancerDetailsController implements IController {
   public securityGroups: ISecurityGroup[];
   public ipAddressTypeDescription: string;
   public state = { loading: true };
+  public firewallsLabel = FirewallLabels.get('Firewalls');
 
   constructor(
     private $scope: IScope,

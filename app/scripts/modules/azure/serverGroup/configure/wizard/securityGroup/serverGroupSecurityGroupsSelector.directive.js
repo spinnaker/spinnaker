@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { InfrastructureCaches } from '@spinnaker/core';
+import { FirewallLabels, InfrastructureCaches } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.securityGroupSelector.directive', [])
@@ -14,6 +14,8 @@ module.exports = angular
       },
       templateUrl: require('./serverGroupSecurityGroupsSelector.directive.html'),
       link: function(scope) {
+        scope.firewallLabel = FirewallLabels.get('firewall');
+
         scope.getSecurityGroupRefreshTime = function() {
           return InfrastructureCaches.get('securityGroups').getStats().ageMax;
         };

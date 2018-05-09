@@ -76,11 +76,11 @@ const helpContents: { [key: string]: string } = {
   'aws.serverGroup.traffic': `<p>Enables the "AddToLoadBalancer" scaling process, which is used by Spinnaker and discovery services to determine if the server group is enabled.</p>
      <p>Will be automatically enabled when any non "custom" deployment strategy is selected.</p>`,
   'aws.securityGroup.vpc': `
-    <p>The VPC to which this security group will apply.</p>
+    <p>The VPC to which this {{firewall}} will apply.</p>
     <p>If you wish to use VPC but are unsure which VPC to use, the most common one is "Main".</p>
     <p>If you do not wish to use VPC, select "None".</p>`,
   'aws.securityGroup.name':
-    '<p>The security group name is formed by combining the application name, the <b>Stack</b> field, and the <b>Detail</b> field.</p>',
+    '<p>The {{firewall}} name is formed by combining the application name, the <b>Stack</b> field, and the <b>Detail</b> field.</p>',
   'aws.scalingPolicy.search.restricted': `<p>Resets dimensions to "AutoScalingGroupName: {name of the ASG}" and provides
         a simpler, combined input for the namespace and metric name fields.</p>`,
   'aws.scalingPolicy.search.all': `

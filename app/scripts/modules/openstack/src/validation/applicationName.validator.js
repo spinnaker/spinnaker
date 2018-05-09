@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
+import { APPLICATION_NAME_VALIDATOR, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.openstack.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
@@ -21,7 +21,11 @@ module.exports = angular
       }
       if (name.length > 240) {
         if (name.length >= 248) {
-          warnings.push('You will not be able to include a stack or detail field for clusters or security groups.');
+          warnings.push(
+            `You will not be able to include a stack or detail field for clusters or ${FirewallLabels.get(
+              'firewalls',
+            )}.`,
+          );
         } else {
           let remaining = 248 - name.length;
           warnings.push(`If you plan to include a stack or detail field for clusters, you will only

@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { InfrastructureCaches, SECURITY_GROUP_READER } from '@spinnaker/core';
+import { FirewallLabels, InfrastructureCaches, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.securityGroup.configure.openstack.ports', [
@@ -55,7 +55,7 @@ module.exports = angular
         // Add self referencial option at the start of avaibleSecurityGroup Collection
         // Only do need this on create as an edit has itself in the list already.
         if ($scope.securityGroup.edit === undefined) {
-          $scope.prependSecurityGroupOption({ id: 'SELF', name: 'This Security Group (Self)' });
+          $scope.prependSecurityGroupOption({ id: 'SELF', name: `This ${FirewallLabels.get('Firewall')} (Self)` });
         }
 
         // Add CIDR at the start of avaibleSecurityGroup Collection

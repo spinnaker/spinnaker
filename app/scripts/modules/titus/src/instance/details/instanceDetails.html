@@ -139,11 +139,11 @@
         <dd>{{instance.placement.host}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
+    <collapsible-section heading="{{firewallsLabel}}">
       <ul>
         <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
           <a
-            ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.account, region: instance.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
+            ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.account, region: instance.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
             {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>

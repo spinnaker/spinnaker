@@ -20,6 +20,7 @@ import {
   SubnetReader,
   TaskMonitorBuilder,
   TaskMonitor,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/amazon.certificate.read.service';
@@ -247,7 +248,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       });
       this.loadBalancerCommand.securityGroups = uniq(existingNames);
       if (this.viewState.removedSecurityGroups.length) {
-        this.v2modalWizardService.markDirty('Security Groups');
+        this.v2modalWizardService.markDirty(FirewallLabels.get('Firewalls'));
       }
     } else {
       this.clearSecurityGroups();
@@ -437,11 +438,11 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       this.availabilityZones = this.subnets
         .find(o => o.purpose === this.loadBalancerCommand.subnetType)
         .availabilityZones.sort();
-      this.v2modalWizardService.includePage('Security Groups');
+      this.v2modalWizardService.includePage(FirewallLabels.get('Firewalls'));
     } else {
       this.updateAvailabilityZones();
       this.loadBalancerCommand.vpcId = null;
-      this.v2modalWizardService.excludePage('Security Groups');
+      this.v2modalWizardService.excludePage(FirewallLabels.get('Firewalls'));
     }
   }
 

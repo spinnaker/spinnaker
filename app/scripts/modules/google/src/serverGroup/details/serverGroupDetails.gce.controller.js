@@ -16,6 +16,7 @@ import {
 require('../configure/serverGroup.configure.gce.module.js');
 
 import './serverGroupDetails.less';
+import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.serverGroup.details.gce.controller', [
@@ -51,6 +52,8 @@ module.exports = angular
     this.state = {
       loading: true,
     };
+
+    this.firewallsLabel = FirewallLabels.get('Firewalls');
 
     this.application = app;
 

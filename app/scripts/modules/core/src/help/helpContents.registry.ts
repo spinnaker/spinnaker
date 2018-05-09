@@ -1,3 +1,5 @@
+import { FirewallLabels } from 'core/securityGroup/label';
+
 export class HelpContentsRegistry {
   private static helpFields: Map<string, string> = new Map<string, string>();
   private static overrides: Set<string> = new Set<string>();
@@ -8,7 +10,12 @@ export class HelpContentsRegistry {
    * @returns the configured help value, or null
    */
   public static getHelpField(key: string): string {
-    return this.helpFields.get(key) || null;
+    let contents = this.helpFields.get(key);
+    if (contents) {
+      // TODO: remove this if the FirewallLabels feature ever goes away
+      contents = contents.replace(/{{(.+?)}}/g, (_ignored, match) => FirewallLabels.get(match));
+    }
+    return contents || null;
   }
 
   /**

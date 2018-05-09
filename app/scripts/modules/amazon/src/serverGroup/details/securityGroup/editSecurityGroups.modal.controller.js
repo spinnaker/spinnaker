@@ -3,7 +3,13 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { SECURITY_GROUP_READER, SERVER_GROUP_WRITER, TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import {
+  SECURITY_GROUP_READER,
+  SERVER_GROUP_WRITER,
+  TASK_EXECUTOR,
+  TASK_MONITOR_BUILDER,
+  FirewallLabels,
+} from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.securityGroup.editSecurityGroups.modal.controller', [
@@ -65,7 +71,7 @@ module.exports = angular
 
     this.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
-      title: 'Update Security Groups for ' + serverGroup.name,
+      title: `Update ${FirewallLabels.get('Firewalls')} for ${serverGroup.name}`,
       modalInstance: $uibModalInstance,
       onTaskComplete: () => application.serverGroups.refresh(),
     });

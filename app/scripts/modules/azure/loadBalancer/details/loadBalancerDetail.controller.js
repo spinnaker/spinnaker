@@ -8,6 +8,7 @@ import {
   LOAD_BALANCER_READ_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   SECURITY_GROUP_READER,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -34,6 +35,8 @@ module.exports = angular
     $scope.state = {
       loading: true,
     };
+
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     function extractLoadBalancer() {
       $scope.loadBalancer = app.loadBalancers.data.filter(function(test) {

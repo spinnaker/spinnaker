@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { InfrastructureCaches, TASK_EXECUTOR } from '@spinnaker/core';
+import { InfrastructureCaches, TASK_EXECUTOR, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.write.service', [require('@uirouter/angularjs').default, TASK_EXECUTOR])
@@ -17,7 +17,7 @@ module.exports = angular
       var operation = taskExecutor.executeTask({
         job: [params],
         application: application,
-        description: descriptor + ' Security Group: ' + name,
+        description: `${descriptor} ${FirewallLabels.get('Firewall')}: ${name}`,
       });
 
       InfrastructureCaches.clearCache('securityGroup');
@@ -36,7 +36,7 @@ module.exports = angular
       var operation = taskExecutor.executeTask({
         job: [params],
         application: application,
-        description: 'Delete Security Group: ' + securityGroup.name,
+        description: `Delete ${FirewallLabels.get('Firewalls')}: ${securityGroup.name}`,
       });
 
       InfrastructureCaches.clearCache('securityGroup');

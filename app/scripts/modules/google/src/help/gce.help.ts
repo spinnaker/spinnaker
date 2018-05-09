@@ -126,7 +126,7 @@ const helpContents: { [key: string]: string } = {
   'gce.serverGroup.securityGroups.implicit':
     'Firewall rules with no target tags defined will permit incoming connections that match the ingress rules to all instances in the network.',
   'gce.serverGroup.securityGroups.targetTags':
-    'This security group will be associated with this server group only if a target tag is selected.',
+    'This {{firewall}} rule will be associated with this server group only if a target tag is selected.',
   'gce.serverGroup.autoscaling.targetCPUUsage':
     'Autoscaling adds or removes VMs in the group to maintain this level of CPU usage on each VM.',
   'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage':

@@ -11,6 +11,7 @@ import {
 } from '@spinnaker/core';
 
 import '../../loadBalancer.less';
+import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.loadBalancer.openstack.create.controller', [
@@ -52,6 +53,8 @@ module.exports = angular
       accountsLoaded: false,
       submitting: false,
     };
+
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.subnetFilter = {};
 

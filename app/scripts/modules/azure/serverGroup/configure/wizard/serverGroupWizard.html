@@ -20,7 +20,7 @@
         <v2-wizard-page key="network-settings" label="Network Settings" mark-complete-on-view="false">
           <ng-include src="pages.networkSettings"></ng-include>
         </v2-wizard-page>
-        <v2-wizard-page key="security-groups" label="Security Groups" mark-complete-on-view="false" done="true">
+        <v2-wizard-page key="security-groups" label="{{firewallsLabel}}" mark-complete-on-view="false" done="true">
           <ng-include src="pages.securityGroups"></ng-include>
         </v2-wizard-page>
         <v2-wizard-page key="advanced-settings" label="Advanced Settings" mark-complete-on-view="false" done="true">

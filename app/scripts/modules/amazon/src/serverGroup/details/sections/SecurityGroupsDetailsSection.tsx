@@ -2,7 +2,7 @@ import * as React from 'react';
 import { chain, find, sortBy } from 'lodash';
 import { UISref } from '@uirouter/react';
 
-import { CollapsibleSection, ISecurityGroup, ModalInjector } from '@spinnaker/core';
+import { CollapsibleSection, ISecurityGroup, ModalInjector, FirewallLabels } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
@@ -59,12 +59,12 @@ export class SecurityGroupsDetailsSection extends React.Component<
     const { securityGroups } = this.state;
 
     return (
-      <CollapsibleSection heading="Security Groups">
+      <CollapsibleSection heading={FirewallLabels.get('Firewalls')}>
         <ul>
           {sortBy(securityGroups, 'name').map(securityGroup => (
             <li key={securityGroup.name}>
               <UISref
-                to="^.securityGroupDetails"
+                to="^.firewallDetails"
                 params={{
                   name: securityGroup.name,
                   accountId: securityGroup.accountName,
@@ -82,7 +82,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
         </ul>
         {serverGroup.vpcId && (
           <a className="clickable" onClick={this.updateSecurityGroups}>
-            Edit Security Groups
+            Edit {FirewallLabels.get('Firewalls')}
           </a>
         )}
       </CollapsibleSection>

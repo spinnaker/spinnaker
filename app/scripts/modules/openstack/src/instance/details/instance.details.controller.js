@@ -11,6 +11,7 @@ import {
   RECENT_HISTORY_SERVICE,
   SETTINGS,
 } from '@spinnaker/core';
+import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.instance.detail.openstack.controller', [
@@ -42,6 +43,8 @@ module.exports = angular
       standalone: app.isStandalone,
       instancePort: _.get(app, 'attributes.instancePort') || SETTINGS.defaultInstancePort || 80,
     };
+
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.application = app;
 

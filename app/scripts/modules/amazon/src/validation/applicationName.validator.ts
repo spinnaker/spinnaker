@@ -1,6 +1,11 @@
 import { module } from 'angular';
 
-import { APPLICATION_NAME_VALIDATOR, IApplicationNameValidator, ApplicationNameValidator } from '@spinnaker/core';
+import {
+  APPLICATION_NAME_VALIDATOR,
+  FirewallLabels,
+  IApplicationNameValidator,
+  ApplicationNameValidator,
+} from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
 
 class AmazonApplicationNameValidator implements IApplicationNameValidator {
@@ -15,8 +20,8 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
     const lockoutDate = AWSProviderSettings.classicLaunchLockout;
     if (lockoutDate && lockoutDate < new Date().getTime()) {
       warnings.push(
-        'New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
-          'load balancers, or security groups in EC2 Classic.',
+        `New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
+          'load balancers, or ${FirewallLabels.get('firewalls')} in EC2 Classic.`,
       );
     }
   }
@@ -36,7 +41,9 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
     }
     if (name.length > 240) {
       if (name.length >= 248) {
-        warnings.push('You will not be able to include a stack or detail field for clusters or security groups.');
+        warnings.push(
+          `You will not be able to include a stack or detail field for clusters or ${FirewallLabels.get('firewalls')}.`,
+        );
       } else {
         const remaining = 248 - name.length;
         warnings.push(`If you plan to include a stack or detail field for clusters, you will only

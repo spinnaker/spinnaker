@@ -6,6 +6,7 @@ import { Key, ITag, TagList } from 'core/widgets';
 import { IFilterType, SearchFilterTypeRegistry } from './SearchFilterTypeRegistry';
 import { Filters, IFiltersLayout } from './Filters';
 import { Filter } from './Filter';
+import { FirewallLabels } from 'core';
 
 import './search.less';
 
@@ -321,7 +322,9 @@ export class Search extends React.Component<ISearchProps, ISearchState> {
               ref={this.refCallback}
               autoFocus={true}
               className="search__input-control"
-              placeholder="projects, applications, clusters, load balancers, server groups, security groups"
+              placeholder={`projects, applications, clusters, load balancers, server groups, ${FirewallLabels.get(
+                'firewalls',
+              )}`}
               onBlur={this.handleBlur}
               onChange={this.handleChange}
               onFocus={this.handleFocus}

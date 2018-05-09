@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
+import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.azure.details.controller', [
@@ -29,6 +29,8 @@ module.exports = angular
     $scope.state = {
       loading: true,
     };
+
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
 
     function extractSecurityGroup() {
       return securityGroupReader
@@ -128,7 +130,7 @@ module.exports = angular
     };
 
     if (app.isStandalone) {
-      // we still want the edit to refresh the security group details when the modal closes
+      // we still want the edit to refresh the firewall details when the modal closes
       app.securityGroups = {
         refresh: extractSecurityGroup,
       };

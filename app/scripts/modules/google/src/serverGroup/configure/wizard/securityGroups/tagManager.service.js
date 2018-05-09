@@ -4,6 +4,8 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
+import { FirewallLabels } from '@spinnaker/core';
+
 module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).factory('gceTagManager', function() {
   let resetKeys = ['command', 'securityGroups', 'securityGroupObjectsKeyedByTag', 'securityGroupObjectsKeyedById'];
 
@@ -183,7 +185,9 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', []).fac
     let groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
       groupIds = groups ? groups.filter(sg => sg.network === this.command.network).map(sg => sg.id) : [];
 
-    return `This tag associates this server group with security group${groupIds.length > 1 ? 's' : ''}
+    return `This tag associates this server group with ${
+      groupIds.length > 1 ? FirewallLabels.get('firewalls') : FirewallLabels.get('firewall')
+    }
               <em>${groupIds.join(', ')}</em>.`;
   };
 

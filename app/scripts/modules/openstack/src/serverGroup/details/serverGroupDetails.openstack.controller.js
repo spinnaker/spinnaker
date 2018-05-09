@@ -6,6 +6,7 @@ import _ from 'lodash';
 import {
   AccountService,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   OVERRIDE_REGISTRY,
   SECURITY_GROUP_READER,
   SERVER_GROUP_READER,
@@ -49,6 +50,8 @@ module.exports = angular
     this.state = {
       loading: true,
     };
+
+    this.firewallsLabel = FirewallLabels.get('Firewalls');
 
     this.application = app;
 
@@ -316,7 +319,7 @@ module.exports = angular
         var accountIndex = allSecurityGroups[serverGroup.account] || {};
         var regionSecurityGroups = accountIndex[serverGroup.region] || {};
         $scope.securityGroups = _.map(serverGroup.launchConfig.securityGroups, sgId => {
-          //TODO(jcwest): remove this once the back-end sends correctly formatted security group IDs
+          //TODO(jcwest): remove this once the back-end sends correctly formatted firewall IDs
           if (new RegExp("^\\[u'").test(sgId)) {
             sgId = sgId.split("'")[1];
           }

@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { get, has } from 'lodash';
 
-import { Application, IServerGroup } from '@spinnaker/core';
+import { Application, FirewallLabels, IServerGroup } from '@spinnaker/core';
 
 export class GceSecurityGroupHelpTextService {
   private serverGroupsIndexedByTag: Map<string, Set<string>>;
@@ -25,10 +25,12 @@ export class GceSecurityGroupHelpTextService {
         text = null;
         break;
       case 1:
-        text = `This ${tagType} tag associates this security group with the server group <em>${serverGroups[0]}</em>.`;
+        text = `This ${tagType} tag associates this ${FirewallLabels.get('firewall')} with the server group <em>${
+          serverGroups[0]
+        }</em>.`;
         break;
       default:
-        text = `This ${tagType} tag associates this security group with the server groups
+        text = `This ${tagType} tag associates this ${FirewallLabels.get('firewall')} with the server groups
                 ${serverGroups.map(serverGroup => `<em>${serverGroup}</em>`).join(', ')}.`;
         break;
     }

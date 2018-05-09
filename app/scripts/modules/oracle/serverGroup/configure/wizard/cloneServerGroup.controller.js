@@ -1,6 +1,7 @@
 'use strict';
 
 const angular = require('angular');
+import { FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
@@ -37,7 +38,7 @@ module.exports = angular
       copied: [
         'account, region, subnet, cluster name (stack, details)',
         'load balancers',
-        'security groups',
+        FirewallLabels.get('firewalls'),
         'instance type',
         'all fields on the Advanced Settings page',
       ],

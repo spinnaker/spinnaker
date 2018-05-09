@@ -141,10 +141,10 @@
         <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
+    <collapsible-section heading="{{ctrl.firewallsLabel}}">
       <ul>
         <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: ctrl.serverGroup.region, vpcId: ctrl.serverGroup.vpcId, provider: ctrl.serverGroup.type})">
+          <a ui-sref="^.firewallDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: ctrl.serverGroup.region, vpcId: ctrl.serverGroup.vpcId, provider: ctrl.serverGroup.type})">
             {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>

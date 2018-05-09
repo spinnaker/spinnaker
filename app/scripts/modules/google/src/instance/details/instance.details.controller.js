@@ -12,6 +12,7 @@ import {
 } from '@spinnaker/core';
 
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 module.exports = angular
   .module('spinnaker.instance.detail.gce.controller', [
@@ -40,6 +41,8 @@ module.exports = angular
   ) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
+
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
 
     $scope.state = {
       loading: true,

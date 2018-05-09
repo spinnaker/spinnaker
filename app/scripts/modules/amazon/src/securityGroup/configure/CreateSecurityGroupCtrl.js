@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CACHE_INITIALIZER_SERVICE } from '@spinnaker/core';
+import { CACHE_INITIALIZER_SERVICE, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.create.controller', [
@@ -24,6 +24,8 @@ module.exports = angular
     };
 
     var ctrl = this;
+
+    ctrl.translate = FirewallLabels.get;
 
     angular.extend(
       this,

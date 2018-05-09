@@ -21,6 +21,7 @@ var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
 var atlasWebComponentsUrl = process.env.ATLAS_WEB_COMPONENTS_URL;
 var canaryAccount = process.env.CANARY_ACCOUNT || '';
 var canaryFeatureDisabled = process.env.CANARY_FEATURE_ENABLED !== 'true';
+var useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -155,6 +156,7 @@ window.spinnakerSettings = {
   pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub'],
   searchVersion: 1,
+  useClassicFirewallLabels: useClassicFirewallLabels,
   canary: {
     reduxLogger: reduxLoggerEnabled,
     metricsAccountName: canaryAccount,

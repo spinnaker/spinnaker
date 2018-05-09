@@ -127,7 +127,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       expect(command.dirty).toBeUndefined();
     });
 
-    it('attempts to reload security groups if some are not found on initialization, but does not set dirty flag', function() {
+    it('attempts to reload firewalls if some are not found on initialization, but does not set dirty flag', function() {
       spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue($q.when([]));
       const getAllSecurityGroupsSpy = spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
       spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
@@ -320,14 +320,14 @@ describe('Service: awsServerGroupConfiguration', function() {
       };
     });
 
-    it('matches existing security groups based on name - no VPC', function() {
+    it('matches existing firewalls based on name - no VPC', function() {
       this.command.region = 'us-east-1';
       const result = service.configureSecurityGroupOptions(this.command);
       expect(this.command.securityGroups).toEqual(['sg-1c', 'sg-2c']);
       expect(result).toEqual({ dirty: {} });
     });
 
-    it('matches existing security groups based on name - VPC', function() {
+    it('matches existing firewalls based on name - VPC', function() {
       this.command.vpcId = 'vpc-1';
       const result = service.configureSecurityGroupOptions(this.command);
       expect(this.command.securityGroups).toEqual(['sg-1va', 'sg-2va']);
@@ -342,7 +342,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       expect(result).toEqual({ dirty: {} });
     });
 
-    it('sets dirty all unmatched security groups - no VPC', function() {
+    it('sets dirty all unmatched firewalls - no VPC', function() {
       this.command.securityGroups.push('sg-3a');
       this.command.region = 'us-east-1';
       const result = service.configureSecurityGroupOptions(this.command);
@@ -350,7 +350,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       expect(result).toEqual({ dirty: { securityGroups: ['sg3'] } });
     });
 
-    it('sets dirty all unmatched security groups - VPC', function() {
+    it('sets dirty all unmatched firewalls - VPC', function() {
       this.command.securityGroups.push('sg-3a');
       this.command.vpcId = 'vpc-2';
       const result = service.configureSecurityGroupOptions(this.command);

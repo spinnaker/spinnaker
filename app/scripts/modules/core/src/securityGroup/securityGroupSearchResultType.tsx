@@ -1,3 +1,4 @@
+import { FirewallLabels } from 'core/securityGroup/label';
 import * as React from 'react';
 
 import {
@@ -32,7 +33,7 @@ export interface ISecurityGroupSearchResult extends ISearchResult {
 class SecurityGroupsSearchResultType extends SearchResultType<ISecurityGroupSearchResult> {
   public id = 'securityGroups';
   public order = 6;
-  public displayName = 'Security Groups';
+  public displayName = FirewallLabels.get('Firewalls');
   public iconClass = 'fa fa-exchange-alt';
 
   private cols: { [key: string]: ISearchColumn } = {

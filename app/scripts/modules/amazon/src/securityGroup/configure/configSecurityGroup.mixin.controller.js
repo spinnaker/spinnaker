@@ -11,6 +11,7 @@ import {
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
+  FirewallLabels,
   V2_MODAL_WIZARD_SERVICE,
 } from '@spinnaker/core';
 
@@ -74,10 +75,10 @@ module.exports = angular
         vpcId: $scope.securityGroup.vpcId,
         provider: 'aws',
       };
-      if (!$state.includes('**.securityGroupDetails')) {
-        $state.go('.securityGroupDetails', newStateParams);
+      if (!$state.includes('**.firewallDetails')) {
+        $state.go('.firewallDetails', newStateParams);
       } else {
-        $state.go('^.securityGroupDetails', newStateParams);
+        $state.go('^.firewallDetails', newStateParams);
       }
     }
 
@@ -88,7 +89,7 @@ module.exports = angular
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
-      title: 'Creating your security group',
+      title: `Creating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });

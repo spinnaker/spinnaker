@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.cloneServerGroup.controller', [
@@ -35,6 +35,8 @@ module.exports = angular
       advancedSettings: require('./advancedSettings/advancedSettings.html'),
     };
 
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
+
     $scope.title = title;
 
     $scope.applicationName = application.name;
@@ -50,7 +52,7 @@ module.exports = angular
       copied: [
         'account, region, subnet, cluster name (stack, details)',
         'load balancers',
-        'security groups',
+        FirewallLabels.get('firewalls'),
         'instance type',
         'all fields on the Advanced Settings page',
       ],

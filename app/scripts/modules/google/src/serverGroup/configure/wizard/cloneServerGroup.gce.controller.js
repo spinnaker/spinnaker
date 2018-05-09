@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
+import { FirewallLabels, INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
@@ -44,6 +44,8 @@ module.exports = angular
       advancedSettings: require('./advancedSettings/advancedSettings.html'),
     };
 
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
+
     $scope.title = title;
 
     $scope.applicationName = application.name;
@@ -60,7 +62,7 @@ module.exports = angular
       copied: [
         'account, region, subnet, cluster name (stack, details)',
         'load balancers',
-        'security groups',
+        FirewallLabels.get('firewalls'),
         'instance type',
         'all fields on the Advanced Settings page',
       ],

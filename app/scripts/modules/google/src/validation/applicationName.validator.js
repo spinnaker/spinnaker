@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
+import { APPLICATION_NAME_VALIDATOR, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.gce.validation.applicationName', [APPLICATION_NAME_VALIDATOR])
@@ -72,12 +72,15 @@ module.exports = angular
       if (name.length > maxResourceNameLength - 12) {
         if (name.length >= maxResourceNameLength - 2) {
           warnings.push(
-            'With separators ("-"), you will not be able to include a stack and detail field for ' +
-              'Google security groups.',
+            `With separators ("-"), you will not be able to include a stack and detail field for Google ${FirewallLabels.get(
+              'firewalls',
+            )}.`,
           );
         } else {
           let remaining = maxResourceNameLength - 2 - name.length;
-          warnings.push(`If you plan to include a stack or detail field for Google security groups, you will only
+          warnings.push(`If you plan to include a stack or detail field for Google ${FirewallLabels.get(
+            'firewalls',
+          )}, you will only
             have ~${remaining} characters to do so.`);
         }
       }

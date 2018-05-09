@@ -114,12 +114,12 @@ describe('Controller: CreateSecurityGroup', function() {
       }),
     );
 
-    it('initializes with no security groups available for ingress permissions', function() {
+    it('initializes with no firewalls available for ingress permissions', function() {
       this.initializeCtrl();
       expect(this.$scope.availableSecurityGroups.length).toBe(0);
     });
 
-    it('sets up available security groups once an account and region are selected', function() {
+    it('sets up available firewalls once an account and region are selected', function() {
       this.initializeCtrl();
       this.$scope.securityGroup.credentials = 'prod';
       this.ctrl.accountUpdated();
@@ -179,7 +179,7 @@ describe('Controller: CreateSecurityGroup', function() {
       expect(this.$scope.securityGroup.vpcId).toBe('vpc2-te');
     });
 
-    describe('security group removal', function() {
+    describe('firewall removal', function() {
       beforeEach(function() {
         spyOn(this.v2modalWizardService, 'markDirty').and.returnValue(null);
         this.initializeCtrl();

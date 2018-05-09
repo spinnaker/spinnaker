@@ -160,7 +160,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
           this.$scope.$digest();
         });
 
-        it('- updates the list of security Group names', function() {
+        it('- updates the list of firewall names', function() {
           expect(this.$scope.state.securityGroupNamesLoaded).toBeTruthy();
           expect(this.$scope.existingSecurityGroupNames).toEqual(
             _.map(_.filter(this.testData.loadSecurityGroups, { account: 'account1' }), function(lb) {
@@ -205,7 +205,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
                   this.taskCompletionCallback();
                 });
 
-                it('- refreshes the security groups', function() {
+                it('- refreshes the firewalls', function() {
                   expect(this.mockApplication.securityGroups.refresh).toHaveBeenCalled();
                 });
 
@@ -218,7 +218,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
                     this.$scope.$$destroyed = false;
                   });
 
-                  describe('& security Groups are refreshed', function() {
+                  describe('& firewalls are refreshed', function() {
                     beforeEach(function() {
                       this.applicationRefreshCallback();
                     });
@@ -282,7 +282,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
 
         this.applicationRefreshCallback();
         expect(this.mockModal.close).toHaveBeenCalled();
-        expect(this.mockState.go).toHaveBeenCalledWith('^.securityGroupDetails', {
+        expect(this.mockState.go).toHaveBeenCalledWith('^.firewallDetails', {
           name: this.$scope.securityGroup.name,
           accountId: this.$scope.securityGroup.account,
           namespace: undefined,

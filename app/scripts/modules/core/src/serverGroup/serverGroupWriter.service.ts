@@ -2,6 +2,7 @@ import { module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
+import { FirewallLabels } from 'core/securityGroup/label';
 import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import { IMoniker, NameUtils } from 'core/naming';
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
@@ -170,7 +171,7 @@ export class ServerGroupWriter {
     return this.taskExecutor.executeTask({
       job: [job],
       application,
-      description: `Update security groups for ${serverGroup.name}`,
+      description: `Update ${FirewallLabels.get('firewalls')} for ${serverGroup.name}`,
     });
   }
 }

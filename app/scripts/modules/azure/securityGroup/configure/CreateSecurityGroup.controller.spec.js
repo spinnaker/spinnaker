@@ -72,7 +72,7 @@ describe('Controller: Azure.CreateSecurityGroup', function() {
       }),
     );
 
-    it('initializes with no security groups available for ingress permissions', function() {
+    it('initializes with no firewalls available for ingress permissions', function() {
       this.initializeCtrl();
       expect(this.$scope.securityGroup.securityRules.length).toBe(0);
     });

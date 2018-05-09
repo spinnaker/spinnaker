@@ -1,5 +1,7 @@
 'use strict';
 
+import { FirewallLabels } from '@spinnaker/core';
+
 const angular = require('angular');
 
 module.exports = angular
@@ -15,6 +17,8 @@ module.exports = angular
     networkReader,
     v2modalWizardService,
   ) {
+    $scope.firewallsLabel = FirewallLabels.get('Firewalls');
+
     // Loads all load balancers in the current application, region, and account
     $scope.updateLoadBalancers = function() {
       var filter = {
@@ -31,7 +35,7 @@ module.exports = angular
 
     $scope.$watch('command.associatePublicIpAddress', resetFloatingNetworkIp);
 
-    // Loads all security groups in the current region and account
+    // Loads all firewalls in the current region and account
     $scope.updateSecurityGroups = function() {
       $scope.allSecurityGroups = getSecurityGroups();
     };

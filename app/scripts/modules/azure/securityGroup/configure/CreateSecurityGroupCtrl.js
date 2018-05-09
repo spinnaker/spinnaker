@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { AccountService, TASK_MONITOR_BUILDER } from '@spinnaker/core';
+import { AccountService, TASK_MONITOR_BUILDER, FirewallLabels } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
@@ -25,6 +25,8 @@ module.exports = angular
       location: require('./createSecurityGroupProperties.html'),
       ingress: require('./createSecurityGroupIngress.html'),
     };
+
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
 
     var ctrl = this;
     $scope.isNew = true;
@@ -57,10 +59,10 @@ module.exports = angular
         region: $scope.securityGroup.regions[0],
         provider: 'azure',
       };
-      if (!$state.includes('**.securityGroupDetails')) {
-        $state.go('.securityGroupDetails', newStateParams);
+      if (!$state.includes('**.firewallDetails')) {
+        $state.go('.firewallDetails', newStateParams);
       } else {
-        $state.go('^.securityGroupDetails', newStateParams);
+        $state.go('^.firewallDetails', newStateParams);
       }
     }
 
@@ -71,7 +73,7 @@ module.exports = angular
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
-      title: 'Creating your security group',
+      title: `Creating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });

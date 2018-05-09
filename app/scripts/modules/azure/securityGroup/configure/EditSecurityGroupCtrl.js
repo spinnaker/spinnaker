@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import {
   CACHE_INITIALIZER_SERVICE,
+  FirewallLabels,
   InfrastructureCaches,
   SECURITY_GROUP_READER,
   TASK_MONITOR_BUILDER,
@@ -48,7 +49,7 @@ module.exports = angular
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
-      title: 'Updating your security group',
+      title: `Updating your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });
@@ -105,10 +106,10 @@ module.exports = angular
         region: $scope.securityGroup.region,
         provider: 'azure',
       };
-      if (!$state.includes('**.securityGroupDetails')) {
-        $state.go('.securityGroupDetails', newStateParams);
+      if (!$state.includes('**.firewallDetails')) {
+        $state.go('.firewallDetails', newStateParams);
       } else {
-        $state.go('^.securityGroupDetails', newStateParams);
+        $state.go('^.firewallDetails', newStateParams);
       }
     }
 

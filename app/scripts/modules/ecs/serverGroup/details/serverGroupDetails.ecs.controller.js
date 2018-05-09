@@ -2,6 +2,7 @@
 
 const angular = require('angular');
 import { chain, filter, find, has, isEmpty } from 'lodash';
+import { FirewallLabels } from 'root/app/scripts/modules/core/src';
 
 import { ECS_SERVER_GROUP_TRANSFORMER } from '../serverGroup.transformer';
 
@@ -45,6 +46,8 @@ module.exports = angular
     this.state = {
       loading: true,
     };
+
+    this.firewallsLabel = FirewallLabels.get('Firewalls');
 
     this.application = app;
 

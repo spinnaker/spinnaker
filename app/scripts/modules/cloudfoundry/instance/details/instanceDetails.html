@@ -105,10 +105,10 @@
         <dd ng-if="instance.externalIpAddress"><a href="http://{{instance.externalIpAddress}}" target="_blank">{{instance.externalIpAddress}}</a></dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
+    <collapsible-section heading="Firewalls">
         <ul>
           <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
-            <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: 'global', provider: instance.provider})">
+            <a ui-sref="^.firewallDetails({name:securityGroup.groupName, accountId: instance.account, region: 'global', provider: instance.provider})">
               {{securityGroup.groupName}}
             </a>
           </li>

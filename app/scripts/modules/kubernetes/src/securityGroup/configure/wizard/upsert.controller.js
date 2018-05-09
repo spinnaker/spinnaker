@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import {
   AccountService,
+  FirewallLabels,
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
@@ -37,6 +38,9 @@ module.exports = angular
     taskMonitorBuilder,
   ) {
     var ctrl = this;
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
+    $scope.firewallLabelLc = FirewallLabels.get('firewall');
+
     $scope.isNew = !securityGroup.edit;
     $scope.securityGroup = securityGroup;
 
@@ -66,10 +70,10 @@ module.exports = angular
         namespace: $scope.securityGroup.namespace,
         provider: 'kubernetes',
       };
-      if (!$state.includes('**.securityGroupDetails')) {
-        $state.go('.securityGroupDetails', newStateParams);
+      if (!$state.includes('**.firewallDetails')) {
+        $state.go('.firewallDetails', newStateParams);
       } else {
-        $state.go('^.securityGroupDetails', newStateParams);
+        $state.go('^.firewallDetails', newStateParams);
       }
     }
 
@@ -80,7 +84,7 @@ module.exports = angular
 
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
-      title: ($scope.isNew ? 'Creating ' : 'Updating ') + 'your security group',
+      title: `${$scope.isNew ? 'Creating ' : 'Updating '} your ${FirewallLabels.get('firewall')}`,
       modalInstance: $uibModalInstance,
       onTaskComplete: onTaskComplete,
     });

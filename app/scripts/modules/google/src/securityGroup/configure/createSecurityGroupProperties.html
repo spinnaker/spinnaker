@@ -2,7 +2,7 @@
     <div class="modal-body">
       <div class="form-group">
         <div class="col-md-12 well" ng-class="{'alert-danger': form.securityGroupName.$error.validateUnique, 'alert-info': !form.securityGroupName.$error.validateUnique}">
-          <strong>Your security group will be named:</strong>
+          <strong>Your <firewall-label label="firewall"/> will be named:</strong>
           <span ng-bind="namePreview"></span>
           <input type="hidden" class="form-control input-sm"
                  ng-model="securityGroup.name"
@@ -12,7 +12,7 @@
                  ng-pattern="ctrl.namePattern"
                  trigger-validation="securityGroup.subnet"
                  required/>
-          <validation-error ng-if="form.securityGroupName.$error.validateUnique && securityGroup.credentials" message="There is already a security group in {{securityGroup.credentials}} with that name."></validation-error>
+          <validation-error ng-if="form.securityGroupName.$error.validateUnique && securityGroup.credentials" message="There is already a {{firewallLabel}} in {{securityGroup.credentials}} with that name."></validation-error>
           <validation-error ng-if="form.securityGroupName.$error.pattern" message="Name can only contain letters, numbers, and dashes(-)."></validation-error>
         </div>
       </div>

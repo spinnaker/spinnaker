@@ -167,7 +167,7 @@ const helpContents: { [key: string]: string } = {
   'kubernetes.ingress.tls.host':
     'The fully qualified domain name of a network host. Any traffic routed to this host can be secured with TLS. May not be an IP address, or contain port information.',
   'kubernetes.ingress.tls.secret':
-    '(Optional) Name of the Kubernetes secret that will be used to secure TLS connections to the security group. Note that Spinnaker will not create any secrets, they are assumed to exist.',
+    '(Optional) Name of the Kubernetes secret that will be used to secure TLS connections to the {{firewall}}. Note that Spinnaker will not create any secrets, they are assumed to exist.',
   'kubernetes.manifest.account': `
       <p>A Spinnaker account corresponds to a physical Kubernetes cluster. If you are unsure which account to use, talk to your Spinnaker admin.</p>
   `,

@@ -28,14 +28,14 @@
       <div class="actions">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
-            Security Group Actions <span class="caret"></span>
+            <firewall-label label="Firewall"/> Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" uib-dropdown-menu role="menu">
             <li>
-              <a href ng-click="ctrl.deleteSecurityGroup()">Delete Security Group</a>
+              <a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"/></a>
             </li>
             <li>
-              <a href ng-click="ctrl.editSecurityGroup()">Edit Security Group</a>
+              <a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"/></a>
             </li>
           </ul>
         </div>

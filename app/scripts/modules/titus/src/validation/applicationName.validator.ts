@@ -1,6 +1,11 @@
 import { module } from 'angular';
 
-import { APPLICATION_NAME_VALIDATOR, ApplicationNameValidator, IApplicationNameValidator } from '@spinnaker/core';
+import {
+  APPLICATION_NAME_VALIDATOR,
+  ApplicationNameValidator,
+  FirewallLabels,
+  IApplicationNameValidator,
+} from '@spinnaker/core';
 
 class TitusApplicationNameValidator implements IApplicationNameValidator {
   private validateSpecialCharacters(name: string, errors: string[]): void {
@@ -17,7 +22,9 @@ class TitusApplicationNameValidator implements IApplicationNameValidator {
     }
     if (name.length > 240) {
       if (name.length >= 248) {
-        warnings.push('You will not be able to include a stack or detail field for clusters or security groups.');
+        warnings.push(
+          `You will not be able to include a stack or detail field for clusters or ${FirewallLabels.get('firewalls')}.`,
+        );
       } else {
         const remaining = 248 - name.length;
         warnings.push(`If you plan to include a stack or detail field for clusters, you will only

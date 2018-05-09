@@ -6,6 +6,7 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
+  FirewallLabels,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
 } from '@spinnaker/core';
@@ -32,6 +33,8 @@ module.exports = angular
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('openstack', 'securityGroup.detailsTemplateUrl');
+
+    $scope.firewallLabel = FirewallLabels.get('Firewall');
 
     $scope.state = {
       loading: true,
@@ -120,7 +123,7 @@ module.exports = angular
     };
 
     if (app.isStandalone) {
-      // we still want the edit to refresh the security group details when the modal closes
+      // we still want the edit to refresh the firewall details when the modal closes
       app.securityGroups = {
         refresh: extractSecurityGroup,
       };

@@ -33,7 +33,7 @@ module.exports = angular
     require('./image/image.reader.js').name,
     // Instances
     require('./instance/details/instance.details.controller.js').name,
-    // Security Groups
+    // Firewalls
     require('./securityGroup/securityGroup.reader.js').name,
     require('./securityGroup/securityGroup.transformer.js').name,
     require('./securityGroup/configure/createSecurityGroup.controller.js').name,

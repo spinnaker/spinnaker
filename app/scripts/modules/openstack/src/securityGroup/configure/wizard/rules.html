@@ -7,7 +7,7 @@
           <th style="width: 15%">Protocol</th>
           <th style="width: 12%" uib-tooltip="From Port is used for TCP and UDP, Type is used for ICMP.">From Port/Type</th>
           <th style="width: 12%" uib-tooltip="To Port is used for TCP and UDP, Code is used for ICMP.">To Port/Code</th>
-          <th style="width: 20%" uib-tooltip="Remote value can either be a security group or a CIDR.">Remote</th>
+          <th style="width: 20%" uib-tooltip="Remote value can either be a {{firewallLabelLc}} or a CIDR.">Remote</th>
           <th style="width: 15%">CIDR</th>
           <th></th>
         </tr>
@@ -110,11 +110,11 @@
     <div class="col-md-12">
         <p>
             <span ng-if="state.refreshingSecurityGroups"><span class="fa fa-sync-alt fa-spin"></span></span>
-            Security groups
+            <firewall-label label="Firewalls"/>
             <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ rulesController.getSecurityGroupRefreshTime() | timestamp }}</span>
             <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
         </p>
-        <p>If you're not finding a security group that was recently added,
+        <p>If you're not finding a <firewall-label label="firewall"/> that was recently added,
             <a href ng-click="rulesController.refreshSecurityGroups()">click here</a> to refresh the list.
         </p>
     </div>

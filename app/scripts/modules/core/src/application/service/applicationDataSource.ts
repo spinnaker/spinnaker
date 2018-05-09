@@ -5,6 +5,7 @@ import { Subject, Subscription } from 'rxjs';
 
 import { Application } from '../application.model';
 import { IEntityTags } from 'core/domain/IEntityTags';
+import { FirewallLabels } from 'core/securityGroup/label/FirewallLabels';
 
 export interface IDataSourceConfig {
   /**
@@ -285,6 +286,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
     if (!config.label && this.$filter) {
       this.label = this.$filter('robotToHuman')(config.key);
     }
+    this.label = FirewallLabels.get(this.label);
 
     if (!config.activeState && this.sref) {
       this.activeState = '**' + this.sref + '.**';

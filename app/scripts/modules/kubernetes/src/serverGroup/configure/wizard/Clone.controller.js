@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { FirewallLabels, SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.kubernetes.clone', [
@@ -54,7 +54,7 @@ module.exports = angular
       copied: [
         'account, namespace, cluster name (stack, details)',
         'load balancers',
-        'security groups',
+        FirewallLabels.get('firewalls'),
         'container configuration',
       ],
       notCopied: [],

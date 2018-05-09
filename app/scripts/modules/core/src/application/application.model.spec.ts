@@ -228,7 +228,7 @@ describe('Application Model', function() {
       expect(application.defaultRegions.gce).toBe('us-central-1');
     });
 
-    it('sets default credentials and region from security group', function() {
+    it('sets default credentials and region from firewall', function() {
       const serverGroups: any[] = [],
         loadBalancers: ILoadBalancer[] = [],
         securityGroupsByApplicationName: any[] = [

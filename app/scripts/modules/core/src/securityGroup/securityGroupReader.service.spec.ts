@@ -52,7 +52,7 @@ describe('Service: securityGroupReader', function() {
     }),
   );
 
-  it('attaches load balancer to security group usages', function() {
+  it('attaches load balancer to firewall usages', function() {
     let data: any[] = null;
 
     const application: Application = applicationModelBuilder.createApplication(
@@ -98,7 +98,7 @@ describe('Service: securityGroupReader', function() {
     expect(group.usages.loadBalancers[0]).toEqual({ name: application.getDataSource('loadBalancers').data[0].name });
   });
 
-  it('adds security group names across accounts, falling back to the ID if none found', function() {
+  it('adds firewall names across accounts, falling back to the ID if none found', function() {
     let details: ISecurityGroupDetail = null;
     const application: Application = applicationModelBuilder.createApplication('app');
     application['securityGroupsIndex'] = {
@@ -129,7 +129,7 @@ describe('Service: securityGroupReader', function() {
     expect(details.securityGroupRules[2].securityGroup.inferredName).toBeFalsy();
   });
 
-  it('should clear cache, then reload security groups and try again if a security group is not found', function() {
+  it('should clear cache, then reload firewalls and try again if a firewall is not found', function() {
     let data: ISecurityGroup[] = null;
     const application: Application = applicationModelBuilder.createApplication(
       'app',

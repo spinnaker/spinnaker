@@ -9,6 +9,7 @@ import {
   RECENT_HISTORY_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
+  FirewallLabels,
 } from '@spinnaker/core';
 
 module.exports = angular
@@ -34,6 +35,7 @@ module.exports = angular
     this.application = app;
     const application = app;
     const securityGroup = resolvedSecurityGroup;
+    this.firewallLabel = FirewallLabels.get('Firewall');
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'securityGroup.detailsTemplateUrl');
@@ -200,13 +202,14 @@ module.exports = angular
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
-        retryBody:
-          '<div><p>Retry deleting the security group and revoke any dependent ingress rules?</p><p>Any instance or load balancer associations will have to removed manually.</p></div>',
+        retryBody: `<div><p>Retry deleting the ${FirewallLabels.get(
+          'firewall',
+        )} and revoke any dependent ingress rules?</p><p>Any instance or load balancer associations will have to removed manually.</p></div>`,
       });
     };
 
     if (app.isStandalone) {
-      // we still want the edit to refresh the security group details when the modal closes
+      // we still want the edit to refresh the firewall details when the modal closes
       app.securityGroups = {
         refresh: extractSecurityGroup,
       };

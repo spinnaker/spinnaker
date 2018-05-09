@@ -116,7 +116,7 @@ module.exports = angular
             }
           }
           if (command.securityGroups && command.securityGroups.length) {
-            // Verify all security groups are accounted for; otherwise, try refreshing security groups cache.
+            // Verify all firewalls are accounted for; otherwise, try refreshing firewalls cache.
             var securityGroupIds = _.map(getSecurityGroups(command), 'id');
             if (_.intersection(command.securityGroups, securityGroupIds).length < command.securityGroups.length) {
               securityGroupReloader = refreshSecurityGroups(command, true);
@@ -563,17 +563,17 @@ module.exports = angular
         }
       }
 
-      // Only include explicit security group options in the pulldown list.
+      // Only include explicit firewall options in the pulldown list.
       command.backingData.filtered.securityGroups = _.filter(newSecurityGroups, function(securityGroup) {
         return !_.isEmpty(securityGroup.targetTags);
       });
 
-      // Identify implicit security groups so they can be optionally listed in a read-only state.
+      // Identify implicit firewalls so they can be optionally listed in a read-only state.
       command.implicitSecurityGroups = _.filter(newSecurityGroups, function(securityGroup) {
         return _.isEmpty(securityGroup.targetTags);
       });
 
-      // Only include explicitly-selected security groups in the body of the command.
+      // Only include explicitly-selected firewalls in the body of the command.
       var xpnHostProject = getXpnHostProjectIfAny(command.network);
       var decoratedSecurityGroups = _.map(
         command.securityGroups,

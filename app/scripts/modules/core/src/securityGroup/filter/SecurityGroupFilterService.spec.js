@@ -27,7 +27,7 @@ describe('Service: securityGroupFilterService', function() {
     State.SecurityGroupState.filterModel.asFilterModel.clearFilters();
   });
 
-  describe('Updating the security group group', function() {
+  describe('Updating the firewall group', function() {
     it('no filter: should be transformed', function() {
       var expected = [
         {

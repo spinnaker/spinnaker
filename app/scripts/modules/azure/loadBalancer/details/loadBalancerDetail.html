@@ -92,10 +92,10 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
+    <collapsible-section heading="{{firewallsLabel}}">
       <ul>
         <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
-          <a ui-sref="^.securityGroupDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})">
+          <a ui-sref="^.firewallDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})">
             {{securityGroup.name}} ({{securityGroup.id}})
           </a>
         </li>

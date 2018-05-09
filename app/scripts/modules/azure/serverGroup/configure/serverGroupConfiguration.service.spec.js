@@ -109,7 +109,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       };
     });
 
-    it('finds matching security groups and assigns them to the filtered list the first time', function() {
+    it('finds matching firewalls and assigns them to the filtered list the first time', function() {
       this.command.region = 'westus';
       var expected = this.allSecurityGroups.azurecred1['westus'];
 
@@ -120,7 +120,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.viewState.securityGroupConfigured).toBeTrue;
     });
 
-    it('finds matcing security groups, sets dirty flag for subsequent time', function() {
+    it('finds matching firewalls, sets dirty flag for subsequent time', function() {
       this.command.region = 'eastus';
       this.command.backingData.filtered.securityGroups = this.allSecurityGroups.azurecred1['westus'];
       var expected = this.allSecurityGroups.azurecred1['eastus'];
@@ -153,7 +153,7 @@ describe('Service: azureServerGroupConfiguration', function() {
       expect(this.command.viewState.securityGroupConfigured).toBeTrue;
     });
 
-    it('returns no security groups if none match', function() {
+    it('returns no firewalls if none match', function() {
       this.command.region = 'eastasia';
       this.command.backingData.filtered.securityGroups = this.allSecurityGroups.azurecred1['westus'];
 

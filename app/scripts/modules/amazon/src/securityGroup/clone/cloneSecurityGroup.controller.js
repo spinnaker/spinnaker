@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { AccountService } from '@spinnaker/core';
+import { AccountService, FirewallLabels } from '@spinnaker/core';
 
 import { VPC_READ_SERVICE } from 'amazon/vpc/vpc.read.service';
 
@@ -20,6 +20,8 @@ module.exports = angular
     application,
   ) {
     var vm = this;
+
+    vm.firewallLabel = FirewallLabels.get('Firewall');
 
     $scope.pages = {
       location: require('../configure/createSecurityGroupProperties.html'),

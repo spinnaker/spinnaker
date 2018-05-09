@@ -18,17 +18,17 @@
     <div class="actions">
       <div class="dropdown" uib-dropdown dropdown-append-to-body>
         <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
-          Security Group Actions <span class="caret"></span>
+          <firewall-label label="Firewall"/> Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
-          <li><a href ng-click="ctrl.editSecurityGroup()">Edit Security Group</a></li>
-          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete Security Group</a></li>
+          <li><a href ng-click="ctrl.editSecurityGroup()">Edit <firewall-label label="Firewall"/></a></li>
+          <li><a href ng-click="ctrl.deleteSecurityGroup()">Delete <firewall-label label="Firewall"/></a></li>
         </ul>
       </div>
     </div>
   </div>
   <div class="content" ng-if="!state.loading">
-    <collapsible-section heading="Security Group Details" expanded="true">
+    <collapsible-section heading="{{firewallLabel}} Details" expanded="true">
       <dl class="dl-horizontal dl-medium">
         <dt>ID</dt>
         <dd>{{securityGroup.id}}</dd>
@@ -55,14 +55,14 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Group Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
+    <collapsible-section heading="{{firewallLabel}} Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
           <div ng-if="!securityGroup.securityGroupRules.length">None</div>
 
           <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
               ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
-            <dt>Security Group</dt>
+            <dt><firewall-label label="Firewall"/></dt>
             <dd ng-if="rule.securityGroup.name">
-                  <a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'openstack'})">
+                  <a ui-sref="^.firewallDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: rule.securityGroup.vpcId, provider: 'openstack'})">
                       <account-tag account="rule.securityGroup.accountName || rule.securityGroup.accountId" ng-if="rule.securityGroup.accountName !== securityGroup.accountName"></account-tag>
                     {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
                 </a>

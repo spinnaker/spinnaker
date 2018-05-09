@@ -67,6 +67,7 @@ export interface ISpinnakerSettings {
   defaultInstancePort: number;
   defaultProviders: string[];
   defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
+  dockerInsights: IDockerInsightSettings;
   entityTags?: {
     maxUrlLength?: number;
   };
@@ -95,7 +96,7 @@ export interface ISpinnakerSettings {
   resetToOriginal: () => void;
   searchVersion: 1 | 2;
   triggerTypes: string[];
-  dockerInsights: IDockerInsightSettings;
+  useClassicFirewallLabels: boolean;
 }
 
 export const SETTINGS: ISpinnakerSettings = (window as any).spinnakerSettings;

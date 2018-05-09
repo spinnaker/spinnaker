@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
+import { FirewallLabels } from 'core/securityGroup/label';
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
@@ -45,6 +46,8 @@ module.exports = angular
     $state,
   ) {
     var search = infrastructureSearchService.getSearcher();
+
+    $scope.firewallsLabel = FirewallLabels.get('firewalls');
 
     $scope.categories = [];
     $scope.projects = [];

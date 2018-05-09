@@ -58,6 +58,9 @@ import { SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 import { SERVER_GROUP_MANAGER_MODULE } from './serverGroupManager/serverGroupManager.module';
 import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
+
+import { FIREWALL_LABEL_COMPONENT } from 'core/securityGroup/label/firewallLabel.component';
+
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 
@@ -98,6 +101,7 @@ module(CORE_MODULE, [
 
   ENTITY_TAGS_MODULE,
 
+  FIREWALL_LABEL_COMPONENT,
   require('./forms/forms.module').name,
 
   HEALTH_COUNTS_MODULE,
@@ -130,6 +134,7 @@ module(CORE_MODULE, [
   require('./securityGroup/securityGroup.module').name,
   SERVERGROUP_MODULE,
   SERVER_GROUP_MANAGER_MODULE,
+  STYLEGUIDE_MODULE,
   SUBNET_MODULE,
 
   require('./task/task.module').name,
@@ -140,7 +145,6 @@ module(CORE_MODULE, [
   WIDGETS_MODULE,
 
   require('./validation/validation.module').name,
-  STYLEGUIDE_MODULE,
 ]).run(() => {
   // initialize all the stateful services
   State.initialize();
