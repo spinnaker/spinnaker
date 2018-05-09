@@ -91,7 +91,12 @@ public class GitHubArtifactCredentials implements ArtifactCredentials {
   }
 
   public InputStream download(Artifact artifact) throws IOException {
-    HttpUrl.Builder metadataUrlBuilder = HttpUrl.parse(artifact.getReference()).newBuilder();
+    HttpUrl.Builder metadataUrlBuilder;
+    try {
+      metadataUrlBuilder = HttpUrl.parse(artifact.getReference()).newBuilder();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Malformed github content URL in 'reference'. Read more here https://www.spinnaker.io/reference/artifacts/types/github-file/: " + e.getMessage(), e);
+    }
     String version = artifact.getVersion();
     if (StringUtils.isEmpty(version)) {
       log.info("No version specified for artifact {}, using 'master'.", version);
