@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence;
 
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
@@ -24,7 +25,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 
@@ -121,7 +121,7 @@ public interface ExecutionRepository {
   final class IterableUtil {
 
     public static <T> Stream<T> toStream(Iterable<T> iterable) {
-      return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterable.iterator(), Spliterator.ORDERED), false);
+      return Lists.newArrayList(iterable).stream();
     }
   }
 }
