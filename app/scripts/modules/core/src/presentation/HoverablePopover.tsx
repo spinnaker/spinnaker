@@ -109,7 +109,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
 
   private rendererRefCallback = (ref: React.Component): void => {
     if (ref) {
-      const { clientWidth, clientHeight } = ReactDOM.findDOMNode(ref);
+      const { clientWidth, clientHeight } = ReactDOM.findDOMNode(ref) as Element;
       const bounds = this.target.getBoundingClientRect();
       const bottomSpace = window.innerHeight - bounds.bottom;
       const rightSpace = window.innerWidth - bounds.right;
@@ -202,7 +202,7 @@ class PopoverOffset extends React.Component<IPopoverOffsetProps, IPopoverOffsetS
     const currentPercent = parsePercent(props.arrowOffsetLeft as string);
     const deltaPercent = desiredPercent - currentPercent;
 
-    const width = ReactDOM.findDOMNode(this).clientWidth;
+    const width = (ReactDOM.findDOMNode(this) as Element).clientWidth;
     const offset = 0 - width * deltaPercent;
 
     return { offset };
