@@ -24,6 +24,7 @@ import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -35,6 +36,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
 import org.springframework.stereotype.Component
 
+import javax.servlet.Filter
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -55,7 +57,13 @@ class AuthConfig {
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
+  @Value('${fiat.sessionFilter.enabled:true}')
+  boolean fiatSessionFilterEnabled
+
   void configure(HttpSecurity http) throws Exception {
+    Filter fiatSessionFilter = new FiatSessionFilter(fiatSessionFilterEnabled,
+                                                     configProps,
+                                                     permissionEvaluator)
     // @formatter:off
     SecurityBuilder result = http
       .authorizeRequests()
@@ -67,7 +75,7 @@ class AuthConfig {
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
         .and()
-      .addFilterBefore(new FiatSessionFilter(configProps, permissionEvaluator), AnonymousAuthenticationFilter.class)
+      .addFilterBefore(fiatSessionFilter, AnonymousAuthenticationFilter.class)
       .logout()
         .logoutUrl("/auth/logout")
         .logoutSuccessHandler(permissionRevokingLogoutSuccessHandler)

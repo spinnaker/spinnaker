@@ -36,13 +36,17 @@ import static net.logstash.logback.argument.StructuredArguments.value
 @Slf4j
 class FiatSessionFilter implements Filter {
 
-  FiatClientConfigurationProperties configProps
+  boolean enabled
+
+  FiatClientConfigurationProperties fiatConfig
 
   FiatPermissionEvaluator permissionEvaluator
 
-  FiatSessionFilter(FiatClientConfigurationProperties configProps,
+  FiatSessionFilter(boolean enabled,
+                    FiatClientConfigurationProperties fiatConfig,
                     FiatPermissionEvaluator permissionEvaluator) {
-    this.configProps = configProps
+    this.enabled = enabled
+    this.fiatConfig = fiatConfig
     this.permissionEvaluator = permissionEvaluator
   }
 
@@ -52,29 +56,36 @@ class FiatSessionFilter implements Filter {
    */
   @Override
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-    if (configProps.enabled) {
+    if (fiatConfig.enabled && this.enabled) {
       String user = AuthenticatedRequest.getSpinnakerUser().orElse(null)
+      log.debug("Fiat session filter - found user: ${user}")
       if (permissionEvaluator.getPermission(user) == null) {
         HttpServletRequest httpReq = (HttpServletRequest) request
         HttpSession session = httpReq.getSession(false)
         if (session != null) {
           log.info("Invalidating user '{}' session '{}' because Fiat permission was not found.",
-          value("user", user), value("session", session))
+                   value("user", user),
+                   value("session", session))
           session.invalidate()
           SecurityContextHolder.clearContext()
         }
       }
+    } else {
+      if (log.isDebugEnabled()) {
+        log.debug("Skipping Fiat session filter: Both `services.fiat.enabled` " +
+                      "(${fiatConfig.enabled}) and the FiatSessionFilter (${this.enabled}) " +
+                      "need to be enabled.")
+      }
     }
+
     chain.doFilter(request, response)
   }
 
   @Override
   void init(FilterConfig filterConfig) throws ServletException {
-
   }
 
   @Override
   void destroy() {
-
   }
 }
