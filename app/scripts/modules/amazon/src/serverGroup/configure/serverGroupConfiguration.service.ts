@@ -41,7 +41,7 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-import { IAmazonLoadBalancer, IKeyPair, IAmazonApplicationLoadBalancer } from 'amazon/domain';
+import { IKeyPair, IAmazonLoadBalancerSourceData, IApplicationLoadBalancerSourceData } from 'amazon/domain';
 import { KEY_PAIRS_READ_SERVICE, KeyPairsReader } from 'amazon/keyPairs/keyPairs.read.service';
 
 export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
@@ -60,6 +60,7 @@ export interface IAmazonServerGroupCommandBackingDataFiltered extends IServerGro
 }
 
 export interface IAmazonServerGroupCommandBackingData extends IServerGroupCommandBackingData {
+  appLoadBalancers: IAmazonLoadBalancerSourceData[];
   filtered: IAmazonServerGroupCommandBackingDataFiltered;
   keyPairs: IKeyPair[];
   targetGroups: string[];
@@ -193,7 +194,6 @@ export class AwsServerGroupConfigurationService {
       .all({
         credentialsKeyedByAccount: AccountService.getCredentialsKeyedByAccount('aws'),
         securityGroups: this.securityGroupReader.getAllSecurityGroups(),
-        loadBalancers: this.loadBalancerReader.listLoadBalancers('aws'),
         subnets: this.subnetReader.listSubnets(),
         preferredZones: AccountService.getPreferredZonesByAccount('aws'),
         keyPairs: this.keyPairsReader.listKeyPairs(),
@@ -210,6 +210,7 @@ export class AwsServerGroupConfigurationService {
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
         backingData.scalingProcesses = this.autoScalingProcessService.listProcesses();
+        backingData.appLoadBalancers = application.getDataSource('loadBalancers').data;
         command.backingData = backingData as IAmazonServerGroupCommandBackingData;
         this.configureVpcId(command);
         backingData.filtered.securityGroups = this.getRegionalSecurityGroups(command);
@@ -495,17 +496,21 @@ export class AwsServerGroupConfigurationService {
     });
   }
 
-  private getLoadBalancerMap(command: IAmazonServerGroupCommand): IAmazonLoadBalancer[] {
-    return chain(command.backingData.loadBalancers)
-      .map('accounts')
-      .flattenDeep()
-      .filter({ name: command.credentials })
-      .map('regions')
-      .flattenDeep()
-      .filter({ name: command.region })
-      .map<IAmazonLoadBalancer>('loadBalancers')
-      .flattenDeep<IAmazonLoadBalancer>()
-      .value();
+  private getLoadBalancerMap(command: IAmazonServerGroupCommand): IAmazonLoadBalancerSourceData[] {
+    if (command.backingData.loadBalancers) {
+      return chain(command.backingData.loadBalancers)
+        .map('accounts')
+        .flattenDeep()
+        .filter({ name: command.credentials })
+        .map('regions')
+        .flattenDeep()
+        .filter({ name: command.region })
+        .map<IAmazonLoadBalancerSourceData>('loadBalancers')
+        .flattenDeep<IAmazonLoadBalancerSourceData>()
+        .value();
+    }
+
+    return command.backingData.appLoadBalancers || [];
   }
 
   public getLoadBalancerNames(command: IAmazonServerGroupCommand): string[] {
@@ -525,7 +530,7 @@ export class AwsServerGroupConfigurationService {
   public getTargetGroupNames(command: IAmazonServerGroupCommand): string[] {
     const loadBalancersV2 = this.getLoadBalancerMap(command).filter(
       lb => lb.loadBalancerType !== 'classic',
-    ) as IAmazonApplicationLoadBalancer[];
+    ) as IApplicationLoadBalancerSourceData[];
     const instanceTargetGroups = flatten(
       loadBalancersV2.map<any>(lb => lb.targetGroups.filter(tg => tg.targetType === 'instance')),
     );

@@ -98,6 +98,7 @@ export interface IAmazonTargetGroupSourceData {
   serverGroups: IAmazonTargetGroupServerGroupSourceData[];
   targetGroupArn: string;
   targetGroupName: string;
+  targetType: string;
   type: string;
   unhealthyThresholdCount: number;
   vpcId: string;

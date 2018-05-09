@@ -1,6 +1,6 @@
 'use strict';
 
-import { AccountService } from '@spinnaker/core';
+import { APPLICATION_MODEL_BUILDER, AccountService } from '@spinnaker/core';
 
 /*
  This is more of an integration test between awsServerGroupConfigurationService and awsCloneServerGroupCtrl.
@@ -11,7 +11,7 @@ describe('Controller: awsCloneServerGroup', function() {
   const AccountServiceFixture = require('../AccountServiceFixtures.js');
   const securityGroupReaderFixture = require('./SecurityGroupServiceFixtures.js');
 
-  beforeEach(window.module(require('./CloneServerGroup.aws.controller.js').name));
+  beforeEach(window.module(require('./CloneServerGroup.aws.controller.js').name, APPLICATION_MODEL_BUILDER));
 
   beforeEach(function() {
     window.inject(function(
@@ -29,6 +29,7 @@ describe('Controller: awsCloneServerGroup', function() {
       subnetReader,
       keyPairsReader,
       loadBalancerReader,
+      applicationModelBuilder,
     ) {
       this.$scope = $rootScope.$new();
       this.serverGroupWriter = serverGroupWriter;
@@ -42,6 +43,7 @@ describe('Controller: awsCloneServerGroup', function() {
       this.subnetReader = subnetReader;
       this.keyPairsReader = keyPairsReader;
       this.loadBalancerReader = loadBalancerReader;
+      this.applicationModelBuilder = applicationModelBuilder;
       this.$q = $q;
     });
 
@@ -116,7 +118,7 @@ describe('Controller: awsCloneServerGroup', function() {
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
           taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
-          application: { name: 'x' },
+          application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',
         });
       });
@@ -236,7 +238,7 @@ describe('Controller: awsCloneServerGroup', function() {
           v2modalWizardService: this.v2modalWizardService,
           taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroupCommand,
-          application: { name: 'x' },
+          application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',
         });
       });
@@ -418,7 +420,7 @@ describe('Controller: awsCloneServerGroup', function() {
           v2modalWizardService: this.v2modalWizardService,
           taskMonitorBuilder: this.taskMonitorBuilder,
           serverGroupCommand: serverGroup,
-          application: { name: 'x' },
+          application: this.applicationModelBuilder.createApplication('x', { key: 'loadBalancers', lazy: true }),
           title: 'n/a',
         });
       });

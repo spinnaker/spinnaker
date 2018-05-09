@@ -2,7 +2,8 @@ import { mock, IQService, IScope, IRootScopeService } from 'angular';
 
 import {
   AccountService,
-  Application,
+  APPLICATION_MODEL_BUILDER,
+  ApplicationModelBuilder,
   CacheInitializerService,
   LoadBalancerReader,
   SecurityGroupReader,
@@ -24,9 +25,10 @@ describe('Service: awsServerGroupConfiguration', function() {
     subnetReader: SubnetReader,
     keyPairsReader: KeyPairsReader,
     loadBalancerReader: LoadBalancerReader,
+    applicationModelBuilder: ApplicationModelBuilder,
     $scope: IScope;
 
-  beforeEach(mock.module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, AWS_SERVER_GROUP_CONFIGURATION_SERVICE));
 
   beforeEach(
     mock.inject(function(
@@ -38,6 +40,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       _subnetReader_: SubnetReader,
       _keyPairsReader_: KeyPairsReader,
       _loadBalancerReader_: LoadBalancerReader,
+      _applicationModelBuilder_: ApplicationModelBuilder,
       $rootScope: IRootScopeService,
     ) {
       service = _awsServerGroupConfigurationService_;
@@ -48,6 +51,7 @@ describe('Service: awsServerGroupConfiguration', function() {
       subnetReader = _subnetReader_;
       keyPairsReader = _keyPairsReader_;
       loadBalancerReader = _loadBalancerReader_;
+      applicationModelBuilder = _applicationModelBuilder_;
       $scope = $rootScope.$new();
 
       this.allLoadBalancers = [
@@ -111,12 +115,15 @@ describe('Service: awsServerGroupConfiguration', function() {
         },
       } as any;
 
-      service.configureCommand({} as Application, command);
+      service.configureCommand(
+        applicationModelBuilder.createApplication('name', { key: 'loadBalancers', lazy: true }),
+        command,
+      );
       $scope.$digest();
 
       expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('loadBalancers');
       expect(refreshCacheSpy.calls.count()).toBe(1);
-      expect(listLoadBalancersSpy.calls.count()).toBe(2);
+      expect(listLoadBalancersSpy.calls.count()).toBe(1);
       expect(command.dirty).toBeUndefined();
     });
 
@@ -141,7 +148,10 @@ describe('Service: awsServerGroupConfiguration', function() {
         },
       } as any;
 
-      service.configureCommand({} as Application, command);
+      service.configureCommand(
+        applicationModelBuilder.createApplication('name', { key: 'loadBalancers', lazy: true }),
+        command,
+      );
       $scope.$digest();
       $scope.$digest();
 
@@ -177,7 +187,10 @@ describe('Service: awsServerGroupConfiguration', function() {
         },
       } as any;
 
-      service.configureCommand({} as Application, command);
+      service.configureCommand(
+        applicationModelBuilder.createApplication('name', { key: 'loadBalancers', lazy: true }),
+        command,
+      );
       $scope.$digest();
 
       expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('instanceTypes');

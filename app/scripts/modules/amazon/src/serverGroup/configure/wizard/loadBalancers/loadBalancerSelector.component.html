@@ -84,5 +84,20 @@
       </div>
     </div>
   </div>
+  <div ng-if="!$ctrl.refreshed" class="form-group small" style="margin-top: 20px">
+    <div class="col-md-8 col-md-offset-4">
+      <p ng-if="$ctrl.refreshing">
+        <span class="fa fa-sync-alt fa-spin" />
+        <span> refreshing...</span>
+      </p>
+      <p ng-if="!$ctrl.refreshing">
+        If you are looking for a load balancer or target group from a different application, <br/>
+        <a class="clickable" ng-click="$ctrl.refreshLoadBalancers()">
+          click here
+        </a>
+        to load all load balancers.
+      </p>
+    </div>
+  </div>
 
 </div>

@@ -1,7 +1,5 @@
 import { IController, IComponentOptions, module } from 'angular';
 
-import { InfrastructureCaches } from '@spinnaker/core';
-
 import {
   AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   AwsServerGroupConfigurationService,
@@ -10,24 +8,18 @@ import {
 class LoadBalancerSelectorController implements IController {
   public command: any;
 
-  public refreshTime: number;
+  public refreshed: boolean;
   public refreshing = false;
 
   constructor(private awsServerGroupConfigurationService: AwsServerGroupConfigurationService) {
     'ngInject';
-
-    this.setLoadBalancerRefreshTime();
-  }
-
-  public setLoadBalancerRefreshTime(): void {
-    this.refreshTime = InfrastructureCaches.get('loadBalancers').getStats().ageMax;
   }
 
   public refreshLoadBalancers(): void {
     this.refreshing = true;
     this.awsServerGroupConfigurationService.refreshLoadBalancers(this.command).then(() => {
       this.refreshing = false;
-      this.setLoadBalancerRefreshTime();
+      this.refreshed = true;
     });
   }
 }
