@@ -94,7 +94,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
     }
     return pipelineConfigId?.let { configId ->
       val criteria = ExecutionRepository.ExecutionCriteria().setLimit(1).setStatuses(ExecutionStatus.RUNNING)
-      !repository
+      repository
         .retrievePipelinesForPipelineConfigId(configId, criteria)
         .iterator()
         .hasNext()

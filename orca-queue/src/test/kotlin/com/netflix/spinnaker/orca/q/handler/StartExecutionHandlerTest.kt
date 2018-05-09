@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.q.CancelExecution
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.StartStage
@@ -275,7 +274,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           pipeline.isLimitConcurrent = true
           runningPipeline.isLimitConcurrent = true
 
-          whenever(pendingExecutionService.depth(configId)) doReturn 1
+          whenever(repository.retrievePipelinesForPipelineConfigId(eq(configId), any())) doReturn listOf(runningPipeline)
           whenever(
             repository.retrieve(message.executionType, message.executionId)
           ) doReturn pipeline
@@ -306,7 +305,7 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           pipeline.isLimitConcurrent = false
           runningPipeline.isLimitConcurrent = false
 
-          whenever(pendingExecutionService.depth(configId)) doReturn 1
+          whenever(repository.retrievePipelinesForPipelineConfigId(eq(configId), any())) doReturn listOf(runningPipeline)
           whenever(
             repository.retrieve(message.executionType, message.executionId)
           ) doReturn pipeline
