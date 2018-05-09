@@ -263,7 +263,10 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       (RESERVATION_REPORTS.ns): [
         new MutableCacheData("v1", ["report": v1], [:]),
         new MutableCacheData("v2", ["report": v2], [:]),
-        new MutableCacheData("v3", ["report": v3], [:]),
+
+        // temporarily backport the changes from v4 to v3 (leaving v2_5 to be what 'v3' used to be)
+        new MutableCacheData("v2_5", ["report": v3], [:]),
+        new MutableCacheData("v3", ["report": v4], [:]),
         new MutableCacheData("v4", ["report": v4], [:])
       ]
     )
