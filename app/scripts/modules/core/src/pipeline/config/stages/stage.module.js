@@ -77,7 +77,9 @@ module.exports = angular
       var requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
       return stage.available
         ? 'Available'
-        : requisiteStageRefIds.includes(stage.refId) ? null : 'Downstream dependencies (unavailable)';
+        : requisiteStageRefIds.includes(stage.refId)
+          ? null
+          : 'Downstream dependencies (unavailable)';
     };
 
     $scope.stageProducesArtifacts = function() {

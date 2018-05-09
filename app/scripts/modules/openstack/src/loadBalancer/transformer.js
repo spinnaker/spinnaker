@@ -67,7 +67,9 @@ module.exports = angular
       instance.region = loadBalancer.region;
       instance.health.type = 'LoadBalancer';
       instance.healthState = instance.health.state
-        ? instance.health.state === 'InService' ? 'Up' : 'Down'
+        ? instance.health.state === 'InService'
+          ? 'Up'
+          : 'Down'
         : 'OutOfService';
       instance.health = [instance.health];
       instance.loadBalancers = [loadBalancer.name];

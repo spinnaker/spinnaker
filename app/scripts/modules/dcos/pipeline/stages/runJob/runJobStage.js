@@ -86,7 +86,9 @@ module.exports = angular
         var defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
         stage.dcosCluster = defaultDcosClusterIsValid
           ? defaultDcosCluster
-          : clusterNames.length == 1 ? clusterNames[0] : null;
+          : clusterNames.length == 1
+            ? clusterNames[0]
+            : null;
         stage.region = stage.dcosCluster;
       }
     }

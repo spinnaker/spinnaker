@@ -103,7 +103,9 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
         return a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime;
       case 'availabilityZone':
         return a.availabilityZone === b.availabilityZone
-          ? a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime
+          ? a.launchTime === b.launchTime
+            ? a.id.localeCompare(b.id)
+            : a.launchTime - b.launchTime
           : a.availabilityZone.localeCompare(b.availabilityZone);
       case 'discoveryState':
         const aHealth = (a.health || []).filter(health => health.type === 'Discovery'),
@@ -115,7 +117,9 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
           return 1;
         }
         return (!aHealth.length && !bHealth.length) || aHealth[0].state === bHealth[0].state
-          ? a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime
+          ? a.launchTime === b.launchTime
+            ? a.id.localeCompare(b.id)
+            : a.launchTime - b.launchTime
           : aHealth[0].state.localeCompare(bHealth[0].state);
       case 'loadBalancerSort':
         const aHealth2 = (a.health || []).filter(health => health.type === 'LoadBalancer');
@@ -130,7 +134,9 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
         const aHealthStr = aHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(','),
           bHealthStr = bHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
         return aHealthStr === bHealthStr
-          ? a.launchTime === b.launchTime ? a.id.localeCompare(b.id) : a.launchTime - b.launchTime
+          ? a.launchTime === b.launchTime
+            ? a.id.localeCompare(b.id)
+            : a.launchTime - b.launchTime
           : aHealthStr.localeCompare(bHealthStr);
       default:
         return -1;

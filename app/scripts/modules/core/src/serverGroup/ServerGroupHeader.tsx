@@ -37,7 +37,10 @@ export class LoadBalancers extends React.Component<IServerGroupHeaderProps> {
 export class MultiSelectCheckbox extends React.Component<IServerGroupHeaderProps> {
   public render() {
     // ServerGroup.tsx handles multi-select events and state
-    const { isMultiSelected, sortFilter: { multiselect } } = this.props;
+    const {
+      isMultiSelected,
+      sortFilter: { multiselect },
+    } = this.props;
     return multiselect && <input type="checkbox" checked={isMultiSelected} />;
   }
 }

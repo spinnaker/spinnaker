@@ -106,7 +106,12 @@ export class ServerGroupDetailsWrapper extends React.Component<
 
   public render() {
     const { app, serverGroup } = this.props;
-    const { angular: { template, controller }, Actions, detailsGetter, sections } = this.state;
+    const {
+      angular: { template, controller },
+      Actions,
+      detailsGetter,
+      sections,
+    } = this.state;
 
     if (Actions && detailsGetter && sections) {
       // react

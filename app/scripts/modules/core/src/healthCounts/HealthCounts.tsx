@@ -48,7 +48,11 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
         ? 'disabled'
         : percent === 100
           ? 'healthy'
-          : percent < 100 && percent > 0 ? 'unhealthy' : percent === 0 ? 'dead' : 'disabled';
+          : percent < 100 && percent > 0
+            ? 'unhealthy'
+            : percent === 0
+              ? 'dead'
+              : 'disabled';
 
     return { percentLabel, statusClass, total };
   }

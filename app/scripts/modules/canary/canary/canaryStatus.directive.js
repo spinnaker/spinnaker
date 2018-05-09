@@ -20,7 +20,11 @@ module.exports = angular.module('spinnaker.canary.status.directive', []).directi
                 ? 'succeeded'
                 : scope.status === 'FAILED'
                   ? 'failed'
-                  : scope.status === 'TERMINATED' ? 'terminated' : scope.status === 'CANCELED' ? 'canceled' : 'unknown';
+                  : scope.status === 'TERMINATED'
+                    ? 'terminated'
+                    : scope.status === 'CANCELED'
+                      ? 'canceled'
+                      : 'unknown';
       }
       scope.$watch('status', applyLabel);
     },

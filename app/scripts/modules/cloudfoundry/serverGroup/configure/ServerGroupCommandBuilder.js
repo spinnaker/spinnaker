@@ -32,7 +32,9 @@ module.exports = angular
 
         command.credentials = defaultCredentialsAreValid
           ? defaultCredentials
-          : firstcfAccount ? firstcfAccount : 'my-account-name';
+          : firstcfAccount
+            ? firstcfAccount
+            : 'my-account-name';
       });
     }
 

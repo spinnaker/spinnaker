@@ -21,7 +21,12 @@ export class NotificationList extends React.Component<INotificationListProps> {
     return (
       <div className="notification-list">
         {notifications.map((notification: INotification, idx: number) => {
-          const { entityTag: { value: { title, message, tagline } }, entityTags: { lastModified } } = notification;
+          const {
+            entityTag: {
+              value: { title, message, tagline },
+            },
+            entityTags: { lastModified },
+          } = notification;
 
           return (
             <div className="notification-message" key={idx}>

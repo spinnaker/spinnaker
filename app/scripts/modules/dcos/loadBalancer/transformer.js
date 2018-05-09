@@ -30,7 +30,9 @@ module.exports = angular
 
         loadBalancer.account = defaultAccountIsValid
           ? defaultAccount
-          : firstDcosAccount ? firstDcosAccount : 'my-dcos-account';
+          : firstDcosAccount
+            ? firstDcosAccount
+            : 'my-dcos-account';
 
         attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, loadBalancer);
       });
@@ -43,7 +45,9 @@ module.exports = angular
         var defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
         loadBalancer.dcosCluster = defaultDcosClusterIsValid
           ? defaultDcosCluster
-          : clusterNames.length == 1 ? clusterNames[0] : null;
+          : clusterNames.length == 1
+            ? clusterNames[0]
+            : null;
         loadBalancer.region = loadBalancer.dcosCluster;
       }
     }

@@ -31,7 +31,11 @@ export class CanaryScore extends React.Component<ICanaryScoreProps, ICanaryScore
     const healthLabel =
       health === 'unhealthy'
         ? 'unhealthy'
-        : result === 'success' ? 'healthy' : result === 'failure' ? 'failing' : 'unknown';
+        : result === 'success'
+          ? 'healthy'
+          : result === 'failure'
+            ? 'failing'
+            : 'unknown';
 
     return {
       healthLabel,
