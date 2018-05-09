@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.okhttp.OkHttp3ClientConfigurationProperties
-import okhttp3.ConnectionPool
-import okhttp3.ConnectionSpec
-import okhttp3.OkHttpClient
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import okhttp3.ConnectionPool
+import okhttp3.ConnectionSpec
+import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -38,10 +38,10 @@ import java.util.concurrent.TimeUnit
 @CompileStatic
 @Component
 class OkHttp3ClientConfiguration {
-  private final OkHttp3ClientConfigurationProperties okHttpClientConfigurationProperties
+  private final OkHttpClientConfigurationProperties okHttpClientConfigurationProperties
 
   @Autowired
-  public OkHttp3ClientConfiguration(OkHttp3ClientConfigurationProperties okHttpClientConfigurationProperties) {
+  public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
     this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
   }
 
