@@ -77,9 +77,9 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
 
-"@spinnaker/kayenta@0.0.45":
-  version "0.0.45"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.45.tgz#f6444e06374b26c8692a9e2aca41427c55668529"
+"@spinnaker/kayenta@0.0.47":
+  version "0.0.47"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.47.tgz#4141164d85b57e242d9aacd19a322781c2f57ac8"
   dependencies:
     "@fortawesome/fontawesome-free-webfonts" "^1.0.4"
     "@types/plotly.js" "^1.28.12"
@@ -96,7 +96,7 @@
     class-autobind-decorator "^2.2.1"
     classnames "^2.2.5"
     diff-match-patch "^1.0.0"
-    dompurify "^0.8.5"
+    dompurify "^1.0.4"
     ify-loader "^1.1.0"
     js-yaml "^3.8.3"
     lodash "^4.16.1"
@@ -105,9 +105,9 @@
     n3-charts "^2.0.18"
     ngimport "^0.6.0"
     plotly.js "^1.35.2"
-    react "16.2.0"
+    react "16.3.2"
     react-bootstrap "^0.32.1"
-    react-dom "16.2.0"
+    react-dom "16.3.2"
     react-ga "^2.4.1"
     react-redux "^5.0.7"
     react-select "^1.2.1"
@@ -4233,10 +4233,6 @@ domhandler@^2.3.0:
   resolved "https://registry.yarnpkg.com/domhandler/-/domhandler-2.4.1.tgz#892e47000a99be55bbf3774ffea0561d8879c259"
   dependencies:
     domelementtype "1"
-
-dompurify@^0.8.5:
-  version "0.8.9"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-0.8.9.tgz#fcec021f917b51f42a78af71d7875a7ba514fd64"
 
 dompurify@^1.0.4:
   version "1.0.4"
@@ -10880,15 +10876,6 @@ react-bootstrap@^0.32.1:
     uncontrollable "^4.1.0"
     warning "^3.0.0"
 
-react-dom@16.2.0:
-  version "16.2.0"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.2.0.tgz#69003178601c0ca19b709b33a83369fe6124c044"
-  dependencies:
-    fbjs "^0.8.16"
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.0"
-
 react-dom@16.3.2:
   version "16.3.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.3.2.tgz#cb90f107e09536d683d84ed5d4888e9640e0e4df"
@@ -11037,15 +11024,6 @@ react2angular@^3.2.1:
     lodash.frompairs "^4.0.1"
     ngcomponent "^4.1.0"
 
-react@16.2.0, "react@^15.6.2 || ^16.0":
-  version "16.2.0"
-  resolved "https://registry.yarnpkg.com/react/-/react-16.2.0.tgz#a31bd2dab89bff65d42134fa187f24d054c273ba"
-  dependencies:
-    fbjs "^0.8.16"
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.0"
-
 react@16.3.2:
   version "16.3.2"
   resolved "https://registry.yarnpkg.com/react/-/react-16.3.2.tgz#fdc8420398533a1e58872f59091b272ce2f91ea9"
@@ -11061,6 +11039,15 @@ react@^0.14.8:
   dependencies:
     envify "^3.0.0"
     fbjs "^0.6.1"
+
+"react@^15.6.2 || ^16.0":
+  version "16.2.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-16.2.0.tgz#a31bd2dab89bff65d42134fa187f24d054c273ba"
+  dependencies:
+    fbjs "^0.8.16"
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.0"
 
 read-cache@^1.0.0:
   version "1.0.0"
