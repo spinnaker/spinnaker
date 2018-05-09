@@ -70,7 +70,7 @@ class KubernetesV1ProviderUtils {
       return new URIBuilder().setPort(proxy.getPort())
           .setHost("localhost")
           .setScheme("http")
-          .setPath("/api/v1/proxy/namespaces/" + namespace + "/services/" + serviceName + ":" + servicePort)
+          .setPath("/api/v1/namespaces/" + namespace + "/services/" + serviceName + ":" + servicePort + "/proxy")
           .build();
     } catch (URISyntaxException e) {
       throw new HalException(Severity.FATAL, "Malformed service details: " + e.getMessage());
