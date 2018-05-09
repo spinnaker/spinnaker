@@ -428,6 +428,7 @@ export class ExecutionService {
   }
 
   public synchronizeExecution(current: IExecution, updated: IExecution): void {
+    const hydrationFlagChanged = !current.hydrated && updated.hydrated;
     (updated.stageSummaries || []).forEach((updatedSummary, idx) => {
       const currentSummary = current.stageSummaries[idx];
       if (!currentSummary) {
@@ -436,7 +437,7 @@ export class ExecutionService {
         // if the stage is active, update it in place if it has changed to save Angular
         // from removing, then re-rendering every DOM node
         // also, don't dehydrate
-        if ((updatedSummary.isActive || currentSummary.isActive) && (!current.hydrated || updated.hydrated)) {
+        if (updatedSummary.isActive || currentSummary.isActive || hydrationFlagChanged) {
           if (this.stringify(currentSummary) !== this.stringify(updatedSummary)) {
             Object.assign(currentSummary, updatedSummary);
           }
