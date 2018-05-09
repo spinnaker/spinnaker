@@ -207,11 +207,17 @@ public class DistributedDeployer<T extends Account> implements
               } else {
                 DaemonTaskHandler.newStage(
                     "Deploying " + distributedService.getServiceName() + " via red/black");
-                Orca orca = serviceProvider
-                    .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
-                    .connectToPrimaryService(deploymentDetails, runtimeSettings);
-                deployServiceWithOrca(deploymentDetails, resolvedConfiguration, orca,
-                    distributedService);
+                try {
+                  Orca orca = serviceProvider
+                      .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
+                      .connectToPrimaryService(deploymentDetails, runtimeSettings);
+                  deployServiceWithOrca(deploymentDetails, resolvedConfiguration, orca,
+                      distributedService);
+                } catch (RetrofitError e) {
+                  String message = ((Map<String, String>) e.getBodyAs(Map.class)).get("message");
+                  throw new HalException(Problem.Severity.FATAL,
+                      "Unable to deploy service with Orca " + e + ": " + message, e);
+                }
               }
 
               return null;
@@ -311,8 +317,9 @@ public class DistributedDeployer<T extends Account> implements
     } catch (RetrofitError e) {
       boolean enabled = roscoSettings.getEnabled() != null && roscoSettings.getEnabled();
       if (enabled) {
+        String message = ((Map<String, String>) e.getBodyAs(Map.class)).get("message");
         throw new HalException(Problem.Severity.FATAL,
-            "Rosco is enabled, and no connection to rosco could be established: " + e, e);
+            "Rosco is enabled, and no connection to rosco could be established: " + e + ": " + message, e);
       }
 
       Response response = e.getResponse();
