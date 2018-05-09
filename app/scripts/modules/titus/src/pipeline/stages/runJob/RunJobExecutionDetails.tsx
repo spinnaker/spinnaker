@@ -29,7 +29,7 @@ export class RunJobExecutionDetails extends React.Component<
     this.mounted = true;
     const { context } = this.props.stage;
     AccountService.getAccountDetails(context.credentials).then(details => {
-      const titusUiEndpoint = details.regions.find(r => (r.name = context.cluster.region)).endpoint;
+      const titusUiEndpoint = details.regions.find(r => r.name === context.cluster.region).endpoint;
       this.mounted && this.setState({ titusUiEndpoint });
     });
   }
