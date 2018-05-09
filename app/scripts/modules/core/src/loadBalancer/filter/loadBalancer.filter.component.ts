@@ -1,5 +1,6 @@
-import { compact, uniq, map } from 'lodash';
+import { chain, cloneDeep, compact, uniq, map } from 'lodash';
 import { IScope, module } from 'angular';
+import { $rootScope } from 'ngimport';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -11,8 +12,59 @@ export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controll
 
 const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
   require('../../filterModel/dependentFilter/dependentFilter.service').name,
-  require('./loadBalancerDependentFilterHelper.service').name,
 ]);
+
+const poolValueCoordinates = [
+  { filterField: 'providerType', on: 'loadBalancer', localField: 'type' },
+  { filterField: 'account', on: 'loadBalancer', localField: 'account' },
+  { filterField: 'region', on: 'loadBalancer', localField: 'region' },
+  { filterField: 'availabilityZone', on: 'instance', localField: 'zone' },
+];
+
+function poolBuilder(loadBalancers: any[]) {
+  const pool = chain(loadBalancers)
+    .map(lb => {
+      const poolUnitTemplate = chain(poolValueCoordinates)
+        .filter({ on: 'loadBalancer' })
+        .reduce(
+          (acc, coordinate) => {
+            acc[coordinate.filterField] = lb[coordinate.localField];
+            return acc;
+          },
+          {} as any,
+        )
+        .value();
+
+      const poolUnits = chain(['instances', 'detachedInstances'])
+        .map(instanceStatus => lb[instanceStatus])
+        .flatten<any>()
+        .map(instance => {
+          const poolUnit = cloneDeep(poolUnitTemplate);
+          if (!instance) {
+            return poolUnit;
+          }
+
+          return chain(poolValueCoordinates)
+            .filter({ on: 'instance' })
+            .reduce((acc, coordinate) => {
+              acc[coordinate.filterField] = instance[coordinate.localField];
+              return acc;
+            }, poolUnit)
+            .value();
+        })
+        .value();
+
+      if (!poolUnits.length) {
+        poolUnits.push(poolUnitTemplate);
+      }
+
+      return poolUnits;
+    })
+    .flatten()
+    .value();
+
+  return pool;
+}
 
 class LoadBalancerFilterCtrl {
   public accountHeadings: string[];
@@ -27,18 +79,13 @@ class LoadBalancerFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(
-    private $scope: IScope,
-    private $rootScope: IScope,
-    private loadBalancerDependentFilterHelper: any,
-    private dependentFilterService: any,
-  ) {
+  constructor(private $scope: IScope, private dependentFilterService: any) {
     'ngInject';
     this.sortFilter = LoadBalancerState.filterModel.asFilterModel.sortFilter;
   }
 
   public $onInit(): void {
-    const { app, $scope, $rootScope } = this;
+    const { app, $scope } = this;
     const filterModel = LoadBalancerState.filterModel.asFilterModel;
 
     this.tags = filterModel.tags;
@@ -65,12 +112,12 @@ class LoadBalancerFilterCtrl {
   }
 
   public updateLoadBalancerGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, loadBalancerDependentFilterHelper, app } = this;
+    const { dependentFilterService, app } = this;
 
     const { availabilityZone, region, account } = dependentFilterService.digestDependentFilters({
       sortFilter: LoadBalancerState.filterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone'],
-      pool: loadBalancerDependentFilterHelper.poolBuilder(app.loadBalancers.data),
+      pool: poolBuilder(app.loadBalancers.data),
     });
 
     this.accountHeadings = account;
