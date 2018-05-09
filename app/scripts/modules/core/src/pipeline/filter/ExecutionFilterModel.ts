@@ -77,7 +77,7 @@ export class ExecutionFilterModel {
     $rootScope.$on(
       '$stateChangeSuccess',
       (_event, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
-        if (this.movingToExecutionsState(toState) && !toParams.pipeline) {
+        if (this.movingToExecutionsState(toState) && (!toParams.pipeline || !this.groupCount)) {
           this.mostRecentApplication = toParams.application;
           this.assignViewStateFromCache();
         }

@@ -500,7 +500,6 @@ export class ExecutionService {
           toHydrate.tasks = s.tasks;
         }
       });
-      unhydrated.hydrated = true;
       this.synchronizeExecution(unhydrated, hydrated);
       return unhydrated;
     });
