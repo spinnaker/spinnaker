@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.ext.parent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.MessageHandler
@@ -89,16 +90,19 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
   }
 
   fun Execution.shouldQueue(): Boolean {
-    if (!isLimitConcurrent) {
-      return false
+    val configId = pipelineConfigId
+    return when {
+      !isLimitConcurrent -> false
+      configId == null   -> false
+      else               -> {
+        val criteria = ExecutionCriteria().setLimit(2).setStatuses(RUNNING)
+        repository
+          .retrievePipelinesForPipelineConfigId(configId, criteria)
+          .filter { it.id != id }
+          .count()
+          .toBlocking()
+          .first() > 0
+      }
     }
-    return pipelineConfigId?.let { configId ->
-      val criteria = ExecutionRepository.ExecutionCriteria().setLimit(1).setStatuses(ExecutionStatus.RUNNING)
-      !repository
-        .retrievePipelinesForPipelineConfigId(configId, criteria)
-        .isEmpty
-        .toBlocking()
-        .first()
-    } == true
   }
 }

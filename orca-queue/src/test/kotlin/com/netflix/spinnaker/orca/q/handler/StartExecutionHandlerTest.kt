@@ -276,9 +276,9 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           runningPipeline.isLimitConcurrent = true
 
           whenever(
-            repository
-              .retrievePipelinesForPipelineConfigId(configId, ExecutionRepository.ExecutionCriteria().setLimit(1).setStatuses(RUNNING))
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
           ) doReturn just(runningPipeline)
+
           whenever(
             repository.retrieve(message.executionType, message.executionId)
           ) doReturn pipeline
@@ -310,9 +310,35 @@ object StartExecutionHandlerTest : SubjectSpek<StartExecutionHandler>({
           runningPipeline.isLimitConcurrent = false
 
           whenever(
-            repository
-              .retrievePipelinesForPipelineConfigId(configId, ExecutionRepository.ExecutionCriteria().setLimit(1).setStatuses(RUNNING))
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
           ) doReturn just(runningPipeline)
+
+          whenever(
+            repository.retrieve(message.executionType, message.executionId)
+          ) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("starts the new pipeline") {
+          verify(repository).updateStatus(PIPELINE, message.executionId, RUNNING)
+          verify(queue).push(isA<StartStage>())
+        }
+      }
+
+      and("the pipeline is not allowed to run concurrently but the only pipeline already running is the same one") {
+        beforeGroup {
+          pipeline.isLimitConcurrent = true
+          runningPipeline.isLimitConcurrent = true
+
+          whenever(
+            repository.retrievePipelinesForPipelineConfigId(eq(configId), any())
+          ) doReturn just(pipeline)
+
           whenever(
             repository.retrieve(message.executionType, message.executionId)
           ) doReturn pipeline
