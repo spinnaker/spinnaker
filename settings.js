@@ -152,7 +152,7 @@ window.spinnakerSettings = {
   },
   authEnabled: authEnabled,
   authTtl: 600000,
-  gitSources: ['stash', 'github', 'bitbucket'],
+  gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],
   pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis', 'pubsub'],
   searchVersion: 1,
