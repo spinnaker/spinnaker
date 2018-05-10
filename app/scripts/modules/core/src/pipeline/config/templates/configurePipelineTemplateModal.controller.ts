@@ -159,14 +159,14 @@ export class ConfigurePipelineTemplateModalController implements IController {
       .value();
   }
 
-  public handleVariableChange(newVariable: IVariable): void {
+  public handleVariableChange = (newVariable: IVariable): void => {
     const oldVariable = this.getVariable(newVariable.name);
     newVariable.errors = ReactInjector.variableValidatorService.validate(newVariable);
     this.variables = without(this.variables, oldVariable).concat([newVariable]);
 
     // `handleVariableChange` is passed to a React component, and Angular has no idea when it has been called.
     this.$scope.$digest();
-  }
+  };
 
   private getVariable(name: string): IVariable {
     return this.variables.find(v => v.name === name);
