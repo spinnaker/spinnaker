@@ -8,6 +8,8 @@ import { LoadBalancers } from 'core/loadBalancer/LoadBalancers';
 import { SKIN_SERVICE } from 'core/cloudProvider';
 
 import { LoadBalancerDetails } from './LoadBalancerDetails';
+import { LoadBalancerFilters } from './filter/LoadBalancerFilters';
+
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER, SKIN_SERVICE]).config(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
@@ -57,9 +59,7 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER, SKIN_SERVICE]).config(
       url: `/loadBalancers?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
       name: 'loadBalancers',
       views: {
-        nav: {
-          template: '<load-balancer-filter app="$resolve.app"></load-balancer-filter>',
-        },
+        nav: { component: LoadBalancerFilters, $type: 'react' },
         master: { component: LoadBalancers, $type: 'react' },
       },
       params: stateConfigProvider.buildDynamicParams(filterModelConfig),

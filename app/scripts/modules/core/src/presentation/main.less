@@ -1,5 +1,5 @@
-@import "~core/presentation/less/imports/commonImports.less";
-@import "stickyHeader";
+@import '~core/presentation/less/imports/commonImports.less';
+@import 'stickyHeader';
 
 @fixed-header-z-index: 1030;
 
@@ -38,7 +38,7 @@ body {
 }
 
 .container {
-  @media(min-width: 1400px) {
+  @media (min-width: 1400px) {
     width: 1370px;
   }
 }
@@ -76,23 +76,33 @@ html {
   .btn-link {
     &.link-inverse {
       color: var(--color-alabaster);
-      &:active, &:hover, &:focus, &.active {
+      &:active,
+      &:hover,
+      &:focus,
+      &.active {
         color: var(--color-alto);
       }
     }
     color: var(--color-accent);
-    &:active, &:hover, &:focus, &.active {
+    &:active,
+    &:hover,
+    &:focus,
+    &.active {
       color: var(--color-primary);
     }
   }
   .btn-primary {
     background-color: var(--color-accent);
     border-color: var(--color-accent);
-    &:active, &:hover, &:focus, &.active {
+    &:active,
+    &:hover,
+    &:focus,
+    &.active {
       background-color: var(--color-accent);
       border-color: var(--color-accent);
     }
-    &[disabled], &[disabled]:hover {
+    &[disabled],
+    &[disabled]:hover {
       background-color: var(--color-accent);
       border-color: var(--color-accent);
       opacity: 0.4;
@@ -101,12 +111,15 @@ html {
   .open > .dropdown-toggle.btn-primary {
     background-color: var(--color-accent);
     border-color: var(--color-accent);
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background-color: var(--color-accent);
       border-color: var(--color-accent);
     }
   }
-  .select2-container .select2-choices .select2-search-field input, .select2-container .select2-choice, .select2-container .select2-choices {
+  .select2-container .select2-choices .select2-search-field input,
+  .select2-container .select2-choice,
+  .select2-container .select2-choices {
     font-family: 'Source Sans Pro', sans-serif;
   }
 }
@@ -115,7 +128,10 @@ html {
   .main-content {
     flex: 1 1 auto;
   }
-  .filters-content, .nav-content, .details-panel, .main-content {
+  .filters-content,
+  .nav-content,
+  .details-panel,
+  .main-content {
     width: 100%;
     overflow-x: visible;
 
@@ -174,7 +190,8 @@ html {
   }
   &.filters-collapsed {
     .nav {
-      .content, .heading {
+      .content,
+      .heading {
         margin-left: -260px;
         width: 260px;
       }
@@ -182,16 +199,16 @@ html {
   }
   &.filters-expanded {
     .detail-content {
-      @media(min-width: 768px) and (max-width: 992px) {
+      @media (min-width: 768px) and (max-width: 992px) {
         width: 180px;
       }
-      @media(min-width: 992px) {
+      @media (min-width: 992px) {
         width: 210px;
       }
-      @media(min-width: 1200px) {
+      @media (min-width: 1200px) {
         width: 230px;
       }
-      @media(min-width: 1400px) {
+      @media (min-width: 1400px) {
         width: 310px;
       }
     }
@@ -202,7 +219,8 @@ html {
       .content {
         padding-bottom: 20px;
       }
-      .content, .heading {
+      .content,
+      .heading {
         margin-left: 0;
         width: inherit;
         display: block;
@@ -230,7 +248,8 @@ html {
     position: relative;
     width: 39px;
     padding-top: 5px;
-    .pin, .unpin {
+    .pin,
+    .unpin {
       position: absolute;
       right: 7px;
       top: 5px;
@@ -254,23 +273,23 @@ html {
   .detail-content {
     overflow: visible;
     margin: 0;
-    @media (max-width:768px) {
+    @media (max-width: 768px) {
       top: 170px;
       width: 95%;
     }
 
-    @media(min-width: 768px) and (max-width: 992px) {
+    @media (min-width: 768px) and (max-width: 992px) {
       top: 190px;
       width: 250px;
     }
 
-    @media(min-width: 992px) {
+    @media (min-width: 992px) {
       width: 330px;
     }
-    @media(min-width: 1200px) {
+    @media (min-width: 1200px) {
       width: 390px;
     }
-    @media(min-width: 1400px) {
+    @media (min-width: 1400px) {
       width: 530px;
     }
     react-ui-view-adapter {
@@ -279,21 +298,21 @@ html {
   }
   .nav-content {
     margin: 0 25px;
-    @media (max-width:768px) {
+    @media (max-width: 768px) {
       width: 70%;
     }
 
-    @media(min-width: 768px) and (max-width: 992px) {
+    @media (min-width: 768px) and (max-width: 992px) {
       width: 450px;
     }
 
-    @media(min-width: 992px) {
+    @media (min-width: 992px) {
       width: 540px;
     }
-    @media(min-width: 1200px) {
+    @media (min-width: 1200px) {
       width: 630px;
     }
-    @media(min-width: 1400px) {
+    @media (min-width: 1400px) {
       width: 720px;
     }
   }
@@ -301,37 +320,36 @@ html {
     margin: 0 25px;
     flex-direction: column;
     width: 100%;
-    @media (max-width:768px) {
+    @media (max-width: 768px) {
       width: 90%;
     }
 
-    @media(min-width: 768px) and (max-width: 992px) {
+    @media (min-width: 768px) and (max-width: 992px) {
       width: 770px;
       &.filters-expanded {
         width: 650px;
       }
     }
 
-    @media(min-width: 992px) {
+    @media (min-width: 992px) {
       width: 900px;
       &.filters-expanded {
         width: 730px;
       }
     }
-    @media(min-width: 1200px) {
+    @media (min-width: 1200px) {
       width: 1090px;
       &.filters-expanded {
         width: 900px;
       }
     }
-    @media(min-width: 1400px) {
+    @media (min-width: 1400px) {
       width: 1290px;
       &.filters-expanded {
         width: 1070px;
       }
     }
   }
-
 }
 
 .no-padding {
@@ -363,7 +381,8 @@ html {
   }
 }
 
-.secondary-panel, .details-panel {
+.secondary-panel,
+.details-panel {
   .close-button {
     float: right;
     margin-top: -15px;
@@ -378,7 +397,7 @@ html {
 
 .glyphicon-Warn {
   &:before {
-    content: "\26A0";
+    content: '\26A0';
     color: var(--color-danger);
     font-weight: bold;
   }
@@ -386,7 +405,7 @@ html {
 
 .glyphicon-Normal {
   &:before {
-    content: "\2022";
+    content: '\2022';
     color: var(--color-success);
     font-weight: bold;
   }
@@ -394,7 +413,7 @@ html {
 
 .glyphicon-Up-triangle {
   &:before {
-    content: "\25B2";
+    content: '\25B2';
     color: var(--color-success);
     font-size: 75%;
   }
@@ -402,14 +421,15 @@ html {
 
 .glyphicon-Down-triangle {
   &:before {
-    content: "\25BC";
+    content: '\25BC';
     color: var(--color-danger);
     font-size: 75%;
   }
 }
-.glyphicon-Unknown-triangle, .glyphicon-Starting-triangle {
+.glyphicon-Unknown-triangle,
+.glyphicon-Starting-triangle {
   &:before {
-    content: "\2666";
+    content: '\2666';
     font-weight: 900;
     color: var(--color-accent-g1);
     font-size: 85%;
@@ -420,7 +440,7 @@ html {
 
 .glyphicon-OutOfService-triangle {
   &:before {
-  content: "\2212";
+    content: '\2212';
     font-weight: 900;
     color: var(--color-titanium);
     font-size: 80%;
@@ -429,7 +449,7 @@ html {
 
 .glyphicon-Failed-triangle {
   &:before {
-    content: "\2717";
+    content: '\2717';
     font-weight: 900;
     color: var(--color-danger);
     font-size: 120%;
@@ -438,7 +458,7 @@ html {
 
 .glyphicon-Succeeded-triangle {
   &:before {
-    content: "\2713";
+    content: '\2713';
     font-weight: 900;
     color: var(--color-success);
     font-size: 120%;
@@ -493,13 +513,13 @@ dl {
 
 .tooltip-table {
   width: 120px;
-  td, th {
+  td,
+  th {
     text-align: left;
     vertical-align: top;
     padding: 2px;
   }
 }
-
 
 body > .container {
   margin-top: 20px;
@@ -529,10 +549,11 @@ body > .container {
   margin-top: 28px;
 }
 
-.no-highlight{
+.no-highlight {
   color: var(--color-black);
 
-  &:hover, &:focus {
+  &:hover,
+  &:focus {
     text-decoration: none;
     color: var(--color-black);
   }
@@ -546,8 +567,7 @@ body > .container {
   cursor: pointer;
 }
 
-.nav-tabs a:hover
-{
+.nav-tabs a:hover {
   color: var(--color-dovegray);
 }
 
@@ -571,7 +591,8 @@ body > .container {
     }
   }
 
-  .navbar-nav > li > a, .nav-items > li > a {
+  .navbar-nav > li > a,
+  .nav-items > li > a {
     color: var(--color-white);
     font-weight: 200;
     padding: 10px 15px;
@@ -582,27 +603,29 @@ body > .container {
       margin: 0;
     }
 
-    &:focus, &:hover {
+    &:focus,
+    &:hover {
       border-top-color: var(--color-cirrus);
       background-color: var(--color-primary-g1);
-      transition: border-top-color .2s, background-color .2s;
+      transition: border-top-color 0.2s, background-color 0.2s;
     }
   }
 
   .nav-items > .active > a,
   .nav-items > .active > a:focus,
-  .nav-items > .active> a:hover,
+  .nav-items > .active > a:hover,
   .navbar-nav > .active > a,
   .navbar-nav > .active > a:focus,
-  .navbar-nav > .active > a:hover
-  {
+  .navbar-nav > .active > a:hover {
     background-color: transparent;
     font-weight: 200;
     border-top-color: var(--color-white);
   }
 }
 
-.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:focus,
+.nav-tabs > li.active > a:hover {
   border-top: 4px solid transparent;
   background-color: var(--color-dovegray);
   color: var(--color-white);
@@ -617,7 +640,9 @@ body > .container {
   }
 }
 
-.sm-label, .sm-label-left, .sm-label-right {
+.sm-label,
+.sm-label-left,
+.sm-label-right {
   &.compact {
     line-height: 20px;
   }
@@ -648,7 +673,7 @@ body > .container {
 
 .sm-label-right {
   text-align: right;
-  @media(max-width: 992px) {
+  @media (max-width: 992px) {
     text-align: left;
   }
 }
@@ -690,9 +715,8 @@ body > .container {
   }
 }
 
-
 .modal-pages {
-  width:1200px;
+  width: 1200px;
   .modal-page {
     position: relative;
     width: 600px;
@@ -732,7 +756,9 @@ body > .container {
     font-size: 80%;
   }
 
-  &:hover, &:focus, &:active {
+  &:hover,
+  &:focus,
+  &:active {
     border-color: var(--color-black);
     color: var(--color-black);
   }
@@ -748,15 +774,16 @@ tfoot .add-new {
 
 .form-control.invalid {
   border-color: var(--color-danger);
-  .box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075)); // Redeclare so transitions work
+  .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075)); // Redeclare so transitions work
   &:focus {
     border-color: var(--color-danger);
-    @shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--color-danger-light);
+    @shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
     .box-shadow(@shadow);
   }
 }
 
-input:invalid, select:invalid {
+input:invalid,
+select:invalid {
   border-color: var(--color-danger);
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
@@ -764,12 +791,15 @@ input:invalid, select:invalid {
 
 .form-control {
   &.ng-invalid {
-    &.ng-dirty, &.ng-invalid-validate-min, &.ng-invalid-validate-max, &.highlight-pristine {
+    &.ng-dirty,
+    &.ng-invalid-validate-min,
+    &.ng-invalid-validate-max,
+    &.highlight-pristine {
       border-color: var(--color-danger);
-      .box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075)); // Redeclare so transitions work
+      .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075)); // Redeclare so transitions work
       &:focus {
         border-color: var(--color-danger);
-        @shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--color-danger-light);
+        @shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
         .box-shadow(@shadow);
       }
     }
@@ -779,10 +809,10 @@ input:invalid, select:invalid {
 .highlight-pristine {
   .ng-invalid {
     border-color: var(--color-danger);
-    .box-shadow(inset 0 1px 1px rgba(0, 0, 0, .075)); // Redeclare so transitions work
+    .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075)); // Redeclare so transitions work
     &:focus {
       border-color: var(--color-danger);
-      @shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 6px var(--color-danger-light);
+      @shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
       .box-shadow(@shadow);
     }
   }
@@ -798,8 +828,9 @@ input:invalid, select:invalid {
   td {
     background-color: var(--color-white);
   }
-  thead th, tfoot td {
-    background-color: transparent
+  thead th,
+  tfoot td {
+    background-color: transparent;
   }
 }
 
@@ -817,7 +848,8 @@ input:invalid, select:invalid {
   }
 }
 
-.flat-list, .checklist {
+.flat-list,
+.checklist {
   li {
     list-style-type: none;
     label {
@@ -873,7 +905,7 @@ input:invalid, select:invalid {
     font-weight: 400;
     position: relative;
     .glyphicon-spinning();
-    content: "*";
+    content: '*';
     display: inline-block;
     vertical-align: middle;
     margin-right: 4px;
@@ -894,7 +926,8 @@ input:invalid, select:invalid {
   width: 99%;
   table {
     color: var(--color-dovegray);
-    th, td {
+    th,
+    td {
       padding-left: 0px !important;
     }
   }
@@ -911,10 +944,10 @@ input:invalid, select:invalid {
 .transition-overlay {
   z-index: @fixed-header-z-index + 1;
   background-color: var(--color-alabaster);
-  opacity:.7;
-  position:fixed;
-  width:100%;
-  height:100%;
+  opacity: 0.7;
+  position: fixed;
+  width: 100%;
+  height: 100%;
   transition: opacity 0.2s;
 }
 
@@ -1035,7 +1068,7 @@ input:invalid, select:invalid {
     }
     .form-group {
       margin-top: 10px;
-      input[type=number] {
+      input[type='number'] {
         width: 55px;
       }
     }
@@ -1060,7 +1093,7 @@ input:invalid, select:invalid {
     &:before {
       color: var(--color-dovegray);
     }
-    font-size: .75em;
+    font-size: 0.75em;
     top: 0px;
   }
 }
@@ -1098,10 +1131,12 @@ input:invalid, select:invalid {
 a.help-field {
   color: var(--color-concrete);
   opacity: 0.8;
-  &:active, &:hover {
+  &:active,
+  &:hover {
     opacity: 1;
   }
-  span, i {
+  span,
+  i {
     top: 0;
     font-size: 70%;
   }
@@ -1199,13 +1234,16 @@ select.input-sm {
   padding-left: 14px;
 }
 
-.Select.is-open { z-index: 10000; }
+.Select.is-open {
+  z-index: 10000;
+}
 
 html {
   overflow: hidden;
 }
 
-body, html {
+body,
+html {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -1223,11 +1261,11 @@ body, html {
   height: 100%;
 
   .spinnaker-content {
-    height: calc(~"100% - 40px");
+    height: calc(~'100% - 40px');
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    > [ui-view="main"] {
+    > [ui-view='main'] {
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -1244,7 +1282,7 @@ body, html {
       display: flex;
       overflow-y: hidden;
       padding-top: 20px;
-      >div {
+      > div {
         display: flex;
         flex: 1 1 auto;
         width: 100%;
@@ -1253,9 +1291,19 @@ body, html {
         display: flex;
         flex: 0 0 auto;
         margin-left: 0;
-        >div {
+        > div {
           display: flex;
           overflow: visible;
+        }
+        react-ui-view-adapter {
+          display: flex;
+          width: 100%;
+          overflow-x: hidden;
+          // >div {
+          //   display: flex;
+          //   width: 100%;
+          //   overflow-x: hidden;
+          // }
         }
       }
     }
@@ -1264,7 +1312,7 @@ body, html {
 
 .ui-select-multiple {
   .select2-drop {
-    width: calc(~"100% - 40px");
+    width: calc(~'100% - 40px');
     margin-left: 1px;
   }
 }
@@ -1272,7 +1320,8 @@ body, html {
   .select2-disabled {
     background-color: transparent;
     opacity: 0.5;
-    &:hover, &.select2-highlighted {
+    &:hover,
+    &.select2-highlighted {
       background-color: transparent;
     }
     .select2-result-label {
@@ -1309,17 +1358,19 @@ body > .select2-container.open {
   z-index: 10003;
 }
 
-.tooltip, .popover {
+.tooltip,
+.popover {
   font-family: 'Source Sans Pro', sans-serif;
   z-index: 10004;
 }
 
 .btn-configure {
   padding: 6px;
-  &:hover, &:active {
+  &:hover,
+  &:active {
     border: 1px solid var(--color-accent);
     background-color: var(--color-cirrus);
-    transition: border-color 0.2s, background-color 0.2s, color 0.2s
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s;
   }
 }
 
@@ -1331,8 +1382,10 @@ body > .select2-container.open {
   }
 }
 
-.checkbox-inline, .radio-inline {
-  input[type="checkbox"], input[type="radio"] {
+.checkbox-inline,
+.radio-inline {
+  input[type='checkbox'],
+  input[type='radio'] {
     margin-left: -15px;
   }
   padding-left: 25px;
@@ -1419,7 +1472,8 @@ ul.checkmap {
       color: var(--color-mineshaft);
       white-space: nowrap;
       cursor: pointer;
-      &:hover, &:focus {
+      &:hover,
+      &:focus {
         background-color: var(--color-alabaster);
         text-decoration: none;
         color: var(--color-mineshaft);
@@ -1501,7 +1555,8 @@ div.modal-header.has-sticky-headers {
   background-color: var(--color-white);
   margin: 0;
   border-top: 1px solid var(--color-alto);
-  .col-md-9, .col-md-3 {
+  .col-md-9,
+  .col-md-3 {
     padding: 0;
   }
 }
