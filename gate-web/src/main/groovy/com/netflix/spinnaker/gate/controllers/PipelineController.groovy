@@ -233,6 +233,32 @@ class PipelineController {
     }
   }
 
+  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context", response = HashMap.class)
+  @RequestMapping(value = "{id}/evaluateExpression", method = RequestMethod.POST, consumes = "text/plain")
+  Map evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
+                                            @RequestBody String pipelineExpression) {
+    try {
+      pipelineService.evaluateExpressionForExecution(id, pipelineExpression)
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        throw new NotFoundException("Pipeline not found (id: ${id})")
+      }
+    }
+  }
+
+  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context", response = HashMap.class)
+  @RequestMapping(value = "{id}/evaluateExpression", method = RequestMethod.POST, consumes = "application/json")
+  Map evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
+                                            @RequestBody Map pipelineExpression) {
+    try {
+      pipelineService.evaluateExpressionForExecution(id, (String) pipelineExpression.expression)
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        throw new NotFoundException("Pipeline not found (id: ${id})")
+      }
+    }
+  }
+
   private ResponseEntity maybePropagateTemplatedPipelineErrors(Map requestBody, Closure<Map> call) {
     try {
       def body = call()
