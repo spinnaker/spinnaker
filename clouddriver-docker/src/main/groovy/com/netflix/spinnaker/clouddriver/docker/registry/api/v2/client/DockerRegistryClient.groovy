@@ -269,7 +269,7 @@ class DockerRegistryClient {
       // [1] https://tools.ietf.org/html/rfc3986#section-5
     }
 
-    return link
+    return link.startsWith('/') ? link.replaceFirst('/', '') : link
   }
 
   private static String findNextLink(List<retrofit.client.Header> headers) {
