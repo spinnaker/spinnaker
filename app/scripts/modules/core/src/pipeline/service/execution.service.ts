@@ -428,6 +428,10 @@ export class ExecutionService {
   }
 
   public synchronizeExecution(current: IExecution, updated: IExecution): void {
+    // don't dehydrate!
+    if (!updated.hydrated && current.hydrated) {
+      return;
+    }
     const hydrationFlagChanged = !current.hydrated && updated.hydrated;
     (updated.stageSummaries || []).forEach((updatedSummary, idx) => {
       const currentSummary = current.stageSummaries[idx];

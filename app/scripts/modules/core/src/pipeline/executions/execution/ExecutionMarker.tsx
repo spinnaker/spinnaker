@@ -46,7 +46,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
   private hydrate = (): void => {
     const { execution, application } = this.props;
     ReactInjector.executionService.hydrate(application, execution).then(() => {
-      if (this.mounted) {
+      if (this.mounted && !this.state.hydrated) {
         this.setState({ hydrated: true });
       }
     });
