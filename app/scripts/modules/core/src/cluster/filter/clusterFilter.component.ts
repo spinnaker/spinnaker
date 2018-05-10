@@ -4,13 +4,12 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ClusterState } from 'core/state';
-import { IFilterTag, ISortFilter } from 'core/filterModel';
+import { IFilterTag, ISortFilter, digestDependentFilters } from 'core/filterModel';
 
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [
   require('./collapsibleFilterSection.directive').name,
-  require('core/filterModel/dependentFilter/dependentFilter.service').name,
   require('./clusterDependentFilterHelper.service').name,
 ]);
 
@@ -34,7 +33,6 @@ class ClusterFilterCtrl {
     public $rootScope: IScope,
     public $timeout: ITimeoutService,
     public clusterDependentFilterHelper: any,
-    public dependentFilterService: any,
   ) {
     'ngInject';
   }
@@ -68,15 +66,9 @@ class ClusterFilterCtrl {
   }
 
   public updateClusterGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, clusterDependentFilterHelper, app } = this;
+    const { clusterDependentFilterHelper, app } = this;
 
-    const {
-      providerType,
-      instanceType,
-      account,
-      availabilityZone,
-      region,
-    } = dependentFilterService.digestDependentFilters({
+    const { providerType, instanceType, account, availabilityZone, region } = digestDependentFilters({
       sortFilter: ClusterState.filterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone', 'instanceType'],
       pool: clusterDependentFilterHelper.poolBuilder(app.serverGroups.data),

@@ -1,18 +1,10 @@
-'use strict';
+import { ISortFilter } from 'core/filterModel';
+
+import { digestDependentFilters } from './DependentFilterService';
 
 describe('Service: dependentFilterService', function() {
-  let service;
-
-  beforeEach(window.module(require('./dependentFilter.service.js').name));
-
-  beforeEach(
-    window.inject(function(dependentFilterService) {
-      service = dependentFilterService;
-    }),
-  );
-
   describe('digestDependentFilters', function() {
-    let pool, dependencyOrder;
+    let pool: any, dependencyOrder: string[];
     beforeEach(function() {
       dependencyOrder = ['providerType', 'account', 'region', 'availabilityZone', 'instanceType'];
 
@@ -71,8 +63,14 @@ describe('Service: dependentFilterService', function() {
 
     describe('parents filter children', function() {
       it('should return all headings for all fields when no headings selected', function() {
-        let sortFilter = { region: {}, account: {}, availabilityZone: {}, providerType: {}, instanceType: {} };
-        let { region, account, availabilityZone, providerType, instanceType } = service.digestDependentFilters({
+        const sortFilter: ISortFilter = {
+          region: {},
+          account: {},
+          availabilityZone: {},
+          providerType: {},
+          instanceType: {},
+        } as any;
+        const { region, account, availabilityZone, providerType, instanceType } = digestDependentFilters({
           sortFilter,
           pool,
           dependencyOrder,
@@ -86,15 +84,15 @@ describe('Service: dependentFilterService', function() {
       });
 
       it('should return all headings for all fields when only instance types selected', function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: {},
           account: {},
           availabilityZone: {},
           providerType: {},
           instanceType: { 'f1-micro': true },
-        };
+        } as any;
 
-        let { region, account, availabilityZone, providerType, instanceType } = service.digestDependentFilters({
+        const { region, account, availabilityZone, providerType, instanceType } = digestDependentFilters({
           sortFilter,
           pool,
           dependencyOrder,
@@ -108,15 +106,15 @@ describe('Service: dependentFilterService', function() {
       });
 
       it('should return all AZs and instance types when all regions selected', function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'us-central1': true, 'asia-east1': true, 'us-west-2': true },
           account: {},
           availabilityZone: {},
           providerType: {},
           instanceType: {},
-        };
+        } as any;
 
-        let { region, availabilityZone, instanceType } = service.digestDependentFilters({
+        const { region, availabilityZone, instanceType } = digestDependentFilters({
           sortFilter,
           pool,
           dependencyOrder,
@@ -127,17 +125,17 @@ describe('Service: dependentFilterService', function() {
         expect(instanceType.length).toEqual(2);
       });
 
-      it(`should return only Google regions, AZs, and instance types 
+      it(`should return only Google regions, AZs, and instance types
           when only my-google-account is selected`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: {},
           account: { 'my-google-account': true },
           availabilityZone: {},
           providerType: {},
           instanceType: {},
-        };
+        } as any;
 
-        let { region, availabilityZone, instanceType } = service.digestDependentFilters({
+        const { region, availabilityZone, instanceType } = digestDependentFilters({
           sortFilter,
           pool,
           dependencyOrder,
@@ -149,47 +147,47 @@ describe('Service: dependentFilterService', function() {
       });
 
       it('should return asia-east1-c, asia-east1-b, and all regions when asia-east1 is selected', function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'asia-east1': true },
           account: {},
           availabilityZone: {},
           providerType: {},
           instanceType: {},
-        };
-        let { region, availabilityZone } = service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        } as any;
+        const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(region.length).toEqual(3);
         expect(availabilityZone).toEqual(['asia-east1-c', 'asia-east1-b']);
       });
 
-      it(`should return us-west-2a, us-west-2b, and Amazon regions 
+      it(`should return us-west-2a, us-west-2b, and Amazon regions
           when us-west-2 and my-aws-account are selected`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'us-west-2': true },
           account: { 'my-aws-account': true },
           availabilityZone: {},
           providerType: {},
           instanceType: {},
-        };
+        } as any;
 
-        let { region, availabilityZone } = service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(region).toEqual(['us-west-2']);
         expect(availabilityZone).toEqual(['us-west-2a', 'us-west-2b']);
       });
 
       it('should return empty AZ and instance type lists and all regions when selected region has no AZs', function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'eu-east1': true },
           account: {},
           availabilityZone: {},
           providerType: {},
           instanceType: {},
-        };
+        } as any;
 
         pool = pool.concat({ region: 'eu-east1' });
 
-        let { region, availabilityZone, instanceType } = service.digestDependentFilters({
+        const { region, availabilityZone, instanceType } = digestDependentFilters({
           sortFilter,
           pool,
           dependencyOrder,
@@ -204,14 +202,14 @@ describe('Service: dependentFilterService', function() {
     describe('state management', function() {
       it(`should unselect us-west-2 region when only my-google-account selected,
           return values as if only my-google-account selected.`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'us-west-2': true },
           account: { 'my-google-account': true },
           availabilityZone: {},
           providerType: {},
           instanceType: {},
-        };
-        let { region, availabilityZone } = service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        } as any;
+        const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(region).toEqual(['us-central1', 'asia-east1']);
         expect(availabilityZone).toEqual(['us-central1-f', 'asia-east1-c', 'asia-east1-b']);
@@ -220,12 +218,12 @@ describe('Service: dependentFilterService', function() {
 
       it(`should unselect us-west-2a AZ when only my-google-account selected,
           return values as if only my-google-account selected`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: {},
           account: { 'my-google-account': true },
           availabilityZone: { 'us-west-2a': true },
-        };
-        let { region, availabilityZone } = service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        } as any;
+        const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(region).toEqual(['us-central1', 'asia-east1']);
         expect(availabilityZone).toEqual(['us-central1-f', 'asia-east1-c', 'asia-east1-b']);
@@ -234,12 +232,12 @@ describe('Service: dependentFilterService', function() {
 
       it(`should unselect us-west-1 region and us-west-1a AZ when only my-google-account selected,
           return values as if only my-google-account selected`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'us-west-2': true },
           account: { 'my-google-account': true },
           availabilityZone: { 'us-west-2a': true },
-        };
-        let { region, availabilityZone, instanceType } = service.digestDependentFilters({
+        } as any;
+        const { region, availabilityZone, instanceType } = digestDependentFilters({
           sortFilter,
           pool,
           dependencyOrder,
@@ -253,12 +251,12 @@ describe('Service: dependentFilterService', function() {
       });
 
       it(`should unselect us-central1-f AZ if asia-east1 region is selected and us-central1 region is not`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'asia-east1': true },
           account: {},
           availabilityZone: { 'us-central1-f': true },
-        };
-        let { region, availabilityZone, instanceType } = service.digestDependentFilters({
+        } as any;
+        const { region, availabilityZone, instanceType } = digestDependentFilters({
           sortFilter,
           pool,
           dependencyOrder,
@@ -270,20 +268,20 @@ describe('Service: dependentFilterService', function() {
         expect(sortFilter.availabilityZone['us-central1-f']).not.toBeDefined();
       });
 
-      it(`should unselect us-central1-f AZ if my-google-account and my-aws-account selected 
+      it(`should unselect us-central1-f AZ if my-google-account and my-aws-account selected
           and then my-google-account unselected`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: {},
           account: { 'my-google-account': true, 'my-aws-account': true },
           availabilityZone: { 'us-central1-f': true },
-        };
-        let { availabilityZone } = service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        } as any;
+        const { availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(availabilityZone.length).toEqual(5);
         expect(sortFilter.availabilityZone['us-central1-f']).toEqual(true);
 
         sortFilter.account = { 'my-google-account': false, 'my-aws-account': true };
-        let updated = service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        const updated = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(updated.region.length).toEqual(1);
         expect(updated.availabilityZone.length).toEqual(2);
@@ -292,31 +290,31 @@ describe('Service: dependentFilterService', function() {
 
       it(`should not unselect asia-east1 region if my-google-account is unselected
           and my-other-google-account is selected`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'asia-east1': true },
           account: { 'my-other-google-account': true },
           availabilityZone: {},
-        };
-        let { region, availabilityZone } = service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        } as any;
+        const { region, availabilityZone } = digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(region).toEqual(['asia-east1']);
         expect(availabilityZone).toEqual(['asia-east1-c']);
         expect(sortFilter.region['asia-east1']).toBeDefined();
       });
 
-      it(`should not unselect asia-east1 region if my-google-account and my-other-google-account selected 
+      it(`should not unselect asia-east1 region if my-google-account and my-other-google-account selected
           and then my-google-account unselected`, function() {
-        let sortFilter = {
+        const sortFilter: ISortFilter = {
           region: { 'asia-east1': true, 'us-central1': true },
           account: { 'my-google-account': true, 'my-other-google-account': true },
           availabilityZone: {},
-        };
-        service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        } as any;
+        digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(sortFilter.region['asia-east1']).toEqual(true);
 
         sortFilter.account = { 'my-google-account': false, 'my-other-google-account': true };
-        service.digestDependentFilters({ sortFilter, pool, dependencyOrder });
+        digestDependentFilters({ sortFilter, pool, dependencyOrder });
 
         expect(sortFilter.region['asia-east1']).toBeDefined();
         expect(sortFilter.region['us-central1']).not.toBeDefined();

@@ -3,14 +3,12 @@ import { chain, compact, uniq, map } from 'lodash';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { IFilterTag, ISortFilter } from 'core/filterModel';
+import { IFilterTag, ISortFilter, digestDependentFilters } from 'core/filterModel';
 import { SecurityGroupState } from 'core/state';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
-const ngmodule = module(SECURITY_GROUP_FILTER, [
-  require('core/filterModel/dependentFilter/dependentFilter.service').name,
-]);
+const ngmodule = module(SECURITY_GROUP_FILTER, []);
 
 interface IPoolItem {
   providerType: string;
@@ -36,7 +34,7 @@ export class SecurityGroupFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(private dependentFilterService: any, private $scope: IScope, private $rootScope: IScope) {
+  constructor(private $scope: IScope, private $rootScope: IScope) {
     'ngInject';
   }
 
@@ -81,9 +79,9 @@ export class SecurityGroupFilterCtrl {
   }
 
   private updateSecurityGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, app } = this;
+    const { app } = this;
 
-    const { account, region } = dependentFilterService.digestDependentFilters({
+    const { account, region } = digestDependentFilters({
       sortFilter: SecurityGroupState.filterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region'],
       pool: this.poolBuilder(app.securityGroups.data),

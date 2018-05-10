@@ -7,12 +7,11 @@ import { Application } from 'core/application/application.model';
 import { LoadBalancerState } from 'core/state';
 
 import { IFilterTag } from '../../filterModel/FilterTags';
+import { digestDependentFilters } from '../../filterModel/dependentFilter/DependentFilterService';
 
 export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controller';
 
-const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
-  require('../../filterModel/dependentFilter/dependentFilter.service').name,
-]);
+const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', []);
 
 const poolValueCoordinates = [
   { filterField: 'providerType', on: 'loadBalancer', localField: 'type' },
@@ -79,7 +78,7 @@ class LoadBalancerFilterCtrl {
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(private $scope: IScope, private dependentFilterService: any) {
+  constructor(private $scope: IScope) {
     'ngInject';
     this.sortFilter = LoadBalancerState.filterModel.asFilterModel.sortFilter;
   }
@@ -112,9 +111,9 @@ class LoadBalancerFilterCtrl {
   }
 
   public updateLoadBalancerGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, app } = this;
+    const { app } = this;
 
-    const { availabilityZone, region, account } = dependentFilterService.digestDependentFilters({
+    const { availabilityZone, region, account } = digestDependentFilters({
       sortFilter: LoadBalancerState.filterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone'],
       pool: poolBuilder(app.loadBalancers.data),
