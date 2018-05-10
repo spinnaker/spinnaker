@@ -59,6 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired
 @Slf4j
 class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
+  public static final String USE_APPLICATION_DEFAULT_SG_LABEL = 'spinnaker.useApplicationDefaultSecurityGroup'
+
   @Autowired
   AwsLookupUtil awsLookupUtil
 
@@ -178,6 +180,9 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
             }
           }
         }
+        if (sourceJob.labels?.get(USE_APPLICATION_DEFAULT_SG_LABEL) == "false") {
+          description.useApplicationDefaultSecurityGroup = false
+        }
       }
 
       task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
@@ -185,6 +190,22 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
 
       if (description.interestingHealthProviderNames && !description.interestingHealthProviderNames.empty) {
         description.labels.put("interestingHealthProviderNames", description.interestingHealthProviderNames.join(","))
+      }
+
+      if (description.labels.containsKey(USE_APPLICATION_DEFAULT_SG_LABEL)) {
+        if (description.labels.get(USE_APPLICATION_DEFAULT_SG_LABEL) == "false") {
+          description.useApplicationDefaultSecurityGroup = false
+        } else {
+          description.useApplicationDefaultSecurityGroup = true
+        }
+      }
+
+      if (description.useApplicationDefaultSecurityGroup == false) {
+        description.labels.put(USE_APPLICATION_DEFAULT_SG_LABEL, "false")
+      } else {
+        if (description.labels.containsKey(USE_APPLICATION_DEFAULT_SG_LABEL)) {
+          description.labels.remove(USE_APPLICATION_DEFAULT_SG_LABEL)
+        }
       }
 
       SubmitJobRequest submitJobRequest = new SubmitJobRequest()
@@ -301,7 +322,7 @@ class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
         } catch (io.grpc.StatusRuntimeException e) {
           task.updateStatus BASE_PHASE, "Error encountered submitting job request to Titus ${e.message} for ${nextServerGroupName}"
           if ((e.status.code == Status.RESOURCE_EXHAUSTED.code && e.status.description.contains("Constraint violation - job with group sequence")) || (e.status.code == Status.INVALID_ARGUMENT.code && e.status.description.contains("Job sequence id reserved by another pending job"))) {
-            if (e.status.code == Status.INVALID_ARGUMENT){
+            if (e.status.code == Status.INVALID_ARGUMENT) {
               sleep 1000 ^ pow(2, retryCount)
               retryCount++
             }
