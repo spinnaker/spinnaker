@@ -125,7 +125,11 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
             // queue while a re-indexing is underway (this can happen if a storage service operation fails prior to closing
             // an open start entry by recording the matching finish entry).
             List<String> updatesThroughCheckpoint = jedis.lrange(pendingUpdatesKey, 0, -1);
-            StorageService configurationService = storageServiceRepository.getOne(accountName).get();
+            StorageService configurationService =
+              storageServiceRepository
+                .getOne(accountName)
+                .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to index configurations."));
+
             List<Map<String, Object>> canaryConfigObjectKeys = configurationService.listObjectKeys(accountName, ObjectType.CANARY_CONFIG, null, true);
             Map<String, List<Map>> applicationToCanaryConfigListMap = new HashMap<>();
 
