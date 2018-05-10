@@ -294,9 +294,9 @@ class TaskController {
     def evaluated = contextParameterProcessor.process(
       [expression: expression],
       [execution: execution],
-      false
+      true
     )
-    return [result: evaluated?.expression]
+    return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
