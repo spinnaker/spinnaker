@@ -48,12 +48,19 @@ public class CollectLogsDeployCommand extends AbstractConfigCommand {
   )
   List<String> serviceNames = new ArrayList<>();
 
+  @Parameter(
+      names = "--exclude-service-names",
+      description = "When supplied, logs from the specified services will be not collected",
+      variableArity = true
+  )
+  List<String> excludeServiceNames = new ArrayList<>();
+
   @Override
   protected void executeThis() {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to collect logs from Spinnaker.")
-        .setSuccessMessage("Succesfully collected service logs.")
-        .setOperation(Daemon.collectLogs(getCurrentDeployment(), !noValidate, serviceNames))
+        .setSuccessMessage("Successfully collected service logs.")
+        .setOperation(Daemon.collectLogs(getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames))
         .get();
   }
 }

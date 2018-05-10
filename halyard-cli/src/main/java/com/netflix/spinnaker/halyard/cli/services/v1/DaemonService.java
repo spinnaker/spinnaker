@@ -125,6 +125,7 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Query("deployOptions") List<DeployOption> deployOptions,
       @Query("serviceNames") List<String> serviceNames,
+      @Query("excludeServiceNames") List<String> excludeServiceNames,
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/prep/")
@@ -132,6 +133,7 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Query("serviceNames") List<String> serviceNames,
+      @Query("excludeServiceNames") List<String> excludeServiceNames,
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/rollback/")
@@ -139,6 +141,7 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Query("serviceNames") List<String> serviceNames,
+      @Query("excludeServiceNames") List<String> excludeServiceNames,
       @Body String _ignore);
 
   @PUT("/v1/config/deployments/{deploymentName}/collectLogs/")
@@ -146,6 +149,7 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Query("serviceNames") List<String> serviceNames,
+      @Query("excludeServiceNames") List<String> excludeServiceNames,
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/clean/")

@@ -77,6 +77,13 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
   )
   List<String> serviceNames = new ArrayList<>();
 
+  @Parameter(
+      names = "--exclude-service-names",
+      description = "When supplied, do not install or update the specified Spinnaker services.",
+      variableArity = true
+  )
+  List<String> excludeServiceNames = new ArrayList<>();
+
   @Override
   protected OperationHandler<RemoteAction> getRemoteAction() {
     List<DeployOption> deployOptions = new ArrayList<>();
@@ -92,7 +99,7 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
         new OperationHandler<RemoteAction>()
             .setFailureMesssage("Failed to prep Spinnaker deployment")
             .setSuccessMessage("Preparation complete... deploying Spinnaker")
-            .setOperation(Daemon.prepDeployment(getCurrentDeployment(), !noValidate, serviceNames));
+            .setOperation(Daemon.prepDeployment(getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames));
 
     if (prepOnly) {
       return prepHandler;
@@ -102,7 +109,7 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
       return new OperationHandler<RemoteAction>()
           .setFailureMesssage("Failed to deploy Spinnaker.")
           .setSuccessMessage("Run `hal deploy connect` to connect to Spinnaker.")
-          .setOperation(Daemon.deployDeployment(getCurrentDeployment(), false, deployOptions, serviceNames));
+          .setOperation(Daemon.deployDeployment(getCurrentDeployment(), false, deployOptions, serviceNames, excludeServiceNames));
     }
   }
 }

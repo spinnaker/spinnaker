@@ -50,12 +50,19 @@ public class RollbackDeployCommand extends AbstractConfigCommand {
   )
   List<String> serviceNames = new ArrayList<>();
 
+  @Parameter(
+      names = "--exclude-service-names",
+      description = "When supplied, do not install or update the specified Spinnaker services.",
+      variableArity = true
+  )
+  List<String> excludeServiceNames = new ArrayList<>();
+
   @Override
   protected void executeThis() {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to rollback Spinnaker.")
         .setSuccessMessage("Successfully rolled back Spinnaker.")
-        .setOperation(Daemon.rollbackDeployment(getCurrentDeployment(), !noValidate, serviceNames))
+        .setOperation(Daemon.rollbackDeployment(getCurrentDeployment(), !noValidate, serviceNames, excludeServiceNames))
         .get();
   }
 }

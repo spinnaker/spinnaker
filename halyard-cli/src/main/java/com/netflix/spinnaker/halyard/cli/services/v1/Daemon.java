@@ -514,23 +514,23 @@ public class Daemon {
     };
   }
 
-  public static Supplier<RemoteAction> prepDeployment(String deploymentName, boolean validate, List<String> serviceNames) {
+  public static Supplier<RemoteAction> prepDeployment(String deploymentName, boolean validate, List<String> serviceNames, List<String> excludeServiceNames) {
     return () -> {
-      Object rawDeployResult = ResponseUnwrapper.get(getService().prepDeployment(deploymentName, validate, serviceNames, ""));
+      Object rawDeployResult = ResponseUnwrapper.get(getService().prepDeployment(deploymentName, validate, serviceNames, excludeServiceNames, ""));
       return getObjectMapper().convertValue(rawDeployResult, RemoteAction.class);
     };
   }
 
-  public static Supplier<RemoteAction> deployDeployment(String deploymentName, boolean validate, List<DeployOption> deployOptions, List<String> serviceNames) {
+  public static Supplier<RemoteAction> deployDeployment(String deploymentName, boolean validate, List<DeployOption> deployOptions, List<String> serviceNames, List<String> excludeServiceNames) {
     return () -> {
-      Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, deployOptions, serviceNames, ""));
+      Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, deployOptions, serviceNames, excludeServiceNames,""));
       return getObjectMapper().convertValue(rawDeployResult, RemoteAction.class);
     };
   }
 
-  public static Supplier<Void> collectLogs(String deploymentName, boolean validate, List<String> serviceNames) {
+  public static Supplier<Void> collectLogs(String deploymentName, boolean validate, List<String> serviceNames, List<String> excludeServiceNames) {
     return () -> {
-      ResponseUnwrapper.get(getService().collectLogs(deploymentName, validate, serviceNames, ""));
+      ResponseUnwrapper.get(getService().collectLogs(deploymentName, validate, serviceNames, excludeServiceNames, ""));
       return null;
     };
   }
@@ -542,9 +542,9 @@ public class Daemon {
     };
   }
 
-  public static Supplier<Void> rollbackDeployment(String deploymentName, boolean validate, List<String> serviceNames) {
+  public static Supplier<Void> rollbackDeployment(String deploymentName, boolean validate, List<String> serviceNames, List<String> excludeServiceNames) {
     return () -> {
-      ResponseUnwrapper.get(getService().rollbackDeployment(deploymentName, validate, serviceNames, ""));
+      ResponseUnwrapper.get(getService().rollbackDeployment(deploymentName, validate, serviceNames, excludeServiceNames, ""));
       return null;
     };
   }

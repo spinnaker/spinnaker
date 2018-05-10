@@ -203,10 +203,13 @@ public class DeploymentController extends DeploymentsGrpc.DeploymentsImplBase{
   DaemonTask<Halconfig, Void> rollback(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
-      @RequestParam(required = false) List<String> serviceNames) {
+      @RequestParam(required = false) List<String> serviceNames,
+      @RequestParam(required = false) List<String> excludeServiceNames) {
     List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
+    List<String> finalExcludeServiceNames =
+        excludeServiceNames != null ? excludeServiceNames : Collections.emptyList();
     Supplier buildResponse = () -> {
-      deployService.rollback(deploymentName, finalServiceNames);
+      deployService.rollback(deploymentName, finalServiceNames, finalExcludeServiceNames);
       return null;
     };
 
@@ -226,10 +229,13 @@ public class DeploymentController extends DeploymentsGrpc.DeploymentsImplBase{
   DaemonTask<Halconfig, RemoteAction> prep(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
-      @RequestParam(required = false) List<String> serviceNames) {
+      @RequestParam(required = false) List<String> serviceNames,
+      @RequestParam(required = false) List<String> excludeServiceNames) {
     List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
+    List<String> finalExcludeServiceNames =
+        excludeServiceNames != null ? excludeServiceNames : Collections.emptyList();
     StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>(
-        () -> deployService.prep(deploymentName, finalServiceNames));
+        () -> deployService.prep(deploymentName, finalServiceNames, finalExcludeServiceNames));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -245,13 +251,16 @@ public class DeploymentController extends DeploymentsGrpc.DeploymentsImplBase{
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestParam(required = false) List<DeployOption> deployOptions,
-      @RequestParam(required = false) List<String> serviceNames) {
+      @RequestParam(required = false) List<String> serviceNames,
+      @RequestParam(required = false) List<String> excludeServiceNames) {
     List<DeployOption> finalDeployOptions =
         deployOptions != null ? deployOptions : Collections.emptyList();
     List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
+    List<String> finalExcludeServiceNames =
+        excludeServiceNames != null ? excludeServiceNames : Collections.emptyList();
     StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>(
         () -> deployService.deploy(deploymentName, finalDeployOptions,
-            finalServiceNames));
+            finalServiceNames, finalExcludeServiceNames));
     builder.setSeverity(severity);
 
     if (validate) {
@@ -266,7 +275,7 @@ public class DeploymentController extends DeploymentsGrpc.DeploymentsImplBase{
       io.grpc.stub.StreamObserver<com.google.longrunning.Operation> responseObserver) {
     StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>(
         () -> deployService.deploy(request.getName(), Collections.emptyList(),
-            Collections.emptyList()));
+            Collections.emptyList(), Collections.emptyList()));
     builder.setValidateResponse(() -> deploymentService.validateDeployment(request.getName()));
     builder.setSeverity(Severity.WARNING);
     builder.setSetup(() ->
@@ -282,11 +291,14 @@ public class DeploymentController extends DeploymentsGrpc.DeploymentsImplBase{
   DaemonTask<Halconfig, Void> collectLogs(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
-      @RequestParam(required = false) List<String> serviceNames) {
-    List<String> finalServiceNames = serviceNames == null ? new ArrayList<>() : serviceNames;
+      @RequestParam(required = false) List<String> serviceNames,
+      @RequestParam(required = false) List<String> excludeServiceNames) {
+    List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
+    List<String> finalExcludeServiceNames =
+        excludeServiceNames != null ? excludeServiceNames : Collections.emptyList();
 
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>(() -> {
-      deployService.collectLogs(deploymentName, finalServiceNames);
+      deployService.collectLogs(deploymentName, finalServiceNames, finalExcludeServiceNames);
       return null;
     });
     builder.setSeverity(severity);

@@ -99,7 +99,7 @@ public class DeployService {
   @Autowired
   ConfigParser configParser;
 
-  public void collectLogs(String deploymentName, List<String> serviceNames) {
+  public void collectLogs(String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
     SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
@@ -115,6 +115,13 @@ public class DeployService {
           .getServices()
           .stream()
           .map(SpinnakerService::getType)
+          .collect(Collectors.toList());
+    }
+
+    if (!excludeServiceNames.isEmpty()) {
+      serviceTypes = serviceTypes
+          .stream()
+          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
           .collect(Collectors.toList());
     }
 
@@ -165,7 +172,7 @@ public class DeployService {
     action.commitScript(halconfigDirectoryStructure.getUnInstallScriptPath(deploymentName));
   }
 
-  public void rollback(String deploymentName, List<String> serviceNames) {
+  public void rollback(String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
@@ -181,6 +188,13 @@ public class DeployService {
           .collect(Collectors.toList());
     }
 
+    if (!excludeServiceNames.isEmpty()) {
+      serviceTypes = serviceTypes
+          .stream()
+          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
+          .collect(Collectors.toList());
+    }
+
     SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
@@ -188,7 +202,7 @@ public class DeployService {
     deployer.rollback(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
   }
 
-  public RemoteAction prep(String deploymentName, List<String> serviceNames) {
+  public RemoteAction prep(String deploymentName, List<String> serviceNames, List<String> excludeServiceNames) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
     Deployer deployer = getDeployer(deploymentConfiguration);
@@ -204,6 +218,13 @@ public class DeployService {
           .getServices()
           .stream()
           .map(SpinnakerService::getType)
+          .collect(Collectors.toList());
+    }
+
+    if (!excludeServiceNames.isEmpty()) {
+      serviceTypes = serviceTypes
+          .stream()
+          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
           .collect(Collectors.toList());
     }
 
@@ -217,7 +238,7 @@ public class DeployService {
   }
 
   public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String>
-      serviceNames) {
+      serviceNames, List<String> excludeServiceNames) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
@@ -230,6 +251,13 @@ public class DeployService {
           .getServices()
           .stream()
           .map(SpinnakerService::getType)
+          .collect(Collectors.toList());
+    }
+
+    if (!excludeServiceNames.isEmpty()) {
+      serviceTypes = serviceTypes
+          .stream()
+          .filter(serviceType -> !excludeServiceNames.contains(serviceType.getCanonicalName()))
           .collect(Collectors.toList());
     }
 
