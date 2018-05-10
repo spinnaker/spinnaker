@@ -79,6 +79,7 @@ swagger:
     - .*executions.*
     - .*webhooks.*
     - /v2/.*
+    - .*firewalls.*
 
 hystrix:
   command:

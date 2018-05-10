@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2018 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,14 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/securityGroups")
-@Deprecated
-class SecurityGroupController {
+@RequestMapping("/firewalls")
+class FirewallController {
 
   @Autowired
   SecurityGroupService securityGroupService
 
-  @ApiOperation(value = "Retrieve a list of security groups, grouped by account, cloud provider, and region")
+  @ApiOperation(value = "Retrieve a list of firewalls, grouped by account, cloud provider, and region")
   @RequestMapping(method = RequestMethod.GET)
   Map all(@RequestParam(value = "id", required = false) String id,
           @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
@@ -39,14 +38,14 @@ class SecurityGroupController {
       if (result) {
         result
       } else {
-        throw new NotFoundException("No security group found (id: ${id})")
+        throw new NotFoundException("No firewall found (id: ${id})")
       }
     } else {
       securityGroupService.getAll(sourceApp)
     }
   }
 
-  @ApiOperation(value = "Retrieve a list of security groups for a given account, grouped by region")
+  @ApiOperation(value = "Retrieve a list of firewalls for a given account, grouped by region")
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
   Map allByAccount(
       @PathVariable String account,
@@ -56,7 +55,7 @@ class SecurityGroupController {
     securityGroupService.getForAccountAndProviderAndRegion(account, provider, region, sourceApp)
   }
 
-  @ApiOperation(value = "Retrieve a security group's details")
+  @ApiOperation(value = "Retrieve a firewall's details")
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   Map getSecurityGroup(
       @PathVariable String account,
