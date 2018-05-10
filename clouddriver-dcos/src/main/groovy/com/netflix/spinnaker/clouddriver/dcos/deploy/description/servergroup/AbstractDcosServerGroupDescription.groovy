@@ -22,5 +22,5 @@ import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupNameable;
 
 abstract class AbstractDcosServerGroupDescription extends AbstractDcosCredentialsDescription implements ServerGroupNameable {
   String serverGroupName
-  boolean forceDeployment
+  boolean forceDeployment = true
 }
