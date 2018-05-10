@@ -29,6 +29,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
+import rx.schedulers.Schedulers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -74,12 +75,10 @@ public class EnhancedMonitoringConfiguration {
 
     for (String application : configuration.getApplications()) {
       try {
-        List<Execution> executions = Lists.newArrayList(
-          executionRepository.retrieveOrchestrationsForApplication(
-            application,
-            new ExecutionRepository.ExecutionCriteria().setStatuses(ExecutionStatus.RUNNING)
-          )
-        );
+        List<Execution> executions = executionRepository.retrieveOrchestrationsForApplication(
+          application,
+          new ExecutionRepository.ExecutionCriteria().setStatuses(ExecutionStatus.RUNNING)
+        ).subscribeOn(Schedulers.io()).toList().toBlocking().single();
         orchestrationCountPerApplication.get(application).set(executions.size());
       } catch (Exception e) {
         log.error("Unable to refresh running orchestration count (application: {})", application, e);

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import java.time.Clock
+import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -26,14 +28,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
-
-import java.time.Clock
-import java.time.Instant
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.*
 import static java.time.ZoneOffset.UTC
@@ -68,6 +66,16 @@ class TaskControllerSpec extends Specification {
     ).build()
   }
 
+  void '/tasks returns a list of active tasks'() {
+    when:
+    mockMvc.perform(get('/tasks')).andReturn().response
+
+    then:
+    1 * executionRepository.retrieve(ORCHESTRATION) >> {
+      return rx.Observable.empty()
+    }
+  }
+
   void 'should cancel a list of tasks by id'() {
     when:
     def response = mockMvc.perform(
@@ -82,24 +90,21 @@ class TaskControllerSpec extends Specification {
 
   void 'step names are properly translated'() {
     given:
-    executionRepository.retrieve(ORCHESTRATION, _) >> orchestration {
+    executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([orchestration {
       id = "1"
-      application = "test"
+      application = "covfefe"
       stage {
         type = "test"
-        tasks = [
-          new Task(id: "1", name: 'jobOne', implementingClass: "foo", status: TERMINAL),
-          new Task(id: "2", name: 'jobTwo', implementingClass: "foo", status: TERMINAL)
-        ]
+        tasks = [new Task(name: 'jobOne'), new Task(name: 'jobTwo')]
       }
-    }
+    }])
 
     when:
-    def response = mockMvc.perform(get('/tasks/1')).andReturn().response
+    def response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
     response.status == 200
-    with(new JsonSlurper().parseText(response.contentAsString)) {
+    with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }
   }
@@ -124,12 +129,22 @@ class TaskControllerSpec extends Specification {
     ]
   }
 
+  void '/tasks returns [] when there are no tasks'() {
+    when:
+    MockHttpServletResponse response = mockMvc.perform(get('/tasks')).andReturn().response
+
+    then:
+    1 * executionRepository.retrieve(ORCHESTRATION) >> rx.Observable.from([])
+    response.status == 200
+    response.contentAsString == '[]'
+  }
+
   void '/applications/{application}/tasks filters tasks by application'() {
     when:
     def response = mockMvc.perform(get("/applications/$app/tasks")).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrationsForApplication(app, _) >> []
+    1 * executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.empty()
 
     where:
     app = "test"
@@ -151,7 +166,7 @@ class TaskControllerSpec extends Specification {
       }
     }
     def app = 'test'
-    executionRepository.retrieveOrchestrationsForApplication(app, _) >> tasks
+    executionRepository.retrieveOrchestrationsForApplication(app, _) >> rx.Observable.from(tasks)
 
     when:
     def response = new ObjectMapper().readValue(
@@ -178,7 +193,7 @@ class TaskControllerSpec extends Specification {
       [pipelineConfigId: "2", id: 'older3', application: app, startTime: clock.instant().minus(daysOfExecutionHistory + 1, DAYS).minus(4, HOURS).toEpochMilli()]
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       pipeline {
@@ -187,8 +202,8 @@ class TaskControllerSpec extends Specification {
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-    }
-    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> pipelines.findAll {
+    })
+    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       pipeline {
@@ -197,7 +212,7 @@ class TaskControllerSpec extends Specification {
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-    }
+    })
     front50Service.getPipelines(app, false) >> [[id: "1"], [id: "2"]]
     front50Service.getStrategies(app) >> []
 
@@ -221,7 +236,7 @@ class TaskControllerSpec extends Specification {
       [pipelineConfigId: "3", id: "started-5", application: "covfefe", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(), id: 'old-3']
     ]
 
-    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> pipelines.findAll {
+    executionRepository.retrievePipelinesForPipelineConfigId("1", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "1"
     }.collect { config ->
       pipeline {
@@ -230,8 +245,8 @@ class TaskControllerSpec extends Specification {
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-    }
-    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> pipelines.findAll {
+    })
+    executionRepository.retrievePipelinesForPipelineConfigId("2", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "2"
     }.collect { config ->
       pipeline {
@@ -240,8 +255,8 @@ class TaskControllerSpec extends Specification {
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-    }
-    executionRepository.retrievePipelinesForPipelineConfigId("3", _) >> pipelines.findAll {
+    })
+    executionRepository.retrievePipelinesForPipelineConfigId("3", _) >> rx.Observable.from(pipelines.findAll {
       it.pipelineConfigId == "3"
     }.collect { config ->
       pipeline {
@@ -250,7 +265,7 @@ class TaskControllerSpec extends Specification {
         startTime = config.startTime
         pipelineConfigId = config.pipelineConfigId
       }
-    }
+    })
 
     when:
     def response = mockMvc.perform(get("/pipelines?pipelineConfigIds=1,2")).andReturn().response
