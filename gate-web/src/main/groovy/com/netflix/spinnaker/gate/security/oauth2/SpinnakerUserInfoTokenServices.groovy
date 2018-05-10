@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.security.oauth2
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
@@ -72,6 +73,9 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   @Autowired(required = false)
   SpinnakerProviderTokenServices providerTokenServices
 
+  @Autowired
+  AllowedAccountsSupport allowedAccountsSupport
+
   @Override
   OAuth2Authentication loadAuthentication(String accessToken) throws AuthenticationException, InvalidTokenException {
     OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
@@ -95,11 +99,16 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     def username = details[userInfoMapping.username] as String
     def roles = []
 
+    // Service accounts are already logged in.
+    if (!isServiceAccount) {
+      permissionService.login(username)
+    }
+
     User spinnakerUser = new User(
         email: details[userInfoMapping.email] as String,
         firstName: details[userInfoMapping.firstName] as String,
         lastName: details[userInfoMapping.lastName] as String,
-        allowedAccounts: credentialsService.getAccountNames(roles),
+        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles),
         roles: roles,
         username: username)
 
@@ -108,11 +117,6 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
         null /* credentials */,
         spinnakerUser.authorities
     )
-
-    // Service accounts are already logged in.
-    if (!isServiceAccount) {
-      permissionService.login(username)
-    }
 
     // impl copied from UserInfoTokenServices
     OAuth2Request storedRequest = new OAuth2Request(null, sso.clientId, null, true /*approved*/,

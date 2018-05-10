@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.ldap
 
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.services.PermissionService
@@ -23,10 +24,8 @@ import com.netflix.spinnaker.security.User
 import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
@@ -97,6 +96,9 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     PermissionService permissionService
 
+    @Autowired
+    AllowedAccountsSupport allowedAccountsSupport
+
     @Override
     UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
       def roles = sanitizeRoles(authorities)
@@ -104,7 +106,8 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
       return new User(username: username,
                       email: ctx.getStringAttribute("mail"),
-                      roles: roles)
+                      roles: roles,
+                      allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles))
     }
 
     @Override

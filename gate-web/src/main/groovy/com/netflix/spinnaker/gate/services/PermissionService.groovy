@@ -55,6 +55,7 @@ class PermissionService {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "login") {
         try {
           fiatService.loginUser(userId, "")
+          permissionEvaluator.invalidatePermission(userId)
         } catch (RetrofitError e) {
           classifyError(e)
         }
@@ -67,6 +68,7 @@ class PermissionService {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "loginWithRoles") {
         try {
           fiatService.loginWithRoles(userId, roles)
+          permissionEvaluator.invalidatePermission(userId)
         } catch (RetrofitError e) {
           classifyError(e)
         }
@@ -79,6 +81,7 @@ class PermissionService {
       HystrixFactory.newVoidCommand(HYSTRIX_GROUP, "logout") {
         try {
           fiatService.logoutUser(userId)
+          permissionEvaluator.invalidatePermission(userId)
         } catch (RetrofitError e) {
           classifyError(e)
         }

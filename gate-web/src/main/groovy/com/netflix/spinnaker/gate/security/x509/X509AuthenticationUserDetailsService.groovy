@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.x509
 
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
@@ -41,10 +42,10 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   private static final String RFC822_NAME_ID = "1"
 
   @Autowired
-  CredentialsService credentialsService
+  PermissionService permissionService
 
   @Autowired
-  PermissionService permissionService
+  AllowedAccountsSupport allowedAccountsSupport
 
   @Autowired(required = false)
   X509RolesExtractor rolesExtractor
@@ -74,20 +75,21 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
       log.debug("Adding email {} to roles.", email)
       roles.add(email)
     }
+
+    String username = email as String
     if (rolesExtractor) {
       def extractedRoles = rolesExtractor.fromCertificate(x509)
       log.debug("Extracted roles {}", extractedRoles)
       roles += extractedRoles
-      permissionService.loginWithRoles(email as String, roles)
+      permissionService.loginWithRoles(username, roles)
     } else {
-      permissionService.login(email as String)
+      permissionService.login(username)
     }
-
 
     log.debug("Roles we have now: {}", roles)
     return new User(
         email: email,
-        allowedAccounts: credentialsService.getAccountNames(roles),
+        allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles),
         roles: roles
     )
   }

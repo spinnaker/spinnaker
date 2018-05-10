@@ -51,6 +51,7 @@ class AnonymousConfig extends WebSecurityConfigurerAdapter {
   List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>()
 
   void configure(HttpSecurity http) {
+    updateAnonymousAccounts()
     // Not using the ImmutableUser version in order to update allowedAccounts.
     def principal = new User(email: defaultEmail, allowedAccounts: anonymousAllowedAccounts)
 

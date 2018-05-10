@@ -18,16 +18,14 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.AccountLookupService
-import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.Account
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import com.netflix.spinnaker.security.User
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.access.prepost.PostFilter
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
@@ -40,10 +38,10 @@ import org.springframework.web.bind.annotation.RestController
 class CredentialsController {
 
   @Autowired
-  CredentialsService credentialsService
+  AccountLookupService accountLookupService
 
   @Autowired
-  AccountLookupService accountLookupService
+  AllowedAccountsSupport allowedAccountsSupport
 
   @Autowired
   ObjectMapper objectMapper
@@ -52,8 +50,6 @@ class CredentialsController {
     Boolean authorized
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
-  @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'READ')")
   @ApiOperation(value = "Retrieve a list of accounts")
   @RequestMapping(method = RequestMethod.GET)
   List<Account> getAccounts(@SpinnakerUser User user, @RequestParam(value = "expand", required = false) boolean expand) {
@@ -61,19 +57,21 @@ class CredentialsController {
     if (expand) {
       return allAccounts
     }
-    return objectMapper.convertValue(allAccounts, new TypeReference<List<AccountWithAuthorization>>() {})
+    return objectMapper.convertValue(allAccounts, new TypeReference<List<CredentialsController.AccountWithAuthorization>>() {})
   }
 
   private List<AccountDetails> getAccountDetailsWithAuthorizedFlag(User user) {
     List<AccountDetails> allAccounts = accountLookupService.getAccounts()
-    List<AccountDetails> userAccounts = credentialsService.getAccounts(user?.roles ?: [])
+    Collection<String> allowedAccounts = user == null ?
+      Collections.emptySet() :
+      allowedAccountsSupport.filterAllowedAccounts(user.username, user.roles)
+
     for (AccountDetails account : allAccounts) {
-      account.set('authorized', userAccounts.find { it.name == account.name } ? Boolean.TRUE : Boolean.FALSE)
+      account.set('authorized', allowedAccounts.contains(account.name) ? Boolean.TRUE : Boolean.FALSE)
     }
     return allAccounts
   }
 
-  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @ApiOperation(value = "Retrieve an account's details")
   @RequestMapping(value = '/{account:.+}', method = RequestMethod.GET)
   AccountDetails getAccount(@SpinnakerUser User user, @PathVariable("account") String account,

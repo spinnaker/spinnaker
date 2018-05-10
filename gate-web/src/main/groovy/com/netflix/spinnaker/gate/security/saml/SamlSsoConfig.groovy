@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.gate.security.saml
 
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import com.netflix.spinnaker.gate.security.saml.SamlSsoConfig.UserAttributeMapping
-import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.opensaml.saml2.core.Assertion
@@ -181,13 +180,10 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
     new SAMLUserDetailsService() {
 
       @Autowired
-      CredentialsService credentialsService
-
-      @Autowired
-      ClouddriverService clouddriverService
-
-      @Autowired
       PermissionService permissionService
+
+      @Autowired
+      AllowedAccountsSupport allowedAccountsSupport
 
       @Override
       User loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
@@ -211,7 +207,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
           firstName: attributes[userAttributeMapping.firstName]?.get(0),
           lastName: attributes[userAttributeMapping.lastName]?.get(0),
           roles: roles,
-          allowedAccounts: credentialsService.getAccountNames(roles),
+          allowedAccounts: allowedAccountsSupport.filterAllowedAccounts(username, roles),
           username: username)
       }
 
