@@ -66,6 +66,7 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
     String account = getCredentials(stage);
     Map<String, List<String>> deployedManifests = (Map<String, List<String>>) stage.getContext().get("outputs.manifestNamesByNamespace");
     List<String> messages = new ArrayList<>();
+    List<String> failureMessages = new ArrayList<>();
     List<Map<String, String>> stableManifests = new ArrayList<>();
     List<Map<String, String>> failedManifests = new ArrayList<>();
     boolean allStable = true;
@@ -100,7 +101,9 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
         if (status.getFailed() != null && status.getFailed().isState()) {
           anyFailed = true;
           failedManifests.add(manifestNameAndLocation);
-          messages.add(identifier + ": " + status.getFailed().getMessage());
+          String failureMessage = identifier + ": " + status.getFailed().getMessage();
+          messages.add(failureMessage);
+          failureMessages.add(failureMessage);
         }
 
         if (status.getStable() == null && status.getFailed() == null) {
@@ -114,11 +117,16 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
       }
     }
 
-    Map<String, Object> context = new ImmutableMap.Builder<String, Object>()
+    ImmutableMap.Builder builder = new ImmutableMap.Builder<String, Object>()
         .put("messages", messages)
         .put("stableManifests", stableManifests)
-        .put("failedManifests", failedManifests)
-        .build();
+        .put("failedManifests", failedManifests);
+
+    if (!failureMessages.isEmpty()) {
+      builder.put("exception", buildExceptions(failureMessages));
+    }
+
+    Map<String, Object> context = builder.build();
 
     if (!anyUnknown && anyFailed) {
       return new TaskResult(ExecutionStatus.TERMINAL, context);
@@ -131,5 +139,15 @@ public class WaitForManifestStableTask implements OverridableTimeoutRetryableTas
 
   private String readableIdentifier(String account, String location, String name) {
     return String.format("'%s' in '%s' for account %s", name, location, account);
+  }
+
+  private static Map<String, Object> buildExceptions(List<String> failureMessages) {
+    return new ImmutableMap.Builder<String, Object>()
+      .put(
+        "details",
+        new ImmutableMap.Builder<String, List<String>>()
+          .put("errors", failureMessages)
+          .build()
+      ).build();
   }
 }
