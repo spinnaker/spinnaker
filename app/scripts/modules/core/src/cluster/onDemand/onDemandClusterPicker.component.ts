@@ -43,9 +43,11 @@ class OnDemandClusterPickerController implements IController {
 }
 
 const template = `
+    <h4>{{$ctrl.totalClusterCount}} clusters found in this application</h4>
+    <p><strong>Not all clusters are shown.</strong> Select or enter a cluster name below to view:</p>
     <input type="text"
            class="form-control"
-           placeholder="{{$ctrl.totalClusterCount}} clusters found in this application. Select a cluster to view"
+           placeholder="Enter cluster name here"
            ng-model="$ctrl.lastSelection"
            uib-typeahead="cluster for cluster in $ctrl.availableClusters | filter: $viewValue | limitTo: 50"
            typeahead-min-length="0"
