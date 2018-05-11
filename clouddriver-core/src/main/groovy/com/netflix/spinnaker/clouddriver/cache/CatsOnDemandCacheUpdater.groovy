@@ -73,7 +73,9 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
         }
         final long startTime = System.nanoTime()
         def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)
-        agent.metricsSupport.countOnDemand()
+        if (agent.metricsSupport) {
+          agent.metricsSupport.countOnDemand()
+        }
         OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
         if (result) {
           if (agentScheduler.atomic && !(agentScheduler.lockValid(lock))) {
