@@ -3,9 +3,7 @@
     <div class="col-sm-3 sm-label-right">Phone Number</div>
     <div class="col-sm-9">
       <input name="sms"
-             ng-pattern="/^\d+$/"
-             ng-minlength="10"
-             ng-maxlength="10"
+             ng-pattern="/[0-9-]+$/"
              class="form-control input-sm "
              ng-model="vm.notification.address"
              placeholder="enter a phone number"
