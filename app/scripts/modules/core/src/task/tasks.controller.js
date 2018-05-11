@@ -107,7 +107,10 @@ module.exports = angular
               .join(' ')
               .toLowerCase()
               .includes(normalizedSearch) ||
-            (task.getValueFor('user') || '').toLowerCase().includes(normalizedSearch)
+            (task.getValueFor('user') || '').toLowerCase().includes(normalizedSearch) ||
+            _.get(task, 'execution.authentication.user', '')
+              .toLowerCase()
+              .includes(normalizedSearch)
           );
         });
       }

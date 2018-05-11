@@ -125,7 +125,7 @@
                 </span>
               </td>
               <td>
-                {{ task.getValueFor('user') || '-' }}
+                {{ task.getValueFor('user') || task.execution.authentication.user || '-' }}
               </td>
               <td class="small text-center">
                 <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">
