@@ -110,7 +110,7 @@ class CatsSearchProvider implements SearchProvider, Runnable {
    */
   @Override
   void run() {
-    log.info("Refreshing Cached Identifiers (instances)")
+    log.info("Refreshing Cached Identifiers")
     def instanceIdentifiers = cacheView.getIdentifiers("instances")?.findResults { String key ->
       providers.findResults {
         def v = it.parseKey(key)
@@ -122,13 +122,13 @@ class CatsSearchProvider implements SearchProvider, Runnable {
           [it.key, it.value.toLowerCase()]
         }
       }[0]
-    }
+    } ?: []
 
     if (instanceIdentifiers) {
       cachedIdentifiersByType.set(["instances": instanceIdentifiers])
     }
 
-    log.info("Refreshed Cached Identifiers (instances)")
+    log.info("Refreshed Cached Identifiers (found ${instanceIdentifiers.size()} instances)")
   }
 
   @Override
