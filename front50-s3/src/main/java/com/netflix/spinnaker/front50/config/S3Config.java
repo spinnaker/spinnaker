@@ -66,6 +66,11 @@ public class S3Config extends CommonStorageServiceDAOConfig {
 
     if (!StringUtils.isEmpty(s3Properties.getEndpoint())) {
       client.setEndpoint(s3Properties.getEndpoint());
+
+      if (!StringUtils.isEmpty(s3Properties.getRegionOverride())) {
+        client.setSignerRegionOverride(s3Properties.getRegionOverride());
+      }
+
       client.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
     } else {
       Optional.ofNullable(s3Properties.getRegion())

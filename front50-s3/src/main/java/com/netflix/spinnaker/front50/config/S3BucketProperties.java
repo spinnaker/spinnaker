@@ -19,6 +19,9 @@ package com.netflix.spinnaker.front50.config;
 public class S3BucketProperties {
   private String bucket;
   private String region;
+  // regionOverride allows the aws client to override the region in s3 request signatures
+  // some s3 compatible solutions allow non-aws region identifiers to be used
+  private String regionOverride;
   private String endpoint;
   private String proxyHost;
   private String proxyPort;
@@ -39,6 +42,14 @@ public class S3BucketProperties {
 
   public void setRegion(String region) {
     this.region = region;
+  }
+
+  public String getRegionOverride() {
+    return regionOverride;
+  }
+
+  public void setRegionOverride(String regionOverride) {
+    this.regionOverride = regionOverride;
   }
 
   public String getEndpoint() {

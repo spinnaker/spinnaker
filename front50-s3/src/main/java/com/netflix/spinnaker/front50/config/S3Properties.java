@@ -74,6 +74,15 @@ public class S3Properties extends S3BucketProperties {
   }
 
   @Override
+  public String getRegionOverride() {
+    if (isFailoverEnabled()) {
+      return failover.getRegionOverride();
+    }
+
+    return super.getRegionOverride();
+  }
+
+  @Override
   public String getEndpoint() {
     if (isFailoverEnabled()) {
       return failover.getEndpoint();
