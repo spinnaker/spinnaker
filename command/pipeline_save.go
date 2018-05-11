@@ -1,7 +1,6 @@
 package command
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -75,16 +74,7 @@ func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{
 
 // savePipeline calls the Gate endpoint to save the pipeline.
 func (c *PipelineSaveCommand) savePipeline(pipelineJson map[string]interface{}) (*http.Response, error) {
-	payload, err := json.Marshal(pipelineJson)
-	if err != nil {
-		return nil, err
-	}
-
-	pipelineEndpoint := c.ApiMeta.gateEndpoint + "/pipelines"
-	resp, err := http.Post(pipelineEndpoint,
-		APPLICATION_JSON,
-		bytes.NewReader(payload))
-
+	resp, err := c.ApiMeta.gateClient.PipelineControllerApi.SavePipelineUsingPOST(nil, pipelineJson)
 	if err != nil {
 		return nil, err
 	}

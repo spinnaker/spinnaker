@@ -7,6 +7,7 @@ import (
 
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/colorstring"
+	gate "github.com/spinnaker/spin/gateapi"
 )
 
 // Meta is the state & utility shared by our command parser.
@@ -23,6 +24,9 @@ type ApiMeta struct {
 
 	// This is the set of flags global to the command parser.
 	gateEndpoint string
+
+	// Gate Api client.
+	gateClient *gate.APIClient
 }
 
 // GlobalFlagSet adds all global options to the flagset, and returns the flagset object
@@ -41,6 +45,14 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 // process with process the meta-parameters out of the arguments. This
 // potentially modifies the args in-place. It will return the resulting slice.
 func (m *ApiMeta) process(args []string) ([]string, error) {
+	// Api client initialization.
+	cfg := &gate.Configuration{
+		BasePath:      "http://localhost:8084",
+		DefaultHeader: make(map[string]string),
+		UserAgent:     "Spin CLI version",
+	}
+	m.gateClient = gate.NewAPIClient(cfg)
+
 	// Colorization.
 	m.Color = true
 	m.color = m.Color
