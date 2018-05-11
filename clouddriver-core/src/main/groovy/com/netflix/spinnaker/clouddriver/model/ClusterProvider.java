@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import com.netflix.spinnaker.clouddriver.documentation.Empty
-import com.netflix.spinnaker.clouddriver.documentation.Nullable
+import com.netflix.spinnaker.clouddriver.documentation.Empty;
+import com.netflix.spinnaker.clouddriver.documentation.Nullable;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A cluster provider is an interface for the application to retrieve implementations of {@link Cluster} objects. This interface defines the common contract for which various providers may be queried
@@ -25,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.documentation.Nullable
  *
  *
  */
-interface ClusterProvider<T extends Cluster> {
+public interface ClusterProvider<T extends Cluster> {
   /**
    * Looks up all of the clusters available to this provider.
    * Keyed on account name.
@@ -33,7 +36,7 @@ interface ClusterProvider<T extends Cluster> {
    * @return set of clusters or an empty set if none exist
    */
   @Empty
-  Map<String, Set<T>> getClusters()
+  Map<String, Set<T>> getClusters();
 
   /**
    * Looks up all of the clusters known to this provider to be for a specified application
@@ -44,7 +47,7 @@ interface ClusterProvider<T extends Cluster> {
    * @return map of clusters, keyed on account name, or an empty map if none exist
    */
   @Empty
-  Map<String, Set<T>> getClusterSummaries(String application)
+  Map<String, Set<T>> getClusterSummaries(String application);
 
   /**
    * Looks up all of the clusters known to this provider to be for a specified application
@@ -55,7 +58,7 @@ interface ClusterProvider<T extends Cluster> {
    * @return map of clusters, keyed on account name, or an empty map if none exist
    */
   @Empty
-  Map<String, Set<T>> getClusterDetails(String application)
+  Map<String, Set<T>> getClusterDetails(String application);
 
   /**
    * Looks up all of the clusters known to this provider to be for a specified application and within a {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials} registered with
@@ -66,7 +69,7 @@ interface ClusterProvider<T extends Cluster> {
    * @return set of clusters with load balancers and server groups populated, or an empty set if none exist
    */
   @Empty
-  Set<T> getClusters(String application, String account)
+  Set<T> getClusters(String application, String account);
 
   /**
    * Looks up a cluster known to this provider to be for a specified application, within a specified {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials}, and with the specified name.
@@ -76,10 +79,10 @@ interface ClusterProvider<T extends Cluster> {
    * @return cluster with load balancers and server groups populated, or null if none exists
    */
   @Nullable
-  T getCluster(String application, String account, String name)
+  T getCluster(String application, String account, String name);
 
   @Nullable
-  T getCluster(String application, String account, String name, boolean includeDetails)
+  T getCluster(String application, String account, String name, boolean includeDetails);
 
   /**
    * Looks up a server group known to this provider, within a specified {@link com.netflix.spinnaker.clouddriver.security.AccountCredentials} and region, and with the specified name.
@@ -90,15 +93,15 @@ interface ClusterProvider<T extends Cluster> {
    * @return the server group or null if none exists
    */
   @Nullable
-  ServerGroup getServerGroup(String account, String region, String name, boolean includeDetails)
+  ServerGroup getServerGroup(String account, String region, String name, boolean includeDetails);
 
   @Nullable
-  ServerGroup getServerGroup(String account, String region, String name)
+  ServerGroup getServerGroup(String account, String region, String name);
 
   /**
    * @return the identifier of the backing cloud provider
    */
-  String getCloudProviderId()
+  String getCloudProviderId();
 
   /**
    * Determines whether or not optimizations can be made by retrieving minimal or unexpanded clusters.
@@ -111,5 +114,5 @@ interface ClusterProvider<T extends Cluster> {
    * - disabled status
    * - instance counts (fully populated instances are not necessary)
    */
-  boolean supportsMinimalClusters()
+  boolean supportsMinimalClusters();
 }
