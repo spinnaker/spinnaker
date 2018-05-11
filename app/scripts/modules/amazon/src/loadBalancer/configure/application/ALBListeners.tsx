@@ -126,6 +126,7 @@ class ALBListenersImpl extends React.Component<
     }
     if (listener.protocol === 'HTTP') {
       listener.port = 80;
+      listener.certificates.length = 0;
     }
     this.updateListeners();
   }
