@@ -51,6 +51,7 @@ public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
 
   @Parameter(
       names = "--csrf",
+      arity = 1,
       description = JenkinsCommandProperties.CSRF_DESCRIPTION
   )
   public Boolean csrf;
