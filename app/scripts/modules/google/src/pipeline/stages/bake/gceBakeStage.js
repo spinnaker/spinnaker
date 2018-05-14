@@ -35,7 +35,15 @@ module.exports = angular
       },
       producesArtifacts: true,
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
-      validators: [{ type: 'requiredField', fieldName: 'package' }],
+      validators: [
+        {
+          type: 'anyFieldRequired',
+          fields: [
+            { fieldName: 'package', fieldLabel: 'Package' },
+            { fieldName: 'packageArtifactIds', fieldLabel: 'Package Artifacts' },
+          ],
+        },
+      ],
       restartable: true,
     });
     artifactReferenceServiceProvider.registerReference('stage', () => [['packageArtifactIds']]);
