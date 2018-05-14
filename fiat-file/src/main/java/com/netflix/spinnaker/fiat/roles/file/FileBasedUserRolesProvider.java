@@ -102,9 +102,12 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
     List<Role> roles;
 
     public List<Role> getRoles() {
+      if (roles == null) {
+        return Collections.emptyList();
+      }
       return roles.stream()
-                  .map(r -> new Role(r.getName()).setSource(Role.Source.FILE))
-                  .collect(Collectors.toList());
+          .map(r -> new Role(r.getName()).setSource(Role.Source.FILE))
+          .collect(Collectors.toList());
     }
   }
 }

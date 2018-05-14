@@ -7,3 +7,7 @@ users:
    roles:
    - crimeFighter
    - jokerJailer
+ - username: robin
+   roles: []
+ - username: nanana
+
