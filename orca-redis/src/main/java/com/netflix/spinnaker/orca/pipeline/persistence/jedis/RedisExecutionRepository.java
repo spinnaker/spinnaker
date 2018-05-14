@@ -10,12 +10,15 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
+import com.netflix.spinnaker.orca.notifications.scheduling.PollingAgentExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.model.*;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails;
 import com.netflix.spinnaker.orca.pipeline.persistence.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.BinaryClient;
 import redis.clients.jedis.Response;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Func0;
@@ -57,7 +62,7 @@ import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE;
 
 @Component
 @ConditionalOnProperty(value = "executionRepository.redis.enabled", matchIfMissing = true)
-public class RedisExecutionRepository implements ExecutionRepository {
+public class RedisExecutionRepository implements ExecutionRepository, PollingAgentExecutionRepository {
 
   private static final TypeReference<List<Task>> LIST_OF_TASKS =
     new TypeReference<List<Task>>() {
@@ -520,6 +525,51 @@ public class RedisExecutionRepository implements ExecutionRepository {
       .toBlocking().single();
   }
 
+  @Nonnull
+  @Override
+  public List<String> retrieveAllApplicationNames(@Nullable ExecutionType type) {
+    return retrieveAllApplicationNames(type, 0);
+  }
+
+  @Nonnull
+  @Override
+  public List<String> retrieveAllApplicationNames(@Nullable ExecutionType type, int minExecutions) {
+    return redisClientDelegate.withMultiClient(c -> {
+      ScanParams scanParams = new ScanParams().match(executionKeyPattern(type)).count(2000);
+      String cursor = "0";
+
+      Map<String, Integer> results = new HashMap<>();
+      while (true) {
+        String finalCursor = cursor;
+        ScanResult<String> chunk = c.scan(finalCursor, scanParams);
+
+
+        chunk.getResult().forEach(id -> {
+          String[] parts = id.split(":");
+          String app = parts[2];
+          results.compute(app, (s, integer) -> results.getOrDefault(s, 0) + 1);
+        });
+        cursor = chunk.getStringCursor();
+        if (cursor.equals("0")) {
+          break;
+        }
+      }
+
+      return results.entrySet().stream()
+        .filter(it -> it.getValue() >= minExecutions)
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toList());
+    });
+  }
+
+  @Override
+  public boolean hasEntityTags(@Nonnull ExecutionType type, @NotNull String id) {
+    // TODO rz - This index exists only in Netflix-land. Should be added to OSS eventually
+    return redisClientDelegate.withCommandsClient(c -> {
+      return c.sismember("existingServerGroups:pipeline", "pipeline:" + id);
+    });
+  }
+
   protected Execution buildExecution(@Nonnull Execution execution, @Nonnull Map<String, String> map, List<String> stageIds) {
     Id serializationErrorId = registry
       .createId("executions.deserialization.error")
@@ -849,6 +899,18 @@ public class RedisExecutionRepository implements ExecutionRepository {
   protected static String executionsByPipelineKey(String pipelineConfigId) {
     String id = pipelineConfigId != null ? pipelineConfigId : "---";
     return format("pipeline:executions:%s", id);
+  }
+
+  protected static String executionKeyPattern(@Nullable ExecutionType type) {
+    final String all = "*:app:*";
+    if (type == null) {
+      return all;
+    }
+    switch (type) {
+      case PIPELINE: return "pipeline:app:*";
+      case ORCHESTRATION: return "orchestration:app:*";
+      default: return all;
+    }
   }
 
   private void storeExecutionInternal(RedisClientDelegate delegate, Execution execution) {

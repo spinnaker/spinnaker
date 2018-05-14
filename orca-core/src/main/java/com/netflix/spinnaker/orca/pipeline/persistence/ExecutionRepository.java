@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence;
 
-import com.google.common.collect.Lists;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
@@ -53,22 +52,27 @@ public interface ExecutionRepository {
 
   void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
-  @Nonnull Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id) throws ExecutionNotFoundException;
+  @Nonnull
+  Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id) throws ExecutionNotFoundException;
 
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
-  @Nonnull Observable<Execution> retrieve(ExecutionType type);
+  @Nonnull
+  Observable<Execution> retrieve(ExecutionType type);
 
-  @Nonnull Observable<Execution> retrievePipelinesForApplication(@Nonnull String application);
+  @Nonnull
+  Observable<Execution> retrievePipelinesForApplication(@Nonnull String application);
 
-  @Nonnull Observable<Execution> retrievePipelinesForPipelineConfigId(
-    @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
+  @Nonnull
+  Observable<Execution> retrievePipelinesForPipelineConfigId(@Nonnull String pipelineConfigId,
+                                                             @Nonnull ExecutionCriteria criteria);
 
-  @Nonnull Observable<Execution> retrieveOrchestrationsForApplication(
-    @Nonnull String application, @Nonnull ExecutionCriteria criteria);
+  @Nonnull
+  Observable<Execution> retrieveOrchestrationsForApplication(@Nonnull String application,
+                                                             @Nonnull ExecutionCriteria criteria);
 
-  @Nonnull Execution retrieveOrchestrationForCorrelationId(
-    @Nonnull String correlationId) throws ExecutionNotFoundException;
+  @Nonnull
+  Execution retrieveOrchestrationForCorrelationId(@Nonnull String correlationId) throws ExecutionNotFoundException;
 
   @Nonnull
   List<Execution> retrieveBufferedExecutions();
@@ -78,16 +82,16 @@ public interface ExecutionRepository {
       return limit;
     }
 
-    public ExecutionCriteria setLimit(int limit) {
+    public @Nonnull ExecutionCriteria setLimit(int limit) {
       this.limit = limit;
       return this;
     }
 
-    public Collection<ExecutionStatus> getStatuses() {
+    public @Nonnull Collection<ExecutionStatus> getStatuses() {
       return statuses;
     }
 
-    public ExecutionCriteria setStatuses(Collection<String> statuses) {
+    public @Nonnull ExecutionCriteria setStatuses(Collection<String> statuses) {
       return setStatuses(
         statuses
           .stream()
@@ -97,7 +101,7 @@ public interface ExecutionRepository {
       );
     }
 
-    public ExecutionCriteria setStatuses(ExecutionStatus... statuses) {
+    public @Nonnull ExecutionCriteria setStatuses(ExecutionStatus... statuses) {
       this.statuses = Arrays.asList(statuses);
       return this;
     }
