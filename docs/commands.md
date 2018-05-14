@@ -1142,10 +1142,12 @@ hal config canary aws account add ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
+ * `--access-key-id`: The default access key used to communicate with AWS.
  * `--bucket`: The name of a storage bucket that your specified account has access to. If you specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
+ * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) The secret key used to communicate with AWS.
 
 
 ---
@@ -1176,10 +1178,12 @@ hal config canary aws account edit ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
+ * `--access-key-id`: The default access key used to communicate with AWS.
  * `--bucket`: The name of a storage bucket that your specified account has access to. If you specify a globally unique bucket name that doesn't exist yet, Kayenta will create that bucket for you.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--root-folder`: The root folder in the chosen bucket to place all of the canary service's persistent data in (*Default*: `kayenta`).
+ * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) The secret key used to communicate with AWS.
 
 
 ---
@@ -6184,6 +6188,7 @@ hal deploy apply [parameters]
 #### Parameters
  * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--exclude-service-names`: (*Default*: `[]`) When supplied, do not install or update the specified Spinnaker services.
  * `--flush-infrastructure-caches`: (*Default*: `false`) WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.
 
 This flushes infrastructure caches (clouddriver) after the deploy succeeds.
@@ -6193,7 +6198,6 @@ This flushes infrastructure caches (clouddriver) after the deploy succeeds.
 This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
  * `--prep-only`: (*Default*: `false`) This does just the prep work, and not the actual deployment. Only useful at the moment if you want to just clone the repositories for a localgit setup.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
- * `--exclude-service-names`: (*Default*: `[]`) When supplied, do not install or update the specified Spinnaker services.
 
 
 ---
@@ -6223,9 +6227,9 @@ hal deploy collect-logs [parameters]
 
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--exclude-service-names`: (*Default*: `[]`) When supplied, logs from the specified services will be not collected
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, logs from only the specified services will be collected.
- * `--exclude-service-names`: (*Default*: `[]`) When supplied, logs from the specified services will be not collected.
 
 
 ---
@@ -6288,9 +6292,9 @@ hal deploy rollback [parameters]
 
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--exclude-service-names`: (*Default*: `[]`) When supplied, do not install or update the specified Spinnaker services.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
- * `--exclude-service-names`: (*Default*: `[]`) When supplied, do not install or update the specified Spinnaker services.
 
 
 ---

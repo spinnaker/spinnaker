@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.CommonCanaryCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.AbstractAddCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.account.CanaryUtils;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.CommonCanaryAwsCommandProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.AbstractCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
@@ -48,12 +49,27 @@ public class AwsAddCanaryAccountCommand extends AbstractAddCanaryAccountCommand 
   )
   private String rootFolder;
 
+  @Parameter(
+      names = "--access-key-id",
+      description = CommonCanaryAwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
+  )
+  private String accessKeyId;
+
+  @Parameter(
+      names = "--secret-access-key",
+      description = CommonCanaryAwsCommandProperties.SECRET_KEY_DESCRIPTION,
+      password = true
+  )
+  private String secretAccessKey;
+
   @Override
   protected AbstractCanaryAccount buildAccount(Canary canary, String accountName) {
     AwsCanaryAccount account = (AwsCanaryAccount)new AwsCanaryAccount().setName(accountName);
 
     account.setBucket(bucket);
     account.setRootFolder(isSet(rootFolder) ? rootFolder : account.getRootFolder());
+    account.setAccessKeyId(accessKeyId);
+    account.setSecretAccessKey(secretAccessKey);
 
     AwsCanaryServiceIntegration awsCanaryServiceIntegration =
         (AwsCanaryServiceIntegration)CanaryUtils.getServiceIntegrationByClass(canary, AwsCanaryServiceIntegration.class);
