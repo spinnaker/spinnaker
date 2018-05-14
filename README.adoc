@@ -13,7 +13,7 @@ If you're interested in a detailed walkthrough of the Spinnaker systems, check t
 
 = Setting Up Spinnaker For Development
 
-These instructions cover pulling Spinnaker from source and setting up to run locally against any of the https://www.spinnaker.io/setup/install/providers/supported[Cloud Providers].
+These instructions cover pulling Spinnaker from source and setting up to run locally against any of the https://www.spinnaker.io/setup/install/providers/#supported-providers[Cloud Providers].
 
 To build from source and run on localhost follow the https://www.spinnaker.io/community/contributing/#how-to-run-spinnaker-locally-for-development[Development instructions]
 
