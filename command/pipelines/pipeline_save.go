@@ -1,4 +1,4 @@
-package command
+package pipelines
 
 import (
 	"encoding/json"
