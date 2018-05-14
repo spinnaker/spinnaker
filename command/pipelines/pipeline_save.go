@@ -7,14 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-)
 
-const (
-	APPLICATION_JSON = "application/json"
+	"github.com/spinnaker/spin/command"
 )
 
 type PipelineSaveCommand struct {
-	ApiMeta
+	ApiMeta command.ApiMeta
 
 	pipelineFile string
 }
@@ -29,7 +27,7 @@ func (c *PipelineSaveCommand) flagSet() *flag.FlagSet {
 
 	// TODO auto-generate flag help rather than putting it in "Help"
 	f.Usage = func() {
-		c.Ui.Error(c.Help())
+		c.ApiMeta.Ui.Error(c.Help())
 	}
 
 	return f
@@ -56,17 +54,17 @@ func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{
 	// TODO: Dry-run pipeline save and report errors?
 	var exists bool
 	if _, exists = pipelineJson["name"]; !exists {
-		c.Ui.Error("Required pipeline key 'name' missing...\n")
+		c.ApiMeta.Ui.Error("Required pipeline key 'name' missing...\n")
 		return false
 	}
 
 	if _, exists = pipelineJson["application"]; !exists {
-		c.Ui.Error("Required pipeline key 'application' missing...\n")
+		c.ApiMeta.Ui.Error("Required pipeline key 'application' missing...\n")
 		return false
 	}
 
 	if _, exists = pipelineJson["id"]; !exists {
-		c.Ui.Error("Required pipeline key 'id' missing...\n")
+		c.ApiMeta.Ui.Error("Required pipeline key 'id' missing...\n")
 		return false
 	}
 	return true
@@ -74,7 +72,7 @@ func (c *PipelineSaveCommand) pipelineIsValid(pipelineJson map[string]interface{
 
 // savePipeline calls the Gate endpoint to save the pipeline.
 func (c *PipelineSaveCommand) savePipeline(pipelineJson map[string]interface{}) (*http.Response, error) {
-	resp, err := c.ApiMeta.gateClient.PipelineControllerApi.SavePipelineUsingPOST(nil, pipelineJson)
+	resp, err := c.ApiMeta.GateClient.PipelineControllerApi.SavePipelineUsingPOST(nil, pipelineJson)
 	if err != nil {
 		return nil, err
 	}
@@ -84,22 +82,22 @@ func (c *PipelineSaveCommand) savePipeline(pipelineJson map[string]interface{}) 
 
 func (c *PipelineSaveCommand) Run(args []string) int {
 	var err error
-	args, err = c.ApiMeta.process(args)
+	args, err = c.ApiMeta.Process(args)
 
 	f := c.flagSet()
 
 	if err = f.Parse(args); err != nil {
-		c.Ui.Error(fmt.Sprintf("%s\n", err))
+		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
 	pipelineJson, err := c.parsePipelineFile()
 	if err != nil {
-		c.Ui.Error(fmt.Sprintf("%s\n", err))
+		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
-	c.Ui.Output(fmt.Sprintf("Parsed submitted pipeline: %s\n", pipelineJson))
+	c.ApiMeta.Ui.Output(fmt.Sprintf("Parsed submitted pipeline: %s\n", pipelineJson))
 	if valid := c.pipelineIsValid(pipelineJson); !valid {
 		return 1
 	}
@@ -107,16 +105,16 @@ func (c *PipelineSaveCommand) Run(args []string) int {
 	resp, err := c.savePipeline(pipelineJson)
 
 	if err != nil {
-		c.Ui.Error(fmt.Sprintf("%s\n", err))
+		c.ApiMeta.Ui.Error(fmt.Sprintf("%s\n", err))
 		return 1
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		c.Ui.Error(fmt.Sprintf("Encountered an error saving pipeline, status code: %d\n", resp.StatusCode))
+		c.ApiMeta.Ui.Error(fmt.Sprintf("Encountered an error saving pipeline, status code: %d\n", resp.StatusCode))
 		return 1
 	}
 
-	c.Ui.Output(c.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline save succeeded")))
+	c.ApiMeta.Ui.Output(c.ApiMeta.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline save succeeded")))
 	return 0
 }
 

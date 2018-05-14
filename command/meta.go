@@ -26,7 +26,7 @@ type ApiMeta struct {
 	gateEndpoint string
 
 	// Gate Api client.
-	gateClient *gate.APIClient
+	GateClient *gate.APIClient
 }
 
 // GlobalFlagSet adds all global options to the flagset, and returns the flagset object
@@ -44,14 +44,14 @@ func (m *ApiMeta) GlobalFlagSet(cmd string) *flag.FlagSet {
 
 // process with process the meta-parameters out of the arguments. This
 // potentially modifies the args in-place. It will return the resulting slice.
-func (m *ApiMeta) process(args []string) ([]string, error) {
+func (m *ApiMeta) Process(args []string) ([]string, error) {
 	// Api client initialization.
 	cfg := &gate.Configuration{
 		BasePath:      "http://localhost:8084",
 		DefaultHeader: make(map[string]string),
 		UserAgent:     "Spin CLI version",
 	}
-	m.gateClient = gate.NewAPIClient(cfg)
+	m.GateClient = gate.NewAPIClient(cfg)
 
 	// Colorization.
 	m.Color = true

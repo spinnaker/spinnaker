@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/mitchellh/cli"
-
-	"github.com/spinnaker/spin/command"
+	command "github.com/spinnaker/spin/command"
+	pipelines "github.com/spinnaker/spin/command/pipelines"
 )
 
 var Commands map[string]cli.CommandFactory
@@ -13,7 +13,7 @@ func init() {
 
 	Commands = map[string]cli.CommandFactory{
 		"pipeline save": func() (cli.Command, error) {
-			return &command.PipelineSaveCommand{
+			return &pipelines.PipelineSaveCommand{
 				ApiMeta: meta,
 			}, nil
 		},
