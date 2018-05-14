@@ -18,9 +18,11 @@
 package com.netflix.spinnaker.clouddriver.elasticsearch.model
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.config.ElasticSearchConfig
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties
+import com.netflix.spinnaker.kork.core.RetrySupport
 import io.searchbox.client.JestClient
 import io.searchbox.indices.CreateIndex
 import io.searchbox.indices.DeleteIndex
@@ -40,13 +42,16 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   JestClient jestClient
 
   @Shared
-  ObjectMapper objectMapper = new ObjectMapper()
-
-  @Shared
   ElasticSearchConfigProperties elasticSearchConfigProperties
 
-  @Shared
+  RetrySupport retrySupport = Spy(RetrySupport) {
+    _ * sleep(_) >> { /* do nothing */ }
+  }
+
+  ObjectMapper objectMapper = new ObjectMapper()
+  Front50Service front50Service = Mock(Front50Service)
   ElasticSearchEntityTagsProvider entityTagsProvider
+  ElasticSearchEntityTagsReconciler entityTagsReconciler = Mock(ElasticSearchEntityTagsReconciler)
 
   def setupSpec() {
     def elasticSearchSettings = Settings.settingsBuilder()
@@ -66,13 +71,6 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     )
     def config = new ElasticSearchConfig()
     jestClient = config.jestClient(elasticSearchConfigProperties)
-
-    entityTagsProvider = new ElasticSearchEntityTagsProvider(
-      objectMapper,
-      null,
-      jestClient,
-      elasticSearchConfigProperties
-    )
   }
 
   def setup() {
@@ -104,6 +102,15 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     jestClient.execute(new CreateIndex.Builder(elasticSearchConfigProperties.activeIndex)
       .settings(settings)
       .build());
+
+    entityTagsProvider = new ElasticSearchEntityTagsProvider(
+      retrySupport,
+      objectMapper,
+      front50Service,
+      jestClient,
+      entityTagsReconciler,
+      elasticSearchConfigProperties
+    )
   }
 
   def "should support single result retrieval by `EntityTags.id` and `EntityTags.tags`"() {
@@ -199,6 +206,57 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
     ["a": ["b": ["c"]]]                  || ["a.b": ["c"]]
     ["a": ["b": ["c": ["d"]]]]           || ["a.b.c": ["d"]]
     ["a": ["b": ["c": ["d"]]], "e": "f"] || ["a.b.c": ["d"], "e": "f"]
+  }
+
+  def "should filter entity tags when performing a reindex"() {
+    given:
+    def allEntityTags = [
+      buildEntityTags("aws:servergroup:clouddriver-main-v001:myaccount:us-west-1", [:]),
+      buildEntityTags("aws:servergroup:clouddriver-main-v002:myaccount:us-west-1", [:]),
+    ]
+
+    when:
+    entityTagsProvider.reindex()
+
+    then:
+    1 * front50Service.getAllEntityTags(true) >> { return allEntityTags }
+    1 * entityTagsReconciler.filter(allEntityTags) >> { return [ allEntityTags[1] ] }
+
+    entityTagsProvider.verifyIndex(allEntityTags[1])
+    !entityTagsProvider.get(allEntityTags[0].id).isPresent()
+  }
+
+  def "should delete multiple entity tags (bulk)"() {
+    given:
+    def allEntityTags = [
+      buildEntityTags("aws:servergroup:clouddriver-main-v001:myaccount:us-west-1", [:]),
+      buildEntityTags("aws:servergroup:clouddriver-main-v002:myaccount:us-west-1", [:]),
+      buildEntityTags("aws:servergroup:clouddriver-main-v003:myaccount:us-west-1", [:]),
+    ]
+    allEntityTags.each {
+      entityTagsProvider.index(it)
+      entityTagsProvider.verifyIndex(it)
+    }
+
+    when:
+    entityTagsProvider.bulkDelete(allEntityTags)
+
+    then:
+    verifyNotIndexed(allEntityTags[0])
+    verifyNotIndexed(allEntityTags[1])
+    verifyNotIndexed(allEntityTags[2])
+
+  }
+
+  boolean verifyNotIndexed(EntityTags entityTags) {
+    return (1..5).any {
+      if (!entityTagsProvider.get(entityTags.id).isPresent()) {
+        return true
+      }
+
+      Thread.sleep(500)
+      return false
+    }
   }
 
   private static EntityTags buildEntityTags(String id, Map<String, String> tags, String namespace = "default") {

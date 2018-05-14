@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.model.*
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvider
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
+import com.netflix.spinnaker.clouddriver.model.ServerGroupProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -35,7 +36,7 @@ import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 @Component
-class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
+class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGroupProvider {
 
   private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
@@ -370,5 +371,18 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   @Override
   AmazonCluster getCluster(String application, String account, String name) {
     return getCluster(application, account, name, true)
+  }
+
+  @Override
+  Collection<String> getServerGroupIdentifiers(String account, String region) {
+    account = Optional.ofNullable(account).orElse("*")
+    region = Optional.ofNullable(region).orElse("*")
+
+    return cacheView.filterIdentifiers(SERVER_GROUPS.ns, Keys.getServerGroupKey("*", "*", account, region))
+  }
+
+  @Override
+  String buildServerGroupIdentifier(String account, String region, String serverGroupName) {
+    return Keys.getServerGroupKey(serverGroupName, account, region)
   }
 }

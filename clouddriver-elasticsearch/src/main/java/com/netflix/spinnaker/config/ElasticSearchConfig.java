@@ -40,9 +40,13 @@ public class ElasticSearchConfig {
     String elasticSearchConnection = elasticSearchConfigProperties.getConnection();
 
     JestClientFactory factory = new JestClientFactory();
-    factory.setHttpClientConfig(
-      (new HttpClientConfig.Builder(elasticSearchConnection)).multiThreaded(true).build()
-    );
+
+    HttpClientConfig.Builder builder = new HttpClientConfig.Builder(elasticSearchConnection)
+      .readTimeout(elasticSearchConfigProperties.getReadTimeout())
+      .connTimeout(elasticSearchConfigProperties.getConnectionTimeout())
+      .multiThreaded(true);
+
+    factory.setHttpClientConfig(builder.build());
     return factory.getObject();
   }
 

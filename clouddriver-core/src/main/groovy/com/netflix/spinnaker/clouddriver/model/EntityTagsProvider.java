@@ -67,14 +67,24 @@ public interface EntityTagsProvider {
   void delete(String id);
 
   /**
+   * Delete EntityTags
+   */
+  void bulkDelete(Collection<EntityTags> multipleEntityTags);
+
+  /**
    * Reindex all EntityTags
    */
   void reindex();
 
   /**
-   * Fetch metadata (counts of EntityTags broken down by Elasticsearch and Front50)
+   * Fetch delta (counts of EntityTags broken down by Elasticsearch and Front50)
    *
    * Can be used to identify when Elasticsearch and Front50 are out-of-sync.
    */
-  Map metadata();
+  Map delta();
+
+  /**
+   * Remove all entity tags referencing entities that no longer exist (in a clouddriver cache).
+   */
+  Map reconcile(String cloudProvider, String account, String region, boolean dryRun);
 }

@@ -23,6 +23,9 @@ public class ElasticSearchConfigProperties {
   private String activeIndex;
   private String connection;
 
+  private int readTimeout = 30000;
+  private int connectionTimeout = 10000;
+
   public String getActiveIndex() {
     return activeIndex;
   }
@@ -37,5 +40,21 @@ public class ElasticSearchConfigProperties {
 
   public void setConnection(String connection) {
     this.connection = connection;
+  }
+
+  public int getReadTimeout() {
+    return readTimeout;
+  }
+
+  public void setReadTimeout(int readTimeout) {
+    this.readTimeout = readTimeout;
+  }
+
+  public int getConnectionTimeout() {
+    return connectionTimeout;
+  }
+
+  public void setConnectionTimeout(int connectionTimeout) {
+    this.connectionTimeout = connectionTimeout;
   }
 }

@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.clouddriver.controllers.admin;
 
 import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -28,6 +31,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/admin/tags")
 public class EntityTagsAdminController {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   private final EntityTagsProvider entityTagsProvider;
 
   @Autowired(required = false)
@@ -40,8 +45,16 @@ public class EntityTagsAdminController {
     entityTagsProvider.reindex();
   }
 
-  @RequestMapping(value = "/metadata", method = RequestMethod.GET)
-  Map metadata() {
-    return entityTagsProvider.metadata();
+  @RequestMapping(value = "/delta", method = RequestMethod.GET)
+  Map delta() {
+    return entityTagsProvider.delta();
+  }
+
+  @RequestMapping(value = "/reconcile", method = RequestMethod.POST)
+  Map reconcile(@RequestParam(name = "dryRun", defaultValue = "true") Boolean dryRun,
+                @RequestParam(name = "cloudProvider") String cloudProvider,
+                @RequestParam(name = "account", required = false) String account,
+                @RequestParam(name = "region", required = false) String region) {
+    return entityTagsProvider.reconcile(cloudProvider, account, region, Optional.ofNullable(dryRun).orElse(true));
   }
 }

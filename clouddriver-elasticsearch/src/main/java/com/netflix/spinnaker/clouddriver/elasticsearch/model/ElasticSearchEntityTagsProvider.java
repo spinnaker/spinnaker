@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
 import com.netflix.spinnaker.config.ElasticSearchConfigProperties;
+import com.netflix.spinnaker.kork.core.RetrySupport;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.Bulk;
@@ -62,19 +63,27 @@ import static java.lang.String.format;
 public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityTagsProvider.class);
 
+  private final RetrySupport retrySupport;
   private final ObjectMapper objectMapper;
   private final Front50Service front50Service;
   private final JestClient jestClient;
+  private final ElasticSearchEntityTagsReconciler elasticSearchEntityTagsReconciler;
+
   private final String activeElasticSearchIndex;
 
+
   @Autowired
-  public ElasticSearchEntityTagsProvider(ObjectMapper objectMapper,
+  public ElasticSearchEntityTagsProvider(RetrySupport retrySupport,
+                                         ObjectMapper objectMapper,
                                          Front50Service front50Service,
                                          JestClient jestClient,
+                                         ElasticSearchEntityTagsReconciler elasticSearchEntityTagsReconciler,
                                          ElasticSearchConfigProperties elasticSearchConfigProperties) {
+    this.retrySupport = retrySupport;
     this.objectMapper = objectMapper;
     this.front50Service = front50Service;
     this.jestClient = jestClient;
+    this.elasticSearchEntityTagsReconciler = elasticSearchEntityTagsReconciler;
     this.activeElasticSearchIndex = elasticSearchConfigProperties.getActiveIndex();
   }
 
@@ -201,18 +210,23 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       }
 
       Bulk bulk = builder.build();
-      try {
-        JestResult jestResult = jestClient.execute(bulk);
-        if (!jestResult.isSucceeded()) {
-          throw new ElasticSearchException(
-            format("Failed to index bulk entity tags, reason: '%s'", jestResult.getErrorMessage())
-          );
-        }
-      } catch (IOException e) {
-        throw new ElasticSearchException(
-          format("Failed to index bulk entity tags, reason: '%s'", e.getMessage())
-        );
-      }
+      retrySupport.retry(
+        () -> {
+          try {
+            JestResult jestResult = jestClient.execute(bulk);
+            if (!jestResult.isSucceeded()) {
+              throw new ElasticSearchException(
+                format("Failed to index bulk entity tags, reason: '%s'", jestResult.getErrorMessage())
+              );
+            }
+            return true;
+          } catch (IOException e) {
+            String message = format("Failed to index bulk entity tags, reason: '%s'", e.getMessage());
+            log.error(message + " ... retrying!");
+            throw new ElasticSearchException(message);
+          }
+        },
+        5, 1000, false);
     });
   }
 
@@ -244,6 +258,36 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   }
 
   @Override
+  public void bulkDelete(Collection<EntityTags> multipleEntityTags) {
+    Lists.partition(new ArrayList<>(multipleEntityTags), 1000).forEach(tags -> {
+      Bulk.Builder builder = new Bulk.Builder()
+        .defaultIndex(activeElasticSearchIndex);
+
+      for (EntityTags entityTags : tags) {
+        builder = builder.addAction(
+          new Delete.Builder(entityTags.getId())
+            .type(entityTags.getEntityRef().getEntityType())
+            .build()
+        );
+      }
+
+      Bulk bulk = builder.build();
+      try {
+        JestResult jestResult = jestClient.execute(bulk);
+        if (!jestResult.isSucceeded()) {
+          throw new ElasticSearchException(
+            format("Failed to bulk delete entity tags, reason: '%s'", jestResult.getErrorMessage())
+          );
+        }
+      } catch (IOException e) {
+        throw new ElasticSearchException(
+          format("Failed to bulk delete entity tags, reason: '%s'", e.getMessage())
+        );
+      }
+    });
+  }
+
+  @Override
   public void reindex() {
     try {
       log.info("Deleting Index {}", activeElasticSearchIndex);
@@ -262,19 +306,26 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     }
 
     Collection<EntityTags> entityTags = front50Service.getAllEntityTags(true);
+    Collection<EntityTags> filteredEntityTags = elasticSearchEntityTagsReconciler.filter(entityTags);
 
-    log.info("Indexing {} entity tags", entityTags.size());
+    log.info(
+      "Indexing {} entity tags ({} orphans have been excluded)",
+      filteredEntityTags.size(),
+      entityTags.size() - filteredEntityTags.size()
+    );
+
     bulkIndex(
-      entityTags
+      filteredEntityTags
         .stream()
         .filter(e -> e.getEntityRef() != null)
         .collect(Collectors.toList())
     );
-    log.info("Indexed {} entity tags", entityTags.size());
+
+    log.info("Indexed {} entity tags", filteredEntityTags.size());
   }
 
   @Override
-  public Map metadata() {
+  public Map delta() {
     Collection<EntityTags> allEntityTagsFront50 = front50Service.getAllEntityTags(false);
     Map<String, List<EntityTags>> entityTagsByEntityTypeFront50 = allEntityTagsFront50
       .stream()
@@ -336,7 +387,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         // verify that the indexed document can be retrieved (accounts for index lag)
         Map<String, Object> entityTagsCriteria = new HashMap<>();
         entityTags.getTags().stream().filter(entityTag -> entityTag != null && entityTag.getValueType() != null).forEach(entityTag -> {
-          switch(entityTag.getValueType()) {
+          switch (entityTag.getValueType()) {
             case object:
               entityTagsCriteria.put(entityTag.getName(), "*");
               break;
@@ -353,6 +404,11 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       1000,
       3
     );
+  }
+
+  @Override
+  public Map reconcile(String cloudProvider, String account, String region, boolean dryRun) {
+    return elasticSearchEntityTagsReconciler.reconcile(this, cloudProvider, account, region, dryRun);
   }
 
   private QueryBuilder applyTagsToBuilder(String namespace, Map<String, Object> tags) {
