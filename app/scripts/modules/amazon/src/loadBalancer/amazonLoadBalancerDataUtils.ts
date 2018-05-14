@@ -53,7 +53,9 @@ export class AmazonLoadBalancerDataUtils {
         const targetGroups = serverGroup.targetGroups
           .map((targetGroupName: string) => {
             const allTargetGroups = flatten(loadBalancers.map(lb => lb.targetGroups || []));
-            const targetGroup = allTargetGroups.find(tg => tg.name === targetGroupName);
+            const targetGroup = allTargetGroups.find(
+              tg => tg.name === targetGroupName && tg.region === serverGroup.region,
+            );
             return this.buildTargetGroup(targetGroup, serverGroup);
           })
           .filter(tg => tg);
