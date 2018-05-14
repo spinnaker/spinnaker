@@ -44,6 +44,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -63,27 +64,27 @@ import static java.lang.String.format;
 public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
   private static final Logger log = LoggerFactory.getLogger(ElasticSearchEntityTagsProvider.class);
 
+  private final ApplicationContext applicationContext;
   private final RetrySupport retrySupport;
   private final ObjectMapper objectMapper;
   private final Front50Service front50Service;
   private final JestClient jestClient;
-  private final ElasticSearchEntityTagsReconciler elasticSearchEntityTagsReconciler;
 
   private final String activeElasticSearchIndex;
 
 
   @Autowired
-  public ElasticSearchEntityTagsProvider(RetrySupport retrySupport,
+  public ElasticSearchEntityTagsProvider(ApplicationContext applicationContext,
+                                         RetrySupport retrySupport,
                                          ObjectMapper objectMapper,
                                          Front50Service front50Service,
                                          JestClient jestClient,
-                                         ElasticSearchEntityTagsReconciler elasticSearchEntityTagsReconciler,
                                          ElasticSearchConfigProperties elasticSearchConfigProperties) {
+    this.applicationContext = applicationContext;
     this.retrySupport = retrySupport;
     this.objectMapper = objectMapper;
     this.front50Service = front50Service;
     this.jestClient = jestClient;
-    this.elasticSearchEntityTagsReconciler = elasticSearchEntityTagsReconciler;
     this.activeElasticSearchIndex = elasticSearchConfigProperties.getActiveIndex();
   }
 
@@ -306,7 +307,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
     }
 
     Collection<EntityTags> entityTags = front50Service.getAllEntityTags(true);
-    Collection<EntityTags> filteredEntityTags = elasticSearchEntityTagsReconciler.filter(entityTags);
+    Collection<EntityTags> filteredEntityTags = getElasticSearchEntityTagsReconciler().filter(entityTags);
 
     log.info(
       "Indexing {} entity tags ({} orphans have been excluded)",
@@ -408,7 +409,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   @Override
   public Map reconcile(String cloudProvider, String account, String region, boolean dryRun) {
-    return elasticSearchEntityTagsReconciler.reconcile(this, cloudProvider, account, region, dryRun);
+    return getElasticSearchEntityTagsReconciler().reconcile(this, cloudProvider, account, region, dryRun);
   }
 
   private QueryBuilder applyTagsToBuilder(String namespace, Map<String, Object> tags) {
@@ -515,6 +516,10 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
         log.warn("Unable to clear scroll id {}", scrollId, e);
       }
     }
+  }
+
+  private ElasticSearchEntityTagsReconciler getElasticSearchEntityTagsReconciler() {
+    return applicationContext.getBean(ElasticSearchEntityTagsReconciler.class);
   }
 
   private static EntityTags prepareForWrite(ObjectMapper objectMapper, EntityTags entityTags) {

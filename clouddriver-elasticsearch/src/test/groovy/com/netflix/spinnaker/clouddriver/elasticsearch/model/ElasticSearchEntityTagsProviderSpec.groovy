@@ -28,6 +28,7 @@ import io.searchbox.indices.CreateIndex
 import io.searchbox.indices.DeleteIndex
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.node.Node
+import org.springframework.context.ApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -52,6 +53,10 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
   Front50Service front50Service = Mock(Front50Service)
   ElasticSearchEntityTagsProvider entityTagsProvider
   ElasticSearchEntityTagsReconciler entityTagsReconciler = Mock(ElasticSearchEntityTagsReconciler)
+
+  ApplicationContext applicationContext = Mock(ApplicationContext) {
+    _ * getBean(_) >> { return entityTagsReconciler }
+  }
 
   def setupSpec() {
     def elasticSearchSettings = Settings.settingsBuilder()
@@ -104,11 +109,11 @@ class ElasticSearchEntityTagsProviderSpec extends Specification {
       .build());
 
     entityTagsProvider = new ElasticSearchEntityTagsProvider(
+      applicationContext,
       retrySupport,
       objectMapper,
       front50Service,
       jestClient,
-      entityTagsReconciler,
       elasticSearchConfigProperties
     )
   }
