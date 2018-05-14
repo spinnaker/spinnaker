@@ -127,14 +127,15 @@ public class JiraService {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class CreateIssueRequest {
     private Fields fields;
+    private Update update;
 
     public CreateIssueRequest() {
       this.fields = new JiraService.CreateIssueRequest.Fields();
     }
 
     public CreateIssueRequest withProjectId(String projectId) {
-       fields.setProject(new Fields.Project().withId(projectId));
-       return this;
+      fields.setProject(new Fields.Project().withId(projectId));
+      return this;
     }
 
     public CreateIssueRequest withProjectKey(String key) {
@@ -177,12 +178,31 @@ public class JiraService {
       return this;
     }
 
+    public CreateIssueRequest withAssignee(String assignee) {
+      fields.setAssignee(new Fields.Assignee().withName(assignee));
+      return this;
+    }
+
+    /*
+     * withLinkedIssue functionality requires having the Linked Issue field
+     * enabled on Jira's Create Issue screen for the project in question.
+     * https://confluence.atlassian.com/jirakb/how-to-use-rest-api-to-add-issue-links-in-jira-issues-939932271.html
+     */
+    public CreateIssueRequest withLinkedIssue(String type, String key) {
+      this.update = new Update().withLink(type, key);
+      return this;
+    }
+
     public void addDetails(String key, Object object) {
       fields.details().put(key, object);
     }
 
     public Fields getFields() {
       return fields;
+    }
+
+    public Update getUpdate() {
+      return update;
     }
 
     public void setFields(Fields fields) {
@@ -201,14 +221,106 @@ public class JiraService {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Update {
+      private List<IssueLink> issuelinks;
+
+      public Update withLink(String type, String key) {
+        issuelinks = new ArrayList<>();
+        issuelinks.add(new IssueLink().withAddLink(type, key));
+        return this;
+      }
+
+      public List<IssueLink> getIssuelinks() {
+        return issuelinks;
+      }
+
+      public static class IssueLink {
+        private AddLink add;
+
+        public IssueLink withAddLink(String type, String key) {
+          this.add = new AddLink().withTypeAndKey(type, key);
+          return this;
+        }
+
+        public AddLink getAdd() {
+          return add;
+        }
+
+        public static class AddLink {
+          private IssueLinkType type;
+          private LinkedKey inwardIssue;
+
+          public AddLink withTypeAndKey(String type, String key) {
+            this.type = new IssueLinkType().withName(type);
+            this.inwardIssue = new LinkedKey().withKey(key);
+            return this;
+          }
+
+          public IssueLinkType getType() {
+            return type;
+          }
+
+          public LinkedKey getInwardIssue() {
+            return inwardIssue;
+          }
+
+          public static class IssueLinkType {
+            private String name;
+
+            public IssueLinkType withName(String name) {
+              setName(name);
+              return this;
+            }
+
+            public void setName(String name) {
+              this.name = name;
+            }
+
+            public String getName() {
+              return name;
+            }
+          }
+
+          public static class LinkedKey {
+            private String key;
+
+            public LinkedKey withKey(String key) {
+              setKey(key);
+              return this;
+            }
+
+            public void setKey(String key) {
+              this.key = key;
+            }
+
+            public String getKey() {
+              return key;
+            }
+          }
+        }
+      }
+
+      @Override
+      public String toString() {
+        return "Update{" +
+          "linkType=" + issuelinks.get(0).getAdd().getType().getName() +
+          ", linkKey=" + issuelinks.get(0).getAdd().getInwardIssue().getKey() +
+          '}';
+      }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Fields {
       @NotNull
       private Project project;
-      @NotNull private String description;
-      @JsonProperty("issuetype") private IssueType issueType;
+      @NotNull
+      private String description;
+      @JsonProperty("issuetype")
+      private IssueType issueType;
       private String summary;
       private Parent parent;
       private Reporter reporter;
+      private Assignee assignee;
 
       public Project getProject() {
         return project;
@@ -258,7 +370,16 @@ public class JiraService {
         this.reporter = reporter;
       }
 
+      public Assignee getAssignee() {
+        return assignee;
+      }
+
+      public void setAssignee(Assignee assignee) {
+        this.assignee = assignee;
+      }
+
       private Map<String, Object> details = new HashMap<>();
+
       @JsonAnySetter
       public void set(String name, Object value) {
         details.put(name, value);
@@ -279,6 +400,7 @@ public class JiraService {
           ", summary='" + summary + '\'' +
           ", parent=" + parent +
           ", reporter='" + reporter + '\'' +
+          ", assignee='" + assignee + '\'' +
           '}';
       }
 
@@ -306,6 +428,30 @@ public class JiraService {
         }
       }
 
+      public static class Assignee {
+        private String name;
+
+        public Assignee withName(String name) {
+          setName(name);
+          return this;
+        }
+
+        public String getName() {
+          return name;
+        }
+
+        public void setName(String name) {
+          this.name = name;
+        }
+
+        @Override
+        public String toString() {
+          return "Assignee{" +
+            "name='" + name + '\'' +
+            '}';
+        }
+      }
+
       @JsonInclude(JsonInclude.Include.NON_NULL)
       public static class Project extends IdKey {
         public Project withId(String id) {
@@ -317,6 +463,7 @@ public class JiraService {
           setKey(key);
           return this;
         }
+
         @Override
         public String toString() {
           return "Project{" +
